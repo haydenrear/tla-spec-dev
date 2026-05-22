@@ -1,0 +1,30 @@
+----------------------------- MODULE {{ module_name }} -----------------------------
+EXTENDS Naturals, FiniteSets, Sequences, TLC
+
+\* TLA+ is the canonical semantic spec.
+\* Model centralized semantic state here, even if production is distributed.
+\* Keep databases, queues, logging, retries, and protocols out unless they are
+\* semantically relevant to the feature.
+
+CONSTANTS
+  {{ constants }}
+
+VARIABLES
+  {{ variables }}
+
+vars == << {{ variable_list }} >>
+
+Init ==
+  /\ {{ init_predicates }}
+
+{{ actions }}
+
+Next ==
+  \/ {{ next_actions }}
+
+{{ invariants }}
+
+Spec ==
+  Init /\ [][Next]_vars
+
+=============================================================================

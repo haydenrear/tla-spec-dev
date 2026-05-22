@@ -1,0 +1,25 @@
+# Transitive unit references are intentionally empty. This skill is
+# installable on its own; SKILL.md uses semantic skill-imports for
+# authoring guidance without forcing additional install-time units.
+skill_references = []
+
+[[cli_dependencies]]
+spec = "pip:jinja2-cli[yaml]==0.8.2"
+on_path = "jinja2"
+
+[[cli_dependencies]]
+spec = "pip:pytest==8.3.4"
+on_path = "pytest"
+
+[[cli_dependencies]]
+spec = "skill-script:tlc2"
+on_path = "tlc2"
+
+[cli_dependencies.install.any]
+script = "install-tlc2.sh"
+binary = "tlc2"
+
+[skill]
+name = "spec-double-compiler"
+version = "0.1.0"
+description = "Generate and maintain Python spec doubles from constrained, annotated TLA+ specifications."

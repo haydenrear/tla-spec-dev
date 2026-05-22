@@ -1,0 +1,100 @@
+module: Subscription
+package: subscription_spec
+
+state:
+  SubscriptionState:
+    fields:
+      status:
+        type: dict[SubscriptionId, SubscriptionStatus]
+        tla: status
+      invoice_state:
+        type: dict[SubscriptionId, InvoiceState]
+        tla: invoice_state
+      billing_period:
+        type: dict[SubscriptionId, int]
+        tla: billing_period
+
+types:
+  SubscriptionId:
+    python: str
+    source: Subscriptions
+  SubscriptionStatus:
+    python: str
+    source: Statuses
+  InvoiceState:
+    python: str
+    source: InvoiceStates
+
+commands:
+  ActivateSubscription:
+    action: Activate
+    fields:
+      subscription_id:
+        type: SubscriptionId
+        tla: s
+  PauseSubscription:
+    action: Pause
+    fields:
+      subscription_id:
+        type: SubscriptionId
+        tla: s
+  CancelSubscription:
+    action: Cancel
+    fields:
+      subscription_id:
+        type: SubscriptionId
+        tla: s
+
+results:
+  SubscriptionTransitionResult:
+    fields:
+      accepted:
+        type: bool
+      reason:
+        type: str | None
+        default: None
+
+ports:
+  SubscriptionPort:
+    methods:
+      activate_subscription:
+        command: ActivateSubscription
+        result: SubscriptionTransitionResult
+      pause_subscription:
+        command: PauseSubscription
+        result: SubscriptionTransitionResult
+      cancel_subscription:
+        command: CancelSubscription
+        result: SubscriptionTransitionResult
+      snapshot:
+        result: SubscriptionState
+
+invariants:
+  - CanceledNotActiveInvariant
+
+finite_model:
+  Subscriptions:
+    values:
+      - s1
+      - s2
+  Statuses:
+    values:
+      - trialing
+      - active
+      - paused
+      - canceled
+  InvoiceStates:
+    values:
+      - paid
+      - unpaid
+
+generators:
+  subscriptions:
+    source: Subscriptions
+  traces:
+    max_depth: 8
+
+notes:
+  status_machine:
+    description: This partial example demonstrates lifecycle specs, allowed transitions, billing-period preservation, and unpaid-invoice rejection.
+    v0_status: Add explicit fake and invariant templates before generating production-ready artifacts.
