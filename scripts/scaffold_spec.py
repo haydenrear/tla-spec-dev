@@ -30,29 +30,38 @@ EXTENDS Naturals, FiniteSets, Sequences, TLC
 CONSTANTS
   Actors,
   Items,
-  Limits,
+  LimitOneActors,
+  LimitTwoActors,
   NoReason
 
 VARIABLES
   owned,
+  limits,
   result
 
-vars == << owned, result >>
+vars == << owned, limits, result >>
 
 Init ==
   /\\ owned = [a \\in Actors |-> {{}}]
+  /\\ limits = [
+      a \\in Actors |->
+        IF a \\in LimitOneActors THEN 1
+        ELSE IF a \\in LimitTwoActors THEN 2
+        ELSE 0
+    ]
   /\\ result = [accepted |-> TRUE, reason |-> NoReason]
 
 \\* @command CreateItem
 \\* @result CreateItemResult
 Create(a, i) ==
-  IF Cardinality(owned[a]) >= Limits[a]
+  IF Cardinality(owned[a]) >= limits[a]
   THEN
     /\\ result' = [accepted |-> FALSE, reason |-> "LIMIT_REACHED"]
-    /\\ UNCHANGED owned
+    /\\ UNCHANGED << owned, limits >>
   ELSE
     /\\ owned' = [owned EXCEPT ![a] = @ \\cup {{i}}]
     /\\ result' = [accepted |-> TRUE, reason |-> NoReason]
+    /\\ UNCHANGED limits
 
 Next ==
   \\E a \\in Actors, i \\in Items:
@@ -61,7 +70,7 @@ Next ==
 \\* @invariant LimitInvariant
 LimitInvariant ==
   \\A a \\in Actors:
-    Cardinality(owned[a]) <= Limits[a]
+    Cardinality(owned[a]) <= limits[a]
 
 Spec ==
   Init /\\ [][Next]_vars
@@ -74,7 +83,8 @@ Spec ==
 CONSTANTS
   Actors = {a1, a2}
   Items = {i1, i2, i3}
-  Limits = [a1 |-> 1, a2 |-> 2]
+  LimitOneActors = {a1}
+  LimitTwoActors = {a2}
   NoReason = NoReason
 
 INVARIANTS
@@ -92,7 +102,7 @@ state:
         tla: owned
       limits:
         type: dict[ActorId, int]
-        tla: Limits
+        tla: limits
 
 types:
   ActorId:

@@ -33,8 +33,8 @@ skill-manager install file://$(pwd)
 
 The skill declares CLI dependencies for `jinja2`, `pytest`, and a
 `skill-script` installed `tlc2` wrapper. The `tlc2` wrapper downloads
-the TLA+ tools jar from Maven Central at install time and requires a
-local Java runtime.
+the TLA+ tools jar from the TLA+ GitHub releases at install time and
+requires a local Java runtime.
 
 ## Quick Start
 
