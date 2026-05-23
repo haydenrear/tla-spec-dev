@@ -16,6 +16,8 @@ boundary.
 - A constrained TLA+ profile for practical state-machine specs.
 - Guidance for maintaining one evolving whole-program spec instead of many
   disconnected feature specs.
+- A ticket workflow scaffold for ordinary development tickets that need
+  desired/current/program-model discipline.
 - Templates for TLA+ modules, TLC configs, manifests, and Python package
   artifacts.
 - Scripts for scaffolding specs, checking manifest references, generating
@@ -44,10 +46,24 @@ requires a local Java runtime.
 
 ```bash
 python scripts/scaffold_spec.py workspace
+python scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root path/to/repo
 python scripts/run_tlc.sh examples/workspace/Workspace.tla examples/workspace/MC.cfg
 python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
 python -m pytest examples/workspace/tests
 ```
+
+`new_ticket_workflow.py` scaffolds:
+
+- `specs/current`: executable model of what has landed for the active ticket.
+- `specs/desired_program_model`: target model plus ticket plan.
+- `specs/desired_program_model/ticket_plan.yaml`: opinionated ticket breakdown
+  with current-model increments, adapter expectations, tests, graph gates, and
+  evidence slots.
+- `status` sections in `spec_manifest.yaml` files so agents and humans can see
+  which ticket is active, what is done, and what remains.
+
+This is not a migration-only workflow. Use it for any behavior ticket where
+formal state, adapters, and validation evidence should guide implementation.
 
 To derive whole-program transition cases from TLC and validate that every
 action label is mapped to an adapter:
@@ -100,6 +116,7 @@ templates/
     docs.md.j2
 scripts/
   scaffold_spec.py
+  new_ticket_workflow.py
   extract_spec_manifest.py
   generate_python.py
   generate_docs.py

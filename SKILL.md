@@ -130,7 +130,7 @@ Small tutorial specs are acceptable for examples, but production repositories
 should avoid accumulating twenty unrelated TLA+ modules that each describe one
 feature and disagree about shared state.
 
-## Program Model Planning Workflow
+## Program Model Ticket Workflow
 
 For repository feature work, tickets, and behavior changes, use the spec tree
 as both the formal model and the plan of action:
@@ -146,11 +146,11 @@ as both the formal model and the plan of action:
   implemented right now while work is in progress. This starts equivalent to
   `specs/program_model` for the affected behavior and advances as tickets land.
 
-This workflow is not reserved for large migrations. Use it for ordinary
-implementation tickets whenever repository behavior should be represented in
-the program spec. The benefit is that each ticket updates living executable
-documentation and produces spec-derived unit tests while preserving a visible
-diff between baseline, current implementation, and desired outcome.
+This workflow is normal development practice for model-worthy behavior. Use it
+for ordinary implementation tickets whenever repository behavior should be
+represented in the program spec. The benefit is that each ticket updates living
+executable documentation and produces spec-derived unit tests while preserving a
+visible diff between baseline, current implementation, and desired outcome.
 
 Lifecycle:
 
@@ -181,6 +181,18 @@ During this lifecycle, `specs/program_model` answers "where did we start?",
 `specs/desired_program_model` answers "where are we going and by which
 verified tickets?", and `specs/current` answers "what does the repository
 currently implement and test?"
+
+To start this structure in a repository, use:
+
+```bash
+python path/to/tla-spec-dev/scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .
+```
+
+The scaffold creates `specs/current` and `specs/desired_program_model`, adds a
+`ticket_plan.yaml`, and adds a `status` section to both spec manifests. The
+generated comments are intentionally instructional; replace them with the
+project's actual state, actions, adapter boundaries, tests, and evidence as the
+ticket is refined.
 
 ## When To Use
 
@@ -230,8 +242,10 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 ## Standard Workflow
 
 1. For behavior changes, create or refresh `specs/desired_program_model` with
-   both the target model and the implementation plan: phases, tickets, steps,
+   both the target model and the implementation plan: ticket breakdown, steps,
    dependencies, status metadata, acceptance criteria, and validation commands.
+   Use `scripts/new_ticket_workflow.py` when the repository does not have this
+   structure yet.
 2. Ensure `specs/current` starts from the accepted `specs/program_model` state
    for the behavior being changed.
 3. For each ticket or slice, update production code and then update

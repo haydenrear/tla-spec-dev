@@ -6,9 +6,10 @@ the truth. Python makes that truth executable in tests.
 ## Changing Behavior
 
 1. Treat `specs/desired_program_model` as both the target formal model and the
-   plan of action. Keep phases, tickets, steps, dependencies, status metadata,
+   plan of action. Keep ticket breakdown, steps, dependencies, status metadata,
    acceptance criteria, validation commands, and adapter coverage expectations
-   there.
+   there. If the repository does not have the desired/current structure yet,
+   run `scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .`.
 2. Ensure `specs/current` starts from the accepted `specs/program_model`
    behavior for the slice being changed.
 3. Implement one ticket or slice.
@@ -39,7 +40,7 @@ the truth. Python makes that truth executable in tests.
 
 - Does the product narrative explain why the behavior exists?
 - Does `specs/desired_program_model` contain the current plan breakdown with
-  phases, tickets, steps, dependencies, status, and acceptance criteria?
+  tickets, steps, dependencies, status, and acceptance criteria?
 - Does each completed ticket update `specs/current` to the implemented
   repository state?
 - Does the TLA+ model capture the canonical state machine?
