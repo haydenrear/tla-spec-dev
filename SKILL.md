@@ -199,6 +199,36 @@ python scripts/run_generated_case_adapters.py examples/workspace/generated/works
 pytest examples/workspace/tests
 ```
 
+## Desired/Current Migration Loop
+
+For large migrations, keep two coordinated spec views:
+
+- `specs/desired_program_model`: the intended whole-program end state.
+- `specs/current`: the currently implemented slice and its adapters.
+
+Use this loop for each slice:
+
+1. Update the desired program model with what was learned from the previous
+   slice, including status metadata for done, in-progress, and pending
+   boundaries.
+2. Update the current program model to include only behavior that is now
+   implemented or being implemented in this slice.
+3. Add or update current adapters and unit tests first. These tests should
+   validate the control surface, rendering, or refinement mapping without
+   requiring the full integration graph unless that is the slice under test.
+4. Run TLC and the current adapter/unit tests.
+5. Add the behavior to the test graph with explicit external assertions. Do
+   not rely only on a wrapper exit code when Helm, Kubernetes, databases,
+   queues, files, or services are the actual boundary. Assert with the real
+   external tool (`kubectl`, `helm`, SQL, Kafka admin, filesystem inspection,
+   HTTP, etc.) and publish useful endpoint/context data for downstream nodes.
+6. Run the narrow graph for the slice.
+7. Record the run id and evidence in `specs/current`, then sync the desired
+   model metadata to mark the refined boundary as done.
+
+This loop keeps the desired model honest, the current model executable, and
+the behavioral graph anchored to externally observable facts.
+
 ## Generated Artifacts
 
 Generated packages should include:
