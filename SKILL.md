@@ -130,6 +130,58 @@ Small tutorial specs are acceptable for examples, but production repositories
 should avoid accumulating twenty unrelated TLA+ modules that each describe one
 feature and disagree about shared state.
 
+## Program Model Planning Workflow
+
+For repository feature work, tickets, and behavior changes, use the spec tree
+as both the formal model and the plan of action:
+
+- `specs/program_model`: the accepted baseline whole-program model. At the
+  start of a change, this is the semantic truth the repository already claims.
+- `specs/desired_program_model`: the planned destination. This is not only a
+  future TLA+ model; it is also the structured implementation plan. It should
+  carry phases, tickets, steps, dependencies, acceptance criteria, owner/status
+  metadata, validation commands, adapter coverage expectations, and the target
+  invariants/actions/state the repository is moving toward.
+- `specs/current`: the executable model of the repository state that is
+  implemented right now while work is in progress. This starts equivalent to
+  `specs/program_model` for the affected behavior and advances as tickets land.
+
+This workflow is not reserved for large migrations. Use it for ordinary
+implementation tickets whenever repository behavior should be represented in
+the program spec. The benefit is that each ticket updates living executable
+documentation and produces spec-derived unit tests while preserving a visible
+diff between baseline, current implementation, and desired outcome.
+
+Lifecycle:
+
+1. Before implementation, confirm `specs/current` represents the starting
+   repository state and matches `specs/program_model` for the behavior being
+   changed.
+2. Create or update `specs/desired_program_model` with the target
+   whole-program model and the plan breakdown: phases, tickets, steps,
+   dependencies, status metadata, acceptance criteria, and validation evidence
+   expected for each slice.
+3. Implement one ticket or slice in production code.
+4. Update `specs/current` to describe what is now implemented, including TLA+
+   actions, manifests, adapter mappings, generated cases, tests, and progress
+   metadata for the completed slice.
+5. Run TLC and generated/adapted case tests for `specs/current`; treat these as
+   unit tests for the current repository behavior.
+6. Keep `specs/desired_program_model` updated as the plan changes. If a ticket
+   splits, merges, changes order, gains a dependency, or changes acceptance
+   criteria, record that there instead of leaving the plan in chat or ad hoc
+   notes.
+7. Repeat until `specs/current` semantically equals
+   `specs/desired_program_model`.
+8. Promote the converged model into `specs/program_model`, regenerate accepted
+   artifacts, and delete `specs/desired_program_model` once it is equal to the
+   new program model and no longer carries distinct planning state.
+
+During this lifecycle, `specs/program_model` answers "where did we start?",
+`specs/desired_program_model` answers "where are we going and by which
+verified tickets?", and `specs/current` answers "what does the repository
+currently implement and test?"
+
 ## When To Use
 
 Use this workflow when the program has meaningful state, edge cases matter,
@@ -177,16 +229,26 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 
 ## Standard Workflow
 
-1. Write or update the TLA+ program model first.
-2. Run TLC against a finite model config.
-3. Review invariants and counterexamples.
-4. Update `spec_manifest.yaml` if commands, state fields, results, ports,
-   generators, or invariants changed.
-5. Regenerate Python artifacts.
-6. Review generated diffs.
-7. Run spec-double self-tests.
-8. Run adapter conformance tests.
-9. Update production adapters only after the generated boundary is clear.
+1. For behavior changes, create or refresh `specs/desired_program_model` with
+   both the target model and the implementation plan: phases, tickets, steps,
+   dependencies, status metadata, acceptance criteria, and validation commands.
+2. Ensure `specs/current` starts from the accepted `specs/program_model` state
+   for the behavior being changed.
+3. For each ticket or slice, update production code and then update
+   `specs/current` to the implemented repository state.
+4. Run TLC against the current finite model config.
+5. Review invariants and counterexamples.
+6. Update `spec_manifest.yaml` or adjacent status files if commands, state
+   fields, results, ports, generators, invariants, adapters, or plan metadata
+   changed.
+7. Regenerate Python artifacts for the current model.
+8. Review generated diffs plus the `program_model` -> `current` ->
+   `desired_program_model` relationship.
+9. Run spec-double self-tests.
+10. Run adapter conformance tests.
+11. Continue until `specs/current` equals `specs/desired_program_model`, then
+    promote the converged model to `specs/program_model` and remove
+    `specs/desired_program_model` once it no longer differs.
 
 Example commands:
 

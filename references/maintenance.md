@@ -5,16 +5,26 @@ the truth. Python makes that truth executable in tests.
 
 ## Changing Behavior
 
-1. Update the TLA+ model first.
-2. Run TLC.
-3. Review invariants and counterexamples.
-4. Update the manifest if new commands, state fields, results, or ports
-   are needed.
-5. Regenerate Python artifacts.
-6. Review generated diffs.
-7. Run spec-double self-tests.
-8. Run adapter conformance tests.
-9. Update production adapters only after the new spec boundary is clear.
+1. Treat `specs/desired_program_model` as both the target formal model and the
+   plan of action. Keep phases, tickets, steps, dependencies, status metadata,
+   acceptance criteria, validation commands, and adapter coverage expectations
+   there.
+2. Ensure `specs/current` starts from the accepted `specs/program_model`
+   behavior for the slice being changed.
+3. Implement one ticket or slice.
+4. Update `specs/current` to represent the behavior now implemented.
+5. Run TLC for `specs/current`.
+6. Review invariants and counterexamples.
+7. Update the manifest or adjacent status files if new commands, state fields,
+   results, ports, adapters, invariants, or plan metadata are needed.
+8. Regenerate Python artifacts for the current model.
+9. Review generated diffs and the baseline/current/desired relationship.
+10. Run spec-double self-tests.
+11. Run adapter conformance tests.
+12. When `specs/current` equals `specs/desired_program_model`, promote the
+    converged model to `specs/program_model` and remove
+    `specs/desired_program_model` once it no longer carries distinct planning
+    state.
 
 ## Changing Implementation Only
 
@@ -28,6 +38,10 @@ the truth. Python makes that truth executable in tests.
 ## Review Checklist
 
 - Does the product narrative explain why the behavior exists?
+- Does `specs/desired_program_model` contain the current plan breakdown with
+  phases, tickets, steps, dependencies, status, and acceptance criteria?
+- Does each completed ticket update `specs/current` to the implemented
+  repository state?
 - Does the TLA+ model capture the canonical state machine?
 - Does the manifest expose the minimum reproducible contract?
 - Do generated files have deterministic diffs?
