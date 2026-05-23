@@ -17,8 +17,10 @@ skill-imports:
 Core slogan: **The spec should generate the mock.**
 
 Use this skill when a developer wants TLA+ to be the canonical semantic
-spec for a meaningful stateful feature, and wants generated Python
-artifacts that make that truth cheap to execute in ordinary tests.
+spec for an evolving program, especially a distributed program whose real
+behavior is spread across processes, queues, files, databases, and external
+services. The goal is one durable program model that grows over time, not a
+pile of disconnected feature specs.
 
 This skill does not compile arbitrary TLA+ into arbitrary Python. It
 supports a constrained, annotated TLA+ profile plus a
@@ -28,8 +30,9 @@ supports a constrained, annotated TLA+ profile plus a
 
 Keep these layers distinct:
 
-- Product narrative: why the feature exists.
-- TLA+ spec: the canonical state machine and source of semantic truth.
+- Program narrative: what the system is and what must remain true as it
+  evolves.
+- TLA+ program spec: the canonical state machine and source of semantic truth.
 - Generated Python spec double: executable fake, validators, strategies,
   traces, ports, and contract tests.
 - Production implementation: optimized, distributed, real-world machinery.
@@ -49,7 +52,13 @@ Vocabulary to use consistently:
 - Spec double: a generated Python fake/mock-like object that implements
   a port and embodies the TLA+ model semantics.
 - Minimum reproducible contract: the smallest executable boundary that
-  reproduces the behavior, edge cases, and invariants of a feature.
+  reproduces a slice of the program behavior, edge cases, and invariants.
+- Program spec: the single evolving TLA+ model of the application-level state
+  machine. Add actions, variables, invariants, and resource boundaries to this
+  model as the program grows.
+- Feature slice: a bounded projection of the program spec used for a local
+  test, adapter, trace, or generated double. A feature slice should refine back
+  to the program spec; it should not become a separate source of truth.
 - Centralized semantic state: the TLA+ model's simplified state, even
   when production uses databases, queues, caches, services, or workers.
 - Port: a Python Protocol or interface representing a boundary.
@@ -100,18 +109,41 @@ emitted, notification consumed, retrain request derived, dataset exported,
 training started, training completed, duplicate suppressed, and failure
 dead-lettered.
 
+## Program Spec Rule
+
+For a real repository, default to one program spec that evolves with the
+system. Do not create one TLA+ module per feature just because work arrives as
+feature requests. The program spec is the semantic map of the whole application;
+individual generated doubles and adapter tests are selected slices of that map.
+
+Add new behavior by extending the program spec:
+
+- Add or refine state variables for new program facts or resources.
+- Add named actions for new process boundaries or lifecycle steps.
+- Add invariants that connect the new behavior to existing program state.
+- Regenerate cases and update adapter mappings.
+- Use labels, labelers, and selected case execution to test the relevant slice.
+
+Create a separate spec only when the model is genuinely a different program or
+when it has an explicit refinement relationship back to the main program spec.
+Small tutorial specs are acceptable for examples, but production repositories
+should avoid accumulating twenty unrelated TLA+ modules that each describe one
+feature and disagree about shared state.
+
 ## When To Use
 
-Use this workflow when the feature has meaningful state, edge cases
-matter, correctness is expensive, concurrency or interleavings matter,
-multiple adapters exist, AI agents need compact reliable context, or
-production machinery obscures business semantics. It fits permissions,
-billing, scheduling, workflow, inventory, ordering, lifecycle, and
-distributed behavior.
+Use this workflow when the program has meaningful state, edge cases matter,
+correctness is expensive, concurrency or interleavings matter, multiple
+adapters exist, AI agents need compact reliable context, or production
+machinery obscures business semantics. It fits distributed applications,
+pipelines, permissions, billing, scheduling, workflow, inventory, ordering,
+lifecycle, and continual processes.
 
-Do not use it when the feature is mostly static, behavior is not yet
-understood, state space is trivial, generated artifacts would not be used
-in tests, or maintenance cost exceeds semantic-drift risk.
+Do not use it as a paperwork exercise for static code with no meaningful
+state, for behavior that is not yet understood well enough to model, or when
+generated artifacts would not be used in tests. If only one small part of the
+program is mature enough to model, add that slice to the evolving program spec
+and leave explicit gaps rather than starting an unrelated feature spec.
 
 ## TLA+ Profile
 
@@ -145,7 +177,7 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 
 ## Standard Workflow
 
-1. Write or update the TLA+ model first.
+1. Write or update the TLA+ program model first.
 2. Run TLC against a finite model config.
 3. Review invariants and counterexamples.
 4. Update `spec_manifest.yaml` if commands, state fields, results, ports,
@@ -321,7 +353,7 @@ analysis.
 - Do not use interaction mocks where semantic conformance is the goal.
 - Do not let generated spec doubles become production dependencies.
 - Do not hide refinement mappings.
-- Do not assume every feature deserves TLA+.
+- Do not create disconnected TLA+ specs per feature in a production repository.
 - Do not use TLA+ ceremony for trivial CRUD or early exploratory UI work.
 - Do not confuse centralized semantic state with centralized production
   architecture.

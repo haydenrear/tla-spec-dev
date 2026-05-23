@@ -23,21 +23,33 @@ not compile arbitrary TLA+ into Python.
 - explicit command/result concepts through comments or
   `spec_manifest.yaml`
 
-## Modeling Rule
+## Program Modeling Rule
 
-Model centralized semantic state. This does not mean production must be
-centralized. The TLA+ model should describe the simplest state that
-captures the feature's semantics.
+Model centralized semantic state for the program. This does not mean
+production must be centralized. The TLA+ model should describe the simplest
+state that captures the application-level semantics across components.
+
+For production repositories, prefer one evolving program spec over many
+feature-local specs. A feature, worker, adapter, endpoint, or pipeline stage is
+a slice through the program model. It should add variables, actions,
+invariants, labels, and adapter mappings to the shared spec rather than create
+an isolated source of truth.
 
 Examples:
 
 - A Postgres table plus Redis cache plus worker queue can refine to one
   map in the spec.
 - A distributed billing workflow can refine to one subscription record.
-- A Kafka event stream can refine to a sequence of accepted domain
-  events.
+- A Kafka event stream can refine to a sequence of accepted domain events.
+- A distributed training pipeline can refine to one program model containing
+  metadata events, topic queues, append-log files, notifications, retrain
+  requests, runs, and checkpoints.
 
 The implementation may be distributed; the spec state is centralized.
+
+Use separate TLA+ modules only for tutorial examples, genuinely separate
+programs, or explicitly named refinement layers. Avoid a repository that has a
+different unrelated spec for every feature.
 
 ## Recommended Module Shape
 
