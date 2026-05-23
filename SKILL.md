@@ -168,21 +168,40 @@ adapter = "my_project.spec_adapters:CompactDatasetAdapter"
 [[adapter]]
 labels = ["PublishMetadata", "LoadMarket"]
 adapter = "my_project.spec_adapters:KafkaComponentAdapter"
+output_projection = "my_project.spec_adapters:project_kafka_output"
 ```
 
-`scripts/run_generated_case_adapters.py` validates that every case label has an
-adapter mapping, writes one executable Python program per selected case into a
-temporary work directory, and then runs those generated programs unless
-`--validate-only` is set. Adapters live outside generated files and expose:
+Mappings are checked per case: at least one label on every selected case must
+map to an adapter. If a case has both a coarse action label and a fine-grained
+edge label, the first matching TOML entry wins, so put fine-grained mappings
+before coarse fallback mappings.
+
+`scripts/run_generated_case_adapters.py` validates coverage, can optionally ask
+adapters whether they support every selected case with `--validate-capabilities`,
+writes one executable Python program per selected case into a temporary work
+directory, and then runs those generated programs unless `--validate-only` is
+set. Use `--batch` to execute many cases in one interpreter; combine it with
+`--python path/to/venv/bin/python` when the adapter needs a project venv.
+
+Adapters live outside generated files and expose:
 
 ```python
 class Adapter:
+    def can_run(self, case): ...  # optional; bool or (bool, reason)
     def validate(self, case): ...
     def run(self, case, work_dir): ...
 ```
 
-`run` may return `{"output": case.output, "after": case.after}` or an object
-with `output` and `after` attributes. If either field is omitted or `None`, the
+`run` may return `spec_double_compiler.runtime.CaseRunResult`,
+`{"output": case.output, "after": case.after, "semantic_output": ...}`, or an
+object with equivalent attributes. If structural `output` or `after` is omitted
+or `None`, that comparison is skipped. If `output_projection` is configured, the
+runner calls it with the case and compares the adapter's `semantic_output` to
+the projected value.
+
+Extra case labels can be generated with one or more `--labeler module:function`
+arguments to `generate_cases_from_tlc_dump.py`. Labelers receive
+`before/action/after/changed` and return a string or iterable of strings.
 generic runner skips that comparison for that field.
 
 Generated files must include a header saying TLA+ and the manifest are

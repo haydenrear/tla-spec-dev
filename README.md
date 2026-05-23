@@ -53,6 +53,17 @@ python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla 
 python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --import-root examples/workspace --label Create --validate-only
 ```
 
+For larger case sets, use batch mode:
+
+```bash
+python scripts/run_generated_case_adapters.py path/to/generated_cases --mapping path/to/case_adapters.toml --batch --validate-capabilities
+```
+
+Mapping entries may include `output_projection = "module:function"` for
+semantic output checks. `generate_cases_from_tlc_dump.py --labeler
+module:function` can add repository-specific labels while keeping the skill
+generator domain-neutral.
+
 If `pytest` is not installed, the example tests can also be run directly:
 
 ```bash

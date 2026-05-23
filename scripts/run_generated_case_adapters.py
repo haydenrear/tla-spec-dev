@@ -29,6 +29,8 @@ except ModuleNotFoundError:  # pragma: no cover
 class AdapterMapping:
     label: str
     adapter: str
+    output_projection: str | None = None
+    order: int = 0
 
 
 def load_cases(cases_dir: Path):
@@ -49,7 +51,15 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
             adapter = spec.get("adapter")
             if not isinstance(adapter, str) or not adapter:
                 raise ValueError(f"[adapters.{label}] must define adapter = \"module:object\"")
-            mappings[str(label)] = AdapterMapping(label=str(label), adapter=adapter)
+            projection = spec.get("output_projection")
+            if projection is not None and not isinstance(projection, str):
+                raise ValueError(f"[adapters.{label}] output_projection must be \"module:object\"")
+            mappings[str(label)] = AdapterMapping(
+                label=str(label),
+                adapter=adapter,
+                output_projection=projection,
+                order=len(mappings),
+            )
 
     adapter_list = loaded.get("adapter")
     if isinstance(adapter_list, list):
@@ -65,7 +75,12 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
             if not isinstance(labels, list) or not all(isinstance(label, str) for label in labels):
                 raise ValueError(f"[[adapter]] entry {index} must define label or labels")
             for label in labels:
-                mappings[label] = AdapterMapping(label=label, adapter=adapter)
+                mappings[label] = AdapterMapping(
+                    label=label,
+                    adapter=adapter,
+                    output_projection=spec.get("output_projection") if isinstance(spec.get("output_projection"), str) else None,
+                    order=len(mappings),
+                )
 
     if not mappings:
         raise ValueError(f"no adapter mappings found in {path}")
@@ -124,13 +139,13 @@ def case_labels(cases: list[Any]) -> set[str]:
 
 
 def validate_mapping_coverage(cases: list[Any], mappings: dict[str, AdapterMapping]) -> None:
-    labels = case_labels(cases)
-    missing = sorted(labels - set(mappings))
-    if missing:
+    uncovered = [case.name for case in cases if adapter_for_case(case, mappings) is None]
+    if uncovered:
         raise SystemExit(
-            "ERROR: missing adapter mappings for labels: "
-            + ", ".join(missing)
-            + "\nAdd entries such as [adapters.LabelName] adapter = \"module:Adapter\"."
+            "ERROR: missing adapter mappings for cases: "
+            + ", ".join(uncovered[:20])
+            + (f" ... and {len(uncovered) - 20} more" if len(uncovered) > 20 else "")
+            + "\nAdd entries such as [adapters.LabelName] adapter = \"module:Adapter\" for at least one label on each case."
         )
 
 
@@ -147,11 +162,56 @@ def selected_cases(cases: list[Any], labels: list[str], names: list[str], limit:
     return selected
 
 
-def adapter_for_case(case: Any, mappings: dict[str, AdapterMapping]) -> AdapterMapping:
-    for label in sorted(str(label) for label in case.labels):
-        if label in mappings:
-            return mappings[label]
-    raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
+def adapter_for_case(case: Any, mappings: dict[str, AdapterMapping]) -> AdapterMapping | None:
+    labels = {str(label) for label in case.labels}
+    candidates = [mapping for label, mapping in mappings.items() if label in labels]
+    if not candidates:
+        return None
+    return sorted(candidates, key=lambda mapping: mapping.order)[0]
+
+
+def load_adapter(mapping: AdapterMapping, import_roots: list[Path]):
+    ensure_import_roots(import_roots)
+    from spec_double_compiler.runtime import instantiate, load_object
+
+    return instantiate(load_object(mapping.adapter))
+
+
+def ensure_import_roots(import_roots: list[Path]) -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    for root in [skill_root, *import_roots]:
+        resolved = str(root.resolve())
+        if resolved not in sys.path:
+            sys.path.insert(0, resolved)
+
+
+def validate_adapter_capabilities(
+    *,
+    cases: list[Any],
+    mappings: dict[str, AdapterMapping],
+    import_roots: list[Path],
+) -> None:
+    ensure_import_roots(import_roots)
+    from spec_double_compiler.runtime import adapter_accepts_case
+
+    adapter_cache: dict[str, Any] = {}
+    rejected: list[str] = []
+    for case in cases:
+        mapping = adapter_for_case(case, mappings)
+        if mapping is None:
+            rejected.append(f"{case.name}: no mapped label among {sorted(case.labels)}")
+            continue
+        adapter = adapter_cache.get(mapping.adapter)
+        if adapter is None:
+            adapter = load_adapter(mapping, import_roots)
+            adapter_cache[mapping.adapter] = adapter
+        accepted, reason = adapter_accepts_case(adapter, case)
+        if not accepted:
+            rejected.append(f"{case.name} via {mapping.label}: {reason or 'adapter rejected case'}")
+    if rejected:
+        details = "\n".join(rejected[:50])
+        suffix = f"\n... and {len(rejected) - 50} more" if len(rejected) > 50 else ""
+        raise SystemExit(f"ERROR: adapter capability validation failed for {len(rejected)} cases\n{details}{suffix}")
 
 
 def write_case_program(
@@ -165,11 +225,12 @@ def write_case_program(
 ) -> None:
     program_path.parent.mkdir(parents=True, exist_ok=True)
     case_work_dir.mkdir(parents=True, exist_ok=True)
-    root_inserts = "\n".join(f"sys.path.insert(0, {str(root.resolve())!r})" for root in import_roots)
+    root_inserts = "\n".join(
+        f"sys.path.insert(0, {str(root.resolve())!r})" for root in [Path(__file__).resolve().parents[1], *import_roots]
+    )
     content = f"""#!/usr/bin/env python3
 from __future__ import annotations
 
-import importlib
 import sys
 from pathlib import Path
 
@@ -178,63 +239,21 @@ sys.path.insert(0, {str(cases_dir.resolve().parent)!r})
 
 from {cases_dir.name}.cases import CASES_BY_NAME
 from {cases_dir.name}.validators import assert_case_replays
-
-
-def load_object(path: str):
-    module_name, sep, object_name = path.partition(":")
-    if not sep:
-        raise ValueError(f"adapter path must be module:object, got {{path!r}}")
-    module = importlib.import_module(module_name)
-    obj = module
-    for part in object_name.split("."):
-        obj = getattr(obj, part)
-    return obj
-
-
-def instantiate(obj):
-    if isinstance(obj, type):
-        return obj()
-    if callable(obj) and not hasattr(obj, "run"):
-        return obj()
-    return obj
-
-
-def normalize_result(result):
-    if result is None:
-        return {{"output": None, "after": None}}
-    if isinstance(result, dict):
-        return result
-    output = getattr(result, "output", None)
-    after = getattr(result, "after", None)
-    return {{"output": output, "after": after}}
-
-
-def call_adapter(adapter, case, work_dir: Path):
-    validate = getattr(adapter, "validate", None)
-    if validate is not None:
-        validate(case)
-    run = getattr(adapter, "run", None)
-    if run is None:
-        raise TypeError(f"adapter {{adapter!r}} does not define run(case, ...)")
-    try:
-        return run(case, work_dir=work_dir)
-    except TypeError as exc:
-        if "work_dir" not in str(exc):
-            raise
-        return run(case)
+from spec_double_compiler.runtime import assert_case_result, call_adapter, instantiate, load_object
 
 
 def main() -> int:
     case = CASES_BY_NAME[{case.name!r}]
     assert_case_replays(case)
     adapter = instantiate(load_object({mapping.adapter!r}))
-    normalized = normalize_result(call_adapter(adapter, case, Path({str(case_work_dir.resolve())!r})))
-    output = normalized.get("output")
-    after = normalized.get("after")
-    if output is not None and output != case.output:
-        raise AssertionError(f"adapter output mismatch for {{case.name}}: {{output!r}} != {{case.output!r}}")
-    if after is not None and after != case.after:
-        raise AssertionError(f"adapter after-state mismatch for {{case.name}}")
+    projector = None
+    if {mapping.output_projection!r} is not None:
+        projector = load_object({mapping.output_projection!r})
+    assert_case_result(
+        case=case,
+        result=call_adapter(adapter, case, Path({str(case_work_dir.resolve())!r})),
+        projector=projector,
+    )
     return 0
 
 
@@ -256,6 +275,8 @@ def generate_programs(
     programs: list[Path] = []
     for case in cases:
         mapping = adapter_for_case(case, mappings)
+        if mapping is None:
+            raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
         program_path = work_dir / "programs" / f"{case.name}.py"
         case_work_dir = work_dir / "case-work" / case.name
         write_case_program(
@@ -268,6 +289,73 @@ def generate_programs(
         )
         programs.append(program_path)
     return programs
+
+
+def execute_cases_in_batch(
+    *,
+    cases: list[Any],
+    mappings: dict[str, AdapterMapping],
+    work_dir: Path,
+    import_roots: list[Path],
+) -> None:
+    ensure_import_roots(import_roots)
+    from spec_double_compiler.runtime import assert_case_result, call_adapter, instantiate, load_object
+
+    failures: list[str] = []
+    adapter_cache: dict[str, Any] = {}
+    projector_cache: dict[str, Any] = {}
+    for case in cases:
+        mapping = adapter_for_case(case, mappings)
+        if mapping is None:
+            failures.append(f"{case.name}: no mapped adapter")
+            continue
+        try:
+            adapter = adapter_cache.get(mapping.adapter)
+            if adapter is None:
+                adapter = instantiate(load_object(mapping.adapter))
+                adapter_cache[mapping.adapter] = adapter
+            projector = None
+            if mapping.output_projection:
+                projector = projector_cache.get(mapping.output_projection)
+                if projector is None:
+                    projector = load_object(mapping.output_projection)
+                    projector_cache[mapping.output_projection] = projector
+            case_work_dir = work_dir / "case-work" / case.name
+            case_work_dir.mkdir(parents=True, exist_ok=True)
+            assert_case_result(
+                case=case,
+                result=call_adapter(adapter, case, case_work_dir),
+                projector=projector,
+            )
+        except Exception as exc:
+            failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
+    if failures:
+        details = "\n".join(failures[:50])
+        suffix = f"\n... and {len(failures) - 50} more" if len(failures) > 50 else ""
+        raise SystemExit(f"ERROR: {len(failures)} batched case executions failed\n{details}{suffix}")
+
+
+def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
+    if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
+        return None
+    command = [*args.python, str(Path(__file__).resolve()), str(args.cases_dir), "--mapping", str(args.mapping), "--batch"]
+    if args.work_dir is not None:
+        command.extend(["--work-dir", str(args.work_dir)])
+    for label in args.label:
+        command.extend(["--label", label])
+    for case_name in args.case:
+        command.extend(["--case", case_name])
+    if args.limit is not None:
+        command.extend(["--limit", str(args.limit)])
+    for root in args.import_root:
+        command.extend(["--import-root", str(root)])
+    if args.validate_only:
+        command.append("--validate-only")
+    if args.validate_capabilities:
+        command.append("--validate-capabilities")
+    env = os.environ.copy()
+    env["SPEC_DOUBLE_BATCH_REEXEC"] = "1"
+    return subprocess.run(command, env=env).returncode
 
 
 def execute_programs(programs: list[Path], python: list[str]) -> None:
@@ -292,7 +380,12 @@ def main() -> int:
     parser.add_argument("--import-root", action="append", type=Path, default=[])
     parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
+    parser.add_argument("--batch", action="store_true", help="Execute selected cases in this process instead of one generated program per case")
     args = parser.parse_args()
+    reexec_code = reexec_batch_if_needed(args)
+    if reexec_code is not None:
+        return reexec_code
 
     cases_module = load_cases(args.cases_dir)
     cases = list(cases_module.CASES)
@@ -301,19 +394,35 @@ def main() -> int:
     runnable_cases = selected_cases(cases, args.label, args.case, args.limit)
     if not runnable_cases:
         raise SystemExit("ERROR: no cases selected")
+    if args.validate_capabilities:
+        validate_adapter_capabilities(
+            cases=runnable_cases,
+            mappings=mappings,
+            import_roots=args.import_root or [Path.cwd()],
+        )
 
     work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
     work_dir.mkdir(parents=True, exist_ok=True)
-    programs = generate_programs(
-        cases=runnable_cases,
-        mappings=mappings,
-        cases_dir=args.cases_dir,
-        work_dir=work_dir,
-        import_roots=args.import_root or [Path.cwd()],
-    )
     print(f"validated {len(mappings)} adapter mappings for {len(case_labels(cases))} labels")
-    print(f"generated {len(programs)} case programs in {work_dir / 'programs'}")
-    if not args.validate_only:
+    if args.batch:
+        if not args.validate_only:
+            execute_cases_in_batch(
+                cases=runnable_cases,
+                mappings=mappings,
+                work_dir=work_dir,
+                import_roots=args.import_root or [Path.cwd()],
+            )
+            print(f"executed {len(runnable_cases)} cases in batch")
+    else:
+        programs = generate_programs(
+            cases=runnable_cases,
+            mappings=mappings,
+            cases_dir=args.cases_dir,
+            work_dir=work_dir,
+            import_roots=args.import_root or [Path.cwd()],
+        )
+        print(f"generated {len(programs)} case programs in {work_dir / 'programs'}")
+    if not args.validate_only and not args.batch:
         execute_programs(programs, args.python or [sys.executable])
         print(f"executed {len(programs)} case programs")
     return 0

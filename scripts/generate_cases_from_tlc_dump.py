@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import importlib
 import re
 import subprocess
 import sys
@@ -224,17 +225,56 @@ def py_repr(value: Any) -> str:
     return repr(value)
 
 
+def load_object(path: str) -> Any:
+    module_name, sep, object_name = path.partition(":")
+    if not sep:
+        raise ValueError(f"object path must be module:object, got {path!r}")
+    module = importlib.import_module(module_name)
+    obj: Any = module
+    for part in object_name.split("."):
+        obj = getattr(obj, part)
+    return obj
+
+
+def labels_for_case(
+    *,
+    before: dict[str, Any],
+    action: str,
+    after: dict[str, Any],
+    changes: dict[str, dict[str, Any]],
+    labelers: list[Any],
+) -> list[str]:
+    labels = [action]
+    for labeler in labelers:
+        try:
+            produced = labeler(before=before, action=action, after=after, changed=changes)
+        except TypeError as exc:
+            if "keyword" not in str(exc) and "argument" not in str(exc):
+                raise
+            produced = labeler(before, action, after, changes)
+        if isinstance(produced, str):
+            produced = [produced]
+        if produced is None:
+            continue
+        for label in produced:
+            rendered = str(label)
+            if rendered and rendered not in labels:
+                labels.append(rendered)
+    return labels
+
+
 def render_python_package(
     *,
     module: str,
     states: dict[str, dict[str, Any]],
     edges: list[Edge],
     package_dir: Path,
+    labelers: list[Any] | None = None,
 ) -> None:
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
     write(package_dir / "types.py", render_types())
-    write(package_dir / "cases.py", render_cases(module, states, edges))
+    write(package_dir / "cases.py", render_cases(module, states, edges, labelers or []))
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
     write(package_dir / "docs.md", render_docs(module, len(states), len(edges)))
@@ -282,7 +322,7 @@ def render_types() -> str:
     )
 
 
-def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edge]) -> str:
+def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edge], labelers: list[Any]) -> str:
     lines = [
         "from __future__ import annotations\n\n",
         "from .types import StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
@@ -295,6 +335,7 @@ def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edg
         before = states[edge.source]
         after = states[edge.target]
         changes = changed_fields(before, after)
+        labels = labels_for_case(before=before, action=edge.action, after=after, changes=changes, labelers=labelers)
         lines.extend(
             [
                 "    StateGraphCase(\n",
@@ -307,7 +348,7 @@ def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edg
                 "        ),\n",
                 f"        output=StateGraphOutput(changed={py_repr(changes)}),\n",
                 f"        after={py_repr(after)},\n",
-                f"        labels=frozenset([{edge.action!r}]),\n",
+                f"        labels=frozenset({py_repr(tuple(labels))}),\n",
                 "    ),\n",
             ]
         )
@@ -376,8 +417,18 @@ def main() -> int:
     parser.add_argument("--package", default="tlc_state_graph_cases")
     parser.add_argument("--tlc2", default="tlc2")
     parser.add_argument("--dot", type=Path)
+    parser.add_argument(
+        "--labeler",
+        action="append",
+        default=[],
+        help="Optional module:function returning extra labels for before/action/after/changed",
+    )
     args = parser.parse_args()
 
+    for root in [Path.cwd(), Path(__file__).resolve().parents[1]]:
+        resolved = str(root.resolve())
+        if resolved not in sys.path:
+            sys.path.insert(0, resolved)
     dot_path = args.dot or args.out / f"{args.tla.stem}.dot"
     run_tlc_dump(args.tla, args.cfg, dot_path, args.tlc2)
     states, edges = load_dot(dot_path)
@@ -388,6 +439,7 @@ def main() -> int:
         states=states,
         edges=edges,
         package_dir=args.out / args.package,
+        labelers=[load_object(path) for path in args.labeler],
     )
     print(f"generated {len(edges)} transition cases from {len(states)} states into {args.out / args.package}")
     return 0

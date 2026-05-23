@@ -72,8 +72,8 @@ behavioral fake.
    from these generic case descriptors.
 7. A repository-local TOML file maps case labels to adapter import paths.
 8. `scripts/run_generated_case_adapters.py` validates mapping coverage, writes
-   one Python program per selected case into a work directory, and executes
-   those programs.
+   one Python program per selected case into a work directory, or executes the
+   selected cases in one process with `--batch`.
 
 The key rule is that Python cases come from TLC output. The generator should not
 encode product-specific transition behavior.
@@ -83,6 +83,7 @@ Adapter mapping format:
 ```toml
 [adapters.ActionLabel]
 adapter = "package.module:AdapterClass"
+output_projection = "package.module:expected_semantic_output"
 
 [[adapter]]
 labels = ["AnotherLabel", "ThirdLabel"]
@@ -92,8 +93,30 @@ adapter = "package.module:adapter_factory"
 The workspace example uses `examples/workspace/case_adapters.toml` to map the
 TLC `Create` action label to `examples/workspace/case_adapters.py`.
 
-The generic runner requires every generated case label to have a mapping before
-it runs anything. This prevents silently ignoring new TLA actions.
+The generic runner requires every generated case to have at least one mapped
+label before it runs anything. This prevents silently ignoring new TLA actions
+while still allowing fine-grained labels to override coarse action mappings.
+Mappings are considered in TOML order.
+
+Adapters may expose `can_run(case) -> bool | tuple[bool, str]`. With
+`--validate-capabilities`, the runner checks selected cases against the mapped
+adapter before generating or executing programs. This catches labels whose
+adapter is present but cannot handle every edge shape under that label.
+
+`output_projection` is optional. It points at a repository function that derives
+semantic expected output from a generated case. The adapter returns
+`semantic_output`, and the runner compares it to the projection. Structural
+`output` and `after` comparisons remain available.
+
+Use `--batch` for large case sets. It runs cases in one interpreter while still
+reporting failures by case name and mapped label. If an adapter needs a project
+venv, pass `--python path/to/python`; the runner re-executes the batch under
+that interpreter.
+
+Use `generate_cases_from_tlc_dump.py --labeler package.module:function` to add
+stable labels such as `ready_one_record`, `partial_context`, or
+`already_exported`. Labelers receive `before/action/after/changed` and must stay
+repository-local so the skill remains domain-neutral.
 
 ## v1 Flow
 
