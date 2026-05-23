@@ -52,9 +52,10 @@ invariants: []
 
 ## Whole-Program Case Flow
 
-For distributed applications, the preferred generated double can be an explicit
-case fixture derived from TLC's reachable state graph rather than a hand-coded
-behavioral fake.
+For distributed applications, the preferred source of generated doubles is the
+evolving program spec. Generated cases are selected edges from TLC's reachable
+state graph, not independent feature models and not hand-coded behavioral
+fakes.
 
 1. Run TLC with `-dump dot,actionlabels`.
 2. Parse DOT nodes as complete semantic states.
@@ -77,6 +78,13 @@ behavioral fake.
 
 The key rule is that Python cases come from TLC output. The generator should not
 encode product-specific transition behavior.
+
+The second key rule is that new behavior should usually extend the existing
+program model. A generated double may focus on one feature slice or adapter, but
+the case must still come from the shared program state. Use labels and selected
+execution to narrow tests; do not fork the semantic source of truth into a new
+feature spec unless it is explicitly a separate program or a named refinement
+layer.
 
 ## Distributed Boundary Modeling
 

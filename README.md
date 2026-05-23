@@ -2,16 +2,20 @@
 
 **The spec should generate the mock.**
 
-Spec Double Compiler is a skill-manager skill for creating and
-maintaining Python spec doubles from a constrained, annotated TLA+
-state-machine specification.
+Spec Double Compiler is a skill-manager skill for creating and maintaining
+Python spec doubles from a constrained, annotated TLA+ program specification.
+For production repositories, the intended pattern is one evolving program spec
+whose generated cases can be sliced by label for local adapter tests.
 
-TLA+ defines the truth. Python makes that truth executable in tests.
-Production adapters conform to the generated Python boundary.
+TLA+ defines the program truth. Python makes selected slices of that truth
+executable in tests. Production adapters conform to the generated Python
+boundary.
 
 ## What This Provides
 
 - A constrained TLA+ profile for practical state-machine specs.
+- Guidance for maintaining one evolving whole-program spec instead of many
+  disconnected feature specs.
 - Templates for TLA+ modules, TLC configs, manifests, and Python package
   artifacts.
 - Scripts for scaffolding specs, checking manifest references, generating
