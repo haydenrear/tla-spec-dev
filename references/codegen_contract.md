@@ -50,6 +50,51 @@ invariants: []
 9. Generate `docs.md` from manifest metadata.
 10. Optionally ingest TLC traces when available.
 
+## Whole-Program Case Flow
+
+For distributed applications, the preferred generated double can be an explicit
+case fixture derived from TLC's reachable state graph rather than a hand-coded
+behavioral fake.
+
+1. Run TLC with `-dump dot,actionlabels`.
+2. Parse DOT nodes as complete semantic states.
+3. Parse DOT edges as action-labeled transitions.
+4. Generate one Python `StateGraphCase` per edge:
+   - `before`: full pre-state
+   - `input`: action label plus source/target node ids
+   - `output`: structural state delta
+   - `after`: full post-state
+   - `labels`: stable selectors such as action names
+5. Generate `ScriptedTransitionDouble`, which accepts exactly the case input and
+   returns exactly the generated output.
+6. Adapter-specific mapping code, outside generated files, translates real
+   Kafka records, HTTP requests, database rows, files, or process outputs to and
+   from these generic case descriptors.
+7. A repository-local TOML file maps case labels to adapter import paths.
+8. `scripts/run_generated_case_adapters.py` validates mapping coverage, writes
+   one Python program per selected case into a work directory, and executes
+   those programs.
+
+The key rule is that Python cases come from TLC output. The generator should not
+encode product-specific transition behavior.
+
+Adapter mapping format:
+
+```toml
+[adapters.ActionLabel]
+adapter = "package.module:AdapterClass"
+
+[[adapter]]
+labels = ["AnotherLabel", "ThirdLabel"]
+adapter = "package.module:adapter_factory"
+```
+
+The workspace example uses `examples/workspace/case_adapters.toml` to map the
+TLC `Create` action label to `examples/workspace/case_adapters.py`.
+
+The generic runner requires every generated case label to have a mapping before
+it runs anything. This prevents silently ignoring new TLA actions.
+
 ## v1 Flow
 
 1. Add a TLA+ AST or structured extraction layer.

@@ -45,11 +45,20 @@ python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out ex
 python -m pytest examples/workspace/tests
 ```
 
+To derive whole-program transition cases from TLC and validate that every
+action label is mapped to an adapter:
+
+```bash
+python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
+python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --import-root examples/workspace --label Create --validate-only
+```
+
 If `pytest` is not installed, the example tests can also be run directly:
 
 ```bash
 python examples/workspace/tests/test_workspace_spec_double.py
 python examples/workspace/tests/test_workspace_adapter_conformance.py
+python examples/workspace/tests/test_workspace_case_adapter_mapping.py
 ```
 
 ## File Tree
@@ -86,6 +95,13 @@ examples/
     MC.cfg
     spec_manifest.yaml
     generated/
+      workspace_cases/
+        __init__.py
+        cases.py
+        doubles.py
+        types.py
+        validators.py
+        docs.md
       workspace_spec/
         __init__.py
         types.py
@@ -96,6 +112,8 @@ examples/
         traces.py
         contract_tests.py
         docs.md
+    case_adapters.py
+    case_adapters.toml
     tests/
       test_workspace_spec_double.py
       test_workspace_adapter_conformance.py

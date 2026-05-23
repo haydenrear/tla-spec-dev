@@ -127,6 +127,8 @@ Example commands:
 python scripts/scaffold_spec.py workspace
 python scripts/run_tlc.sh examples/workspace/Workspace.tla examples/workspace/MC.cfg
 python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
+python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
+python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --validate-only
 pytest examples/workspace/tests
 ```
 
@@ -144,6 +146,44 @@ Generated packages should include:
 - `traces.py`: replayable named traces from TLC or curated examples.
 - `contract_tests.py`: reusable conformance tests for adapters.
 - `docs.md`: metadata for humans and AI retrieval.
+
+For whole-program case generation, generated packages may instead include:
+
+- `types.py`: generic state-graph case dataclasses.
+- `cases.py`: one explicit case per TLC action-labeled transition.
+- `doubles.py`: scripted transition doubles that accept exactly one case input.
+- `validators.py`: checks that case outputs match the before/after state delta.
+- `docs.md`: state and transition counts plus source metadata.
+
+These whole-program case fixtures are generated from TLC's reachable state graph,
+not from Python behavior templates.
+
+Adapter mappings are repository-local. A TOML mapping connects generated case
+labels to adapter entrypoints:
+
+```toml
+[adapters.CompactDataset]
+adapter = "my_project.spec_adapters:CompactDatasetAdapter"
+
+[[adapter]]
+labels = ["PublishMetadata", "LoadMarket"]
+adapter = "my_project.spec_adapters:KafkaComponentAdapter"
+```
+
+`scripts/run_generated_case_adapters.py` validates that every case label has an
+adapter mapping, writes one executable Python program per selected case into a
+temporary work directory, and then runs those generated programs unless
+`--validate-only` is set. Adapters live outside generated files and expose:
+
+```python
+class Adapter:
+    def validate(self, case): ...
+    def run(self, case, work_dir): ...
+```
+
+`run` may return `{"output": case.output, "after": case.after}` or an object
+with `output` and `after` attributes. If either field is omitted or `None`, the
+generic runner skips that comparison for that field.
 
 Generated files must include a header saying TLA+ and the manifest are
 the source of truth and that generated files should not be edited
