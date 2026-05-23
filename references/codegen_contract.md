@@ -78,6 +78,48 @@ behavioral fake.
 The key rule is that Python cases come from TLC output. The generator should not
 encode product-specific transition behavior.
 
+## Distributed Boundary Modeling
+
+Whole-program specs should model external resources that participate in
+correctness. It is acceptable to abstract them, but they need a named semantic
+state so adapters can materialize and observe them consistently.
+
+Recommended resource variables:
+
+- Kafka-like topics: `topics`, keyed by topic name, containing ordered records
+  with key, event type, payload identity, partition/offset if relevant.
+- Consumer progress: `consumer_offsets`, `acked_offsets`, `dead_letters`.
+- Filesystem append logs: `append_log_files`, `file_manifests`,
+  `compactor_state`, `published_keys`.
+- Notification systems: `notifications`, `subscriber_reports`,
+  `retrain_requests`.
+- Training lifecycle: `in_progress_runs`, `completed_runs`, `failed_runs`,
+  `checkpoints`.
+
+Recommended action shape:
+
+```text
+Production component action ==
+  consume modeled input resource
+  validate preconditions
+  update modeled output resource
+  update semantic business state
+```
+
+Adapters should then:
+
+1. Materialize `case.before` resource variables into temp files, fake Kafka,
+   in-memory stores, or test databases.
+2. Call the production boundary.
+3. Observe the same resources after the call.
+4. Return structural `after` and, where useful, `semantic_output`.
+
+If adapter setup writes files or queues messages that are not represented by a
+TLA variable, the spec is under-modeled. Either add the resource to the spec or
+document why that side effect is outside the contract. Hidden adapter setup is a
+warning sign because it means generated cases cannot vary that resource or
+check its edge cases.
+
 Adapter mapping format:
 
 ```toml

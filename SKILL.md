@@ -65,6 +65,41 @@ Vocabulary to use consistently:
 - Refinement mapping: a function mapping production state/results/events
   into simplified spec state/results/events.
 
+## Boundary Modeling Rule
+
+For distributed applications, model external resources as semantic ports in the
+TLA+ state before writing adapters. Kafka topics, filesystem append logs,
+database tables, object-store paths, notification queues, locks, checkpoints,
+and process queues should not appear only as incidental setup code inside a
+Python adapter when their behavior is part of correctness.
+
+The right pattern is:
+
+1. Model the resource in TLA+ at the level that matters for correctness.
+   Example variables: `topics`, `topic_offsets`, `acked_offsets`,
+   `append_log_files`, `file_manifests`, `published_keys`,
+   `notification_queue`, `in_progress_runs`.
+2. Define actions at the real boundary: `ProduceTopic`, `ConsumeTopic`,
+   `AppendFileRow`, `CompactFileRows`, `AckNotification`,
+   `StartTrainingRun`, `CompleteTrainingRun`.
+3. Generate cases from those actions.
+4. Use Python adapters to materialize the modeled pre-state into fake Kafka,
+   temp files, in-memory stores, or test databases.
+5. Observe the real production boundary after the call and refine it back to the
+   modeled state.
+
+Adapter code may write files or enqueue messages to set up a case, but those
+files/messages should correspond to named TLA variables. If an adapter creates
+or checks an external side effect that is not represented in the spec, record it
+as a coverage gap and either model it or explicitly justify why it is outside
+the semantic contract.
+
+Do not stop at a single action like `RunRetrain` when the value is in the
+distributed path. Prefer explicit lifecycle actions such as notification
+emitted, notification consumed, retrain request derived, dataset exported,
+training started, training completed, duplicate suppressed, and failure
+dead-lettered.
+
 ## When To Use
 
 Use this workflow when the feature has meaningful state, edge cases
