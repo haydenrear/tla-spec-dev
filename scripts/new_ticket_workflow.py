@@ -166,8 +166,8 @@ INVARIANTS
 def current_readme(ticket_id: str, title: str, baseline: Baseline) -> str:
     return f"""# Current Program Model
 
-This directory is the executable model of what the repository implements right
-now for the active ticket workflow.
+This directory is the executable whole-program model of what the repository
+implements right now for the active ticket workflow.
 
 Active ticket: `{ticket_id}` - {title}
 
@@ -178,13 +178,19 @@ Baseline:
 
 Workflow:
 
-1. Keep this model equivalent to `specs/program_model` before implementation.
+1. Keep this model equivalent to the entire `specs/program_model` before
+   implementation. Do not copy only the feature or ticket-local subset.
 2. After each ticket slice lands in production code, update this directory with
-   the implemented state, actions, invariants, adapter mappings, and tests.
+   the implemented whole-program state, actions, invariants, adapter mappings,
+   and tests while preserving existing modeled behavior.
 3. Run TLC and current-model adapter/unit tests before adding broader
    integration or graph coverage.
 4. Record validation evidence in `spec_manifest.yaml` and keep
    `../desired_program_model/ticket_plan.yaml` synchronized.
+
+Do not model tests, test graph nodes, CI jobs, integration harnesses, or
+validation workflow mechanics as TLA+ state/actions. Those belong in manifest
+status, ticket evidence, or adapter validation commands.
 """
 
 
@@ -225,6 +231,8 @@ status:
   active_ticket_title: "{title}"
   relation_to_program_model: starts_equivalent_then_advances_as_slices_land
   relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
   updated: null
   current_slice:
     name: baseline
@@ -237,7 +245,8 @@ status:
       graph: []
       evidence: []
   next:
-    - Fill in current state fields, actions, invariants, and adapters after the first production slice lands.
+    - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
+    - Preserve all existing specs/program_model state/actions unless production behavior changes them.
     - Run TLC and adapter/unit tests before adding graph execution coverage.
 
 source_model:
@@ -316,9 +325,11 @@ purpose: >
   or integration checks.
 
 planning_rules:
-  current_model_rule: Update specs/current after each production slice lands.
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
   promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
 
@@ -355,10 +366,12 @@ tickets:
       - Replace with implementation surfaces
     current_increment:
       model_state:
-        # Add state fields that specs/current will gain after implementation.
+        # Add state fields that the whole-program specs/current model will gain after implementation.
+        # Preserve all existing specs/program_model fields unless the program behavior changes.
         - replace_with_state_field
       model_actions:
-        # Add actions that specs/current will gain after implementation.
+        # Add semantic program actions that specs/current will gain after implementation.
+        # Do not add tests, graph nodes, CI jobs, or validation harness steps here.
         - ReplaceWithDesiredAction
       adapters:
         # Add adapter classes or commands that prove production conforms.

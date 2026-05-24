@@ -10,10 +10,12 @@ the truth. Python makes that truth executable in tests.
    acceptance criteria, validation commands, and adapter coverage expectations
    there. If the repository does not have the desired/current structure yet,
    run `scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .`.
-2. Ensure `specs/current` starts from the accepted `specs/program_model`
-   behavior for the slice being changed.
+2. Ensure `specs/current` starts from the entire accepted
+   `specs/program_model`. It is a whole-program working copy, not a feature
+   slice or ticket-local projection.
 3. Implement one ticket or slice.
-4. Update `specs/current` to represent the behavior now implemented.
+4. Update `specs/current` to represent the whole program now implemented,
+   preserving all existing modeled behavior unless production behavior changed.
 5. Run TLC for `specs/current`.
 6. Review invariants and counterexamples.
 7. Update the manifest or adjacent status files if new commands, state fields,
@@ -43,6 +45,10 @@ the truth. Python makes that truth executable in tests.
   tickets, steps, dependencies, status, and acceptance criteria?
 - Does each completed ticket update `specs/current` to the implemented
   repository state?
+- Does `specs/current` still contain the whole program from
+  `specs/program_model` plus landed semantic changes?
+- Are tests, graph nodes, integration harnesses, CI jobs, and validation
+  scripts recorded only as evidence/status, not as TLA+ state or actions?
 - Does the TLA+ model capture the canonical state machine?
 - Does the manifest expose the minimum reproducible contract?
 - Do generated files have deterministic diffs?
