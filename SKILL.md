@@ -130,6 +130,35 @@ Small tutorial specs are acceptable for examples, but production repositories
 should avoid accumulating twenty unrelated TLA+ modules that each describe one
 feature and disagree about shared state.
 
+## First Project Onboarding Workflow
+
+When a repository does not yet have a TLA+ program model, do not start with
+`specs/current` or `specs/desired_program_model`. Those directories are for a
+later ticket workflow after an accepted baseline exists.
+
+First onboarding creates only:
+
+- `specs/program_model`: the accepted whole-program semantic baseline.
+
+This baseline is the initial source of truth for the project. It should model
+the repository's current behavior, including state variables, actions,
+invariants, resource boundaries, manifests, adapter mappings, and validation
+evidence needed to generate and run spec-derived cases. It is not a desired
+future state and it is not a ticket plan.
+
+To onboard an existing repository for the first time, use:
+
+```bash
+python path/to/tla-spec-dev/scripts/onboard_program_model.py --repo-root .
+```
+
+Use `--name SkillManager` or another explicit module name when the repository
+directory name is not the desired TLA+ module name.
+
+After `specs/program_model` exists, later behavior tickets may use
+`new_ticket_workflow.py` to create `specs/current` and
+`specs/desired_program_model` from that accepted baseline.
+
 ## Program Model Ticket Workflow
 
 For repository feature work, tickets, and behavior changes, use the spec tree
@@ -194,7 +223,8 @@ pytest commands, CI jobs, and integration scripts are evidence for a semantic
 program action; they are not program behavior. Keep them in manifests,
 ticket_plan evidence, status sections, or adapter validation commands.
 
-To start this structure in a repository, use:
+To start this ticket structure in a repository that already has
+`specs/program_model`, use:
 
 ```bash
 python path/to/tla-spec-dev/scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .
@@ -204,7 +234,7 @@ The scaffold creates `specs/current` and `specs/desired_program_model`, adds a
 `ticket_plan.yaml`, and adds a `status` section to both spec manifests. The
 generated comments are intentionally instructional; replace them with the
 project's actual state, actions, adapter boundaries, tests, and evidence as the
-ticket is refined.
+ticket is refined. Do not use this for first project onboarding.
 
 ## When To Use
 
@@ -253,11 +283,15 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 
 ## Standard Workflow
 
-1. For behavior changes, create or refresh `specs/desired_program_model` with
+0. For first onboarding of a repository with no accepted model, create
+   `specs/program_model` with `scripts/onboard_program_model.py`. Do not create
+   `specs/current`, `specs/desired_program_model`, or `ticket_plan.yaml` during
+   first onboarding.
+1. For later behavior changes, create or refresh `specs/desired_program_model` with
    both the target model and the implementation plan: ticket breakdown, steps,
    dependencies, status metadata, acceptance criteria, and validation commands.
    Use `scripts/new_ticket_workflow.py` when the repository does not have this
-   structure yet.
+   ticket workflow structure yet but already has `specs/program_model`.
 2. Ensure `specs/current` starts from the entire accepted
    `specs/program_model`, not only the behavior being changed.
 3. For each ticket or slice, update production code and then update

@@ -16,6 +16,8 @@ boundary.
 - A constrained TLA+ profile for practical state-machine specs.
 - Guidance for maintaining one evolving whole-program spec instead of many
   disconnected feature specs.
+- A first-project onboarding scaffold for creating `specs/program_model`
+  without ticket workflow directories.
 - A ticket workflow scaffold for ordinary development tickets that need
   desired/current/program-model discipline.
 - Templates for TLA+ modules, TLC configs, manifests, and Python package
@@ -46,11 +48,16 @@ requires a local Java runtime.
 
 ```bash
 python scripts/scaffold_spec.py workspace
+python scripts/onboard_program_model.py --repo-root path/to/repo --name SkillManager
 python scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root path/to/repo
 python scripts/run_tlc.sh examples/workspace/Workspace.tla examples/workspace/MC.cfg
 python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
 python -m pytest examples/workspace/tests
 ```
+
+`onboard_program_model.py` is the first-project-onboarding path. It creates
+only `specs/program_model` as the accepted baseline and intentionally does not
+create `specs/current`, `specs/desired_program_model`, or `ticket_plan.yaml`.
 
 `new_ticket_workflow.py` scaffolds:
 
@@ -63,7 +70,8 @@ python -m pytest examples/workspace/tests
   which ticket is active, what is done, and what remains.
 
 This is not a migration-only workflow. Use it for any behavior ticket where
-formal state, adapters, and validation evidence should guide implementation.
+formal state, adapters, and validation evidence should guide implementation,
+after `specs/program_model` already exists.
 
 To derive whole-program transition cases from TLC and validate that every
 action label is mapped to an adapter:
@@ -116,6 +124,7 @@ templates/
     docs.md.j2
 scripts/
   scaffold_spec.py
+  onboard_program_model.py
   new_ticket_workflow.py
   extract_spec_manifest.py
   generate_python.py
