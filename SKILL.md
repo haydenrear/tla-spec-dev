@@ -153,11 +153,21 @@ python path/to/tla-spec-dev/scripts/onboard_program_model.py --repo-root .
 ```
 
 Use `--name SkillManager` or another explicit module name when the repository
-directory name is not the desired TLA+ module name.
+directory name is not the desired TLA+ module name. Use `--spec-root` when the
+repository keeps specs somewhere other than `specs`.
 
 After `specs/program_model` exists, later behavior tickets may use
 `new_ticket_workflow.py` to create `specs/current` and
 `specs/desired_program_model` from that accepted baseline.
+
+Use `specs/current` and `specs/desired_program_model` only while planning and
+executing active ticketed behavior changes. They are not first-onboarding
+directories and they are not general reference folders for ordinary spec
+browsing.
+
+For the end-to-end flow, read `references/typical_workflow.md`. It covers
+first onboarding, feature-ticket scaffolding, incremental current-model
+updates, promotion, and closeout.
 
 ## Program Model Ticket Workflow
 
@@ -208,8 +218,8 @@ Lifecycle:
 7. Repeat until `specs/current` semantically equals
    `specs/desired_program_model`.
 8. Promote the converged model into `specs/program_model`, regenerate accepted
-   artifacts, and delete `specs/desired_program_model` once it is equal to the
-   new program model and no longer carries distinct planning state.
+   artifacts, and delete `specs/current` plus `specs/desired_program_model`
+   once they no longer carry distinct planning state.
 
 During this lifecycle, `specs/program_model` answers "where did we start?",
 `specs/desired_program_model` answers "where are we going and by which
@@ -230,11 +240,24 @@ To start this ticket structure in a repository that already has
 python path/to/tla-spec-dev/scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .
 ```
 
-The scaffold creates `specs/current` and `specs/desired_program_model`, adds a
-`ticket_plan.yaml`, and adds a `status` section to both spec manifests. The
-generated comments are intentionally instructional; replace them with the
+The scaffold resolves all workflow directories under `--spec-root`, which
+defaults to `specs`. It copies the existing `program_model` baseline into
+`current` and `desired_program_model` where useful, then adds ticket workflow
+metadata, `ticket_plan.yaml`, and `status` sections to the workflow manifests.
+The generated comments are intentionally instructional; replace them with the
 project's actual state, actions, adapter boundaries, tests, and evidence as the
 ticket is refined. Do not use this for first project onboarding.
+
+After `specs/current` semantically equals `specs/desired_program_model`,
+promote the converged model into `specs/program_model`, regenerate accepted
+artifacts, and then remove the workflow directories. `close_tickets.py` can do
+the final cleanup after validating that current, desired, and promoted
+program-model semantic files match and that all tickets in `ticket_plan.yaml`
+are closed:
+
+```bash
+python path/to/tla-spec-dev/scripts/close_tickets.py --repo-root .
+```
 
 ## When To Use
 
@@ -279,6 +302,8 @@ logging, caches, and deployment topology usually belong outside the
 spec.
 
 Read `references/tla_profile.md` before writing or reviewing a spec. Read
+`references/generation_modes.md` before choosing between manifest-driven fake
+generation and TLC state-graph case generation. Read
 `templates/tla/annotations.md` before designing the manifest.
 
 ## Standard Workflow
@@ -310,18 +335,15 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 10. Run adapter conformance tests.
 11. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model` and remove
-    `specs/desired_program_model` once it no longer differs.
+    `specs/current` and `specs/desired_program_model` once they no longer carry
+    distinct planning state. Use `scripts/close_tickets.py` for validated
+    cleanup after promotion.
 
 Example commands:
 
-```bash
-python scripts/scaffold_spec.py workspace
-python scripts/run_tlc.sh examples/workspace/Workspace.tla examples/workspace/MC.cfg
-python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
-python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
-python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --validate-only
-pytest examples/workspace/tests
-```
+See `references/typical_workflow.md` for repository onboarding, feature-ticket
+workflow, promotion, and closeout commands. See
+`references/generation_modes.md` for generation commands.
 
 ## Generated Artifacts
 
@@ -393,7 +415,6 @@ the projected value.
 Extra case labels can be generated with one or more `--labeler module:function`
 arguments to `generate_cases_from_tlc_dump.py`. Labelers receive
 `before/action/after/changed` and return a string or iterable of strings.
-generic runner skips that comparison for that field.
 
 Generated files must include a header saying TLA+ and the manifest are
 the source of truth and that generated files should not be edited
@@ -484,11 +505,18 @@ analysis.
 
 ## References
 
-- `README.md`: quick start and file tree.
+- `README.md`: development notes for this skill repository.
+- `references/typical_workflow.md`: onboarding, feature-ticket workflow,
+  promotion, and closeout.
+- `references/generation_modes.md`: manifest-driven generation vs TLC
+  state-graph cases.
+- `references/runtime_requirements.md`: CLI dependencies, TLC wrapper, and
+  local runtime expectations.
 - `references/tla_profile.md`: constrained TLA+ subset.
 - `references/codegen_contract.md`: manifest schema and generator behavior.
 - `references/conformance_testing.md`: production adapter conformance.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
+- `references/examples.md`: checked-in examples and when to use them.
 - `examples/workspace/`: fully worked example.
 - `examples/subscription/`: partial state-machine example.

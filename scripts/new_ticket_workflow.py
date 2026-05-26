@@ -54,13 +54,30 @@ def _module_name(value: str) -> str:
 class Baseline:
     module: str
     package: str
+    repo_root: Path
+    spec_root: Path
+    program_dir: Path
     tla_path: Path | None
     cfg_path: Path | None
     manifest_path: Path | None
 
 
-def discover_baseline(repo_root: Path, fallback_module: str) -> Baseline:
-    program_dir = repo_root / "specs" / "program_model"
+def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+    return spec_root if spec_root.is_absolute() else repo_root / spec_root
+
+
+def _display_spec_root(repo_root: Path, spec_root: Path) -> str:
+    if spec_root.is_absolute():
+        try:
+            return spec_root.relative_to(repo_root).as_posix()
+        except ValueError:
+            return spec_root.as_posix()
+    return spec_root.as_posix()
+
+
+def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) -> Baseline:
+    resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
+    program_dir = resolved_spec_root / "program_model"
     manifest_path = program_dir / "spec_manifest.yaml"
     manifest = _load_manifest(manifest_path)
     module = str(manifest.get("module") or fallback_module)
@@ -74,13 +91,30 @@ def discover_baseline(repo_root: Path, fallback_module: str) -> Baseline:
             if match:
                 module = match.group(1)
     cfg_path = program_dir / "MC.cfg"
-    return Baseline(
+    baseline = Baseline(
         module=module,
         package=package,
+        repo_root=repo_root,
+        spec_root=resolved_spec_root,
+        program_dir=program_dir,
         tla_path=tla_path if tla_path and tla_path.exists() else None,
         cfg_path=cfg_path if cfg_path.exists() else None,
         manifest_path=manifest_path if manifest_path.exists() else None,
     )
+    missing = []
+    if baseline.manifest_path is None:
+        missing.append(manifest_path)
+    if baseline.tla_path is None:
+        missing.append(program_dir / f"{module}.tla")
+    if baseline.cfg_path is None:
+        missing.append(cfg_path)
+    if missing:
+        details = "\n".join(f"- {path}" for path in missing)
+        raise SystemExit(
+            "cannot scaffold ticket workflow without an accepted program model. "
+            "Run onboard_program_model.py first.\nMissing baseline files:\n" + details
+        )
+    return baseline
 
 
 def write_file(path: Path, content: str, *, force: bool, dry_run: bool) -> bool:
@@ -110,6 +144,28 @@ def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_ru
         dst.write_text(fallback, encoding="utf-8")
         print(f"wrote {dst}")
     return True
+
+
+def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+    if not src_dir.exists():
+        return []
+
+    copied: list[Path] = []
+    for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
+        relative = src.relative_to(src_dir)
+        if relative.as_posix() in {"README.md", "spec_manifest.yaml"}:
+            continue
+        dst = dst_dir / relative
+        if dst.exists() and not force:
+            continue
+        if dry_run:
+            print(f"would copy {src} -> {dst}")
+        else:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+            print(f"copied {src} -> {dst}")
+        copied.append(dst)
+    return copied
 
 
 def minimal_tla(module: str) -> str:
@@ -163,7 +219,8 @@ INVARIANTS
 """
 
 
-def current_readme(ticket_id: str, title: str, baseline: Baseline) -> str:
+def current_readme(ticket_id: str, title: str, baseline: Baseline, spec_root: Path = Path("specs")) -> str:
+    spec_root_text = _display_spec_root(baseline.repo_root, spec_root)
     return f"""# Current Program Model
 
 This directory is the executable whole-program model of what the repository
@@ -178,7 +235,7 @@ Baseline:
 
 Workflow:
 
-1. Keep this model equivalent to the entire `specs/program_model` before
+1. Keep this model equivalent to the entire `{spec_root_text}/program_model` before
    implementation. Do not copy only the feature or ticket-local subset.
 2. After each ticket slice lands in production code, update this directory with
    the implemented whole-program state, actions, invariants, adapter mappings,
@@ -221,7 +278,8 @@ Files:
 """
 
 
-def current_manifest(module: str, package: str, ticket_id: str, title: str) -> str:
+def current_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+    spec_root_text = spec_root.as_posix()
     return f"""module: {module}
 package: current_program_cases
 
@@ -246,7 +304,7 @@ status:
       evidence: []
   next:
     - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
-    - Preserve all existing specs/program_model state/actions unless production behavior changes them.
+    - Preserve all existing {spec_root_text}/program_model state/actions unless production behavior changes them.
     - Run TLC and adapter/unit tests before adding graph execution coverage.
 
 source_model:
@@ -267,7 +325,8 @@ notes:
 """
 
 
-def desired_manifest(module: str, package: str, ticket_id: str, title: str) -> str:
+def desired_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+    spec_root_text = spec_root.as_posix()
     return f"""module: {module}
 package: desired_program_cases
 
@@ -289,8 +348,8 @@ status:
   pending:
     - Fill in desired state/actions/invariants for the ticket.
     - Break the work into tickets in ticket_plan.yaml.
-    - Update specs/current as each ticket lands.
-    - Promote converged desired/current model back into specs/program_model.
+    - Update {spec_root_text}/current as each ticket lands.
+    - Promote converged desired/current model back into {spec_root_text}/program_model.
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
@@ -312,7 +371,8 @@ notes:
 """
 
 
-def ticket_plan(ticket_id: str, title: str, module: str) -> str:
+def ticket_plan(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+    spec_root_text = spec_root.as_posix()
     return f"""# This file is part of the desired program model.
 # It is intentionally general: use it for any model-backed ticket workflow,
 # not only migrations. Keep it synchronized with spec_manifest.yaml status.
@@ -321,17 +381,17 @@ name: desired-ticket-workflow
 updated: null
 purpose: >
   Break the desired whole-program change into tickets that can be implemented,
-  modeled in specs/current, unit-tested, and then validated with broader graph
+  modeled in {spec_root_text}/current, unit-tested, and then validated with broader graph
   or integration checks.
 
 planning_rules:
-  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  current_model_rule: Update {spec_root_text}/current after each production slice lands as a whole-program working copy of {spec_root_text}/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
   semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
-  promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+  promotion_rule: When {spec_root_text}/current equals {spec_root_text}/desired_program_model, promote the converged model to {spec_root_text}/program_model.
 
 status:
   workflow: ticket
@@ -358,7 +418,7 @@ tickets:
       Describe the behavior change in program terms. Name the resource or
       state boundary that must become true, not only the implementation file.
     desired_actions:
-      # Add TLA+ action names that will exist in specs/desired_program_model.
+      # Add TLA+ action names that will exist in {spec_root_text}/desired_program_model.
       - ReplaceWithDesiredAction
     implementation_scope:
       # Add production files, scripts, descriptors, infrastructure, or adapters
@@ -366,11 +426,11 @@ tickets:
       - Replace with implementation surfaces
     current_increment:
       model_state:
-        # Add state fields that the whole-program specs/current model will gain after implementation.
-        # Preserve all existing specs/program_model fields unless the program behavior changes.
+        # Add state fields that the whole-program {spec_root_text}/current model will gain after implementation.
+        # Preserve all existing {spec_root_text}/program_model fields unless the program behavior changes.
         - replace_with_state_field
       model_actions:
-        # Add semantic program actions that specs/current will gain after implementation.
+        # Add semantic program actions that {spec_root_text}/current will gain after implementation.
         # Do not add tests, graph nodes, CI jobs, or validation harness steps here.
         - ReplaceWithDesiredAction
       adapters:
@@ -378,7 +438,7 @@ tickets:
         - ReplaceWithAdapter
       unit_tests:
         # Add current-model tests that must pass before graph coverage.
-        - pytest specs/current/tests
+        - pytest {spec_root_text}/current/tests
       graph_after_unit_pass:
         # Add graph/test nodes only after current-model tests pass.
         - replace.with.graph.node
@@ -392,7 +452,8 @@ tickets:
 """
 
 
-def desired_state(ticket_id: str, title: str, module: str) -> str:
+def desired_state(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+    spec_root_text = spec_root.as_posix()
     return f"""version: 1
 name: desired-program-model
 canonical_tla_module: {module}
@@ -408,7 +469,7 @@ relationship:
 
 implementation_status:
   updated: null
-  policy: specs/current is the executable state of landed work; this file summarizes the desired destination.
+  policy: {spec_root_text}/current is the executable state of landed work; this file summarizes the desired destination.
   active_ticket: {ticket_id}
   active_ticket_title: "{title}"
   summary:
@@ -460,15 +521,19 @@ class ScaffoldedTicketAdapter:
 
 
 def current_test(ticket_id: str) -> str:
+    return current_test_for_spec_root(ticket_id, Path("specs"))
+
+
+def current_test_for_spec_root(ticket_id: str, spec_root: Path) -> str:
     return f'''from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
+SPEC_ROOT = Path(__file__).resolve().parents[1].parent
 
 
 def test_current_ticket_workflow_scaffold_points_to_desired_plan() -> None:
-    manifest = ROOT / "specs/current/spec_manifest.yaml"
-    plan = ROOT / "specs/desired_program_model/ticket_plan.yaml"
+    manifest = SPEC_ROOT / "current/spec_manifest.yaml"
+    plan = SPEC_ROOT / "desired_program_model/ticket_plan.yaml"
 
     assert manifest.exists()
     assert plan.exists()
@@ -477,39 +542,46 @@ def test_current_ticket_workflow_scaffold_points_to_desired_plan() -> None:
 '''
 
 
-def scaffold(repo_root: Path, ticket_id: str, title: str, force: bool, dry_run: bool) -> list[Path]:
+def scaffold(
+    repo_root: Path,
+    ticket_id: str,
+    title: str,
+    force: bool,
+    dry_run: bool,
+    spec_root: Path = Path("specs"),
+) -> list[Path]:
     fallback_module = _module_name(repo_root.name)
-    baseline = discover_baseline(repo_root, fallback_module)
+    baseline = discover_baseline(repo_root, spec_root, fallback_module)
     module = baseline.module
     package = baseline.package
-    current_dir = repo_root / "specs" / "current"
-    desired_dir = repo_root / "specs" / "desired_program_model"
+    current_dir = baseline.spec_root / "current"
+    desired_dir = baseline.spec_root / "desired_program_model"
 
     written: list[Path] = []
+    written.extend(copy_baseline_tree(baseline.program_dir, current_dir, force=force, dry_run=dry_run))
+    written.extend(copy_baseline_tree(baseline.program_dir, desired_dir, force=force, dry_run=dry_run))
 
     files = [
-        (current_dir / "README.md", current_readme(ticket_id, title, baseline)),
-        (current_dir / "spec_manifest.yaml", current_manifest(module, package, ticket_id, title)),
+        (current_dir / "README.md", current_readme(ticket_id, title, baseline, spec_root)),
+        (current_dir / "spec_manifest.yaml", current_manifest(module, package, ticket_id, title, spec_root)),
         (current_dir / "case_adapters.toml", case_adapters_toml()),
         (current_dir / "production_adapters.py", production_adapters_py()),
-        (current_dir / "tests" / "test_current_ticket_workflow.py", current_test(ticket_id)),
+        (current_dir / "tests" / "test_current_ticket_workflow.py", current_test_for_spec_root(ticket_id, spec_root)),
         (desired_dir / "README.md", desired_readme(ticket_id, title, baseline)),
-        (desired_dir / "spec_manifest.yaml", desired_manifest(module, package, ticket_id, title)),
-        (desired_dir / "ticket_plan.yaml", ticket_plan(ticket_id, title, module)),
-        (desired_dir / "desired_state.yaml", desired_state(ticket_id, title, module)),
+        (desired_dir / "spec_manifest.yaml", desired_manifest(module, package, ticket_id, title, spec_root)),
+        (desired_dir / "ticket_plan.yaml", ticket_plan(ticket_id, title, module, spec_root)),
+        (desired_dir / "desired_state.yaml", desired_state(ticket_id, title, module, spec_root)),
     ]
     for path, content in files:
         if write_file(path, content, force=force, dry_run=dry_run):
             written.append(path)
 
-    tla_fallback = minimal_tla(module)
-    cfg_fallback = minimal_cfg()
     for target_dir in [current_dir, desired_dir]:
         tla_target = target_dir / f"{module}.tla"
         cfg_target = target_dir / "MC.cfg"
-        if copy_file(baseline.tla_path, tla_target, tla_fallback, force=force, dry_run=dry_run):
+        if copy_file(baseline.tla_path, tla_target, "", force=force, dry_run=dry_run):
             written.append(tla_target)
-        if copy_file(baseline.cfg_path, cfg_target, cfg_fallback, force=force, dry_run=dry_run):
+        if copy_file(baseline.cfg_path, cfg_target, "", force=force, dry_run=dry_run):
             written.append(cfg_target)
 
     return written
@@ -520,12 +592,13 @@ def main() -> int:
     parser.add_argument("ticket_id", help="Ticket id, for example AUTH-123 or K8S-010.")
     parser.add_argument("title", help="Human-readable ticket title.")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing scaffold files.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
-    written = scaffold(repo_root, args.ticket_id, args.title, args.force, args.dry_run)
+    written = scaffold(repo_root, args.ticket_id, args.title, args.force, args.dry_run, args.spec_root)
     print(f"scaffolded ticket workflow files: {len(written)}")
     return 0
 

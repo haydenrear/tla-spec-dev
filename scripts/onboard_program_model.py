@@ -43,6 +43,19 @@ def write_file(path: Path, content: str, *, force: bool, dry_run: bool) -> bool:
     return True
 
 
+def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+    return spec_root if spec_root.is_absolute() else repo_root / spec_root
+
+
+def _display_spec_root(repo_root: Path, spec_root: Path) -> str:
+    if spec_root.is_absolute():
+        try:
+            return spec_root.relative_to(repo_root).as_posix()
+        except ValueError:
+            return spec_root.as_posix()
+    return spec_root.as_posix()
+
+
 def program_model_tla(module: str) -> str:
     return f"""----------------------------- MODULE {module} -----------------------------
 EXTENDS Naturals, FiniteSets, Sequences, TLC
@@ -170,7 +183,7 @@ INVARIANTS
 """
 
 
-def manifest(module: str, package: str) -> str:
+def manifest(module: str, package: str, spec_root_text: str = "specs") -> str:
     return f"""module: {module}
 package: {package}
 
@@ -185,7 +198,7 @@ status:
     next:
       - Replace the scaffolded state fields and actions with repository-specific whole-program semantics.
       - Add adapter mappings for real production boundaries.
-      - Run TLC for specs/program_model/MC.cfg.
+      - Run TLC for {spec_root_text}/program_model/MC.cfg.
       - Generate transition cases and validate adapter coverage.
 
 state:
@@ -300,7 +313,7 @@ case_codegen:
 """
 
 
-def readme(module: str) -> str:
+def readme(module: str, spec_root_text: str = "specs") -> str:
     return f"""# Program Model
 
 This directory is the accepted whole-program TLA+ model for this repository.
@@ -315,7 +328,7 @@ Files:
 - `case_adapters.toml`: production adapter mapping for generated cases.
 - `production_adapters.py`: repository-local adapter extension points.
 
-Use `specs/current` and `specs/desired_program_model` only after this baseline
+Use `{spec_root_text}/current` and `{spec_root_text}/desired_program_model` only after this baseline
 exists and a later ticket needs a planned destination. First onboarding should
 not create those directories.
 """
@@ -348,34 +361,42 @@ class ScaffoldedProgramModelAdapter:
 '''
 
 
-def onboarding_test(module: str) -> str:
+def onboarding_test(module: str, spec_root_text: str = "specs") -> str:
     return f'''from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
+SPEC_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_program_model_onboarding_scaffold_has_no_ticket_workflow_dirs() -> None:
-    assert (ROOT / "specs/program_model/{module}.tla").exists()
-    assert (ROOT / "specs/program_model/spec_manifest.yaml").exists()
-    assert not (ROOT / "specs/current").exists()
-    assert not (ROOT / "specs/desired_program_model").exists()
+    assert (SPEC_ROOT / "{module}.tla").exists()
+    assert (SPEC_ROOT / "spec_manifest.yaml").exists()
+    assert not (SPEC_ROOT.parent / "current").exists()
+    assert not (SPEC_ROOT.parent / "desired_program_model").exists()
 '''
 
 
-def scaffold(repo_root: Path, name: str | None, force: bool, dry_run: bool) -> list[Path]:
+def scaffold(
+    repo_root: Path,
+    name: str | None,
+    force: bool,
+    dry_run: bool,
+    spec_root: Path = Path("specs"),
+) -> list[Path]:
     module = _module_name(name or repo_root.name)
     package = f"{_slug(module)}_program_cases"
-    program_dir = repo_root / "specs" / "program_model"
+    resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
+    spec_root_text = _display_spec_root(repo_root, spec_root)
+    program_dir = resolved_spec_root / "program_model"
 
     files = [
-        (program_dir / "README.md", readme(module)),
+        (program_dir / "README.md", readme(module, spec_root_text)),
         (program_dir / f"{module}.tla", program_model_tla(module)),
         (program_dir / "MC.cfg", model_cfg()),
-        (program_dir / "spec_manifest.yaml", manifest(module, package)),
+        (program_dir / "spec_manifest.yaml", manifest(module, package, spec_root_text)),
         (program_dir / "case_adapters.toml", case_adapters_toml()),
         (program_dir / "production_adapters.py", production_adapters_py()),
-        (program_dir / "tests" / "test_program_model_onboarding.py", onboarding_test(module)),
+        (program_dir / "tests" / "test_program_model_onboarding.py", onboarding_test(module, spec_root_text)),
     ]
 
     written: list[Path] = []
@@ -388,13 +409,14 @@ def scaffold(repo_root: Path, name: str | None, force: bool, dry_run: bool) -> l
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
     parser.add_argument("--name", help="Program/module name. Defaults to the repository directory name.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing program-model files.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
-    written = scaffold(repo_root, args.name, args.force, args.dry_run)
+    written = scaffold(repo_root, args.name, args.force, args.dry_run, args.spec_root)
     print(f"scaffolded program model files: {len(written)}")
     return 0
 

@@ -1,0 +1,56 @@
+# Generation Modes
+
+Spec Double Compiler has two related generation paths. Keep them distinct.
+
+## Manifest-Driven Spec Doubles
+
+Use `scripts/generate_python.py` when a reviewed `spec_manifest.yaml` defines
+the Python API shape:
+
+```bash
+python scripts/generate_python.py path/to/spec_manifest.yaml --out path/to/generated
+```
+
+This mode generates:
+
+- Python dataclasses for states, commands, results, and events.
+- Protocols for ports.
+- A deterministic fake/spec double from explicit manifest templates.
+- Validators, strategies, traces, contract tests, and generated docs.
+
+This is best when the boundary API is known and the manifest is the reviewed
+bridge from TLA+ names to Python names.
+
+## TLC State-Graph Cases
+
+Use `scripts/generate_cases_from_tlc_dump.py` when TLC's reachable state graph
+is the case source of truth:
+
+```bash
+python scripts/generate_cases_from_tlc_dump.py path/to/Model.tla path/to/MC.cfg --out path/to/generated --package model_cases
+```
+
+This mode generates:
+
+- One `StateGraphCase` per action-labeled TLC edge.
+- Generic before/input/output/after case descriptors.
+- A scripted transition double that accepts exactly the generated case input.
+- Validators for structural replay.
+
+Repository-local adapters then map real production boundaries to these generic
+case descriptors through `case_adapters.toml` and
+`scripts/run_generated_case_adapters.py`.
+
+## Relationship To Program Workflow
+
+`program_model`, `current`, and `desired_program_model` are workflow roles, not
+generation modes.
+
+- `program_model` is the accepted baseline.
+- `current` is the whole-program model implemented right now during active
+  ticket work.
+- `desired_program_model` is the target model plus ticket plan.
+
+Either generation mode can be used from the appropriate workflow directory, but
+for whole-program behavior changes the TLC state-graph case path is usually the
+better fit because it keeps cases tied directly to the reachable model.

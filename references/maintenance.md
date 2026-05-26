@@ -25,9 +25,16 @@ the truth. Python makes that truth executable in tests.
 10. Run spec-double self-tests.
 11. Run adapter conformance tests.
 12. When `specs/current` equals `specs/desired_program_model`, promote the
-    converged model to `specs/program_model` and remove
-    `specs/desired_program_model` once it no longer carries distinct planning
+    converged model to `specs/program_model` and remove `specs/current` plus
+    `specs/desired_program_model` once they no longer carry distinct planning
     state.
+    `scripts/close_tickets.py --repo-root .` validates matching current,
+    desired, and promoted program-model semantic files, checks that all tickets
+    in `ticket_plan.yaml` are closed, and removes `specs/current` plus
+    `specs/desired_program_model` after promotion.
+
+See `references/typical_workflow.md` for the complete onboarding, ticket, and
+closeout sequence.
 
 ## Changing Implementation Only
 

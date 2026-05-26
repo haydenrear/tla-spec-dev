@@ -25,6 +25,23 @@ def test_onboard_program_model_creates_only_program_model(tmp_path: Path) -> Non
     assert "model_role: accepted_program_model" in manifest
 
 
+def test_onboard_program_model_uses_custom_spec_root(tmp_path: Path) -> None:
+    written = scaffold(
+        tmp_path,
+        "SkillManager",
+        force=False,
+        dry_run=False,
+        spec_root=Path("project/specs"),
+    )
+
+    assert tmp_path / "project/specs/program_model/spec_manifest.yaml" in written
+    assert (tmp_path / "project/specs/program_model/SkillManager.tla").exists()
+    generated_test = (
+        tmp_path / "project/specs/program_model/tests/test_program_model_onboarding.py"
+    ).read_text(encoding="utf-8")
+    assert 'SPEC_ROOT = Path(__file__).resolve().parents[1]' in generated_test
+
+
 def test_onboard_program_model_preserves_existing_program_model_files(tmp_path: Path) -> None:
     existing = tmp_path / "specs" / "program_model" / "spec_manifest.yaml"
     existing.parent.mkdir(parents=True)
