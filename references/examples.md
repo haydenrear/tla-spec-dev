@@ -27,6 +27,20 @@ or docs that describe the core workflow.
 It is useful for modeling shape and documentation, but it is not a fully worked
 adapter/conformance example.
 
+## Distributed History
+
+`examples/distributed_history/` is a workflow-history example.
+
+It shows:
+
+- first-project onboarding into `specs/program_model`;
+- opening a desired/current ticket workflow;
+- a desired model that spans two distributed tickets;
+- updating `specs/current` after each landed ticket;
+- closing each ticket from `specs/desired_program_model/ticket_plan.yaml`;
+- closing the workflow into `specs/.history/<workflow-name>/closed-snapshot`;
+- a replay script that regenerates the example from the workflow commands.
+
 ## Tutorial Scaffolding
 
 `scripts/scaffold_spec.py` creates standalone tutorial/example specs under

@@ -26,7 +26,7 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
-    entry_dir = create_workflow_closed_snapshot(
+    result = create_workflow_closed_snapshot(
         repo_root=repo_root,
         spec_root=args.spec_root,
         summary=args.summary,
@@ -42,7 +42,7 @@ def main() -> int:
             if path.exists():
                 shutil.rmtree(path)
                 print(f"removed {path}")
-    print_commit_recommendation(entry_dir, "record closed spec workflow history")
+    print_commit_recommendation(result)
     return 0
 
 

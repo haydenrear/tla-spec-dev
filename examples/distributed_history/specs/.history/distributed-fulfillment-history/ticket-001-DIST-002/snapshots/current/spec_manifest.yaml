@@ -1,0 +1,26 @@
+module: DistributedFulfillment
+package: distributed_fulfillment_cases
+
+status:
+  model_role: current_after_DIST_002
+  workflow: distributed-fulfillment-history
+  evidence: specs/results
+
+case_codegen:
+  style: explicit_transition_cases
+
+state_fields:
+  - accepted
+  - outbox
+  - topic
+  - projected
+  - acked
+
+actions:
+  - AcceptOrder
+  - RejectDuplicateOrder
+  - PublishOutbox
+  - ProjectShipment
+
+ports: {}
+adapters: case_adapters.toml

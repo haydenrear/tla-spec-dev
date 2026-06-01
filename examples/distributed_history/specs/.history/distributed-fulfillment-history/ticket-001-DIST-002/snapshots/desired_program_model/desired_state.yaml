@@ -1,0 +1,24 @@
+version: 1
+name: distributed-fulfillment-desired-state
+workflow: distributed-fulfillment-history
+canonical_tla_module: DistributedFulfillment
+ticket_plan: ticket_plan.yaml
+
+distributed_boundaries:
+  api:
+    state: accepted
+    actions:
+      - AcceptOrder
+      - RejectDuplicateOrder
+  durable_outbox:
+    state: outbox
+    actions:
+      - PublishOutbox
+  broker_topic:
+    state: topic
+  projection_worker:
+    state:
+      - projected
+      - acked
+    actions:
+      - ProjectShipment

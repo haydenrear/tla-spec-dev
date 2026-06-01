@@ -19,6 +19,8 @@ The history directory is immutable:
 - Never overwrite a ticket or closed-workflow snapshot.
 - Create a new explicit entry only when new evidence needs another checkpoint.
 - Commit history entries with the related spec changes.
+- Close commands set history files to read-only permissions and history
+  directories to read/execute-only permissions after each append.
 
 The ticket source of truth is
 `specs/desired_program_model/ticket_plan.yaml`. Do not invent or require

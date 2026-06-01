@@ -24,7 +24,7 @@ def main() -> int:
     parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     args = parser.parse_args()
 
-    entry_dir = create_ticket_history_entry(
+    result = create_ticket_history_entry(
         repo_root=args.repo_root.resolve(),
         spec_root=args.spec_root,
         ticket_ref=args.ticket,
@@ -34,7 +34,7 @@ def main() -> int:
         entry_name=args.entry_name,
         allow_open=args.allow_open,
     )
-    print_commit_recommendation(entry_dir, f"record spec history for {args.ticket}")
+    print_commit_recommendation(result)
     return 0
 
 

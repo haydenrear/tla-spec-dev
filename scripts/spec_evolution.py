@@ -7,6 +7,8 @@ import re
 import shutil
 import subprocess
 import sys
+import stat
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,14 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
 IGNORED_COPY_NAMES = {".DS_Store", "__pycache__", ".history", ".tla-spec-evolution"}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
+
+
+@dataclass(frozen=True)
+class HistoryEntryResult:
+    entry_dir: Path
+    recommendation: str
+    git_add_command: str
+    git_commit_command: str
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -80,6 +90,32 @@ def git_metadata() -> dict[str, str | None]:
 
 def copy_ignore(_directory: str, names: list[str]) -> set[str]:
     return {name for name in names if name in IGNORED_COPY_NAMES}
+
+
+def make_directory_appendable(path: Path) -> None:
+    if not path.exists():
+        return
+    mode = path.stat().st_mode
+    path.chmod(mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+
+
+def make_history_appendable(specs_dir: Path, workflow: str) -> None:
+    history_dir = specs_dir / ".history"
+    make_directory_appendable(history_dir)
+    make_directory_appendable(history_dir / safe_segment(workflow))
+
+
+def freeze_history(root: Path) -> None:
+    if not root.exists():
+        return
+    for path in sorted(root.rglob("*"), key=lambda item: len(item.parts), reverse=True):
+        if path.is_symlink():
+            continue
+        if path.is_dir():
+            path.chmod(0o555)
+        else:
+            path.chmod(0o444)
+    root.chmod(0o555)
 
 
 def copy_snapshot(source: Path, destination: Path) -> None:
@@ -161,6 +197,17 @@ def history_root(specs_dir: Path, workflow: str) -> Path:
     return specs_dir / ".history" / safe_segment(workflow)
 
 
+def commit_recommendation(entry_dir: Path, message: str) -> HistoryEntryResult:
+    git_add_command = f"git add {rel(entry_dir)}"
+    git_commit_command = f"git commit -m {message!r}"
+    return HistoryEntryResult(
+        entry_dir=entry_dir,
+        recommendation=f"It is recommended to commit this immutable history directory now: {rel(entry_dir)}",
+        git_add_command=git_add_command,
+        git_commit_command=git_commit_command,
+    )
+
+
 def write_manifest(entry_dir: Path, manifest: dict[str, Any]) -> None:
     (entry_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
@@ -216,7 +263,7 @@ def create_ticket_history_entry(
     workflow: str | None = None,
     entry_name: str | None = None,
     allow_open: bool = False,
-) -> Path:
+) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
@@ -226,6 +273,7 @@ def create_ticket_history_entry(
         raise SystemExit(f"ERROR: ticket {ticket_id(ticket, index)} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
 
     resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
+    make_history_appendable(specs_dir, resolved_workflow)
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite immutable history entry: {entry_dir}")
@@ -233,6 +281,7 @@ def create_ticket_history_entry(
 
     snapshots = snapshot_models(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
+    close_result = commit_recommendation(entry_dir, f"record spec history for {ticket_id(ticket, index)}")
     manifest = {
         "schema_version": 1,
         "kind": "ticket",
@@ -248,11 +297,18 @@ def create_ticket_history_entry(
         "summary": summary,
         "snapshots": snapshots,
         "results": results,
+        "commit_recommendation": {
+            "message": close_result.recommendation,
+            "git_add": close_result.git_add_command,
+            "git_commit": close_result.git_commit_command,
+        },
+        "immutable_permissions": "history files are chmod 0444 and history directories are chmod 0555 after write",
         "git": git_metadata(),
     }
     write_manifest(entry_dir, manifest)
     write_summary(entry_dir, title=f"Ticket snapshot: {ticket_id(ticket, index)}", summary=summary, manifest=manifest)
-    return entry_dir
+    freeze_history(specs_dir / ".history")
+    return close_result
 
 
 def create_workflow_closed_snapshot(
@@ -264,7 +320,7 @@ def create_workflow_closed_snapshot(
     workflow: str | None = None,
     entry_name: str = "closed-snapshot",
     allow_open: bool = False,
-) -> Path:
+) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
@@ -279,6 +335,7 @@ def create_workflow_closed_snapshot(
             raise SystemExit("ERROR: cannot write closed workflow snapshot with open tickets:\n" + "\n".join(f"- {item}" for item in open_tickets))
 
     resolved_entry_name = safe_segment(entry_name)
+    make_history_appendable(specs_dir, resolved_workflow)
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite immutable history entry: {entry_dir}")
@@ -286,6 +343,7 @@ def create_workflow_closed_snapshot(
 
     snapshots = snapshot_models(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
+    close_result = commit_recommendation(entry_dir, "close spec ticket workflow")
     manifest = {
         "schema_version": 1,
         "kind": "workflow-close",
@@ -298,15 +356,23 @@ def create_workflow_closed_snapshot(
         "summary": summary,
         "snapshots": snapshots,
         "results": results,
+        "commit_recommendation": {
+            "message": close_result.recommendation,
+            "git_add": close_result.git_add_command,
+            "git_commit": close_result.git_commit_command,
+        },
+        "immutable_permissions": "history files are chmod 0444 and history directories are chmod 0555 after write",
         "git": git_metadata(),
     }
     write_manifest(entry_dir, manifest)
     write_summary(entry_dir, title="Closed workflow snapshot", summary=summary, manifest=manifest)
-    return entry_dir
+    freeze_history(specs_dir / ".history")
+    return close_result
 
 
-def print_commit_recommendation(entry_dir: Path, message: str) -> None:
-    print(f"recorded immutable spec history entry: {entry_dir}")
+def print_commit_recommendation(result: HistoryEntryResult) -> None:
+    print(f"recorded immutable spec history entry: {result.entry_dir}")
+    print(result.recommendation)
     print("recommended next step:")
-    print(f"  git add {rel(entry_dir)}")
-    print(f"  git commit -m {message!r}")
+    print(f"  {result.git_add_command}")
+    print(f"  {result.git_commit_command}")

@@ -139,7 +139,7 @@ def close_ticket_workflow(
         raise SystemExit("cannot close ticket workflow:\n" + "\n".join(f"- {error}" for error in errors))
 
     if not dry_run:
-        entry_dir = create_workflow_closed_snapshot(
+        result = create_workflow_closed_snapshot(
             repo_root=repo_root,
             spec_root=spec_root,
             summary=summary,
@@ -147,7 +147,7 @@ def close_ticket_workflow(
             workflow=workflow_name,
             entry_name=history_entry,
         )
-        print_commit_recommendation(entry_dir, "close spec ticket workflow")
+        print_commit_recommendation(result)
 
     removed = [current_dir, desired_dir]
     for directory in removed:
