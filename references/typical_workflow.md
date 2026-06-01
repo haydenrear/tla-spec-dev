@@ -57,6 +57,12 @@ For each ticket or implementation slice:
    scope, order, dependencies, and acceptance criteria.
 4. Run TLC and current-model adapter or unit tests.
 5. Record validation evidence in manifests or ticket status.
+6. When the ticket is closed in `ticket_plan.yaml`, snapshot the workflow
+   history:
+
+```bash
+python scripts/close-ticket.py TICKET-123 --repo-root path/to/repo --result path/to/repo/specs/results/tlc.txt
+```
 
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or
 validation workflow mechanics as TLA+ program state/actions. Record them as
@@ -71,7 +77,8 @@ When the desired model has landed:
 1. Promote the converged model into `program_model`.
 2. Regenerate accepted artifacts from `program_model`.
 3. Run accepted program-model validation.
-4. Close the temporary workflow directories:
+4. Close the temporary workflow directories and record `closed-snapshot` under
+   `specs/.history/<workflow-name>/`:
 
 ```bash
 python scripts/close_tickets.py --repo-root path/to/repo

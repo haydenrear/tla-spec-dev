@@ -20,6 +20,11 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
+except ImportError:  # pragma: no cover - direct script execution
+    from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
+
+try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore
@@ -37,6 +42,27 @@ def load_cases(cases_dir: Path):
     cases_dir = cases_dir.resolve()
     sys.path.insert(0, str(cases_dir.parent))
     return importlib.import_module(cases_dir.name)
+
+
+def infer_spec_dir(cases_dir: Path, mapping: Path, explicit: Path | None) -> Path | None:
+    if explicit is not None:
+        return resolve_existing_from_cwd(explicit)
+    mapping_candidate = mapping if mapping.is_absolute() else Path.cwd() / mapping
+    if mapping_candidate.exists():
+        return mapping_candidate.resolve().parent
+    cases_candidate = cases_dir if cases_dir.is_absolute() else Path.cwd() / cases_dir
+    if cases_candidate.exists():
+        resolved = cases_candidate.resolve()
+        if resolved.parent.name in {"cases", "generated"}:
+            return resolved.parent.parent
+        return resolved.parent
+    return None
+
+
+def resolve_runtime_path(path: Path, spec_dir: Path | None) -> Path:
+    if spec_dir is None:
+        return resolve_existing_from_cwd(path)
+    return resolve_existing_spec_input(path, spec_dir)
 
 
 def load_mappings(path: Path) -> dict[str, AdapterMapping]:
@@ -373,6 +399,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("cases_dir", type=Path, help="Generated case package directory")
     parser.add_argument("--mapping", type=Path, required=True, help="TOML label-to-adapter mapping")
+    parser.add_argument("--spec-dir", type=Path, help="Spec directory used for resolving spec-relative paths")
     parser.add_argument("--work-dir", type=Path)
     parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
     parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
@@ -383,6 +410,15 @@ def main() -> int:
     parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
     parser.add_argument("--batch", action="store_true", help="Execute selected cases in this process instead of one generated program per case")
     args = parser.parse_args()
+
+    spec_dir = infer_spec_dir(args.cases_dir, args.mapping, args.spec_dir)
+    args.cases_dir = resolve_runtime_path(args.cases_dir, spec_dir)
+    args.mapping = resolve_runtime_path(args.mapping, spec_dir)
+    args.import_root = [resolve_runtime_path(root, spec_dir) for root in args.import_root]
+    default_import_roots = args.import_root or ([Path.cwd(), spec_dir] if spec_dir is not None else [Path.cwd()])
+    if args.work_dir is not None and spec_dir is not None:
+        args.work_dir = resolve_spec_relative_path(args.work_dir, spec_dir)
+
     reexec_code = reexec_batch_if_needed(args)
     if reexec_code is not None:
         return reexec_code
@@ -398,7 +434,7 @@ def main() -> int:
         validate_adapter_capabilities(
             cases=runnable_cases,
             mappings=mappings,
-            import_roots=args.import_root or [Path.cwd()],
+            import_roots=default_import_roots,
         )
 
     work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
@@ -410,7 +446,7 @@ def main() -> int:
                 cases=runnable_cases,
                 mappings=mappings,
                 work_dir=work_dir,
-                import_roots=args.import_root or [Path.cwd()],
+                import_roots=default_import_roots,
             )
             print(f"executed {len(runnable_cases)} cases in batch")
     else:
@@ -419,7 +455,7 @@ def main() -> int:
             mappings=mappings,
             cases_dir=args.cases_dir,
             work_dir=work_dir,
-            import_roots=args.import_root or [Path.cwd()],
+            import_roots=default_import_roots,
         )
         print(f"generated {len(programs)} case programs in {work_dir / 'programs'}")
     if not args.validate_only and not args.batch:

@@ -190,6 +190,10 @@ invariant_templates:
     write_if_missing(target / "spec_manifest.yaml", manifest)
     (target / "generated").mkdir(exist_ok=True)
     (target / "tests").mkdir(exist_ok=True)
+    write_if_missing(
+        target / ".history" / "README.md",
+        "# Spec Workflow History\n\nThis directory is append-only history for immutable close records.\n",
+    )
     return target
 
 

@@ -333,11 +333,13 @@ generation and TLC state-graph case generation. Read
    scaffolding modeled as state-machine behavior.
 9. Run spec-double self-tests.
 10. Run adapter conformance tests.
-11. Continue until `specs/current` equals `specs/desired_program_model`, then
-    promote the converged model to `specs/program_model` and remove
-    `specs/current` and `specs/desired_program_model` once they no longer carry
-    distinct planning state. Use `scripts/close_tickets.py` for validated
-    cleanup after promotion.
+11. For ticketed desired/current work, write an immutable close record before
+    moving the active context forward.
+12. Continue until `specs/current` equals `specs/desired_program_model`, then
+    promote the converged model to `specs/program_model`, write a workflow
+    close record, and remove `specs/current` plus `specs/desired_program_model`
+    once they no longer carry distinct planning state. Use
+    `scripts/close_tickets.py` for validated cleanup after promotion.
 
 Example commands:
 
@@ -345,20 +347,45 @@ See `references/typical_workflow.md` for repository onboarding, feature-ticket
 workflow, promotion, and closeout commands. See
 `references/generation_modes.md` for generation commands.
 
+## Spec-Relative Execution Rule
+
+Treat the spec directory as the artifact boundary. TLC should run with the spec
+directory as its working directory, and relative outputs such as `cases/`,
+`generated/`, result files, and adapter work directories should resolve under
+that spec directory unless the caller supplied an explicit path already inside
+it.
+
+This keeps active state local:
+
+- `specs/cases` or `examples/workspace/cases`: generated TLC edge cases.
+- `specs/generated` or `examples/workspace/generated`: generated Python
+  packages.
+- `specs/results`: TLC, adapter, and test evidence.
+- `specs/.history/<workflow-name>`: immutable workflow history.
+
+Do not rely on the repository root as the implicit output location for TLA
+artifacts. If a workflow is launched from the repository root, pass the TLA file
+or `--spec-dir` so scripts can resolve outputs back to the spec directory.
+
 ## Desired/Current Migration Loop
 
-For large migrations, keep two coordinated spec views:
+For large migrations, keep two coordinated spec views around the accepted
+baseline:
 
-- `specs/desired_program_model`: the intended whole-program end state.
-- `specs/current`: the currently implemented slice and its adapters.
+- `specs/program_model`: the accepted whole-program baseline.
+- `specs/desired_program_model`: the intended whole-program end state and
+  implementation plan.
+- `specs/current`: the executable whole-program model of the repository state
+  currently implemented while work is in progress.
 
 Use this loop for each slice:
 
 1. Update the desired program model with what was learned from the previous
-   slice, including status metadata for done, in-progress, and pending
-   boundaries.
-2. Update the current program model to include only behavior that is now
-   implemented or being implemented in this slice.
+   slice, including ticket breakdown, status metadata, validation commands, and
+   done, in-progress, and pending boundaries.
+2. Update the current program model to include the whole program as currently
+   implemented, preserving baseline behavior from `specs/program_model` unless
+   production behavior changed.
 3. Add or update current adapters and unit tests first. These tests should
    validate the control surface, rendering, or refinement mapping without
    requiring the full integration graph unless that is the slice under test.
@@ -369,11 +396,44 @@ Use this loop for each slice:
    external tool (`kubectl`, `helm`, SQL, Kafka admin, filesystem inspection,
    HTTP, etc.) and publish useful endpoint/context data for downstream nodes.
 6. Run the narrow graph for the slice.
-7. Record the run id and evidence in `specs/current`, then sync the desired
-   model metadata to mark the refined boundary as done.
+7. Mark the ticket closed in `specs/desired_program_model/ticket_plan.yaml`,
+   record run ids and evidence paths, then close the ticket with
+   `python scripts/close-ticket.py <ticket-id> --result <evidence-path>`.
+8. Sync the desired model metadata to mark the refined boundary as done.
+9. Commit the ticket close record, spec changes, and evidence together.
 
 This loop keeps the desired model honest, the current model executable, and
 the behavioral graph anchored to externally observable facts.
+
+## Immutable Spec Evolution History
+
+`specs/.history/<workflow-name>/` is append-only history for a specific
+desired/current workflow. Do not edit an existing close entry; create another
+entry name only when a ticket or workflow needs another checkpoint. This lets an
+agent retrieve only active state plus selected history entries instead of
+repeatedly reading every prior desired/current version.
+
+The ticket source of truth is
+`specs/desired_program_model/ticket_plan.yaml`. Do not invent repository-level
+Markdown ticket files for this workflow.
+
+Per-ticket close:
+
+```bash
+python scripts/close-ticket.py TICKET-123 --summary "Recorded ticket-level history" --result specs/results/adapter.txt
+```
+
+Whole-workflow close:
+
+```bash
+python scripts/close_tickets.py --repo-root . --summary "Promoted desired/current into program_model"
+```
+
+Each entry includes a machine-readable `manifest.json`, a human-readable
+`summary.md`, snapshots of `program_model`, `desired_program_model`, and
+`current` when present, the ticket mapping from `ticket_plan.yaml`, and optional
+result evidence. The close command recommends a git commit because git is the
+durable mechanism for ordering immutable filesystem entries over time.
 
 ## Generated Artifacts
 
@@ -515,6 +575,10 @@ When modifying a Postgres adapter for `WorkspacePort`, retrieve:
 Read `references/ai_retrieval.md` when preparing context for AI-assisted code
 analysis.
 
+For historical questions, search `specs/.history/**/manifest.json` and
+`summary.md` first, then open only the referenced snapshots needed for the
+current change.
+
 ## Anti-Patterns
 
 - Do not treat generated Python as the canonical source of truth.
@@ -529,6 +593,7 @@ analysis.
 - Do not let generated spec doubles become production dependencies.
 - Do not hide refinement mappings.
 - Do not create disconnected TLA+ specs per feature in a production repository.
+- Do not rewrite immutable spec history entries.
 - Do not use TLA+ ceremony for trivial CRUD or early exploratory UI work.
 - Do not confuse centralized semantic state with centralized production
   architecture.
@@ -548,5 +613,7 @@ analysis.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
 - `references/examples.md`: checked-in examples and when to use them.
+- `references/spec_evolution.md`: immutable history and search guidance.
+- `references/workflows.md`: project, spec, ticket, and close-out workflows.
 - `examples/workspace/`: fully worked example.
 - `examples/subscription/`: partial state-machine example.

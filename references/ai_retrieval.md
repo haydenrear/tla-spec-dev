@@ -37,6 +37,20 @@ When modifying a Postgres adapter for `WorkspacePort`, retrieve:
 Do not begin by reading the entire production implementation. The spec
 double package is the minimum reproducible contract.
 
+## History Search Recipe
+
+When the question is about how the model evolved, search immutable close
+history before opening old desired/current snapshots:
+
+```bash
+rg -n "Ticket|CreateWorkspace|LimitInvariant" specs/.history
+find specs/.history -name manifest.json
+```
+
+Read `summary.md` and `manifest.json` first. Open copied snapshots only when the
+manifest shows that the close entry is relevant to the current boundary. This
+keeps token cost bounded by active state plus selected immutable history.
+
 ## Review Questions For AI Agents
 
 - Which port does this adapter implement?
@@ -57,6 +71,7 @@ unit is the smallest set that explains behavior:
 - generated validator
 - generated conformance test
 - adapter mapping
+- selected spec-evolution manifest or summary
 
 This is what lets an AI coding agent avoid guessing from production
 machinery.

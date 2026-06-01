@@ -15,6 +15,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from .spec_evolution import create_workflow_closed_snapshot, print_commit_recommendation
+except ImportError:  # pragma: no cover - direct script execution
+    from spec_evolution import create_workflow_closed_snapshot, print_commit_recommendation
+
 
 SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
 PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml"}
@@ -112,7 +117,16 @@ def validate_ticket_plan_closed(ticket_plan: Path) -> list[str]:
     return errors
 
 
-def close_ticket_workflow(repo_root: Path, spec_root: Path, *, dry_run: bool) -> list[Path]:
+def close_ticket_workflow(
+    repo_root: Path,
+    spec_root: Path,
+    *,
+    dry_run: bool,
+    summary: str = "",
+    result_paths: list[Path] | None = None,
+    workflow_name: str | None = None,
+    history_entry: str = "closed-snapshot",
+) -> list[Path]:
     resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
     program_dir = resolved_spec_root / "program_model"
     current_dir = resolved_spec_root / "current"
@@ -123,6 +137,17 @@ def close_ticket_workflow(repo_root: Path, spec_root: Path, *, dry_run: bool) ->
     errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
     if errors:
         raise SystemExit("cannot close ticket workflow:\n" + "\n".join(f"- {error}" for error in errors))
+
+    if not dry_run:
+        entry_dir = create_workflow_closed_snapshot(
+            repo_root=repo_root,
+            spec_root=spec_root,
+            summary=summary,
+            result_paths=result_paths or [],
+            workflow=workflow_name,
+            entry_name=history_entry,
+        )
+        print_commit_recommendation(entry_dir, "close spec ticket workflow")
 
     removed = [current_dir, desired_dir]
     for directory in removed:
@@ -139,9 +164,21 @@ def main() -> int:
     parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
     parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
     parser.add_argument("--dry-run", action="store_true", help="Validate and print removals without deleting files.")
+    parser.add_argument("--workflow-name", help="Override ticket_plan.yaml name/status.workflow for the history directory.")
+    parser.add_argument("--history-entry", default="closed-snapshot", help="History entry name under the workflow directory.")
+    parser.add_argument("--summary", default="", help="Human-readable summary for the closed workflow snapshot.")
+    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     args = parser.parse_args()
 
-    close_ticket_workflow(args.repo_root.resolve(), args.spec_root, dry_run=args.dry_run)
+    close_ticket_workflow(
+        args.repo_root.resolve(),
+        args.spec_root,
+        dry_run=args.dry_run,
+        summary=args.summary,
+        result_paths=args.result,
+        workflow_name=args.workflow_name,
+        history_entry=args.history_entry,
+    )
     return 0
 
 

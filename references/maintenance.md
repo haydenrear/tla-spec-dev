@@ -24,14 +24,18 @@ the truth. Python makes that truth executable in tests.
 9. Review generated diffs and the baseline/current/desired relationship.
 10. Run spec-double self-tests.
 11. Run adapter conformance tests.
-12. When `specs/current` equals `specs/desired_program_model`, promote the
+12. For ticketed spec work, write an immutable close record and commit it with
+    the spec and ticket changes before moving active desired/current state
+    forward.
+13. When `specs/current` equals `specs/desired_program_model`, promote the
     converged model to `specs/program_model` and remove `specs/current` plus
     `specs/desired_program_model` once they no longer carry distinct planning
     state.
     `scripts/close_tickets.py --repo-root .` validates matching current,
     desired, and promoted program-model semantic files, checks that all tickets
     in `ticket_plan.yaml` are closed, and removes `specs/current` plus
-    `specs/desired_program_model` after promotion.
+    `specs/desired_program_model` after promotion. Record a workflow close entry
+    before or during final cleanup so the promoted history is append-only.
 
 See `references/typical_workflow.md` for the complete onboarding, ticket, and
 closeout sequence.
@@ -66,6 +70,24 @@ closeout sequence.
 - Did TLC counterexamples become traces when useful?
 - Did production bugs become model changes, validator changes, or
   regression traces?
+- Was ticket or workflow history recorded under `specs/.history/<workflow-name>/`
+  before active desired/current state moved on?
+
+## Immutable Close Records
+
+Use `scripts/close-ticket.py` after each ticket is marked closed in
+`specs/desired_program_model/ticket_plan.yaml`. It reads the ticket from that
+YAML file and snapshots `specs/program_model`, `specs/desired_program_model`,
+`specs/current`, and supplied result evidence into
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/`.
+
+Use `scripts/close_tickets.py` when a desired/current workflow is complete. It
+validates convergence and writes
+`specs/.history/<workflow-name>/closed-snapshot/` before removing active
+`current` and `desired_program_model` directories.
+
+Do not edit close entries after they are written. If new information appears,
+create another close id. Git history supplies ordering across immutable entries.
 
 ## Drift Warnings
 
