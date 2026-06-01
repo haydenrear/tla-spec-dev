@@ -187,6 +187,8 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 7. Run spec-double self-tests.
 8. Run adapter conformance tests.
 9. Update production adapters only after the generated boundary is clear.
+10. For ticketed desired/current work, write an immutable close record before
+    moving the active context forward.
 
 Example commands:
 
@@ -198,6 +200,26 @@ python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla 
 python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --validate-only
 pytest examples/workspace/tests
 ```
+
+## Spec-Relative Execution Rule
+
+Treat the spec directory as the artifact boundary. TLC should run with the spec
+directory as its working directory, and relative outputs such as `cases/`,
+`generated/`, result files, and adapter work directories should resolve under
+that spec directory unless the caller supplied an explicit path already inside
+it.
+
+This keeps active state local:
+
+- `specs/cases` or `examples/workspace/cases`: generated TLC edge cases.
+- `specs/generated` or `examples/workspace/generated`: generated Python
+  packages.
+- `specs/results`: TLC, adapter, and test evidence.
+- `specs/.tla-spec-evolution`: immutable close history.
+
+Do not rely on the repository root as the implicit output location for TLA
+artifacts. If a workflow is launched from the repository root, pass the TLA file
+or `--spec-dir` so scripts can resolve outputs back to the spec directory.
 
 ## Desired/Current Migration Loop
 
@@ -223,11 +245,38 @@ Use this loop for each slice:
    external tool (`kubectl`, `helm`, SQL, Kafka admin, filesystem inspection,
    HTTP, etc.) and publish useful endpoint/context data for downstream nodes.
 6. Run the narrow graph for the slice.
-7. Record the run id and evidence in `specs/current`, then sync the desired
-   model metadata to mark the refined boundary as done.
+7. Record the run id and evidence in `specs/current`, then close the ticket
+   with `python scripts/close-ticket.py <ticket-id> --result <evidence-path>`.
+8. Sync the desired model metadata to mark the refined boundary as done.
+9. Commit the ticket close record, spec changes, and evidence together.
 
 This loop keeps the desired model honest, the current model executable, and
 the behavioral graph anchored to externally observable facts.
+
+## Immutable Spec Evolution History
+
+`specs/.tla-spec-evolution/` is append-only history. Do not edit an existing
+close entry; create a new close id when a ticket or workflow needs another
+checkpoint. This lets an agent retrieve only active state plus selected history
+entries instead of repeatedly reading every prior desired/current version.
+
+Per-ticket close:
+
+```bash
+python scripts/close-ticket.py 010-add-per-ticket-close-history --summary "Recorded ticket-level history" --result specs/results/adapter.txt
+```
+
+Whole-workflow close:
+
+```bash
+python scripts/close-spec-workflow.py --close-id billing-migration-001 --ticket 010-add-per-ticket-close-history --remove-active
+```
+
+Each entry includes a machine-readable `manifest.json`, a human-readable
+`summary.md`, snapshots of `desired_program_model` and `current`, copied
+top-level spec files, copied ticket files when available, and optional result
+evidence. The close command recommends a git commit because git is the durable
+mechanism for ordering immutable filesystem entries over time.
 
 ## Generated Artifacts
 
@@ -370,6 +419,10 @@ When modifying a Postgres adapter for `WorkspacePort`, retrieve:
 Read `references/ai_retrieval.md` when preparing context for AI-assisted code
 analysis.
 
+For historical questions, search `specs/.tla-spec-evolution/**/manifest.json`
+and `summary.md` first, then open only the referenced snapshots needed for the
+current change.
+
 ## Anti-Patterns
 
 - Do not treat generated Python as the canonical source of truth.
@@ -384,6 +437,7 @@ analysis.
 - Do not let generated spec doubles become production dependencies.
 - Do not hide refinement mappings.
 - Do not create disconnected TLA+ specs per feature in a production repository.
+- Do not rewrite immutable spec-evolution entries.
 - Do not use TLA+ ceremony for trivial CRUD or early exploratory UI work.
 - Do not confuse centralized semantic state with centralized production
   architecture.
@@ -396,5 +450,7 @@ analysis.
 - `references/conformance_testing.md`: production adapter conformance.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
+- `references/spec_evolution.md`: immutable history and search guidance.
+- `references/workflows.md`: project, spec, ticket, and close-out workflows.
 - `examples/workspace/`: fully worked example.
 - `examples/subscription/`: partial state-machine example.

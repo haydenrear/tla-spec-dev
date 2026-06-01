@@ -15,6 +15,8 @@ the truth. Python makes that truth executable in tests.
 7. Run spec-double self-tests.
 8. Run adapter conformance tests.
 9. Update production adapters only after the new spec boundary is clear.
+10. For ticketed spec work, write an immutable close record and commit it with
+    the spec and ticket changes.
 
 ## Changing Implementation Only
 
@@ -38,6 +40,21 @@ the truth. Python makes that truth executable in tests.
 - Did TLC counterexamples become traces when useful?
 - Did production bugs become model changes, validator changes, or
   regression traces?
+- Was ticket or workflow history recorded under `specs/.tla-spec-evolution/`
+  before active desired/current state moved on?
+
+## Immutable Close Records
+
+Use `scripts/close-ticket.py` after each completed ticket. It snapshots
+`specs/desired_program_model`, `specs/current`, top-level spec files, ticket
+files, and supplied result evidence into an append-only history entry.
+
+Use `scripts/close-spec-workflow.py` when a desired/current workflow is complete.
+If the active desired/current directories are no longer needed, pass
+`--remove-active` so they are deleted only after the immutable snapshot exists.
+
+Do not edit close entries after they are written. If new information appears,
+create another close id. Git history supplies ordering across immutable entries.
 
 ## Drift Warnings
 

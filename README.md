@@ -19,7 +19,8 @@ boundary.
 - Templates for TLA+ modules, TLC configs, manifests, and Python package
   artifacts.
 - Scripts for scaffolding specs, checking manifest references, generating
-  Python files, generating generated package docs, and running TLC.
+  Python files, generating generated package docs, running TLC, and recording
+  immutable spec-evolution history.
 - A fully worked `Workspace` example with generated Python artifacts and
   tests.
 - A partial `Subscription` example showing lifecycle-state modeling.
@@ -49,6 +50,13 @@ python scripts/generate_python.py examples/workspace/spec_manifest.yaml --out ex
 python -m pytest examples/workspace/tests
 ```
 
+For production repositories that use the desired/current migration loop,
+scaffold the workflow directories first:
+
+```bash
+python scripts/scaffold_spec_workflow.py --root .
+```
+
 To derive whole-program transition cases from TLC and validate that every
 action label is mapped to an adapter:
 
@@ -56,6 +64,10 @@ action label is mapped to an adapter:
 python scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
 python scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --import-root examples/workspace --label Create --validate-only
 ```
+
+Relative case outputs such as `--out cases` are resolved under the spec
+directory. A command run from the repository root and the same command run from
+the spec directory should produce the same spec-local artifact layout.
 
 For larger case sets, use batch mode:
 
@@ -75,6 +87,24 @@ python examples/workspace/tests/test_workspace_spec_double.py
 python examples/workspace/tests/test_workspace_adapter_conformance.py
 python examples/workspace/tests/test_workspace_case_adapter_mapping.py
 ```
+
+## Spec Evolution History
+
+Use immutable close records to keep active context small without losing history.
+After each completed ticket:
+
+```bash
+python scripts/close-ticket.py 008-run-tla-workflows-from-specs-directory --summary "Kept generated cases spec-local" --result specs/results/tlc.txt
+```
+
+At the end of a desired/current workflow:
+
+```bash
+python scripts/close-spec-workflow.py --close-id migration-001 --ticket 008-run-tla-workflows-from-specs-directory --ticket 009-record-spec-evolution-on-close --remove-active
+```
+
+Both commands write under `specs/.tla-spec-evolution/`, refuse to overwrite an
+existing close entry, and print a recommended git commit command.
 
 ## File Tree
 
@@ -99,7 +129,14 @@ templates/
     contract_tests.py.j2
     docs.md.j2
 scripts/
+  close-ticket.py
+  close-spec-workflow.py
+  close_ticket.py
+  close_spec_workflow.py
   scaffold_spec.py
+  scaffold_spec_workflow.py
+  spec_evolution.py
+  spec_paths.py
   extract_spec_manifest.py
   generate_python.py
   generate_docs.py
@@ -142,6 +179,8 @@ references/
   conformance_testing.md
   ai_retrieval.md
   maintenance.md
+  spec_evolution.md
+  workflows.md
 ```
 
 ## Generation Boundary

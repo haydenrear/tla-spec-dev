@@ -79,6 +79,12 @@ fakes.
 The key rule is that Python cases come from TLC output. The generator should not
 encode product-specific transition behavior.
 
+Case generation and adapter execution are spec-relative. TLC runs with the spec
+directory as its working directory, and relative output paths such as `cases/`
+or `generated/` resolve under that spec directory unless the caller supplied a
+path that already points inside it. This prevents a repository-root `cases/`
+directory from becoming an accidental second source of generated state.
+
 The second key rule is that new behavior should usually extend the existing
 program model. A generated double may focus on one feature slice or adapter, but
 the case must still come from the shared program state. Use labels and selected
@@ -162,6 +168,11 @@ Use `--batch` for large case sets. It runs cases in one interpreter while still
 reporting failures by case name and mapped label. If an adapter needs a project
 venv, pass `--python path/to/python`; the runner re-executes the batch under
 that interpreter.
+
+If adapter execution is launched from the repository root with spec-local case
+paths, pass `--spec-dir specs` or a mapping path inside the spec directory so
+relative work directories and fallback imports resolve to the same spec-local
+layout.
 
 Use `generate_cases_from_tlc_dump.py --labeler package.module:function` to add
 stable labels such as `ready_one_record`, `partial_context`, or

@@ -19,6 +19,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+except ImportError:  # pragma: no cover - direct script execution
+    from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+
 
 NODE_RE = re.compile(r'^\s*(-?\d+) \[label="(.*)"(?:,style = filled)?\];?$')
 EDGE_RE = re.compile(r'^\s*(-?\d+) -> (-?\d+) \[label="([^"]+)"')
@@ -33,17 +38,18 @@ class Edge:
 
 def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> None:
     dot_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_dir = tla_path.parent.resolve()
     command = [
         tlc2,
         "-deadlock",
         "-config",
-        str(cfg_path),
+        str(cfg_path.resolve()),
         "-dump",
         "dot,actionlabels",
-        str(dot_path),
-        str(tla_path),
+        str(dot_path.resolve()),
+        str(tla_path.resolve()),
     ]
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, cwd=spec_dir)
 
 
 def load_dot(path: Path) -> tuple[dict[str, dict[str, Any]], list[Edge]]:
@@ -425,23 +431,31 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    for root in [Path.cwd(), Path(__file__).resolve().parents[1]]:
+    tla_path = resolve_existing_from_cwd(args.tla)
+    spec_dir = resolve_spec_dir(args.tla)
+    cfg_path = resolve_existing_spec_input(args.cfg, spec_dir)
+    if not cfg_path.exists():
+        raise SystemExit(f"ERROR: config not found: {cfg_path} (spec directory: {spec_dir})")
+    out_path = resolve_spec_relative_path(args.out, spec_dir)
+    dot_path = resolve_spec_relative_path(args.dot, spec_dir) if args.dot else out_path / f"{tla_path.stem}.dot"
+
+    for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:
         resolved = str(root.resolve())
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
-    dot_path = args.dot or args.out / f"{args.tla.stem}.dot"
-    run_tlc_dump(args.tla, args.cfg, dot_path, args.tlc2)
+    run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
     render_python_package(
-        module=args.tla.stem,
+        module=tla_path.stem,
         states=states,
         edges=edges,
-        package_dir=args.out / args.package,
+        package_dir=out_path / args.package,
         labelers=[load_object(path) for path in args.labeler],
     )
-    print(f"generated {len(edges)} transition cases from {len(states)} states into {args.out / args.package}")
+    print(f"spec directory: {spec_dir}")
+    print(f"generated {len(edges)} transition cases from {len(states)} states into {out_path / args.package}")
     return 0
 
 
