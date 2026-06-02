@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import sys
 
@@ -146,9 +147,16 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
 
     removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False)
 
+    entry_dir = tmp_path / "specs" / ".history" / "spec-workflow" / "closed-snapshot"
+    manifest = json.loads((entry_dir / "manifest.json").read_text(encoding="utf-8"))
+
     assert removed == [current, desired]
     assert not current.exists()
     assert not desired.exists()
+    assert entry_dir.stat().st_mode & 0o200
+    assert (entry_dir / "manifest.json").stat().st_mode & 0o200
+    assert manifest["history_policy"].startswith("append-only by convention")
+    assert "immutable_permissions" not in manifest
 
 
 def test_close_ticket_workflow_reports_semantic_differences(tmp_path: Path) -> None:

@@ -13,14 +13,14 @@ The active workspace is mutable:
 - `specs/current`: executable whole-program state that has landed so far.
 - `specs/results`: current TLC, generated-case, adapter, and graph evidence.
 
-The history directory is immutable:
+The history directory is append-only by convention:
 
 - Never edit an existing history entry.
 - Never overwrite a ticket or closed-workflow snapshot.
 - Create a new explicit entry only when new evidence needs another checkpoint.
 - Commit history entries with the related spec changes.
-- Close commands set history files to read-only permissions and history
-  directories to read/execute-only permissions after each append.
+- Close commands leave filesystem permissions writable so normal git operations
+  keep working.
 
 The ticket source of truth is
 `specs/desired_program_model/ticket_plan.yaml`. Do not invent or require
@@ -101,8 +101,8 @@ find specs/.history -name manifest.json
 ```
 
 Then open only the copied snapshot paths referenced by relevant manifests.
-Avoid reading every historical snapshot by default; the point of the immutable
-log is selective retrieval.
+Avoid reading every historical snapshot by default; the point of the
+append-only log is selective retrieval.
 
 ## Commit Rule
 

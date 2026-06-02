@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay a two-ticket distributed spec workflow with immutable history."""
+"""Replay a two-ticket distributed spec workflow with append-only history."""
 
 from __future__ import annotations
 
@@ -461,7 +461,7 @@ def assert_history() -> None:
     assert closed["kind"] == "workflow-close"
     for manifest in [ticket_1, ticket_2, closed]:
         assert "commit_recommendation" in manifest
-        assert "immutable_permissions" in manifest
+        assert "history_policy" in manifest
     assert not (SPECS / "current").exists()
     assert not (SPECS / "desired_program_model").exists()
     assert (SPECS / "program_model" / f"{MODULE}.tla").exists()

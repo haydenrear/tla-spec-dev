@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record immutable history for one closed ticket in desired_program_model/ticket_plan.yaml."""
+"""Record append-only history for one closed ticket in desired_program_model/ticket_plan.yaml."""
 
 from __future__ import annotations
 

@@ -39,7 +39,7 @@ double package is the minimum reproducible contract.
 
 ## History Search Recipe
 
-When the question is about how the model evolved, search immutable close
+When the question is about how the model evolved, search append-only close
 history before opening old desired/current snapshots:
 
 ```bash
@@ -49,7 +49,7 @@ find specs/.history -name manifest.json
 
 Read `summary.md` and `manifest.json` first. Open copied snapshots only when the
 manifest shows that the close entry is relevant to the current boundary. This
-keeps token cost bounded by active state plus selected immutable history.
+keeps token cost bounded by active state plus selected append-only history.
 
 ## Review Questions For AI Agents
 

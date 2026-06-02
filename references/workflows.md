@@ -86,4 +86,4 @@ rg -n "<ticket-id>|<action>|<invariant>|<resource>" specs/.history
 
 Open snapshots only after the manifest or summary proves relevance. This keeps
 AI-assisted maintenance focused on the current state plus a small number of
-immutable historical entries.
+append-only historical entries.

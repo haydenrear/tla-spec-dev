@@ -76,7 +76,8 @@ python3 scripts/run_generated_case_adapters.py path/to/generated_cases --mapping
 
 ## Spec Evolution History
 
-Use immutable close records to keep active context small without losing history.
+Use append-only close records to keep active context small without losing
+history.
 After each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`:
 

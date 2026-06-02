@@ -4,7 +4,7 @@ Status: Done
 
 Add a `close-ticket.py` workflow that runs after an individual ticket in
 `specs/desired_program_model/ticket_plan.yaml` is completed. It should write an
-immutable history entry for that ticket before the active desired/current state
+append-only history entry for that ticket before the active desired/current state
 moves on.
 
 Each ticket close should capture the specifics of what changed for that ticket:
@@ -17,7 +17,7 @@ history.
 The intuition is that every ticket becomes a small, durable evolution step. We
 can later walk the spec history ticket by ticket without keeping all prior
 desired/current context live. At the end of a larger close-out, transient
-desired/current files can be deleted or reset, while the immutable ticket
+desired/current files can be deleted or reset, while the append-only ticket
 history and committed TLA spec remain as the durable record.
 
 Acceptance criteria:
@@ -26,7 +26,7 @@ Acceptance criteria:
   `ticket_plan.yaml` at a time.
 - The command requires a ticket id or zero-based ticket index from
   `specs/desired_program_model/ticket_plan.yaml`.
-- The command writes a new immutable entry under
+- The command writes a new append-only entry under
   `specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/`.
 - The entry records current and desired working-model snapshots.
 - The entry records the relevant current TLA/spec/program-model snapshot.

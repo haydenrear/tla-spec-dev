@@ -24,7 +24,7 @@ the truth. Python makes that truth executable in tests.
 9. Review generated diffs and the baseline/current/desired relationship.
 10. Run spec-double self-tests.
 11. Run adapter conformance tests.
-12. For ticketed spec work, write an immutable close record and commit it with
+12. For ticketed spec work, write an append-only close record and commit it with
     the spec and ticket changes before moving active desired/current state
     forward.
 13. When `specs/current` equals `specs/desired_program_model`, promote the
@@ -73,7 +73,7 @@ closeout sequence.
 - Was ticket or workflow history recorded under `specs/.history/<workflow-name>/`
   before active desired/current state moved on?
 
-## Immutable Close Records
+## Append-Only Close Records
 
 Use `scripts/close-ticket.py` after each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket from that
@@ -87,7 +87,8 @@ validates convergence and writes
 `current` and `desired_program_model` directories.
 
 Do not edit close entries after they are written. If new information appears,
-create another close id. Git history supplies ordering across immutable entries.
+create another close id. Git history supplies ordering across append-only
+entries.
 
 ## Drift Warnings
 

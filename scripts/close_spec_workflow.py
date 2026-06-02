@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record immutable history for a completed desired/current spec workflow."""
+"""Record append-only history for a completed desired/current spec workflow."""
 
 from __future__ import annotations
 

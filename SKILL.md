@@ -333,7 +333,7 @@ generation and TLC state-graph case generation. Read
    scaffolding modeled as state-machine behavior.
 9. Run spec-double self-tests.
 10. Run adapter conformance tests.
-11. For ticketed desired/current work, write an immutable close record before
+11. For ticketed desired/current work, write an append-only close record before
     moving the active context forward.
 12. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model`, write a workflow
@@ -361,7 +361,7 @@ This keeps active state local:
 - `specs/generated` or `examples/workspace/generated`: generated Python
   packages.
 - `specs/results`: TLC, adapter, and test evidence.
-- `specs/.history/<workflow-name>`: immutable workflow history.
+- `specs/.history/<workflow-name>`: append-only workflow history.
 
 Do not rely on the repository root as the implicit output location for TLA
 artifacts. If a workflow is launched from the repository root, pass the TLA file
@@ -405,7 +405,7 @@ Use this loop for each slice:
 This loop keeps the desired model honest, the current model executable, and
 the behavioral graph anchored to externally observable facts.
 
-## Immutable Spec Evolution History
+## Append-Only Spec Evolution History
 
 `specs/.history/<workflow-name>/` is append-only history for a specific
 desired/current workflow. Do not edit an existing close entry; create another
@@ -433,7 +433,7 @@ Each entry includes a machine-readable `manifest.json`, a human-readable
 `summary.md`, snapshots of `program_model`, `desired_program_model`, and
 `current` when present, the ticket mapping from `ticket_plan.yaml`, and optional
 result evidence. The close command recommends a git commit because git is the
-durable mechanism for ordering immutable filesystem entries over time.
+durable mechanism for ordering append-only filesystem entries over time.
 
 ## Generated Artifacts
 
@@ -593,7 +593,7 @@ current change.
 - Do not let generated spec doubles become production dependencies.
 - Do not hide refinement mappings.
 - Do not create disconnected TLA+ specs per feature in a production repository.
-- Do not rewrite immutable spec history entries.
+- Do not rewrite append-only spec history entries.
 - Do not use TLA+ ceremony for trivial CRUD or early exploratory UI work.
 - Do not confuse centralized semantic state with centralized production
   architecture.
@@ -613,7 +613,7 @@ current change.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
 - `references/examples.md`: checked-in examples and when to use them.
-- `references/spec_evolution.md`: immutable history and search guidance.
+- `references/spec_evolution.md`: append-only history and search guidance.
 - `references/workflows.md`: project, spec, ticket, and close-out workflows.
 - `examples/workspace/`: fully worked example.
 - `examples/subscription/`: partial state-machine example.

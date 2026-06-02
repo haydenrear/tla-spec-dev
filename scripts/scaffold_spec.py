@@ -192,7 +192,7 @@ invariant_templates:
     (target / "tests").mkdir(exist_ok=True)
     write_if_missing(
         target / ".history" / "README.md",
-        "# Spec Workflow History\n\nThis directory is append-only history for immutable close records.\n",
+        "# Spec Workflow History\n\nThis directory is append-only history for close records.\n",
     )
     return target
 

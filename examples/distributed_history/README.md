@@ -1,6 +1,6 @@
 # Distributed History Workflow Example
 
-This example demonstrates the model-backed ticket workflow with immutable
+This example demonstrates the model-backed ticket workflow with append-only
 history.
 
 It models a distributed fulfillment path:
@@ -25,8 +25,8 @@ The script intentionally uses the public workflow commands:
 
 After replay, the active `specs/current` and `specs/desired_program_model`
 directories are closed out. The durable state is `specs/program_model` plus the
-immutable history entries.
+append-only history entries.
 
-History entries are made read-only by the close commands. The replay script
-temporarily makes its own example tree writable only so it can regenerate the
-example from scratch.
+History entries remain writable at the filesystem level so normal git commands
+can add, move, and remove paths. The close commands still refuse to overwrite
+an existing entry.
