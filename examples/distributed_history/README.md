@@ -1,32 +1,63 @@
-# Distributed History Workflow Example
+# Distributed Ecommerce History Example
 
-This example demonstrates the model-backed ticket workflow with append-only
-history.
+This example shows the internal/external view split for a small ecommerce
+backend. The model describes account, cart, checkout, outbox, and fulfillment
+projection behavior. Internal cases run against local Python adapters. External
+cases run through Test Graph against a running service and assert projected
+cluster state.
 
-It models a distributed fulfillment path:
+The example is intentionally small, but it uses the same seams as a larger
+distributed system:
 
-- an API accepts orders;
-- ticket `DIST-001` adds a durable outbox and broker publish step;
-- ticket `DIST-002` adds an idempotent projection worker and acknowledgement.
+- `specs/program_model/Core.tla` defines shared ecommerce semantics.
+- `specs/program_model/Internal.tla` exposes fine-grained component actions.
+- `specs/program_model/External.tla` wraps the internal model in public API and
+  worker-observation actions.
+- `specs/program_model/adapters.py` contains unit adapters, HTTP/Test Graph
+  adapters, setup/teardown hooks, a state projector, and a projected-state
+  assertion adapter.
+- `test_graph/` deploys the example service and runs the external cases.
 
-The checked-in `specs/.history/distributed-fulfillment-history/` directory was
-created by the replay script:
+Run the local adapter checks:
 
 ```bash
-python examples/distributed_history/run_workflow.py
+python3 ../../scripts/run_generated_case_adapters.py \
+  specs/generated/spec_unit/ecommerce_internal_cases \
+  --mapping specs/program_model/case_adapters.toml \
+  --view internal \
+  --batch \
+  --import-root .
+
+ECOMMERCE_BASE_URL=http://127.0.0.1:18080 \
+python3 ../../scripts/run_generated_case_adapters.py \
+  specs/generated/testgraph/ecommerce_external_cases \
+  --mapping specs/program_model/testgraph_bindings.yml \
+  --view external \
+  --batch \
+  --import-root .
 ```
 
-The script intentionally uses the public workflow commands:
+The second command expects a running service. The Test Graph deployment node
+starts one automatically in local mode.
 
-- `scripts/onboard_program_model.py`
-- `scripts/new_ticket_workflow.py`
-- `scripts/close-ticket.py`
-- `scripts/close_tickets.py`
+Run the Test Graph:
 
-After replay, the active `specs/current` and `specs/desired_program_model`
-directories are closed out. The durable state is `specs/program_model` plus the
-append-only history entries.
+```bash
+../../../../.skill-manager/skills/test-graph/scripts/discover.py \
+  --test-graph-root test_graph
 
-History entries remain writable at the filesystem level so normal git commands
-can add, move, and remove paths. The close commands still refuse to overwrite
-an existing entry.
+../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
+  --test-graph-root test_graph
+```
+
+The graph defaults to local mode for repeatable development. To exercise k3d,
+install `docker`, `k3d`, and `kubectl`, then run with:
+
+```bash
+ECOMMERCE_TEST_MODE=k3d \
+../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
+  --test-graph-root test_graph
+```
+
+The k3d scripts live in `scripts/` and the Kubernetes manifests live in
+`deploy/k8s/`.
