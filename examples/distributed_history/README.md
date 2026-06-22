@@ -64,6 +64,12 @@ Run the Test Graph:
   --test-graph-root test_graph
 ```
 
+Or run the example validation wrapper from the repository root:
+
+```bash
+python3 examples/run_distributed_history_validation.py
+```
+
 The graph defaults to local mode for repeatable development. To exercise k3d,
 install `docker`, `k3d`, and `kubectl`, then run with:
 
@@ -73,5 +79,16 @@ ECOMMERCE_TEST_MODE=k3d \
   --test-graph-root test_graph
 ```
 
+The validation wrapper can run the same k3d path and verify assertion artifacts:
+
+```bash
+python3 examples/run_distributed_history_validation.py --mode k3d
+```
+
 The k3d scripts live in `scripts/` and the Kubernetes manifests live in
 `deploy/k8s/`.
+
+Each external case writes `program-state.json` under the Test Graph report's
+`external-case-work/case-work/<case>/` directory. The evidence node aggregates
+those files into `projected-program-states.json` and fails the graph if any
+expected program state differs from the projected cluster state.

@@ -163,12 +163,18 @@ class ProjectedStateAssertion:
     def assert_state(self, context: Any) -> None:
         expected = _state(context.expected)
         actual = _state(context.actual)
+        artifact = context.work_dir / "program-state.json"
+        payload = {
+            "case": context.case.name,
+            "action": context.case.input.action,
+            "params": dict(context.case.input.params),
+            "expected_program_state": expected,
+            "actual_projected_program_state": actual,
+            "adapter_result": _case_result_payload(context.result),
+            "matched": actual == expected,
+        }
+        artifact.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if actual != expected:
-            artifact = context.work_dir / "projected-state-mismatch.json"
-            artifact.write_text(
-                json.dumps({"expected": expected, "actual": actual}, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
             raise AssertionError(f"projected cluster state mismatch for {context.case.name}; wrote {artifact}")
 
 
@@ -179,4 +185,14 @@ def _visible_projection(state: dict[str, Any]) -> dict[str, Any]:
         "orders": dict(state.get("orders", {})),
         "outbox": list(state.get("outbox", [])),
         "projections": dict(state.get("projections", {})),
+    }
+
+
+def _case_result_payload(result: CaseRunResult | None) -> dict[str, Any] | None:
+    if result is None:
+        return None
+    return {
+        "output": result.output,
+        "after": result.after,
+        "semantic_output": result.semantic_output,
     }

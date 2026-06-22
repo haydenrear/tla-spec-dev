@@ -31,7 +31,31 @@ def run(ctx):
         state = json.loads(response.read().decode("utf-8"))
     artifact = ctx.report_dir / "ecommerce-final-state.json"
     artifact.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return NodeResult.pass_(SPEC.id).artifact("json", str(artifact)).assertion("state projected", isinstance(state, dict))
+
+    work_dir = ctx.get("ecommerce.external_cases", "workDir")
+    if not work_dir:
+        return NodeResult.fail(SPEC.id, "missing workDir from ecommerce.external_cases")
+    assertion_records = _load_assertion_records(Path(work_dir))
+    assertion_artifact = ctx.report_dir / "projected-program-states.json"
+    assertion_artifact.write_text(json.dumps(assertion_records, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    all_matched = bool(assertion_records) and all(record.get("matched") is True for record in assertion_records)
+    return (
+        NodeResult.pass_(SPEC.id)
+        .artifact("json", str(artifact))
+        .artifact("json", str(assertion_artifact))
+        .metric("projectedAssertionFiles", len(assertion_records))
+        .assertion("state projected", isinstance(state, dict))
+        .assertion("projected assertion files written", len(assertion_records) == 4)
+        .assertion("projected states matched", all_matched)
+    )
+
+
+def _load_assertion_records(work_dir: Path) -> list[dict]:
+    records = []
+    for path in sorted((work_dir / "case-work").glob("*/program-state.json")):
+        records.append(json.loads(path.read_text(encoding="utf-8")))
+    return records
 
 
 if __name__ == "__main__":
