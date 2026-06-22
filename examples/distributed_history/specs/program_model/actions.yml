@@ -1,0 +1,45 @@
+actions:
+  CreateAccount:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  AddCartItem:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  Checkout:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  ProjectOrder:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  SubmitCreateAccount:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+  SubmitAddCartItem:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+  SubmitCheckout:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+  RunFulfillmentWorker:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+  HiddenInternalProgress:
+    layer: internal
+    controllability: hidden
+    generates: []
