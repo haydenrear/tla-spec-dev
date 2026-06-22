@@ -13,6 +13,10 @@ distributed system:
 - `specs/program_model/Internal.tla` exposes fine-grained component actions.
 - `specs/program_model/External.tla` wraps the internal model in public API and
   worker-observation actions.
+- The accepted `program_model` intentionally has no `Desired.tla`. Active
+  ticket workflows should keep desired changes in `DesiredCore.tla`,
+  `DesiredInternal.tla`, and `DesiredExternal.tla`, then delete those desired
+  files after promotion into `program_model`.
 - `specs/program_model/adapters.py` contains unit adapters, HTTP/Test Graph
   adapters, setup/teardown hooks, a state projector, and a projected-state
   assertion adapter.

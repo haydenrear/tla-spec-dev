@@ -318,17 +318,48 @@ ExternalSpec ==
         )
 
     write_if_missing(
-        model_dir / "Desired.tla",
-        f"""----------------------------- MODULE Desired -----------------------------
-EXTENDS {', '.join(['Core', *(['Internal'] if 'internal' in views else []), *(['External'] if 'external' in views else [])])}
+        model_dir / "DesiredCore.tla",
+        f"""-------------------------- MODULE DesiredCore --------------------------
+EXTENDS Core
 
-\\* {module} desired package root. Keep Core as the shared semantic authority,
-\\* Internal as the unit-level projection, and External as the deployed-system
-\\* projection over Internal.
+\\* Active desired semantic overlay for {module}. While a spec workflow is open,
+\\* put shared target semantics here. When the workflow closes, promote the
+\\* converged contents into Core.tla and delete DesiredCore.tla.
 
 =============================================================================
 """,
     )
+    if "internal" in views:
+        write_if_missing(
+            model_dir / "DesiredInternal.tla",
+            """------------------------ MODULE DesiredInternal ------------------------
+EXTENDS DesiredCore, Internal
+
+\\* Active desired internal projection. While a spec workflow is open, put
+\\* unit-level target transitions/assertions here. When the workflow closes,
+\\* promote the converged contents into Internal.tla and delete this module.
+
+DesiredInternalSpec == InternalSpec
+
+=============================================================================
+""",
+        )
+    if "external" in views:
+        write_if_missing(
+            model_dir / "DesiredExternal.tla",
+            """------------------------ MODULE DesiredExternal ------------------------
+EXTENDS DesiredInternal, External
+
+\\* Active desired external projection. This should wrap/project desired
+\\* internal semantics, not redefine independent business behavior. When the
+\\* workflow closes, promote the converged contents into External.tla and delete
+\\* this module.
+
+DesiredExternalSpec == ExternalSpec
+
+=============================================================================
+""",
+        )
     write_if_missing(
         model_dir / "actions.yml",
         """actions:
