@@ -5,8 +5,9 @@ through the Test Graph adapter bindings in `../specs/program_model`.
 
 Graph:
 
-1. `ecommerce.deploy` starts the service in local mode by default, or deploys to
-   k3d when `ECOMMERCE_TEST_MODE=k3d`.
+1. `ecommerce.deploy` starts one local monolith process by default, or deploys a
+   k3d topology with gateway, account, cart, checkout, worker, database, and
+   queue services when `ECOMMERCE_TEST_MODE=k3d`.
 2. `ecommerce.external_cases` runs
    `scripts/run_generated_case_adapters.py` with the external Test Graph
    bindings.
