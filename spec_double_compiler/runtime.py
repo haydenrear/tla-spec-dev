@@ -13,6 +13,38 @@ class CaseRunResult:
     semantic_output: Any = None
 
 
+@dataclass
+class AdapterBatchContext:
+    kind: str
+    cases: list[Any]
+    work_dir: Path
+    mapping: Any
+    shared: dict[str, Any]
+
+
+@dataclass
+class AdapterCaseContext:
+    kind: str
+    case: Any
+    work_dir: Path
+    mapping: Any
+    shared: dict[str, Any]
+    result: CaseRunResult | None = None
+    error: BaseException | None = None
+
+
+@dataclass
+class ProjectedStateAssertionContext:
+    kind: str
+    case: Any
+    work_dir: Path
+    mapping: Any
+    shared: dict[str, Any]
+    result: CaseRunResult | None
+    expected: Any = None
+    actual: Any = None
+
+
 @runtime_checkable
 class CaseAdapter(Protocol):
     def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult | dict[str, Any] | None:
@@ -113,4 +145,3 @@ def assert_case_result(
             raise AssertionError(
                 f"adapter semantic output mismatch for {case.name}: {result.semantic_output!r} != {expected!r}"
             )
-

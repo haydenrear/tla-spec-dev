@@ -20,13 +20,21 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .extract_spec_manifest import load_manifest
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
+    from extract_spec_manifest import load_manifest
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 
 
 NODE_RE = re.compile(r'^\s*(-?\d+) \[label="(.*)"(?:,style = filled)?\];?$')
 EDGE_RE = re.compile(r'^\s*(-?\d+) -> (-?\d+) \[label="([^"]+)"')
+TRACE_SCHEMA_VERSION = "tla-testgraph.trace.v1"
+VIEW_OUTPUT_DIRS = {"internal": "spec-unit", "external": "testgraph"}
+VIEW_GENERATES = {"internal": "spec_unit", "external": "testgraph"}
+DEFAULT_CONTROLLABILITY = {"internal": "unit_direct", "external": "e2e_direct"}
+SUPPORTED_VIEWS = frozenset(VIEW_GENERATES)
+SUPPORTED_CONTROLLABILITY = frozenset({"unit_direct", "e2e_direct", "environment", "observable", "hidden"})
 
 
 @dataclass(frozen=True)
@@ -34,6 +42,15 @@ class Edge:
     source: str
     target: str
     action: str
+
+
+@dataclass(frozen=True)
+class ActionMetadata:
+    name: str
+    layer: str
+    controllability: str
+    generates: tuple[str, ...]
+    tags: tuple[str, ...] = ()
 
 
 def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> None:
@@ -199,6 +216,64 @@ def parse_atom(value: str) -> Any:
     return value
 
 
+def normalize_string_list(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return tuple(str(item) for item in value)
+    raise ValueError(f"expected string or list of strings, got {value!r}")
+
+
+def default_action_metadata(action: str, view: str) -> ActionMetadata:
+    return ActionMetadata(
+        name=action,
+        layer=view,
+        controllability=DEFAULT_CONTROLLABILITY[view],
+        generates=(VIEW_GENERATES[view],),
+    )
+
+
+def load_action_metadata(path: Path | None, spec_dir: Path | None = None) -> dict[str, ActionMetadata]:
+    if path is None:
+        return {}
+    metadata_path = resolve_existing_spec_input(path, spec_dir) if spec_dir is not None else resolve_existing_from_cwd(path)
+    loaded = load_manifest(metadata_path)
+    raw_actions = loaded.get("actions", loaded)
+    if not isinstance(raw_actions, dict):
+        raise ValueError(f"action metadata root must be a mapping: {metadata_path}")
+
+    metadata: dict[str, ActionMetadata] = {}
+    for action, raw_spec in raw_actions.items():
+        if raw_spec is None:
+            raw_spec = {}
+        if not isinstance(raw_spec, dict):
+            raise ValueError(f"action metadata for {action} must be a mapping")
+        layer = str(raw_spec.get("layer", "internal"))
+        if layer not in SUPPORTED_VIEWS:
+            raise ValueError(f"unsupported layer for {action}: {layer}")
+        controllability = str(raw_spec.get("controllability", DEFAULT_CONTROLLABILITY[layer]))
+        if controllability not in SUPPORTED_CONTROLLABILITY:
+            raise ValueError(f"unsupported controllability for {action}: {controllability}")
+        metadata[str(action)] = ActionMetadata(
+            name=str(action),
+            layer=layer,
+            controllability=controllability,
+            generates=normalize_string_list(raw_spec.get("generates", (VIEW_GENERATES[layer],))),
+            tags=normalize_string_list(raw_spec.get("tags", ())),
+        )
+    return metadata
+
+
+def action_metadata_for(action: str, view: str, metadata: dict[str, ActionMetadata]) -> ActionMetadata:
+    return metadata.get(action) or default_action_metadata(action, view)
+
+
+def should_emit_action(action_metadata: ActionMetadata, view: str) -> bool:
+    return action_metadata.layer == view and VIEW_GENERATES[view] in set(action_metadata.generates)
+
+
 def changed_fields(before: dict[str, Any], after: dict[str, Any]) -> dict[str, dict[str, Any]]:
     fields = sorted(set(before) | set(after))
     return {
@@ -275,26 +350,36 @@ def render_python_package(
     states: dict[str, dict[str, Any]],
     edges: list[Edge],
     package_dir: Path,
+    view: str = "internal",
+    action_metadata: dict[str, ActionMetadata] | None = None,
     labelers: list[Any] | None = None,
 ) -> None:
+    metadata = action_metadata or {}
+    emitted_edges = [
+        edge
+        for edge in edges
+        if should_emit_action(action_metadata_for(edge.action, view, metadata), view)
+    ]
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
     write(package_dir / "types.py", render_types())
-    write(package_dir / "cases.py", render_cases(module, states, edges, labelers or []))
+    write(package_dir / "cases.py", render_cases(module, states, emitted_edges, labelers or [], view, metadata))
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
-    write(package_dir / "docs.md", render_docs(module, len(states), len(edges)))
+    write(package_dir / "docs.md", render_docs(module, view, len(states), len(emitted_edges), len(edges)))
 
 
 def render_init() -> str:
     return (
-        "from .cases import CASES, CASES_BY_NAME\n"
+        "from .cases import CASES, CASES_BY_NAME, SOURCE_MODULE, SOURCE_VIEW\n"
         "from .doubles import ScriptedTransitionDouble\n"
         "from .types import StateGraphCase, StateGraphInput, StateGraphOutput\n"
         "from .validators import assert_case_replays\n\n"
         "__all__ = [\n"
         "    \"CASES\",\n"
         "    \"CASES_BY_NAME\",\n"
+        "    \"SOURCE_MODULE\",\n"
+        "    \"SOURCE_VIEW\",\n"
         "    \"ScriptedTransitionDouble\",\n"
         "    \"StateGraphCase\",\n"
         "    \"StateGraphInput\",\n"
@@ -308,12 +393,20 @@ def render_types() -> str:
     return (
         "from __future__ import annotations\n\n"
         "from dataclasses import dataclass\n"
+        "from dataclasses import field\n"
         "from typing import Any\n\n\n"
         "@dataclass(frozen=True)\n"
         "class StateGraphInput:\n"
         "    action: str\n"
         "    source_node: str\n"
-        "    target_node: str\n\n\n"
+        "    target_node: str\n"
+        "    params: dict[str, Any] = field(default_factory=dict)\n\n\n"
+        "@dataclass(frozen=True)\n"
+        "class ActionMetadata:\n"
+        "    layer: str = \"internal\"\n"
+        "    controllability: str = \"unit_direct\"\n"
+        "    generates: frozenset[str] = frozenset((\"spec_unit\",))\n"
+        "    tags: frozenset[str] = frozenset()\n\n\n"
         "@dataclass(frozen=True)\n"
         "class StateGraphOutput:\n"
         "    changed: dict[str, dict[str, Any]]\n\n\n"
@@ -325,14 +418,30 @@ def render_types() -> str:
         "    output: StateGraphOutput\n"
         "    after: dict[str, Any]\n"
         "    labels: frozenset[str]\n"
+        f"    schema_version: str = {TRACE_SCHEMA_VERSION!r}\n"
+        "    view: str = \"internal\"\n"
+        "    layer: str = \"internal\"\n"
+        "    controllability: str = \"unit_direct\"\n"
+        "    generates: frozenset[str] = frozenset((\"spec_unit\",))\n"
+        "    tags: frozenset[str] = frozenset()\n"
+        "    metadata: ActionMetadata = field(default_factory=ActionMetadata)\n"
     )
 
 
-def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edge], labelers: list[Any]) -> str:
+def render_cases(
+    module: str,
+    states: dict[str, dict[str, Any]],
+    edges: list[Edge],
+    labelers: list[Any],
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+) -> str:
     lines = [
         "from __future__ import annotations\n\n",
-        "from .types import StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
+        "from .types import ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
+        f'SCHEMA_VERSION = {TRACE_SCHEMA_VERSION!r}\n',
         f'SOURCE_MODULE = {module!r}\n',
+        f'SOURCE_VIEW = {view!r}\n',
         f"STATE_COUNT = {len(states)}\n",
         f"TRANSITION_COUNT = {len(edges)}\n\n",
         "CASES = [\n",
@@ -342,6 +451,7 @@ def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edg
         after = states[edge.target]
         changes = changed_fields(before, after)
         labels = labels_for_case(before=before, action=edge.action, after=after, changes=changes, labelers=labelers)
+        metadata = action_metadata_for(edge.action, view, action_metadata)
         lines.extend(
             [
                 "    StateGraphCase(\n",
@@ -351,10 +461,23 @@ def render_cases(module: str, states: dict[str, dict[str, Any]], edges: list[Edg
                 f"            action={edge.action!r},\n",
                 f"            source_node={edge.source!r},\n",
                 f"            target_node={edge.target!r},\n",
+                "            params={},\n",
                 "        ),\n",
                 f"        output=StateGraphOutput(changed={py_repr(changes)}),\n",
                 f"        after={py_repr(after)},\n",
                 f"        labels=frozenset({py_repr(tuple(labels))}),\n",
+                "        schema_version=SCHEMA_VERSION,\n",
+                "        view=SOURCE_VIEW,\n",
+                f"        layer={metadata.layer!r},\n",
+                f"        controllability={metadata.controllability!r},\n",
+                f"        generates=frozenset({py_repr(metadata.generates)}),\n",
+                f"        tags=frozenset({py_repr(metadata.tags)}),\n",
+                "        metadata=ActionMetadata(\n",
+                f"            layer={metadata.layer!r},\n",
+                f"            controllability={metadata.controllability!r},\n",
+                f"            generates=frozenset({py_repr(metadata.generates)}),\n",
+                f"            tags=frozenset({py_repr(metadata.tags)}),\n",
+                "        ),\n",
                 "    ),\n",
             ]
         )
@@ -400,12 +523,14 @@ def render_validators() -> str:
     )
 
 
-def render_docs(module: str, state_count: int, transition_count: int) -> str:
+def render_docs(module: str, view: str, state_count: int, transition_count: int, total_transition_count: int) -> str:
     return (
         f"# {module} TLC Cases\n\n"
         "Generated from a TLC DOT state graph dump.\n\n"
+        f"- View: `{view}`\n"
         f"- States: `{state_count}`\n"
         f"- Transitions: `{transition_count}`\n\n"
+        f"- TLC transitions before view filtering: `{total_transition_count}`\n\n"
         "Each case is one action-labeled edge in the reachable state graph.\n"
     )
 
@@ -421,6 +546,8 @@ def main() -> int:
     parser.add_argument("cfg", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--package", default="tlc_state_graph_cases")
+    parser.add_argument("--view", choices=sorted(SUPPORTED_VIEWS), help="Generate a view-aware case package.")
+    parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
     parser.add_argument("--tlc2", default="tlc2")
     parser.add_argument("--dot", type=Path)
     parser.add_argument(
@@ -436,7 +563,10 @@ def main() -> int:
     cfg_path = resolve_existing_spec_input(args.cfg, spec_dir)
     if not cfg_path.exists():
         raise SystemExit(f"ERROR: config not found: {cfg_path} (spec directory: {spec_dir})")
+    view = args.view or "internal"
     out_path = resolve_spec_relative_path(args.out, spec_dir)
+    if args.view is not None:
+        out_path = out_path / VIEW_OUTPUT_DIRS[view]
     dot_path = resolve_spec_relative_path(args.dot, spec_dir) if args.dot else out_path / f"{tla_path.stem}.dot"
 
     for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:
@@ -447,15 +577,18 @@ def main() -> int:
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
+    action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
     render_python_package(
         module=tla_path.stem,
         states=states,
         edges=edges,
         package_dir=out_path / args.package,
+        view=view,
+        action_metadata=action_metadata,
         labelers=[load_object(path) for path in args.labeler],
     )
     print(f"spec directory: {spec_dir}")
-    print(f"generated {len(edges)} transition cases from {len(states)} states into {out_path / args.package}")
+    print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
     return 0
 
 

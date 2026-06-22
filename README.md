@@ -58,6 +58,26 @@ TLC-derived whole-program transition cases:
 python3 scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
 ```
 
+View-aware case generation writes explicit internal and external outputs:
+
+```bash
+python3 scripts/generate_cases_from_tlc_dump.py path/to/Internal.tla path/to/Internal.cfg --out generated --package internal_cases --view internal --actions-metadata model/actions.yml
+python3 scripts/generate_cases_from_tlc_dump.py path/to/External.tla path/to/External.cfg --out generated --package external_cases --view external --actions-metadata model/actions.yml
+python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces
+```
+
+External adapter bindings may include `kind` to batch cases that need the same
+cluster setup and cleanup. Batch adapters can define optional
+`setup_all(ctx)`, `teardown_all(ctx)`, `setup(ctx)`, and `teardown(ctx)` hooks.
+Use these hooks for deployed-state preparation such as clearing database rows,
+committing Kafka offsets, or removing per-trace test fixtures.
+
+For external assertions, configure `projector = "module:Object"` to retrieve
+the actual deployed state. By default, the runner compares that actual state to
+the generated TLA case's `after` state. Use `expected_projection` when only a
+projection of the TLA state is externally observable, and use `assertion` only
+for custom comparison logic.
+
 Relative case outputs such as `--out cases` are resolved under the spec
 directory. A command run from the repository root and the same command run from
 the spec directory should produce the same spec-local artifact layout.
