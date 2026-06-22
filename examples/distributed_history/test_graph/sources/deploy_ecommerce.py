@@ -91,6 +91,7 @@ def deploy_k3d(ctx, root: Path) -> NodeResult:
         return NodeResult.fail(SPEC.id, f"k3d deploy failed with exit {result.returncode}").artifact("log", str(log_path))
     base_url = "http://127.0.0.1:18080"
     _wait_for_health(base_url)
+    _wait_for_debug_state(base_url)
     return (
         NodeResult.pass_(SPEC.id)
         .publish("baseUrl", base_url)
@@ -117,6 +118,18 @@ def _wait_for_health(base_url: str) -> None:
         except Exception:
             time.sleep(0.2)
     raise RuntimeError(f"service did not become healthy at {base_url}")
+
+
+def _wait_for_debug_state(base_url: str) -> None:
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        try:
+            with urlopen(base_url + "/debug/state", timeout=3) as response:
+                if response.status == 200:
+                    return
+        except Exception:
+            time.sleep(0.5)
+    raise RuntimeError(f"service did not expose projected debug state at {base_url}")
 
 
 if __name__ == "__main__":

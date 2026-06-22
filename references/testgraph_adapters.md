@@ -1,0 +1,133 @@
+# Test Graph Adapters
+
+This reference describes the deployed-system adapter path. Use
+`examples/distributed_history/` as the concrete reference implementation.
+
+## Views
+
+The workflow uses one semantic authority with two executable views:
+
+- Internal view: fine-grained program/component state. These cases run through
+  spec-unit adapters.
+- External view: deployed observable behavior over the internal semantics.
+  These cases run through Test Graph adapters.
+
+An accepted, closed `program_model` contains only promoted baseline files such
+as `Core.tla`, `Internal.tla`, and `External.tla`. Active desired overlays use
+`DesiredCore.tla`, `DesiredInternal.tla`, and `DesiredExternal.tla`, and should
+be removed after promotion.
+
+## Hook Order
+
+`scripts/run_generated_case_adapters.py --batch` groups cases by adapter
+`kind`. For each group it runs:
+
+1. `setup_all(AdapterBatchContext)` once per unique adapter class.
+2. For each selected case:
+   - `setup(AdapterCaseContext)`
+   - `run(case, work_dir=...)`
+   - result/output validation
+   - projected-state assertion, if configured
+   - `teardown(AdapterCaseContext)`
+3. `teardown_all(AdapterBatchContext)` once per unique adapter class in reverse
+   adapter order.
+
+Use `setup_all` and `teardown_all` for suite-wide deployed state such as
+clearing shared tables, committing queue offsets, or checking cluster health.
+Use `setup` and `teardown` for per-case state such as loading a TLA `before`
+state into debug/admin endpoints and clearing case fixtures.
+
+In `examples/distributed_history/specs/program_model/adapters.py`:
+
+- `_HttpAdapter.setup_all` waits for service health and resets deployed state.
+- `_HttpAdapter.setup` resets state and loads `case.before`.
+- `_HttpAdapter.teardown` resets state after the case.
+- `_HttpAdapter.teardown_all` resets state after the batch.
+
+## Projected-State Assertions
+
+External assertions compare the expected program state from the generated case
+to actual deployed state projected back into the TLA model shape.
+
+The binding file wires this:
+
+```yaml
+actions:
+  SubmitCheckout:
+    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+```
+
+The runner computes:
+
+- expected state: `expected_projection.expected_state(context)`, usually a
+  projection of `case.after`;
+- actual state: `projector.observe(context)`, usually from deployed admin/debug
+  endpoints;
+- comparison: `assertion.assert_state(context)`.
+
+In the ecommerce example the projector calls `/debug/state`, normalizes the
+visible abstract fields, and compares them with the generated case's expected
+state. Each assertion writes a per-case evidence file:
+
+```text
+test_graph/build/validation-reports/<run>/external-case-work/case-work/<case>/program-state.json
+```
+
+The Test Graph evidence node aggregates these into:
+
+```text
+test_graph/build/validation-reports/<run>/projected-program-states.json
+```
+
+The graph fails if fewer than four projected-state files are written or if any
+record has `matched: false`.
+
+## Current Example Cases
+
+The ecommerce example currently has four internal cases:
+
+- `internal_create_account`
+- `internal_add_cart_item`
+- `internal_checkout_creates_outbox`
+- `internal_project_order`
+
+It has four external/Test Graph cases:
+
+- `external_submit_create_account`
+- `external_submit_add_cart_item`
+- `external_submit_checkout`
+- `external_run_fulfillment_worker`
+
+The external cases are deliberately one-transition cases. Each case has its own
+`before` state loaded during `setup`, one externally driven action, and one
+projected-state assertion after the action. This makes invalid cluster residue
+visible because setup must establish the abstract pre-state before each case.
+
+## Validating Bug Detection
+
+Run:
+
+```bash
+python3 examples/run_distributed_history_validation.py
+```
+
+That script validates:
+
+- internal cases execute through spec-unit adapters;
+- a negative projected-state check fails when the expected projection is
+  deliberately wrong;
+- the Test Graph runs the external cases;
+- every external case writes `program-state.json`;
+- the aggregate projected-state evidence has four matched records.
+
+Run the full distributed topology:
+
+```bash
+python3 examples/run_distributed_history_validation.py --mode k3d
+```
+
+k3d mode deploys separate gateway, account, cart, checkout, worker, database,
+and queue services. It still uses the same projected-state assertion path.
