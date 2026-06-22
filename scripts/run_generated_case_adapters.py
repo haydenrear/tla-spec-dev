@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import inspect
 import os
 import subprocess
 import sys
@@ -20,8 +21,10 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .extract_spec_manifest import load_manifest
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
+    from extract_spec_manifest import load_manifest
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
 
 try:
@@ -33,8 +36,15 @@ except ModuleNotFoundError:  # pragma: no cover
 @dataclass(frozen=True)
 class AdapterMapping:
     label: str
-    adapter: str
+    adapter: str | None
     output_projection: str | None = None
+    expected_projection: str | None = None
+    view: str | None = None
+    layer: str | None = None
+    controllability: str | None = None
+    projector: str | None = None
+    assertion: str | None = None
+    kind: str | None = None
     order: int = 0
 
 
@@ -66,7 +76,7 @@ def resolve_runtime_path(path: Path, spec_dir: Path | None) -> Path:
 
 
 def load_mappings(path: Path) -> dict[str, AdapterMapping]:
-    loaded = load_toml(path)
+    loaded = load_mapping_data(path)
     mappings: dict[str, AdapterMapping] = {}
 
     adapter_tables = loaded.get("adapters")
@@ -80,10 +90,15 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
             projection = spec.get("output_projection")
             if projection is not None and not isinstance(projection, str):
                 raise ValueError(f"[adapters.{label}] output_projection must be \"module:object\"")
+            expected_projection = spec.get("expected_projection")
+            if expected_projection is not None and not isinstance(expected_projection, str):
+                raise ValueError(f"[adapters.{label}] expected_projection must be \"module:object\"")
             mappings[str(label)] = AdapterMapping(
                 label=str(label),
                 adapter=adapter,
                 output_projection=projection,
+                expected_projection=expected_projection,
+                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
                 order=len(mappings),
             )
 
@@ -105,12 +120,54 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
                     label=label,
                     adapter=adapter,
                     output_projection=spec.get("output_projection") if isinstance(spec.get("output_projection"), str) else None,
+                    expected_projection=spec.get("expected_projection") if isinstance(spec.get("expected_projection"), str) else None,
+                    kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
                     order=len(mappings),
                 )
+
+    action_tables = loaded.get("actions")
+    if isinstance(action_tables, dict):
+        for label, spec in action_tables.items():
+            if not isinstance(spec, dict):
+                raise ValueError(f"[actions.{label}] must be a table")
+            adapter = spec.get("adapter")
+            if adapter is not None and (not isinstance(adapter, str) or not adapter):
+                raise ValueError(f"[actions.{label}] adapter must be \"module:object\"")
+            projection = spec.get("output_projection")
+            if projection is not None and not isinstance(projection, str):
+                raise ValueError(f"[actions.{label}] output_projection must be \"module:object\"")
+            expected_projection = spec.get("expected_projection")
+            if expected_projection is not None and not isinstance(expected_projection, str):
+                raise ValueError(f"[actions.{label}] expected_projection must be \"module:object\"")
+            projector = spec.get("projector")
+            if projector is not None and not isinstance(projector, str):
+                raise ValueError(f"[actions.{label}] projector must be \"module:object\"")
+            assertion = spec.get("assertion")
+            if assertion is not None and not isinstance(assertion, str):
+                raise ValueError(f"[actions.{label}] assertion must be \"module:object\"")
+            mappings[str(label)] = AdapterMapping(
+                label=str(label),
+                adapter=adapter,
+                output_projection=projection,
+                expected_projection=expected_projection,
+                view=spec.get("view") if isinstance(spec.get("view"), str) else None,
+                layer=spec.get("layer") if isinstance(spec.get("layer"), str) else None,
+                controllability=spec.get("controllability") if isinstance(spec.get("controllability"), str) else None,
+                projector=projector,
+                assertion=assertion,
+                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+                order=len(mappings),
+            )
 
     if not mappings:
         raise ValueError(f"no adapter mappings found in {path}")
     return mappings
+
+
+def load_mapping_data(path: Path) -> dict[str, Any]:
+    if path.suffix.lower() in {".yaml", ".yml"}:
+        return load_manifest(path)
+    return load_toml(path)
 
 
 def load_toml(path: Path) -> dict[str, Any]:
@@ -139,6 +196,12 @@ def parse_simple_mapping_toml(text: str) -> dict[str, Any]:
             current = {}
             adapters[label] = current
             continue
+        if line.startswith("[actions.") and line.endswith("]"):
+            label = line[len("[actions.") : -1]
+            actions = loaded.setdefault("actions", {})
+            current = {}
+            actions[label] = current
+            continue
         if "=" not in line or current is None:
             raise ValueError(f"unsupported TOML line: {raw_line!r}")
         key, raw_value = line.split("=", 1)
@@ -164,19 +227,71 @@ def case_labels(cases: list[Any]) -> set[str]:
     return labels
 
 
+def case_view(case: Any) -> str:
+    return str(getattr(case, "view", "internal"))
+
+
+def case_controllability(case: Any) -> str:
+    return str(getattr(case, "controllability", "unit_direct"))
+
+
+def case_generates(case: Any) -> set[str]:
+    return {str(item) for item in getattr(case, "generates", frozenset({"spec_unit"}))}
+
+
+def requires_action_adapter(case: Any) -> bool:
+    controllability = case_controllability(case)
+    if controllability == "hidden":
+        return False
+    if case_view(case) == "external" and controllability == "observable":
+        return False
+    return True
+
+
+def requires_observation_binding(case: Any) -> bool:
+    return case_view(case) == "external" and case_controllability(case) == "observable"
+
+
+def uses_projected_state_assertion(case: Any, mapping: AdapterMapping) -> bool:
+    return case_view(case) == "external" and bool(mapping.projector or mapping.expected_projection or mapping.assertion)
+
+
 def validate_mapping_coverage(cases: list[Any], mappings: dict[str, AdapterMapping]) -> None:
-    uncovered = [case.name for case in cases if adapter_for_case(case, mappings) is None]
-    if uncovered:
+    errors: list[str] = []
+    for case in cases:
+        mapping = adapter_for_case(case, mappings)
+        if mapping is None:
+            if requires_action_adapter(case) or requires_observation_binding(case):
+                errors.append(f"{case.name}: no binding for labels {sorted(case.labels)}")
+            continue
+        if requires_action_adapter(case) and not mapping.adapter:
+            errors.append(f"{case.name}: binding for {mapping.label} does not define adapter")
+        if requires_observation_binding(case) or uses_projected_state_assertion(case, mapping):
+            missing = []
+            if not mapping.projector:
+                missing.append("projector")
+            if missing:
+                errors.append(f"{case.name}: projected-state binding for {mapping.label} missing {', '.join(missing)}")
+    if errors:
         raise SystemExit(
-            "ERROR: missing adapter mappings for cases: "
-            + ", ".join(uncovered[:20])
-            + (f" ... and {len(uncovered) - 20} more" if len(uncovered) > 20 else "")
-            + "\nAdd entries such as [adapters.LabelName] adapter = \"module:Adapter\" for at least one label on each case."
+            "ERROR: missing adapter bindings for cases:\n"
+            + "\n".join(errors[:20])
+            + (f"\n... and {len(errors) - 20} more" if len(errors) > 20 else "")
+            + "\nAdd entries such as [adapters.LabelName] adapter = \"module:Adapter\" for unit/direct actions "
+            + "or [actions.LabelName] bindings for external observable actions."
         )
 
 
-def selected_cases(cases: list[Any], labels: list[str], names: list[str], limit: int | None) -> list[Any]:
+def selected_cases(
+    cases: list[Any],
+    labels: list[str],
+    names: list[str],
+    limit: int | None,
+    view: str | None = None,
+) -> list[Any]:
     selected = cases
+    if view is not None:
+        selected = [case for case in selected if case_view(case) == view]
     if labels:
         label_set = set(labels)
         selected = [case for case in selected if label_set.intersection(set(case.labels))]
@@ -196,11 +311,136 @@ def adapter_for_case(case: Any, mappings: dict[str, AdapterMapping]) -> AdapterM
     return sorted(candidates, key=lambda mapping: mapping.order)[0]
 
 
+def adapter_kind(mapping: AdapterMapping) -> str:
+    return mapping.kind or mapping.adapter or mapping.label
+
+
 def load_adapter(mapping: AdapterMapping, import_roots: list[Path]):
+    if mapping.adapter is None:
+        raise TypeError(f"binding for {mapping.label} does not define an executable adapter")
     ensure_import_roots(import_roots)
     from spec_double_compiler.runtime import instantiate, load_object
 
     return instantiate(load_object(mapping.adapter))
+
+
+def maybe_await(value: Any) -> Any:
+    if inspect.isawaitable(value):
+        import asyncio
+
+        return asyncio.run(value)
+    return value
+
+
+def call_optional_hook(target: Any, name: str, context: Any) -> None:
+    hook = getattr(target, name, None)
+    if hook is None:
+        return
+    maybe_await(hook(context))
+
+
+def instantiate_cached(path: str, cache: dict[str, Any]):
+    from spec_double_compiler.runtime import load_object
+
+    obj = cache.get(path)
+    if obj is None:
+        loaded = load_object(path)
+        obj = loaded() if isinstance(loaded, type) else loaded
+        cache[path] = obj
+    return obj
+
+
+def invoke_with_fallbacks(callable_obj: Any, candidates: list[tuple[Any, ...]]) -> Any:
+    last_type_error: TypeError | None = None
+    for args in candidates:
+        try:
+            return maybe_await(callable_obj(*args))
+        except TypeError as exc:
+            last_type_error = exc
+    if last_type_error is not None:
+        raise last_type_error
+    raise TypeError(f"{callable_obj!r} is not callable")
+
+
+def object_callable(obj: Any, method_names: tuple[str, ...]) -> Any:
+    for name in method_names:
+        method = getattr(obj, name, None)
+        if method is not None:
+            return method
+    if callable(obj):
+        return obj
+    raise TypeError(f"{obj!r} is not callable and does not define one of {method_names}")
+
+
+def expected_state_from_case(case_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> Any:
+    if mapping.expected_projection is None:
+        return case_context.case.after
+    projector = instantiate_cached(mapping.expected_projection, object_cache)
+    callable_obj = object_callable(projector, ("project", "expected", "expected_state"))
+    return invoke_with_fallbacks(
+        callable_obj,
+        [
+            (case_context,),
+            (case_context.case,),
+            (case_context.case.before, case_context.case.input, case_context.case.after, case_context.case.output),
+        ],
+    )
+
+
+def actual_state_from_cluster(assertion_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> Any:
+    if mapping.projector is None:
+        raise AssertionError(f"projected-state assertion for {assertion_context.case.name} requires a projector")
+    projector = instantiate_cached(mapping.projector, object_cache)
+    callable_obj = object_callable(projector, ("observe", "project", "actual", "actual_state"))
+    return invoke_with_fallbacks(
+        callable_obj,
+        [
+            (assertion_context,),
+            (assertion_context.case, assertion_context.result, assertion_context.work_dir),
+            (assertion_context.case, assertion_context.result),
+            (assertion_context.case,),
+        ],
+    )
+
+
+def assert_projected_state(assertion_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> None:
+    if mapping.assertion is None:
+        if assertion_context.actual != assertion_context.expected:
+            raise AssertionError(
+                f"projected state mismatch for {assertion_context.case.name}: "
+                f"{assertion_context.actual!r} != {assertion_context.expected!r}"
+            )
+        return
+    assertion = instantiate_cached(mapping.assertion, object_cache)
+    callable_obj = object_callable(assertion, ("assert_state", "assert_projected_state", "assert_step"))
+    result = invoke_with_fallbacks(
+        callable_obj,
+        [
+            (assertion_context,),
+            (assertion_context.expected, assertion_context.actual),
+            (assertion_context.case, assertion_context.expected, assertion_context.actual),
+        ],
+    )
+    if result is False:
+        raise AssertionError(f"projected state assertion returned False for {assertion_context.case.name}")
+
+
+def assert_projected_state_if_configured(case_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> None:
+    if case_view(case_context.case) != "external" or mapping.projector is None:
+        return
+    from spec_double_compiler.runtime import ProjectedStateAssertionContext
+
+    assertion_context = ProjectedStateAssertionContext(
+        kind=case_context.kind,
+        case=case_context.case,
+        work_dir=case_context.work_dir,
+        mapping=case_context.mapping,
+        shared=case_context.shared,
+        result=case_context.result,
+    )
+    assertion_context.expected = expected_state_from_case(case_context, mapping, object_cache)
+    assertion_context.actual = actual_state_from_cluster(assertion_context, mapping, object_cache)
+    assert_projected_state(assertion_context, mapping, object_cache)
 
 
 def ensure_import_roots(import_roots: list[Path]) -> None:
@@ -225,7 +465,14 @@ def validate_adapter_capabilities(
     for case in cases:
         mapping = adapter_for_case(case, mappings)
         if mapping is None:
+            if not requires_action_adapter(case) and not requires_observation_binding(case):
+                continue
             rejected.append(f"{case.name}: no mapped label among {sorted(case.labels)}")
+            continue
+        if not requires_action_adapter(case):
+            continue
+        if mapping.adapter is None:
+            rejected.append(f"{case.name} via {mapping.label}: binding does not define adapter")
             continue
         adapter = adapter_cache.get(mapping.adapter)
         if adapter is None:
@@ -303,6 +550,8 @@ def generate_programs(
         mapping = adapter_for_case(case, mappings)
         if mapping is None:
             raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
+        if mapping.adapter is None:
+            raise SystemExit(f"ERROR: case {case.name} via {mapping.label} has no executable adapter")
         program_path = work_dir / "programs" / f"{case.name}.py"
         case_work_dir = work_dir / "case-work" / case.name
         write_case_program(
@@ -325,36 +574,110 @@ def execute_cases_in_batch(
     import_roots: list[Path],
 ) -> None:
     ensure_import_roots(import_roots)
-    from spec_double_compiler.runtime import assert_case_result, call_adapter, instantiate, load_object
+    from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, assert_case_result, call_adapter, instantiate, load_object
 
     failures: list[str] = []
     adapter_cache: dict[str, Any] = {}
     projector_cache: dict[str, Any] = {}
+    object_cache: dict[str, Any] = {}
+
+    runnable_by_kind: dict[str, list[tuple[Any, AdapterMapping]]] = {}
     for case in cases:
         mapping = adapter_for_case(case, mappings)
         if mapping is None:
-            failures.append(f"{case.name}: no mapped adapter")
+            if requires_action_adapter(case):
+                failures.append(f"{case.name}: no mapped adapter")
             continue
-        try:
+        if not requires_action_adapter(case):
+            continue
+        if mapping.adapter is None:
+            failures.append(f"{case.name} via {mapping.label}: no executable adapter")
+            continue
+        runnable_by_kind.setdefault(adapter_kind(mapping), []).append((case, mapping))
+
+    for kind, entries in runnable_by_kind.items():
+        shared: dict[str, Any] = {}
+        group_work_dir = work_dir / "kind-work" / kind.replace("/", "_").replace(":", "_")
+        group_work_dir.mkdir(parents=True, exist_ok=True)
+        group_cases = [case for case, _mapping in entries]
+        group_adapters: list[tuple[Any, AdapterMapping]] = []
+        for _case, mapping in entries:
             adapter = adapter_cache.get(mapping.adapter)
             if adapter is None:
                 adapter = instantiate(load_object(mapping.adapter))
                 adapter_cache[mapping.adapter] = adapter
-            projector = None
-            if mapping.output_projection:
-                projector = projector_cache.get(mapping.output_projection)
-                if projector is None:
-                    projector = load_object(mapping.output_projection)
-                    projector_cache[mapping.output_projection] = projector
-            case_work_dir = work_dir / "case-work" / case.name
-            case_work_dir.mkdir(parents=True, exist_ok=True)
-            assert_case_result(
-                case=case,
-                result=call_adapter(adapter, case, case_work_dir),
-                projector=projector,
-            )
-        except Exception as exc:
-            failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
+            if not any(existing_mapping.adapter == mapping.adapter for _adapter, existing_mapping in group_adapters):
+                group_adapters.append((adapter, mapping))
+
+        setup_all_failed = False
+        for adapter, mapping in group_adapters:
+            try:
+                call_optional_hook(
+                    adapter,
+                    "setup_all",
+                    AdapterBatchContext(
+                        kind=kind,
+                        cases=group_cases,
+                        work_dir=group_work_dir,
+                        mapping=mapping,
+                        shared=shared,
+                    ),
+                )
+            except Exception as exc:
+                setup_all_failed = True
+                failures.append(f"{kind} setup_all via {mapping.label}: {type(exc).__name__}: {exc}")
+        try:
+            if not setup_all_failed:
+                for case, mapping in entries:
+                    adapter = adapter_cache[mapping.adapter]
+                    projector = None
+                    if mapping.output_projection:
+                        projector = projector_cache.get(mapping.output_projection)
+                        if projector is None:
+                            projector = load_object(mapping.output_projection)
+                            projector_cache[mapping.output_projection] = projector
+                    case_work_dir = work_dir / "case-work" / case.name
+                    case_work_dir.mkdir(parents=True, exist_ok=True)
+                    case_context = AdapterCaseContext(
+                        kind=kind,
+                        case=case,
+                        work_dir=case_work_dir,
+                        mapping=mapping,
+                        shared=shared,
+                    )
+                    try:
+                        call_optional_hook(adapter, "setup", case_context)
+                        case_context.result = call_adapter(adapter, case, case_work_dir)
+                        assert_case_result(
+                            case=case,
+                            result=case_context.result,
+                            projector=projector,
+                        )
+                        assert_projected_state_if_configured(case_context, mapping, object_cache)
+                    except Exception as exc:
+                        case_context.error = exc
+                        failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
+                    finally:
+                        try:
+                            call_optional_hook(adapter, "teardown", case_context)
+                        except Exception as exc:
+                            failures.append(f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}")
+        finally:
+            for adapter, mapping in reversed(group_adapters):
+                try:
+                    call_optional_hook(
+                        adapter,
+                        "teardown_all",
+                        AdapterBatchContext(
+                            kind=kind,
+                            cases=group_cases,
+                            work_dir=group_work_dir,
+                            mapping=mapping,
+                            shared=shared,
+                        ),
+                    )
+                except Exception as exc:
+                    failures.append(f"{kind} teardown_all via {mapping.label}: {type(exc).__name__}: {exc}")
     if failures:
         details = "\n".join(failures[:50])
         suffix = f"\n... and {len(failures) - 50} more" if len(failures) > 50 else ""
@@ -367,6 +690,8 @@ def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
     command = [*args.python, str(Path(__file__).resolve()), str(args.cases_dir), "--mapping", str(args.mapping), "--batch"]
     if args.work_dir is not None:
         command.extend(["--work-dir", str(args.work_dir)])
+    if args.view is not None:
+        command.extend(["--view", args.view])
     for label in args.label:
         command.extend(["--label", label])
     for case_name in args.case:
@@ -401,6 +726,7 @@ def main() -> int:
     parser.add_argument("--mapping", type=Path, required=True, help="TOML label-to-adapter mapping")
     parser.add_argument("--spec-dir", type=Path, help="Spec directory used for resolving spec-relative paths")
     parser.add_argument("--work-dir", type=Path)
+    parser.add_argument("--view", choices=["internal", "external"], help="Only validate/run cases for this generated view")
     parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
     parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
     parser.add_argument("--limit", type=int)
@@ -426,8 +752,9 @@ def main() -> int:
     cases_module = load_cases(args.cases_dir)
     cases = list(cases_module.CASES)
     mappings = load_mappings(args.mapping)
-    validate_mapping_coverage(cases, mappings)
-    runnable_cases = selected_cases(cases, args.label, args.case, args.limit)
+    coverage_cases = selected_cases(cases, [], [], None, args.view)
+    validate_mapping_coverage(coverage_cases, mappings)
+    runnable_cases = selected_cases(cases, args.label, args.case, args.limit, args.view)
     if not runnable_cases:
         raise SystemExit("ERROR: no cases selected")
     if args.validate_capabilities:

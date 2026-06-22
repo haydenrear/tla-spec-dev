@@ -18,7 +18,19 @@ def write_if_missing(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def scaffold(name: str, root: Path) -> Path:
+def parse_views(value: str | None) -> set[str]:
+    if not value:
+        return set()
+    views = {part.strip().lower() for part in value.split(",") if part.strip()}
+    unknown = views - {"internal", "external"}
+    if unknown:
+        raise SystemExit(f"unsupported views: {', '.join(sorted(unknown))}")
+    if "external" in views:
+        views.add("internal")
+    return views
+
+
+def scaffold(name: str, root: Path, views: set[str] | None = None) -> Path:
     slug = name.replace("-", "_").lower()
     module = title_name(name)
     package = f"{slug}_spec"
@@ -194,15 +206,197 @@ invariant_templates:
         target / ".history" / "README.md",
         "# Spec Workflow History\n\nThis directory is append-only history for close records.\n",
     )
+    if views:
+        scaffold_views(target, module, views)
     return target
+
+
+def scaffold_views(target: Path, module: str, views: set[str]) -> None:
+    model_dir = target / "model"
+    write_if_missing(
+        model_dir / "Core.tla",
+        f"""----------------------------- MODULE Core -----------------------------
+EXTENDS Naturals, FiniteSets, Sequences, TLC
+
+CONSTANTS
+  Actors,
+  Items,
+  NoReason
+
+Result(accepted, reason) ==
+  [accepted |-> accepted, reason |-> reason]
+
+=============================================================================
+""",
+    )
+
+    if "internal" in views:
+        write_if_missing(
+            model_dir / "Internal.tla",
+            """----------------------------- MODULE Internal -----------------------------
+EXTENDS Core
+
+VARIABLES
+  owned,
+  result,
+  lastInternalAction
+
+InternalVars == << owned, result, lastInternalAction >>
+
+InternalInit ==
+  /\\ owned = [a \\in Actors |-> {}]
+  /\\ result = Result(TRUE, NoReason)
+  /\\ lastInternalAction = [name |-> "Init", params |-> [ ]]
+
+\\* @action AcceptRequest
+\\* @layer internal
+\\* @controllability unit_direct
+AcceptRequest(a, i) ==
+  /\\ owned' = [owned EXCEPT ![a] = @ \\cup {i}]
+  /\\ result' = Result(TRUE, NoReason)
+  /\\ lastInternalAction' = [
+       name |-> "AcceptRequest",
+       params |-> [actor |-> a, item |-> i]
+     ]
+
+InternalNext ==
+  \\E a \\in Actors, i \\in Items:
+    AcceptRequest(a, i)
+
+InternalSpec ==
+  InternalInit /\\ [][InternalNext]_InternalVars
+
+=============================================================================
+""",
+        )
+
+    if "external" in views:
+        write_if_missing(
+            model_dir / "External.tla",
+            """----------------------------- MODULE External -----------------------------
+EXTENDS Internal
+
+VARIABLES
+  visibleResult,
+  lastExternalAction
+
+ExternalVars == << owned, result, lastInternalAction, visibleResult, lastExternalAction >>
+
+ExternalInit ==
+  /\\ InternalInit
+  /\\ visibleResult = [a \\in Actors |-> NoReason]
+  /\\ lastExternalAction = [name |-> "Init", params |-> [ ]]
+
+\\* @action Submit
+\\* @layer external
+\\* @controllability e2e_direct
+Submit(a, i) ==
+  /\\ AcceptRequest(a, i)
+  /\\ visibleResult' = [visibleResult EXCEPT ![a] = "accepted"]
+  /\\ lastExternalAction' = [
+       name |-> "Submit",
+       params |-> [actor |-> a, item |-> i]
+     ]
+
+\\* @action HiddenInternalProgress
+\\* @layer internal
+\\* @controllability hidden
+HiddenInternalProgress ==
+  /\\ InternalNext
+  /\\ UNCHANGED << visibleResult, lastExternalAction >>
+
+ExternalNext ==
+  \\/ \\E a \\in Actors, i \\in Items:
+      Submit(a, i)
+  \\/ HiddenInternalProgress
+
+ExternalSpec ==
+  ExternalInit /\\ [][ExternalNext]_ExternalVars
+
+=============================================================================
+""",
+        )
+
+    write_if_missing(
+        model_dir / "Desired.tla",
+        f"""----------------------------- MODULE Desired -----------------------------
+EXTENDS {', '.join(['Core', *(['Internal'] if 'internal' in views else []), *(['External'] if 'external' in views else [])])}
+
+\\* {module} desired package root. Keep Core as the shared semantic authority,
+\\* Internal as the unit-level projection, and External as the deployed-system
+\\* projection over Internal.
+
+=============================================================================
+""",
+    )
+    write_if_missing(
+        model_dir / "actions.yml",
+        """actions:
+  AcceptRequest:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  Submit:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+  HiddenInternalProgress:
+    layer: internal
+    controllability: hidden
+    generates: []
+""",
+    )
+
+    if "external" not in views:
+        return
+
+    testgraph_dir = target / "testgraph"
+    write_if_missing(
+        testgraph_dir / "bindings.yml",
+        """actions:
+  Submit:
+    layer: external
+    controllability: e2e_direct
+    kind: request-http
+    adapter: replace_with_project.adapters.e2e:SubmitHttpAdapter
+    projector: replace_with_project.adapters.e2e:RequestStateProjector
+""",
+    )
+    write_if_missing(
+        testgraph_dir / "selectors.yml",
+        """suites:
+  smoke:
+    view: external
+    max_traces: 10
+    include_tags: []
+  fault:
+    view: external
+    include_actions: []
+""",
+    )
+    write_if_missing(
+        testgraph_dir / "assertions.yml",
+        """defaults:
+  mode: eventually
+  timeout_seconds: 15
+  poll_interval_seconds: 0.25
+actions:
+  Submit:
+    immediate_response:
+      status_in: [200, 201, 202]
+""",
+    )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
     parser.add_argument("--root", type=Path, default=Path("examples"))
+    parser.add_argument("--views", help="Optional comma-separated views to scaffold, for example internal,external")
     args = parser.parse_args()
-    target = scaffold(args.name, args.root)
+    target = scaffold(args.name, args.root, parse_views(args.views))
     print(f"scaffolded {target}")
     return 0
 
