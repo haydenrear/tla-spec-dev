@@ -12,6 +12,8 @@ Graph:
    `scripts/run_generated_case_adapters.py` with the external Test Graph
    bindings.
 3. `ecommerce.evidence` captures the final projected state from the cluster.
+   It also validates that each external case wrote a `program-state.json`
+   projected-state assertion artifact.
 4. `ecommerce.cleanup` stops the local service. In k3d mode it leaves the
    cluster running unless `ECOMMERCE_DELETE_K3D=1` is set.
 
