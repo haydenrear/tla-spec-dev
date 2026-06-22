@@ -10,6 +10,7 @@ User-facing workflow guidance lives in:
 - `references/runtime_requirements.md`
 - `references/codegen_contract.md`
 - `references/conformance_testing.md`
+- `references/testgraph_adapters.md`
 - `references/tla_profile.md`
 - `references/spec_evolution.md`
 - `references/workflows.md`

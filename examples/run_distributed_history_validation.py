@@ -7,9 +7,13 @@ import argparse
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
+from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -37,6 +41,7 @@ def main() -> int:
     cleanup_build_outputs()
     try:
         validate_internal_cases()
+        validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
         report_dir = latest_report_dir()
         validate_report(report_dir)
@@ -66,6 +71,107 @@ def validate_internal_cases() -> None:
         ],
         cwd=EXAMPLE_ROOT,
     )
+
+
+def validate_projected_state_assertion_catches_mismatch() -> None:
+    port = free_port()
+    env = os.environ.copy()
+    env.update(
+        {
+            "PYTHONPATH": str(EXAMPLE_ROOT),
+            "ECOMMERCE_PORT": str(port),
+            "ECOMMERCE_DB": f"/tmp/ecommerce-negative-{port}.db",
+        }
+    )
+    process = subprocess.Popen(
+        [sys.executable, "-m", "ecommerce_backend.service"],
+        cwd=EXAMPLE_ROOT,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        base_url = f"http://127.0.0.1:{port}"
+        wait_for_health(base_url)
+        with tempfile.TemporaryDirectory(prefix="ecommerce-negative-") as tmp:
+            tmp_path = Path(tmp)
+            projection_module = tmp_path / "wrong_projection.py"
+            projection_module.write_text(
+                """
+class WrongExpectedProjection:
+    def expected_state(self, context):
+        state = dict(context.case.after)
+        state["accounts"] = ["wrong-account"]
+        return state
+""".lstrip(),
+                encoding="utf-8",
+            )
+            mapping = tmp_path / "wrong_bindings.toml"
+            mapping.write_text(wrong_projection_mapping(), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+                str(EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "ecommerce_external_cases"),
+                "--mapping",
+                str(mapping),
+                "--view",
+                "external",
+                "--case",
+                "external_submit_create_account",
+                "--batch",
+                "--work-dir",
+                str(tmp_path / "work"),
+                "--import-root",
+                str(EXAMPLE_ROOT),
+                "--import-root",
+                str(tmp_path),
+            ]
+            negative_env = os.environ.copy()
+            negative_env["ECOMMERCE_BASE_URL"] = base_url
+            print("$ " + " ".join(command) + "  # expected to fail")
+            result = subprocess.run(command, cwd=EXAMPLE_ROOT, env=negative_env, text=True, capture_output=True)
+            combined = result.stdout + result.stderr
+            if result.returncode == 0:
+                raise SystemExit("negative projected-state check unexpectedly passed")
+            if "projected cluster state mismatch" not in combined:
+                raise SystemExit(f"negative projected-state check failed for the wrong reason:\n{combined}")
+            mismatch_file = tmp_path / "work" / "case-work" / "external_submit_create_account" / "program-state.json"
+            if not mismatch_file.exists():
+                raise SystemExit(f"negative projected-state check did not write evidence: {mismatch_file}")
+            mismatch = json.loads(mismatch_file.read_text(encoding="utf-8"))
+            if mismatch.get("matched") is not False:
+                raise SystemExit(f"negative projected-state evidence did not record matched=false: {mismatch}")
+            print("negative projected-state assertion check ok")
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+
+
+def wrong_projection_mapping() -> str:
+    blocks = []
+    for action, adapter in {
+        "SubmitCreateAccount": "CreateAccountHttpAdapter",
+        "SubmitAddCartItem": "AddCartItemHttpAdapter",
+        "SubmitCheckout": "CheckoutHttpAdapter",
+        "RunFulfillmentWorker": "RunFulfillmentWorkerHttpAdapter",
+    }.items():
+        blocks.append(
+            f"""
+[actions.{action}]
+view = "external"
+layer = "external"
+controllability = "e2e_direct"
+kind = "ecommerce-http"
+adapter = "specs.program_model.adapters:{adapter}"
+projector = "specs.program_model.adapters:ClusterStateProjector"
+expected_projection = "wrong_projection:WrongExpectedProjection"
+assertion = "specs.program_model.adapters:ProjectedStateAssertion"
+""".strip()
+        )
+    return "\n\n".join(blocks) + "\n"
 
 
 def run_test_graph(env: dict[str, str]) -> None:
@@ -151,6 +257,24 @@ def cleanup_build_outputs() -> None:
 def cleanup_k3d() -> None:
     subprocess.run(["k3d", "cluster", "delete", CLUSTER_NAME], check=False)
     subprocess.run(["docker", "rmi", "ecommerce-history:local"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def wait_for_health(base_url: str) -> None:
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        try:
+            with urlopen(base_url + "/health", timeout=1) as response:
+                if response.status == 200:
+                    return
+        except Exception:
+            time.sleep(0.1)
+    raise SystemExit(f"service did not become healthy at {base_url}")
 
 
 if __name__ == "__main__":
