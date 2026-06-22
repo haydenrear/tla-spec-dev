@@ -9,5 +9,26 @@ if ! command -v kubectl >/dev/null 2>&1; then
 fi
 
 kubectl apply -f "$ROOT/deploy/k8s/ecommerce.yaml"
-kubectl -n ecommerce-history rollout status deployment/ecommerce-api --timeout=90s
-kubectl -n ecommerce-history get pods -l app=ecommerce-api
+for deployment in \
+  database-service \
+  queue-service \
+  account-service \
+  cart-service \
+  checkout-service \
+  worker-service \
+  gateway-service
+do
+  kubectl -n ecommerce-history rollout restart "deployment/$deployment"
+done
+for deployment in \
+  database-service \
+  queue-service \
+  account-service \
+  cart-service \
+  checkout-service \
+  worker-service \
+  gateway-service
+do
+  kubectl -n ecommerce-history rollout status "deployment/$deployment" --timeout=90s
+done
+kubectl -n ecommerce-history get pods -o wide

@@ -6,24 +6,26 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ecommerce-api
+  name: database-service
   namespace: ecommerce-history
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ecommerce-api
+      app: database-service
   template:
     metadata:
       labels:
-        app: ecommerce-api
-        service-role: ecommerce-composite
+        app: database-service
+        service-role: database
     spec:
       containers:
-        - name: ecommerce-api
+        - name: database-service
           image: ecommerce-history:local
           imagePullPolicy: IfNotPresent
           env:
+            - name: ECOMMERCE_ROLE
+              value: database
             - name: ECOMMERCE_PORT
               value: "18080"
             - name: ECOMMERCE_DB
@@ -45,17 +47,144 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: account-service
+  name: database-service
   namespace: ecommerce-history
 spec:
   selector:
-    app: ecommerce-api
+    app: database-service
   ports:
     - name: http
       port: 80
       targetPort: 18080
-      nodePort: 30080
-  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: queue-service
+  template:
+    metadata:
+      labels:
+        app: queue-service
+        service-role: queue
+    spec:
+      containers:
+        - name: queue-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: queue
+            - name: ECOMMERCE_PORT
+              value: "18080"
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-service
+  namespace: ecommerce-history
+spec:
+  selector:
+    app: queue-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 18080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+        service-role: account
+    spec:
+      containers:
+        - name: account-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: account
+            - name: ECOMMERCE_PORT
+              value: "18080"
+            - name: ECOMMERCE_DATABASE_URL
+              value: http://database-service
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-service
+  namespace: ecommerce-history
+spec:
+  selector:
+    app: account-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 18080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+        service-role: cart
+    spec:
+      containers:
+        - name: cart-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: cart
+            - name: ECOMMERCE_PORT
+              value: "18080"
+            - name: ECOMMERCE_DATABASE_URL
+              value: http://database-service
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
 ---
 apiVersion: v1
 kind: Service
@@ -64,11 +193,48 @@ metadata:
   namespace: ecommerce-history
 spec:
   selector:
-    app: ecommerce-api
+    app: cart-service
   ports:
     - name: http
       port: 80
       targetPort: 18080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-service
+  template:
+    metadata:
+      labels:
+        app: checkout-service
+        service-role: checkout
+    spec:
+      containers:
+        - name: checkout-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: checkout
+            - name: ECOMMERCE_PORT
+              value: "18080"
+            - name: ECOMMERCE_DATABASE_URL
+              value: http://database-service
+            - name: ECOMMERCE_QUEUE_URL
+              value: http://queue-service
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
 ---
 apiVersion: v1
 kind: Service
@@ -77,11 +243,48 @@ metadata:
   namespace: ecommerce-history
 spec:
   selector:
-    app: ecommerce-api
+    app: checkout-service
   ports:
     - name: http
       port: 80
       targetPort: 18080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-service
+  template:
+    metadata:
+      labels:
+        app: worker-service
+        service-role: worker
+    spec:
+      containers:
+        - name: worker-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: worker
+            - name: ECOMMERCE_PORT
+              value: "18080"
+            - name: ECOMMERCE_DATABASE_URL
+              value: http://database-service
+            - name: ECOMMERCE_QUEUE_URL
+              value: http://queue-service
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
 ---
 apiVersion: v1
 kind: Service
@@ -90,8 +293,68 @@ metadata:
   namespace: ecommerce-history
 spec:
   selector:
-    app: ecommerce-api
+    app: worker-service
   ports:
     - name: http
       port: 80
       targetPort: 18080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: ecommerce-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+        service-role: gateway
+    spec:
+      containers:
+        - name: gateway-service
+          image: ecommerce-history:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ECOMMERCE_ROLE
+              value: gateway
+            - name: ECOMMERCE_PORT
+              value: "18080"
+            - name: ECOMMERCE_DATABASE_URL
+              value: http://database-service
+            - name: ECOMMERCE_QUEUE_URL
+              value: http://queue-service
+            - name: ECOMMERCE_ACCOUNT_URL
+              value: http://account-service
+            - name: ECOMMERCE_CART_URL
+              value: http://cart-service
+            - name: ECOMMERCE_CHECKOUT_URL
+              value: http://checkout-service
+            - name: ECOMMERCE_WORKER_URL
+              value: http://worker-service
+          ports:
+            - containerPort: 18080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 18080
+            periodSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: ecommerce-history
+spec:
+  selector:
+    app: gateway-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 18080
+      nodePort: 30080
+  type: NodePort
