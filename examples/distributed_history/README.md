@@ -4,7 +4,7 @@ This example shows the internal/external view split for a small ecommerce
 backend. The model describes account, cart, checkout, outbox, and fulfillment
 projection behavior. Internal cases run against local Python adapters. External
 cases run through Test Graph against a running service and assert projected
-cluster state.
+program state.
 
 The example is intentionally small, but it uses the same seams as a larger
 distributed system:
@@ -12,7 +12,9 @@ distributed system:
 - `specs/program_model/Core.tla` defines shared ecommerce semantics.
 - `specs/program_model/Internal.tla` exposes fine-grained component actions.
 - `specs/program_model/External.tla` wraps the internal model in public API and
-  worker-observation actions.
+  worker-observation actions. In this example External is HTTP, but for another
+  project it could be CLI commands, filesystem operations, or another public
+  harness surface.
 - The accepted `program_model` intentionally has no `Desired.tla`. Active
   ticket workflows should keep desired changes in `DesiredCore.tla`,
   `DesiredInternal.tla`, and `DesiredExternal.tla`, then delete those desired
@@ -21,6 +23,12 @@ distributed system:
   adapters, setup/teardown hooks, a state projector, and a projected-state
   assertion adapter.
 - `test_graph/` deploys the example service and runs the external cases.
+
+The generated external cases include both happy paths and public edge cases:
+duplicate create, missing-account cart mutation, missing-account checkout,
+empty-cart checkout, duplicate checkout, and idle worker drain. Each case uses
+adapter `setup` to load its modeled `before` state and adapter `teardown` to
+clear residue afterward.
 
 There are two runtime topologies:
 
@@ -35,6 +43,9 @@ There are two runtime topologies:
 Run the local adapter checks:
 
 ```bash
+uv run tests/test_ecommerce_backend.py
+uv run specs/program_model/tests/test_ecommerce_adapters.py
+
 python3 ../../scripts/run_generated_case_adapters.py \
   specs/generated/spec_unit/ecommerce_internal_cases \
   --mapping specs/program_model/case_adapters.toml \

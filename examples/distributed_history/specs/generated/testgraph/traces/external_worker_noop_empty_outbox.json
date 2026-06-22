@@ -1,0 +1,74 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "source": {
+    "case": "external_worker_noop_empty_outbox",
+    "module": "examples.distributed_history.specs.program_model.External"
+  },
+  "steps": [
+    {
+      "action": "RunFulfillmentWorkerNoop",
+      "controllability": "e2e_direct",
+      "index": 1,
+      "layer": "external",
+      "params": {
+        "limit": 100
+      },
+      "post": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {
+          "order-1": {
+            "account": "acct-1",
+            "items": [
+              "sku-1"
+            ],
+            "status": "accepted"
+          }
+        },
+        "outbox": [],
+        "projections": {
+          "order-1": "ready_to_ship"
+        }
+      },
+      "pre": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {
+          "order-1": {
+            "account": "acct-1",
+            "items": [
+              "sku-1"
+            ],
+            "status": "accepted"
+          }
+        },
+        "outbox": [],
+        "projections": {
+          "order-1": "ready_to_ship"
+        }
+      },
+      "raw": {
+        "labels": [
+          "RunFulfillmentWorkerNoop",
+          "ecommerce_external"
+        ],
+        "source_node": "e4",
+        "target_node": "e4_worker_noop"
+      }
+    }
+  ],
+  "trace_id": "external_worker_noop_empty_outbox",
+  "view": "external"
+}

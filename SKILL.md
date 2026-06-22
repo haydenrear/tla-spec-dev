@@ -1,6 +1,6 @@
 ---
 name: spec-double-compiler
-description: 'Use when creating or maintaining Python spec doubles generated from a constrained, annotated TLA+ state-machine specification, including manifests, generated fakes, ports, validators, Hypothesis strategies, traces, and adapter conformance tests.'
+description: 'Use when creating or maintaining Python spec doubles generated from a constrained, annotated TLA+ state-machine specification, including manifests, generated fakes, ports, validators, Hypothesis strategies, traces, internal/external Test Graph integration cases, and adapter conformance tests.'
 skill-imports:
   - unit: skill-manager
     path: references/cli.md
@@ -108,6 +108,25 @@ distributed path. Prefer explicit lifecycle actions such as notification
 emitted, notification consumed, retrain request derived, dataset exported,
 training started, training completed, duplicate suppressed, and failure
 dead-lettered.
+
+## Internal/External Test Graph Views
+
+Use one semantic authority with two generated views when integration behavior
+matters:
+
+- Internal view: fine-grained program/component behavior for spec-unit
+  adapters.
+- External view: public or harness-driven behavior for Test Graph adapters.
+
+External does not mean distributed. It means the behavior a test harness can
+drive or observe outside the modeled internals: HTTP calls, CLI commands,
+browser actions, filesystem changes, queue operations, admin/debug endpoints,
+or Kubernetes fault injection. A CLI project can use External to generate
+command invocations and assertions without running a cluster.
+
+For onboarding and generative integration testing, read
+`references/testgraph_adapters.md`. When selecting edge cases and negative
+public behaviors for External, read `references/edge-cases.md`.
 
 ## Program Spec Rule
 
@@ -555,6 +574,11 @@ back to centralized semantic state.
    Hypothesis failures, and production bugs become named Python traces,
    TLA+ model changes, or validator improvements.
 
+When example or repository tests need pytest but the project does not have a
+managed Python environment, make the test file directly runnable with a PEP 723
+uv header and a `pytest.main([__file__])` entry point. Document
+`uv run path/to/test_file.py` so agents do not depend on ambient pytest.
+
 Read `references/conformance_testing.md` for the adapter harness pattern.
 
 ## AI Retrieval Rule
@@ -610,10 +634,14 @@ current change.
 - `references/tla_profile.md`: constrained TLA+ subset.
 - `references/codegen_contract.md`: manifest schema and generator behavior.
 - `references/conformance_testing.md`: production adapter conformance.
+- `references/testgraph_adapters.md`: internal/external Test Graph adapter
+  onboarding, hook order, projected-state assertions, and example commands.
+- `references/edge-cases.md`: how to choose generated integration edge cases
+  for External views without assuming a distributed deployment.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
 - `references/examples.md`: checked-in examples and when to use them.
 - `references/spec_evolution.md`: append-only history and search guidance.
 - `references/workflows.md`: project, spec, ticket, and close-out workflows.
-- `examples/workspace/`: fully worked example.
-- `examples/subscription/`: partial state-machine example.
+- `examples/distributed_history/`: fully worked internal/external Test Graph
+  example with local and k3d modes.

@@ -1,6 +1,6 @@
 # Test Graph Adapters
 
-This reference describes the deployed-system adapter path. Use
+This reference describes the External/Test Graph adapter path. Use
 `examples/distributed_history/` as the concrete reference implementation.
 
 ## Views
@@ -9,8 +9,14 @@ The workflow uses one semantic authority with two executable views:
 
 - Internal view: fine-grained program/component state. These cases run through
   spec-unit adapters.
-- External view: deployed observable behavior over the internal semantics.
-  These cases run through Test Graph adapters.
+- External view: public or harness-driven observable behavior over the internal
+  semantics. These cases run through Test Graph adapters.
+
+External does not necessarily mean distributed. For an HTTP service it may mean
+requests. For a CLI it may mean commands and filesystem assertions. For a batch
+processor it may mean input files, process runs, and output manifests. For a
+distributed service it may include deployed API calls, queue operations, or
+fault injection.
 
 An accepted, closed `program_model` contains only promoted baseline files such
 as `Core.tla`, `Internal.tla`, and `External.tla`. Active desired overlays use
@@ -32,10 +38,11 @@ be removed after promotion.
 3. `teardown_all(AdapterBatchContext)` once per unique adapter class in reverse
    adapter order.
 
-Use `setup_all` and `teardown_all` for suite-wide deployed state such as
-clearing shared tables, committing queue offsets, or checking cluster health.
-Use `setup` and `teardown` for per-case state such as loading a TLA `before`
-state into debug/admin endpoints and clearing case fixtures.
+Use `setup_all` and `teardown_all` for suite-wide external state such as
+clearing shared tables, committing queue offsets, preparing a CLI workspace, or
+checking cluster health. Use `setup` and `teardown` for per-case state such as
+loading a TLA `before` state into debug/admin endpoints, writing CLI fixture
+files, or clearing case fixtures.
 
 In `examples/distributed_history/specs/program_model/adapters.py`:
 
@@ -94,17 +101,25 @@ The ecommerce example currently has four internal cases:
 - `internal_checkout_creates_outbox`
 - `internal_project_order`
 
-It has four external/Test Graph cases:
+It has 10 external/Test Graph cases:
 
 - `external_submit_create_account`
+- `external_duplicate_create_account`
 - `external_submit_add_cart_item`
+- `external_add_cart_item_missing_account`
 - `external_submit_checkout`
+- `external_checkout_missing_account`
+- `external_checkout_empty_cart`
+- `external_duplicate_checkout`
 - `external_run_fulfillment_worker`
+- `external_worker_noop_empty_outbox`
 
 The external cases are deliberately one-transition cases. Each case has its own
 `before` state loaded during `setup`, one externally driven action, and one
 projected-state assertion after the action. This makes invalid cluster residue
 visible because setup must establish the abstract pre-state before each case.
+See `references/edge-cases.md` for how to choose these boundary cases without
+assuming the system is deployed or distributed.
 
 ## Validating Bug Detection
 
@@ -121,7 +136,8 @@ That script validates:
   deliberately wrong;
 - the Test Graph runs the external cases;
 - every external case writes `program-state.json`;
-- the aggregate projected-state evidence has four matched records.
+- the aggregate projected-state evidence has one matched record per generated
+  external trace.
 
 Run the full distributed topology:
 

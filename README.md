@@ -11,6 +11,7 @@ User-facing workflow guidance lives in:
 - `references/codegen_contract.md`
 - `references/conformance_testing.md`
 - `references/testgraph_adapters.md`
+- `references/edge-cases.md`
 - `references/tla_profile.md`
 - `references/spec_evolution.md`
 - `references/workflows.md`
@@ -31,12 +32,14 @@ Run focused checks while editing:
 
 ```bash
 python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py
-python3 -m pytest tests
+uv run --with pytest -m pytest tests
+uv run examples/distributed_history/tests/test_ecommerce_backend.py
+uv run examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py
 ```
 
-If `pytest` is not installed in the active environment, use the
-`skill-manager.toml` dependency declaration or run the scripts directly for
-smoke checks.
+The distributed ecommerce example tests include PEP 723 uv script headers, so
+`uv run <test-file>` retrieves pytest even when the ambient interpreter does
+not have it installed.
 
 For production repositories that use the desired/current migration loop,
 scaffold the workflow directories first:
@@ -68,10 +71,11 @@ python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --o
 ```
 
 External adapter bindings may include `kind` to batch cases that need the same
-cluster setup and cleanup. Batch adapters can define optional
+external harness setup and cleanup. Batch adapters can define optional
 `setup_all(ctx)`, `teardown_all(ctx)`, `setup(ctx)`, and `teardown(ctx)` hooks.
-Use these hooks for deployed-state preparation such as clearing database rows,
-committing Kafka offsets, or removing per-trace test fixtures.
+Use these hooks for integration-state preparation such as clearing database
+rows, committing Kafka offsets, preparing a CLI workspace, or removing
+per-trace test fixtures.
 
 For external assertions, configure `projector = "module:Object"` to retrieve
 the actual deployed state. By default, the runner compares that actual state to

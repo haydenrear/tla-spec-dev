@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pytest"]
+# ///
 import os
 import subprocess
 import sys
@@ -72,3 +76,9 @@ def _wait_for_health(base_url):
         except Exception:
             time.sleep(0.1)
     raise AssertionError(f"service did not become healthy at {base_url}")
+
+
+if __name__ == "__main__":
+    import pytest
+
+    raise SystemExit(pytest.main([__file__]))

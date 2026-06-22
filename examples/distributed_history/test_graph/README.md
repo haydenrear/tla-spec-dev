@@ -10,7 +10,8 @@ Graph:
    queue services when `ECOMMERCE_TEST_MODE=k3d`.
 2. `ecommerce.external_cases` runs
    `scripts/run_generated_case_adapters.py` with the external Test Graph
-   bindings.
+   bindings. The cases include happy-path actions plus edge cases for duplicate
+   commands, rejected commands, and idle worker behavior.
 3. `ecommerce.evidence` captures the final projected state from the cluster.
    It also validates that each external case wrote a `program-state.json`
    projected-state assertion artifact.

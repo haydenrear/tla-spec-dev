@@ -154,9 +154,15 @@ def wrong_projection_mapping() -> str:
     blocks = []
     for action, adapter in {
         "SubmitCreateAccount": "CreateAccountHttpAdapter",
+        "SubmitDuplicateCreateAccount": "CreateAccountHttpAdapter",
         "SubmitAddCartItem": "AddCartItemHttpAdapter",
+        "SubmitAddCartItemMissingAccount": "AddCartItemHttpAdapter",
         "SubmitCheckout": "CheckoutHttpAdapter",
+        "SubmitCheckoutMissingAccount": "CheckoutHttpAdapter",
+        "SubmitCheckoutEmptyCart": "CheckoutHttpAdapter",
+        "SubmitDuplicateCheckout": "CheckoutHttpAdapter",
         "RunFulfillmentWorker": "RunFulfillmentWorkerHttpAdapter",
+        "RunFulfillmentWorkerNoop": "RunFulfillmentWorkerHttpAdapter",
     }.items():
         blocks.append(
             f"""
@@ -211,12 +217,13 @@ def validate_report(report_dir: Path) -> None:
 
 
 def validate_projected_state_artifacts(report_dir: Path) -> None:
+    expected_count = expected_external_trace_count()
     aggregate = report_dir / "projected-program-states.json"
     if not aggregate.exists():
         raise SystemExit(f"missing projected-state aggregate artifact: {aggregate}")
     records = json.loads(aggregate.read_text(encoding="utf-8"))
-    if len(records) != 4:
-        raise SystemExit(f"expected 4 projected-state records, got {len(records)}")
+    if len(records) != expected_count:
+        raise SystemExit(f"expected {expected_count} projected-state records, got {len(records)}")
 
     required = {
         "case",
@@ -237,8 +244,14 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
 
     work_dir = report_dir / "external-case-work" / "case-work"
     per_case_files = sorted(work_dir.glob("*/program-state.json"))
-    if len(per_case_files) != 4:
-        raise SystemExit(f"expected 4 per-case program-state.json files, got {len(per_case_files)}")
+    if len(per_case_files) != expected_count:
+        raise SystemExit(f"expected {expected_count} per-case program-state.json files, got {len(per_case_files)}")
+
+
+def expected_external_trace_count() -> int:
+    manifest = EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "traces" / "manifest.json"
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    return int(payload["trace_count"])
 
 
 def cleanup_build_outputs() -> None:

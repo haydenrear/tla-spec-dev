@@ -1,0 +1,46 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "source": {
+    "case": "external_duplicate_create_account",
+    "module": "examples.distributed_history.specs.program_model.External"
+  },
+  "steps": [
+    {
+      "action": "SubmitDuplicateCreateAccount",
+      "controllability": "e2e_direct",
+      "index": 1,
+      "layer": "external",
+      "params": {
+        "account": "acct-1"
+      },
+      "post": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {},
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "pre": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {},
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "raw": {
+        "labels": [
+          "SubmitDuplicateCreateAccount",
+          "ecommerce_external"
+        ],
+        "source_node": "e1",
+        "target_node": "e1_duplicate_create"
+      }
+    }
+  ],
+  "trace_id": "external_duplicate_create_account",
+  "view": "external"
+}

@@ -17,6 +17,8 @@ It shows:
   `DesiredInternal.tla`, and `DesiredExternal.tla`;
 - internal/spec-unit generated cases and adapters;
 - external/Test Graph generated cases and HTTP adapters;
+- external edge cases for duplicate, missing-resource, empty-cart, and idle
+  worker behavior;
 - batch setup/teardown hooks for cleaning deployed state;
 - per-case setup/teardown hooks for loading and clearing case state;
 - projected-state assertions that compare expected TLA program state to actual
@@ -43,9 +45,9 @@ Run it against k3d:
 python3 examples/run_distributed_history_validation.py --mode k3d
 ```
 
-The validation script checks that the internal cases run, the external Test
-Graph cases run, projected-state assertion files are written, and a deliberate
-wrong projection is rejected.
+The validation script checks that the internal cases run, all generated
+external Test Graph cases run, projected-state assertion files are written for
+each external trace, and a deliberate wrong projection is rejected.
 
 ## Tutorial Scaffolding
 
