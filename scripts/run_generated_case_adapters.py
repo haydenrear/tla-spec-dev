@@ -588,11 +588,12 @@ def execute_cases_in_batch(
             if requires_action_adapter(case):
                 failures.append(f"{case.name}: no mapped adapter")
             continue
-        if not requires_action_adapter(case):
+        if not requires_action_adapter(case) and not uses_projected_state_assertion(case, mapping):
             continue
         if mapping.adapter is None:
-            failures.append(f"{case.name} via {mapping.label}: no executable adapter")
-            continue
+            if requires_action_adapter(case):
+                failures.append(f"{case.name} via {mapping.label}: no executable adapter")
+                continue
         runnable_by_kind.setdefault(adapter_kind(mapping), []).append((case, mapping))
 
     for kind, entries in runnable_by_kind.items():
@@ -602,6 +603,8 @@ def execute_cases_in_batch(
         group_cases = [case for case, _mapping in entries]
         group_adapters: list[tuple[Any, AdapterMapping]] = []
         for _case, mapping in entries:
+            if mapping.adapter is None:
+                continue
             adapter = adapter_cache.get(mapping.adapter)
             if adapter is None:
                 adapter = instantiate(load_object(mapping.adapter))
@@ -629,9 +632,9 @@ def execute_cases_in_batch(
         try:
             if not setup_all_failed:
                 for case, mapping in entries:
-                    adapter = adapter_cache[mapping.adapter]
+                    adapter = adapter_cache.get(mapping.adapter) if mapping.adapter is not None else None
                     projector = None
-                    if mapping.output_projection:
+                    if adapter is not None and mapping.output_projection:
                         projector = projector_cache.get(mapping.output_projection)
                         if projector is None:
                             projector = load_object(mapping.output_projection)
@@ -646,22 +649,24 @@ def execute_cases_in_batch(
                         shared=shared,
                     )
                     try:
-                        call_optional_hook(adapter, "setup", case_context)
-                        case_context.result = call_adapter(adapter, case, case_work_dir)
-                        assert_case_result(
-                            case=case,
-                            result=case_context.result,
-                            projector=projector,
-                        )
+                        if adapter is not None:
+                            call_optional_hook(adapter, "setup", case_context)
+                            case_context.result = call_adapter(adapter, case, case_work_dir)
+                            assert_case_result(
+                                case=case,
+                                result=case_context.result,
+                                projector=projector,
+                            )
                         assert_projected_state_if_configured(case_context, mapping, object_cache)
                     except Exception as exc:
                         case_context.error = exc
                         failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
                     finally:
-                        try:
-                            call_optional_hook(adapter, "teardown", case_context)
-                        except Exception as exc:
-                            failures.append(f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}")
+                        if adapter is not None:
+                            try:
+                                call_optional_hook(adapter, "teardown", case_context)
+                            except Exception as exc:
+                                failures.append(f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}")
         finally:
             for adapter, mapping in reversed(group_adapters):
                 try:

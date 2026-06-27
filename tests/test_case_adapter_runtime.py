@@ -343,6 +343,45 @@ class RequestStateProjector:
     ]
 
 
+def test_observable_external_case_runs_projector_without_action_adapter(tmp_path: Path) -> None:
+    module_path = tmp_path / "observable_projection_adapters.py"
+    module_path.write_text(
+        """EVENTS = []
+
+
+class RequestStateProjector:
+    def observe(self, ctx):
+        EVENTS.append(("observe", ctx.case.name, ctx.result))
+        return {"request": "r1", "visible_status": "completed"}
+""",
+        encoding="utf-8",
+    )
+    sys.path.insert(0, str(tmp_path))
+    import observable_projection_adapters
+
+    case = make_view_case(
+        "observe_case",
+        "ObserveStatus",
+        controllability="observable",
+        after={"request": "r1", "visible_status": "completed"},
+    )
+    mappings = {
+        "ObserveStatus": AdapterMapping(
+            "ObserveStatus",
+            None,
+            view="external",
+            layer="external",
+            controllability="observable",
+            projector="observable_projection_adapters:RequestStateProjector",
+            kind="request-http",
+        )
+    }
+
+    execute_cases_in_batch(cases=[case], mappings=mappings, work_dir=tmp_path / "work", import_roots=[tmp_path])
+
+    assert observable_projection_adapters.EVENTS == [("observe", "observe_case", None)]
+
+
 def test_external_projected_state_assertion_reports_mismatch(tmp_path: Path) -> None:
     module_path = tmp_path / "mismatched_state_projection_adapters.py"
     module_path.write_text(
