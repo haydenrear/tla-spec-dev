@@ -1,6 +1,6 @@
 package com.hayden.testgraphsdk.sdk;
 
-//DEPS com.fasterxml.jackson.core:jackson-databind:2.20.2
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.17.2
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

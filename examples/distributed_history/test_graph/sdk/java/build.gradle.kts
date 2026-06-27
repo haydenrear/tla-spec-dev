@@ -13,6 +13,10 @@ java {
 
 repositories { mavenCentral() }
 
+dependencies {
+    api("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
