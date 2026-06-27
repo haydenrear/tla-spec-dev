@@ -34,7 +34,7 @@ Run the workflow contract check:
 python3 examples/validate_split_desired_workflow.py
 ```
 
-Run the distributed example locally:
+Run the distributed example against k3d:
 
 ```bash
 python3 examples/run_distributed_history_validation.py
@@ -44,15 +44,16 @@ That wrapper regenerates internal and external case packages from TLC before
 running adapters and Test Graph. Generated case packages are written under
 `test_graph/build/` or the validation report, not kept as source files.
 
-Run it against k3d:
+Run it in local monolith mode:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py --mode local
 ```
 
 The validation script checks that the internal cases run, all generated
 external Test Graph cases run, projected-state assertion files are written for
-each external trace, and a deliberate wrong projection is rejected.
+each external trace, a deliberate wrong projection is rejected, and k3d
+deployments plus service-level REST traffic are verified in the default mode.
 
 ## Tutorial Scaffolding
 

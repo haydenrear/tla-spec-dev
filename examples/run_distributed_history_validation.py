@@ -30,14 +30,18 @@ def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["local", "k3d"], default="local")
+    parser.add_argument("--mode", choices=["local", "k3d"], default="k3d")
     parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
     args = parser.parse_args()
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
-    if args.mode == "k3d" and not args.keep_k3d:
-        env["ECOMMERCE_DELETE_K3D"] = "1"
+    if args.mode == "k3d":
+        if args.keep_k3d:
+            env["ECOMMERCE_KEEP_K3D"] = "1"
+            env["ECOMMERCE_DELETE_K3D"] = "0"
+        else:
+            env["ECOMMERCE_DELETE_K3D"] = "1"
 
     cleanup_build_outputs()
     try:

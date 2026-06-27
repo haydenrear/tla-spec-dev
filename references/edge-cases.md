@@ -98,17 +98,19 @@ external action, project `/debug/state` back into the TLA state shape, write
 `program-state.json`, and fail if projected state differs from the expected
 `after` projection.
 
-Run the local validation:
+Run the k3d validation:
 
 ```bash
 python3 examples/run_distributed_history_validation.py
 ```
 
-Run the k3d validation:
+Run the local monolith validation:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py --mode local
 ```
 
 The wrapper also runs a deliberate negative check that replaces the expected
 projection with a wrong one and requires the projected-state assertion to fail.
+In k3d mode it also checks that every deployed web service recorded the expected
+REST request/response statuses.

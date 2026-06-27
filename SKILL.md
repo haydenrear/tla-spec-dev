@@ -376,8 +376,8 @@ it.
 
 This keeps active state local:
 
-- `specs/cases` or `examples/workspace/cases`: generated TLC edge cases.
-- `specs/generated` or `examples/workspace/generated`: generated Python
+- `specs/cases` or `examples/<name>/cases`: generated TLC edge cases.
+- `specs/generated` or `examples/<name>/generated`: generated Python
   packages.
 - `specs/results`: TLC, adapter, and test evidence.
 - `specs/.history/<workflow-name>`: append-only workflow history.

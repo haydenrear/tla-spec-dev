@@ -65,6 +65,7 @@ class _HttpAdapter:
         base_url = os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
         context.shared["base_url"] = base_url.rstrip("/")
         self._wait_for_health(context.shared["base_url"])
+        self._post(context.shared["base_url"], "/debug/traffic/reset", {})
         self._post(context.shared["base_url"], "/debug/reset", {})
 
     def teardown_all(self, context: Any) -> None:

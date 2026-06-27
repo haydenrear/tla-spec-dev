@@ -163,13 +163,23 @@ That script validates:
 - the Test Graph runs the external cases;
 - every external case writes `program-state.json`;
 - the aggregate projected-state evidence has one matched record per generated
-  external trace.
+  external trace;
+- in k3d mode, every ecommerce deployment is ready and each web service records
+  the expected REST request/response statuses.
 
-Run the full distributed topology:
+The wrapper defaults to the full k3d topology:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py
+```
+
+Use local monolith mode explicitly for fast iteration:
+
+```bash
+python3 examples/run_distributed_history_validation.py --mode local
 ```
 
 k3d mode deploys separate gateway, account, cart, checkout, worker, database,
-and queue services. It still uses the same projected-state assertion path.
+and queue services. It still uses the same projected-state assertion path and
+deletes the cluster during cleanup unless `--keep-k3d`,
+`ECOMMERCE_KEEP_K3D=1`, or `ECOMMERCE_DELETE_K3D=0` is set.

@@ -50,16 +50,24 @@ python3 scripts/scaffold_spec_workflow.py --root .
 
 ## Regenerate Examples
 
-Manifest-driven fake/spec-double artifacts:
+The active checked-in example is `examples/distributed_history`. Regenerate
+its TLC-derived internal and external case packages into an ignored build
+directory:
 
 ```bash
-python3 scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
+  --out examples/distributed_history/test_graph/build/generated/manual
 ```
 
-TLC-derived whole-program transition cases:
+Run the generated internal/spec-unit cases:
 
 ```bash
-python3 scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
+python3 scripts/run_generated_case_adapters.py \
+  examples/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
+  --mapping examples/distributed_history/specs/program_model/case_adapters.toml \
+  --view internal \
+  --batch \
+  --import-root examples/distributed_history
 ```
 
 View-aware case generation writes explicit internal and external outputs:
@@ -90,7 +98,13 @@ the spec directory should produce the same spec-local artifact layout.
 Adapter mapping validation:
 
 ```bash
-python3 scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --import-root examples/workspace --label Create --validate-only
+python3 scripts/run_generated_case_adapters.py \
+  examples/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
+  --mapping examples/distributed_history/specs/program_model/testgraph_bindings.yml \
+  --view external \
+  --batch \
+  --validate-only \
+  --import-root examples/distributed_history
 ```
 
 For larger case sets, use batch mode:

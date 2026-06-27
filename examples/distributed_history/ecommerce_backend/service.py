@@ -26,6 +26,26 @@ def _write_json(handler: BaseHTTPRequestHandler, status: int, body: dict[str, An
     handler.send_header("content-length", str(len(payload)))
     handler.end_headers()
     handler.wfile.write(payload)
+    _record_traffic(handler, status, body)
+
+
+def _record_traffic(handler: BaseHTTPRequestHandler, status: int, body: dict[str, Any]) -> None:
+    path = urlparse(handler.path).path
+    if path == "/health" or path.startswith("/debug"):
+        return
+    events = getattr(handler.__class__, "traffic_events", None)
+    if events is None:
+        return
+    events.append(
+        {
+            "method": handler.command,
+            "path": path,
+            "request": getattr(handler, "_request_body", {}),
+            "status": status,
+            "response": body,
+        }
+    )
+    del events[:-500]
 
 
 def _request_json(method: str, base_url: str, path: str, body: dict[str, Any] | None = None) -> tuple[int, dict[str, Any]]:
@@ -57,14 +77,22 @@ class EcommerceHandler(BaseHTTPRequestHandler):
     store: EcommerceStore
     role: str = "monolith"
     queue_events: list[dict[str, Any]] = []
+    traffic_events: list[dict[str, Any]] = []
 
     def log_message(self, format: str, *args: Any) -> None:
         return
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
+        self._request_body = {}
         if path == "/health":
             _write_json(self, 200, {"ok": True, "role": self.role})
+            return
+        if path == "/debug/traffic":
+            if self.role == "gateway":
+                _write_json(self, 200, self._gateway_traffic())
+                return
+            _write_json(self, 200, {"traffic": {self.role: list(self.traffic_events)}})
             return
         if path == "/debug/state" and self.role in {"monolith", "database"}:
             _write_json(self, 200, self.store.snapshot())
@@ -87,6 +115,13 @@ class EcommerceHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         body = _read_json(self)
+        self._request_body = body
+        if path == "/debug/traffic/reset":
+            if self.role == "gateway":
+                self._reset_gateway_traffic()
+            self.traffic_events.clear()
+            _write_json(self, 200, {"ok": True})
+            return
         if self.role == "monolith":
             self._post_monolith(path, body)
             return
@@ -235,11 +270,27 @@ class EcommerceHandler(BaseHTTPRequestHandler):
             return
         _write_json(self, 404, {"error": "not_found"})
 
+    def _gateway_traffic(self) -> dict[str, Any]:
+        traffic = {"gateway": list(self.traffic_events)}
+        for role, base_url in _service_urls().items():
+            status, body = _request_json("GET", base_url, "/debug/traffic")
+            if status == 200 and isinstance(body.get("traffic"), dict):
+                traffic.update(body["traffic"])
+            else:
+                traffic[role] = [{"method": "GET", "path": "/debug/traffic", "status": status, "response": body}]
+        return {"traffic": traffic}
+
+    def _reset_gateway_traffic(self) -> None:
+        for base_url in _service_urls().values():
+            _request_json("POST", base_url, "/debug/traffic/reset", {})
+
 
 def make_server() -> ThreadingHTTPServer:
     port = int(os.environ.get("ECOMMERCE_PORT", "18080"))
     db_path = os.environ.get("ECOMMERCE_DB", "/tmp/ecommerce-example.db")
     EcommerceHandler.role = os.environ.get("ECOMMERCE_ROLE", "monolith")
+    EcommerceHandler.traffic_events = []
+    EcommerceHandler.queue_events = []
     if EcommerceHandler.role in {"monolith", "database"}:
         EcommerceHandler.store = EcommerceStore(db_path)
     return ThreadingHTTPServer(("0.0.0.0", port), EcommerceHandler)
@@ -279,6 +330,17 @@ def _checkout_url() -> str:
 
 def _worker_url() -> str:
     return os.environ.get("ECOMMERCE_WORKER_URL", "http://worker-service")
+
+
+def _service_urls() -> dict[str, str]:
+    return {
+        "account": _account_url(),
+        "cart": _cart_url(),
+        "checkout": _checkout_url(),
+        "worker": _worker_url(),
+        "database": _database_url(),
+        "queue": _queue_url(),
+    }
 
 
 if __name__ == "__main__":

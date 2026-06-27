@@ -41,8 +41,8 @@ def run(ctx):
 
 
 def cleanup_k3d(ctx) -> NodeResult:
-    if os.environ.get("ECOMMERCE_DELETE_K3D", "0") != "1":
-        return NodeResult.pass_(SPEC.id).log("leaving k3d cluster running; set ECOMMERCE_DELETE_K3D=1 to delete it")
+    if os.environ.get("ECOMMERCE_KEEP_K3D", "0") == "1" or os.environ.get("ECOMMERCE_DELETE_K3D") == "0":
+        return NodeResult.pass_(SPEC.id).log("leaving k3d cluster running because ECOMMERCE_KEEP_K3D=1 or ECOMMERCE_DELETE_K3D=0")
     log_path = ctx.report_dir / "k3d-cleanup.log"
     with log_path.open("w", encoding="utf-8") as log:
         result = subprocess.run(

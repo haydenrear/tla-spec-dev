@@ -512,7 +512,23 @@ sys.path.insert(0, {str(cases_dir.resolve().parent)!r})
 
 from {cases_dir.name}.cases import CASES_BY_NAME
 from {cases_dir.name}.validators import assert_case_replays
-from spec_double_compiler.runtime import assert_case_result, call_adapter, instantiate, load_object
+from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_projected_state_if_configured
+from spec_double_compiler.runtime import AdapterCaseContext, assert_case_result, call_adapter, instantiate, load_object
+
+
+MAPPING = AdapterMapping(
+    label={mapping.label!r},
+    adapter={mapping.adapter!r},
+    output_projection={mapping.output_projection!r},
+    expected_projection={mapping.expected_projection!r},
+    view={mapping.view!r},
+    layer={mapping.layer!r},
+    controllability={mapping.controllability!r},
+    projector={mapping.projector!r},
+    assertion={mapping.assertion!r},
+    kind={mapping.kind!r},
+    order={mapping.order!r},
+)
 
 
 def main() -> int:
@@ -520,13 +536,24 @@ def main() -> int:
     assert_case_replays(case)
     adapter = instantiate(load_object({mapping.adapter!r}))
     projector = None
-    if {mapping.output_projection!r} is not None:
-        projector = load_object({mapping.output_projection!r})
+    if MAPPING.output_projection is not None:
+        projector = load_object(MAPPING.output_projection)
+    case_work_dir = Path({str(case_work_dir.resolve())!r})
+    result = call_adapter(adapter, case, case_work_dir)
     assert_case_result(
         case=case,
-        result=call_adapter(adapter, case, Path({str(case_work_dir.resolve())!r})),
+        result=result,
         projector=projector,
     )
+    case_context = AdapterCaseContext(
+        kind=adapter_kind(MAPPING),
+        case=case,
+        work_dir=case_work_dir,
+        mapping=MAPPING,
+        shared={{}},
+        result=result,
+    )
+    assert_projected_state_if_configured(case_context, MAPPING, {{}})
     return 0
 
 
