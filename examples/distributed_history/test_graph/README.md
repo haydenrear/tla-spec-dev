@@ -11,12 +11,17 @@ Graph:
 2. `ecommerce.external_cases` runs
    `scripts/run_generated_case_adapters.py` with the external Test Graph
    bindings. The cases include happy-path actions plus edge cases for duplicate
-   commands, rejected commands, and idle worker behavior.
+   commands, rejected commands, and idle worker behavior. The node fails unless
+   every generated trace writes a per-case `program-state.json`; its envelope
+   records `expectedCaseCount`, `executedCaseCount`, and the executed case
+   names.
 3. `ecommerce.evidence` captures the final projected state from the cluster.
    It also validates that each external case wrote a `program-state.json`
    projected-state assertion artifact.
 4. `ecommerce.cleanup` stops the local service. In k3d mode it leaves the
-   cluster running unless `ECOMMERCE_DELETE_K3D=1` is set.
+   cluster running unless `ECOMMERCE_DELETE_K3D=1` is set. Cleanup is tagged as
+   a finalizer so it still runs after earlier node failures once deploy has
+   completed.
 
 Run:
 

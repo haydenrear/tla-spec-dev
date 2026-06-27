@@ -61,100 +61,169 @@ class PlanExecutor(
         val nodeLogsDir = File(reportRoot, "node-logs").apply { mkdirs() }
         val envelopeDir = File(reportRoot, "envelope").apply { mkdirs() }
 
+        val executed = mutableSetOf<String>()
+        var executionFailure: RuntimeException? = null
         for ((i, spec) in executionPlan.withIndex()) {
-            logger.lifecycle("  [${i + 1}/${executionPlan.size}] ${spec.id} (${spec.runtime.name})")
-
-            val inputContextFile = writeInputContextSnapshot(cumulative, reportRoot, spec.id)
-            val contextArg = if (cumulative.isEmpty()) null
-                             else if (resumeState.useSnapshotForFirstNode && i == 0) {
-                                 "@" + inputContextFile.absolutePath
-                             } else {
-                                 encodeContextArg(cumulative, reportRoot, i)
-                             }
-
-            val resultOut = File(tmpResultsDir, "${spec.id}.json")
-            val stdoutLog = File(nodeLogsDir, "${spec.id}.stdout.log")
-            val timeoutMillis = TimeoutParser.parseMillis(spec.timeout)
-            val maxAttempts = spec.retries + 1
-
-            var execOutcome: ExecutionOutcome = ExecutionOutcome.TimedOut
-            var startedAt = Instant.now()
-            var endedAt = startedAt
-            for (attempt in 1..maxAttempts) {
-                if (attempt > 1) {
-                    logger.lifecycle(
-                        "    retry ${attempt - 1}/${spec.retries} after timeout — " +
-                                "previous attempt exceeded ${spec.timeout}"
-                    )
-                }
-                // Defensive: clear leftover --result-out from the prior
-                // attempt (or from a stale earlier run). The "did the SDK
-                // write anything" check in buildEnvelope below relies on
-                // this being unambiguous.
-                resultOut.delete()
-
-                val invocation = NodeInvocation(
-                    spec = spec,
-                    projectDir = projectDir,
-                    reportDir = reportDir,
-                    runId = runId,
-                    contextArg = contextArg,
-                    resultOut = resultOut,
-                    stdoutLog = stdoutLog,
-                    timeoutMillis = timeoutMillis,
-                )
-
-                startedAt = Instant.now()
-                execOutcome = registry.forNode(spec).execute(invocation)
-                endedAt = Instant.now()
-
-                // Stop retrying as soon as the executor reports the child
-                // returned, regardless of exit code — only timeouts are
-                // retryable. A body-returned `failed` should fail fast.
-                if (execOutcome is ExecutionOutcome.Completed) break
+            if (executionFailure != null && !shouldRunAfterFailure(spec, executed)) {
+                logger.lifecycle("  [${i + 1}/${executionPlan.size}] ${spec.id} skipped after earlier failure")
+                writeSkippedEnvelope(spec, reportRoot, nodeLogsDir, envelopeDir)
+                continue
             }
-
-            val envelope = File(envelopeDir, "${spec.id}.json")
-            val outcome = buildEnvelope(
+            val outcome = executeNode(
                 spec = spec,
-                resultOut = resultOut,
-                stdoutLog = stdoutLog,
-                execOutcome = execOutcome,
-                executorStartedAt = startedAt,
-                executorEndedAt = endedAt,
+                displayIndex = i,
+                displayTotal = executionPlan.size,
+                cumulative = cumulative,
                 reportRoot = reportRoot,
-                inputContextFile = inputContextFile,
-                rerunGuidance = null,
+                tmpResultsDir = tmpResultsDir,
+                nodeLogsDir = nodeLogsDir,
+                envelopeDir = envelopeDir,
+                forceContextSnapshot = resumeState.useSnapshotForFirstNode && i == 0,
             )
-            val rerunGuidance = if (outcome.status != "passed" && spec.rerun) {
-                buildRerunGuidance(spec, reportRoot, inputContextFile)
-            } else {
-                null
-            }
-            val envelopeJson = if (rerunGuidance == null) {
-                outcome.envelopeJson
-            } else {
-                logger.lifecycle("rerun guidance for '${spec.id}':")
-                logger.lifecycle("  resume graph: ${rerunGuidance.resumeGraphCommand}")
-                logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
-                addRerunGuidance(outcome.envelopeJson, rerunGuidance)
-            }
-            envelope.writeText(envelopeJson)
-
+            executed += spec.id
             cumulative += readContextItem(spec.id)
 
             // Pass/fail decided from envelope status, NOT from exit code —
             // a node may legitimately exit non-zero (e.g. NodeResult.fail
             // with the SDK's exit-code-from-status policy) but the canonical
-            // signal is the parsed status. We still throw on a failed
-            // status so RunTestGraphTask gets the FAIL signal.
-            if (outcome.status != "passed") {
-                throw RuntimeException(
+            // signal is the parsed status. We preserve the first failure,
+            // then still run cleanup/finalizer nodes whose dependencies are
+            // already available before rethrowing.
+            if (outcome.status != "passed" && executionFailure == null) {
+                executionFailure = RuntimeException(
                     "node ${spec.id} ${outcome.status}" +
                             (outcome.reason?.let { ": $it" } ?: "")
                 )
             }
         }
+        executionFailure?.let { throw it }
+    }
+
+    private fun shouldRunAfterFailure(
+        spec: ValidationNodeSpec,
+        executed: Set<String>,
+    ): Boolean =
+        isFinalizer(spec) && spec.dependsOn.all { it in executed }
+
+    private fun isFinalizer(spec: ValidationNodeSpec): Boolean =
+        spec.id.endsWith(".cleanup") || "finalizer" in spec.tags
+
+    private fun executeNode(
+        spec: ValidationNodeSpec,
+        displayIndex: Int,
+        displayTotal: Int,
+        cumulative: List<ContextItem>,
+        reportRoot: File,
+        tmpResultsDir: File,
+        nodeLogsDir: File,
+        envelopeDir: File,
+        forceContextSnapshot: Boolean,
+    ): EnvelopeOutcome {
+        logger.lifecycle("  [${displayIndex + 1}/${displayTotal}] ${spec.id} (${spec.runtime.name})")
+
+        val inputContextFile = writeInputContextSnapshot(cumulative, reportRoot, spec.id)
+        val contextArg = if (cumulative.isEmpty()) null
+                         else if (forceContextSnapshot) {
+                             "@" + inputContextFile.absolutePath
+                         } else {
+                             encodeContextArg(cumulative, reportRoot, displayIndex)
+                         }
+
+        val resultOut = File(tmpResultsDir, "${spec.id}.json")
+        val stdoutLog = File(nodeLogsDir, "${spec.id}.stdout.log")
+        val timeoutMillis = TimeoutParser.parseMillis(spec.timeout)
+        val maxAttempts = spec.retries + 1
+
+        var execOutcome: ExecutionOutcome = ExecutionOutcome.TimedOut
+        var startedAt = Instant.now()
+        var endedAt = startedAt
+        for (attempt in 1..maxAttempts) {
+            if (attempt > 1) {
+                logger.lifecycle(
+                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+                            "previous attempt exceeded ${spec.timeout}"
+                )
+            }
+            // Defensive: clear leftover --result-out from the prior
+            // attempt (or from a stale earlier run). The "did the SDK
+            // write anything" check in buildEnvelope below relies on
+            // this being unambiguous.
+            resultOut.delete()
+
+            val invocation = NodeInvocation(
+                spec = spec,
+                projectDir = projectDir,
+                reportDir = reportDir,
+                runId = runId,
+                contextArg = contextArg,
+                resultOut = resultOut,
+                stdoutLog = stdoutLog,
+                timeoutMillis = timeoutMillis,
+            )
+
+            startedAt = Instant.now()
+            execOutcome = registry.forNode(spec).execute(invocation)
+            endedAt = Instant.now()
+
+            // Stop retrying as soon as the executor reports the child
+            // returned, regardless of exit code — only timeouts are
+            // retryable. A body-returned `failed` should fail fast.
+            if (execOutcome is ExecutionOutcome.Completed) break
+        }
+
+        val envelope = File(envelopeDir, "${spec.id}.json")
+        val outcome = buildEnvelope(
+            spec = spec,
+            resultOut = resultOut,
+            stdoutLog = stdoutLog,
+            execOutcome = execOutcome,
+            executorStartedAt = startedAt,
+            executorEndedAt = endedAt,
+            reportRoot = reportRoot,
+            inputContextFile = inputContextFile,
+            rerunGuidance = null,
+        )
+        val rerunGuidance = if (outcome.status != "passed" && spec.rerun) {
+            buildRerunGuidance(spec, reportRoot, inputContextFile)
+        } else {
+            null
+        }
+        val envelopeJson = if (rerunGuidance == null) {
+            outcome.envelopeJson
+        } else {
+            logger.lifecycle("rerun guidance for '${spec.id}':")
+            logger.lifecycle("  resume graph: ${rerunGuidance.resumeGraphCommand}")
+            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+            addRerunGuidance(outcome.envelopeJson, rerunGuidance)
+        }
+        envelope.writeText(envelopeJson)
+        return outcome
+    }
+
+    private fun writeSkippedEnvelope(
+        spec: ValidationNodeSpec,
+        reportRoot: File,
+        nodeLogsDir: File,
+        envelopeDir: File,
+    ) {
+        val now = Instant.now()
+        val stdoutLog = File(nodeLogsDir, "${spec.id}.stdout.log").apply {
+            parentFile.mkdirs()
+            writeText("node skipped after earlier graph failure\n")
+        }
+        val inputContextFile = writeInputContextSnapshot(emptyList(), reportRoot, spec.id)
+        val outcome = synthesized(
+            spec = spec,
+            status = "skipped",
+            reason = "node skipped after earlier graph failure",
+            stdoutRel = relativeToReport(reportRoot, stdoutLog),
+            inputContextRel = relativeToReport(reportRoot, inputContextFile),
+            exitCode = -1,
+            startedAt = now,
+            endedAt = now,
+            rerunGuidance = null,
+        )
+        File(envelopeDir, "${spec.id}.json").writeText(outcome.envelopeJson)
     }
 
     private data class ResumeState(

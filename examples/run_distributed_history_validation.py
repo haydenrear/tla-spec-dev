@@ -217,13 +217,14 @@ def validate_report(report_dir: Path) -> None:
 
 
 def validate_projected_state_artifacts(report_dir: Path) -> None:
-    expected_count = expected_external_trace_count()
+    expected_cases = expected_external_trace_names()
     aggregate = report_dir / "projected-program-states.json"
     if not aggregate.exists():
         raise SystemExit(f"missing projected-state aggregate artifact: {aggregate}")
     records = json.loads(aggregate.read_text(encoding="utf-8"))
-    if len(records) != expected_count:
-        raise SystemExit(f"expected {expected_count} projected-state records, got {len(records)}")
+    record_cases = sorted(str(record.get("case")) for record in records)
+    if record_cases != expected_cases:
+        raise SystemExit(f"expected projected-state cases {expected_cases}, got {record_cases}")
 
     required = {
         "case",
@@ -244,14 +245,15 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
 
     work_dir = report_dir / "external-case-work" / "case-work"
     per_case_files = sorted(work_dir.glob("*/program-state.json"))
-    if len(per_case_files) != expected_count:
-        raise SystemExit(f"expected {expected_count} per-case program-state.json files, got {len(per_case_files)}")
+    file_cases = sorted(path.parent.name for path in per_case_files)
+    if file_cases != expected_cases:
+        raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
 
 
-def expected_external_trace_count() -> int:
+def expected_external_trace_names() -> list[str]:
     manifest = EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "traces" / "manifest.json"
     payload = json.loads(manifest.read_text(encoding="utf-8"))
-    return int(payload["trace_count"])
+    return sorted(Path(name).stem for name in payload["traces"])
 
 
 def cleanup_build_outputs() -> None:

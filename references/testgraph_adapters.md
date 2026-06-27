@@ -89,8 +89,11 @@ The Test Graph evidence node aggregates these into:
 test_graph/build/validation-reports/<run>/projected-program-states.json
 ```
 
-The graph fails if fewer than four projected-state files are written or if any
-record has `matched: false`.
+The graph fails if the set of projected-state files does not exactly match the
+generated trace manifest or if any record has `matched: false`. The
+`ecommerce.external_cases` envelope also publishes `caseNames` and records
+`expectedCaseCount` / `executedCaseCount` metrics, so a fast run still leaves
+explicit evidence that every generated case executed.
 
 ## Current Example Cases
 
@@ -120,6 +123,11 @@ projected-state assertion after the action. This makes invalid cluster residue
 visible because setup must establish the abstract pre-state before each case.
 See `references/edge-cases.md` for how to choose these boundary cases without
 assuming the system is deployed or distributed.
+
+The example cleanup node is tagged as a finalizer. If an earlier graph node
+fails after deployment, the executor skips ordinary downstream nodes but still
+runs cleanup nodes whose dependencies have completed before rethrowing the
+original failure.
 
 ## Validating Bug Detection
 

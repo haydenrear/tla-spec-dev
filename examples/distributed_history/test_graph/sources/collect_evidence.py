@@ -37,7 +37,8 @@ def run(ctx):
     if not work_dir:
         return NodeResult.fail(SPEC.id, "missing workDir from ecommerce.external_cases")
     assertion_records = _load_assertion_records(Path(work_dir))
-    expected_count = _expected_external_trace_count(root)
+    expected_cases = _expected_external_trace_names(root)
+    observed_cases = sorted(str(record.get("case")) for record in assertion_records)
     assertion_artifact = ctx.report_dir / "projected-program-states.json"
     assertion_artifact.write_text(json.dumps(assertion_records, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -48,7 +49,7 @@ def run(ctx):
         .artifact("json", str(assertion_artifact))
         .metric("projectedAssertionFiles", len(assertion_records))
         .assertion("state projected", isinstance(state, dict))
-        .assertion("projected assertion files written", len(assertion_records) == expected_count)
+        .assertion("projected assertion files written", observed_cases == expected_cases)
         .assertion("projected states matched", all_matched)
     )
 
@@ -60,9 +61,10 @@ def _load_assertion_records(work_dir: Path) -> list[dict]:
     return records
 
 
-def _expected_external_trace_count(root: Path) -> int:
+def _expected_external_trace_names(root: Path) -> list[str]:
     manifest = root / "specs" / "generated" / "testgraph" / "traces" / "manifest.json"
-    return int(json.loads(manifest.read_text(encoding="utf-8"))["trace_count"])
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    return sorted(Path(name).stem for name in payload["traces"])
 
 
 if __name__ == "__main__":

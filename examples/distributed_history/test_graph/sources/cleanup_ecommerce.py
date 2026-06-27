@@ -18,7 +18,8 @@ from testgraphsdk import NodeResult, NodeSpec, node
 SPEC = (
     NodeSpec("ecommerce.cleanup")
     .kind("fixture")
-    .depends_on("ecommerce.evidence")
+    .depends_on("ecommerce.deploy")
+    .tags("finalizer")
     .timeout("60s")
     .rerun(False)
 )
