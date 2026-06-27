@@ -97,32 +97,46 @@ explicit evidence that every generated case executed.
 
 ## Current Example Cases
 
-The ecommerce example currently has four internal cases:
+The ecommerce example regenerates internal and external case packages from TLC:
 
-- `internal_create_account`
-- `internal_add_cart_item`
-- `internal_checkout_creates_outbox`
-- `internal_project_order`
+```bash
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py
+```
 
-It has 10 external/Test Graph cases:
+The current bounded model emits four internal/spec-unit cases and 17
+external/Test Graph cases after projected-state dedupe. The external manifest is
+the source of truth:
 
-- `external_submit_create_account`
-- `external_duplicate_create_account`
-- `external_submit_add_cart_item`
-- `external_add_cart_item_missing_account`
-- `external_submit_checkout`
-- `external_checkout_missing_account`
-- `external_checkout_empty_cart`
-- `external_duplicate_checkout`
-- `external_run_fulfillment_worker`
-- `external_worker_noop_empty_outbox`
+```text
+examples/distributed_history/specs/generated/testgraph/traces/manifest.json
+```
 
-The external cases are deliberately one-transition cases. Each case has its own
-`before` state loaded during `setup`, one externally driven action, and one
-projected-state assertion after the action. This makes invalid cluster residue
-visible because setup must establish the abstract pre-state before each case.
-See `references/edge-cases.md` for how to choose these boundary cases without
-assuming the system is deployed or distributed.
+The current external trace ids are:
+
+- `case_0001_submit_create_account`
+- `case_0002_submit_add_cart_item_missing_account`
+- `case_0003_submit_checkout_missing_account`
+- `case_0004_run_fulfillment_worker_noop`
+- `case_0005_submit_duplicate_create_account`
+- `case_0006_submit_add_cart_item`
+- `case_0007_submit_checkout_empty_cart`
+- `case_0008_run_fulfillment_worker_noop`
+- `case_0009_submit_duplicate_create_account`
+- `case_0010_submit_checkout`
+- `case_0011_run_fulfillment_worker_noop`
+- `case_0012_submit_duplicate_create_account`
+- `case_0013_submit_duplicate_checkout`
+- `case_0014_run_fulfillment_worker`
+- `case_0015_submit_duplicate_create_account`
+- `case_0016_submit_duplicate_checkout`
+- `case_0017_run_fulfillment_worker_noop`
+
+These are one-transition TLC edges, not manually curated fixtures. Each case has
+its own `before` state loaded during `setup`, one externally driven action, and
+one projected-state assertion after the action. This makes invalid cluster
+residue visible because setup must establish the abstract pre-state before each
+case. See `references/edge-cases.md` for how to choose these boundary cases
+without assuming the system is deployed or distributed.
 
 The example cleanup node is tagged as a finalizer. If an earlier graph node
 fails after deployment, the executor skips ordinary downstream nodes but still

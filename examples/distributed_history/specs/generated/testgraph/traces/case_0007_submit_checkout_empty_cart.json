@@ -1,28 +1,30 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_submit_add_cart_item",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0007_submit_checkout_empty_cart",
+    "module": "External"
   },
   "steps": [
     {
-      "action": "SubmitAddCartItem",
+      "action": "SubmitCheckoutEmptyCart",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "error": "empty_cart"
+        },
+        "status": 409
+      },
       "index": 1,
       "layer": "external",
       "params": {
         "account": "acct-1",
-        "sku": "sku-1"
+        "order": "order-1"
       },
       "post": {
         "accounts": [
           "acct-1"
         ],
-        "carts": {
-          "acct-1": [
-            "sku-1"
-          ]
-        },
+        "carts": {},
         "orders": {},
         "outbox": [],
         "projections": {}
@@ -38,14 +40,13 @@
       },
       "raw": {
         "labels": [
-          "SubmitAddCartItem",
-          "ecommerce_external"
+          "SubmitCheckoutEmptyCart"
         ],
-        "source_node": "e1",
-        "target_node": "e2"
+        "source_node": "-4328842978738888916",
+        "target_node": "-3154764027799048024"
       }
     }
   ],
-  "trace_id": "external_submit_add_cart_item",
+  "trace_id": "case_0007_submit_checkout_empty_cart",
   "view": "external"
 }

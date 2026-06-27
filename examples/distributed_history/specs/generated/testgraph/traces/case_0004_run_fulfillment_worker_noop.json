@@ -1,19 +1,22 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_add_cart_item_missing_account",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0004_run_fulfillment_worker_noop",
+    "module": "External"
   },
   "steps": [
     {
-      "action": "SubmitAddCartItemMissingAccount",
+      "action": "RunFulfillmentWorkerNoop",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "processed": 0
+        },
+        "status": 200
+      },
       "index": 1,
       "layer": "external",
-      "params": {
-        "account": "acct-1",
-        "sku": "sku-1"
-      },
+      "params": {},
       "post": {
         "accounts": [],
         "carts": {},
@@ -30,14 +33,13 @@
       },
       "raw": {
         "labels": [
-          "SubmitAddCartItemMissingAccount",
-          "ecommerce_external"
+          "RunFulfillmentWorkerNoop"
         ],
-        "source_node": "e0",
-        "target_node": "e0_missing_cart_account"
+        "source_node": "-7683484857072555297",
+        "target_node": "8408596357331165550"
       }
     }
   ],
-  "trace_id": "external_add_cart_item_missing_account",
+  "trace_id": "case_0004_run_fulfillment_worker_noop",
   "view": "external"
 }

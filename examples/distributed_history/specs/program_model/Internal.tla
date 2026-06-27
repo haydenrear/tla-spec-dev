@@ -11,7 +11,7 @@ InternalInit ==
   /\ orders = [o \in Orders |-> [account |-> CHOOSE a \in Accounts : TRUE, items |-> <<>>, status |-> "none"]]
   /\ outbox = {}
   /\ projections = [o \in Orders |-> "none"]
-  /\ lastInternalAction = [name |-> "Init", params |-> [ ]]
+  /\ lastInternalAction = [name |-> "Init", params |-> <<>>]
 
 CreateAccount(a) ==
   /\ a \notin accounts
@@ -22,6 +22,7 @@ CreateAccount(a) ==
 AddCartItem(a, sku) ==
   /\ a \in accounts
   /\ sku \in Skus
+  /\ ~CartContains(carts[a], sku)
   /\ carts' = [carts EXCEPT ![a] = Append(@, sku)]
   /\ UNCHANGED <<accounts, orders, outbox, projections>>
   /\ lastInternalAction' = [name |-> "AddCartItem", params |-> [account |-> a, sku |-> sku]]
@@ -53,7 +54,6 @@ InternalInvariant ==
   /\ outbox \subseteq Orders
   /\ \A o \in outbox : orders[o].status = "accepted"
 
-Spec == InternalInit /\ [][InternalNext]_InternalVars
-Invariant == InternalInvariant
+InternalSpec == InternalInit /\ [][InternalNext]_InternalVars
 
 =============================================================================

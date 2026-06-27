@@ -1,17 +1,25 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_worker_noop_empty_outbox",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0010_submit_checkout",
+    "module": "External"
   },
   "steps": [
     {
-      "action": "RunFulfillmentWorkerNoop",
+      "action": "SubmitCheckout",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "order": "order-1",
+          "status": "accepted"
+        },
+        "status": 202
+      },
       "index": 1,
       "layer": "external",
       "params": {
-        "limit": 100
+        "account": "acct-1",
+        "order": "order-1"
       },
       "post": {
         "accounts": [
@@ -31,10 +39,13 @@
             "status": "accepted"
           }
         },
-        "outbox": [],
-        "projections": {
-          "order-1": "ready_to_ship"
-        }
+        "outbox": [
+          {
+            "event": "OrderAccepted",
+            "order_id": "order-1"
+          }
+        ],
+        "projections": {}
       },
       "pre": {
         "accounts": [
@@ -45,30 +56,19 @@
             "sku-1"
           ]
         },
-        "orders": {
-          "order-1": {
-            "account": "acct-1",
-            "items": [
-              "sku-1"
-            ],
-            "status": "accepted"
-          }
-        },
+        "orders": {},
         "outbox": [],
-        "projections": {
-          "order-1": "ready_to_ship"
-        }
+        "projections": {}
       },
       "raw": {
         "labels": [
-          "RunFulfillmentWorkerNoop",
-          "ecommerce_external"
+          "SubmitCheckout"
         ],
-        "source_node": "e4",
-        "target_node": "e4_worker_noop"
+        "source_node": "-6603074401750291792",
+        "target_node": "-2028776731013215542"
       }
     }
   ],
-  "trace_id": "external_worker_noop_empty_outbox",
+  "trace_id": "case_0010_submit_checkout",
   "view": "external"
 }

@@ -1,13 +1,19 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_checkout_missing_account",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0003_submit_checkout_missing_account",
+    "module": "External"
   },
   "steps": [
     {
       "action": "SubmitCheckoutMissingAccount",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "error": "account_not_found"
+        },
+        "status": 404
+      },
       "index": 1,
       "layer": "external",
       "params": {
@@ -30,14 +36,13 @@
       },
       "raw": {
         "labels": [
-          "SubmitCheckoutMissingAccount",
-          "ecommerce_external"
+          "SubmitCheckoutMissingAccount"
         ],
-        "source_node": "e0",
-        "target_node": "e0_missing_checkout_account"
+        "source_node": "-7683484857072555297",
+        "target_node": "-6617431077694396103"
       }
     }
   ],
-  "trace_id": "external_checkout_missing_account",
+  "trace_id": "case_0003_submit_checkout_missing_account",
   "view": "external"
 }

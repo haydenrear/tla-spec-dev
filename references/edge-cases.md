@@ -70,27 +70,30 @@ can return the right status while mutating the wrong state.
 
 ## Ecommerce Example
 
-`examples/distributed_history/` currently exports 10 external Test Graph cases.
-Four are happy-path public actions:
+`examples/distributed_history/` regenerates its external Test Graph cases from
+TLC, then exports them to JSON traces:
 
-- `external_submit_create_account`
-- `external_submit_add_cart_item`
-- `external_submit_checkout`
-- `external_run_fulfillment_worker`
+```bash
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py
+```
 
-Six are external edge cases:
+The current bounded model exports 17 external Test Graph cases after projected
+dedupe. Read the exact list from:
 
-- `external_duplicate_create_account`
-- `external_add_cart_item_missing_account`
-- `external_checkout_missing_account`
-- `external_checkout_empty_cart`
-- `external_duplicate_checkout`
-- `external_worker_noop_empty_outbox`
+```text
+examples/distributed_history/specs/generated/testgraph/traces/manifest.json
+```
 
-All 10 run through the same `ecommerce-http` adapter batch. The batch hooks
-reset the service, load each case's `before` state, execute one external action,
-project `/debug/state` back into the TLA state shape, write `program-state.json`,
-and fail if projected state differs from the expected `after` projection.
+Several generated trace ids share the same action name, such as
+`SubmitDuplicateCreateAccount` or `RunFulfillmentWorkerNoop`, because TLC found
+that public action in different reachable projected `before` states. Those are
+distinct integration cases even though they use the same adapter.
+
+All external cases run through the same `ecommerce-http` adapter batch. The
+batch hooks reset the service, load each case's `before` state, execute one
+external action, project `/debug/state` back into the TLA state shape, write
+`program-state.json`, and fail if projected state differs from the expected
+`after` projection.
 
 Run the local validation:
 

@@ -1,0 +1,59 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "source": {
+    "case": "case_0009_submit_duplicate_create_account",
+    "module": "External"
+  },
+  "steps": [
+    {
+      "action": "SubmitDuplicateCreateAccount",
+      "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "account": "acct-1"
+        },
+        "status": 201
+      },
+      "index": 1,
+      "layer": "external",
+      "params": {
+        "account": "acct-1"
+      },
+      "post": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "pre": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "raw": {
+        "labels": [
+          "SubmitDuplicateCreateAccount"
+        ],
+        "source_node": "-6603074401750291792",
+        "target_node": "4560323342571349968"
+      }
+    }
+  ],
+  "trace_id": "case_0009_submit_duplicate_create_account",
+  "view": "external"
+}

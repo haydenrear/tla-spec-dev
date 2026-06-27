@@ -1,13 +1,20 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_duplicate_checkout",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0016_submit_duplicate_checkout",
+    "module": "External"
   },
   "steps": [
     {
       "action": "SubmitDuplicateCheckout",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "idempotent": true,
+          "order": "order-1"
+        },
+        "status": 200
+      },
       "index": 1,
       "layer": "external",
       "params": {
@@ -32,13 +39,10 @@
             "status": "accepted"
           }
         },
-        "outbox": [
-          {
-            "event": "OrderAccepted",
-            "order_id": "order-1"
-          }
-        ],
-        "projections": {}
+        "outbox": [],
+        "projections": {
+          "order-1": "ready_to_ship"
+        }
       },
       "pre": {
         "accounts": [
@@ -58,24 +62,20 @@
             "status": "accepted"
           }
         },
-        "outbox": [
-          {
-            "event": "OrderAccepted",
-            "order_id": "order-1"
-          }
-        ],
-        "projections": {}
+        "outbox": [],
+        "projections": {
+          "order-1": "ready_to_ship"
+        }
       },
       "raw": {
         "labels": [
-          "SubmitDuplicateCheckout",
-          "ecommerce_external"
+          "SubmitDuplicateCheckout"
         ],
-        "source_node": "e3",
-        "target_node": "e3_duplicate_checkout"
+        "source_node": "6576950155823970229",
+        "target_node": "7847846407040404876"
       }
     }
   ],
-  "trace_id": "external_duplicate_checkout",
+  "trace_id": "case_0016_submit_duplicate_checkout",
   "view": "external"
 }

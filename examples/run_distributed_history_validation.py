@@ -40,6 +40,7 @@ def main() -> int:
 
     cleanup_build_outputs()
     try:
+        regenerate_tlc_cases()
         validate_internal_cases()
         validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
@@ -53,12 +54,16 @@ def main() -> int:
             cleanup_k3d()
 
 
+def regenerate_tlc_cases() -> None:
+    run([sys.executable, str(EXAMPLE_ROOT / "scripts" / "regenerate_tlc_cases.py")], cwd=EXAMPLE_ROOT)
+
+
 def validate_internal_cases() -> None:
     run(
         [
             sys.executable,
             str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-            str(EXAMPLE_ROOT / "specs" / "generated" / "spec_unit" / "ecommerce_internal_cases"),
+            str(EXAMPLE_ROOT / "specs" / "generated" / "spec-unit" / "ecommerce_internal_cases"),
             "--mapping",
             str(EXAMPLE_ROOT / "specs" / "program_model" / "case_adapters.toml"),
             "--view",
@@ -116,8 +121,10 @@ class WrongExpectedProjection:
                 str(mapping),
                 "--view",
                 "external",
-                "--case",
-                "external_submit_create_account",
+                "--label",
+                "SubmitCreateAccount",
+                "--limit",
+                "1",
                 "--batch",
                 "--work-dir",
                 str(tmp_path / "work"),
@@ -135,9 +142,10 @@ class WrongExpectedProjection:
                 raise SystemExit("negative projected-state check unexpectedly passed")
             if "projected cluster state mismatch" not in combined:
                 raise SystemExit(f"negative projected-state check failed for the wrong reason:\n{combined}")
-            mismatch_file = tmp_path / "work" / "case-work" / "external_submit_create_account" / "program-state.json"
-            if not mismatch_file.exists():
-                raise SystemExit(f"negative projected-state check did not write evidence: {mismatch_file}")
+            mismatch_files = sorted((tmp_path / "work" / "case-work").glob("*/program-state.json"))
+            if len(mismatch_files) != 1:
+                raise SystemExit(f"negative projected-state check did not write exactly one evidence file: {mismatch_files}")
+            mismatch_file = mismatch_files[0]
             mismatch = json.loads(mismatch_file.read_text(encoding="utf-8"))
             if mismatch.get("matched") is not False:
                 raise SystemExit(f"negative projected-state evidence did not record matched=false: {mismatch}")

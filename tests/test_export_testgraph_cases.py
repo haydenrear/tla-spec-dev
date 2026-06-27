@@ -36,6 +36,7 @@ def test_export_external_case_as_testgraph_trace(tmp_path: Path) -> None:
     assert trace["steps"][0]["action"] == "Submit"
     assert trace["steps"][0]["controllability"] == "e2e_direct"
     assert trace["steps"][0]["post"]["seen"] == ["r1"]
+    assert trace["steps"][0]["expected_response"]["changed"]["seen"]["after"] == ["r1"]
 
 
 def test_export_rejects_internal_cases(tmp_path: Path) -> None:

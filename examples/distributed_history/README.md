@@ -46,8 +46,10 @@ Run the local adapter checks:
 uv run tests/test_ecommerce_backend.py
 uv run specs/program_model/tests/test_ecommerce_adapters.py
 
+uv run scripts/regenerate_tlc_cases.py
+
 python3 ../../scripts/run_generated_case_adapters.py \
-  specs/generated/spec_unit/ecommerce_internal_cases \
+  specs/generated/spec-unit/ecommerce_internal_cases \
   --mapping specs/program_model/case_adapters.toml \
   --view internal \
   --batch \
@@ -81,6 +83,7 @@ Or run the example validation wrapper from the repository root:
 python3 examples/run_distributed_history_validation.py
 ```
 
+The wrapper regenerates cases from TLC before running adapters and Test Graph.
 The graph defaults to local mode for repeatable development. To exercise k3d,
 install `docker`, `k3d`, and `kubectl`, then run with:
 

@@ -18,7 +18,7 @@ def test_internal_adapters_run_in_batch(tmp_path):
     command = [
         sys.executable,
         str(REPO / "scripts" / "run_generated_case_adapters.py"),
-        str(ROOT / "specs" / "generated" / "spec_unit" / "ecommerce_internal_cases"),
+        str(ROOT / "specs" / "generated" / "spec-unit" / "ecommerce_internal_cases"),
         "--mapping",
         str(ROOT / "specs" / "program_model" / "case_adapters.toml"),
         "--view",

@@ -17,6 +17,7 @@ It shows:
   `DesiredInternal.tla`, and `DesiredExternal.tla`;
 - internal/spec-unit generated cases and adapters;
 - external/Test Graph generated cases and HTTP adapters;
+- TLC regeneration through `scripts/regenerate_tlc_cases.py`;
 - external edge cases for duplicate, missing-resource, empty-cart, and idle
   worker behavior;
 - batch setup/teardown hooks for cleaning deployed state;
@@ -38,6 +39,9 @@ Run the distributed example locally:
 ```bash
 python3 examples/run_distributed_history_validation.py
 ```
+
+That wrapper regenerates internal and external case packages from TLC before
+running adapters and Test Graph.
 
 Run it against k3d:
 

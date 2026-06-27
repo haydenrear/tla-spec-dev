@@ -7,8 +7,8 @@ ExternalVars == <<InternalVars, responses, lastExternalAction>>
 
 ExternalInit ==
   /\ InternalInit
-  /\ responses = [a \in Accounts |-> [status |-> 0, body |-> [ ]]]
-  /\ lastExternalAction = [name |-> "Init", params |-> [ ]]
+  /\ responses = [a \in Accounts |-> [status |-> 0, body |-> <<>>]]
+  /\ lastExternalAction = [name |-> "Init", params |-> <<>>]
 
 SubmitCreateAccount(a) ==
   /\ CreateAccount(a)
@@ -65,13 +65,13 @@ SubmitDuplicateCheckout(a, o) ==
 RunFulfillmentWorker ==
   /\ \E o \in Orders : ProjectOrder(o)
   /\ UNCHANGED responses
-  /\ lastExternalAction' = [name |-> "RunFulfillmentWorker", params |-> [ ]]
+  /\ lastExternalAction' = [name |-> "RunFulfillmentWorker", params |-> <<>>]
 
 RunFulfillmentWorkerNoop ==
   /\ outbox = {}
   /\ UNCHANGED InternalVars
   /\ UNCHANGED responses
-  /\ lastExternalAction' = [name |-> "RunFulfillmentWorkerNoop", params |-> [ ]]
+  /\ lastExternalAction' = [name |-> "RunFulfillmentWorkerNoop", params |-> <<>>]
 
 HiddenInternalProgress ==
   /\ InternalNext

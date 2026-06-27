@@ -1,18 +1,23 @@
 {
   "schema_version": "tla-testgraph.trace.v1",
   "source": {
-    "case": "external_submit_checkout",
-    "module": "examples.distributed_history.specs.program_model.External"
+    "case": "case_0012_submit_duplicate_create_account",
+    "module": "External"
   },
   "steps": [
     {
-      "action": "SubmitCheckout",
+      "action": "SubmitDuplicateCreateAccount",
       "controllability": "e2e_direct",
+      "expected_response": {
+        "body": {
+          "account": "acct-1"
+        },
+        "status": 201
+      },
       "index": 1,
       "layer": "external",
       "params": {
-        "account": "acct-1",
-        "order": "order-1"
+        "account": "acct-1"
       },
       "post": {
         "accounts": [
@@ -49,20 +54,32 @@
             "sku-1"
           ]
         },
-        "orders": {},
-        "outbox": [],
+        "orders": {
+          "order-1": {
+            "account": "acct-1",
+            "items": [
+              "sku-1"
+            ],
+            "status": "accepted"
+          }
+        },
+        "outbox": [
+          {
+            "event": "OrderAccepted",
+            "order_id": "order-1"
+          }
+        ],
         "projections": {}
       },
       "raw": {
         "labels": [
-          "SubmitCheckout",
-          "ecommerce_external"
+          "SubmitDuplicateCreateAccount"
         ],
-        "source_node": "e2",
-        "target_node": "e3"
+        "source_node": "-2028776731013215542",
+        "target_node": "-6770477880504757263"
       }
     }
   ],
-  "trace_id": "external_submit_checkout",
+  "trace_id": "case_0012_submit_duplicate_create_account",
   "view": "external"
 }
