@@ -100,15 +100,19 @@ explicit evidence that every generated case executed.
 The ecommerce example regenerates internal and external case packages from TLC:
 
 ```bash
-uv run examples/distributed_history/scripts/regenerate_tlc_cases.py
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
+  --out examples/distributed_history/test_graph/build/generated/manual
 ```
 
-The current bounded model emits four internal/spec-unit cases and 17
-external/Test Graph cases after projected-state dedupe. The external manifest is
-the source of truth:
+This writes a Python case package that materializes TLC graph edges for adapter
+execution. The package is generated IR, not hand-maintained test source. Test
+Graph runs regenerate the external package inside each validation report. The
+current bounded model emits four internal/spec-unit cases and 17 external/Test
+Graph cases after projected-state dedupe. The external manifest is the source
+of truth:
 
 ```text
-examples/distributed_history/specs/generated/testgraph/traces/manifest.json
+examples/distributed_history/test_graph/build/validation-reports/<run>/generated/testgraph/traces/manifest.json
 ```
 
 The current external trace ids are:

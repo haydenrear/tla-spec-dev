@@ -41,7 +41,8 @@ python3 examples/run_distributed_history_validation.py
 ```
 
 That wrapper regenerates internal and external case packages from TLC before
-running adapters and Test Graph.
+running adapters and Test Graph. Generated case packages are written under
+`test_graph/build/` or the validation report, not kept as source files.
 
 Run it against k3d:
 

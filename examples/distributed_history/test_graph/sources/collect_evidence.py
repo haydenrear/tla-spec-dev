@@ -24,7 +24,6 @@ SPEC = (
 
 @node(SPEC)
 def run(ctx):
-    root = Path(__file__).resolve().parents[2]
     base_url = ctx.get("ecommerce.deploy", "baseUrl")
     if not base_url:
         return NodeResult.fail(SPEC.id, "missing baseUrl from ecommerce.deploy")
@@ -36,8 +35,11 @@ def run(ctx):
     work_dir = ctx.get("ecommerce.external_cases", "workDir")
     if not work_dir:
         return NodeResult.fail(SPEC.id, "missing workDir from ecommerce.external_cases")
+    trace_manifest = ctx.get("ecommerce.external_cases", "traceManifest")
+    if not trace_manifest:
+        return NodeResult.fail(SPEC.id, "missing traceManifest from ecommerce.external_cases")
     assertion_records = _load_assertion_records(Path(work_dir))
-    expected_cases = _expected_external_trace_names(root)
+    expected_cases = _expected_external_trace_names(Path(trace_manifest))
     observed_cases = sorted(str(record.get("case")) for record in assertion_records)
     assertion_artifact = ctx.report_dir / "projected-program-states.json"
     assertion_artifact.write_text(json.dumps(assertion_records, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -61,8 +63,7 @@ def _load_assertion_records(work_dir: Path) -> list[dict]:
     return records
 
 
-def _expected_external_trace_names(root: Path) -> list[str]:
-    manifest = root / "specs" / "generated" / "testgraph" / "traces" / "manifest.json"
+def _expected_external_trace_names(manifest: Path) -> list[str]:
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     return sorted(Path(name).stem for name in payload["traces"])
 

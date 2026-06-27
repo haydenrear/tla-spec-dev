@@ -74,14 +74,17 @@ can return the right status while mutating the wrong state.
 TLC, then exports them to JSON traces:
 
 ```bash
-uv run examples/distributed_history/scripts/regenerate_tlc_cases.py
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
+  --out examples/distributed_history/test_graph/build/generated/manual
 ```
 
-The current bounded model exports 17 external Test Graph cases after projected
-dedupe. Read the exact list from:
+The generated Python package and exported traces are a materialized TLC edge
+list used by the adapter runner, not hand-authored fixtures. Test Graph runs
+regenerate them under the validation report. The current bounded model exports
+17 external Test Graph cases after projected dedupe. Read the exact list from:
 
 ```text
-examples/distributed_history/specs/generated/testgraph/traces/manifest.json
+examples/distributed_history/test_graph/build/validation-reports/<run>/generated/testgraph/traces/manifest.json
 ```
 
 Several generated trace ids share the same action name, such as

@@ -18,7 +18,7 @@ from pathlib import Path
 EXAMPLE_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = EXAMPLE_ROOT.parents[1]
 SPEC_DIR = EXAMPLE_ROOT / "specs" / "program_model"
-GENERATED_DIR = EXAMPLE_ROOT / "specs" / "generated"
+DEFAULT_GENERATED_DIR = EXAMPLE_ROOT / "test_graph" / "build" / "generated"
 
 
 def run(command: list[str]) -> None:
@@ -31,13 +31,21 @@ def run(command: list[str]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"), help="TLC executable. Defaults to $TLC2 or tlc2.")
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=DEFAULT_GENERATED_DIR,
+        help="Generated case root. Defaults to test_graph/build/generated.",
+    )
     args = parser.parse_args()
+    generated_dir = args.out if args.out.is_absolute() else EXAMPLE_ROOT / args.out
+    generated_dir = generated_dir.resolve()
 
     for path in [
-        GENERATED_DIR / "spec-unit" / "ecommerce_internal_cases",
-        GENERATED_DIR / "spec_unit" / "ecommerce_internal_cases",
-        GENERATED_DIR / "testgraph" / "ecommerce_external_cases",
-        GENERATED_DIR / "testgraph" / "traces",
+        generated_dir / "spec-unit" / "ecommerce_internal_cases",
+        generated_dir / "spec_unit" / "ecommerce_internal_cases",
+        generated_dir / "testgraph" / "ecommerce_external_cases",
+        generated_dir / "testgraph" / "traces",
     ]:
         if path.exists():
             shutil.rmtree(path)
@@ -63,7 +71,7 @@ def main() -> int:
                 str(SPEC_DIR / "Internal.tla"),
                 str(SPEC_DIR / "Internal.cfg"),
                 "--out",
-                str(GENERATED_DIR),
+                str(generated_dir),
                 "--package",
                 "ecommerce_internal_cases",
                 "--view",
@@ -80,7 +88,7 @@ def main() -> int:
                 str(SPEC_DIR / "External.tla"),
                 str(SPEC_DIR / "External.cfg"),
                 "--out",
-                str(GENERATED_DIR),
+                str(generated_dir),
                 "--package",
                 "ecommerce_external_cases",
                 "--view",
@@ -94,11 +102,12 @@ def main() -> int:
         [
             sys.executable,
             str(REPO_ROOT / "scripts" / "export_testgraph_cases.py"),
-            str(GENERATED_DIR / "testgraph" / "ecommerce_external_cases"),
+            str(generated_dir / "testgraph" / "ecommerce_external_cases"),
             "--out",
-            str(GENERATED_DIR / "testgraph" / "traces"),
+            str(generated_dir / "testgraph" / "traces"),
         ]
     )
+    print(f"generated TLC-derived cases under {generated_dir}")
     return 0
 
 

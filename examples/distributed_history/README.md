@@ -46,10 +46,10 @@ Run the local adapter checks:
 uv run tests/test_ecommerce_backend.py
 uv run specs/program_model/tests/test_ecommerce_adapters.py
 
-uv run scripts/regenerate_tlc_cases.py
+uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
 
 python3 ../../scripts/run_generated_case_adapters.py \
-  specs/generated/spec-unit/ecommerce_internal_cases \
+  test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
   --mapping specs/program_model/case_adapters.toml \
   --view internal \
   --batch \
@@ -57,7 +57,7 @@ python3 ../../scripts/run_generated_case_adapters.py \
 
 ECOMMERCE_BASE_URL=http://127.0.0.1:18080 \
 python3 ../../scripts/run_generated_case_adapters.py \
-  specs/generated/testgraph/ecommerce_external_cases \
+  test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
   --mapping specs/program_model/testgraph_bindings.yml \
   --view external \
   --batch \
@@ -84,8 +84,10 @@ python3 examples/run_distributed_history_validation.py
 ```
 
 The wrapper regenerates cases from TLC before running adapters and Test Graph.
-The graph defaults to local mode for repeatable development. To exercise k3d,
-install `docker`, `k3d`, and `kubectl`, then run with:
+The graph also regenerates external cases inside each Test Graph report under
+`generated/`, so checked-in files are not the case source of truth. The graph
+defaults to local mode for repeatable development. To exercise k3d, install
+`docker`, `k3d`, and `kubectl`, then run with:
 
 ```bash
 ECOMMERCE_TEST_MODE=k3d \
@@ -107,4 +109,5 @@ Each external case writes `program-state.json` under the Test Graph report's
 those files into `projected-program-states.json` and fails the graph if any
 expected program state differs from the projected cluster state. The
 `ecommerce.external_cases` envelope also records the exact executed case names
-and `expectedCaseCount` / `executedCaseCount`, so a fast run is still auditable.
+and `expectedCaseCount` / `executedCaseCount`, and publishes the generated
+trace manifest path at `traceManifest`, so a fast run is still auditable.

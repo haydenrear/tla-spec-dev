@@ -19,6 +19,7 @@ from urllib.request import urlopen
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
+GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 CLUSTER_NAME = "ecommerce-history"
 
 
@@ -55,7 +56,15 @@ def main() -> int:
 
 
 def regenerate_tlc_cases() -> None:
-    run([sys.executable, str(EXAMPLE_ROOT / "scripts" / "regenerate_tlc_cases.py")], cwd=EXAMPLE_ROOT)
+    run(
+        [
+            sys.executable,
+            str(EXAMPLE_ROOT / "scripts" / "regenerate_tlc_cases.py"),
+            "--out",
+            str(GENERATED_ROOT),
+        ],
+        cwd=EXAMPLE_ROOT,
+    )
 
 
 def validate_internal_cases() -> None:
@@ -63,7 +72,7 @@ def validate_internal_cases() -> None:
         [
             sys.executable,
             str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-            str(EXAMPLE_ROOT / "specs" / "generated" / "spec-unit" / "ecommerce_internal_cases"),
+            str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
             "--mapping",
             str(EXAMPLE_ROOT / "specs" / "program_model" / "case_adapters.toml"),
             "--view",
@@ -116,7 +125,7 @@ class WrongExpectedProjection:
             command = [
                 sys.executable,
                 str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-                str(EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "ecommerce_external_cases"),
+                str(GENERATED_ROOT / "testgraph" / "ecommerce_external_cases"),
                 "--mapping",
                 str(mapping),
                 "--view",
@@ -225,7 +234,7 @@ def validate_report(report_dir: Path) -> None:
 
 
 def validate_projected_state_artifacts(report_dir: Path) -> None:
-    expected_cases = expected_external_trace_names()
+    expected_cases = expected_external_trace_names(report_dir / "generated" / "testgraph" / "traces" / "manifest.json")
     aggregate = report_dir / "projected-program-states.json"
     if not aggregate.exists():
         raise SystemExit(f"missing projected-state aggregate artifact: {aggregate}")
@@ -258,8 +267,7 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
         raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
 
 
-def expected_external_trace_names() -> list[str]:
-    manifest = EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "traces" / "manifest.json"
+def expected_external_trace_names(manifest: Path = GENERATED_ROOT / "testgraph" / "traces" / "manifest.json") -> list[str]:
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     return sorted(Path(name).stem for name in payload["traces"])
 

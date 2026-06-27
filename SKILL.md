@@ -382,6 +382,12 @@ This keeps active state local:
 - `specs/results`: TLC, adapter, and test evidence.
 - `specs/.history/<workflow-name>`: append-only workflow history.
 
+For Test Graph integration examples, prefer regenerating TLC-derived case
+packages into the graph build or report directory when they are only runtime
+IR for adapters. The semantic source of truth should remain the TLA+ model,
+action metadata, adapter bindings, and report manifest, not checked-in
+`cases.py` files.
+
 Do not rely on the repository root as the implicit output location for TLA
 artifacts. If a workflow is launched from the repository root, pass the TLA file
 or `--spec-dir` so scripts can resolve outputs back to the spec directory.
