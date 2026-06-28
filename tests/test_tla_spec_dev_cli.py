@@ -224,6 +224,30 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert (tmp_path / "project_specs" / "current" / "CliProject.tla").exists()
 
 
+def test_cli_open_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:
+    ticket_id = "CLI-203"
+    run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "Custom ticket root", cwd=tmp_path)
+
+    result_open = run_cli(
+        "--spec-root",
+        "project_specs",
+        "open",
+        "ticket",
+        ticket_id,
+        "--ticket-root",
+        "work/items",
+        cwd=tmp_path,
+    )
+
+    ticket_state = (tmp_path / "project_specs" / "work" / "items" / ticket_id / "ticket.yaml").read_text(
+        encoding="utf-8"
+    )
+    assert result_open.returncode == 0, result_open.stderr
+    assert "close ticket CLI-203 --ticket-root work/items" in result_open.stdout
+    assert "tla-spec-dev --spec-root project_specs close ticket CLI-203 --ticket-root work/items" in ticket_state
+
+
 def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:
     bin_dir = tmp_path / "bin"
     cache_dir = tmp_path / "cache"

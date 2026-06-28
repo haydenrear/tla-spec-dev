@@ -137,6 +137,29 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     assert ticket_state["promotion"]["on_close"] == "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/"
 
 
+def test_start_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-131", "Custom ticket root", force=False, dry_run=False)
+
+    scaffold_ticket_directory(
+        tmp_path,
+        "AUTH-131",
+        force=False,
+        dry_run=False,
+        ticket_root=Path("work/items"),
+    )
+
+    ticket_dir = tmp_path / "specs" / "work" / "items" / "AUTH-131"
+    ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
+    readme = (ticket_dir / "README.md").read_text(encoding="utf-8")
+
+    assert (
+        ticket_state["promotion"]["close_command"]
+        == "tla-spec-dev --spec-root specs close ticket AUTH-131 --ticket-root work/items"
+    )
+    assert "close ticket AUTH-131 --ticket-root work/items" in readme
+
+
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-128", "Close parallel ticket", force=False, dry_run=False)
