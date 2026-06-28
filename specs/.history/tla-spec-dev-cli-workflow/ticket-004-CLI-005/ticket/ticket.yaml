@@ -1,0 +1,66 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CLI-005",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "closed",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The command runs generated/adapted spec-unit tests from the chosen spec root.",
+        "Failures report missing adapters or failing cases with actionable paths.",
+        "Spec tests and Test Graph nodes use tla-spec-dev run spec-unit-tests instead of direct validation scripts where the CLI command exists."
+      ],
+      "commands": [
+        "uv run --with pytest -m pytest tests/test_generate_cases_from_tlc_dump.py tests/test_case_adapter_runtime.py -q"
+      ],
+      "evidence": []
+    },
+    "current_increment": {
+      "adapters": [
+        "CLI spec-unit test adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow spec-unit CLI node"
+      ],
+      "model_actions": [
+        "RunSpecUnitTests"
+      ],
+      "model_state": [
+        "spec_unit_tests_passed"
+      ],
+      "unit_tests": [
+        "tla-spec-dev --spec-root specs run spec-unit-tests"
+      ]
+    },
+    "depends_on": [
+      "CLI-004"
+    ],
+    "desired_actions": [
+      "RunSpecUnitTests"
+    ],
+    "id": "CLI-005",
+    "implementation_scope": [
+      "scripts/tla_spec_dev.py",
+      "scripts/run_generated_case_adapters.py",
+      "scripts/generate_cases_from_tlc_dump.py",
+      "tests/"
+    ],
+    "objective": "Expose spec-unit validation through tla-spec-dev run spec-unit-tests using the selected spec root.",
+    "status": "closed",
+    "title": "Implement run spec-unit-tests"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-005",
+  "ticket_id": "CLI-005",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}

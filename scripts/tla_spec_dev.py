@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -129,6 +131,138 @@ def run_close_ticket(args: argparse.Namespace) -> int:
     return 0
 
 
+def resolved_spec_root(repo_root: Path, spec_root: str) -> Path:
+    path = Path(spec_root)
+    return path if path.is_absolute() else repo_root / path
+
+
+def active_ticket_id(specs_dir: Path) -> str | None:
+    from scripts.extract_spec_manifest import load_manifest
+
+    plan_path = specs_dir / "desired_program_model" / "ticket_plan.yaml"
+    if not plan_path.exists():
+        return None
+    plan = load_manifest(plan_path)
+    status = plan.get("status")
+    if isinstance(status, dict) and status.get("active_ticket"):
+        return str(status["active_ticket"])
+    return None
+
+
+def spec_unit_target_dir(args: argparse.Namespace, specs_dir: Path) -> Path:
+    if args.target is not None:
+        target = Path(args.target)
+        return target if target.is_absolute() else (Path(args.repo_root).resolve() / target)
+    if args.ticket:
+        return specs_dir / "tickets" / args.ticket / "current"
+    if args.scope == "project":
+        return specs_dir / "current"
+    ticket_id = active_ticket_id(specs_dir)
+    if ticket_id:
+        ticket_current = specs_dir / "tickets" / ticket_id / "current"
+        if ticket_current.exists():
+            return ticket_current
+    return specs_dir / "current"
+
+
+def has_pytest_tests(path: Path) -> bool:
+    return path.exists() and any(path.rglob("test_*.py"))
+
+
+def spec_unit_cases_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path]:
+    if args.cases_dir:
+        return [Path(value) for value in args.cases_dir]
+    discovered: list[Path] = []
+    for root in [
+        specs_dir / "generated" / "spec-unit",
+        specs_dir / "generated" / "spec_unit",
+    ]:
+        if not root.exists():
+            continue
+        discovered.extend(sorted(path for path in root.iterdir() if (path / "cases.py").is_file()))
+    return discovered
+
+
+def run_spec_unit_tests(args: argparse.Namespace) -> int:
+    repo_root = Path(args.repo_root).resolve()
+    specs_dir = resolved_spec_root(repo_root, args.spec_root).resolve()
+    target_dir = spec_unit_target_dir(args, specs_dir).resolve()
+    if not target_dir.exists():
+        print(f"ERROR: spec-unit target does not exist: {target_dir}", file=sys.stderr)
+        return 2
+
+    env = os.environ.copy()
+    python_path = [str(target_dir), str(repo_root), env.get("PYTHONPATH", "")]
+    env["PYTHONPATH"] = os.pathsep.join(part for part in python_path if part)
+
+    commands: list[tuple[str, list[str]]] = []
+    tests_dir = Path(args.tests_dir) if args.tests_dir else target_dir / "tests"
+    if not tests_dir.is_absolute():
+        tests_dir = target_dir / tests_dir
+    if has_pytest_tests(tests_dir):
+        commands.append(
+            (
+                "pytest",
+                [
+                    "uv",
+                    "run",
+                    "--with",
+                    "pytest",
+                    "-m",
+                    "pytest",
+                    str(tests_dir),
+                    *args.pytest_arg,
+                ],
+            )
+        )
+
+    mapping = Path(args.mapping) if args.mapping else target_dir / "case_adapters.toml"
+    cases_dirs = spec_unit_cases_dirs(args, specs_dir)
+    for cases_dir in cases_dirs:
+        command = [
+            sys.executable,
+            str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(cases_dir),
+            "--mapping",
+            str(mapping),
+            "--spec-dir",
+            str(target_dir),
+            "--view",
+            "internal",
+            "--import-root",
+            str(target_dir),
+        ]
+        for label in args.label:
+            command.extend(["--label", label])
+        for case_name in args.case:
+            command.extend(["--case", case_name])
+        if args.limit is not None:
+            command.extend(["--limit", str(args.limit)])
+        if args.work_dir is not None:
+            command.extend(["--work-dir", str(args.work_dir)])
+        if args.validate_only:
+            command.append("--validate-only")
+        if args.validate_capabilities:
+            command.append("--validate-capabilities")
+        if not args.no_batch:
+            command.append("--batch")
+        commands.append((f"case-adapters:{cases_dir.name}", command))
+
+    if not commands:
+        print(f"ERROR: no spec-unit pytest tests or generated case packages found for {target_dir}", file=sys.stderr)
+        return 2
+
+    print(f"spec root: {specs_dir}")
+    print(f"spec-unit target: {target_dir}")
+    for label, command in commands:
+        print(f"running {label}: {' '.join(command)}")
+        result = subprocess.run(command, cwd=repo_root, env=env)
+        if result.returncode != 0:
+            return result.returncode
+    print(f"spec-unit validation passed for {target_dir}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = TlaSpecDevParser(
         prog="tla-spec-dev",
@@ -241,10 +375,34 @@ def build_parser() -> argparse.ArgumentParser:
         description="Run generated/adapted spec-unit tests for the selected spec root.",
         allow_abbrev=False,
     )
+    run_spec_units.add_argument("--ticket", help="Run ticket-local current spec-unit tests for this ticket.")
+    run_spec_units.add_argument(
+        "--scope",
+        choices=["auto", "project"],
+        default="auto",
+        help="Target active ticket current/ when present, otherwise project current/. Use project to force specs/current.",
+    )
+    run_spec_units.add_argument("--target", type=Path, help="Explicit spec directory to validate.")
+    run_spec_units.add_argument("--tests-dir", type=Path, help="Test directory relative to the selected spec directory.")
+    run_spec_units.add_argument("--cases-dir", action="append", help="Generated spec-unit case package directory.")
+    run_spec_units.add_argument("--mapping", type=Path, help="Adapter mapping TOML/YAML. Defaults to target case_adapters.toml.")
+    run_spec_units.add_argument("--work-dir", type=Path, help="Work directory for generated case adapter execution.")
+    run_spec_units.add_argument("--label", action="append", default=[], help="Only run generated cases with this label.")
+    run_spec_units.add_argument("--case", action="append", default=[], help="Only run this generated case name.")
+    run_spec_units.add_argument("--limit", type=int, help="Limit generated cases.")
+    run_spec_units.add_argument("--validate-only", action="store_true", help="Validate adapter coverage without executing generated cases.")
+    run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
+    run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+    run_spec_units.add_argument(
+        "--pytest-arg",
+        action="append",
+        default=["-q"],
+        help="Argument passed to pytest. May be repeated. Defaults to -q.",
+    )
     run_spec_units.set_defaults(
-        func=planned_command,
+        func=run_spec_unit_tests,
         command_path="tla-spec-dev run spec-unit-tests",
-        next_step="CLI-005 wires this command to generated spec-unit validation.",
+        next_step="tla-spec-dev close ticket <ticket>",
     )
 
     close_parser = subparsers.add_parser(

@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import tla_spec_dev
+from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
 
 
 def run_cli(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
@@ -57,12 +58,11 @@ def test_cli_subcommand_help_documents_external_command_surface() -> None:
         assert second_expected in result.stdout
 
 
-def test_planned_commands_fail_with_next_ticket_guidance() -> None:
-    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests")
+def test_run_spec_unit_tests_fails_when_no_spec_tests_exist(tmp_path: Path) -> None:
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
 
     assert result.returncode == 2
-    assert "spec root: project_specs" in result.stderr
-    assert "CLI-005" in result.stderr
+    assert "spec-unit target does not exist" in result.stderr
 
 
 def test_incomplete_parent_commands_fail_with_next_step_guidance() -> None:
@@ -102,6 +102,66 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
     assert not (tmp_path / "project_specs/current/tests/test_program_model_onboarding.py").exists()
     assert not (tmp_path / "project_specs/desired_program_model/tests/test_program_model_onboarding.py").exists()
     assert "CLI-123" in (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").read_text(encoding="utf-8")
+
+
+def test_cli_run_spec_unit_tests_uses_project_current_tests(tmp_path: Path) -> None:
+    run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "scaffold", "workflow", "CLI-201", "CLI unit tests", cwd=tmp_path)
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+
+    assert result.returncode == 0, result.stderr
+    assert "spec-unit validation passed" in result.stdout
+    assert "project_specs/current" in result.stdout
+
+
+def test_cli_run_spec_unit_tests_targets_active_ticket_current(tmp_path: Path) -> None:
+    ticket_id = "CLI-202"
+    run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "CLI ticket unit tests", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, cwd=tmp_path)
+    ticket_test = tmp_path / "project_specs" / "tickets" / ticket_id / "current" / "tests" / "test_ticket_unit.py"
+    ticket_test.parent.mkdir(parents=True, exist_ok=True)
+    ticket_test.write_text("def test_ticket_unit():\n    assert True\n", encoding="utf-8")
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+
+    assert result.returncode == 0, result.stderr
+    assert f"project_specs/tickets/{ticket_id}/current" in result.stdout
+
+
+def test_cli_run_spec_unit_tests_runs_generated_case_adapters(tmp_path: Path) -> None:
+    spec_root = tmp_path / "project_specs"
+    current = spec_root / "current"
+    generated = spec_root / "generated" / "spec-unit" / "sample_cases"
+    current.mkdir(parents=True)
+    render_python_package(
+        module="CliProject",
+        states={"0": {"items": frozenset()}, "1": {"items": frozenset({"a"})}},
+        edges=[Edge("0", "1", "Create")],
+        package_dir=generated,
+        view="internal",
+        action_metadata={"Create": ActionMetadata("Create", "internal", "unit_direct", ("spec_unit",))},
+    )
+    (current / "case_adapters.toml").write_text(
+        '[adapters.Create]\nadapter = "production_adapters:CreateAdapter"\n',
+        encoding="utf-8",
+    )
+    (current / "production_adapters.py").write_text(
+        """from spec_double_compiler.runtime import CaseRunResult
+
+
+class CreateAdapter:
+    def run(self, case, work_dir=None):
+        return CaseRunResult(after=case.after, output=case.output)
+""",
+        encoding="utf-8",
+    )
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+
+    assert result.returncode == 0, result.stderr
+    assert "executed 1 cases in batch" in result.stdout
 
 
 def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:

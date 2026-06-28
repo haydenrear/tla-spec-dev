@@ -19,10 +19,12 @@ The `specWorkflow` graph performs the workflow end to end:
 3. `spec.workflow.complete` updates ticket-local `desired/` first, mirrors it
    into `current/`, adds spec adapter/test files, adds Test Graph artifacts, and
    marks the ticket done.
-4. `spec.workflow.close` runs `tla-spec-dev close ticket`, asserts ticket
+4. `spec.workflow.spec_units` runs `tla-spec-dev run spec-unit-tests` against
+   the ticket-local `current/` spec tests.
+5. `spec.workflow.close` runs `tla-spec-dev close ticket`, asserts ticket
    `current/ == desired/` closed correctly, verifies project `specs/current`
    and Test Graph artifacts were merged, and commits the close in the temp repo.
-5. `spec.workflow.cleanup` removes the disposable git repository from the build
+6. `spec.workflow.cleanup` removes the disposable git repository from the build
    directory.
 
 The graph is intentionally external to the unit tests: it proves the CLI

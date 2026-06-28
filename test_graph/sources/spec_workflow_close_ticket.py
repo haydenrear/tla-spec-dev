@@ -18,7 +18,7 @@ from testgraphsdk import NodeResult, NodeSpec, node, procs
 SPEC = (
     NodeSpec("spec.workflow.close")
     .kind("assertion")
-    .depends_on("spec.workflow.complete")
+    .depends_on("spec.workflow.spec_units")
     .tags("spec-workflow", "git")
     .timeout("60s")
     .side_effects("filesystem:writes", "git:writes")
