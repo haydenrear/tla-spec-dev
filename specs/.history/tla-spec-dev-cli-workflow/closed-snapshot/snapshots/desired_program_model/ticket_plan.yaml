@@ -18,10 +18,10 @@ planning_rules:
 
 status:
   workflow: ticket
-  active_ticket: CLI-007
-  active_ticket_title: "Document progressive-disclosure CLI onboarding"
+  active_ticket: null
+  active_ticket_title: null
   desired_module: TlaSpecDevCli
-  phase: implementation
+  phase: complete
 
 service_catalog:
   existing_boundaries:
@@ -332,7 +332,7 @@ tickets:
 
   - id: CLI-007
     title: "Document progressive-disclosure CLI onboarding"
-    status: next
+    status: closed
     depends_on:
       - CLI-006
     objective: "Update SKILL.md, references, and README so users can onboard to the single CLI without reading implementation scripts first."
@@ -368,4 +368,7 @@ tickets:
       assertions:
         - "Docs introduce the CLI first and route to lower-level scripts only as implementation detail."
         - "Docs preserve the desired-first ticket workflow and spec-root rule."
-      evidence: []
+      evidence:
+        - "README.md, SKILL.md, references, and test_graph/README.md now show the tla-spec-dev CLI before lower-level scripts."
+        - "references/spec_evolution.md now opens tickets through tla-spec-dev --spec-root specs open ticket."
+        - "test_graph/README.md documents specWorkflow with explicit --spec-root commands for scaffold, open, run, and close."

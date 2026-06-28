@@ -300,7 +300,7 @@ class TestGraphCliAdapter:
         return {
             "accepted": all(path.is_file() for path in required_sources)
             and all(fragment in build_text for fragment in required_fragments)
-            and "tla-spec-dev run spec-unit-tests" in readme_text
+            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
             and "cleanup after both passing and failing" in readme_text,
             "build": str(build),
             "readme": str(readme),

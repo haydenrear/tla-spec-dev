@@ -9,18 +9,20 @@ Use this when a repository is adopting the desired/current loop after it already
 has or is about to create an accepted `program_model`.
 
 ```bash
-python scripts/scaffold_spec_workflow.py --root .
+tla-spec-dev --spec-root specs scaffold project --name ProjectName
+tla-spec-dev --spec-root specs scaffold workflow TICKET-123 "Ticket title"
 ```
 
 This creates:
 
+- `specs/program_model`
 - `specs/desired_program_model`
 - `specs/current`
-- `specs/results`
-- `specs/.history`
 
 For first onboarding of a repository with no accepted baseline, prefer
-`scripts/onboard_program_model.py` so only `specs/program_model` is created.
+`tla-spec-dev --spec-root specs scaffold project --name ProjectName` and stop
+there so only `specs/program_model` is created. Use the same `--spec-root` for
+every later workflow command when the repository does not use `specs`.
 
 ## Scaffold A Spec
 
@@ -43,21 +45,26 @@ destination under `specs/desired_program_model`, and keep tickets in
 3. Start the ticket workspace:
 
 ```bash
-python scripts/start_ticket.py <ticket-id> --repo-root .
+tla-spec-dev --spec-root specs open ticket <ticket-id>
 ```
 
 4. Update `specs/tickets/<ticket-id>/desired` first. The ticket desired model is
    the whole-program state after this ticket, including TLA+, configs,
    spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
 5. Update production code plus `specs/tickets/<ticket-id>/current`.
-6. Run TLC and generated/adapted case tests for the selected slice.
+6. Run TLC and generated/adapted case tests for the selected slice:
+
+```bash
+tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
+```
+
 7. Store evidence under the ticket `results/` directory or another referenced
    evidence path.
 8. Mark the ticket closed in `ticket_plan.yaml`.
 9. Close the ticket:
 
 ```bash
-python scripts/close-ticket.py <ticket-id> \
+tla-spec-dev --spec-root specs close ticket <ticket-id> \
   --summary "What changed and why" \
   --result specs/results/tlc.txt \
   --result specs/results/adapter.txt
@@ -69,7 +76,8 @@ The close operation validates ticket-local `current == desired`, moves
 project `specs/current` with ticket `desired/`, and merges ticket-local Test
 Graph artifacts into project specs.
 
-The tla-spec-dev repository validates this script flow with its parent Test
+The lower-level scripts remain implementation details behind the CLI. The
+tla-spec-dev repository validates this CLI flow with its parent Test
 Graph:
 
 ```bash

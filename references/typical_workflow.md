@@ -9,7 +9,7 @@ changes.
 When a repository has no accepted program model yet, create only the baseline:
 
 ```bash
-python scripts/onboard_program_model.py --repo-root path/to/repo --name ProjectName
+tla-spec-dev --repo-root path/to/repo --spec-root specs scaffold project --name ProjectName
 ```
 
 This creates:
@@ -23,8 +23,8 @@ If the repository keeps specs outside `specs`, pass the same spec root to later
 onboarding and ticket workflow commands:
 
 ```bash
-python scripts/onboard_program_model.py --repo-root path/to/repo --name ProjectName --spec-root project_specs
-python scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root path/to/repo --spec-root project_specs
+tla-spec-dev --repo-root path/to/repo --spec-root project_specs scaffold project --name ProjectName
+tla-spec-dev --repo-root path/to/repo --spec-root project_specs scaffold workflow TICKET-123 "Ticket title"
 ```
 
 ## 2. Start A Feature Or Behavior Change
@@ -32,7 +32,7 @@ python scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root path
 After `program_model` exists, start the ticket workflow:
 
 ```bash
-python scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root path/to/repo
+tla-spec-dev --repo-root path/to/repo --spec-root specs scaffold workflow TICKET-123 "Ticket title"
 ```
 
 This resolves directories under `--spec-root`, defaulting to `specs`, and
@@ -54,7 +54,7 @@ For each ticket or implementation slice:
 1. Scaffold a ticket-local workspace from the plan:
 
 ```bash
-python scripts/start_ticket.py TICKET-123 --repo-root path/to/repo
+tla-spec-dev --repo-root path/to/repo --spec-root specs open ticket TICKET-123
 ```
 
 This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and any
@@ -69,14 +69,20 @@ the end of this ticket, not the whole project destination.
    now implemented for this ticket.
 5. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
    scope, order, dependencies, and acceptance criteria.
-6. Run TLC, generated adapter tests, and Test Graph validation as needed.
+6. Run TLC, generated adapter tests, and Test Graph validation as needed. Use
+   the shipped CLI for spec-unit validation:
+
+```bash
+tla-spec-dev --repo-root path/to/repo --spec-root specs run spec-unit-tests --ticket TICKET-123
+```
+
 7. Record validation evidence in the ticket `results/` directory, manifests, or
    ticket status.
 8. When ticket-local `current` semantically equals ticket-local `desired`, mark
    the ticket closed in `ticket_plan.yaml`, then close the ticket:
 
 ```bash
-python scripts/close-ticket.py TICKET-123 --repo-root path/to/repo --result path/to/repo/specs/results/tlc.txt
+tla-spec-dev --repo-root path/to/repo --spec-root specs close ticket TICKET-123 --result path/to/repo/specs/results/tlc.txt
 ```
 
 Closing validates ticket-local `current == desired`, replaces project-level

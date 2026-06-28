@@ -45,8 +45,16 @@ For production repositories that use the desired/current migration loop,
 scaffold the workflow directories first:
 
 ```bash
-python3 scripts/scaffold_spec_workflow.py --root .
+python3 scripts/tla_spec_dev.py --spec-root specs scaffold project --name ProjectName
+python3 scripts/tla_spec_dev.py --spec-root specs scaffold workflow TICKET-123 "Ticket title"
+python3 scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
+python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket TICKET-123
 ```
+
+The installed wrapper exposes the same workflow as `tla-spec-dev`; the
+repository path uses `python3 scripts/tla_spec_dev.py` so local development does
+not depend on a prior skill install. Use the same `--spec-root` for every
+project, workflow, ticket, run, and close command.
 
 ## Regenerate Examples
 
@@ -121,12 +129,14 @@ After each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`:
 
 ```bash
-python3 scripts/start_ticket.py TICKET-123
-python3 scripts/close-ticket.py TICKET-123 --summary "Kept generated cases spec-local" --result specs/results/tlc.txt
+python3 scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
+python3 scripts/tla_spec_dev.py --spec-root specs close ticket TICKET-123 \
+  --summary "Kept generated cases spec-local" \
+  --result specs/results/tlc.txt
 ```
 
-`start_ticket.py` creates `specs/tickets/TICKET-123/current` and `desired` for
-parallel ticket work. `close-ticket.py` moves that ticket directory into
+`open ticket` creates `specs/tickets/TICKET-123/current` and `desired` for
+parallel ticket work. `close ticket` moves that ticket directory into
 history, validates ticket `current/ == desired/`, replaces project
 `specs/current` with ticket `desired/`, and merges ticket-local Test Graph
 artifacts back into project specs.
@@ -148,6 +158,10 @@ python3 scripts/close_tickets.py --repo-root . --summary "Promoted desired/curre
 These commands write under `specs/.history/<workflow-name>/`, refuse to
 overwrite an existing close entry, and print a recommended git commit command
 for the history directory.
+
+The lower-level `start_ticket.py`, `close-ticket.py`, and `close_tickets.py`
+scripts remain implementation details for the CLI and for workflow closeout.
+New onboarding documentation should lead with `tla-spec-dev`.
 
 ## Repository Shape
 

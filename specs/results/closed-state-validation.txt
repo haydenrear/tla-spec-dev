@@ -1,0 +1,20 @@
+tla-spec-dev CLI closed-state validation
+
+Python tests:
+- uv run --with pytest -m pytest tests -q
+  Result: 63 passed
+- uv run --with pytest -m pytest specs/program_model/tests -q
+  Result: 7 passed
+
+Compile check:
+- python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py test_graph/sources/*.py specs/program_model/production_adapters.py specs/program_model/tests/*.py
+  Result: passed
+
+TLC:
+- bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+  Result: passed, 917 distinct states, complete depth 20
+
+Test Graph:
+- python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+  Result: passed
+  Run id: specWorkflow-20260628-231427-36b10926

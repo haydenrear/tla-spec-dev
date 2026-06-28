@@ -9,11 +9,12 @@ the truth. Python makes that truth executable in tests.
    plan of action. Keep ticket breakdown, steps, dependencies, status metadata,
    acceptance criteria, validation commands, and adapter coverage expectations
    there. If the repository does not have the desired/current structure yet,
-   run `scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .`.
+   run `tla-spec-dev --spec-root specs scaffold workflow TICKET-123 "Ticket title"`.
 2. Ensure `specs/current` starts from the entire accepted
    `specs/program_model`. It is a whole-program working copy, not a feature
    slice or ticket-local projection.
-3. Start the ticket workspace with `scripts/start_ticket.py <ticket-id>`.
+3. Start the ticket workspace with
+   `tla-spec-dev --spec-root specs open ticket <ticket-id>`.
 4. Update `specs/tickets/<ticket-id>/desired` first so it represents the
    whole-program ending state after this ticket. Include TLA+, configs,
    spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
@@ -80,11 +81,12 @@ closeout sequence.
 
 ## Append-Only Close Records
 
-Use `scripts/close-ticket.py` after ticket-local `current` matches
-ticket-local `desired` and the ticket is marked closed in
-`specs/desired_program_model/ticket_plan.yaml`. It reads the ticket from that
-YAML file, snapshots `specs/program_model`, `specs/desired_program_model`,
-project `specs/current`, moves `specs/tickets/<ticket-id>` into
+Use `tla-spec-dev --spec-root specs close ticket <ticket-id>` after
+ticket-local `current` matches ticket-local `desired` and the ticket is marked
+closed in `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket
+from that YAML file, snapshots `specs/program_model`,
+`specs/desired_program_model`, project `specs/current`, moves
+`specs/tickets/<ticket-id>` into
 `specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges the
 ticket `desired/` model and spec adapters/tests into project `specs/current`,
 merges ticket-local Test Graph artifacts into project specs, and records

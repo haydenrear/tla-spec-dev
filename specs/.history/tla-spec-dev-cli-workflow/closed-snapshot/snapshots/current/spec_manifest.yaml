@@ -3,16 +3,16 @@ package: current_program_cases
 
 status:
   workflow: ticket
-  active_ticket: CLI-006
-  active_ticket_title: "Validate CLI with Test Graph"
-  relation_to_program_model: implemented_cli_test_graph_validation_slice
-  relation_to_desired_program_model: completed_prefix_through_cli_006
+  active_ticket: null
+  active_ticket_title: null
+  relation_to_program_model: implemented_cli_documentation_slice
+  relation_to_desired_program_model: completed_prefix_through_cli_007
   current_model_rule: whole_program_working_copy_not_ticket_projection
   updated: null
   current_slice:
-    name: cli-test-graph-validation
+    name: cli-progressive-disclosure-docs
     status: implemented
-    summary: "The CLI workflow is validated through Test Graph against disposable git repositories."
+    summary: "The CLI workflow is documented through progressive-disclosure onboarding references."
     implemented_actions:
       - BuildSkillCli
       - InstallLocalCli
@@ -25,17 +25,15 @@ status:
       tlc:
         - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/current/TlaSpecDevCli.tla','specs/current/MC.cfg'], timeout=30, check=True)"
       unit:
-        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/current/tests tests/test_generate_cases_from_tlc_dump.py tests/test_case_adapter_runtime.py -q
+        - rg "tla-spec-dev --spec-root" README.md SKILL.md references test_graph/README.md
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CLI-007
+        - uv run --with pytest -m pytest tests specs/current/tests -q
       graph:
-        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py cliWorkflow
-        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
-        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
       evidence:
-        - "specWorkflow invokes the installed CLI for project scaffold, workflow scaffold, open ticket, spec-unit validation, and close ticket."
-        - "specWorkflow includes a failure-cleanup probe that runs an intentionally failing graph and asserts the cleanup finalizer removes its fixture repository."
-        - "Ticket-local TestGraphCliAdapter validates graph composition and failure-cleanup probe artifacts."
-  next:
-    - CLI-007 documents progressive-disclosure CLI onboarding.
+        - "SKILL.md, README.md, references, and test_graph/README.md introduce tla-spec-dev before lower-level implementation scripts."
+        - "Docs preserve the desired-first ticket workflow, spec-root rule, and specWorkflow reference path."
+  next: []
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
@@ -154,4 +152,4 @@ case_codegen:
 adapters: case_adapters.toml
 notes:
   package_from_program_model: tlaspecdevcli_program_cases
-  progressive_disclosure: "CLI-006 validates the end-to-end CLI workflow through Test Graph while preserving progressive workflow guidance."
+  progressive_disclosure: "CLI-007 documents the end-to-end CLI workflow through progressive-disclosure onboarding references."
