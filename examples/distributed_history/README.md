@@ -14,7 +14,9 @@ distributed system:
 - `specs/program_model/External.tla` wraps the internal model in public API and
   worker-observation actions. In this example External is HTTP, but for another
   project it could be CLI commands, filesystem operations, or another public
-  harness surface.
+  harness surface. It records service routes such as
+  gateway/account/database, gateway/cart/database, and
+  gateway/checkout/database/queue as model data on generated cases.
 - The accepted `program_model` intentionally has no `Desired.tla`. Active
   ticket workflows should keep desired changes in `DesiredCore.tla`,
   `DesiredInternal.tla`, and `DesiredExternal.tla`, then delete those desired
@@ -25,10 +27,13 @@ distributed system:
 - `test_graph/` deploys the example service and runs the external cases.
 
 The generated external cases include both happy paths and public edge cases:
-duplicate create, missing-account cart mutation, missing-account checkout,
-empty-cart checkout, duplicate checkout, and idle worker drain. Each case uses
-adapter `setup` to load its modeled `before` state and adapter `teardown` to
-clear residue afterward.
+duplicate create, duplicate cart mutation, missing-account cart mutation,
+missing-account checkout, empty-cart checkout, duplicate checkout, fulfillment
+worker drain, and idle worker drain. `External.tla` declares these public
+actions over bounded clients, SKUs, orders, and reachable internal states; TLC
+expands that into 732 external Test Graph cases after projected-state dedupe.
+Each case uses adapter `setup` to load its modeled `before` state and adapter
+`teardown` to clear residue afterward.
 
 There are two runtime topologies:
 
@@ -71,11 +76,7 @@ starts one automatically when running the graph; use
 Run the Test Graph:
 
 ```bash
-../../../../.skill-manager/skills/test-graph/scripts/discover.py \
-  --test-graph-root test_graph
-
-../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root test_graph
+test_graph/gradlew --no-daemon -p test_graph ecommerceExternal
 ```
 
 Or run the example validation wrapper from the repository root:
@@ -90,8 +91,7 @@ The graph also regenerates external cases inside each Test Graph report under
 defaults to k3d mode. Install `docker`, `k3d`, and `kubectl`, then run:
 
 ```bash
-../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root test_graph
+test_graph/gradlew --no-daemon -p test_graph ecommerceExternal
 ```
 
 The validation wrapper runs the same k3d path and verifies assertion artifacts:

@@ -45,7 +45,7 @@ def _record_traffic(handler: BaseHTTPRequestHandler, status: int, body: dict[str
             "response": body,
         }
     )
-    del events[:-500]
+    del events[:-10000]
 
 
 def _request_json(method: str, base_url: str, path: str, body: dict[str, Any] | None = None) -> tuple[int, dict[str, Any]]:

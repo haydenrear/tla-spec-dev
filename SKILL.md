@@ -126,7 +126,10 @@ command invocations and assertions without running a cluster.
 
 For onboarding and generative integration testing, read
 `references/testgraph_adapters.md`. When selecting edge cases and negative
-public behaviors for External, read `references/edge-cases.md`.
+public behaviors for External, read `references/edge-cases.md`. The worked
+example in `examples/distributed_history/` shows an External model that records
+public service routes and bounded input data, then lets TLC expand those
+declarations into hundreds of Test Graph cases executed against k3d.
 
 ## Program Spec Rule
 

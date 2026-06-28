@@ -75,13 +75,13 @@ TLC, then exports them to JSON traces:
 
 ```bash
 uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
-  --out examples/distributed_history/test_graph/build/generated/manual
+  --out test_graph/build/generated/manual
 ```
 
 The generated Python package and exported traces are a materialized TLC edge
 list used by the adapter runner, not hand-authored fixtures. Test Graph runs
 regenerate them under the validation report. The current bounded model exports
-17 external Test Graph cases after projected dedupe. Read the exact list from:
+732 external Test Graph cases after projected dedupe. Read the exact list from:
 
 ```text
 examples/distributed_history/test_graph/build/validation-reports/<run>/generated/testgraph/traces/manifest.json
@@ -91,6 +91,14 @@ Several generated trace ids share the same action name, such as
 `SubmitDuplicateCreateAccount` or `RunFulfillmentWorkerNoop`, because TLC found
 that public action in different reachable projected `before` states. Those are
 distinct integration cases even though they use the same adapter.
+
+The ecommerce `External.tla` does not spell out 732 tests by hand. It declares
+the public actions, service routes, finite inputs, and legal hidden internal
+progress. TLC expands those declarations across clients, SKUs, orders, and
+reachable internal states. For example, `SubmitCheckout` routes through
+gateway, checkout, database, and queue services when it accepts an order, while
+`SubmitCheckoutEmptyCart` only needs the read path through gateway, checkout,
+and database.
 
 All external cases run through the same `ecommerce-http` adapter batch. The
 batch hooks reset the service, load each case's `before` state, execute one

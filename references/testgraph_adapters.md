@@ -101,13 +101,13 @@ The ecommerce example regenerates internal and external case packages from TLC:
 
 ```bash
 uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
-  --out examples/distributed_history/test_graph/build/generated/manual
+  --out test_graph/build/generated/manual
 ```
 
 This writes a Python case package that materializes TLC graph edges for adapter
 execution. The package is generated IR, not hand-maintained test source. Test
 Graph runs regenerate the external package inside each validation report. The
-current bounded model emits four internal/spec-unit cases and 17 external/Test
+current bounded model emits 93 internal/spec-unit cases and 732 external/Test
 Graph cases after projected-state dedupe. The external manifest is the source
 of truth:
 
@@ -115,25 +115,18 @@ of truth:
 examples/distributed_history/test_graph/build/validation-reports/<run>/generated/testgraph/traces/manifest.json
 ```
 
-The current external trace ids are:
+The generated external cases cover these public action families:
 
-- `case_0001_submit_create_account`
-- `case_0002_submit_add_cart_item_missing_account`
-- `case_0003_submit_checkout_missing_account`
-- `case_0004_run_fulfillment_worker_noop`
-- `case_0005_submit_duplicate_create_account`
-- `case_0006_submit_add_cart_item`
-- `case_0007_submit_checkout_empty_cart`
-- `case_0008_run_fulfillment_worker_noop`
-- `case_0009_submit_duplicate_create_account`
-- `case_0010_submit_checkout`
-- `case_0011_run_fulfillment_worker_noop`
-- `case_0012_submit_duplicate_create_account`
-- `case_0013_submit_duplicate_checkout`
-- `case_0014_run_fulfillment_worker`
-- `case_0015_submit_duplicate_create_account`
-- `case_0016_submit_duplicate_checkout`
-- `case_0017_run_fulfillment_worker_noop`
+- account creation and duplicate account creation;
+- cart mutation, duplicate cart mutation, and missing-account cart rejection;
+- checkout success, duplicate checkout, empty-cart rejection, and
+  missing-account checkout rejection;
+- fulfillment worker drain and idle worker drain.
+
+`External.tla` also records service routes in action params, such as
+gateway/account/database for account creation and
+gateway/checkout/database/queue for accepted checkout. Those routes are model
+data used by the generated cases and evidence, not manually curated test names.
 
 These are one-transition TLC edges, not manually curated fixtures. Each case has
 its own `before` state loaded during `setup`, one externally driven action, and

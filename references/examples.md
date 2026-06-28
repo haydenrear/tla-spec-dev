@@ -20,6 +20,8 @@ It shows:
 - TLC regeneration through `scripts/regenerate_tlc_cases.py`;
 - external edge cases for duplicate, missing-resource, empty-cart, and idle
   worker behavior;
+- an External model that records public service routes and finite input data,
+  then lets TLC generate hundreds of reachable integration cases;
 - batch setup/teardown hooks for cleaning deployed state;
 - per-case setup/teardown hooks for loading and clearing case state;
 - projected-state assertions that compare expected TLA program state to actual
@@ -43,6 +45,8 @@ python3 examples/run_distributed_history_validation.py
 That wrapper regenerates internal and external case packages from TLC before
 running adapters and Test Graph. Generated case packages are written under
 `test_graph/build/` or the validation report, not kept as source files.
+With the current bounds, the example emits 93 internal/spec-unit cases and 732
+external/Test Graph cases after projected-state dedupe.
 
 Run it in local monolith mode:
 

@@ -56,7 +56,7 @@ class CheckoutInternalAdapter(_InternalAdapter):
 
 class ProjectOrderInternalAdapter(_InternalAdapter):
     def apply(self, store: EcommerceStore, params: dict[str, Any]) -> dict[str, Any]:
-        result = store.process_outbox()
+        result = store.project_order(params["order"])
         return {"status": result.status, "body": result.body}
 
 

@@ -34,8 +34,10 @@ def project_adapter_output(
     view: str,
     **_kwargs: Any,
 ) -> dict[str, Any]:
-    if action in {"RunFulfillmentWorker", "ProjectOrder"}:
+    if action == "RunFulfillmentWorker":
         return {"status": 200, "body": {"processed": len(projected_before.get("outbox", []))}}
+    if action == "ProjectOrder":
+        return {"status": 200, "body": {"processed": 1}}
     if action == "RunFulfillmentWorkerNoop":
         return {"status": 200, "body": {"processed": 0}}
     if view == "external":
@@ -54,20 +56,20 @@ def project_adapter_output(
 
 
 def _response_for(state: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
-    account = params.get("account")
+    response_key = params.get("client", params.get("account"))
     responses = _as_dict(state.get("responses", {}))
-    if account not in responses:
-        raise ValueError(f"response for account {account!r} not found in TLC state")
-    response = _as_dict(responses[account])
+    if response_key not in responses:
+        raise ValueError(f"response for {response_key!r} not found in TLC state")
+    response = _as_dict(responses[response_key])
     if "status" not in response or "body" not in response:
-        raise ValueError(f"malformed TLC response for account {account!r}: {response!r}")
+        raise ValueError(f"malformed TLC response for {response_key!r}: {response!r}")
     return response
 
 
 def _project_carts(value: Any) -> dict[str, list[str]]:
     carts: dict[str, list[str]] = {}
     for account, items in _as_dict(value).items():
-        rendered = [str(item) for item in _as_list(items)]
+        rendered = sorted(str(item) for item in _as_list(items))
         if rendered:
             carts[str(account)] = rendered
     return dict(sorted(carts.items()))
@@ -81,7 +83,7 @@ def _project_orders(value: Any) -> dict[str, dict[str, Any]]:
             continue
         orders[str(order_id)] = {
             "account": str(order["account"]),
-            "items": [str(item) for item in _as_list(order.get("items", []))],
+            "items": sorted(str(item) for item in _as_list(order.get("items", []))),
             "status": str(order["status"]),
         }
     return dict(sorted(orders.items()))

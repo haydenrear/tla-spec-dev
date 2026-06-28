@@ -56,7 +56,7 @@ directory:
 
 ```bash
 uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
-  --out examples/distributed_history/test_graph/build/generated/manual
+  --out test_graph/build/generated/manual
 ```
 
 Run the generated internal/spec-unit cases:

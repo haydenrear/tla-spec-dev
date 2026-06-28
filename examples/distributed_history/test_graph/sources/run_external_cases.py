@@ -20,7 +20,7 @@ SPEC = (
     NodeSpec("ecommerce.external_cases")
     .kind("action")
     .depends_on("ecommerce.deploy")
-    .timeout("120s")
+    .timeout("900s")
     .rerun(False)
     .output("workDir")
     .output("generatedRoot")

@@ -93,6 +93,8 @@ class EcommerceStore:
     def add_cart_item(self, account_id: str, sku: str) -> OperationResult:
         if not self._account_exists(account_id):
             return OperationResult(404, {"error": "account_not_found"})
+        if sku in self._cart_items(account_id):
+            return OperationResult(202, {"account": account_id, "sku": sku})
         with self._conn:
             self._conn.execute(
                 "insert into cart_items(account_id, sku, qty) values (?, ?, 1)",
@@ -134,6 +136,21 @@ class EcommerceStore:
                 )
                 self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
         return OperationResult(200, {"processed": len(rows)})
+
+    def project_order(self, order_id: str) -> OperationResult:
+        row = self._conn.execute(
+            "select order_id, event_name from outbox where order_id = ?",
+            (order_id,),
+        ).fetchone()
+        if row is None:
+            return OperationResult(200, {"processed": 0})
+        with self._conn:
+            self._conn.execute(
+                "insert or replace into projections(order_id, visible_status) values (?, ?)",
+                (row["order_id"], "ready_to_ship"),
+            )
+            self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
+        return OperationResult(200, {"processed": 1})
 
     def snapshot(self) -> dict[str, Any]:
         accounts = [

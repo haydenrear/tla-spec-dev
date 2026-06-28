@@ -51,7 +51,11 @@ class AdapterMapping:
 def load_cases(cases_dir: Path):
     cases_dir = cases_dir.resolve()
     sys.path.insert(0, str(cases_dir.parent))
-    return importlib.import_module(cases_dir.name)
+    package_name = cases_dir.name
+    for module_name in list(sys.modules):
+        if module_name == package_name or module_name.startswith(f"{package_name}."):
+            del sys.modules[module_name]
+    return importlib.import_module(package_name)
 
 
 def infer_spec_dir(cases_dir: Path, mapping: Path, explicit: Path | None) -> Path | None:

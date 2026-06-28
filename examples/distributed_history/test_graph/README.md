@@ -14,11 +14,13 @@ Graph:
    commands, rejected commands, and idle worker behavior. The node fails unless
    every generated trace writes a per-case `program-state.json`; its envelope
    records `expectedCaseCount`, `executedCaseCount`, and the executed case
-   names.
+   names. With the current TLA bounds, this node regenerates and executes 732
+   external cases from TLC output.
 3. `ecommerce.evidence` captures the final projected state from the target.
    It also validates that each external case wrote a `program-state.json`
    projected-state assertion artifact and, in k3d mode, that every deployed web
-   service received the expected REST requests and responses.
+   service received the expected REST requests and responses. The service route
+   evidence follows the routes modeled in `External.tla`.
 4. `ecommerce.cleanup` stops the local service or deletes the k3d cluster by
    default. Set `ECOMMERCE_KEEP_K3D=1` or `ECOMMERCE_DELETE_K3D=0` to leave the
    cluster running for debugging. Cleanup is tagged as a finalizer so it still
@@ -27,14 +29,12 @@ Graph:
 Run:
 
 ```bash
-../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root .
+./gradlew --no-daemon ecommerceExternal
 ```
 
 Use local mode:
 
 ```bash
 ECOMMERCE_TEST_MODE=local \
-../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root .
+./gradlew --no-daemon ecommerceExternal
 ```

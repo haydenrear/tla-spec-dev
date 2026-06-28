@@ -26,6 +26,15 @@ actions:
     projector: specs.program_model.adapters:ClusterStateProjector
     expected_projection: specs.program_model.adapters:ExpectedClusterProjection
     assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitDuplicateAddCartItem:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:AddCartItemHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAddCartItemMissingAccount:
     view: external
     layer: external

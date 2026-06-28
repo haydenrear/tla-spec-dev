@@ -177,6 +177,7 @@ def wrong_projection_mapping() -> str:
         "SubmitCreateAccount": "CreateAccountHttpAdapter",
         "SubmitDuplicateCreateAccount": "CreateAccountHttpAdapter",
         "SubmitAddCartItem": "AddCartItemHttpAdapter",
+        "SubmitDuplicateAddCartItem": "AddCartItemHttpAdapter",
         "SubmitAddCartItemMissingAccount": "AddCartItemHttpAdapter",
         "SubmitCheckout": "CheckoutHttpAdapter",
         "SubmitCheckoutMissingAccount": "CheckoutHttpAdapter",
