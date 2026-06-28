@@ -46,14 +46,15 @@ destination under `specs/desired_program_model`, and keep tickets in
 python scripts/start_ticket.py <ticket-id> --repo-root .
 ```
 
-4. Update production code plus `specs/tickets/<ticket-id>/current` and
-   `specs/tickets/<ticket-id>/desired`. The ticket desired model is the
-   whole-program state after this ticket.
-5. Run TLC and generated/adapted case tests for the selected slice.
-6. Store evidence under the ticket `results/` directory or another referenced
+4. Update `specs/tickets/<ticket-id>/desired` first. The ticket desired model is
+   the whole-program state after this ticket, including TLA+, configs,
+   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+5. Update production code plus `specs/tickets/<ticket-id>/current`.
+6. Run TLC and generated/adapted case tests for the selected slice.
+7. Store evidence under the ticket `results/` directory or another referenced
    evidence path.
-7. Mark the ticket closed in `ticket_plan.yaml`.
-8. Close the ticket:
+8. Mark the ticket closed in `ticket_plan.yaml`.
+9. Close the ticket:
 
 ```bash
 python scripts/close-ticket.py <ticket-id> \
@@ -64,8 +65,17 @@ python scripts/close-ticket.py <ticket-id> \
 
 The close operation validates ticket-local `current == desired`, moves
 `specs/tickets/<ticket-id>` to
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, and promotes
-ticket `desired/` to project `specs/current`.
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges ticket
+`desired/` into project `specs/current`, and merges ticket-local Test Graph
+artifacts into project specs.
+
+The tla-spec-dev repository validates this script flow with its parent Test
+Graph:
+
+```bash
+/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
+/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+```
 
 ## Complete A Spec Workflow
 

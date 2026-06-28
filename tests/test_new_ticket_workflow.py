@@ -126,7 +126,7 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     assert (ticket_dir / "testgraph" / "bindings.yml").read_text(encoding="utf-8") == "actions: {}\n"
     ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
     assert ticket_state["ticket_id"] == "AUTH-127"
-    assert ticket_state["promotion"]["on_close"] == "promote ticket desired/ to project current/"
+    assert ticket_state["promotion"]["on_close"] == "merge ticket desired/ and Test Graph artifacts into project specs/"
 
 
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
@@ -137,6 +137,13 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
     finished_tla = "---- MODULE ProgramModel ----\nFinished == TRUE\n====\n"
     (ticket_dir / "current" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
+    for model_dir in ["current", "desired"]:
+        adapter = ticket_dir / model_dir / "adapters" / "unit" / "finished_adapter.py"
+        adapter.parent.mkdir(parents=True, exist_ok=True)
+        adapter.write_text("ADAPTER_READY = True\n", encoding="utf-8")
+        test_file = ticket_dir / model_dir / "tests" / "test_finished_adapter.py"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+        test_file.write_text("def test_adapter_ready():\n    assert True\n", encoding="utf-8")
     (ticket_dir / "testgraph").mkdir()
     (ticket_dir / "testgraph" / "report.json").write_text('{"passed": true}\n', encoding="utf-8")
     (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
@@ -163,7 +170,10 @@ tickets:
     assert (result.entry_dir / "ticket" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
     assert (result.entry_dir / "ticket" / "testgraph" / "report.json").exists()
     assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
-    assert manifest["promotion"]["operation"] == "replace project current with ticket desired"
+    assert (tmp_path / "specs" / "current" / "adapters" / "unit" / "finished_adapter.py").exists()
+    assert (tmp_path / "specs" / "current" / "tests" / "test_finished_adapter.py").exists()
+    assert (tmp_path / "specs" / "testgraph" / "report.json").exists()
+    assert manifest["promotion"]["operation"] == "merge ticket desired/current artifacts into project specs"
 
 
 def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -> None:
@@ -194,6 +204,39 @@ def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -
         assert "semantic file differs: ProgramModel.tla" in str(exc)
     else:
         raise AssertionError("expected divergent ticket current/desired to block close")
+
+
+def test_close_ticket_requires_ticket_adapters_to_match_desired(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-130", "Reject divergent adapter", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-130", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-130"
+    current_adapter = ticket_dir / "current" / "adapters" / "unit" / "adapter.py"
+    desired_adapter = ticket_dir / "desired" / "adapters" / "unit" / "adapter.py"
+    current_adapter.parent.mkdir(parents=True, exist_ok=True)
+    desired_adapter.parent.mkdir(parents=True, exist_ok=True)
+    current_adapter.write_text("VALUE = 'current'\n", encoding="utf-8")
+    desired_adapter.write_text("VALUE = 'desired'\n", encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-130
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    try:
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref="AUTH-130",
+            summary="closed",
+            result_paths=[],
+        )
+    except SystemExit as exc:
+        assert "semantic file differs: adapters/unit/adapter.py" in str(exc)
+    else:
+        raise AssertionError("expected divergent ticket adapter to block close")
 
 
 def test_scaffold_ticket_workflow_requires_program_model_baseline(tmp_path: Path) -> None:

@@ -14,12 +14,13 @@ the truth. Python makes that truth executable in tests.
    `specs/program_model`. It is a whole-program working copy, not a feature
    slice or ticket-local projection.
 3. Start the ticket workspace with `scripts/start_ticket.py <ticket-id>`.
-4. Implement one ticket or slice.
-5. Update `specs/tickets/<ticket-id>/current` to represent the whole program
+4. Update `specs/tickets/<ticket-id>/desired` first so it represents the
+   whole-program ending state after this ticket. Include TLA+, configs,
+   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+5. Implement one ticket or slice.
+6. Update `specs/tickets/<ticket-id>/current` to represent the whole program
    now implemented for that ticket, preserving all existing modeled behavior
    unless production behavior changed.
-6. Update `specs/tickets/<ticket-id>/desired` to the whole-program state after
-   that ticket.
 7. Run TLC for the ticket-local current model.
 8. Review invariants and counterexamples.
 9. Update the manifest or adjacent status files if new commands, state fields,
@@ -84,9 +85,10 @@ ticket-local `desired` and the ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket from that
 YAML file, snapshots `specs/program_model`, `specs/desired_program_model`,
 project `specs/current`, moves `specs/tickets/<ticket-id>` into
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, promotes the
-ticket `desired/` model to project `specs/current`, and records supplied result
-evidence.
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges the
+ticket `desired/` model and spec adapters/tests into project `specs/current`,
+merges ticket-local Test Graph artifacts into project specs, and records
+supplied result evidence.
 
 Use `scripts/close_tickets.py` when a desired/current workflow is complete. It
 validates convergence and writes

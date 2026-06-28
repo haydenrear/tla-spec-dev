@@ -61,11 +61,12 @@ This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and any
 copied Test Graph configuration. Ticket `desired` is the whole-program state at
 the end of this ticket, not the whole project destination.
 
-2. Update production code.
-3. Update `specs/tickets/TICKET-123/current` to represent the whole program as
+2. Update `specs/tickets/TICKET-123/desired` first so it represents the
+   expected post-ticket whole-program state, including TLA+, configs,
+   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+3. Update production code.
+4. Update `specs/tickets/TICKET-123/current` to represent the whole program as
    now implemented for this ticket.
-4. Update `specs/tickets/TICKET-123/desired` to represent the expected
-   post-ticket whole-program state.
 5. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
    scope, order, dependencies, and acceptance criteria.
 6. Run TLC, generated adapter tests, and Test Graph validation as needed.
@@ -78,8 +79,9 @@ the end of this ticket, not the whole project destination.
 python scripts/close-ticket.py TICKET-123 --repo-root path/to/repo --result path/to/repo/specs/results/tlc.txt
 ```
 
-Closing moves `specs/tickets/TICKET-123` into history and promotes its
-`desired/` directory to project-level `specs/current`.
+Closing validates ticket-local `current == desired`, merges ticket `desired/`
+into project-level `specs/current`, merges ticket-local Test Graph artifacts
+into project specs, and moves `specs/tickets/TICKET-123` into history.
 
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or
 validation workflow mechanics as TLA+ program state/actions. Record them as

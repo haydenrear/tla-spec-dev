@@ -29,6 +29,7 @@ def main() -> int:
         dry_run=args.dry_run,
         spec_root=args.spec_root,
         ticket_root=args.ticket_root,
+        print_next_steps=True,
     )
     print(f"scaffolded ticket-local workflow files: {len(written)}")
     return 0

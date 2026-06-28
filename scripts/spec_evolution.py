@@ -16,9 +16,17 @@ from typing import Any
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
-IGNORED_COPY_NAMES = {".DS_Store", "__pycache__", ".history", ".tla-spec-evolution"}
+IGNORED_COPY_NAMES = {
+    ".DS_Store",
+    "__pycache__",
+    ".history",
+    ".tla-spec-evolution",
+    ".gradle",
+    ".pytest_cache",
+    "build",
+}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
-SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
+SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml", ".py", ".toml", ".json"}
 PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml", "ticket.yaml"}
 
 
@@ -298,10 +306,53 @@ def validate_equivalent_model_dirs(left_dir: Path, right_dir: Path, *, left_labe
     return errors
 
 
-def replace_tree(src: Path, dst: Path) -> None:
-    if dst.exists():
-        shutil.rmtree(dst)
-    shutil.copytree(src, dst, ignore=copy_ignore)
+def merge_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+    if not src.exists():
+        return []
+    copied: list[dict[str, Any]] = []
+    for source in sorted(path for path in src.rglob("*") if path.is_file()):
+        relative = source.relative_to(src)
+        if any(part in IGNORED_COPY_NAMES for part in relative.parts):
+            continue
+        destination = dst / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        copied.append(
+            {
+                "source": rel(source),
+                "destination": rel(destination),
+                "relative": relative.as_posix(),
+            }
+        )
+    return copied
+
+
+def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
+    merged = [
+        {
+            "role": "current",
+            "source": rel(active_dir / "desired"),
+            "destination": rel(specs_dir / "current"),
+            "files": merge_tree(active_dir / "desired", specs_dir / "current"),
+        }
+    ]
+    for name in ("testgraph", "test_graph"):
+        source = active_dir / name
+        if source.exists():
+            merged.append(
+                {
+                    "role": name,
+                    "source": rel(source),
+                    "destination": rel(specs_dir / name),
+                    "files": merge_tree(source, specs_dir / name),
+                }
+            )
+    return {
+        "source": rel(active_dir),
+        "destination": rel(specs_dir),
+        "operation": "merge ticket desired/current artifacts into project specs",
+        "merged": merged,
+    }
 
 
 def create_ticket_history_entry(
@@ -347,10 +398,13 @@ def create_ticket_history_entry(
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
     entry_dir.mkdir(parents=True)
 
-    snapshots = snapshot_models(specs_dir, entry_dir)
-    results = snapshot_results(specs_dir, entry_dir, result_paths)
     ticket_workdir_record: dict[str, Any] | None = None
     promotion_record: dict[str, Any] | None = None
+    if active_dir.exists() and promote_current:
+        promotion_record = promote_ticket_outputs(active_dir, specs_dir)
+
+    snapshots = snapshot_models(specs_dir, entry_dir)
+    results = snapshot_results(specs_dir, entry_dir, result_paths)
     if active_dir.exists():
         ticket_history_dir = entry_dir / "ticket"
         shutil.move(str(active_dir), str(ticket_history_dir))
@@ -362,15 +416,6 @@ def create_ticket_history_entry(
             "moved": True,
         }
         snapshots.append(ticket_workdir_record)
-        if promote_current:
-            promoted_source = ticket_history_dir / "desired"
-            project_current = specs_dir / "current"
-            replace_tree(promoted_source, project_current)
-            promotion_record = {
-                "source": rel(promoted_source),
-                "destination": rel(project_current),
-                "operation": "replace project current with ticket desired",
-            }
     close_result = commit_recommendation(entry_dir, f"record spec history for {resolved_ticket_id}")
     manifest = {
         "schema_version": 1,

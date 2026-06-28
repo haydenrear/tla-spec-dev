@@ -18,7 +18,15 @@ from typing import Any
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-TICKET_COPY_IGNORE = {".DS_Store", "__pycache__", ".history", ".tla-spec-evolution"}
+TICKET_COPY_IGNORE = {
+    ".DS_Store",
+    "__pycache__",
+    ".history",
+    ".tla-spec-evolution",
+    ".gradle",
+    ".pytest_cache",
+    "build",
+}
 PROJECT_WORKFLOW_TEST = "tests/test_current_ticket_workflow.py"
 
 
@@ -275,19 +283,44 @@ Layout:
 
 Workflow:
 
-1. Keep `current/` executable and update it as implementation work lands in
-   this ticket.
-2. Update `desired/` to represent the end state of this ticket only.
-3. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
-4. Mark the global ticket-plan entry closed.
-5. Run `scripts/close-ticket.py {ticket_id}`. Closing snapshots this whole
-   directory into history, promotes `desired/` to the project-level `current/`,
-   and removes the active ticket directory.
+1. Edit `desired/` first. It starts as a copy of the project current model;
+   change its TLA+, configs, generated-case metadata, spec adapters, tests, and
+   Test Graph bindings so it represents the whole-program state after this
+   ticket is done.
+2. Implement the ticket, then update `current/` to the behavior that actually
+   landed. At close time, ticket `current/` and `desired/` must match.
+3. If this ticket adds spec-unit or Test Graph coverage, keep those adapters,
+   tests, bindings, selectors, and assertions in the ticket directory.
+4. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
+5. Mark the global ticket-plan entry closed.
+6. Run `scripts/close-ticket.py {ticket_id}`. Closing validates ticket
+   `current/ == desired/`, merges ticket `desired/` into project
+   `specs/current`, merges ticket Test Graph config back into project specs,
+   snapshots this directory into history, and removes the active ticket
+   directory.
 
 Starting source: `{source_current}`
 
 Future worktree support should attach the ticket worktree here, but this
 scaffold intentionally records only the spec-side state for now.
+"""
+
+
+def ticket_next_steps(ticket_id: str, ticket_dir: Path) -> str:
+    return f"""
+Next ticket workflow steps for {ticket_id}:
+  1. Edit {ticket_dir / "desired"} first. Update the TLA+ model/configs so
+     they describe the whole-program ending state after this ticket.
+  2. Add or update ticket-local spec-unit adapters/tests under
+     {ticket_dir / "desired"} when the desired behavior needs local
+     conformance coverage.
+  3. Add or update ticket-local Test Graph adapters/bindings/selectors under
+     {ticket_dir / "testgraph"} or {ticket_dir / "test_graph"} when the
+     behavior needs external integration coverage.
+  4. Implement the ticket, then update {ticket_dir / "current"} to match the
+     landed behavior. Before close, ticket current and desired must be equal.
+  5. Mark {ticket_id} closed/done in the project ticket plan and run:
+     python scripts/close-ticket.py {ticket_id}
 """
 
 
@@ -318,7 +351,7 @@ def ticket_state_payload(
         "testgraph_dir": "testgraph",
         "promotion": {
             "close_command": f"python scripts/close-ticket.py {ticket_id}",
-            "on_close": "promote ticket desired/ to project current/",
+            "on_close": "merge ticket desired/ and Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
         "ticket": ticket,
@@ -718,6 +751,7 @@ def scaffold_ticket_directory(
     dry_run: bool,
     spec_root: Path = Path("specs"),
     ticket_root: Path = Path("tickets"),
+    print_next_steps: bool = False,
 ) -> list[Path]:
     fallback_module = _module_name(repo_root.name)
     baseline = discover_baseline(repo_root, spec_root, fallback_module)
@@ -759,6 +793,9 @@ def scaffold_ticket_directory(
     for path, content in files:
         if write_file(path, content, force=force, dry_run=dry_run):
             written.append(path)
+
+    if print_next_steps:
+        print(ticket_next_steps(resolved_ticket_id, ticket_dir))
 
     return written
 
