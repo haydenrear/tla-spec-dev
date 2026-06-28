@@ -149,20 +149,33 @@ def active_ticket_id(specs_dir: Path) -> str | None:
     return None
 
 
-def spec_unit_target_dir(args: argparse.Namespace, specs_dir: Path) -> Path:
+def spec_unit_target_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path]:
+    project_current = specs_dir / "current"
     if args.target is not None:
         target = Path(args.target)
-        return target if target.is_absolute() else (Path(args.repo_root).resolve() / target)
-    if args.ticket:
-        return specs_dir / "tickets" / args.ticket / "current"
+        return [target if target.is_absolute() else (Path(args.repo_root).resolve() / target)]
     if args.scope == "project":
-        return specs_dir / "current"
+        return [project_current]
+    if args.ticket:
+        return unique_paths([project_current, specs_dir / "tickets" / args.ticket / "current"])
     ticket_id = active_ticket_id(specs_dir)
     if ticket_id:
         ticket_current = specs_dir / "tickets" / ticket_id / "current"
         if ticket_current.exists():
-            return ticket_current
-    return specs_dir / "current"
+            return unique_paths([project_current, ticket_current])
+    return [project_current]
+
+
+def unique_paths(paths: list[Path]) -> list[Path]:
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for path in paths:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique.append(path)
+    return unique
 
 
 def has_pytest_tests(path: Path) -> bool:
@@ -186,80 +199,89 @@ def spec_unit_cases_dirs(args: argparse.Namespace, specs_dir: Path) -> list[Path
 def run_spec_unit_tests(args: argparse.Namespace) -> int:
     repo_root = Path(args.repo_root).resolve()
     specs_dir = resolved_spec_root(repo_root, args.spec_root).resolve()
-    target_dir = spec_unit_target_dir(args, specs_dir).resolve()
-    if not target_dir.exists():
-        print(f"ERROR: spec-unit target does not exist: {target_dir}", file=sys.stderr)
+    target_dirs = [target.resolve() for target in spec_unit_target_dirs(args, specs_dir)]
+    missing_targets = [target for target in target_dirs if not target.exists()]
+    if missing_targets:
+        print(f"ERROR: spec-unit target does not exist: {missing_targets[0]}", file=sys.stderr)
         return 2
 
-    env = os.environ.copy()
-    python_path = [str(target_dir), str(repo_root), env.get("PYTHONPATH", "")]
-    env["PYTHONPATH"] = os.pathsep.join(part for part in python_path if part)
+    base_env = os.environ.copy()
 
-    commands: list[tuple[str, list[str]]] = []
-    tests_dir = Path(args.tests_dir) if args.tests_dir else target_dir / "tests"
-    if not tests_dir.is_absolute():
-        tests_dir = target_dir / tests_dir
-    if has_pytest_tests(tests_dir):
-        commands.append(
-            (
-                "pytest",
-                [
-                    "uv",
-                    "run",
-                    "--with",
-                    "pytest",
-                    "-m",
-                    "pytest",
-                    str(tests_dir),
-                    *args.pytest_arg,
-                ],
-            )
-        )
+    def command_env(target_dir: Path) -> dict[str, str]:
+        env = base_env.copy()
+        python_path = [str(target_dir), str(repo_root), env.get("PYTHONPATH", "")]
+        env["PYTHONPATH"] = os.pathsep.join(part for part in python_path if part)
+        return env
 
-    mapping = Path(args.mapping) if args.mapping else target_dir / "case_adapters.toml"
     cases_dirs = spec_unit_cases_dirs(args, specs_dir)
-    for cases_dir in cases_dirs:
-        command = [
-            sys.executable,
-            str(ROOT / "scripts" / "run_generated_case_adapters.py"),
-            str(cases_dir),
-            "--mapping",
-            str(mapping),
-            "--spec-dir",
-            str(target_dir),
-            "--view",
-            "internal",
-            "--import-root",
-            str(target_dir),
-        ]
-        for label in args.label:
-            command.extend(["--label", label])
-        for case_name in args.case:
-            command.extend(["--case", case_name])
-        if args.limit is not None:
-            command.extend(["--limit", str(args.limit)])
-        if args.work_dir is not None:
-            command.extend(["--work-dir", str(args.work_dir)])
-        if args.validate_only:
-            command.append("--validate-only")
-        if args.validate_capabilities:
-            command.append("--validate-capabilities")
-        if not args.no_batch:
-            command.append("--batch")
-        commands.append((f"case-adapters:{cases_dir.name}", command))
+    commands: list[tuple[str, list[str], dict[str, str]]] = []
+    for target_dir in target_dirs:
+        tests_dir = Path(args.tests_dir) if args.tests_dir else target_dir / "tests"
+        if not tests_dir.is_absolute():
+            tests_dir = target_dir / tests_dir
+        if has_pytest_tests(tests_dir):
+            commands.append(
+                (
+                    f"pytest:{target_dir}",
+                    [
+                        "uv",
+                        "run",
+                        "--with",
+                        "pytest",
+                        "-m",
+                        "pytest",
+                        str(tests_dir),
+                        *args.pytest_arg,
+                    ],
+                    command_env(target_dir),
+                )
+            )
+
+        mapping = Path(args.mapping) if args.mapping else target_dir / "case_adapters.toml"
+        for cases_dir in cases_dirs:
+            command = [
+                sys.executable,
+                str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+                str(cases_dir),
+                "--mapping",
+                str(mapping),
+                "--spec-dir",
+                str(target_dir),
+                "--view",
+                "internal",
+                "--import-root",
+                str(target_dir),
+            ]
+            for label in args.label:
+                command.extend(["--label", label])
+            for case_name in args.case:
+                command.extend(["--case", case_name])
+            if args.limit is not None:
+                command.extend(["--limit", str(args.limit)])
+            if args.work_dir is not None:
+                command.extend(["--work-dir", str(args.work_dir)])
+            if args.validate_only:
+                command.append("--validate-only")
+            if args.validate_capabilities:
+                command.append("--validate-capabilities")
+            if not args.no_batch:
+                command.append("--batch")
+            commands.append((f"case-adapters:{target_dir}:{cases_dir.name}", command, command_env(target_dir)))
 
     if not commands:
-        print(f"ERROR: no spec-unit pytest tests or generated case packages found for {target_dir}", file=sys.stderr)
+        targets = ", ".join(str(target) for target in target_dirs)
+        print(f"ERROR: no spec-unit pytest tests or generated case packages found for {targets}", file=sys.stderr)
         return 2
 
     print(f"spec root: {specs_dir}")
-    print(f"spec-unit target: {target_dir}")
-    for label, command in commands:
+    for target_dir in target_dirs:
+        print(f"spec-unit target: {target_dir}")
+    for label, command, env in commands:
         print(f"running {label}: {' '.join(command)}")
         result = subprocess.run(command, cwd=repo_root, env=env)
         if result.returncode != 0:
             return result.returncode
-    print(f"spec-unit validation passed for {target_dir}")
+    print(f"spec-unit validation passed for {len(target_dirs)} target(s)")
     return 0
 
 

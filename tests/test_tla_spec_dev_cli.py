@@ -127,7 +127,28 @@ def test_cli_run_spec_unit_tests_targets_active_ticket_current(tmp_path: Path) -
     result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
 
     assert result.returncode == 0, result.stderr
+    assert "project_specs/current" in result.stdout
     assert f"project_specs/tickets/{ticket_id}/current" in result.stdout
+
+
+def test_cli_run_spec_unit_tests_auto_includes_project_current_tests(tmp_path: Path) -> None:
+    ticket_id = "CLI-204"
+    run_cli("--spec-root", "project_specs", "scaffold", "project", "--name", "CliProject", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "scaffold", "workflow", ticket_id, "CLI active ticket tests", cwd=tmp_path)
+    run_cli("--spec-root", "project_specs", "open", "ticket", ticket_id, cwd=tmp_path)
+    project_test = tmp_path / "project_specs" / "current" / "tests" / "test_project_current_failure.py"
+    project_test.parent.mkdir(parents=True, exist_ok=True)
+    project_test.write_text("def test_project_current_failure():\n    assert False\n", encoding="utf-8")
+    ticket_test = tmp_path / "project_specs" / "tickets" / ticket_id / "current" / "tests" / "test_ticket_unit.py"
+    ticket_test.parent.mkdir(parents=True, exist_ok=True)
+    ticket_test.write_text("def test_ticket_unit():\n    assert True\n", encoding="utf-8")
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+
+    assert result.returncode != 0
+    assert "project_specs/current" in result.stdout
+    assert f"project_specs/tickets/{ticket_id}/current" in result.stdout
+    assert "test_project_current_failure" in result.stdout
 
 
 def test_cli_run_spec_unit_tests_runs_generated_case_adapters(tmp_path: Path) -> None:
