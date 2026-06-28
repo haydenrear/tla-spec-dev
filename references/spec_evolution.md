@@ -89,8 +89,8 @@ python scripts/close-ticket.py TICKET-123 \
 
 The command reads the matching ticket mapping from `ticket_plan.yaml`, writes it
 into the manifest, snapshots the project model directories, moves the active
-ticket directory into the history entry, merges ticket `desired/` into project
-`specs/current`, merges ticket-local Test Graph artifacts into project specs,
+ticket directory into the history entry, replaces project `specs/current` with
+ticket `desired/`, merges ticket-local Test Graph artifacts into project specs,
 and recommends committing the created history entry.
 
 ## Whole-Workflow Close

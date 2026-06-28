@@ -70,7 +70,7 @@ def main(ctx):
         "project testgraph bindings merged": (repo / "specs" / "testgraph" / "bindings.yml").is_file(),
         "project test_graph sources merged": (repo / "specs" / "test_graph" / "sources" / "complete_ticket_external.py").is_file(),
         "history captured result": (history_dir / "results" / "tlc.txt").is_file(),
-        "manifest records merge promotion": manifest.get("promotion", {}).get("operation") == "merge ticket desired/current artifacts into project specs",
+        "manifest records replace promotion": manifest.get("promotion", {}).get("operation") == "replace project current with ticket desired and merge ticket artifacts into project specs",
     }
     for name, ok in assertions.items():
         result.assertion(name, ok)

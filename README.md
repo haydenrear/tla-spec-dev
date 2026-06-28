@@ -127,9 +127,9 @@ python3 scripts/close-ticket.py TICKET-123 --summary "Kept generated cases spec-
 
 `start_ticket.py` creates `specs/tickets/TICKET-123/current` and `desired` for
 parallel ticket work. `close-ticket.py` moves that ticket directory into
-history, validates ticket `current/ == desired/`, merges ticket `desired/` into
-project `specs/current`, and merges ticket-local Test Graph artifacts back into
-project specs.
+history, validates ticket `current/ == desired/`, replaces project
+`specs/current` with ticket `desired/`, and merges ticket-local Test Graph
+artifacts back into project specs.
 
 The parent repository also has a Test Graph that exercises this workflow in a
 disposable git repository under the graph build directory:

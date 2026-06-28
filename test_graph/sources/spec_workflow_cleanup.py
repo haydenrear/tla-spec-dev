@@ -16,7 +16,7 @@ from testgraphsdk import NodeResult, NodeSpec, node
 SPEC = (
     NodeSpec("spec.workflow.cleanup")
     .kind("fixture")
-    .depends_on("spec.workflow.close")
+    .depends_on("spec.workflow.repo")
     .tags("spec-workflow", "finalizer")
     .timeout("30s")
     .rerun(False)

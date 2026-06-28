@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -199,8 +200,12 @@ def history_root(specs_dir: Path, workflow: str) -> Path:
     return specs_dir / ".history" / safe_segment(workflow)
 
 
-def commit_recommendation(entry_dir: Path, message: str) -> HistoryEntryResult:
-    git_add_command = f"git add {rel(entry_dir)}"
+def commit_recommendation(entry_dir: Path, message: str, *, extra_paths: list[Path] | None = None) -> HistoryEntryResult:
+    paths = [entry_dir]
+    for path in extra_paths or []:
+        if path not in paths and path.exists():
+            paths.append(path)
+    git_add_command = "git add " + " ".join(shlex.quote(rel(path)) for path in paths)
     git_commit_command = f"git commit -m {message!r}"
     return HistoryEntryResult(
         entry_dir=entry_dir,
@@ -327,13 +332,20 @@ def merge_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
     return copied
 
 
+def replace_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+    if dst.exists():
+        shutil.rmtree(dst)
+    return merge_tree(src, dst)
+
+
 def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
     merged = [
         {
             "role": "current",
             "source": rel(active_dir / "desired"),
             "destination": rel(specs_dir / "current"),
-            "files": merge_tree(active_dir / "desired", specs_dir / "current"),
+            "operation": "replace",
+            "files": replace_tree(active_dir / "desired", specs_dir / "current"),
         }
     ]
     for name in ("testgraph", "test_graph"):
@@ -344,13 +356,14 @@ def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
                     "role": name,
                     "source": rel(source),
                     "destination": rel(specs_dir / name),
+                    "operation": "merge",
                     "files": merge_tree(source, specs_dir / name),
                 }
             )
     return {
         "source": rel(active_dir),
         "destination": rel(specs_dir),
-        "operation": "merge ticket desired/current artifacts into project specs",
+        "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
         "merged": merged,
     }
 
@@ -416,7 +429,17 @@ def create_ticket_history_entry(
             "moved": True,
         }
         snapshots.append(ticket_workdir_record)
-    close_result = commit_recommendation(entry_dir, f"record spec history for {resolved_ticket_id}")
+    promoted_paths: list[Path] = []
+    if promotion_record is not None:
+        promoted_paths = [specs_dir / "current"]
+        for name in ("testgraph", "test_graph"):
+            if (specs_dir / name).exists():
+                promoted_paths.append(specs_dir / name)
+    close_result = commit_recommendation(
+        entry_dir,
+        f"record spec history for {resolved_ticket_id}",
+        extra_paths=promoted_paths,
+    )
     manifest = {
         "schema_version": 1,
         "kind": "ticket",

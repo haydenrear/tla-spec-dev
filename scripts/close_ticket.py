@@ -23,7 +23,7 @@ def main() -> int:
     parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
-    parser.add_argument("--no-promote-current", action="store_true", help="Do not promote ticket desired/ into project current/ after moving ticket history.")
+    parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
     args = parser.parse_args()
 
     result = create_ticket_history_entry(

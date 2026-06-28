@@ -126,7 +126,7 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     assert (ticket_dir / "testgraph" / "bindings.yml").read_text(encoding="utf-8") == "actions: {}\n"
     ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
     assert ticket_state["ticket_id"] == "AUTH-127"
-    assert ticket_state["promotion"]["on_close"] == "merge ticket desired/ and Test Graph artifacts into project specs/"
+    assert ticket_state["promotion"]["on_close"] == "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/"
 
 
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
@@ -146,6 +146,8 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
         test_file.write_text("def test_adapter_ready():\n    assert True\n", encoding="utf-8")
     (ticket_dir / "testgraph").mkdir()
     (ticket_dir / "testgraph" / "report.json").write_text('{"passed": true}\n', encoding="utf-8")
+    stale_current = tmp_path / "specs" / "current" / "stale_adapter.py"
+    stale_current.write_text("SHOULD_BE_REMOVED = True\n", encoding="utf-8")
     (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
         """version: 1
 name: desired-ticket-workflow
@@ -172,8 +174,12 @@ tickets:
     assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
     assert (tmp_path / "specs" / "current" / "adapters" / "unit" / "finished_adapter.py").exists()
     assert (tmp_path / "specs" / "current" / "tests" / "test_finished_adapter.py").exists()
+    assert not stale_current.exists()
     assert (tmp_path / "specs" / "testgraph" / "report.json").exists()
-    assert manifest["promotion"]["operation"] == "merge ticket desired/current artifacts into project specs"
+    assert manifest["promotion"]["operation"] == "replace project current with ticket desired and merge ticket artifacts into project specs"
+    assert str(result.entry_dir) in result.git_add_command
+    assert str(tmp_path / "specs" / "current") in result.git_add_command
+    assert str(tmp_path / "specs" / "testgraph") in result.git_add_command
 
 
 def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -> None:

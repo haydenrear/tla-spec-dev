@@ -65,9 +65,9 @@ python scripts/close-ticket.py <ticket-id> \
 
 The close operation validates ticket-local `current == desired`, moves
 `specs/tickets/<ticket-id>` to
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges ticket
-`desired/` into project `specs/current`, and merges ticket-local Test Graph
-artifacts into project specs.
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, replaces
+project `specs/current` with ticket `desired/`, and merges ticket-local Test
+Graph artifacts into project specs.
 
 The tla-spec-dev repository validates this script flow with its parent Test
 Graph:

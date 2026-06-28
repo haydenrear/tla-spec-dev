@@ -294,8 +294,8 @@ Workflow:
 4. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
 5. Mark the global ticket-plan entry closed.
 6. Run `scripts/close-ticket.py {ticket_id}`. Closing validates ticket
-   `current/ == desired/`, merges ticket `desired/` into project
-   `specs/current`, merges ticket Test Graph config back into project specs,
+   `current/ == desired/`, replaces project `specs/current` with ticket
+   `desired/`, merges ticket Test Graph config back into project specs,
    snapshots this directory into history, and removes the active ticket
    directory.
 
@@ -351,7 +351,7 @@ def ticket_state_payload(
         "testgraph_dir": "testgraph",
         "promotion": {
             "close_command": f"python scripts/close-ticket.py {ticket_id}",
-            "on_close": "merge ticket desired/ and Test Graph artifacts into project specs/",
+            "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
         "ticket": ticket,

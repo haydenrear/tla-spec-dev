@@ -79,8 +79,8 @@ the end of this ticket, not the whole project destination.
 python scripts/close-ticket.py TICKET-123 --repo-root path/to/repo --result path/to/repo/specs/results/tlc.txt
 ```
 
-Closing validates ticket-local `current == desired`, merges ticket `desired/`
-into project-level `specs/current`, merges ticket-local Test Graph artifacts
+Closing validates ticket-local `current == desired`, replaces project-level
+`specs/current` with ticket `desired/`, merges ticket-local Test Graph artifacts
 into project specs, and moves `specs/tickets/TICKET-123` into history.
 
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or

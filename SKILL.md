@@ -248,7 +248,7 @@ Lifecycle:
 8. When ticket-local `current/` semantically equals ticket-local `desired/`,
    mark the ticket closed in the global `ticket_plan.yaml` and run
    `scripts/close-ticket.py <ticket-id>`. The close moves the ticket directory
-   into history, merges ticket `desired/` into project `specs/current`, and
+   into history, replaces project `specs/current` with ticket `desired/`, and
    merges ticket-local Test Graph artifacts into project specs.
 9. Repeat until `specs/current` semantically equals
    `specs/desired_program_model`.
@@ -298,9 +298,9 @@ until local `current == desired`, then close the ticket:
 python path/to/tla-spec-dev/scripts/close-ticket.py TICKET-123 --repo-root .
 ```
 
-The close command validates ticket-local `current == desired`, merges ticket
-`desired/` into project-level `specs/current`, merges ticket-local Test Graph
-artifacts into project specs, and moves `specs/tickets/TICKET-123` into
+The close command validates ticket-local `current == desired`, replaces
+project-level `specs/current` with ticket `desired/`, merges ticket-local Test
+Graph artifacts into project specs, and moves `specs/tickets/TICKET-123` into
 history.
 
 After `specs/current` semantically equals `specs/desired_program_model`,
@@ -395,8 +395,8 @@ generation and TLC state-graph case generation. Read
 11. Run spec-double self-tests.
 12. Run adapter conformance tests and relevant Test Graph validation.
 13. Mark the ticket closed and run `scripts/close-ticket.py <ticket-id>` to move
-    the ticket directory to history and merge ticket desired/current artifacts
-    into project specs.
+    the ticket directory to history, replace project current with ticket
+    desired, and merge ticket-local Test Graph artifacts into project specs.
 14. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model`, write a workflow
     close record, and remove `specs/current` plus `specs/desired_program_model`
