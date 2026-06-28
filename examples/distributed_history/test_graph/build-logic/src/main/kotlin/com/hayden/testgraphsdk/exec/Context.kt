@@ -2,7 +2,6 @@ package com.hayden.testgraphsdk.exec
 
 import com.hayden.testgraphsdk.MiniJson
 import java.io.File
-import java.util.regex.Pattern
 
 /** Plugin-side mirror of the SDK ContextItem. */
 data class ContextItem(val nodeId: String, val data: Map<String, String>)
@@ -53,32 +52,16 @@ object ContextSerde {
 
     /**
      * Extract the `published` block from a node envelope as a flat
-     * string/string map. Parser stays dependency-free and tolerates
-     * the envelope's surrounding fields.
+     * string/string map. Parse the envelope as JSON so quoted braces in
+     * published string values cannot corrupt context extraction.
      */
-    fun extractPublished(envelopeJson: String): Map<String, String> {
-        val key = "\"published\""
-        val idx = envelopeJson.indexOf(key)
-        if (idx < 0) return emptyMap()
-        val braceStart = envelopeJson.indexOf('{', idx)
-        if (braceStart < 0) return emptyMap()
-        var depth = 0
-        var end = -1
-        for (i in braceStart until envelopeJson.length) {
-            val c = envelopeJson[i]
-            if (c == '{') depth++
-            else if (c == '}') {
-                depth--
-                if (depth == 0) { end = i; break }
-            }
+    fun extractPublished(envelopeJson: String): Map<String, String> =
+        try {
+            val root = MiniJson.obj(MiniJson.parse(envelopeJson))
+            MiniJson.stringMap(root["published"])
+        } catch (_: Exception) {
+            emptyMap()
         }
-        if (end < 0) return emptyMap()
-        val body = envelopeJson.substring(braceStart + 1, end)
-        val out = linkedMapOf<String, String>()
-        val m = Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"").matcher(body)
-        while (m.find()) out[m.group(1)] = unescape(m.group(2))
-        return out
-    }
 
     private fun quote(s: String): String {
         val b = StringBuilder(s.length + 2)
@@ -97,22 +80,6 @@ object ContextSerde {
         return b.toString()
     }
 
-    private fun unescape(s: String): String = buildString {
-        var i = 0
-        while (i < s.length) {
-            val c = s[i]
-            if (c == '\\' && i + 1 < s.length) {
-                when (val n = s[i + 1]) {
-                    '"', '\\', '/' -> append(n)
-                    'n' -> append('\n')
-                    'r' -> append('\r')
-                    't' -> append('\t')
-                    else -> { append(c); append(n) }
-                }
-                i += 2
-            } else { append(c); i++ }
-        }
-    }
 }
 
 /**

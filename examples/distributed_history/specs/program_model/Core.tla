@@ -13,6 +13,8 @@ EmptyState ==
     outbox |-> {},
     projections |-> [o \in Orders |-> "none"] ]
 
+SeqToSet(seq) == {seq[i] : i \in 1..Len(seq)}
+
 CartContains(cart, sku) == sku \in SeqToSet(cart)
 
 =============================================================================

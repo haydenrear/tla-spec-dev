@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pytest"]
+# ///
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from ecommerce_backend.domain import EcommerceStore
 
 
@@ -25,3 +34,9 @@ def test_checkout_is_idempotent_and_projectable():
         }
     finally:
         store.close()
+
+
+if __name__ == "__main__":
+    import pytest
+
+    raise SystemExit(pytest.main([__file__]))

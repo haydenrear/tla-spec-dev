@@ -8,7 +8,34 @@ actions:
     projector: specs.program_model.adapters:ClusterStateProjector
     expected_projection: specs.program_model.adapters:ExpectedClusterProjection
     assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitDuplicateCreateAccount:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:CreateAccountHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAddCartItem:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:AddCartItemHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitDuplicateAddCartItem:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:AddCartItemHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitAddCartItemMissingAccount:
     view: external
     layer: external
     controllability: e2e_direct
@@ -26,7 +53,43 @@ actions:
     projector: specs.program_model.adapters:ClusterStateProjector
     expected_projection: specs.program_model.adapters:ExpectedClusterProjection
     assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitCheckoutMissingAccount:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitCheckoutEmptyCart:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+  SubmitDuplicateCheckout:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunFulfillmentWorker:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: ecommerce-http
+    adapter: specs.program_model.adapters:RunFulfillmentWorkerHttpAdapter
+    projector: specs.program_model.adapters:ClusterStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedClusterProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+  RunFulfillmentWorkerNoop:
     view: external
     layer: external
     controllability: e2e_direct

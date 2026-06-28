@@ -146,8 +146,10 @@ labels = ["AnotherLabel", "ThirdLabel"]
 adapter = "package.module:adapter_factory"
 ```
 
-The workspace example uses `examples/workspace/case_adapters.toml` to map the
-TLC `Create` action label to `examples/workspace/case_adapters.py`.
+The distributed ecommerce example uses
+`examples/distributed_history/specs/program_model/case_adapters.toml` to map
+TLC action labels such as `CreateAccount` to adapter classes in
+`examples/distributed_history/specs/program_model/adapters.py`.
 
 The generic runner requires every generated case to have at least one mapped
 label before it runs anything. This prevents silently ignoring new TLA actions

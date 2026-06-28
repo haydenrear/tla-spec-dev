@@ -13,6 +13,7 @@ import argparse
 import ast
 import importlib
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -53,12 +54,32 @@ class ActionMetadata:
     tags: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class PreparedCase:
+    name: str
+    edge: Edge
+    before: dict[str, Any]
+    after: dict[str, Any]
+    params: dict[str, Any]
+    output_value: Any
+    output_expression: str
+    changes: dict[str, dict[str, Any]]
+    labels: tuple[str, ...]
+    metadata: ActionMetadata
+
+
 def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> None:
     dot_path.parent.mkdir(parents=True, exist_ok=True)
     spec_dir = tla_path.parent.resolve()
+    metadir = dot_path.parent / ".tlc-states" / tla_path.stem
     command = [
         tlc2,
+        "-cleanup",
         "-deadlock",
+        "-fp",
+        "1",
+        "-metadir",
+        str(metadir.resolve()),
         "-config",
         str(cfg_path.resolve()),
         "-dump",
@@ -66,7 +87,10 @@ def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> N
         str(dot_path.resolve()),
         str(tla_path.resolve()),
     ]
-    subprocess.run(command, check=True, cwd=spec_dir)
+    try:
+        subprocess.run(command, check=True, cwd=spec_dir)
+    finally:
+        shutil.rmtree(metadir, ignore_errors=True)
 
 
 def load_dot(path: Path) -> tuple[dict[str, dict[str, Any]], list[Edge]]:
@@ -88,14 +112,21 @@ def load_dot(path: Path) -> tuple[dict[str, dict[str, Any]], list[Edge]]:
 def parse_state_label(raw_label: str) -> dict[str, Any]:
     state: dict[str, Any] = {}
     raw_label = raw_label.replace(r"\"", '"')
+    current: tuple[str, str] | None = None
     for raw_part in raw_label.split(r"\n"):
         part = raw_part.strip()
         while part.startswith(("/", "\\")):
             part = part[1:].strip()
         if " = " not in part:
+            if current is not None and part:
+                current = (current[0], f"{current[1]} {part}")
             continue
+        if current is not None:
+            state[current[0]] = parse_tlc_value(current[1].strip())
         name, value = part.split(" = ", 1)
-        state[name.strip()] = parse_tlc_value(value.strip())
+        current = (name.strip(), value.strip())
+    if current is not None:
+        state[current[0]] = parse_tlc_value(current[1].strip())
     return state
 
 
@@ -107,6 +138,8 @@ def parse_tlc_value(value: str) -> Any:
         if not body:
             return frozenset()
         return frozenset(freeze_set_member(parse_tlc_value(part.strip())) for part in split_top_level(body, ","))
+    if value.startswith("[") and value.endswith("]") and "|->" in value:
+        return parse_tlc_record(value)
     if value.startswith("(") and value.endswith(")") and ":>" in value:
         return parse_tlc_function(value)
     if value.startswith("<<") and value.endswith(">>"):
@@ -122,6 +155,20 @@ def parse_tlc_function(value: str) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for part in split_top_level(body, "@@"):
         split = split_top_level_once(part, ":>")
+        if split is None:
+            continue
+        key, raw_value = split
+        result[str(parse_atom(key.strip()))] = parse_tlc_value(raw_value.strip())
+    return result
+
+
+def parse_tlc_record(value: str) -> dict[str, Any]:
+    body = value[1:-1].strip()
+    result: dict[str, Any] = {}
+    if not body:
+        return result
+    for part in split_top_level(body, ","):
+        split = split_top_level_once(part, "|->")
         if split is None:
             continue
         key, raw_value = split
@@ -211,6 +258,10 @@ def is_escaped(value: str, index: int) -> bool:
 def parse_atom(value: str) -> Any:
     if value.startswith('"') and value.endswith('"'):
         return value[1:-1]
+    if value == "TRUE":
+        return True
+    if value == "FALSE":
+        return False
     if re.fullmatch(r"-?\d+", value):
         return int(value)
     return value
@@ -283,6 +334,39 @@ def changed_fields(before: dict[str, Any], after: dict[str, Any]) -> dict[str, d
     }
 
 
+def to_plain_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): to_plain_value(inner) for key, inner in sorted(value.items(), key=lambda item: repr(item[0]))}
+    if isinstance(value, tuple):
+        return [to_plain_value(inner) for inner in value]
+    if isinstance(value, (set, frozenset)):
+        return [to_plain_value(inner) for inner in sorted(value, key=repr)]
+    return value
+
+
+def freeze_for_signature(value: Any) -> Any:
+    if isinstance(value, dict):
+        return tuple((str(key), freeze_for_signature(inner)) for key, inner in sorted(value.items(), key=lambda item: repr(item[0])))
+    if isinstance(value, (list, tuple)):
+        return tuple(freeze_for_signature(inner) for inner in value)
+    if isinstance(value, (set, frozenset)):
+        return tuple(sorted((freeze_for_signature(inner) for inner in value), key=repr))
+    return value
+
+
+def params_from_action_marker(edge: Edge, after: dict[str, Any], view: str) -> dict[str, Any]:
+    marker_name = "lastExternalAction" if view == "external" else "lastInternalAction"
+    marker = after.get(marker_name)
+    if not isinstance(marker, dict) or marker.get("name") != edge.action:
+        return {}
+    params = marker.get("params", {})
+    if params in (None, (), [], frozenset()):
+        return {}
+    if not isinstance(params, dict):
+        return {}
+    return dict(to_plain_value(params))
+
+
 def case_name(index: int, action: str) -> str:
     snake = re.sub(r"(?<!^)([A-Z])", r"_\1", action).lower()
     snake = re.sub(r"[^a-z0-9_]+", "_", snake).strip("_")
@@ -301,7 +385,7 @@ def py_repr(value: Any) -> str:
             items += ","
         return f"({items})"
     if isinstance(value, dict):
-        items = ", ".join(f"{key!r}: {py_repr(inner)}" for key, inner in sorted(value.items()))
+        items = ", ".join(f"{key!r}: {py_repr(inner)}" for key, inner in sorted(value.items(), key=lambda item: repr(item[0])))
         return "{" + items + "}"
     return repr(value)
 
@@ -344,6 +428,115 @@ def labels_for_case(
     return labels
 
 
+def call_state_projector(projector: Any | None, state: dict[str, Any]) -> dict[str, Any]:
+    if projector is None:
+        return state
+    try:
+        projected = projector(state=state)
+    except TypeError as exc:
+        if "keyword" not in str(exc) and "argument" not in str(exc):
+            raise
+        projected = projector(state)
+    if not isinstance(projected, dict):
+        raise TypeError(f"state projector must return a dict, got {type(projected).__name__}")
+    return projected
+
+
+def call_output_projector(
+    projector: Any | None,
+    *,
+    before: dict[str, Any],
+    after: dict[str, Any],
+    projected_before: dict[str, Any],
+    projected_after: dict[str, Any],
+    action: str,
+    params: dict[str, Any],
+    changed: dict[str, dict[str, Any]],
+    view: str,
+) -> tuple[Any, str]:
+    if projector is None:
+        return changed, f"StateGraphOutput(changed={py_repr(changed)})"
+    try:
+        output = projector(
+            before=before,
+            after=after,
+            projected_before=projected_before,
+            projected_after=projected_after,
+            action=action,
+            params=params,
+            changed=changed,
+            view=view,
+        )
+    except TypeError as exc:
+        if "keyword" not in str(exc) and "argument" not in str(exc):
+            raise
+        output = projector(before, action, after, params)
+    return output, py_repr(output)
+
+
+def prepare_cases(
+    *,
+    states: dict[str, dict[str, Any]],
+    edges: list[Edge],
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    labelers: list[Any],
+    state_projector: Any | None,
+    output_projector: Any | None,
+    dedupe: str,
+) -> list[PreparedCase]:
+    prepared: list[PreparedCase] = []
+    seen: set[Any] = set()
+    for edge in edges:
+        raw_before = states[edge.source]
+        raw_after = states[edge.target]
+        before = call_state_projector(state_projector, raw_before)
+        after = call_state_projector(state_projector, raw_after)
+        params = params_from_action_marker(edge, raw_after, view)
+        changes = changed_fields(before, after)
+        output_value, output_expression = call_output_projector(
+            output_projector,
+            before=raw_before,
+            after=raw_after,
+            projected_before=before,
+            projected_after=after,
+            action=edge.action,
+            params=params,
+            changed=changes,
+            view=view,
+        )
+        if dedupe == "projected":
+            signature = freeze_for_signature(
+                {
+                    "action": edge.action,
+                    "params": params,
+                    "before": before,
+                    "after": after,
+                    "output": output_value,
+                }
+            )
+            if signature in seen:
+                continue
+            seen.add(signature)
+        labels = labels_for_case(before=before, action=edge.action, after=after, changes=changes, labelers=labelers)
+        metadata = action_metadata_for(edge.action, view, action_metadata)
+        prepared.append(
+            PreparedCase(
+                name=case_name(len(prepared) + 1, edge.action),
+                edge=edge,
+                before=before,
+                after=after,
+                params=params,
+                output_value=output_value,
+                output_expression=output_expression,
+                changes=changes,
+                labels=tuple(labels),
+                metadata=metadata,
+            )
+        )
+    return prepared
+
+
 def render_python_package(
     *,
     module: str,
@@ -353,6 +546,9 @@ def render_python_package(
     view: str = "internal",
     action_metadata: dict[str, ActionMetadata] | None = None,
     labelers: list[Any] | None = None,
+    state_projector: Any | None = None,
+    output_projector: Any | None = None,
+    dedupe: str = "none",
 ) -> None:
     metadata = action_metadata or {}
     emitted_edges = [
@@ -360,13 +556,23 @@ def render_python_package(
         for edge in edges
         if should_emit_action(action_metadata_for(edge.action, view, metadata), view)
     ]
+    prepared_cases = prepare_cases(
+        states=states,
+        edges=emitted_edges,
+        view=view,
+        action_metadata=metadata,
+        labelers=labelers or [],
+        state_projector=state_projector,
+        output_projector=output_projector,
+        dedupe=dedupe,
+    )
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
     write(package_dir / "types.py", render_types())
-    write(package_dir / "cases.py", render_cases(module, states, emitted_edges, labelers or [], view, metadata))
+    write(package_dir / "cases.py", render_cases(module, states, prepared_cases, view))
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
-    write(package_dir / "docs.md", render_docs(module, view, len(states), len(emitted_edges), len(edges)))
+    write(package_dir / "docs.md", render_docs(module, view, len(states), len(prepared_cases), len(emitted_edges), len(edges), dedupe))
 
 
 def render_init() -> str:
@@ -415,7 +621,7 @@ def render_types() -> str:
         "    name: str\n"
         "    before: dict[str, Any]\n"
         "    input: StateGraphInput\n"
-        "    output: StateGraphOutput\n"
+        "    output: Any\n"
         "    after: dict[str, Any]\n"
         "    labels: frozenset[str]\n"
         f"    schema_version: str = {TRACE_SCHEMA_VERSION!r}\n"
@@ -431,10 +637,8 @@ def render_types() -> str:
 def render_cases(
     module: str,
     states: dict[str, dict[str, Any]],
-    edges: list[Edge],
-    labelers: list[Any],
+    cases: list[PreparedCase],
     view: str,
-    action_metadata: dict[str, ActionMetadata],
 ) -> str:
     lines = [
         "from __future__ import annotations\n\n",
@@ -443,29 +647,26 @@ def render_cases(
         f'SOURCE_MODULE = {module!r}\n',
         f'SOURCE_VIEW = {view!r}\n',
         f"STATE_COUNT = {len(states)}\n",
-        f"TRANSITION_COUNT = {len(edges)}\n\n",
+        f"TRANSITION_COUNT = {len(cases)}\n\n",
         "CASES = [\n",
     ]
-    for index, edge in enumerate(edges, start=1):
-        before = states[edge.source]
-        after = states[edge.target]
-        changes = changed_fields(before, after)
-        labels = labels_for_case(before=before, action=edge.action, after=after, changes=changes, labelers=labelers)
-        metadata = action_metadata_for(edge.action, view, action_metadata)
+    for case in cases:
+        edge = case.edge
+        metadata = case.metadata
         lines.extend(
             [
                 "    StateGraphCase(\n",
-                f"        name={case_name(index, edge.action)!r},\n",
-                f"        before={py_repr(before)},\n",
+                f"        name={case.name!r},\n",
+                f"        before={py_repr(case.before)},\n",
                 "        input=StateGraphInput(\n",
                 f"            action={edge.action!r},\n",
                 f"            source_node={edge.source!r},\n",
                 f"            target_node={edge.target!r},\n",
-                "            params={},\n",
+                f"            params={py_repr(case.params)},\n",
                 "        ),\n",
-                f"        output=StateGraphOutput(changed={py_repr(changes)}),\n",
-                f"        after={py_repr(after)},\n",
-                f"        labels=frozenset({py_repr(tuple(labels))}),\n",
+                f"        output={case.output_expression},\n",
+                f"        after={py_repr(case.after)},\n",
+                f"        labels=frozenset({py_repr(case.labels)}),\n",
                 "        schema_version=SCHEMA_VERSION,\n",
                 "        view=SOURCE_VIEW,\n",
                 f"        layer={metadata.layer!r},\n",
@@ -488,7 +689,8 @@ def render_cases(
 def render_doubles() -> str:
     return (
         "from __future__ import annotations\n\n"
-        "from .types import StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n"
+        "from typing import Any\n\n"
+        "from .types import StateGraphCase, StateGraphInput\n\n\n"
         "class ScriptedTransitionDouble:\n"
         "    def __init__(self, case: StateGraphCase):\n"
         "        self.case = case\n"
@@ -498,7 +700,7 @@ def render_doubles() -> str:
         "        return self._state\n\n"
         "    def input(self) -> StateGraphInput:\n"
         "        return self.case.input\n\n"
-        "    def call(self, value: StateGraphInput) -> StateGraphOutput:\n"
+        "    def call(self, value: StateGraphInput) -> Any:\n"
         "        if value != self.case.input:\n"
         "            raise AssertionError(f\"unexpected input for {self.case.name}: {value!r}\")\n"
         "        if self._called:\n"
@@ -519,18 +721,29 @@ def render_validators() -> str:
         "        for field in sorted(set(case.before) | set(case.after))\n"
         "        if case.before.get(field) != case.after.get(field)\n"
         "    }\n"
-        "    assert case.output.changed == changed\n"
+        "    if hasattr(case.output, \"changed\"):\n"
+        "        assert case.output.changed == changed\n"
     )
 
 
-def render_docs(module: str, view: str, state_count: int, transition_count: int, total_transition_count: int) -> str:
+def render_docs(
+    module: str,
+    view: str,
+    state_count: int,
+    transition_count: int,
+    emitted_transition_count: int,
+    total_transition_count: int,
+    dedupe: str,
+) -> str:
     return (
         f"# {module} TLC Cases\n\n"
         "Generated from a TLC DOT state graph dump.\n\n"
         f"- View: `{view}`\n"
         f"- States: `{state_count}`\n"
         f"- Transitions: `{transition_count}`\n\n"
+        f"- Emitted transitions before dedupe: `{emitted_transition_count}`\n"
         f"- TLC transitions before view filtering: `{total_transition_count}`\n\n"
+        f"- Dedupe mode: `{dedupe}`\n\n"
         "Each case is one action-labeled edge in the reachable state graph.\n"
     )
 
@@ -550,6 +763,20 @@ def main() -> int:
     parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
     parser.add_argument("--tlc2", default="tlc2")
     parser.add_argument("--dot", type=Path)
+    parser.add_argument(
+        "--state-projector",
+        help="Optional module:function that projects raw TLC states before rendering cases.",
+    )
+    parser.add_argument(
+        "--output-projector",
+        help="Optional module:function that derives adapter expected output from a TLC transition.",
+    )
+    parser.add_argument(
+        "--dedupe",
+        choices=["none", "projected"],
+        default="none",
+        help="Optionally collapse duplicate projected transitions.",
+    )
     parser.add_argument(
         "--labeler",
         action="append",
@@ -586,6 +813,9 @@ def main() -> int:
         view=view,
         action_metadata=action_metadata,
         labelers=[load_object(path) for path in args.labeler],
+        state_projector=load_object(args.state_projector) if args.state_projector else None,
+        output_projector=load_object(args.output_projector) if args.output_projector else None,
+        dedupe=args.dedupe,
     )
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")

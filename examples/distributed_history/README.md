@@ -4,7 +4,7 @@ This example shows the internal/external view split for a small ecommerce
 backend. The model describes account, cart, checkout, outbox, and fulfillment
 projection behavior. Internal cases run against local Python adapters. External
 cases run through Test Graph against a running service and assert projected
-cluster state.
+program state.
 
 The example is intentionally small, but it uses the same seams as a larger
 distributed system:
@@ -12,7 +12,11 @@ distributed system:
 - `specs/program_model/Core.tla` defines shared ecommerce semantics.
 - `specs/program_model/Internal.tla` exposes fine-grained component actions.
 - `specs/program_model/External.tla` wraps the internal model in public API and
-  worker-observation actions.
+  worker-observation actions. In this example External is HTTP, but for another
+  project it could be CLI commands, filesystem operations, or another public
+  harness surface. It records service routes such as
+  gateway/account/database, gateway/cart/database, and
+  gateway/checkout/database/queue as model data on generated cases.
 - The accepted `program_model` intentionally has no `Desired.tla`. Active
   ticket workflows should keep desired changes in `DesiredCore.tla`,
   `DesiredInternal.tla`, and `DesiredExternal.tla`, then delete those desired
@@ -22,21 +26,35 @@ distributed system:
   assertion adapter.
 - `test_graph/` deploys the example service and runs the external cases.
 
+The generated external cases include both happy paths and public edge cases:
+duplicate create, duplicate cart mutation, missing-account cart mutation,
+missing-account checkout, empty-cart checkout, duplicate checkout, fulfillment
+worker drain, and idle worker drain. `External.tla` declares these public
+actions over bounded clients, SKUs, orders, and reachable internal states; TLC
+expands that into 732 external Test Graph cases after projected-state dedupe.
+Each case uses adapter `setup` to load its modeled `before` state and adapter
+`teardown` to clear residue afterward.
+
 There are two runtime topologies:
 
-- Local Test Graph mode starts one monolith process. This keeps spec adapter
-  iteration fast and deterministic.
 - k3d Test Graph mode deploys the full distributed topology:
   `gateway-service`, `account-service`, `cart-service`, `checkout-service`,
   `worker-service`, `database-service`, and `queue-service`. The public Test
   Graph adapters hit the gateway, while setup/teardown and projected-state
   assertions flow through the gateway into the database and queue services.
+- Local Test Graph mode starts one monolith process. This keeps spec adapter
+  iteration fast and deterministic when explicitly selected.
 
 Run the local adapter checks:
 
 ```bash
+uv run tests/test_ecommerce_backend.py
+uv run specs/program_model/tests/test_ecommerce_adapters.py
+
+uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
+
 python3 ../../scripts/run_generated_case_adapters.py \
-  specs/generated/spec_unit/ecommerce_internal_cases \
+  test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
   --mapping specs/program_model/case_adapters.toml \
   --view internal \
   --batch \
@@ -44,7 +62,7 @@ python3 ../../scripts/run_generated_case_adapters.py \
 
 ECOMMERCE_BASE_URL=http://127.0.0.1:18080 \
 python3 ../../scripts/run_generated_case_adapters.py \
-  specs/generated/testgraph/ecommerce_external_cases \
+  test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
   --mapping specs/program_model/testgraph_bindings.yml \
   --view external \
   --batch \
@@ -52,16 +70,13 @@ python3 ../../scripts/run_generated_case_adapters.py \
 ```
 
 The second command expects a running service. The Test Graph deployment node
-starts one automatically in local mode.
+starts one automatically when running the graph; use
+`ECOMMERCE_TEST_MODE=local` when you want that target to be a local monolith.
 
 Run the Test Graph:
 
 ```bash
-../../../../.skill-manager/skills/test-graph/scripts/discover.py \
-  --test-graph-root test_graph
-
-../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root test_graph
+test_graph/gradlew --no-daemon -p test_graph ecommerceExternal
 ```
 
 Or run the example validation wrapper from the repository root:
@@ -70,19 +85,33 @@ Or run the example validation wrapper from the repository root:
 python3 examples/run_distributed_history_validation.py
 ```
 
-The graph defaults to local mode for repeatable development. To exercise k3d,
-install `docker`, `k3d`, and `kubectl`, then run with:
+The wrapper regenerates cases from TLC before running adapters and Test Graph.
+The graph also regenerates external cases inside each Test Graph report under
+`generated/`, so checked-in files are not the case source of truth. The graph
+defaults to k3d mode. Install `docker`, `k3d`, and `kubectl`, then run:
 
 ```bash
-ECOMMERCE_TEST_MODE=k3d \
-../../../../.skill-manager/skills/test-graph/scripts/run.py ecommerceExternal \
-  --test-graph-root test_graph
+test_graph/gradlew --no-daemon -p test_graph ecommerceExternal
 ```
 
-The validation wrapper can run the same k3d path and verify assertion artifacts:
+The validation wrapper runs the same k3d path and verifies assertion artifacts:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py
+```
+
+Use local mode explicitly for fast iteration without Kubernetes:
+
+```bash
+python3 examples/run_distributed_history_validation.py --mode local
+```
+
+The k3d cleanup node deletes the cluster by default. Set
+`ECOMMERCE_KEEP_K3D=1` or pass `--keep-k3d` to the wrapper when debugging a
+cluster after a run:
+
+```bash
+python3 examples/run_distributed_history_validation.py --keep-k3d
 ```
 
 The k3d scripts live in `scripts/` and the Kubernetes manifests live in
@@ -91,4 +120,7 @@ The k3d scripts live in `scripts/` and the Kubernetes manifests live in
 Each external case writes `program-state.json` under the Test Graph report's
 `external-case-work/case-work/<case>/` directory. The evidence node aggregates
 those files into `projected-program-states.json` and fails the graph if any
-expected program state differs from the projected cluster state.
+expected program state differs from the projected cluster state. The
+`ecommerce.external_cases` envelope also records the exact executed case names
+and `expectedCaseCount` / `executedCaseCount`, and publishes the generated
+trace manifest path at `traceManifest`, so a fast run is still auditable.

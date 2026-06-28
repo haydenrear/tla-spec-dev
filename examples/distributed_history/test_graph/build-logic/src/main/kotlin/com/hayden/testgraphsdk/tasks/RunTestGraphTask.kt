@@ -14,10 +14,14 @@ import java.io.File
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 internal object RunIds {
     private val fmt = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
-    fun next(): String = fmt.format(Instant.now())
+    fun next(graphName: String): String {
+        val safeGraphName = graphName.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+    }
 }
 
 /**
@@ -76,7 +80,7 @@ abstract class RunTestGraphTask : DefaultTask() {
         val tools = Toolchain.resolve(project)
         val plan = GraphAssembler.plan(graphSpec, sourcesDirsProvider(), projDir, tools)
         val resume = resumeRequest()
-        val runId = resume?.buildDir?.name ?: RunIds.next()
+        val runId = resume?.buildDir?.name ?: RunIds.next(graphSpec.name)
         val reportDir = if (resume == null) {
             reportRoot.dir(runId).get()
         } else {

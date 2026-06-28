@@ -11,6 +11,7 @@ from scripts.generate_cases_from_tlc_dump import (
     labels_for_case,
     load_action_metadata,
     parse_tlc_function,
+    parse_state_label,
     parse_tlc_value,
     py_repr,
     render_python_package,
@@ -21,10 +22,27 @@ def test_parse_set_keeps_sequence_members_intact() -> None:
     assert parse_tlc_value("{<<1,2>>, <<3,4>>}") == frozenset({(1, 2), (3, 4)})
 
 
-def test_parse_set_keeps_record_members_intact() -> None:
+def test_parse_set_parses_record_members_structurally() -> None:
     assert parse_tlc_value("{[a |-> 1, b |-> 2], [a |-> 3, b |-> 4]}") == frozenset(
-        {"[a |-> 1, b |-> 2]", "[a |-> 3, b |-> 4]"}
+        {
+            frozenset({("a", 1), ("b", 2)}),
+            frozenset({("a", 3), ("b", 4)}),
+        }
     )
+
+
+def test_parse_state_label_keeps_multiline_record_values() -> None:
+    assert parse_state_label(
+        '/\\ lastExternalAction = [ name |-> "Submit",\\n'
+        '  params |-> [account |-> "acct-1", sku |-> "sku-1"] ]\\n'
+        '/\\ status = "ok"'
+    ) == {
+        "lastExternalAction": {
+            "name": "Submit",
+            "params": {"account": "acct-1", "sku": "sku-1"},
+        },
+        "status": "ok",
+    }
 
 
 def test_parse_function_ignores_nested_function_separators() -> None:
@@ -131,6 +149,65 @@ def test_external_generation_emits_only_testgraph_external_actions(tmp_path: Pat
     assert case.tags == frozenset({"smoke"})
 
 
+def test_generation_derives_action_params_from_last_action_marker(tmp_path: Path) -> None:
+    states = {
+        "0": {"lastExternalAction": {"name": "Init", "params": ()}, "status": "none"},
+        "1": {
+            "lastExternalAction": {
+                "name": "Submit",
+                "params": {"account": "acct-1", "sku": "sku-1"},
+            },
+            "status": "visible",
+        },
+    }
+    render_python_package(
+        module="Program",
+        states=states,
+        edges=[Edge(source="0", target="1", action="Submit")],
+        package_dir=tmp_path / "external_cases",
+        view="external",
+        action_metadata={"Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",))},
+    )
+
+    cases_module = import_generated_cases(tmp_path, "external_cases")
+
+    assert cases_module.CASES[0].input.params == {"account": "acct-1", "sku": "sku-1"}
+
+
+def test_generation_uses_projectors_and_projected_dedupe(tmp_path: Path) -> None:
+    states = {
+        "0": {"lastExternalAction": {"name": "Init", "params": ()}, "raw": 1, "status": "empty"},
+        "1": {"lastExternalAction": {"name": "Submit", "params": {"id": "r1"}}, "raw": 2, "status": "done"},
+        "2": {"lastExternalAction": {"name": "Init", "params": ()}, "raw": 3, "status": "empty"},
+        "3": {"lastExternalAction": {"name": "Submit", "params": {"id": "r1"}}, "raw": 4, "status": "done"},
+    }
+
+    def state_projector(state):
+        return {"status": state["status"]}
+
+    def output_projector(**kwargs):
+        return {"accepted": kwargs["action"] == "Submit"}
+
+    render_python_package(
+        module="Program",
+        states=states,
+        edges=[Edge(source="0", target="1", action="Submit"), Edge(source="2", target="3", action="Submit")],
+        package_dir=tmp_path / "external_cases",
+        view="external",
+        action_metadata={"Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",))},
+        state_projector=state_projector,
+        output_projector=output_projector,
+        dedupe="projected",
+    )
+
+    cases_module = import_generated_cases(tmp_path, "external_cases")
+
+    assert len(cases_module.CASES) == 1
+    assert cases_module.CASES[0].before == {"status": "empty"}
+    assert cases_module.CASES[0].after == {"status": "done"}
+    assert cases_module.CASES[0].output == {"accepted": True}
+
+
 def test_legacy_generation_defaults_to_internal_view_without_filtering(tmp_path: Path) -> None:
     states, edges = tiny_state_graph()
     render_python_package(
@@ -178,7 +255,8 @@ def test_load_action_metadata_from_actions_yaml(tmp_path: Path) -> None:
 
 if __name__ == "__main__":
     test_parse_set_keeps_sequence_members_intact()
-    test_parse_set_keeps_record_members_intact()
+    test_parse_set_parses_record_members_structurally()
+    test_parse_state_label_keeps_multiline_record_values()
     test_parse_function_ignores_nested_function_separators()
     test_parse_set_can_contain_function_members()
     test_py_repr_handles_nested_set_members_deterministically()

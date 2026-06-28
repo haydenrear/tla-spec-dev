@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
 from pathlib import Path
@@ -25,6 +26,11 @@ except ImportError:  # pragma: no cover - direct script execution
 
 
 def to_jsonable(value: Any) -> Any:
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        return {
+            field.name: to_jsonable(getattr(value, field.name))
+            for field in dataclasses.fields(value)
+        }
     if isinstance(value, dict):
         return {str(key): to_jsonable(inner) for key, inner in sorted(value.items(), key=lambda item: str(item[0]))}
     if isinstance(value, (set, frozenset)):
@@ -48,6 +54,7 @@ def case_to_trace(case: Any, module: str | None = None) -> dict[str, Any]:
         "params": to_jsonable(getattr(case.input, "params", {})),
         "pre": to_jsonable(case.before),
         "post": to_jsonable(case.after),
+        "expected_response": to_jsonable(case.output),
         "raw": {
             "source_node": case.input.source_node,
             "target_node": case.input.target_node,

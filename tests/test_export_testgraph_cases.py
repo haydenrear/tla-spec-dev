@@ -36,6 +36,7 @@ def test_export_external_case_as_testgraph_trace(tmp_path: Path) -> None:
     assert trace["steps"][0]["action"] == "Submit"
     assert trace["steps"][0]["controllability"] == "e2e_direct"
     assert trace["steps"][0]["post"]["seen"] == ["r1"]
+    assert trace["steps"][0]["expected_response"]["changed"]["seen"]["after"] == ["r1"]
 
 
 def test_export_rejects_internal_cases(tmp_path: Path) -> None:
@@ -55,3 +56,30 @@ def test_export_rejects_internal_cases(tmp_path: Path) -> None:
         assert "not external" in str(exc)
     else:
         raise AssertionError("expected internal case export to fail")
+
+
+def test_load_cases_reloads_same_basename_from_new_directory(tmp_path: Path) -> None:
+    first_dir = tmp_path / "first" / "external_cases"
+    second_dir = tmp_path / "second" / "external_cases"
+    render_python_package(
+        module="Program",
+        states={"0": {"status": "none"}, "1": {"status": "first"}},
+        edges=[Edge("0", "1", "Submit")],
+        package_dir=first_dir,
+        view="external",
+        action_metadata={"Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",))},
+    )
+    render_python_package(
+        module="Program",
+        states={"0": {"status": "none"}, "1": {"status": "second"}},
+        edges=[Edge("0", "1", "Submit")],
+        package_dir=second_dir,
+        view="external",
+        action_metadata={"Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",))},
+    )
+
+    first_cases = list(load_cases(first_dir).CASES)
+    second_cases = list(load_cases(second_dir).CASES)
+
+    assert first_cases[0].after["status"] == "first"
+    assert second_cases[0].after["status"] == "second"

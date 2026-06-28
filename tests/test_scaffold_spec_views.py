@@ -19,6 +19,12 @@ def test_scaffold_spec_can_create_internal_external_view_files(tmp_path: Path) -
     assert (target / "model/DesiredInternal.tla").exists()
     assert (target / "model/DesiredExternal.tla").exists()
     assert "Submit" in (target / "model/actions.yml").read_text(encoding="utf-8")
+    internal = (target / "model/Internal.tla").read_text(encoding="utf-8")
+    external = (target / "model/External.tla").read_text(encoding="utf-8")
+    assert 'lastInternalAction = [name |-> "Init", params |-> <<>>]' in internal
+    assert 'lastExternalAction = [name |-> "Init", params |-> <<>>]' in external
+    assert "params |-> [ ]" not in internal
+    assert "params |-> [ ]" not in external
     assert (target / "testgraph/bindings.yml").exists()
     assert (target / "testgraph/selectors.yml").exists()
     assert (target / "testgraph/assertions.yml").exists()

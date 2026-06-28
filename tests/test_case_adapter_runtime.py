@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+import subprocess
 import sys
 from typing import Optional
 from types import SimpleNamespace
@@ -7,6 +8,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
 from scripts.run_generated_case_adapters import (
     AdapterMapping,
     adapter_for_case,
@@ -343,6 +345,45 @@ class RequestStateProjector:
     ]
 
 
+def test_observable_external_case_runs_projector_without_action_adapter(tmp_path: Path) -> None:
+    module_path = tmp_path / "observable_projection_adapters.py"
+    module_path.write_text(
+        """EVENTS = []
+
+
+class RequestStateProjector:
+    def observe(self, ctx):
+        EVENTS.append(("observe", ctx.case.name, ctx.result))
+        return {"request": "r1", "visible_status": "completed"}
+""",
+        encoding="utf-8",
+    )
+    sys.path.insert(0, str(tmp_path))
+    import observable_projection_adapters
+
+    case = make_view_case(
+        "observe_case",
+        "ObserveStatus",
+        controllability="observable",
+        after={"request": "r1", "visible_status": "completed"},
+    )
+    mappings = {
+        "ObserveStatus": AdapterMapping(
+            "ObserveStatus",
+            None,
+            view="external",
+            layer="external",
+            controllability="observable",
+            projector="observable_projection_adapters:RequestStateProjector",
+            kind="request-http",
+        )
+    }
+
+    execute_cases_in_batch(cases=[case], mappings=mappings, work_dir=tmp_path / "work", import_roots=[tmp_path])
+
+    assert observable_projection_adapters.EVENTS == [("observe", "observe_case", None)]
+
+
 def test_external_projected_state_assertion_reports_mismatch(tmp_path: Path) -> None:
     module_path = tmp_path / "mismatched_state_projection_adapters.py"
     module_path.write_text(
@@ -379,6 +420,68 @@ class RequestStateProjector:
         assert "projected state mismatch" in str(exc)
     else:
         raise AssertionError("expected projected state mismatch to fail")
+
+
+def test_non_batch_generated_program_runs_projected_state_assertion(tmp_path: Path) -> None:
+    package_dir = tmp_path / "external_cases"
+    render_python_package(
+        module="Program",
+        states={"0": {"status": "pending"}, "1": {"status": "completed"}},
+        edges=[Edge("0", "1", "Submit")],
+        package_dir=package_dir,
+        view="external",
+        action_metadata={"Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",))},
+    )
+    module_path = tmp_path / "non_batch_projection_adapters.py"
+    module_path.write_text(
+        """from spec_double_compiler.runtime import CaseRunResult
+
+
+class SubmitAdapter:
+    def run(self, case, work_dir=None):
+        return CaseRunResult(output=case.output)
+
+
+class RequestStateProjector:
+    def observe(self, ctx):
+        return {"status": "wrong"}
+""",
+        encoding="utf-8",
+    )
+    mapping = tmp_path / "bindings.toml"
+    mapping.write_text(
+        """[actions.Submit]
+view = "external"
+layer = "external"
+controllability = "e2e_direct"
+adapter = "non_batch_projection_adapters:SubmitAdapter"
+projector = "non_batch_projection_adapters:RequestStateProjector"
+kind = "request-http"
+""",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(package_dir),
+            "--mapping",
+            str(mapping),
+            "--view",
+            "external",
+            "--work-dir",
+            str(tmp_path / "work"),
+            "--import-root",
+            str(tmp_path),
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "projected state mismatch" in result.stdout + result.stderr
 
 
 def test_external_expected_projection_can_interpolate_comparable_state(tmp_path: Path) -> None:

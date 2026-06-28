@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pytest"]
+# ///
 import os
 import subprocess
 import sys
@@ -11,10 +15,11 @@ REPO = ROOT.parents[1]
 
 
 def test_internal_adapters_run_in_batch(tmp_path):
+    generated_root = _regenerate_cases(tmp_path)
     command = [
         sys.executable,
         str(REPO / "scripts" / "run_generated_case_adapters.py"),
-        str(ROOT / "specs" / "generated" / "spec_unit" / "ecommerce_internal_cases"),
+        str(generated_root / "spec-unit" / "ecommerce_internal_cases"),
         "--mapping",
         str(ROOT / "specs" / "program_model" / "case_adapters.toml"),
         "--view",
@@ -29,6 +34,7 @@ def test_internal_adapters_run_in_batch(tmp_path):
 
 
 def test_external_adapters_project_cluster_state(tmp_path):
+    generated_root = _regenerate_cases(tmp_path)
     env = os.environ.copy()
     env["ECOMMERCE_PORT"] = "18081"
     env["ECOMMERCE_DB"] = str(tmp_path / "ecommerce.db")
@@ -45,7 +51,7 @@ def test_external_adapters_project_cluster_state(tmp_path):
         command = [
             sys.executable,
             str(REPO / "scripts" / "run_generated_case_adapters.py"),
-            str(ROOT / "specs" / "generated" / "testgraph" / "ecommerce_external_cases"),
+            str(generated_root / "testgraph" / "ecommerce_external_cases"),
             "--mapping",
             str(ROOT / "specs" / "program_model" / "testgraph_bindings.yml"),
             "--view",
@@ -62,6 +68,21 @@ def test_external_adapters_project_cluster_state(tmp_path):
         process.wait(timeout=10)
 
 
+def _regenerate_cases(tmp_path):
+    generated_root = tmp_path / "generated"
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "regenerate_tlc_cases.py"),
+            "--out",
+            str(generated_root),
+        ],
+        cwd=ROOT,
+        check=True,
+    )
+    return generated_root
+
+
 def _wait_for_health(base_url):
     deadline = time.time() + 10
     while time.time() < deadline:
@@ -72,3 +93,9 @@ def _wait_for_health(base_url):
         except Exception:
             time.sleep(0.1)
     raise AssertionError(f"service did not become healthy at {base_url}")
+
+
+if __name__ == "__main__":
+    import pytest
+
+    raise SystemExit(pytest.main([__file__]))

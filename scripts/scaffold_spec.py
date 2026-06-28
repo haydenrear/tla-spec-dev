@@ -246,7 +246,7 @@ InternalVars == << owned, result, lastInternalAction >>
 InternalInit ==
   /\\ owned = [a \\in Actors |-> {}]
   /\\ result = Result(TRUE, NoReason)
-  /\\ lastInternalAction = [name |-> "Init", params |-> [ ]]
+  /\\ lastInternalAction = [name |-> "Init", params |-> <<>>]
 
 \\* @action AcceptRequest
 \\* @layer internal
@@ -285,7 +285,7 @@ ExternalVars == << owned, result, lastInternalAction, visibleResult, lastExterna
 ExternalInit ==
   /\\ InternalInit
   /\\ visibleResult = [a \\in Actors |-> NoReason]
-  /\\ lastExternalAction = [name |-> "Init", params |-> [ ]]
+  /\\ lastExternalAction = [name |-> "Init", params |-> <<>>]
 
 \\* @action Submit
 \\* @layer external

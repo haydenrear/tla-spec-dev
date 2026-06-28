@@ -17,6 +17,11 @@ It shows:
   `DesiredInternal.tla`, and `DesiredExternal.tla`;
 - internal/spec-unit generated cases and adapters;
 - external/Test Graph generated cases and HTTP adapters;
+- TLC regeneration through `scripts/regenerate_tlc_cases.py`;
+- external edge cases for duplicate, missing-resource, empty-cart, and idle
+  worker behavior;
+- an External model that records public service routes and finite input data,
+  then lets TLC generate hundreds of reachable integration cases;
 - batch setup/teardown hooks for cleaning deployed state;
 - per-case setup/teardown hooks for loading and clearing case state;
 - projected-state assertions that compare expected TLA program state to actual
@@ -31,21 +36,28 @@ Run the workflow contract check:
 python3 examples/validate_split_desired_workflow.py
 ```
 
-Run the distributed example locally:
+Run the distributed example against k3d:
 
 ```bash
 python3 examples/run_distributed_history_validation.py
 ```
 
-Run it against k3d:
+That wrapper regenerates internal and external case packages from TLC before
+running adapters and Test Graph. Generated case packages are written under
+`test_graph/build/` or the validation report, not kept as source files.
+With the current bounds, the example emits 93 internal/spec-unit cases and 732
+external/Test Graph cases after projected-state dedupe.
+
+Run it in local monolith mode:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py --mode local
 ```
 
-The validation script checks that the internal cases run, the external Test
-Graph cases run, projected-state assertion files are written, and a deliberate
-wrong projection is rejected.
+The validation script checks that the internal cases run, all generated
+external Test Graph cases run, projected-state assertion files are written for
+each external trace, a deliberate wrong projection is rejected, and k3d
+deployments plus service-level REST traffic are verified in the default mode.
 
 ## Tutorial Scaffolding
 

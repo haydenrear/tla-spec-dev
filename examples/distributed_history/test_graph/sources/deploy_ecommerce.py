@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import socket
 import subprocess
@@ -19,6 +20,18 @@ from urllib.request import urlopen
 from testgraphsdk import NodeResult, NodeSpec, node
 
 
+DEPLOYMENTS = (
+    "database-service",
+    "queue-service",
+    "account-service",
+    "cart-service",
+    "checkout-service",
+    "worker-service",
+    "gateway-service",
+)
+NAMESPACE = "ecommerce-history"
+
+
 SPEC = (
     NodeSpec("ecommerce.deploy")
     .kind("testbed")
@@ -27,13 +40,14 @@ SPEC = (
     .output("baseUrl")
     .output("mode")
     .output("pid")
+    .output("deploymentStatus")
 )
 
 
 @node(SPEC)
 def run(ctx):
     root = Path(__file__).resolve().parents[2]
-    mode = os.environ.get("ECOMMERCE_TEST_MODE", "local")
+    mode = os.environ.get("ECOMMERCE_TEST_MODE", "k3d")
     if mode == "k3d":
         return deploy_k3d(ctx, root)
     return deploy_local(ctx, root)
@@ -73,6 +87,7 @@ def deploy_local(ctx, root: Path) -> NodeResult:
         .publish("baseUrl", base_url)
         .publish("mode", "local")
         .publish("pid", str(process.pid))
+        .publish("deploymentStatus", "{}")
         .artifact("log", str(stdout_path))
         .artifact("log", str(stderr_path))
         .assertion("service healthy", True)
@@ -92,14 +107,46 @@ def deploy_k3d(ctx, root: Path) -> NodeResult:
     base_url = "http://127.0.0.1:18080"
     _wait_for_health(base_url)
     _wait_for_debug_state(base_url)
-    return (
+    deployment_status = _deployment_status()
+    deployment_artifact = ctx.report_dir / "k3d-deployments.json"
+    deployment_artifact.write_text(json.dumps(deployment_status, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    result_node = (
         NodeResult.pass_(SPEC.id)
         .publish("baseUrl", base_url)
         .publish("mode", "k3d")
         .publish("pid", "")
+        .publish("deploymentStatus", json.dumps(deployment_status, sort_keys=True))
         .artifact("log", str(log_path))
+        .artifact("json", str(deployment_artifact))
         .assertion("service healthy", True)
     )
+    for deployment, status in deployment_status.items():
+        result_node.assertion(
+            f"{deployment} deployment ready",
+            status["readyReplicas"] >= status["replicas"] and status["availableReplicas"] >= status["replicas"],
+        )
+    return result_node
+
+
+def _deployment_status() -> dict[str, dict[str, int]]:
+    statuses: dict[str, dict[str, int]] = {}
+    for deployment in DEPLOYMENTS:
+        completed = subprocess.run(
+            ["kubectl", "-n", NAMESPACE, "get", "deployment", deployment, "-o", "json"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        payload = json.loads(completed.stdout)
+        status = payload.get("status", {})
+        replicas = int(payload.get("spec", {}).get("replicas", 0))
+        statuses[deployment] = {
+            "replicas": replicas,
+            "readyReplicas": int(status.get("readyReplicas", 0)),
+            "availableReplicas": int(status.get("availableReplicas", 0)),
+            "updatedReplicas": int(status.get("updatedReplicas", 0)),
+        }
+    return statuses
 
 
 def _free_port() -> int:

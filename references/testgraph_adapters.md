@@ -1,6 +1,6 @@
 # Test Graph Adapters
 
-This reference describes the deployed-system adapter path. Use
+This reference describes the External/Test Graph adapter path. Use
 `examples/distributed_history/` as the concrete reference implementation.
 
 ## Views
@@ -9,8 +9,14 @@ The workflow uses one semantic authority with two executable views:
 
 - Internal view: fine-grained program/component state. These cases run through
   spec-unit adapters.
-- External view: deployed observable behavior over the internal semantics.
-  These cases run through Test Graph adapters.
+- External view: public or harness-driven observable behavior over the internal
+  semantics. These cases run through Test Graph adapters.
+
+External does not necessarily mean distributed. For an HTTP service it may mean
+requests. For a CLI it may mean commands and filesystem assertions. For a batch
+processor it may mean input files, process runs, and output manifests. For a
+distributed service it may include deployed API calls, queue operations, or
+fault injection.
 
 An accepted, closed `program_model` contains only promoted baseline files such
 as `Core.tla`, `Internal.tla`, and `External.tla`. Active desired overlays use
@@ -32,10 +38,11 @@ be removed after promotion.
 3. `teardown_all(AdapterBatchContext)` once per unique adapter class in reverse
    adapter order.
 
-Use `setup_all` and `teardown_all` for suite-wide deployed state such as
-clearing shared tables, committing queue offsets, or checking cluster health.
-Use `setup` and `teardown` for per-case state such as loading a TLA `before`
-state into debug/admin endpoints and clearing case fixtures.
+Use `setup_all` and `teardown_all` for suite-wide external state such as
+clearing shared tables, committing queue offsets, preparing a CLI workspace, or
+checking cluster health. Use `setup` and `teardown` for per-case state such as
+loading a TLA `before` state into debug/admin endpoints, writing CLI fixture
+files, or clearing case fixtures.
 
 In `examples/distributed_history/specs/program_model/adapters.py`:
 
@@ -82,29 +89,56 @@ The Test Graph evidence node aggregates these into:
 test_graph/build/validation-reports/<run>/projected-program-states.json
 ```
 
-The graph fails if fewer than four projected-state files are written or if any
-record has `matched: false`.
+The graph fails if the set of projected-state files does not exactly match the
+generated trace manifest or if any record has `matched: false`. The
+`ecommerce.external_cases` envelope also publishes `caseNames` and records
+`expectedCaseCount` / `executedCaseCount` metrics, so a fast run still leaves
+explicit evidence that every generated case executed.
 
 ## Current Example Cases
 
-The ecommerce example currently has four internal cases:
+The ecommerce example regenerates internal and external case packages from TLC:
 
-- `internal_create_account`
-- `internal_add_cart_item`
-- `internal_checkout_creates_outbox`
-- `internal_project_order`
+```bash
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
+  --out test_graph/build/generated/manual
+```
 
-It has four external/Test Graph cases:
+This writes a Python case package that materializes TLC graph edges for adapter
+execution. The package is generated IR, not hand-maintained test source. Test
+Graph runs regenerate the external package inside each validation report. The
+current bounded model emits 93 internal/spec-unit cases and 732 external/Test
+Graph cases after projected-state dedupe. The external manifest is the source
+of truth:
 
-- `external_submit_create_account`
-- `external_submit_add_cart_item`
-- `external_submit_checkout`
-- `external_run_fulfillment_worker`
+```text
+examples/distributed_history/test_graph/build/validation-reports/<run>/generated/testgraph/traces/manifest.json
+```
 
-The external cases are deliberately one-transition cases. Each case has its own
-`before` state loaded during `setup`, one externally driven action, and one
-projected-state assertion after the action. This makes invalid cluster residue
-visible because setup must establish the abstract pre-state before each case.
+The generated external cases cover these public action families:
+
+- account creation and duplicate account creation;
+- cart mutation, duplicate cart mutation, and missing-account cart rejection;
+- checkout success, duplicate checkout, empty-cart rejection, and
+  missing-account checkout rejection;
+- fulfillment worker drain and idle worker drain.
+
+`External.tla` also records service routes in action params, such as
+gateway/account/database for account creation and
+gateway/checkout/database/queue for accepted checkout. Those routes are model
+data used by the generated cases and evidence, not manually curated test names.
+
+These are one-transition TLC edges, not manually curated fixtures. Each case has
+its own `before` state loaded during `setup`, one externally driven action, and
+one projected-state assertion after the action. This makes invalid cluster
+residue visible because setup must establish the abstract pre-state before each
+case. See `references/edge-cases.md` for how to choose these boundary cases
+without assuming the system is deployed or distributed.
+
+The example cleanup node is tagged as a finalizer. If an earlier graph node
+fails after deployment, the executor skips ordinary downstream nodes but still
+runs cleanup nodes whose dependencies have completed before rethrowing the
+original failure.
 
 ## Validating Bug Detection
 
@@ -121,13 +155,24 @@ That script validates:
   deliberately wrong;
 - the Test Graph runs the external cases;
 - every external case writes `program-state.json`;
-- the aggregate projected-state evidence has four matched records.
+- the aggregate projected-state evidence has one matched record per generated
+  external trace;
+- in k3d mode, every ecommerce deployment is ready and each web service records
+  the expected REST request/response statuses.
 
-Run the full distributed topology:
+The wrapper defaults to the full k3d topology:
 
 ```bash
-python3 examples/run_distributed_history_validation.py --mode k3d
+python3 examples/run_distributed_history_validation.py
+```
+
+Use local monolith mode explicitly for fast iteration:
+
+```bash
+python3 examples/run_distributed_history_validation.py --mode local
 ```
 
 k3d mode deploys separate gateway, account, cart, checkout, worker, database,
-and queue services. It still uses the same projected-state assertion path.
+and queue services. It still uses the same projected-state assertion path and
+deletes the cluster during cleanup unless `--keep-k3d`,
+`ECOMMERCE_KEEP_K3D=1`, or `ECOMMERCE_DELETE_K3D=0` is set.

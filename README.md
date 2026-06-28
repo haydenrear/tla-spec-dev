@@ -11,6 +11,7 @@ User-facing workflow guidance lives in:
 - `references/codegen_contract.md`
 - `references/conformance_testing.md`
 - `references/testgraph_adapters.md`
+- `references/edge-cases.md`
 - `references/tla_profile.md`
 - `references/spec_evolution.md`
 - `references/workflows.md`
@@ -31,12 +32,14 @@ Run focused checks while editing:
 
 ```bash
 python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py
-python3 -m pytest tests
+uv run --with pytest -m pytest tests
+uv run examples/distributed_history/tests/test_ecommerce_backend.py
+uv run examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py
 ```
 
-If `pytest` is not installed in the active environment, use the
-`skill-manager.toml` dependency declaration or run the scripts directly for
-smoke checks.
+The distributed ecommerce example tests include PEP 723 uv script headers, so
+`uv run <test-file>` retrieves pytest even when the ambient interpreter does
+not have it installed.
 
 For production repositories that use the desired/current migration loop,
 scaffold the workflow directories first:
@@ -47,16 +50,24 @@ python3 scripts/scaffold_spec_workflow.py --root .
 
 ## Regenerate Examples
 
-Manifest-driven fake/spec-double artifacts:
+The active checked-in example is `examples/distributed_history`. Regenerate
+its TLC-derived internal and external case packages into an ignored build
+directory:
 
 ```bash
-python3 scripts/generate_python.py examples/workspace/spec_manifest.yaml --out examples/workspace/generated
+uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
+  --out test_graph/build/generated/manual
 ```
 
-TLC-derived whole-program transition cases:
+Run the generated internal/spec-unit cases:
 
 ```bash
-python3 scripts/generate_cases_from_tlc_dump.py examples/workspace/Workspace.tla examples/workspace/MC.cfg --out examples/workspace/generated --package workspace_cases
+python3 scripts/run_generated_case_adapters.py \
+  examples/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
+  --mapping examples/distributed_history/specs/program_model/case_adapters.toml \
+  --view internal \
+  --batch \
+  --import-root examples/distributed_history
 ```
 
 View-aware case generation writes explicit internal and external outputs:
@@ -68,10 +79,11 @@ python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --o
 ```
 
 External adapter bindings may include `kind` to batch cases that need the same
-cluster setup and cleanup. Batch adapters can define optional
+external harness setup and cleanup. Batch adapters can define optional
 `setup_all(ctx)`, `teardown_all(ctx)`, `setup(ctx)`, and `teardown(ctx)` hooks.
-Use these hooks for deployed-state preparation such as clearing database rows,
-committing Kafka offsets, or removing per-trace test fixtures.
+Use these hooks for integration-state preparation such as clearing database
+rows, committing Kafka offsets, preparing a CLI workspace, or removing
+per-trace test fixtures.
 
 For external assertions, configure `projector = "module:Object"` to retrieve
 the actual deployed state. By default, the runner compares that actual state to
@@ -86,7 +98,13 @@ the spec directory should produce the same spec-local artifact layout.
 Adapter mapping validation:
 
 ```bash
-python3 scripts/run_generated_case_adapters.py examples/workspace/generated/workspace_cases --mapping examples/workspace/case_adapters.toml --import-root examples/workspace --label Create --validate-only
+python3 scripts/run_generated_case_adapters.py \
+  examples/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
+  --mapping examples/distributed_history/specs/program_model/testgraph_bindings.yml \
+  --view external \
+  --batch \
+  --validate-only \
+  --import-root examples/distributed_history
 ```
 
 For larger case sets, use batch mode:

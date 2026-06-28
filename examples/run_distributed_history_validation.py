@@ -19,6 +19,7 @@ from urllib.request import urlopen
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
+GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 CLUSTER_NAME = "ecommerce-history"
 
 
@@ -29,17 +30,22 @@ def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["local", "k3d"], default="local")
+    parser.add_argument("--mode", choices=["local", "k3d"], default="k3d")
     parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
     args = parser.parse_args()
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
-    if args.mode == "k3d" and not args.keep_k3d:
-        env["ECOMMERCE_DELETE_K3D"] = "1"
+    if args.mode == "k3d":
+        if args.keep_k3d:
+            env["ECOMMERCE_KEEP_K3D"] = "1"
+            env["ECOMMERCE_DELETE_K3D"] = "0"
+        else:
+            env["ECOMMERCE_DELETE_K3D"] = "1"
 
     cleanup_build_outputs()
     try:
+        regenerate_tlc_cases()
         validate_internal_cases()
         validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
@@ -53,12 +59,24 @@ def main() -> int:
             cleanup_k3d()
 
 
+def regenerate_tlc_cases() -> None:
+    run(
+        [
+            sys.executable,
+            str(EXAMPLE_ROOT / "scripts" / "regenerate_tlc_cases.py"),
+            "--out",
+            str(GENERATED_ROOT),
+        ],
+        cwd=EXAMPLE_ROOT,
+    )
+
+
 def validate_internal_cases() -> None:
     run(
         [
             sys.executable,
             str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-            str(EXAMPLE_ROOT / "specs" / "generated" / "spec_unit" / "ecommerce_internal_cases"),
+            str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
             "--mapping",
             str(EXAMPLE_ROOT / "specs" / "program_model" / "case_adapters.toml"),
             "--view",
@@ -111,13 +129,15 @@ class WrongExpectedProjection:
             command = [
                 sys.executable,
                 str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
-                str(EXAMPLE_ROOT / "specs" / "generated" / "testgraph" / "ecommerce_external_cases"),
+                str(GENERATED_ROOT / "testgraph" / "ecommerce_external_cases"),
                 "--mapping",
                 str(mapping),
                 "--view",
                 "external",
-                "--case",
-                "external_submit_create_account",
+                "--label",
+                "SubmitCreateAccount",
+                "--limit",
+                "1",
                 "--batch",
                 "--work-dir",
                 str(tmp_path / "work"),
@@ -135,9 +155,10 @@ class WrongExpectedProjection:
                 raise SystemExit("negative projected-state check unexpectedly passed")
             if "projected cluster state mismatch" not in combined:
                 raise SystemExit(f"negative projected-state check failed for the wrong reason:\n{combined}")
-            mismatch_file = tmp_path / "work" / "case-work" / "external_submit_create_account" / "program-state.json"
-            if not mismatch_file.exists():
-                raise SystemExit(f"negative projected-state check did not write evidence: {mismatch_file}")
+            mismatch_files = sorted((tmp_path / "work" / "case-work").glob("*/program-state.json"))
+            if len(mismatch_files) != 1:
+                raise SystemExit(f"negative projected-state check did not write exactly one evidence file: {mismatch_files}")
+            mismatch_file = mismatch_files[0]
             mismatch = json.loads(mismatch_file.read_text(encoding="utf-8"))
             if mismatch.get("matched") is not False:
                 raise SystemExit(f"negative projected-state evidence did not record matched=false: {mismatch}")
@@ -154,9 +175,16 @@ def wrong_projection_mapping() -> str:
     blocks = []
     for action, adapter in {
         "SubmitCreateAccount": "CreateAccountHttpAdapter",
+        "SubmitDuplicateCreateAccount": "CreateAccountHttpAdapter",
         "SubmitAddCartItem": "AddCartItemHttpAdapter",
+        "SubmitDuplicateAddCartItem": "AddCartItemHttpAdapter",
+        "SubmitAddCartItemMissingAccount": "AddCartItemHttpAdapter",
         "SubmitCheckout": "CheckoutHttpAdapter",
+        "SubmitCheckoutMissingAccount": "CheckoutHttpAdapter",
+        "SubmitCheckoutEmptyCart": "CheckoutHttpAdapter",
+        "SubmitDuplicateCheckout": "CheckoutHttpAdapter",
         "RunFulfillmentWorker": "RunFulfillmentWorkerHttpAdapter",
+        "RunFulfillmentWorkerNoop": "RunFulfillmentWorkerHttpAdapter",
     }.items():
         blocks.append(
             f"""
@@ -211,12 +239,14 @@ def validate_report(report_dir: Path) -> None:
 
 
 def validate_projected_state_artifacts(report_dir: Path) -> None:
+    expected_cases = expected_external_trace_names(report_dir / "generated" / "testgraph" / "traces" / "manifest.json")
     aggregate = report_dir / "projected-program-states.json"
     if not aggregate.exists():
         raise SystemExit(f"missing projected-state aggregate artifact: {aggregate}")
     records = json.loads(aggregate.read_text(encoding="utf-8"))
-    if len(records) != 4:
-        raise SystemExit(f"expected 4 projected-state records, got {len(records)}")
+    record_cases = sorted(str(record.get("case")) for record in records)
+    if record_cases != expected_cases:
+        raise SystemExit(f"expected projected-state cases {expected_cases}, got {record_cases}")
 
     required = {
         "case",
@@ -237,8 +267,14 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
 
     work_dir = report_dir / "external-case-work" / "case-work"
     per_case_files = sorted(work_dir.glob("*/program-state.json"))
-    if len(per_case_files) != 4:
-        raise SystemExit(f"expected 4 per-case program-state.json files, got {len(per_case_files)}")
+    file_cases = sorted(path.parent.name for path in per_case_files)
+    if file_cases != expected_cases:
+        raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
+
+
+def expected_external_trace_names(manifest: Path = GENERATED_ROOT / "testgraph" / "traces" / "manifest.json") -> list[str]:
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    return sorted(Path(name).stem for name in payload["traces"])
 
 
 def cleanup_build_outputs() -> None:
