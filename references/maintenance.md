@@ -13,21 +13,26 @@ the truth. Python makes that truth executable in tests.
 2. Ensure `specs/current` starts from the entire accepted
    `specs/program_model`. It is a whole-program working copy, not a feature
    slice or ticket-local projection.
-3. Implement one ticket or slice.
-4. Update `specs/current` to represent the whole program now implemented,
-   preserving all existing modeled behavior unless production behavior changed.
-5. Run TLC for `specs/current`.
-6. Review invariants and counterexamples.
-7. Update the manifest or adjacent status files if new commands, state fields,
+3. Start the ticket workspace with `scripts/start_ticket.py <ticket-id>`.
+4. Update `specs/tickets/<ticket-id>/desired` first so it represents the
+   whole-program ending state after this ticket. Include TLA+, configs,
+   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+5. Implement one ticket or slice.
+6. Update `specs/tickets/<ticket-id>/current` to represent the whole program
+   now implemented for that ticket, preserving all existing modeled behavior
+   unless production behavior changed.
+7. Run TLC for the ticket-local current model.
+8. Review invariants and counterexamples.
+9. Update the manifest or adjacent status files if new commands, state fields,
    results, ports, adapters, invariants, or plan metadata are needed.
-8. Regenerate Python artifacts for the current model.
-9. Review generated diffs and the baseline/current/desired relationship.
-10. Run spec-double self-tests.
-11. Run adapter conformance tests.
-12. For ticketed spec work, write an append-only close record and commit it with
+10. Regenerate Python artifacts for the ticket-local model.
+11. Review generated diffs and the baseline/project-current/ticket-current/ticket-desired/project-desired relationship.
+12. Run spec-double self-tests.
+13. Run adapter conformance tests and relevant Test Graph validation.
+14. For ticketed spec work, write an append-only close record and commit it with
     the spec and ticket changes before moving active desired/current state
     forward.
-13. When `specs/current` equals `specs/desired_program_model`, promote the
+15. When project `specs/current` equals `specs/desired_program_model`, promote the
     converged model to `specs/program_model` and remove `specs/current` plus
     `specs/desired_program_model` once they no longer carry distinct planning
     state.
@@ -54,8 +59,8 @@ closeout sequence.
 - Does the product narrative explain why the behavior exists?
 - Does `specs/desired_program_model` contain the current plan breakdown with
   tickets, steps, dependencies, status, and acceptance criteria?
-- Does each completed ticket update `specs/current` to the implemented
-  repository state?
+- Does each completed ticket update `specs/tickets/<ticket-id>/current` to the
+  implemented repository state and `desired` to the post-ticket target?
 - Does `specs/current` still contain the whole program from
   `specs/program_model` plus landed semantic changes?
 - Are tests, graph nodes, integration harnesses, CI jobs, and validation
@@ -75,11 +80,15 @@ closeout sequence.
 
 ## Append-Only Close Records
 
-Use `scripts/close-ticket.py` after each ticket is marked closed in
+Use `scripts/close-ticket.py` after ticket-local `current` matches
+ticket-local `desired` and the ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket from that
-YAML file and snapshots `specs/program_model`, `specs/desired_program_model`,
-`specs/current`, and supplied result evidence into
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/`.
+YAML file, snapshots `specs/program_model`, `specs/desired_program_model`,
+project `specs/current`, moves `specs/tickets/<ticket-id>` into
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges the
+ticket `desired/` model and spec adapters/tests into project `specs/current`,
+merges ticket-local Test Graph artifacts into project specs, and records
+supplied result evidence.
 
 Use `scripts/close_tickets.py` when a desired/current workflow is complete. It
 validates convergence and writes

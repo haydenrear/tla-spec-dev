@@ -209,6 +209,10 @@ as both the formal model and the plan of action:
   starts equivalent to the entire accepted program model and advances as tickets
   land, preserving every existing modeled behavior unless the ticket explicitly
   changes that behavior.
+- `specs/tickets/<ticket-id>`: one active ticket workspace with its own
+  `current/`, `desired/`, `results/`, and copied Test Graph configuration when
+  present. The ticket `desired/` is the whole-program state after that ticket,
+  not the whole project destination.
 
 This workflow is normal development practice for model-worthy behavior. Use it
 for ordinary implementation tickets whenever repository behavior should be
@@ -225,21 +229,30 @@ Lifecycle:
    whole-program model and the plan breakdown: phases, tickets, steps,
    dependencies, status metadata, acceptance criteria, and validation evidence
    expected for each slice.
-3. Implement one ticket or slice in production code.
-4. Update `specs/current` to describe the whole program as now implemented,
-   including TLA+ actions, manifests, adapter mappings, generated cases, tests,
-   and progress metadata for the completed slice. Existing state, actions, and
-   invariants from `specs/program_model` remain present unless the production
-   behavior itself changed.
-5. Run TLC and generated/adapted case tests for `specs/current`; treat these as
-   unit tests for the current repository behavior.
-6. Keep `specs/desired_program_model` updated as the plan changes. If a ticket
+3. Start each implementation ticket from the plan with
+   `scripts/start_ticket.py <ticket-id>`. This copies project `current/` into
+   `specs/tickets/<ticket-id>/current` and `desired`, plus ticket-local results
+   and Test Graph assets.
+4. Edit the ticket-local `desired/` first. It should describe the
+   whole-program ending state after that ticket, including TLA+, configs,
+   spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
+5. Implement the ticket in production code, then update ticket-local `current/`
+   to the behavior that actually landed.
+6. Run TLC, generated/adapted case tests, and relevant Test Graph runs from the
+   ticket directory. Keep evidence under the ticket `results/` directory or pass
+   it to close commands.
+7. Keep `specs/desired_program_model` updated as the plan changes. If a ticket
    splits, merges, changes order, gains a dependency, or changes acceptance
    criteria, record that there instead of leaving the plan in chat or ad hoc
    notes.
-7. Repeat until `specs/current` semantically equals
+8. When ticket-local `current/` semantically equals ticket-local `desired/`,
+   mark the ticket closed in the global `ticket_plan.yaml` and run
+   `scripts/close-ticket.py <ticket-id>`. The close moves the ticket directory
+   into history, replaces project `specs/current` with ticket `desired/`, and
+   merges ticket-local Test Graph artifacts into project specs.
+9. Repeat until `specs/current` semantically equals
    `specs/desired_program_model`.
-8. Promote the converged model into `specs/program_model`, regenerate accepted
+10. Promote the converged model into `specs/program_model`, regenerate accepted
    artifacts, and delete `specs/current` plus `specs/desired_program_model`
    once they no longer carry distinct planning state.
 
@@ -269,6 +282,26 @@ metadata, `ticket_plan.yaml`, and `status` sections to the workflow manifests.
 The generated comments are intentionally instructional; replace them with the
 project's actual state, actions, adapter boundaries, tests, and evidence as the
 ticket is refined. Do not use this for first project onboarding.
+
+To start work on a planned ticket, scaffold its ticket-local workspace:
+
+```bash
+python path/to/tla-spec-dev/scripts/start_ticket.py TICKET-123 --repo-root .
+```
+
+This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and
+copied Test Graph configuration when present. Update `desired/` first to the
+ticket ending state, then update `current/` as implementation lands. Work there
+until local `current == desired`, then close the ticket:
+
+```bash
+python path/to/tla-spec-dev/scripts/close-ticket.py TICKET-123 --repo-root .
+```
+
+The close command validates ticket-local `current == desired`, replaces
+project-level `specs/current` with ticket `desired/`, merges ticket-local Test
+Graph artifacts into project specs, and moves `specs/tickets/TICKET-123` into
+history.
 
 After `specs/current` semantically equals `specs/desired_program_model`,
 promote the converged model into `specs/program_model`, regenerate accepted
@@ -341,23 +374,30 @@ generation and TLC state-graph case generation. Read
    ticket workflow structure yet but already has `specs/program_model`.
 2. Ensure `specs/current` starts from the entire accepted
    `specs/program_model`, not only the behavior being changed.
-3. For each ticket or slice, update production code and then update
-   `specs/current` to the implemented whole-program repository state.
-4. Run TLC against the current finite model config.
-5. Review invariants and counterexamples.
-6. Update `spec_manifest.yaml` or adjacent status files if commands, state
+3. For each ticket, run `scripts/start_ticket.py <ticket-id>` to create
+   `specs/tickets/<ticket-id>/current` and `desired`.
+4. Update ticket-local `desired/` first so it shows the whole-program ending
+   state after the ticket, including spec adapters/tests and Test Graph assets
+   when applicable.
+5. Update production code and ticket-local `current/` until the local ticket
+   model reaches its desired end state.
+6. Run TLC against the ticket current finite model config.
+7. Review invariants and counterexamples.
+8. Update `spec_manifest.yaml` or adjacent status files if commands, state
    fields, results, ports, generators, invariants, adapters, or plan metadata
    changed.
-7. Regenerate Python artifacts for the current model.
-8. Review generated diffs plus the `program_model` -> `current` ->
-   `desired_program_model` relationship.
+9. Regenerate Python artifacts for the ticket current or desired model.
+10. Review generated diffs plus the `program_model` -> project `current` ->
+   ticket `current` -> ticket `desired` -> project `desired_program_model`
+   relationship.
    The diff should show semantic program changes, not integration-test
    scaffolding modeled as state-machine behavior.
-9. Run spec-double self-tests.
-10. Run adapter conformance tests.
-11. For ticketed desired/current work, write an append-only close record before
-    moving the active context forward.
-12. Continue until `specs/current` equals `specs/desired_program_model`, then
+11. Run spec-double self-tests.
+12. Run adapter conformance tests and relevant Test Graph validation.
+13. Mark the ticket closed and run `scripts/close-ticket.py <ticket-id>` to move
+    the ticket directory to history, replace project current with ticket
+    desired, and merge ticket-local Test Graph artifacts into project specs.
+14. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model`, write a workflow
     close record, and remove `specs/current` plus `specs/desired_program_model`
     once they no longer carry distinct planning state. Use
@@ -411,24 +451,27 @@ Use this loop for each slice:
 1. Update the desired program model with what was learned from the previous
    slice, including ticket breakdown, status metadata, validation commands, and
    done, in-progress, and pending boundaries.
-2. Update the current program model to include the whole program as currently
-   implemented, preserving baseline behavior from `specs/program_model` unless
-   production behavior changed.
-3. Add or update current adapters and unit tests first. These tests should
+2. Start the ticket workspace with `scripts/start_ticket.py <ticket-id>`.
+3. Update the ticket-local desired model first with the whole-program state
+   that should be true after the ticket.
+4. Update the ticket-local current model to include the whole program as
+   currently implemented for that ticket, preserving baseline behavior from the
+   project current unless production behavior changed.
+5. Add or update ticket-local adapters and unit tests first. These tests should
    validate the control surface, rendering, or refinement mapping without
    requiring the full integration graph unless that is the slice under test.
-4. Run TLC and the current adapter/unit tests.
-5. Add the behavior to the test graph with explicit external assertions. Do
+6. Run TLC and the ticket current adapter/unit tests.
+7. Add the behavior to the test graph with explicit external assertions. Do
    not rely only on a wrapper exit code when Helm, Kubernetes, databases,
    queues, files, or services are the actual boundary. Assert with the real
    external tool (`kubectl`, `helm`, SQL, Kafka admin, filesystem inspection,
    HTTP, etc.) and publish useful endpoint/context data for downstream nodes.
-6. Run the narrow graph for the slice.
-7. Mark the ticket closed in `specs/desired_program_model/ticket_plan.yaml`,
+8. Run the narrow graph for the slice.
+9. Mark the ticket closed in `specs/desired_program_model/ticket_plan.yaml`,
    record run ids and evidence paths, then close the ticket with
    `python scripts/close-ticket.py <ticket-id> --result <evidence-path>`.
-8. Sync the desired model metadata to mark the refined boundary as done.
-9. Commit the ticket close record, spec changes, and evidence together.
+10. Sync the desired model metadata to mark the refined boundary as done.
+11. Commit the ticket close record, spec changes, and evidence together.
 
 This loop keeps the desired model honest, the current model executable, and
 the behavioral graph anchored to externally observable facts.
@@ -445,9 +488,10 @@ The ticket source of truth is
 `specs/desired_program_model/ticket_plan.yaml`. Do not invent repository-level
 Markdown ticket files for this workflow.
 
-Per-ticket close:
+Per-ticket start and close:
 
 ```bash
+python scripts/start_ticket.py TICKET-123
 python scripts/close-ticket.py TICKET-123 --summary "Recorded ticket-level history" --result specs/results/adapter.txt
 ```
 
@@ -459,9 +503,20 @@ python scripts/close_tickets.py --repo-root . --summary "Promoted desired/curren
 
 Each entry includes a machine-readable `manifest.json`, a human-readable
 `summary.md`, snapshots of `program_model`, `desired_program_model`, and
-`current` when present, the ticket mapping from `ticket_plan.yaml`, and optional
-result evidence. The close command recommends a git commit because git is the
-durable mechanism for ordering append-only filesystem entries over time.
+project `current` when present, the moved ticket work directory, the ticket
+mapping from `ticket_plan.yaml`, and optional result evidence. The close command
+recommends a git commit because git is the durable mechanism for ordering
+append-only filesystem entries over time.
+
+The repository-level Test Graph contains `specWorkflow`, an end-to-end
+integration check for this lifecycle. It creates a disposable git repository in
+the graph build directory, runs the real scaffold/start/close commands, verifies
+promotion and history movement, and removes the temporary repo:
+
+```bash
+/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
+/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+```
 
 ## Generated Artifacts
 

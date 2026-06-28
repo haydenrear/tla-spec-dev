@@ -121,7 +121,22 @@ After each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`:
 
 ```bash
+python3 scripts/start_ticket.py TICKET-123
 python3 scripts/close-ticket.py TICKET-123 --summary "Kept generated cases spec-local" --result specs/results/tlc.txt
+```
+
+`start_ticket.py` creates `specs/tickets/TICKET-123/current` and `desired` for
+parallel ticket work. `close-ticket.py` moves that ticket directory into
+history, validates ticket `current/ == desired/`, replaces project
+`specs/current` with ticket `desired/`, and merges ticket-local Test Graph
+artifacts back into project specs.
+
+The parent repository also has a Test Graph that exercises this workflow in a
+disposable git repository under the graph build directory:
+
+```bash
+/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
+/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
 ```
 
 At the end of a desired/current workflow:
@@ -141,5 +156,6 @@ for the history directory.
 - `templates/`: Jinja templates for generated Python/TLA artifacts.
 - `examples/`: checked-in examples and generated artifacts.
 - `references/`: user-facing skill references.
+- `test_graph/`: parent repository Test Graph, including `specWorkflow` for the ticket workflow CLI.
 - `tests/`: unit tests for parsers, generators, runners, and workflow scripts.
 - `tickets/`: small roadmap/history notes for this skill implementation.

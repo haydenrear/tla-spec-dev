@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -16,8 +17,18 @@ from typing import Any
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
-IGNORED_COPY_NAMES = {".DS_Store", "__pycache__", ".history", ".tla-spec-evolution"}
+IGNORED_COPY_NAMES = {
+    ".DS_Store",
+    "__pycache__",
+    ".history",
+    ".tla-spec-evolution",
+    ".gradle",
+    ".pytest_cache",
+    "build",
+}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
+SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml", ".py", ".toml", ".json"}
+PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml", "ticket.yaml"}
 
 
 @dataclass(frozen=True)
@@ -126,6 +137,11 @@ def ticket_plan_path(specs_dir: Path) -> Path:
     return specs_dir / "desired_program_model" / "ticket_plan.yaml"
 
 
+def active_ticket_dir(specs_dir: Path, ticket_ref: str, ticket_root: Path = Path("tickets")) -> Path:
+    root = ticket_root if ticket_root.is_absolute() else specs_dir / ticket_root
+    return root / safe_segment(ticket_ref)
+
+
 def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
     path = ticket_plan_path(specs_dir)
     if not path.exists():
@@ -184,8 +200,12 @@ def history_root(specs_dir: Path, workflow: str) -> Path:
     return specs_dir / ".history" / safe_segment(workflow)
 
 
-def commit_recommendation(entry_dir: Path, message: str) -> HistoryEntryResult:
-    git_add_command = f"git add {rel(entry_dir)}"
+def commit_recommendation(entry_dir: Path, message: str, *, extra_paths: list[Path] | None = None) -> HistoryEntryResult:
+    paths = [entry_dir]
+    for path in extra_paths or []:
+        if path not in paths and path.exists():
+            paths.append(path)
+    git_add_command = "git add " + " ".join(shlex.quote(rel(path)) for path in paths)
     git_commit_command = f"git commit -m {message!r}"
     return HistoryEntryResult(
         entry_dir=entry_dir,
@@ -240,6 +260,114 @@ def snapshot_results(specs_dir: Path, entry_dir: Path, result_paths: list[Path])
     return records
 
 
+def semantic_yaml(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: semantic_yaml(inner)
+            for key, inner in value.items()
+            if key not in {"status", "notes", "promotion"} and key != "package"
+        }
+    if isinstance(value, list):
+        return [semantic_yaml(inner) for inner in value]
+    return value
+
+
+def semantic_files(root: Path) -> dict[Path, Path]:
+    return {
+        path.relative_to(root): path
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+        and path.suffix.lower() in SEMANTIC_SUFFIXES
+        and path.relative_to(root).as_posix() not in PLANNING_FILES
+    }
+
+
+def semantic_file_matches(left: Path, right: Path) -> bool:
+    if left.name == "spec_manifest.yaml" and right.name == "spec_manifest.yaml":
+        return semantic_yaml(_load_yaml(left)) == semantic_yaml(_load_yaml(right))
+    return left.read_bytes() == right.read_bytes()
+
+
+def validate_equivalent_model_dirs(left_dir: Path, right_dir: Path, *, left_label: str = "current", right_label: str = "desired") -> list[str]:
+    errors: list[str] = []
+    if not left_dir.exists():
+        errors.append(f"missing model directory: {left_dir}")
+    if not right_dir.exists():
+        errors.append(f"missing model directory: {right_dir}")
+    if errors:
+        return errors
+    left_files = semantic_files(left_dir)
+    right_files = semantic_files(right_dir)
+    if not left_files and not right_files:
+        errors.append("no semantic model files found to compare")
+        return errors
+    for relative in sorted(set(left_files) - set(right_files)):
+        errors.append(f"semantic file exists only in {left_label}: {relative}")
+    for relative in sorted(set(right_files) - set(left_files)):
+        errors.append(f"semantic file exists only in {right_label}: {relative}")
+    for relative in sorted(set(left_files) & set(right_files)):
+        if not semantic_file_matches(left_files[relative], right_files[relative]):
+            errors.append(f"semantic file differs: {relative}")
+    return errors
+
+
+def merge_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+    if not src.exists():
+        return []
+    copied: list[dict[str, Any]] = []
+    for source in sorted(path for path in src.rglob("*") if path.is_file()):
+        relative = source.relative_to(src)
+        if any(part in IGNORED_COPY_NAMES for part in relative.parts):
+            continue
+        destination = dst / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        copied.append(
+            {
+                "source": rel(source),
+                "destination": rel(destination),
+                "relative": relative.as_posix(),
+            }
+        )
+    return copied
+
+
+def replace_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+    if dst.exists():
+        shutil.rmtree(dst)
+    return merge_tree(src, dst)
+
+
+def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
+    merged = [
+        {
+            "role": "current",
+            "source": rel(active_dir / "desired"),
+            "destination": rel(specs_dir / "current"),
+            "operation": "replace",
+            "files": replace_tree(active_dir / "desired", specs_dir / "current"),
+        }
+    ]
+    for name in ("testgraph", "test_graph"):
+        source = active_dir / name
+        if source.exists():
+            merged.append(
+                {
+                    "role": name,
+                    "source": rel(source),
+                    "destination": rel(specs_dir / name),
+                    "operation": "merge",
+                    "files": merge_tree(source, specs_dir / name),
+                }
+            )
+    return {
+        "source": rel(active_dir),
+        "destination": rel(specs_dir),
+        "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+        "merged": merged,
+    }
+
+
 def create_ticket_history_entry(
     *,
     repo_root: Path,
@@ -250,14 +378,31 @@ def create_ticket_history_entry(
     workflow: str | None = None,
     entry_name: str | None = None,
     allow_open: bool = False,
+    ticket_root: Path = Path("tickets"),
+    promote_current: bool = True,
 ) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
     resolved_workflow = workflow_name(plan, workflow)
     index, ticket = find_ticket(plan, ticket_ref)
+    resolved_ticket_id = ticket_id(ticket, index)
     status = ticket_status(ticket)
     if not allow_open and status not in TICKET_CLOSED_STATUSES:
-        raise SystemExit(f"ERROR: ticket {ticket_id(ticket, index)} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
+        raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
+
+    active_dir = active_ticket_dir(specs_dir, resolved_ticket_id, ticket_root)
+    ticket_close_errors: list[str] = []
+    if active_dir.exists():
+        ticket_close_errors.extend(
+            validate_equivalent_model_dirs(
+                active_dir / "current",
+                active_dir / "desired",
+                left_label=f"{active_dir.name}/current",
+                right_label=f"{active_dir.name}/desired",
+            )
+        )
+    if ticket_close_errors:
+        raise SystemExit("ERROR: cannot close ticket-local workflow:\n" + "\n".join(f"- {error}" for error in ticket_close_errors))
 
     resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
     make_history_appendable(specs_dir, resolved_workflow)
@@ -266,9 +411,35 @@ def create_ticket_history_entry(
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
     entry_dir.mkdir(parents=True)
 
+    ticket_workdir_record: dict[str, Any] | None = None
+    promotion_record: dict[str, Any] | None = None
+    if active_dir.exists() and promote_current:
+        promotion_record = promote_ticket_outputs(active_dir, specs_dir)
+
     snapshots = snapshot_models(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
-    close_result = commit_recommendation(entry_dir, f"record spec history for {ticket_id(ticket, index)}")
+    if active_dir.exists():
+        ticket_history_dir = entry_dir / "ticket"
+        shutil.move(str(active_dir), str(ticket_history_dir))
+        ticket_workdir_record = {
+            "role": "ticket_workdir",
+            "source": rel(active_dir),
+            "snapshot": rel(ticket_history_dir),
+            "exists": True,
+            "moved": True,
+        }
+        snapshots.append(ticket_workdir_record)
+    promoted_paths: list[Path] = []
+    if promotion_record is not None:
+        promoted_paths = [specs_dir / "current"]
+        for name in ("testgraph", "test_graph"):
+            if (specs_dir / name).exists():
+                promoted_paths.append(specs_dir / name)
+    close_result = commit_recommendation(
+        entry_dir,
+        f"record spec history for {resolved_ticket_id}",
+        extra_paths=promoted_paths,
+    )
     manifest = {
         "schema_version": 1,
         "kind": "ticket",
@@ -278,12 +449,15 @@ def create_ticket_history_entry(
         "spec_root": rel(specs_dir),
         "ticket_plan": rel(ticket_plan_path(specs_dir)),
         "ticket_index": index,
-        "ticket_id": ticket_id(ticket, index),
+        "ticket_id": resolved_ticket_id,
         "ticket_status": status,
         "ticket": ticket,
         "summary": summary,
         "snapshots": snapshots,
         "results": results,
+        "active_ticket_dir": rel(active_dir),
+        "ticket_workdir": ticket_workdir_record,
+        "promotion": promotion_record,
         "commit_recommendation": {
             "message": close_result.recommendation,
             "git_add": close_result.git_add_command,
@@ -293,7 +467,7 @@ def create_ticket_history_entry(
         "git": git_metadata(),
     }
     write_manifest(entry_dir, manifest)
-    write_summary(entry_dir, title=f"Ticket snapshot: {ticket_id(ticket, index)}", summary=summary, manifest=manifest)
+    write_summary(entry_dir, title=f"Ticket snapshot: {resolved_ticket_id}", summary=summary, manifest=manifest)
     return close_result
 
 
