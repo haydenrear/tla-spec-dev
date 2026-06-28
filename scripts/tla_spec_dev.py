@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""Progressive CLI entrypoint for the spec-double-compiler workflow."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
+    tomllib = None  # type: ignore[assignment]
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_VERSION = "0.1.0"
+
+
+def skill_version() -> str:
+    manifest = ROOT / "skill-manager.toml"
+    if tomllib is None or not manifest.exists():
+        return DEFAULT_VERSION
+    try:
+        parsed = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    except Exception:
+        return DEFAULT_VERSION
+    skill = parsed.get("skill")
+    if not isinstance(skill, dict):
+        return DEFAULT_VERSION
+    version = skill.get("version")
+    return str(version) if version else DEFAULT_VERSION
+
+
+class TlaSpecDevParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: error: {message}\n\nRun '{self.prog} --help' to see the next supported workflow step.\n")
+
+
+def planned_command(args: argparse.Namespace) -> int:
+    print(
+        f"{args.command_path} is part of the modeled tla-spec-dev workflow, "
+        "but its execution is scheduled for a later implementation ticket.",
+        file=sys.stderr,
+    )
+    print(f"spec root: {args.spec_root}", file=sys.stderr)
+    print(f"next: {args.next_step}", file=sys.stderr)
+    return 2
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = TlaSpecDevParser(
+        prog="tla-spec-dev",
+        description="Work with a spec-double-compiler project through the modeled spec workflow.",
+        epilog=(
+            "Typical order: scaffold project -> scaffold workflow -> open ticket -> "
+            "run spec-unit-tests -> close ticket."
+        ),
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--spec-root",
+        default="specs",
+        help="Spec root under the repository. Defaults to %(default)s.",
+    )
+    parser.add_argument("--version", action="version", version=f"tla-spec-dev {skill_version()}")
+
+    subparsers = parser.add_subparsers(dest="command", metavar="command")
+
+    scaffold = subparsers.add_parser(
+        "scaffold",
+        help="Create spec workflow directories.",
+        description="Create the modeled spec-double-compiler project or ticket workflow directories.",
+        allow_abbrev=False,
+    )
+    scaffold_sub = scaffold.add_subparsers(dest="scaffold_target", metavar="target")
+    scaffold_project = scaffold_sub.add_parser(
+        "project",
+        help="Create the accepted program_model baseline.",
+        description="Create specs/program_model as the accepted whole-program semantic baseline.",
+        allow_abbrev=False,
+    )
+    scaffold_project.set_defaults(
+        func=planned_command,
+        command_path="tla-spec-dev scaffold project",
+        next_step="CLI-003 wires this command to scripts/onboard_program_model.py.",
+    )
+    scaffold_workflow = scaffold_sub.add_parser(
+        "workflow",
+        help="Create current and desired workflow directories.",
+        description="Create specs/current and specs/desired_program_model from an accepted baseline.",
+        allow_abbrev=False,
+    )
+    scaffold_workflow.set_defaults(
+        func=planned_command,
+        command_path="tla-spec-dev scaffold workflow",
+        next_step="CLI-003 wires this command to scripts/new_ticket_workflow.py.",
+    )
+
+    open_parser = subparsers.add_parser(
+        "open",
+        help="Open a ticket-local spec workflow.",
+        description="Open a ticket workspace with ticket-local current, desired, results, and Test Graph files.",
+        allow_abbrev=False,
+    )
+    open_sub = open_parser.add_subparsers(dest="open_target", metavar="target")
+    open_ticket = open_sub.add_parser(
+        "ticket",
+        help="Open a ticket by id or name.",
+        description="Open a ticket and print desired-first implementation instructions.",
+        allow_abbrev=False,
+    )
+    open_ticket.add_argument("ticket_name", nargs="?", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    open_ticket.set_defaults(
+        func=planned_command,
+        command_path="tla-spec-dev open ticket",
+        next_step="CLI-004 wires this command to scripts/start_ticket.py.",
+    )
+
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run spec workflow validations.",
+        description="Run generated or adapter-backed validations from the selected spec root.",
+        allow_abbrev=False,
+    )
+    run_sub = run_parser.add_subparsers(dest="run_target", metavar="target")
+    run_spec_units = run_sub.add_parser(
+        "spec-unit-tests",
+        help="Run generated spec-unit adapter tests.",
+        description="Run generated/adapted spec-unit tests for the selected spec root.",
+        allow_abbrev=False,
+    )
+    run_spec_units.set_defaults(
+        func=planned_command,
+        command_path="tla-spec-dev run spec-unit-tests",
+        next_step="CLI-005 wires this command to generated spec-unit validation.",
+    )
+
+    close_parser = subparsers.add_parser(
+        "close",
+        help="Close ticket or workflow history.",
+        description="Close a ticket once current equals desired and validations pass.",
+        allow_abbrev=False,
+    )
+    close_sub = close_parser.add_subparsers(dest="close_target", metavar="target")
+    close_ticket = close_sub.add_parser(
+        "ticket",
+        help="Close a ticket by id or name.",
+        description="Close a ticket, write append-only history, and promote ticket desired into project current.",
+        allow_abbrev=False,
+    )
+    close_ticket.add_argument("ticket_name", nargs="?", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    close_ticket.set_defaults(
+        func=planned_command,
+        command_path="tla-spec-dev close ticket",
+        next_step="CLI-004 wires this command to scripts/close_ticket.py.",
+    )
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    handler = getattr(args, "func", None)
+    if handler is None:
+        parser.print_help()
+        return 0
+    return int(handler(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,74 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "python scripts/close-ticket.py CLI-002",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "closed",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The CLI is installed by a skill script, not by an ad hoc shell alias.",
+        "The command exposes scaffold, open, run, and close subcommands through progressive help."
+      ],
+      "commands": [
+        "python -m py_compile scripts/*.py",
+        "tla-spec-dev --help"
+      ],
+      "evidence": [
+        "TLC passed for specs/tickets/CLI-002/current/TlaSpecDevCli.tla with a Python subprocess timeout.",
+        "CLI root tests and ticket-local adapter tests passed.",
+        "cliWorkflow Test Graph installed the CLI wrapper and invoked help/version externally."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "CLI build/install adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow CLI install node"
+      ],
+      "model_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli"
+      ],
+      "model_state": [
+        "cli_built",
+        "cli_installed"
+      ],
+      "unit_tests": [
+        "tla-spec-dev --help",
+        "tla-spec-dev --version"
+      ]
+    },
+    "depends_on": [
+      "CLI-001"
+    ],
+    "desired_actions": [
+      "BuildSkillCli",
+      "InstallLocalCli"
+    ],
+    "id": "CLI-002",
+    "implementation_scope": [
+      "skill-scripts/",
+      "skill-manager.toml",
+      "scripts/tla_spec_dev.py",
+      "tests/"
+    ],
+    "objective": "Provide a single tla-spec-dev Python command shipped by the skill and installable into the local environment by a skill script.",
+    "status": "closed",
+    "title": "Build and install the Python CLI entrypoint"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-002",
+  "ticket_id": "CLI-002",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}

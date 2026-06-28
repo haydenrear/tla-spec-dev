@@ -18,9 +18,9 @@ status:
       - InstallLocalCli
     validation:
       tlc:
-        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/current/TlaSpecDevCli.tla','specs/current/MC.cfg'], timeout=30, check=True)"
+        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/tickets/CLI-002/current/TlaSpecDevCli.tla','specs/tickets/CLI-002/current/MC.cfg'], timeout=30, check=True)"
       unit:
-        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/current/tests -q
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-002/current/tests -q
       graph:
         - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py cliWorkflow
         - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
@@ -33,9 +33,9 @@ status:
     - Keep --spec-root behavior consistent across all commands.
 
 source_model:
-  program_model_manifest: ../program_model/spec_manifest.yaml
-  program_model_module: ../program_model/TlaSpecDevCli.tla
-  desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
+  program_model_manifest: ../../../program_model/spec_manifest.yaml
+  program_model_module: ../../../program_model/TlaSpecDevCli.tla
+  desired_ticket_plan: ../../../desired_program_model/ticket_plan.yaml
 
 state:
   TlaSpecDevCliState:
