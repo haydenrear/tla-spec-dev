@@ -43,6 +43,12 @@ package: program_model_cases
 """,
         encoding="utf-8",
     )
+    onboarding_test = program_model / "tests" / "test_program_model_onboarding.py"
+    onboarding_test.parent.mkdir()
+    onboarding_test.write_text(
+        "def test_onboarding_only():\n    assert False, 'must not be copied into ticket workflow models'\n",
+        encoding="utf-8",
+    )
     return program_model
 
 
@@ -63,6 +69,8 @@ def test_scaffold_ticket_workflow_creates_current_and_desired_models(tmp_path: P
     assert "not only migrations" in ticket_plan
     assert (tmp_path / "specs/current/ProgramModel.tla").exists()
     assert (tmp_path / "specs/desired_program_model/ProgramModel.tla").exists()
+    assert not (tmp_path / "specs/current/tests/test_program_model_onboarding.py").exists()
+    assert not (tmp_path / "specs/desired_program_model/tests/test_program_model_onboarding.py").exists()
 
 
 def test_scaffold_ticket_workflow_uses_custom_spec_root_and_copies_baseline_files(tmp_path: Path) -> None:

@@ -99,6 +99,8 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
     assert (tmp_path / "project_specs/program_model/CliProject.tla").exists()
     assert (tmp_path / "project_specs/current/CliProject.tla").exists()
     assert (tmp_path / "project_specs/desired_program_model/CliProject.tla").exists()
+    assert not (tmp_path / "project_specs/current/tests/test_program_model_onboarding.py").exists()
+    assert not (tmp_path / "project_specs/desired_program_model/tests/test_program_model_onboarding.py").exists()
     assert "CLI-123" in (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").read_text(encoding="utf-8")
 
 

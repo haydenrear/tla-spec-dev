@@ -28,6 +28,7 @@ TICKET_COPY_IGNORE = {
     "build",
 }
 PROJECT_WORKFLOW_TEST = "tests/test_current_ticket_workflow.py"
+PROGRAM_MODEL_ONBOARDING_TEST = "tests/test_program_model_onboarding.py"
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -171,7 +172,7 @@ def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bo
     copied: list[Path] = []
     for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
         relative = src.relative_to(src_dir)
-        if relative.as_posix() in {"README.md", "spec_manifest.yaml"}:
+        if relative.as_posix() in {"README.md", "spec_manifest.yaml", PROGRAM_MODEL_ONBOARDING_TEST}:
             continue
         dst = dst_dir / relative
         if dst.exists() and not force:
