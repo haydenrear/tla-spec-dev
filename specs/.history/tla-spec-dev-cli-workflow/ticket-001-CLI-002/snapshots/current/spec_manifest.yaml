@@ -1,0 +1,142 @@
+module: TlaSpecDevCli
+package: current_program_cases
+
+status:
+  workflow: ticket
+  active_ticket: CLI-002
+  active_ticket_title: "Build and install the Python CLI entrypoint"
+  relation_to_program_model: implemented_cli_entrypoint_slice
+  relation_to_desired_program_model: completed_prefix_through_cli_002
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  updated: null
+  current_slice:
+    name: cli-entrypoint-install
+    status: implemented
+    summary: "The skill now ships an installable tla-spec-dev Python entrypoint with progressive help."
+    implemented_actions:
+      - BuildSkillCli
+      - InstallLocalCli
+    validation:
+      tlc:
+        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/tickets/CLI-002/current/TlaSpecDevCli.tla','specs/tickets/CLI-002/current/MC.cfg'], timeout=30, check=True)"
+      unit:
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-002/current/tests -q
+      graph:
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py cliWorkflow
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
+      evidence:
+        - "CLI help and version are tested through root Python tests."
+        - "Ticket-local adapters install and invoke the wrapper."
+        - "Test Graph cliWorkflow installs the CLI and invokes external help/version commands."
+  next:
+    - CLI-003 wires scaffold project/workflow execution to the existing scaffold scripts.
+    - Keep --spec-root behavior consistent across all commands.
+
+source_model:
+  program_model_manifest: ../../../program_model/spec_manifest.yaml
+  program_model_module: ../../../program_model/TlaSpecDevCli.tla
+  desired_ticket_plan: ../../../desired_program_model/ticket_plan.yaml
+
+state:
+  TlaSpecDevCliState:
+    fields:
+      cli_built:
+        type: bool
+        tla: cli_built
+      cli_installed:
+        type: bool
+        tla: cli_installed
+      spec_root:
+        type: SpecRoot
+        tla: spec_root
+      project_scaffolded:
+        type: bool
+        tla: project_scaffolded
+      workflow_scaffolded:
+        type: bool
+        tla: workflow_scaffolded
+      active_tickets:
+        type: frozenset[TicketId]
+        tla: active_tickets
+      desired_ready:
+        type: dict[TicketId, bool]
+        tla: desired_ready
+      current_ready:
+        type: dict[TicketId, bool]
+        tla: current_ready
+      spec_unit_tests_passed:
+        type: dict[TicketId, bool]
+        tla: spec_unit_tests_passed
+      closed_tickets:
+        type: frozenset[TicketId]
+        tla: closed_tickets
+      last_command:
+        type: str
+        tla: lastCommand
+
+actions:
+  - BuildSkillCli
+  - InstallLocalCli
+  - ScaffoldProject
+  - ScaffoldWorkflow
+  - OpenTicket
+  - UpdateTicketDesired
+  - UpdateTicketCurrent
+  - RunSpecUnitTests
+  - CloseTicket
+
+commands:
+  build_skill_cli:
+    cli: skill-script:tla-spec-dev creates the local wrapper
+    action: BuildSkillCli
+    adapter: BuildSkillCliAdapter
+  install_local_cli:
+    cli: tla-spec-dev --help
+    action: InstallLocalCli
+    adapter: InstallLocalCliAdapter
+  scaffold_project:
+    cli: tla-spec-dev --spec-root <root> scaffold project
+    action: ScaffoldProject
+    status: help_surface_only_until_CLI_003
+  scaffold_workflow:
+    cli: tla-spec-dev --spec-root <root> scaffold workflow
+    action: ScaffoldWorkflow
+    status: help_surface_only_until_CLI_003
+  open_ticket:
+    cli: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+    action: OpenTicket
+    status: help_surface_only_until_CLI_004
+  run_spec_unit_tests:
+    cli: tla-spec-dev --spec-root <root> run spec-unit-tests
+    action: RunSpecUnitTests
+    status: help_surface_only_until_CLI_005
+  close_ticket:
+    cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+    action: CloseTicket
+    status: help_surface_only_until_CLI_004
+
+ports:
+  TlaSpecDevCliPort:
+    role: production_adapter_surface
+    commands:
+      - BuildSkillCli
+      - InstallLocalCli
+
+invariants:
+  - TypeInvariant
+  - CliInstalledRequiresBuilt
+  - WorkflowRequiresProject
+  - ProjectChoosesKnownSpecRoot
+  - NoOpenClosedOverlap
+  - CurrentRequiresDesired
+  - SpecUnitTestsRequireCurrent
+  - ClosedTicketsPassedSpecUnitTests
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  progressive_disclosure: "CLI-002 intentionally exposes help for later commands before wiring their execution."

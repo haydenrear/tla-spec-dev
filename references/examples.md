@@ -73,5 +73,6 @@ active desired overlays `DesiredCore.tla`, `DesiredInternal.tla`, and
 `DesiredExternal.tla`. The accepted `program_model` should not retain those
 desired overlays after workflow closeout.
 
-For production onboarding, use `scripts/onboard_program_model.py` so only the
-accepted `specs/program_model` baseline is created.
+For production onboarding, use
+`tla-spec-dev --spec-root specs scaffold project --name ProjectName` so only
+the accepted `specs/program_model` baseline is created.

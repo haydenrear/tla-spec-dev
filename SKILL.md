@@ -171,16 +171,17 @@ future state and it is not a ticket plan.
 To onboard an existing repository for the first time, use:
 
 ```bash
-python path/to/tla-spec-dev/scripts/onboard_program_model.py --repo-root .
+tla-spec-dev --spec-root specs scaffold project --name ProjectName
 ```
 
 Use `--name SkillManager` or another explicit module name when the repository
-directory name is not the desired TLA+ module name. Use `--spec-root` when the
-repository keeps specs somewhere other than `specs`.
+directory name is not the desired TLA+ module name. Use the same `--spec-root`
+on every `tla-spec-dev` command when the repository keeps specs somewhere other
+than `specs`.
 
 After `specs/program_model` exists, later behavior tickets may use
-`new_ticket_workflow.py` to create `specs/current` and
-`specs/desired_program_model` from that accepted baseline.
+`tla-spec-dev --spec-root specs scaffold workflow` to create `specs/current`
+and `specs/desired_program_model` from that accepted baseline.
 
 Use `specs/current` and `specs/desired_program_model` only while planning and
 executing active ticketed behavior changes. They are not first-onboarding
@@ -230,9 +231,9 @@ Lifecycle:
    dependencies, status metadata, acceptance criteria, and validation evidence
    expected for each slice.
 3. Start each implementation ticket from the plan with
-   `scripts/start_ticket.py <ticket-id>`. This copies project `current/` into
-   `specs/tickets/<ticket-id>/current` and `desired`, plus ticket-local results
-   and Test Graph assets.
+   `tla-spec-dev --spec-root specs open ticket <ticket-id>`. This copies project
+   `current/` into `specs/tickets/<ticket-id>/current` and `desired`, plus
+   ticket-local results and Test Graph assets.
 4. Edit the ticket-local `desired/` first. It should describe the
    whole-program ending state after that ticket, including TLA+, configs,
    spec-unit adapters/tests, and Test Graph bindings/adapters when applicable.
@@ -240,16 +241,19 @@ Lifecycle:
    to the behavior that actually landed.
 6. Run TLC, generated/adapted case tests, and relevant Test Graph runs from the
    ticket directory. Keep evidence under the ticket `results/` directory or pass
-   it to close commands.
+   it to close commands. Use
+   `tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>` for
+   spec-unit validation through the shipped CLI.
 7. Keep `specs/desired_program_model` updated as the plan changes. If a ticket
    splits, merges, changes order, gains a dependency, or changes acceptance
    criteria, record that there instead of leaving the plan in chat or ad hoc
    notes.
 8. When ticket-local `current/` semantically equals ticket-local `desired/`,
    mark the ticket closed in the global `ticket_plan.yaml` and run
-   `scripts/close-ticket.py <ticket-id>`. The close moves the ticket directory
-   into history, replaces project `specs/current` with ticket `desired/`, and
-   merges ticket-local Test Graph artifacts into project specs.
+   `tla-spec-dev --spec-root specs close ticket <ticket-id>`. The close moves
+   the ticket directory into history, replaces project `specs/current` with
+   ticket `desired/`, and merges ticket-local Test Graph artifacts into project
+   specs.
 9. Repeat until `specs/current` semantically equals
    `specs/desired_program_model`.
 10. Promote the converged model into `specs/program_model`, regenerate accepted
@@ -272,7 +276,7 @@ To start this ticket structure in a repository that already has
 `specs/program_model`, use:
 
 ```bash
-python path/to/tla-spec-dev/scripts/new_ticket_workflow.py TICKET-123 "Ticket title" --repo-root .
+tla-spec-dev --spec-root specs scaffold workflow TICKET-123 "Ticket title"
 ```
 
 The scaffold resolves all workflow directories under `--spec-root`, which
@@ -286,7 +290,7 @@ ticket is refined. Do not use this for first project onboarding.
 To start work on a planned ticket, scaffold its ticket-local workspace:
 
 ```bash
-python path/to/tla-spec-dev/scripts/start_ticket.py TICKET-123 --repo-root .
+tla-spec-dev --spec-root specs open ticket TICKET-123
 ```
 
 This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and
@@ -295,7 +299,7 @@ ticket ending state, then update `current/` as implementation lands. Work there
 until local `current == desired`, then close the ticket:
 
 ```bash
-python path/to/tla-spec-dev/scripts/close-ticket.py TICKET-123 --repo-root .
+tla-spec-dev --spec-root specs close ticket TICKET-123
 ```
 
 The close command validates ticket-local `current == desired`, replaces
@@ -364,18 +368,20 @@ generation and TLC state-graph case generation. Read
 ## Standard Workflow
 
 0. For first onboarding of a repository with no accepted model, create
-   `specs/program_model` with `scripts/onboard_program_model.py`. Do not create
-   `specs/current`, `specs/desired_program_model`, or `ticket_plan.yaml` during
-   first onboarding.
+   `specs/program_model` with
+   `tla-spec-dev --spec-root specs scaffold project --name ProjectName`. Do not
+   create `specs/current`, `specs/desired_program_model`, or `ticket_plan.yaml`
+   during first onboarding.
 1. For later behavior changes, create or refresh `specs/desired_program_model` with
    both the target model and the implementation plan: ticket breakdown, steps,
    dependencies, status metadata, acceptance criteria, and validation commands.
-   Use `scripts/new_ticket_workflow.py` when the repository does not have this
-   ticket workflow structure yet but already has `specs/program_model`.
+   Use `tla-spec-dev --spec-root specs scaffold workflow TICKET-123 "Ticket title"`
+   when the repository does not have this ticket workflow structure yet but
+   already has `specs/program_model`.
 2. Ensure `specs/current` starts from the entire accepted
    `specs/program_model`, not only the behavior being changed.
-3. For each ticket, run `scripts/start_ticket.py <ticket-id>` to create
-   `specs/tickets/<ticket-id>/current` and `desired`.
+3. For each ticket, run `tla-spec-dev --spec-root specs open ticket <ticket-id>`
+   to create `specs/tickets/<ticket-id>/current` and `desired`.
 4. Update ticket-local `desired/` first so it shows the whole-program ending
    state after the ticket, including spec adapters/tests and Test Graph assets
    when applicable.
@@ -394,9 +400,10 @@ generation and TLC state-graph case generation. Read
    scaffolding modeled as state-machine behavior.
 11. Run spec-double self-tests.
 12. Run adapter conformance tests and relevant Test Graph validation.
-13. Mark the ticket closed and run `scripts/close-ticket.py <ticket-id>` to move
-    the ticket directory to history, replace project current with ticket
-    desired, and merge ticket-local Test Graph artifacts into project specs.
+13. Mark the ticket closed and run
+    `tla-spec-dev --spec-root specs close ticket <ticket-id>` to move the ticket
+    directory to history, replace project current with ticket desired, and merge
+    ticket-local Test Graph artifacts into project specs.
 14. Continue until `specs/current` equals `specs/desired_program_model`, then
     promote the converged model to `specs/program_model`, write a workflow
     close record, and remove `specs/current` plus `specs/desired_program_model`
@@ -451,7 +458,8 @@ Use this loop for each slice:
 1. Update the desired program model with what was learned from the previous
    slice, including ticket breakdown, status metadata, validation commands, and
    done, in-progress, and pending boundaries.
-2. Start the ticket workspace with `scripts/start_ticket.py <ticket-id>`.
+2. Start the ticket workspace with
+   `tla-spec-dev --spec-root specs open ticket <ticket-id>`.
 3. Update the ticket-local desired model first with the whole-program state
    that should be true after the ticket.
 4. Update the ticket-local current model to include the whole program as
@@ -469,7 +477,7 @@ Use this loop for each slice:
 8. Run the narrow graph for the slice.
 9. Mark the ticket closed in `specs/desired_program_model/ticket_plan.yaml`,
    record run ids and evidence paths, then close the ticket with
-   `python scripts/close-ticket.py <ticket-id> --result <evidence-path>`.
+   `tla-spec-dev --spec-root specs close ticket <ticket-id> --result <evidence-path>`.
 10. Sync the desired model metadata to mark the refined boundary as done.
 11. Commit the ticket close record, spec changes, and evidence together.
 
@@ -491,8 +499,8 @@ Markdown ticket files for this workflow.
 Per-ticket start and close:
 
 ```bash
-python scripts/start_ticket.py TICKET-123
-python scripts/close-ticket.py TICKET-123 --summary "Recorded ticket-level history" --result specs/results/adapter.txt
+tla-spec-dev --spec-root specs open ticket TICKET-123
+tla-spec-dev --spec-root specs close ticket TICKET-123 --summary "Recorded ticket-level history" --result specs/results/adapter.txt
 ```
 
 Whole-workflow close:
@@ -510,8 +518,9 @@ append-only filesystem entries over time.
 
 The repository-level Test Graph contains `specWorkflow`, an end-to-end
 integration check for this lifecycle. It creates a disposable git repository in
-the graph build directory, runs the real scaffold/start/close commands, verifies
-promotion and history movement, and removes the temporary repo:
+the graph build directory, runs the real `tla-spec-dev` scaffold/open/run/close
+commands, verifies promotion and history movement, and removes the temporary
+repo:
 
 ```bash
 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow

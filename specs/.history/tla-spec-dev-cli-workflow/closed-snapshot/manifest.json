@@ -1,0 +1,475 @@
+{
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/closed-snapshot",
+    "git_commit": "git commit -m 'close spec ticket workflow'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/closed-snapshot"
+  },
+  "created_at_utc": "2026-06-28T23:13:55.966564+00:00",
+  "entry_name": "closed-snapshot",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "7dbfff7",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "workflow-close",
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/closed-snapshot/results/workflow-close-validation.txt",
+      "source": "specs/results/workflow-close-validation.txt"
+    }
+  ],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/closed-snapshot/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/closed-snapshot/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/closed-snapshot/snapshots/current",
+      "source": "specs/current"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Promoted desired/current into program_model after shipping the tla-spec-dev CLI workflow.",
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "tickets": [
+    {
+      "acceptance": {
+        "assertions": [
+          "The desired CLI command workflow is represented in TLA+.",
+          "Tickets cover CLI build, install, command behavior, validation, and documentation."
+        ],
+        "commands": [
+          "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg",
+          "uv run --with pytest -m pytest tests -q"
+        ],
+        "evidence": [
+          "TLC passed for specs/program_model/TlaSpecDevCli.tla with 917 distinct states.",
+          "TLC passed for specs/current/TlaSpecDevCli.tla with 917 distinct states.",
+          "TLC passed for specs/desired_program_model/TlaSpecDevCli.tla with 917 distinct states.",
+          "Repo tests passed: uv run --with pytest -m pytest tests -q.",
+          "specWorkflow Test Graph passed before opening CLI-002."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "specs/program_model/production_adapters.py"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow"
+        ],
+        "model_actions": [
+          "BuildSkillCli",
+          "InstallLocalCli",
+          "ScaffoldProject",
+          "ScaffoldWorkflow",
+          "OpenTicket",
+          "RunSpecUnitTests",
+          "CloseTicket"
+        ],
+        "model_state": [
+          "cli_built",
+          "cli_installed",
+          "spec_root",
+          "active_tickets",
+          "desired_ready",
+          "current_ready",
+          "spec_unit_tests_passed"
+        ],
+        "unit_tests": [
+          "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg"
+        ]
+      },
+      "depends_on": [],
+      "desired_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli",
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "UpdateTicketDesired",
+        "UpdateTicketCurrent",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "id": "CLI-001",
+      "implementation_scope": [
+        "specs/program_model/TlaSpecDevCli.tla",
+        "specs/program_model/MC.cfg",
+        "specs/program_model/spec_manifest.yaml",
+        "specs/desired_program_model/ticket_plan.yaml",
+        "specs/desired_program_model/desired_state.yaml"
+      ],
+      "objective": "Keep the TlaSpecDevCli TLA+ diagram, manifest, desired/current workflow, and ticket plan ready before implementation begins.",
+      "status": "closed",
+      "title": "Model shipped CLI workflow"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The CLI is installed by a skill script, not by an ad hoc shell alias.",
+          "The command exposes scaffold, open, run, and close subcommands through progressive help."
+        ],
+        "commands": [
+          "python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py test_graph/sources/*.py",
+          "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-002/current/tests -q",
+          "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow"
+        ],
+        "evidence": [
+          "scripts/tla_spec_dev.py exposes --spec-root, --version, scaffold/open/run/close help, and planned-command guidance.",
+          "skill-scripts/install-tla-spec-dev.sh installs a tla-spec-dev wrapper into SKILL_MANAGER_BIN_DIR.",
+          "tests/test_tla_spec_dev_cli.py passed.",
+          "Ticket-local BuildSkillCli and InstallLocalCli adapters passed.",
+          "cliWorkflow Test Graph passed and invoked the installed CLI externally."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "CLI build/install adapter"
+        ],
+        "graph_after_unit_pass": [
+          "cliWorkflow"
+        ],
+        "model_actions": [
+          "BuildSkillCli",
+          "InstallLocalCli"
+        ],
+        "model_state": [
+          "cli_built",
+          "cli_installed"
+        ],
+        "unit_tests": [
+          "tla-spec-dev --help",
+          "tla-spec-dev --version"
+        ]
+      },
+      "depends_on": [
+        "CLI-001"
+      ],
+      "desired_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli"
+      ],
+      "id": "CLI-002",
+      "implementation_scope": [
+        "skill-scripts/",
+        "skill-manager.toml",
+        "scripts/tla_spec_dev.py",
+        "tests/",
+        "test_graph/"
+      ],
+      "objective": "Provide a single tla-spec-dev Python command shipped by the skill and installable into the local environment by a skill script.",
+      "status": "closed",
+      "title": "Build and install the Python CLI entrypoint"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "scaffold project creates only program_model.",
+          "scaffold workflow requires program_model and creates current plus desired_program_model.",
+          "--spec-root is honored for both commands.",
+          "specWorkflow uses tla-spec-dev for project/workflow scaffolding instead of new_ticket_workflow.py."
+        ],
+        "commands": [
+          "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-003/current/tests tests/test_onboard_program_model.py tests/test_new_ticket_workflow.py -q",
+          "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all"
+        ],
+        "evidence": [
+          "tla-spec-dev scaffold project and scaffold workflow execute through scripts/tla_spec_dev.py.",
+          "Parent commands scaffold/open/run/close now fail with next-step guidance when incomplete.",
+          "Ticket-local ScaffoldProject and ScaffoldWorkflow adapters passed against a temporary repository.",
+          "specWorkflow now invokes the installed CLI for project/workflow scaffolding.",
+          "test_graph run --all passed with specWorkflow-20260628-195434-ab659e90 and cliWorkflow-20260628-195436-5c284871."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "CLI scaffold adapter"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow scaffold CLI nodes"
+        ],
+        "model_actions": [
+          "ScaffoldProject",
+          "ScaffoldWorkflow"
+        ],
+        "model_state": [
+          "project_scaffolded",
+          "workflow_scaffolded",
+          "spec_root"
+        ],
+        "unit_tests": [
+          "tla-spec-dev --spec-root custom_specs scaffold project",
+          "tla-spec-dev --spec-root custom_specs scaffold workflow"
+        ]
+      },
+      "depends_on": [
+        "CLI-002"
+      ],
+      "desired_actions": [
+        "ScaffoldProject",
+        "ScaffoldWorkflow"
+      ],
+      "id": "CLI-003",
+      "implementation_scope": [
+        "scripts/tla_spec_dev.py",
+        "scripts/onboard_program_model.py",
+        "scripts/new_ticket_workflow.py",
+        "tests/",
+        "test_graph/"
+      ],
+      "objective": "Wrap project onboarding and desired/current workflow scaffolding behind tla-spec-dev scaffold project and tla-spec-dev scaffold workflow.",
+      "status": "closed",
+      "title": "Implement scaffold project and scaffold workflow"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "open ticket prints desired-first instructions.",
+          "close ticket replaces project current with ticket desired and merges Test Graph artifacts.",
+          "close ticket recommendation includes history and promoted spec paths.",
+          "specWorkflow uses tla-spec-dev open ticket and close ticket instead of start_ticket.py and close_ticket.py."
+        ],
+        "commands": [
+          "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-004/current/tests tests/test_new_ticket_workflow.py -q",
+          "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all"
+        ],
+        "evidence": [
+          "tla-spec-dev open ticket scaffolds ticket-local current, desired, results, and Test Graph workspace from the selected spec root.",
+          "tla-spec-dev close ticket validates ticket current == desired, promotes ticket desired into project current, merges ticket Test Graph artifacts, and writes history.",
+          "Ticket-local OpenTicket and CloseTicket adapters passed against temporary repositories.",
+          "specWorkflow now invokes the installed CLI for project, workflow, open, and close ticket commands.",
+          "test_graph run --all passed with specWorkflow-20260628-200737-5681629f and cliWorkflow-20260628-200739-2ecc560b."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "CLI ticket lifecycle adapter"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow ticket CLI nodes"
+        ],
+        "model_actions": [
+          "OpenTicket",
+          "CloseTicket"
+        ],
+        "model_state": [
+          "active_tickets",
+          "desired_ready",
+          "current_ready",
+          "closed_tickets"
+        ],
+        "unit_tests": [
+          "tla-spec-dev --spec-root specs open ticket CLI-001",
+          "tla-spec-dev --spec-root specs close ticket CLI-001"
+        ]
+      },
+      "depends_on": [
+        "CLI-003"
+      ],
+      "desired_actions": [
+        "OpenTicket",
+        "UpdateTicketDesired",
+        "UpdateTicketCurrent",
+        "CloseTicket"
+      ],
+      "id": "CLI-004",
+      "implementation_scope": [
+        "scripts/tla_spec_dev.py",
+        "scripts/start_ticket.py",
+        "scripts/close_ticket.py",
+        "scripts/spec_evolution.py",
+        "tests/",
+        "test_graph/"
+      ],
+      "objective": "Expose desired-first ticket workflow through tla-spec-dev open ticket and close ticket commands.",
+      "status": "closed",
+      "title": "Implement open and close ticket commands"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The command runs generated/adapted spec-unit tests from the chosen spec root.",
+          "Failures report missing adapters or failing cases with actionable paths.",
+          "Spec tests and Test Graph nodes use tla-spec-dev run spec-unit-tests instead of direct validation scripts where the CLI command exists."
+        ],
+        "commands": [
+          "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-005/current/tests tests/test_generate_cases_from_tlc_dump.py tests/test_case_adapter_runtime.py -q",
+          "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow",
+          "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
+        ],
+        "evidence": [
+          "tla-spec-dev run spec-unit-tests runs project current tests, active ticket current tests, and generated spec-unit case adapters from the selected spec root.",
+          "The command defaults to batched generated-case execution so adapter setup_all/setup/teardown/teardown_all hooks run by adapter kind.",
+          "Ticket-local RunSpecUnitTests adapter passed against a temporary repository.",
+          "specWorkflow now includes spec.workflow.spec_units before close and invokes the installed CLI for spec-unit validation.",
+          "specWorkflow passed with run id specWorkflow-20260628-204218-43c13bd5."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "CLI spec-unit test adapter"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow spec-unit CLI node"
+        ],
+        "model_actions": [
+          "RunSpecUnitTests"
+        ],
+        "model_state": [
+          "spec_unit_tests_passed"
+        ],
+        "unit_tests": [
+          "tla-spec-dev --spec-root specs run spec-unit-tests"
+        ]
+      },
+      "depends_on": [
+        "CLI-004"
+      ],
+      "desired_actions": [
+        "RunSpecUnitTests"
+      ],
+      "id": "CLI-005",
+      "implementation_scope": [
+        "scripts/tla_spec_dev.py",
+        "scripts/run_generated_case_adapters.py",
+        "scripts/generate_cases_from_tlc_dump.py",
+        "tests/",
+        "test_graph/"
+      ],
+      "objective": "Expose spec-unit validation through tla-spec-dev run spec-unit-tests using the selected spec root.",
+      "status": "closed",
+      "title": "Implement run spec-unit-tests"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "The graph uses tla-spec-dev commands rather than only lower-level Python scripts.",
+          "The disposable git repository is removed even when a downstream node fails after allocation."
+        ],
+        "commands": [
+          "python /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
+        ],
+        "evidence": [
+          "specWorkflow now has eight steps and includes spec.workflow.failure_cleanup_probe before spec.workflow.cleanup.",
+          "spec.workflow.failure_cleanup_probe runs a temporary intentionally failing graph and asserts the nested cleanup finalizer removed its fixture repo.",
+          "specWorkflow passed with run id specWorkflow-20260628-205715-36ce11c9.",
+          "Ticket-local TestGraphCliAdapter validates the graph composition and failure-cleanup probe artifacts.",
+          "TLC passed for specs/tickets/CLI-006/current/TlaSpecDevCli.tla with 917 distinct states.",
+          "tla-spec-dev --spec-root specs run spec-unit-tests --ticket CLI-006 passed.",
+          "Repo/current tests passed separately from ticket tests to avoid duplicate pytest module basenames."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "Test Graph CLI adapter"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow"
+        ],
+        "model_actions": [
+          "RunSpecUnitTests",
+          "CloseTicket"
+        ],
+        "model_state": [
+          "cli_installed",
+          "spec_unit_tests_passed",
+          "closed_tickets"
+        ],
+        "unit_tests": [
+          "python /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow"
+        ]
+      },
+      "depends_on": [
+        "CLI-005"
+      ],
+      "desired_actions": [
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "id": "CLI-006",
+      "implementation_scope": [
+        "test_graph/build.gradle.kts",
+        "test_graph/sources/",
+        "test_graph/README.md"
+      ],
+      "objective": "Extend the parent specWorkflow graph so it invokes the final tla-spec-dev CLI against a disposable git repository.",
+      "status": "closed",
+      "title": "Validate CLI with Test Graph"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Docs introduce the CLI first and route to lower-level scripts only as implementation detail.",
+          "Docs preserve the desired-first ticket workflow and spec-root rule."
+        ],
+        "commands": [
+          "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references test_graph/README.md"
+        ],
+        "evidence": [
+          "README.md, SKILL.md, references, and test_graph/README.md now show the tla-spec-dev CLI before lower-level scripts.",
+          "references/spec_evolution.md now opens tickets through tla-spec-dev --spec-root specs open ticket.",
+          "test_graph/README.md documents specWorkflow with explicit --spec-root commands for scaffold, open, run, and close."
+        ]
+      },
+      "current_increment": {
+        "adapters": [
+          "documentation examples"
+        ],
+        "graph_after_unit_pass": [
+          "specWorkflow"
+        ],
+        "model_actions": [
+          "ScaffoldProject",
+          "ScaffoldWorkflow",
+          "OpenTicket",
+          "RunSpecUnitTests",
+          "CloseTicket"
+        ],
+        "model_state": [
+          "lastCommand"
+        ],
+        "unit_tests": [
+          "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references"
+        ]
+      },
+      "depends_on": [
+        "CLI-006"
+      ],
+      "desired_actions": [
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "id": "CLI-007",
+      "implementation_scope": [
+        "SKILL.md",
+        "README.md",
+        "references/",
+        "test_graph/README.md"
+      ],
+      "objective": "Update SKILL.md, references, and README so users can onboard to the single CLI without reading implementation scripts first.",
+      "status": "closed",
+      "title": "Document progressive-disclosure CLI onboarding"
+    }
+  ],
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

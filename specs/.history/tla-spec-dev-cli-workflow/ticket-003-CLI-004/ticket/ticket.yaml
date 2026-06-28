@@ -1,0 +1,76 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CLI-004",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "closed",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "open ticket prints desired-first instructions.",
+        "close ticket replaces project current with ticket desired and merges Test Graph artifacts.",
+        "close ticket recommendation includes history and promoted spec paths.",
+        "specWorkflow uses tla-spec-dev open ticket and close ticket instead of start_ticket.py and close_ticket.py."
+      ],
+      "commands": [
+        "uv run --with pytest -m pytest tests/test_new_ticket_workflow.py -q"
+      ],
+      "evidence": []
+    },
+    "current_increment": {
+      "adapters": [
+        "CLI ticket lifecycle adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow ticket CLI nodes"
+      ],
+      "model_actions": [
+        "OpenTicket",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "active_tickets",
+        "desired_ready",
+        "current_ready",
+        "closed_tickets"
+      ],
+      "unit_tests": [
+        "tla-spec-dev --spec-root specs open ticket CLI-001",
+        "tla-spec-dev --spec-root specs close ticket CLI-001"
+      ]
+    },
+    "depends_on": [
+      "CLI-003"
+    ],
+    "desired_actions": [
+      "OpenTicket",
+      "UpdateTicketDesired",
+      "UpdateTicketCurrent",
+      "CloseTicket"
+    ],
+    "id": "CLI-004",
+    "implementation_scope": [
+      "scripts/tla_spec_dev.py",
+      "scripts/start_ticket.py",
+      "scripts/close_ticket.py",
+      "scripts/spec_evolution.py",
+      "tests/"
+    ],
+    "objective": "Expose desired-first ticket workflow through tla-spec-dev open ticket and close ticket commands.",
+    "status": "closed",
+    "title": "Implement open and close ticket commands"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-004",
+  "ticket_id": "CLI-004",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}

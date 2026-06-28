@@ -1,0 +1,187 @@
+{
+  "active_ticket_dir": "specs/tickets/CLI-002",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002 specs/current",
+    "git_commit": "git commit -m 'record spec history for CLI-002'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002"
+  },
+  "created_at_utc": "2026-06-28T19:19:10.464040+00:00",
+  "entry_name": "ticket-001-CLI-002",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "178e0a2",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CLI-002/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CLI-002/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CLI-002/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CLI-002/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CLI-002/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CLI-002/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CLI-002/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          }
+        ],
+        "operation": "replace",
+        "role": "current",
+        "source": "specs/tickets/CLI-002/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CLI-002"
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/results/tlc.txt",
+      "source": "specs/tickets/CLI-002/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/results/unit.txt",
+      "source": "specs/tickets/CLI-002/results/unit.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/results/testgraph-cliWorkflow.txt",
+      "source": "specs/tickets/CLI-002/results/testgraph-cliWorkflow.txt"
+    }
+  ],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/ticket",
+      "source": "specs/tickets/CLI-002"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Implemented the installable tla-spec-dev CLI entrypoint, skill-script installer, progressive help surface, ticket-local adapters, and cliWorkflow Test Graph coverage.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The CLI is installed by a skill script, not by an ad hoc shell alias.",
+        "The command exposes scaffold, open, run, and close subcommands through progressive help."
+      ],
+      "commands": [
+        "python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py test_graph/sources/*.py",
+        "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-002/current/tests -q",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow"
+      ],
+      "evidence": [
+        "scripts/tla_spec_dev.py exposes --spec-root, --version, scaffold/open/run/close help, and planned-command guidance.",
+        "skill-scripts/install-tla-spec-dev.sh installs a tla-spec-dev wrapper into SKILL_MANAGER_BIN_DIR.",
+        "tests/test_tla_spec_dev_cli.py passed.",
+        "Ticket-local BuildSkillCli and InstallLocalCli adapters passed.",
+        "cliWorkflow Test Graph passed and invoked the installed CLI externally."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "CLI build/install adapter"
+      ],
+      "graph_after_unit_pass": [
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli"
+      ],
+      "model_state": [
+        "cli_built",
+        "cli_installed"
+      ],
+      "unit_tests": [
+        "tla-spec-dev --help",
+        "tla-spec-dev --version"
+      ]
+    },
+    "depends_on": [
+      "CLI-001"
+    ],
+    "desired_actions": [
+      "BuildSkillCli",
+      "InstallLocalCli"
+    ],
+    "id": "CLI-002",
+    "implementation_scope": [
+      "skill-scripts/",
+      "skill-manager.toml",
+      "scripts/tla_spec_dev.py",
+      "tests/",
+      "test_graph/"
+    ],
+    "objective": "Provide a single tla-spec-dev Python command shipped by the skill and installable into the local environment by a skill script.",
+    "status": "closed",
+    "title": "Build and install the Python CLI entrypoint"
+  },
+  "ticket_id": "CLI-002",
+  "ticket_index": 1,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-001-CLI-002/ticket",
+    "source": "specs/tickets/CLI-002"
+  },
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

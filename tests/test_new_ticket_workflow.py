@@ -43,6 +43,12 @@ package: program_model_cases
 """,
         encoding="utf-8",
     )
+    onboarding_test = program_model / "tests" / "test_program_model_onboarding.py"
+    onboarding_test.parent.mkdir()
+    onboarding_test.write_text(
+        "def test_onboarding_only():\n    assert False, 'must not be copied into ticket workflow models'\n",
+        encoding="utf-8",
+    )
     return program_model
 
 
@@ -63,6 +69,8 @@ def test_scaffold_ticket_workflow_creates_current_and_desired_models(tmp_path: P
     assert "not only migrations" in ticket_plan
     assert (tmp_path / "specs/current/ProgramModel.tla").exists()
     assert (tmp_path / "specs/desired_program_model/ProgramModel.tla").exists()
+    assert not (tmp_path / "specs/current/tests/test_program_model_onboarding.py").exists()
+    assert not (tmp_path / "specs/desired_program_model/tests/test_program_model_onboarding.py").exists()
 
 
 def test_scaffold_ticket_workflow_uses_custom_spec_root_and_copies_baseline_files(tmp_path: Path) -> None:
@@ -127,6 +135,29 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
     assert ticket_state["ticket_id"] == "AUTH-127"
     assert ticket_state["promotion"]["on_close"] == "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/"
+
+
+def test_start_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-131", "Custom ticket root", force=False, dry_run=False)
+
+    scaffold_ticket_directory(
+        tmp_path,
+        "AUTH-131",
+        force=False,
+        dry_run=False,
+        ticket_root=Path("work/items"),
+    )
+
+    ticket_dir = tmp_path / "specs" / "work" / "items" / "AUTH-131"
+    ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
+    readme = (ticket_dir / "README.md").read_text(encoding="utf-8")
+
+    assert (
+        ticket_state["promotion"]["close_command"]
+        == "tla-spec-dev --spec-root specs close ticket AUTH-131 --ticket-root work/items"
+    )
+    assert "close ticket AUTH-131 --ticket-root work/items" in readme
 
 
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:

@@ -1,0 +1,203 @@
+{
+  "active_ticket_dir": "specs/tickets/CLI-004",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004 specs/current",
+    "git_commit": "git commit -m 'record spec history for CLI-004'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004"
+  },
+  "created_at_utc": "2026-06-28T20:09:11.236920+00:00",
+  "entry_name": "ticket-003-CLI-004",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "abf827c",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CLI-004/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CLI-004/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CLI-004/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CLI-004/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CLI-004/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CLI-004/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CLI-004/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CLI-004/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CLI-004/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "replace",
+        "role": "current",
+        "source": "specs/tickets/CLI-004/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CLI-004"
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/results/tlc.txt",
+      "source": "specs/tickets/CLI-004/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/results/unit.txt",
+      "source": "specs/tickets/CLI-004/results/unit.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/results/testgraph-all.txt",
+      "source": "specs/tickets/CLI-004/results/testgraph-all.txt"
+    }
+  ],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/ticket",
+      "source": "specs/tickets/CLI-004"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Implemented tla-spec-dev open ticket and close ticket, updated ticket scaffold instructions, and replaced specWorkflow ticket lifecycle script calls with the installed CLI.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "open ticket prints desired-first instructions.",
+        "close ticket replaces project current with ticket desired and merges Test Graph artifacts.",
+        "close ticket recommendation includes history and promoted spec paths.",
+        "specWorkflow uses tla-spec-dev open ticket and close ticket instead of start_ticket.py and close_ticket.py."
+      ],
+      "commands": [
+        "uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-004/current/tests tests/test_new_ticket_workflow.py -q",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all"
+      ],
+      "evidence": [
+        "tla-spec-dev open ticket scaffolds ticket-local current, desired, results, and Test Graph workspace from the selected spec root.",
+        "tla-spec-dev close ticket validates ticket current == desired, promotes ticket desired into project current, merges ticket Test Graph artifacts, and writes history.",
+        "Ticket-local OpenTicket and CloseTicket adapters passed against temporary repositories.",
+        "specWorkflow now invokes the installed CLI for project, workflow, open, and close ticket commands.",
+        "test_graph run --all passed with specWorkflow-20260628-200737-5681629f and cliWorkflow-20260628-200739-2ecc560b."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "CLI ticket lifecycle adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow ticket CLI nodes"
+      ],
+      "model_actions": [
+        "OpenTicket",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "active_tickets",
+        "desired_ready",
+        "current_ready",
+        "closed_tickets"
+      ],
+      "unit_tests": [
+        "tla-spec-dev --spec-root specs open ticket CLI-001",
+        "tla-spec-dev --spec-root specs close ticket CLI-001"
+      ]
+    },
+    "depends_on": [
+      "CLI-003"
+    ],
+    "desired_actions": [
+      "OpenTicket",
+      "UpdateTicketDesired",
+      "UpdateTicketCurrent",
+      "CloseTicket"
+    ],
+    "id": "CLI-004",
+    "implementation_scope": [
+      "scripts/tla_spec_dev.py",
+      "scripts/start_ticket.py",
+      "scripts/close_ticket.py",
+      "scripts/spec_evolution.py",
+      "tests/",
+      "test_graph/"
+    ],
+    "objective": "Expose desired-first ticket workflow through tla-spec-dev open ticket and close ticket commands.",
+    "status": "closed",
+    "title": "Implement open and close ticket commands"
+  },
+  "ticket_id": "CLI-004",
+  "ticket_index": 3,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-003-CLI-004/ticket",
+    "source": "specs/tickets/CLI-004"
+  },
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

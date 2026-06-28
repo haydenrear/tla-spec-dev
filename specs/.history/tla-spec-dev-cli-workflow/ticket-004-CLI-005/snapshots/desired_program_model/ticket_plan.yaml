@@ -1,0 +1,364 @@
+# This file is part of the desired program model for the shipped tla-spec-dev CLI.
+version: 1
+name: tla-spec-dev-cli-workflow
+updated: null
+purpose: "Ship one progressive-disclosure Python CLI for this skill repository, installed by a skill script and backed by the TlaSpecDevCli program model."
+
+planning_rules:
+  current_model_rule: "Update specs/current after each production slice lands as a whole-program working copy of specs/program_model."
+  desired_first_rule: "When opening a ticket, update ticket desired/ first so it shows the whole-program ending state for that ticket."
+  spec_root_rule: "Every project/workflow/ticket/run command accepts --spec-root and defaults to specs."
+  progressive_disclosure_rule: "Commands print the next useful workflow step and hide advanced details until the required prior state exists."
+  unit_validation_rule: "Run current-model TLC and spec-unit adapter tests before adding graph execution coverage."
+  graph_rule: "Use the parent test_graph specWorkflow and add CLI-specific graph nodes as behavior lands."
+  cli_replacement_rule: "As each command lands, update unit tests and Test Graph nodes to invoke tla-spec-dev instead of lower-level Python scripts for that command surface."
+  semantic_model_rule: "Do not model pytest jobs, graph nodes, or CI mechanics as TLA+ program behavior."
+  evidence_rule: "Record test and graph runs as evidence in ticket results or close manifests."
+  promotion_rule: "When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model."
+
+status:
+  workflow: ticket
+  active_ticket: CLI-006
+  active_ticket_title: "Validate CLI with Test Graph"
+  desired_module: TlaSpecDevCli
+  phase: implementation
+
+service_catalog:
+  existing_boundaries:
+    - scripts/onboard_program_model.py
+    - scripts/new_ticket_workflow.py
+    - scripts/start_ticket.py
+    - scripts/close_ticket.py
+    - scripts/run_generated_case_adapters.py
+    - test_graph/specWorkflow
+  desired_boundaries:
+    - tla-spec-dev Python CLI entrypoint
+    - skill script that installs the CLI in the local environment
+    - project scaffold command
+    - workflow scaffold command
+    - ticket open and close commands
+    - spec-unit test run command
+  adapter_boundaries:
+    - filesystem specs tree
+    - git-backed repository workflow
+    - uv/pytest execution
+    - Test Graph execution
+  known_gaps: []
+
+tickets:
+  - id: CLI-001
+    title: "Model shipped CLI workflow"
+    status: closed
+    depends_on: []
+    objective: "Keep the TlaSpecDevCli TLA+ diagram, manifest, desired/current workflow, and ticket plan ready before implementation begins."
+    desired_actions:
+      - BuildSkillCli
+      - InstallLocalCli
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - RunSpecUnitTests
+      - CloseTicket
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla
+      - specs/program_model/MC.cfg
+      - specs/program_model/spec_manifest.yaml
+      - specs/desired_program_model/ticket_plan.yaml
+      - specs/desired_program_model/desired_state.yaml
+    current_increment:
+      model_state:
+        - cli_built
+        - cli_installed
+        - spec_root
+        - active_tickets
+        - desired_ready
+        - current_ready
+        - spec_unit_tests_passed
+      model_actions:
+        - BuildSkillCli
+        - InstallLocalCli
+        - ScaffoldProject
+        - ScaffoldWorkflow
+        - OpenTicket
+        - RunSpecUnitTests
+        - CloseTicket
+      adapters:
+        - specs/program_model/production_adapters.py
+      unit_tests:
+        - bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      graph_after_unit_pass:
+        - specWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+        - uv run --with pytest -m pytest tests -q
+      assertions:
+        - "The desired CLI command workflow is represented in TLA+."
+        - "Tickets cover CLI build, install, command behavior, validation, and documentation."
+      evidence:
+        - "TLC passed for specs/program_model/TlaSpecDevCli.tla with 917 distinct states."
+        - "TLC passed for specs/current/TlaSpecDevCli.tla with 917 distinct states."
+        - "TLC passed for specs/desired_program_model/TlaSpecDevCli.tla with 917 distinct states."
+        - "Repo tests passed: uv run --with pytest -m pytest tests -q."
+        - "specWorkflow Test Graph passed before opening CLI-002."
+
+  - id: CLI-002
+    title: "Build and install the Python CLI entrypoint"
+    status: closed
+    depends_on:
+      - CLI-001
+    objective: "Provide a single tla-spec-dev Python command shipped by the skill and installable into the local environment by a skill script."
+    desired_actions:
+      - BuildSkillCli
+      - InstallLocalCli
+    implementation_scope:
+      - skill-scripts/
+      - skill-manager.toml
+      - scripts/tla_spec_dev.py
+      - tests/
+      - test_graph/
+    current_increment:
+      model_state:
+        - cli_built
+        - cli_installed
+      model_actions:
+        - BuildSkillCli
+        - InstallLocalCli
+      adapters:
+        - CLI build/install adapter
+      unit_tests:
+        - tla-spec-dev --help
+        - tla-spec-dev --version
+      graph_after_unit_pass:
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py test_graph/sources/*.py
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-002/current/tests -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
+      assertions:
+        - "The CLI is installed by a skill script, not by an ad hoc shell alias."
+        - "The command exposes scaffold, open, run, and close subcommands through progressive help."
+      evidence:
+        - "scripts/tla_spec_dev.py exposes --spec-root, --version, scaffold/open/run/close help, and planned-command guidance."
+        - "skill-scripts/install-tla-spec-dev.sh installs a tla-spec-dev wrapper into SKILL_MANAGER_BIN_DIR."
+        - "tests/test_tla_spec_dev_cli.py passed."
+        - "Ticket-local BuildSkillCli and InstallLocalCli adapters passed."
+        - "cliWorkflow Test Graph passed and invoked the installed CLI externally."
+
+  - id: CLI-003
+    title: "Implement scaffold project and scaffold workflow"
+    status: closed
+    depends_on:
+      - CLI-002
+    objective: "Wrap project onboarding and desired/current workflow scaffolding behind tla-spec-dev scaffold project and tla-spec-dev scaffold workflow."
+    desired_actions:
+      - ScaffoldProject
+      - ScaffoldWorkflow
+    implementation_scope:
+      - scripts/tla_spec_dev.py
+      - scripts/onboard_program_model.py
+      - scripts/new_ticket_workflow.py
+      - tests/
+      - test_graph/
+    current_increment:
+      model_state:
+        - project_scaffolded
+        - workflow_scaffolded
+        - spec_root
+      model_actions:
+        - ScaffoldProject
+        - ScaffoldWorkflow
+      adapters:
+        - CLI scaffold adapter
+      unit_tests:
+        - tla-spec-dev --spec-root custom_specs scaffold project
+        - tla-spec-dev --spec-root custom_specs scaffold workflow
+      graph_after_unit_pass:
+        - specWorkflow scaffold CLI nodes
+    acceptance:
+      commands:
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-003/current/tests tests/test_onboard_program_model.py tests/test_new_ticket_workflow.py -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all
+      assertions:
+        - "scaffold project creates only program_model."
+        - "scaffold workflow requires program_model and creates current plus desired_program_model."
+        - "--spec-root is honored for both commands."
+        - "specWorkflow uses tla-spec-dev for project/workflow scaffolding instead of new_ticket_workflow.py."
+      evidence:
+        - "tla-spec-dev scaffold project and scaffold workflow execute through scripts/tla_spec_dev.py."
+        - "Parent commands scaffold/open/run/close now fail with next-step guidance when incomplete."
+        - "Ticket-local ScaffoldProject and ScaffoldWorkflow adapters passed against a temporary repository."
+        - "specWorkflow now invokes the installed CLI for project/workflow scaffolding."
+        - "test_graph run --all passed with specWorkflow-20260628-195434-ab659e90 and cliWorkflow-20260628-195436-5c284871."
+
+  - id: CLI-004
+    title: "Implement open and close ticket commands"
+    status: closed
+    depends_on:
+      - CLI-003
+    objective: "Expose desired-first ticket workflow through tla-spec-dev open ticket and close ticket commands."
+    desired_actions:
+      - OpenTicket
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - CloseTicket
+    implementation_scope:
+      - scripts/tla_spec_dev.py
+      - scripts/start_ticket.py
+      - scripts/close_ticket.py
+      - scripts/spec_evolution.py
+      - tests/
+      - test_graph/
+    current_increment:
+      model_state:
+        - active_tickets
+        - desired_ready
+        - current_ready
+        - closed_tickets
+      model_actions:
+        - OpenTicket
+        - CloseTicket
+      adapters:
+        - CLI ticket lifecycle adapter
+      unit_tests:
+        - tla-spec-dev --spec-root specs open ticket CLI-001
+        - tla-spec-dev --spec-root specs close ticket CLI-001
+      graph_after_unit_pass:
+        - specWorkflow ticket CLI nodes
+    acceptance:
+      commands:
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-004/current/tests tests/test_new_ticket_workflow.py -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py --all
+      assertions:
+        - "open ticket prints desired-first instructions."
+        - "close ticket replaces project current with ticket desired and merges Test Graph artifacts."
+        - "close ticket recommendation includes history and promoted spec paths."
+        - "specWorkflow uses tla-spec-dev open ticket and close ticket instead of start_ticket.py and close_ticket.py."
+      evidence:
+        - "tla-spec-dev open ticket scaffolds ticket-local current, desired, results, and Test Graph workspace from the selected spec root."
+        - "tla-spec-dev close ticket validates ticket current == desired, promotes ticket desired into project current, merges ticket Test Graph artifacts, and writes history."
+        - "Ticket-local OpenTicket and CloseTicket adapters passed against temporary repositories."
+        - "specWorkflow now invokes the installed CLI for project, workflow, open, and close ticket commands."
+        - "test_graph run --all passed with specWorkflow-20260628-200737-5681629f and cliWorkflow-20260628-200739-2ecc560b."
+
+  - id: CLI-005
+    title: "Implement run spec-unit-tests"
+    status: closed
+    depends_on:
+      - CLI-004
+    objective: "Expose spec-unit validation through tla-spec-dev run spec-unit-tests using the selected spec root."
+    desired_actions:
+      - RunSpecUnitTests
+    implementation_scope:
+      - scripts/tla_spec_dev.py
+      - scripts/run_generated_case_adapters.py
+      - scripts/generate_cases_from_tlc_dump.py
+      - tests/
+      - test_graph/
+    current_increment:
+      model_state:
+        - spec_unit_tests_passed
+      model_actions:
+        - RunSpecUnitTests
+      adapters:
+        - CLI spec-unit test adapter
+      unit_tests:
+        - tla-spec-dev --spec-root specs run spec-unit-tests
+      graph_after_unit_pass:
+        - specWorkflow spec-unit CLI node
+    acceptance:
+      commands:
+        - uv run --with pytest -m pytest tests/test_tla_spec_dev_cli.py specs/tickets/CLI-005/current/tests tests/test_generate_cases_from_tlc_dump.py tests/test_case_adapter_runtime.py -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+      assertions:
+        - "The command runs generated/adapted spec-unit tests from the chosen spec root."
+        - "Failures report missing adapters or failing cases with actionable paths."
+        - "Spec tests and Test Graph nodes use tla-spec-dev run spec-unit-tests instead of direct validation scripts where the CLI command exists."
+      evidence:
+        - "tla-spec-dev run spec-unit-tests runs project current tests, active ticket current tests, and generated spec-unit case adapters from the selected spec root."
+        - "The command defaults to batched generated-case execution so adapter setup_all/setup/teardown/teardown_all hooks run by adapter kind."
+        - "Ticket-local RunSpecUnitTests adapter passed against a temporary repository."
+        - "specWorkflow now includes spec.workflow.spec_units before close and invokes the installed CLI for spec-unit validation."
+        - "specWorkflow passed with run id specWorkflow-20260628-204218-43c13bd5."
+
+  - id: CLI-006
+    title: "Validate CLI with Test Graph"
+    status: next
+    depends_on:
+      - CLI-005
+    objective: "Extend the parent specWorkflow graph so it invokes the final tla-spec-dev CLI against a disposable git repository."
+    desired_actions:
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - RunSpecUnitTests
+      - CloseTicket
+    implementation_scope:
+      - test_graph/build.gradle.kts
+      - test_graph/sources/
+      - test_graph/README.md
+    current_increment:
+      model_state:
+        - cli_installed
+        - spec_unit_tests_passed
+        - closed_tickets
+      model_actions:
+        - RunSpecUnitTests
+        - CloseTicket
+      adapters:
+        - Test Graph CLI adapter
+      unit_tests:
+        - python /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
+      graph_after_unit_pass:
+        - specWorkflow
+    acceptance:
+      commands:
+        - python /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+      assertions:
+        - "The graph uses tla-spec-dev commands rather than only lower-level Python scripts."
+        - "The disposable git repository is removed even when a downstream node fails after allocation."
+      evidence: []
+
+  - id: CLI-007
+    title: "Document progressive-disclosure CLI onboarding"
+    status: next
+    depends_on:
+      - CLI-006
+    objective: "Update SKILL.md, references, and README so users can onboard to the single CLI without reading implementation scripts first."
+    desired_actions:
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - RunSpecUnitTests
+      - CloseTicket
+    implementation_scope:
+      - SKILL.md
+      - README.md
+      - references/
+      - test_graph/README.md
+    current_increment:
+      model_state:
+        - lastCommand
+      model_actions:
+        - ScaffoldProject
+        - ScaffoldWorkflow
+        - OpenTicket
+        - RunSpecUnitTests
+        - CloseTicket
+      adapters:
+        - documentation examples
+      unit_tests:
+        - rg "tla-spec-dev --spec-root" README.md SKILL.md references
+      graph_after_unit_pass:
+        - specWorkflow
+    acceptance:
+      commands:
+        - rg "tla-spec-dev --spec-root" README.md SKILL.md references test_graph/README.md
+      assertions:
+        - "Docs introduce the CLI first and route to lower-level scripts only as implementation detail."
+        - "Docs preserve the desired-first ticket workflow and spec-root rule."
+      evidence: []

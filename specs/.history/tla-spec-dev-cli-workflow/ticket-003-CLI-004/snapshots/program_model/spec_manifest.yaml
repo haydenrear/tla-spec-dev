@@ -1,0 +1,201 @@
+module: TlaSpecDevCli
+package: tlaspecdevcli_program_cases
+
+status:
+  workflow: project_onboarding
+  model_role: accepted_program_model
+  relation_to_current: none_until_ticket_workflow_starts
+  relation_to_desired_program_model: none_until_ticket_workflow_starts
+  updated: null
+  onboarding:
+    status: ready
+    summary: "Baseline model for the future shipped tla-spec-dev CLI and its spec workflow commands."
+
+state:
+  TlaSpecDevCliState:
+    fields:
+      cli_built:
+        type: bool
+        tla: cli_built
+      cli_installed:
+        type: bool
+        tla: cli_installed
+      spec_root:
+        type: SpecRoot
+        tla: spec_root
+      project_scaffolded:
+        type: bool
+        tla: project_scaffolded
+      workflow_scaffolded:
+        type: bool
+        tla: workflow_scaffolded
+      active_tickets:
+        type: frozenset[TicketId]
+        tla: active_tickets
+      desired_ready:
+        type: dict[TicketId, bool]
+        tla: desired_ready
+      current_ready:
+        type: dict[TicketId, bool]
+        tla: current_ready
+      spec_unit_tests_passed:
+        type: dict[TicketId, bool]
+        tla: spec_unit_tests_passed
+      closed_tickets:
+        type: frozenset[TicketId]
+        tla: closed_tickets
+      last_command:
+        type: str
+        tla: lastCommand
+
+types:
+  SpecRoot:
+    python: str
+    source: SpecRoots
+  TicketId:
+    python: str
+    source: Tickets
+
+commands:
+  BuildSkillCli:
+    action: BuildSkillCli
+    cli: skill script builds tla-spec-dev
+    progressive_disclosure: internal build step before local install
+  InstallLocalCli:
+    action: InstallLocalCli
+    cli: skill script installs tla-spec-dev in the local environment
+    progressive_disclosure: exposes the shipped CLI entrypoint
+  ScaffoldProject:
+    action: ScaffoldProject
+    cli: tla-spec-dev --spec-root <root> scaffold project
+    fields:
+      spec_root:
+        type: SpecRoot
+        tla: root
+    progressive_disclosure: first onboarding creates only program_model
+  ScaffoldWorkflow:
+    action: ScaffoldWorkflow
+    cli: tla-spec-dev --spec-root <root> scaffold workflow
+    fields:
+      spec_root:
+        type: SpecRoot
+        tla: root
+    progressive_disclosure: available only after project scaffold exists
+  OpenTicket:
+    action: OpenTicket
+    cli: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+    fields:
+      spec_root:
+        type: SpecRoot
+        tla: root
+      ticket:
+        type: TicketId
+        tla: ticket
+    progressive_disclosure: prints desired-first ticket instructions
+  UpdateTicketDesired:
+    action: UpdateTicketDesired
+    cli: edit ticket desired TLA+, adapters, tests, and Test Graph bindings
+    fields:
+      ticket:
+        type: TicketId
+        tla: ticket
+    progressive_disclosure: modeled as required human/agent step
+  UpdateTicketCurrent:
+    action: UpdateTicketCurrent
+    cli: update ticket current after implementation lands
+    fields:
+      ticket:
+        type: TicketId
+        tla: ticket
+    progressive_disclosure: current must not advance before desired is ready
+  RunSpecUnitTests:
+    action: RunSpecUnitTests
+    cli: tla-spec-dev --spec-root <root> run spec-unit-tests
+    fields:
+      spec_root:
+        type: SpecRoot
+        tla: root
+      ticket:
+        type: TicketId
+        tla: ticket
+    progressive_disclosure: validates generated/adapted spec-unit cases
+  CloseTicket:
+    action: CloseTicket
+    cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+    fields:
+      spec_root:
+        type: SpecRoot
+        tla: root
+      ticket:
+        type: TicketId
+        tla: ticket
+    progressive_disclosure: allowed only after current equals desired and spec-unit tests pass
+
+results:
+  CliWorkflowResult:
+    fields:
+      accepted:
+        type: bool
+      reason:
+        type: str | None
+        default: None
+      next:
+        type: str
+
+ports:
+  TlaSpecDevCliPort:
+    methods:
+      build_skill_cli:
+        command: BuildSkillCli
+        result: CliWorkflowResult
+      install_local_cli:
+        command: InstallLocalCli
+        result: CliWorkflowResult
+      scaffold_project:
+        command: ScaffoldProject
+        result: CliWorkflowResult
+      scaffold_workflow:
+        command: ScaffoldWorkflow
+        result: CliWorkflowResult
+      open_ticket:
+        command: OpenTicket
+        result: CliWorkflowResult
+      update_ticket_desired:
+        command: UpdateTicketDesired
+        result: CliWorkflowResult
+      update_ticket_current:
+        command: UpdateTicketCurrent
+        result: CliWorkflowResult
+      run_spec_unit_tests:
+        command: RunSpecUnitTests
+        result: CliWorkflowResult
+      close_ticket:
+        command: CloseTicket
+        result: CliWorkflowResult
+      snapshot:
+        result: TlaSpecDevCliState
+
+invariants:
+  - TypeInvariant
+  - CliInstalledRequiresBuilt
+  - WorkflowRequiresProject
+  - ProjectChoosesKnownSpecRoot
+  - NoOpenClosedOverlap
+  - CurrentRequiresDesired
+  - SpecUnitTestsRequireCurrent
+  - ClosedTicketsPassedSpecUnitTests
+
+finite_model:
+  SpecRoots:
+    values:
+      - default_specs
+      - custom_specs
+  Tickets:
+    values:
+      - cli_entrypoint
+      - cli_workflow
+      - cli_validation
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned

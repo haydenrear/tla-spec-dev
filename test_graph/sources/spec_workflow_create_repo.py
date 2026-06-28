@@ -16,50 +16,26 @@ from testgraphsdk import NodeResult, NodeSpec, node, procs
 SPEC = (
     NodeSpec("spec.workflow.repo")
     .kind("testbed")
+    .depends_on("spec.cli.install")
     .tags("spec-workflow", "git")
     .timeout("60s")
     .side_effects("filesystem:writes", "git:writes")
     .output("repoPath", "string")
     .output("sourceRepo", "string")
     .output("ticketId", "string")
+    .output("cliPath", "string")
 )
-
-
-PROGRAM_TLA = """----------------------------- MODULE ProgramModel -----------------------------
-EXTENDS TLC
-
-VARIABLES accepted
-
-vars == <<accepted>>
-
-Init == accepted = FALSE
-
-Accept == accepted' = TRUE
-
-Next == Accept
-
-Spec == Init /\\ [][Next]_vars
-
-AcceptedBoolean == accepted \\in BOOLEAN
-
-=============================================================================
-"""
 
 
 @node(SPEC)
 def main(ctx):
     source_repo = Path(__file__).resolve().parents[2]
     repo_dir = ctx.report_dir / "fixture-repos" / "spec-workflow-repo"
+    cli_path = Path(ctx.get("spec.cli.install", "cliPath") or "")
     if repo_dir.exists():
         shutil.rmtree(repo_dir)
-    specs = repo_dir / "specs" / "program_model"
-    specs.mkdir(parents=True)
-    (specs / "ProgramModel.tla").write_text(PROGRAM_TLA, encoding="utf-8")
-    (specs / "MC.cfg").write_text("SPECIFICATION Spec\nINVARIANTS AcceptedBoolean\n", encoding="utf-8")
-    (specs / "spec_manifest.yaml").write_text(
-        "module: ProgramModel\npackage: program_model_cases\n",
-        encoding="utf-8",
-    )
+    repo_dir.mkdir(parents=True)
+    (repo_dir / "README.md").write_text("# Spec Workflow Fixture\n", encoding="utf-8")
 
     result = NodeResult.pass_(SPEC.id)
     commands = [
@@ -76,11 +52,13 @@ def main(ctx):
 
     return (
         result
-        .assertion("program model exists", (specs / "ProgramModel.tla").is_file())
+        .assertion("installed CLI path exists", cli_path.is_file())
+        .assertion("fixture repo starts without program model", not (repo_dir / "specs" / "program_model").exists())
         .artifact("fixture-repo", str(repo_dir))
         .publish("repoPath", str(repo_dir))
         .publish("sourceRepo", str(source_repo))
         .publish("ticketId", "FLOW-1")
+        .publish("cliPath", str(cli_path))
     )
 
 

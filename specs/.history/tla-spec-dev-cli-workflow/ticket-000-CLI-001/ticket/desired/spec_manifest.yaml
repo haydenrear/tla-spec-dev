@@ -1,0 +1,141 @@
+module: TlaSpecDevCli
+package: current_program_cases
+
+status:
+  workflow: ticket
+  active_ticket: CLI-001
+  active_ticket_title: "Model shipped CLI workflow"
+  relation_to_program_model: starts_equivalent_then_advances_as_slices_land
+  relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  updated: null
+  current_slice:
+    name: cli-workflow-model-baseline
+    status: scaffolded
+    summary: "Current is initialized from the accepted program model before CLI implementation begins."
+    refines:
+      - ../program_model/TlaSpecDevCli.tla
+    implemented_actions:
+      - BuildSkillCli
+      - InstallLocalCli
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - RunSpecUnitTests
+      - CloseTicket
+    validation:
+      tlc:
+        - bash scripts/run_tlc.sh specs/current/TlaSpecDevCli.tla specs/current/MC.cfg
+      unit:
+        - uv run --with pytest -m pytest tests -q
+      graph: []
+      evidence: []
+  next:
+    - Implement CLI-002 and update this whole-program current model after the shipped CLI entrypoint lands.
+    - Keep desired/current ticket directories as full snapshots, not partial feature specs.
+    - Run TLC and spec-unit adapter tests before adding Test Graph execution coverage.
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_module: ../program_model/TlaSpecDevCli.tla
+  desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
+
+state:
+  TlaSpecDevCliState:
+    fields:
+      cli_built:
+        type: bool
+        tla: cli_built
+      cli_installed:
+        type: bool
+        tla: cli_installed
+      spec_root:
+        type: SpecRoot
+        tla: spec_root
+      project_scaffolded:
+        type: bool
+        tla: project_scaffolded
+      workflow_scaffolded:
+        type: bool
+        tla: workflow_scaffolded
+      active_tickets:
+        type: frozenset[TicketId]
+        tla: active_tickets
+      desired_ready:
+        type: dict[TicketId, bool]
+        tla: desired_ready
+      current_ready:
+        type: dict[TicketId, bool]
+        tla: current_ready
+      spec_unit_tests_passed:
+        type: dict[TicketId, bool]
+        tla: spec_unit_tests_passed
+      closed_tickets:
+        type: frozenset[TicketId]
+        tla: closed_tickets
+      last_command:
+        type: str
+        tla: lastCommand
+
+actions:
+  - BuildSkillCli
+  - InstallLocalCli
+  - ScaffoldProject
+  - ScaffoldWorkflow
+  - OpenTicket
+  - UpdateTicketDesired
+  - UpdateTicketCurrent
+  - RunSpecUnitTests
+  - CloseTicket
+
+commands:
+  scaffold_project:
+    cli: tla-spec-dev --spec-root <root> scaffold project
+    action: ScaffoldProject
+  scaffold_workflow:
+    cli: tla-spec-dev --spec-root <root> scaffold workflow
+    action: ScaffoldWorkflow
+  open_ticket:
+    cli: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+    action: OpenTicket
+  run_spec_unit_tests:
+    cli: tla-spec-dev --spec-root <root> run spec-unit-tests
+    action: RunSpecUnitTests
+  close_ticket:
+    cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+    action: CloseTicket
+
+ports:
+  TlaSpecDevCliPort:
+    role: production_adapter_surface
+    commands:
+      - BuildSkillCli
+      - InstallLocalCli
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - RunSpecUnitTests
+      - CloseTicket
+
+invariants:
+  - TypeInvariant
+  - CliInstalledRequiresBuilt
+  - WorkflowRequiresProject
+  - ProjectChoosesKnownSpecRoot
+  - NoOpenClosedOverlap
+  - CurrentRequiresDesired
+  - SpecUnitTestsRequireCurrent
+  - ClosedTicketsPassedSpecUnitTests
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  progressive_disclosure: "Commands should print the next valid workflow step and avoid exposing later-stage detail before prerequisites are present."

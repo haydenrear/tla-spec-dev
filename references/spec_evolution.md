@@ -73,7 +73,7 @@ overview. The copied snapshots are evidence, not active state.
 First create and work in a ticket-local directory:
 
 ```bash
-python scripts/start_ticket.py TICKET-123
+tla-spec-dev --spec-root specs open ticket TICKET-123
 ```
 
 When `specs/tickets/TICKET-123/current` semantically equals
@@ -81,7 +81,7 @@ When `specs/tickets/TICKET-123/current` semantically equals
 `specs/desired_program_model/ticket_plan.yaml`. Then run:
 
 ```bash
-python scripts/close-ticket.py TICKET-123 \
+tla-spec-dev --spec-root specs close ticket TICKET-123 \
   --summary "Captured ticket-level desired/current history" \
   --result specs/results/tlc.txt \
   --result specs/results/adapter.txt

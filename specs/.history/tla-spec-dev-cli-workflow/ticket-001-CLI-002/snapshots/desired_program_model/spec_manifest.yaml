@@ -1,0 +1,147 @@
+module: TlaSpecDevCli
+package: desired_program_cases
+
+status:
+  workflow: ticket
+  initial_ticket: CLI-001
+  initial_ticket_title: "Model shipped CLI workflow"
+  ticket_plan: ticket_plan.yaml
+  relation_to_program_model: desired_successor_of_accepted_program_model
+  relation_to_current: target_state_for_specs_current_to_converge_to
+  updated: null
+  summary:
+    desired_model_scaffolded: true
+    ticket_plan_scaffolded: true
+    current_model_scaffolded: true
+    generated_cases: pending
+    adapters: pending
+  done:
+    - TLA+ diagram includes the shipped CLI command lifecycle.
+    - Desired state records implementation boundaries and guardrails.
+    - Ticket plan decomposes implementation, validation, Test Graph, and documentation.
+  pending:
+    - Implement the skill-local CLI build/install script.
+    - Generate/adapt spec-unit cases from this model as the CLI lands.
+    - Extend Test Graph to run the final CLI against a disposable git repository.
+    - Promote converged specs/current back into specs/program_model.
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_module: ../program_model/TlaSpecDevCli.tla
+  baseline_package: tlaspecdevcli_program_cases
+
+state:
+  TlaSpecDevCliState:
+    fields:
+      cli_built:
+        type: bool
+        tla: cli_built
+      cli_installed:
+        type: bool
+        tla: cli_installed
+      spec_root:
+        type: SpecRoot
+        tla: spec_root
+      project_scaffolded:
+        type: bool
+        tla: project_scaffolded
+      workflow_scaffolded:
+        type: bool
+        tla: workflow_scaffolded
+      active_tickets:
+        type: frozenset[TicketId]
+        tla: active_tickets
+      desired_ready:
+        type: dict[TicketId, bool]
+        tla: desired_ready
+      current_ready:
+        type: dict[TicketId, bool]
+        tla: current_ready
+      spec_unit_tests_passed:
+        type: dict[TicketId, bool]
+        tla: spec_unit_tests_passed
+      closed_tickets:
+        type: frozenset[TicketId]
+        tla: closed_tickets
+      last_command:
+        type: str
+        tla: lastCommand
+
+commands:
+  BuildSkillCli:
+    cli: skill script builds tla-spec-dev
+    result: CliWorkflowResult
+  InstallLocalCli:
+    cli: skill script installs tla-spec-dev in the local environment
+    result: CliWorkflowResult
+  ScaffoldProject:
+    cli: tla-spec-dev --spec-root <root> scaffold project
+    result: CliWorkflowResult
+    next_step: tla-spec-dev --spec-root <root> scaffold workflow
+  ScaffoldWorkflow:
+    cli: tla-spec-dev --spec-root <root> scaffold workflow
+    result: CliWorkflowResult
+    next_step: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+  OpenTicket:
+    cli: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+    result: CliWorkflowResult
+    next_step: update ticket desired TLA+, adapters, tests, and Test Graph bindings
+  UpdateTicketDesired:
+    cli: edit ticket desired model
+    result: CliWorkflowResult
+    next_step: implement ticket and update ticket current
+  UpdateTicketCurrent:
+    cli: update ticket current model
+    result: CliWorkflowResult
+    next_step: tla-spec-dev --spec-root <root> run spec-unit-tests
+  RunSpecUnitTests:
+    cli: tla-spec-dev --spec-root <root> run spec-unit-tests
+    result: CliWorkflowResult
+    next_step: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+  CloseTicket:
+    cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+    result: CliWorkflowResult
+    next_step: open next ticket or promote workflow
+
+ports:
+  TlaSpecDevCliPort:
+    role: desired_adapter_surface
+    methods:
+      build_skill_cli:
+        action: BuildSkillCli
+      install_local_cli:
+        action: InstallLocalCli
+      scaffold_project:
+        action: ScaffoldProject
+      scaffold_workflow:
+        action: ScaffoldWorkflow
+      open_ticket:
+        action: OpenTicket
+      update_ticket_desired:
+        action: UpdateTicketDesired
+      update_ticket_current:
+        action: UpdateTicketCurrent
+      run_spec_unit_tests:
+        action: RunSpecUnitTests
+      close_ticket:
+        action: CloseTicket
+      snapshot:
+        result: TlaSpecDevCliState
+
+invariants:
+  - TypeInvariant
+  - CliInstalledRequiresBuilt
+  - WorkflowRequiresProject
+  - ProjectChoosesKnownSpecRoot
+  - NoOpenClosedOverlap
+  - CurrentRequiresDesired
+  - SpecUnitTestsRequireCurrent
+  - ClosedTicketsPassedSpecUnitTests
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+notes:
+  direction: "This manifest records the target whole-program model and the ticket workflow status. Keep ticket_plan.yaml synchronized whenever scope, order, validation, or acceptance criteria change."
+  progressive_disclosure: "The CLI should expose simple next-step output first and route advanced details to references."

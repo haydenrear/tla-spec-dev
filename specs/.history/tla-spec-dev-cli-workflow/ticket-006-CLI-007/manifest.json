@@ -1,0 +1,200 @@
+{
+  "active_ticket_dir": "specs/tickets/CLI-007",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007 specs/current",
+    "git_commit": "git commit -m 'record spec history for CLI-007'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007"
+  },
+  "created_at_utc": "2026-06-28T23:12:14.181137+00:00",
+  "entry_name": "ticket-006-CLI-007",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "7dbfff7",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CLI-007/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CLI-007/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CLI-007/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CLI-007/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CLI-007/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CLI-007/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CLI-007/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CLI-007/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CLI-007/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CLI-007/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CLI-007/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "replace",
+        "role": "current",
+        "source": "specs/tickets/CLI-007/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CLI-007"
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/results/docs.txt",
+      "source": "specs/tickets/CLI-007/results/docs.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/results/spec-unit.txt",
+      "source": "specs/tickets/CLI-007/results/spec-unit.txt"
+    }
+  ],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/ticket",
+      "source": "specs/tickets/CLI-007"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Documented progressive-disclosure tla-spec-dev onboarding and CLI-first ticket workflow references.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Docs introduce the CLI first and route to lower-level scripts only as implementation detail.",
+        "Docs preserve the desired-first ticket workflow and spec-root rule."
+      ],
+      "commands": [
+        "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references test_graph/README.md"
+      ],
+      "evidence": [
+        "README.md, SKILL.md, references, and test_graph/README.md now show the tla-spec-dev CLI before lower-level scripts.",
+        "references/spec_evolution.md now opens tickets through tla-spec-dev --spec-root specs open ticket.",
+        "test_graph/README.md documents specWorkflow with explicit --spec-root commands for scaffold, open, run, and close."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "documentation examples"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "lastCommand"
+      ],
+      "unit_tests": [
+        "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references"
+      ]
+    },
+    "depends_on": [
+      "CLI-006"
+    ],
+    "desired_actions": [
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-007",
+    "implementation_scope": [
+      "SKILL.md",
+      "README.md",
+      "references/",
+      "test_graph/README.md"
+    ],
+    "objective": "Update SKILL.md, references, and README so users can onboard to the single CLI without reading implementation scripts first.",
+    "status": "closed",
+    "title": "Document progressive-disclosure CLI onboarding"
+  },
+  "ticket_id": "CLI-007",
+  "ticket_index": 6,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-006-CLI-007/ticket",
+    "source": "specs/tickets/CLI-007"
+  },
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

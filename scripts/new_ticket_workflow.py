@@ -28,6 +28,7 @@ TICKET_COPY_IGNORE = {
     "build",
 }
 PROJECT_WORKFLOW_TEST = "tests/test_current_ticket_workflow.py"
+PROGRAM_MODEL_ONBOARDING_TEST = "tests/test_program_model_onboarding.py"
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -171,7 +172,7 @@ def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bo
     copied: list[Path] = []
     for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
         relative = src.relative_to(src_dir)
-        if relative.as_posix() in {"README.md", "spec_manifest.yaml"}:
+        if relative.as_posix() in {"README.md", "spec_manifest.yaml", PROGRAM_MODEL_ONBOARDING_TEST}:
             continue
         dst = dst_dir / relative
         if dst.exists() and not force:
@@ -268,7 +269,24 @@ def project_current_source(specs_dir: Path) -> Path:
     return current if current.exists() else specs_dir / "program_model"
 
 
-def ticket_readme(ticket_id: str, title: str, source_current: Path) -> str:
+def ticket_close_command(
+    ticket_id: str,
+    spec_root: Path = Path("specs"),
+    ticket_root: Path = Path("tickets"),
+) -> str:
+    command = f"tla-spec-dev --spec-root {spec_root.as_posix()} close ticket {ticket_id}"
+    if ticket_root.as_posix().rstrip("/") != "tickets":
+        command += f" --ticket-root {ticket_root.as_posix()}"
+    return command
+
+
+def ticket_readme(
+    ticket_id: str,
+    title: str,
+    source_current: Path,
+    spec_root: Path = Path("specs"),
+    ticket_root: Path = Path("tickets"),
+) -> str:
     return f"""# Ticket {ticket_id}: {title}
 
 This directory is the active, ticket-local spec workflow for one ticket.
@@ -293,7 +311,7 @@ Workflow:
    tests, bindings, selectors, and assertions in the ticket directory.
 4. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
 5. Mark the global ticket-plan entry closed.
-6. Run `scripts/close-ticket.py {ticket_id}`. Closing validates ticket
+6. Run `{ticket_close_command(ticket_id, spec_root, ticket_root)}`. Closing validates ticket
    `current/ == desired/`, replaces project `specs/current` with ticket
    `desired/`, merges ticket Test Graph config back into project specs,
    snapshots this directory into history, and removes the active ticket
@@ -306,7 +324,12 @@ scaffold intentionally records only the spec-side state for now.
 """
 
 
-def ticket_next_steps(ticket_id: str, ticket_dir: Path) -> str:
+def ticket_next_steps(
+    ticket_id: str,
+    ticket_dir: Path,
+    spec_root: Path = Path("specs"),
+    ticket_root: Path = Path("tickets"),
+) -> str:
     return f"""
 Next ticket workflow steps for {ticket_id}:
   1. Edit {ticket_dir / "desired"} first. Update the TLA+ model/configs so
@@ -320,7 +343,7 @@ Next ticket workflow steps for {ticket_id}:
   4. Implement the ticket, then update {ticket_dir / "current"} to match the
      landed behavior. Before close, ticket current and desired must be equal.
   5. Mark {ticket_id} closed/done in the project ticket plan and run:
-     python scripts/close-ticket.py {ticket_id}
+     {ticket_close_command(ticket_id, spec_root, ticket_root)}
 """
 
 
@@ -328,12 +351,14 @@ def ticket_state_payload(
     *,
     specs_dir: Path,
     ticket_root: Path,
+    ticket_root_arg: Path,
     ticket_dir: Path,
     ticket_id: str,
     ticket_index: int,
     ticket: dict[str, Any],
     source_current: Path,
     source_project_desired: Path,
+    spec_root: Path,
 ) -> dict[str, Any]:
     return {
         "schema_version": "tla-spec-dev.ticket-workflow.v1",
@@ -350,7 +375,7 @@ def ticket_state_payload(
         "results_dir": "results",
         "testgraph_dir": "testgraph",
         "promotion": {
-            "close_command": f"python scripts/close-ticket.py {ticket_id}",
+            "close_command": ticket_close_command(ticket_id, spec_root, ticket_root_arg),
             "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
@@ -777,15 +802,17 @@ def scaffold_ticket_directory(
     ticket_payload = ticket_state_payload(
         specs_dir=specs_dir,
         ticket_root=root_dir,
+        ticket_root_arg=ticket_root,
         ticket_dir=ticket_dir,
         ticket_id=resolved_ticket_id,
         ticket_index=ticket_index,
         ticket=ticket,
         source_current=source_current,
         source_project_desired=source_project_desired,
+        spec_root=spec_root,
     )
     files = [
-        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current)),
+        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root, ticket_root)),
         (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
         (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
         (ticket_dir / "results" / ".gitkeep", ""),
@@ -795,7 +822,7 @@ def scaffold_ticket_directory(
             written.append(path)
 
     if print_next_steps:
-        print(ticket_next_steps(resolved_ticket_id, ticket_dir))
+        print(ticket_next_steps(resolved_ticket_id, ticket_dir, spec_root, ticket_root))
 
     return written
 

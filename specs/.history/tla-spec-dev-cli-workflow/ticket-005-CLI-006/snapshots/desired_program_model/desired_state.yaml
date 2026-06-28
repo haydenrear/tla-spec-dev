@@ -1,0 +1,90 @@
+version: 1
+name: tla-spec-dev-cli-desired-state
+canonical_tla_module: TlaSpecDevCli
+canonical_tla_file: TlaSpecDevCli.tla
+bounded_model_config: MC.cfg
+manifest: spec_manifest.yaml
+ticket_plan: ticket_plan.yaml
+
+relationship:
+  extends_current_program_model: ../program_model/TlaSpecDevCli.tla
+  purpose: desired whole-program model for shipping the single tla-spec-dev CLI
+  generation_status: ready
+
+implementation_status:
+  updated: null
+  policy: specs/current is the executable state of landed work; ticket desired/ directories define each ticket ending state.
+  active_ticket: CLI-007
+  active_ticket_title: "Document progressive-disclosure CLI onboarding"
+  summary:
+    desired_model_scaffolded: true
+    ticket_breakdown: ready
+    current_model: advanced_through_CLI_006
+    generated_desired_cases: pending
+    adapters: partial
+
+modeled_boundary_status:
+  skill_cli:
+    status: implemented_for_help_and_install
+    actions:
+      - BuildSkillCli
+      - InstallLocalCli
+  project_scaffold:
+    status: implemented
+    actions:
+      - ScaffoldProject
+      - ScaffoldWorkflow
+  ticket_workflow:
+    status: implemented_for_open_and_close
+    actions:
+      - OpenTicket
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - CloseTicket
+  validation:
+    status: implemented_for_spec_unit_and_test_graph
+    actions:
+      - RunSpecUnitTests
+      - ValidateTestGraphCli
+  ticket_plan:
+    status: ready
+    artifact: ticket_plan.yaml
+    next_ticket: CLI-007
+
+program_domains:
+  - CLI command parser
+  - skill-local build/install script
+  - spec-root filesystem layout
+  - ticket-local desired/current workflow
+  - generated spec-unit validation
+  - Test Graph integration validation
+
+implementation_sources:
+  cli:
+    - scripts/tla_spec_dev.py
+    - skill-scripts/
+    - skill-manager.toml
+  workflow_scripts:
+    - scripts/onboard_program_model.py
+    - scripts/new_ticket_workflow.py
+    - scripts/start_ticket.py
+    - scripts/close_ticket.py
+  validation:
+    - scripts/run_generated_case_adapters.py
+    - test_graph/
+
+adapter_plan:
+  desired_new_ports:
+    - TlaSpecDevCliPort
+  required_adapters:
+    - CLI build/install adapter
+    - CLI scaffold adapter
+    - CLI ticket lifecycle adapter
+    - CLI spec-unit test adapter
+    - Test Graph CLI adapter
+
+guardrails:
+  spec_root: "Every command accepts --spec-root and defaults to specs."
+  progressive_disclosure: "Each command prints the next valid workflow step."
+  desired_first: "Open-ticket flow tells users to update ticket desired/ before implementation/current."
+  close_semantics: "Close replaces project current with ticket desired and merges ticket Test Graph artifacts."

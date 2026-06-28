@@ -1,0 +1,77 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CLI-007",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "closed",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Docs introduce the CLI first and route to lower-level scripts only as implementation detail.",
+        "Docs preserve the desired-first ticket workflow and spec-root rule."
+      ],
+      "commands": [
+        "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references test_graph/README.md"
+      ],
+      "evidence": [
+        "README.md, SKILL.md, references, and test_graph/README.md now show the tla-spec-dev CLI before lower-level scripts.",
+        "references/spec_evolution.md now opens tickets through tla-spec-dev --spec-root specs open ticket.",
+        "test_graph/README.md documents specWorkflow with explicit --spec-root commands for scaffold, open, run, and close."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "documentation examples"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "lastCommand"
+      ],
+      "unit_tests": [
+        "rg \"tla-spec-dev --spec-root\" README.md SKILL.md references"
+      ]
+    },
+    "depends_on": [
+      "CLI-006"
+    ],
+    "desired_actions": [
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-007",
+    "implementation_scope": [
+      "SKILL.md",
+      "README.md",
+      "references/",
+      "test_graph/README.md"
+    ],
+    "objective": "Update SKILL.md, references, and README so users can onboard to the single CLI without reading implementation scripts first.",
+    "status": "closed",
+    "title": "Document progressive-disclosure CLI onboarding"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-007",
+  "ticket_id": "CLI-007",
+  "ticket_index": 6,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}
