@@ -12,6 +12,7 @@ validationGraph {
         node("sources/spec_workflow_complete_ticket.py")
         node("sources/spec_workflow_spec_units.py")
         node("sources/spec_workflow_close_ticket.py")
+        node("sources/spec_workflow_failure_cleanup_probe.py")
         node("sources/spec_workflow_cleanup.py")
     }
 

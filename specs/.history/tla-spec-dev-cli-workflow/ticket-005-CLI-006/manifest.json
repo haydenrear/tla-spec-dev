@@ -1,0 +1,208 @@
+{
+  "active_ticket_dir": "specs/tickets/CLI-006",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006 specs/current",
+    "git_commit": "git commit -m 'record spec history for CLI-006'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006"
+  },
+  "created_at_utc": "2026-06-28T21:00:28.073927+00:00",
+  "entry_name": "ticket-005-CLI-006",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "0fcfb7c",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CLI-006/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CLI-006/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CLI-006/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CLI-006/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CLI-006/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CLI-006/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CLI-006/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CLI-006/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CLI-006/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CLI-006/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CLI-006/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "replace",
+        "role": "current",
+        "source": "specs/tickets/CLI-006/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CLI-006"
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/results/tlc.txt",
+      "source": "specs/tickets/CLI-006/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/results/unit.txt",
+      "source": "specs/tickets/CLI-006/results/unit.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/results/testgraph-specWorkflow.txt",
+      "source": "specs/tickets/CLI-006/results/testgraph-specWorkflow.txt"
+    }
+  ],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/ticket",
+      "source": "specs/tickets/CLI-006"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Validated the shipped tla-spec-dev CLI through specWorkflow, including a forced-failure cleanup probe for disposable git repositories.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The graph uses tla-spec-dev commands rather than only lower-level Python scripts.",
+        "The disposable git repository is removed even when a downstream node fails after allocation."
+      ],
+      "commands": [
+        "python /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
+      ],
+      "evidence": [
+        "specWorkflow now has eight steps and includes spec.workflow.failure_cleanup_probe before spec.workflow.cleanup.",
+        "spec.workflow.failure_cleanup_probe runs a temporary intentionally failing graph and asserts the nested cleanup finalizer removed its fixture repo.",
+        "specWorkflow passed with run id specWorkflow-20260628-205715-36ce11c9.",
+        "Ticket-local TestGraphCliAdapter validates the graph composition and failure-cleanup probe artifacts.",
+        "TLC passed for specs/tickets/CLI-006/current/TlaSpecDevCli.tla with 917 distinct states.",
+        "tla-spec-dev --spec-root specs run spec-unit-tests --ticket CLI-006 passed.",
+        "Repo/current tests passed separately from ticket tests to avoid duplicate pytest module basenames."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "Test Graph CLI adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "cli_installed",
+        "spec_unit_tests_passed",
+        "closed_tickets"
+      ],
+      "unit_tests": [
+        "python /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow"
+      ]
+    },
+    "depends_on": [
+      "CLI-005"
+    ],
+    "desired_actions": [
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-006",
+    "implementation_scope": [
+      "test_graph/build.gradle.kts",
+      "test_graph/sources/",
+      "test_graph/README.md"
+    ],
+    "objective": "Extend the parent specWorkflow graph so it invokes the final tla-spec-dev CLI against a disposable git repository.",
+    "status": "closed",
+    "title": "Validate CLI with Test Graph"
+  },
+  "ticket_id": "CLI-006",
+  "ticket_index": 5,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-005-CLI-006/ticket",
+    "source": "specs/tickets/CLI-006"
+  },
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

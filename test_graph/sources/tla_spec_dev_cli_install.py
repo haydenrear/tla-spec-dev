@@ -26,7 +26,10 @@ SPEC = (
 
 @node(SPEC)
 def main(ctx):
-    source_repo = Path(__file__).resolve().parents[2]
+    source_repo = Path(
+        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+        or Path(__file__).resolve().parents[2]
+    )
     bin_dir = ctx.report_dir / "tla-spec-dev-bin"
     cache_dir = ctx.report_dir / "tla-spec-dev-cache"
     env = {

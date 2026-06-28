@@ -1,0 +1,79 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CLI-006",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "closed",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The graph uses tla-spec-dev commands rather than only lower-level Python scripts.",
+        "The disposable git repository is removed even when a downstream node fails after allocation."
+      ],
+      "commands": [
+        "python /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
+      ],
+      "evidence": [
+        "specWorkflow now has eight steps and includes spec.workflow.failure_cleanup_probe before spec.workflow.cleanup.",
+        "spec.workflow.failure_cleanup_probe runs a temporary intentionally failing graph and asserts the nested cleanup finalizer removed its fixture repo.",
+        "specWorkflow passed with run id specWorkflow-20260628-205715-36ce11c9.",
+        "Ticket-local TestGraphCliAdapter validates the graph composition and failure-cleanup probe artifacts.",
+        "TLC passed for specs/tickets/CLI-006/current/TlaSpecDevCli.tla with 917 distinct states.",
+        "tla-spec-dev --spec-root specs run spec-unit-tests --ticket CLI-006 passed.",
+        "Repo/current tests passed separately from ticket tests to avoid duplicate pytest module basenames."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "Test Graph CLI adapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "cli_installed",
+        "spec_unit_tests_passed",
+        "closed_tickets"
+      ],
+      "unit_tests": [
+        "python /Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow"
+      ]
+    },
+    "depends_on": [
+      "CLI-005"
+    ],
+    "desired_actions": [
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-006",
+    "implementation_scope": [
+      "test_graph/build.gradle.kts",
+      "test_graph/sources/",
+      "test_graph/README.md"
+    ],
+    "objective": "Extend the parent specWorkflow graph so it invokes the final tla-spec-dev CLI against a disposable git repository.",
+    "status": "closed",
+    "title": "Validate CLI with Test Graph"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-006",
+  "ticket_id": "CLI-006",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}
