@@ -215,11 +215,14 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
 
     cases_dirs = spec_unit_cases_dirs(args, specs_dir)
     commands: list[tuple[str, list[str], dict[str, str]]] = []
+    empty_targets: list[Path] = []
     for target_dir in target_dirs:
+        target_command_count = 0
         tests_dir = Path(args.tests_dir) if args.tests_dir else target_dir / "tests"
         if not tests_dir.is_absolute():
             tests_dir = target_dir / tests_dir
         if has_pytest_tests(tests_dir):
+            target_command_count += 1
             commands.append(
                 (
                     f"pytest:{target_dir}",
@@ -239,6 +242,7 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
 
         mapping = Path(args.mapping) if args.mapping else target_dir / "case_adapters.toml"
         for cases_dir in cases_dirs:
+            target_command_count += 1
             command = [
                 sys.executable,
                 str(ROOT / "scripts" / "run_generated_case_adapters.py"),
@@ -267,6 +271,13 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
             if not args.no_batch:
                 command.append("--batch")
             commands.append((f"case-adapters:{target_dir}:{cases_dir.name}", command, command_env(target_dir)))
+        if target_command_count == 0:
+            empty_targets.append(target_dir)
+
+    if empty_targets:
+        for target_dir in empty_targets:
+            print(f"ERROR: no spec-unit pytest tests or generated case packages found for {target_dir}", file=sys.stderr)
+        return 2
 
     if not commands:
         targets = ", ".join(str(target) for target in target_dirs)

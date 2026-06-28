@@ -151,6 +151,32 @@ def test_cli_run_spec_unit_tests_auto_includes_project_current_tests(tmp_path: P
     assert "test_project_current_failure" in result.stdout
 
 
+def test_cli_run_spec_unit_tests_fails_when_any_selected_target_has_no_validations(tmp_path: Path) -> None:
+    ticket_id = "CLI-205"
+    spec_root = tmp_path / "project_specs"
+    (spec_root / "current").mkdir(parents=True)
+    plan = spec_root / "desired_program_model" / "ticket_plan.yaml"
+    plan.parent.mkdir(parents=True)
+    plan.write_text(
+        f"""status:
+  active_ticket: {ticket_id}
+tickets:
+  - id: {ticket_id}
+    status: next
+""",
+        encoding="utf-8",
+    )
+    ticket_test = spec_root / "tickets" / ticket_id / "current" / "tests" / "test_ticket_unit.py"
+    ticket_test.parent.mkdir(parents=True)
+    ticket_test.write_text("def test_ticket_unit():\n    assert True\n", encoding="utf-8")
+
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+
+    assert result.returncode == 2
+    assert "project_specs/current" in result.stderr
+    assert "no spec-unit pytest tests or generated case packages found" in result.stderr
+
+
 def test_cli_run_spec_unit_tests_runs_generated_case_adapters(tmp_path: Path) -> None:
     spec_root = tmp_path / "project_specs"
     current = spec_root / "current"
