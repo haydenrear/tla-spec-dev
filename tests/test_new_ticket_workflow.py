@@ -6,8 +6,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.new_ticket_workflow import scaffold
+from scripts.new_ticket_workflow import scaffold, scaffold_ticket_directory
 from scripts.close_tickets import close_ticket_workflow, validate_equivalent
+from scripts.spec_evolution import create_ticket_history_entry
 
 
 def write_program_model(tmp_path: Path, spec_root: Path = Path("specs")) -> Path:
@@ -105,6 +106,94 @@ def test_scaffold_ticket_workflow_uses_nested_spec_root_in_generated_test(tmp_pa
         tmp_path / "project/specs/current/tests/test_current_ticket_workflow.py"
     ).read_text(encoding="utf-8")
     assert "SPEC_ROOT = Path(__file__).resolve().parents[1].parent" in generated_test
+
+
+def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-127", "Parallel ticket", force=False, dry_run=False)
+    (tmp_path / "specs" / "testgraph").mkdir()
+    (tmp_path / "specs" / "testgraph" / "bindings.yml").write_text("actions: {}\n", encoding="utf-8")
+
+    written = scaffold_ticket_directory(tmp_path, "AUTH-127", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-127"
+
+    assert ticket_dir / "ticket.yaml" in written
+    assert (ticket_dir / "current" / "ProgramModel.tla").exists()
+    assert (ticket_dir / "desired" / "ProgramModel.tla").exists()
+    assert not (ticket_dir / "current" / "tests" / "test_current_ticket_workflow.py").exists()
+    assert not (ticket_dir / "desired" / "tests" / "test_current_ticket_workflow.py").exists()
+    assert (ticket_dir / "tests" / "test_ticket_workflow.py").exists()
+    assert (ticket_dir / "testgraph" / "bindings.yml").read_text(encoding="utf-8") == "actions: {}\n"
+    ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
+    assert ticket_state["ticket_id"] == "AUTH-127"
+    assert ticket_state["promotion"]["on_close"] == "promote ticket desired/ to project current/"
+
+
+def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-128", "Close parallel ticket", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-128", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-128"
+    finished_tla = "---- MODULE ProgramModel ----\nFinished == TRUE\n====\n"
+    (ticket_dir / "current" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
+    (ticket_dir / "testgraph").mkdir()
+    (ticket_dir / "testgraph" / "report.json").write_text('{"passed": true}\n', encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        """version: 1
+name: desired-ticket-workflow
+tickets:
+  - id: AUTH-128
+    title: Close parallel ticket
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref="AUTH-128",
+        summary="closed",
+        result_paths=[],
+    )
+    manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert not ticket_dir.exists()
+    assert (result.entry_dir / "ticket" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
+    assert (result.entry_dir / "ticket" / "testgraph" / "report.json").exists()
+    assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
+    assert manifest["promotion"]["operation"] == "replace project current with ticket desired"
+
+
+def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-129", "Reject divergent ticket", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-129", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-129"
+    (ticket_dir / "current" / "ProgramModel.tla").write_text("current\n", encoding="utf-8")
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text("desired\n", encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-129
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    try:
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref="AUTH-129",
+            summary="closed",
+            result_paths=[],
+        )
+    except SystemExit as exc:
+        assert "cannot close ticket-local workflow" in str(exc)
+        assert "semantic file differs: ProgramModel.tla" in str(exc)
+    else:
+        raise AssertionError("expected divergent ticket current/desired to block close")
 
 
 def test_scaffold_ticket_workflow_requires_program_model_baseline(tmp_path: Path) -> None:

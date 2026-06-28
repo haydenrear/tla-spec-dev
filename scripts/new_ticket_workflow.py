@@ -9,6 +9,7 @@ state, adapters, and validation evidence in sync.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 from dataclasses import dataclass
@@ -17,6 +18,8 @@ from typing import Any
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+TICKET_COPY_IGNORE = {".DS_Store", "__pycache__", ".history", ".tla-spec-evolution"}
+PROJECT_WORKFLOW_TEST = "tests/test_current_ticket_workflow.py"
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -48,6 +51,13 @@ def _module_name(value: str) -> str:
     if candidate[0].isdigit():
         return f"Program{candidate}"
     return candidate
+
+
+def _safe_segment(value: str) -> str:
+    rendered = re.sub(r"[^A-Za-z0-9._-]+", "-", value.strip()).strip(".-")
+    if not rendered:
+        raise SystemExit("ticket ids must contain at least one safe path character")
+    return rendered
 
 
 @dataclass(frozen=True)
@@ -166,6 +176,153 @@ def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bo
             print(f"copied {src} -> {dst}")
         copied.append(dst)
     return copied
+
+
+def copy_workflow_tree(
+    src_dir: Path,
+    dst_dir: Path,
+    *,
+    force: bool,
+    dry_run: bool,
+    skip_paths: set[str] | None = None,
+) -> list[Path]:
+    if not src_dir.exists():
+        return []
+
+    skipped = skip_paths or set()
+    copied: list[Path] = []
+    for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
+        relative = src.relative_to(src_dir)
+        if any(part in TICKET_COPY_IGNORE for part in relative.parts):
+            continue
+        if relative.as_posix() in skipped:
+            continue
+        dst = dst_dir / relative
+        if dst.exists() and not force:
+            continue
+        if dry_run:
+            print(f"would copy {src} -> {dst}")
+        else:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+            print(f"copied {src} -> {dst}")
+        copied.append(dst)
+    return copied
+
+
+def copy_optional_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+    if not src_dir.exists():
+        return []
+    return copy_workflow_tree(src_dir, dst_dir, force=force, dry_run=dry_run)
+
+
+def ticket_plan_path(specs_dir: Path) -> Path:
+    return specs_dir / "desired_program_model" / "ticket_plan.yaml"
+
+
+def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
+    path = ticket_plan_path(specs_dir)
+    if not path.exists():
+        raise SystemExit(f"missing ticket plan: {path}")
+    plan = _load_manifest(path)
+    if not isinstance(plan, dict) or not isinstance(plan.get("tickets"), list):
+        raise SystemExit(f"ticket plan must contain a tickets list: {path}")
+    return plan
+
+
+def find_ticket(plan: dict[str, Any], ticket_ref: str, *, source: Path | None = None) -> tuple[int, dict[str, Any]]:
+    tickets = plan.get("tickets")
+    if not isinstance(tickets, list):
+        raise SystemExit("ticket plan has no tickets list")
+    for index, ticket in enumerate(tickets):
+        if isinstance(ticket, dict) and str(ticket.get("id", "")) == ticket_ref:
+            return index, ticket
+    normalized = ticket_ref.removeprefix("ticket-")
+    if normalized.isdigit():
+        index = int(normalized)
+        if 0 <= index < len(tickets) and isinstance(tickets[index], dict):
+            return index, tickets[index]
+    plan_source = source or Path("ticket_plan.yaml")
+    raise SystemExit(f"ticket {ticket_ref!r} was not found in {plan_source}")
+
+
+def ticket_title(ticket: dict[str, Any], fallback: str) -> str:
+    value = ticket.get("title")
+    return str(value) if value is not None and str(value).strip() else fallback
+
+
+def ticket_root_dir(specs_dir: Path, ticket_root: Path) -> Path:
+    return ticket_root if ticket_root.is_absolute() else specs_dir / ticket_root
+
+
+def project_current_source(specs_dir: Path) -> Path:
+    current = specs_dir / "current"
+    return current if current.exists() else specs_dir / "program_model"
+
+
+def ticket_readme(ticket_id: str, title: str, source_current: Path) -> str:
+    return f"""# Ticket {ticket_id}: {title}
+
+This directory is the active, ticket-local spec workflow for one ticket.
+
+Layout:
+
+- `ticket.yaml`: copied ticket-plan entry and lifecycle metadata.
+- `current/`: the whole-program state this ticket started from.
+- `desired/`: the whole-program state that should be true after this ticket.
+- `testgraph/`: copied Test Graph bindings/selectors/assertions when present.
+- `results/`: ticket-local TLC, adapter, Test Graph, and review evidence.
+
+Workflow:
+
+1. Keep `current/` executable and update it as implementation work lands in
+   this ticket.
+2. Update `desired/` to represent the end state of this ticket only.
+3. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
+4. Mark the global ticket-plan entry closed.
+5. Run `scripts/close-ticket.py {ticket_id}`. Closing snapshots this whole
+   directory into history, promotes `desired/` to the project-level `current/`,
+   and removes the active ticket directory.
+
+Starting source: `{source_current}`
+
+Future worktree support should attach the ticket worktree here, but this
+scaffold intentionally records only the spec-side state for now.
+"""
+
+
+def ticket_state_payload(
+    *,
+    specs_dir: Path,
+    ticket_root: Path,
+    ticket_dir: Path,
+    ticket_id: str,
+    ticket_index: int,
+    ticket: dict[str, Any],
+    source_current: Path,
+    source_project_desired: Path,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "tla-spec-dev.ticket-workflow.v1",
+        "ticket_id": ticket_id,
+        "ticket_index": ticket_index,
+        "status": "active",
+        "ticket_plan": str(ticket_plan_path(specs_dir)),
+        "ticket_root": str(ticket_root),
+        "ticket_dir": str(ticket_dir),
+        "source_current": str(source_current),
+        "source_project_desired": str(source_project_desired),
+        "current_dir": "current",
+        "desired_dir": "desired",
+        "results_dir": "results",
+        "testgraph_dir": "testgraph",
+        "promotion": {
+            "close_command": f"python scripts/close-ticket.py {ticket_id}",
+            "on_close": "promote ticket desired/ to project current/",
+            "worktree": "deferred",
+        },
+        "ticket": ticket,
+    }
 
 
 def minimal_tla(module: str) -> str:
@@ -364,10 +521,7 @@ state_fields: []
 actions: []
 ports: {{}}
 notes:
-  direction: >
-    This manifest records the target whole-program model and the ticket workflow
-    status. Keep ticket_plan.yaml synchronized whenever scope, order, validation,
-    or acceptance criteria change.
+  direction: "This manifest records the target whole-program model and the ticket workflow status. Keep ticket_plan.yaml synchronized whenever scope, order, validation, or acceptance criteria change."
 """
 
 
@@ -379,10 +533,7 @@ def ticket_plan(ticket_id: str, title: str, module: str, spec_root: Path = Path(
 version: 1
 name: desired-ticket-workflow
 updated: null
-purpose: >
-  Break the desired whole-program change into tickets that can be implemented,
-  modeled in {spec_root_text}/current, unit-tested, and then validated with broader graph
-  or integration checks.
+purpose: "Break the desired whole-program change into tickets that can be implemented, modeled in {spec_root_text}/current, unit-tested, and then validated with broader graph or integration checks."
 
 planning_rules:
   current_model_rule: Update {spec_root_text}/current after each production slice lands as a whole-program working copy of {spec_root_text}/program_model, not a ticket projection.
@@ -414,9 +565,7 @@ tickets:
     title: "{title}"
     status: next
     depends_on: []
-    objective: >
-      Describe the behavior change in program terms. Name the resource or
-      state boundary that must become true, not only the implementation file.
+    objective: "Describe the behavior change in program terms. Name the resource or state boundary that must become true, not only the implementation file."
     desired_actions:
       # Add TLA+ action names that will exist in {spec_root_text}/desired_program_model.
       - ReplaceWithDesiredAction
@@ -540,6 +689,78 @@ def test_current_ticket_workflow_scaffold_points_to_desired_plan() -> None:
     assert "{ticket_id}" in manifest.read_text(encoding="utf-8")
     assert "{ticket_id}" in plan.read_text(encoding="utf-8")
 '''
+
+
+def ticket_workflow_test(ticket_id: str) -> str:
+    return f'''from pathlib import Path
+
+
+TICKET_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_ticket_workflow_scaffold_points_to_local_current_and_desired() -> None:
+    current = TICKET_ROOT / "current/spec_manifest.yaml"
+    desired = TICKET_ROOT / "desired/spec_manifest.yaml"
+    ticket = TICKET_ROOT / "ticket.yaml"
+
+    assert current.exists()
+    assert desired.exists()
+    assert ticket.exists()
+    assert "{ticket_id}" in ticket.read_text(encoding="utf-8")
+'''
+
+
+def scaffold_ticket_directory(
+    repo_root: Path,
+    ticket_ref: str,
+    *,
+    force: bool,
+    dry_run: bool,
+    spec_root: Path = Path("specs"),
+    ticket_root: Path = Path("tickets"),
+) -> list[Path]:
+    fallback_module = _module_name(repo_root.name)
+    baseline = discover_baseline(repo_root, spec_root, fallback_module)
+    specs_dir = baseline.spec_root
+    plan = load_ticket_plan(specs_dir)
+    ticket_index, ticket = find_ticket(plan, ticket_ref, source=ticket_plan_path(specs_dir))
+    resolved_ticket_id = str(ticket.get("id") or f"ticket-{ticket_index}")
+    title = ticket_title(ticket, resolved_ticket_id)
+    root_dir = ticket_root_dir(specs_dir, ticket_root)
+    ticket_dir = root_dir / _safe_segment(resolved_ticket_id)
+    source_current = project_current_source(specs_dir)
+    source_project_desired = specs_dir / "desired_program_model"
+
+    current_dir = ticket_dir / "current"
+    desired_dir = ticket_dir / "desired"
+    skip_project_tests = {PROJECT_WORKFLOW_TEST}
+    written: list[Path] = []
+    written.extend(copy_workflow_tree(source_current, current_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
+    written.extend(copy_workflow_tree(source_current, desired_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
+    written.extend(copy_optional_tree(specs_dir / "testgraph", ticket_dir / "testgraph", force=force, dry_run=dry_run))
+    written.extend(copy_optional_tree(specs_dir / "test_graph", ticket_dir / "test_graph", force=force, dry_run=dry_run))
+
+    ticket_payload = ticket_state_payload(
+        specs_dir=specs_dir,
+        ticket_root=root_dir,
+        ticket_dir=ticket_dir,
+        ticket_id=resolved_ticket_id,
+        ticket_index=ticket_index,
+        ticket=ticket,
+        source_current=source_current,
+        source_project_desired=source_project_desired,
+    )
+    files = [
+        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current)),
+        (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
+        (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
+        (ticket_dir / "results" / ".gitkeep", ""),
+    ]
+    for path, content in files:
+        if write_file(path, content, force=force, dry_run=dry_run):
+            written.append(path)
+
+    return written
 
 
 def scaffold(

@@ -51,24 +51,41 @@ the whole accepted model, not as a feature-only projection.
 
 For each ticket or implementation slice:
 
-1. Update production code.
-2. Update `current` to represent the whole program as now implemented.
-3. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
+1. Scaffold a ticket-local workspace from the plan:
+
+```bash
+python scripts/start_ticket.py TICKET-123 --repo-root path/to/repo
+```
+
+This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and any
+copied Test Graph configuration. Ticket `desired` is the whole-program state at
+the end of this ticket, not the whole project destination.
+
+2. Update production code.
+3. Update `specs/tickets/TICKET-123/current` to represent the whole program as
+   now implemented for this ticket.
+4. Update `specs/tickets/TICKET-123/desired` to represent the expected
+   post-ticket whole-program state.
+5. Keep `desired_program_model/ticket_plan.yaml` synchronized with changes in
    scope, order, dependencies, and acceptance criteria.
-4. Run TLC and current-model adapter or unit tests.
-5. Record validation evidence in manifests or ticket status.
-6. When the ticket is closed in `ticket_plan.yaml`, snapshot the workflow
-   history:
+6. Run TLC, generated adapter tests, and Test Graph validation as needed.
+7. Record validation evidence in the ticket `results/` directory, manifests, or
+   ticket status.
+8. When ticket-local `current` semantically equals ticket-local `desired`, mark
+   the ticket closed in `ticket_plan.yaml`, then close the ticket:
 
 ```bash
 python scripts/close-ticket.py TICKET-123 --repo-root path/to/repo --result path/to/repo/specs/results/tlc.txt
 ```
 
+Closing moves `specs/tickets/TICKET-123` into history and promotes its
+`desired/` directory to project-level `specs/current`.
+
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or
 validation workflow mechanics as TLA+ program state/actions. Record them as
 evidence for semantic program actions.
 
-Repeat until `current` semantically equals `desired_program_model`.
+Repeat until project `current` semantically equals `desired_program_model`.
 
 ## 4. Close The Ticket Workflow
 

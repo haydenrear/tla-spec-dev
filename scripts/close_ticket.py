@@ -22,6 +22,8 @@ def main() -> int:
     parser.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
     parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+    parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+    parser.add_argument("--no-promote-current", action="store_true", help="Do not promote ticket desired/ into project current/ after moving ticket history.")
     args = parser.parse_args()
 
     result = create_ticket_history_entry(
@@ -33,6 +35,8 @@ def main() -> int:
         workflow=args.workflow_name,
         entry_name=args.entry_name,
         allow_open=args.allow_open,
+        ticket_root=args.ticket_root,
+        promote_current=not args.no_promote_current,
     )
     print_commit_recommendation(result)
     return 0

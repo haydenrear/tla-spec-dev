@@ -121,8 +121,13 @@ After each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`:
 
 ```bash
+python3 scripts/start_ticket.py TICKET-123
 python3 scripts/close-ticket.py TICKET-123 --summary "Kept generated cases spec-local" --result specs/results/tlc.txt
 ```
+
+`start_ticket.py` creates `specs/tickets/TICKET-123/current` and `desired` for
+parallel ticket work. `close-ticket.py` moves that ticket directory into
+history and promotes ticket `desired/` to project `specs/current`.
 
 At the end of a desired/current workflow:
 

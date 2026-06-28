@@ -31,8 +31,8 @@ python scripts/scaffold_spec.py workspace --root specs/current
 ```
 
 For example specs, `--root examples` remains fine. For production desired/current
-work, put the active implementation model under `specs/current`, keep the
-planned destination under `specs/desired_program_model`, and keep tickets in
+work, keep project state under `specs/current`, keep the planned project
+destination under `specs/desired_program_model`, and keep tickets in
 `specs/desired_program_model/ticket_plan.yaml`.
 
 ## Work A Ticket
@@ -40,11 +40,20 @@ planned destination under `specs/desired_program_model`, and keep tickets in
 1. Update `specs/desired_program_model` with the intended whole-program state.
 2. Update `specs/desired_program_model/ticket_plan.yaml` with the ticket id,
    status, dependencies, validation commands, and evidence slots.
-3. Update `specs/current` with the whole program as now implemented.
-4. Run TLC and generated/adapted case tests for the selected slice.
-5. Store evidence under `specs/results` or another referenced evidence path.
-6. Mark the ticket closed in `ticket_plan.yaml`.
-7. Close the ticket:
+3. Start the ticket workspace:
+
+```bash
+python scripts/start_ticket.py <ticket-id> --repo-root .
+```
+
+4. Update production code plus `specs/tickets/<ticket-id>/current` and
+   `specs/tickets/<ticket-id>/desired`. The ticket desired model is the
+   whole-program state after this ticket.
+5. Run TLC and generated/adapted case tests for the selected slice.
+6. Store evidence under the ticket `results/` directory or another referenced
+   evidence path.
+7. Mark the ticket closed in `ticket_plan.yaml`.
+8. Close the ticket:
 
 ```bash
 python scripts/close-ticket.py <ticket-id> \
@@ -53,8 +62,10 @@ python scripts/close-ticket.py <ticket-id> \
   --result specs/results/adapter.txt
 ```
 
-The close record is written to
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/`.
+The close operation validates ticket-local `current == desired`, moves
+`specs/tickets/<ticket-id>` to
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, and promotes
+ticket `desired/` to project `specs/current`.
 
 ## Complete A Spec Workflow
 
@@ -63,7 +74,8 @@ program model.
 
 1. Confirm every ticket in `specs/desired_program_model/ticket_plan.yaml` has a
    closed status.
-2. Confirm `specs/current` and `specs/desired_program_model` semantically match.
+2. Confirm project `specs/current` and `specs/desired_program_model`
+   semantically match.
 3. Promote the converged model into `specs/program_model`.
 4. Record a closed-workflow snapshot and remove temporary workflow directories:
 

@@ -11,6 +11,8 @@ The active workspace is mutable:
 - `specs/program_model`: accepted whole-program baseline.
 - `specs/desired_program_model`: target whole-program state and ticket plan.
 - `specs/current`: executable whole-program state that has landed so far.
+- `specs/tickets/<ticket-id>`: active ticket-local current/desired workspace
+  for one parallelizable ticket.
 - `specs/results`: current TLC, generated-case, adapter, and graph evidence.
 
 The history directory is append-only by convention:
@@ -40,6 +42,11 @@ specs/.history/
         program_model/
         desired_program_model/
         current/
+      ticket/
+        current/
+        desired/
+        results/
+        testgraph/
       results/
 ```
 
@@ -63,7 +70,14 @@ overview. The copied snapshots are evidence, not active state.
 
 ## Per-Ticket Close
 
-First mark the ticket closed in
+First create and work in a ticket-local directory:
+
+```bash
+python scripts/start_ticket.py TICKET-123
+```
+
+When `specs/tickets/TICKET-123/current` semantically equals
+`specs/tickets/TICKET-123/desired`, mark the ticket closed in
 `specs/desired_program_model/ticket_plan.yaml`. Then run:
 
 ```bash
@@ -74,8 +88,9 @@ python scripts/close-ticket.py TICKET-123 \
 ```
 
 The command reads the matching ticket mapping from `ticket_plan.yaml`, writes it
-into the manifest, snapshots the model directories, and recommends committing
-the created history entry.
+into the manifest, snapshots the project model directories, moves the active
+ticket directory into the history entry, promotes ticket `desired/` to project
+`specs/current`, and recommends committing the created history entry.
 
 ## Whole-Workflow Close
 
