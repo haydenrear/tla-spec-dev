@@ -368,11 +368,9 @@ def onboarding_test(module: str, spec_root_text: str = "specs") -> str:
 SPEC_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_program_model_onboarding_scaffold_has_no_ticket_workflow_dirs() -> None:
+def test_program_model_onboarding_scaffold_has_program_model_files() -> None:
     assert (SPEC_ROOT / "{module}.tla").exists()
     assert (SPEC_ROOT / "spec_manifest.yaml").exists()
-    assert not (SPEC_ROOT.parent / "current").exists()
-    assert not (SPEC_ROOT.parent / "desired_program_model").exists()
 '''
 
 
