@@ -1,0 +1,181 @@
+{
+  "active_ticket_dir": "specs/tickets/CLI-001",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001 specs/current",
+    "git_commit": "git commit -m 'record spec history for CLI-001'",
+    "message": "It is recommended to commit this history directory now: specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001"
+  },
+  "created_at_utc": "2026-06-28T19:10:16.885279+00:00",
+  "entry_name": "ticket-000-CLI-001",
+  "git": {
+    "branch": "codex/ship-tla-spec-dev-cli",
+    "commit": "803a622",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CLI-001/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CLI-001/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CLI-001/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CLI-001/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CLI-001/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CLI-001/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_program_model_onboarding.py",
+            "relative": "tests/test_program_model_onboarding.py",
+            "source": "specs/tickets/CLI-001/desired/tests/test_program_model_onboarding.py"
+          }
+        ],
+        "operation": "replace",
+        "role": "current",
+        "source": "specs/tickets/CLI-001/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CLI-001"
+  },
+  "results": [],
+  "schema_version": 1,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001/ticket",
+      "source": "specs/tickets/CLI-001"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Modeled the shipped tla-spec-dev CLI workflow, scaffolded current/desired specs, and created the implementation ticket plan.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The desired CLI command workflow is represented in TLA+.",
+        "Tickets cover CLI build, install, command behavior, validation, and documentation."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg",
+        "uv run --with pytest -m pytest tests -q"
+      ],
+      "evidence": [
+        "TLC passed for specs/program_model/TlaSpecDevCli.tla with 917 distinct states.",
+        "TLC passed for specs/current/TlaSpecDevCli.tla with 917 distinct states.",
+        "TLC passed for specs/desired_program_model/TlaSpecDevCli.tla with 917 distinct states.",
+        "Repo tests passed: uv run --with pytest -m pytest tests -q.",
+        "specWorkflow Test Graph passed before opening CLI-002."
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli",
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "cli_built",
+        "cli_installed",
+        "spec_root",
+        "active_tickets",
+        "desired_ready",
+        "current_ready",
+        "spec_unit_tests_passed"
+      ],
+      "unit_tests": [
+        "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [
+      "BuildSkillCli",
+      "InstallLocalCli",
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "UpdateTicketDesired",
+      "UpdateTicketCurrent",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-001",
+    "implementation_scope": [
+      "specs/program_model/TlaSpecDevCli.tla",
+      "specs/program_model/MC.cfg",
+      "specs/program_model/spec_manifest.yaml",
+      "specs/desired_program_model/ticket_plan.yaml",
+      "specs/desired_program_model/desired_state.yaml"
+    ],
+    "objective": "Keep the TlaSpecDevCli TLA+ diagram, manifest, desired/current workflow, and ticket plan ready before implementation begins.",
+    "status": "closed",
+    "title": "Model shipped CLI workflow"
+  },
+  "ticket_id": "CLI-001",
+  "ticket_index": 0,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/tla-spec-dev-cli-workflow/ticket-000-CLI-001/ticket",
+    "source": "specs/tickets/CLI-001"
+  },
+  "workflow_name": "tla-spec-dev-cli-workflow"
+}

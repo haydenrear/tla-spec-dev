@@ -1,0 +1,85 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "python scripts/close-ticket.py CLI-001",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The desired CLI command workflow is represented in TLA+.",
+        "Tickets cover CLI build, install, command behavior, validation, and documentation."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg",
+        "uv run --with pytest -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "BuildSkillCli",
+        "InstallLocalCli",
+        "ScaffoldProject",
+        "ScaffoldWorkflow",
+        "OpenTicket",
+        "RunSpecUnitTests",
+        "CloseTicket"
+      ],
+      "model_state": [
+        "cli_built",
+        "cli_installed",
+        "spec_root",
+        "active_tickets",
+        "desired_ready",
+        "current_ready",
+        "spec_unit_tests_passed"
+      ],
+      "unit_tests": [
+        "bash scripts/run_tlc.sh specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [
+      "BuildSkillCli",
+      "InstallLocalCli",
+      "ScaffoldProject",
+      "ScaffoldWorkflow",
+      "OpenTicket",
+      "UpdateTicketDesired",
+      "UpdateTicketCurrent",
+      "RunSpecUnitTests",
+      "CloseTicket"
+    ],
+    "id": "CLI-001",
+    "implementation_scope": [
+      "specs/program_model/TlaSpecDevCli.tla",
+      "specs/program_model/MC.cfg",
+      "specs/program_model/spec_manifest.yaml",
+      "specs/desired_program_model/ticket_plan.yaml",
+      "specs/desired_program_model/desired_state.yaml"
+    ],
+    "objective": "Keep the TlaSpecDevCli TLA+ diagram, manifest, desired/current workflow, and ticket plan ready before implementation begins.",
+    "status": "in_progress",
+    "title": "Model shipped CLI workflow"
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets/CLI-001",
+  "ticket_id": "CLI-001",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/tla-spec-dev/specs/tickets"
+}
