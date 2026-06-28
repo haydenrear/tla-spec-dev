@@ -268,7 +268,7 @@ def project_current_source(specs_dir: Path) -> Path:
     return current if current.exists() else specs_dir / "program_model"
 
 
-def ticket_readme(ticket_id: str, title: str, source_current: Path) -> str:
+def ticket_readme(ticket_id: str, title: str, source_current: Path, spec_root: Path = Path("specs")) -> str:
     return f"""# Ticket {ticket_id}: {title}
 
 This directory is the active, ticket-local spec workflow for one ticket.
@@ -293,7 +293,7 @@ Workflow:
    tests, bindings, selectors, and assertions in the ticket directory.
 4. Run TLC, generated spec-unit adapters, and Test Graph validation as needed.
 5. Mark the global ticket-plan entry closed.
-6. Run `scripts/close-ticket.py {ticket_id}`. Closing validates ticket
+6. Run `tla-spec-dev --spec-root {spec_root.as_posix()} close ticket {ticket_id}`. Closing validates ticket
    `current/ == desired/`, replaces project `specs/current` with ticket
    `desired/`, merges ticket Test Graph config back into project specs,
    snapshots this directory into history, and removes the active ticket
@@ -306,7 +306,7 @@ scaffold intentionally records only the spec-side state for now.
 """
 
 
-def ticket_next_steps(ticket_id: str, ticket_dir: Path) -> str:
+def ticket_next_steps(ticket_id: str, ticket_dir: Path, spec_root: Path = Path("specs")) -> str:
     return f"""
 Next ticket workflow steps for {ticket_id}:
   1. Edit {ticket_dir / "desired"} first. Update the TLA+ model/configs so
@@ -320,7 +320,7 @@ Next ticket workflow steps for {ticket_id}:
   4. Implement the ticket, then update {ticket_dir / "current"} to match the
      landed behavior. Before close, ticket current and desired must be equal.
   5. Mark {ticket_id} closed/done in the project ticket plan and run:
-     python scripts/close-ticket.py {ticket_id}
+     tla-spec-dev --spec-root {spec_root.as_posix()} close ticket {ticket_id}
 """
 
 
@@ -334,6 +334,7 @@ def ticket_state_payload(
     ticket: dict[str, Any],
     source_current: Path,
     source_project_desired: Path,
+    spec_root: Path,
 ) -> dict[str, Any]:
     return {
         "schema_version": "tla-spec-dev.ticket-workflow.v1",
@@ -350,7 +351,7 @@ def ticket_state_payload(
         "results_dir": "results",
         "testgraph_dir": "testgraph",
         "promotion": {
-            "close_command": f"python scripts/close-ticket.py {ticket_id}",
+            "close_command": f"tla-spec-dev --spec-root {spec_root.as_posix()} close ticket {ticket_id}",
             "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
@@ -783,9 +784,10 @@ def scaffold_ticket_directory(
         ticket=ticket,
         source_current=source_current,
         source_project_desired=source_project_desired,
+        spec_root=spec_root,
     )
     files = [
-        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current)),
+        (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root)),
         (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
         (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
         (ticket_dir / "results" / ".gitkeep", ""),
@@ -795,7 +797,7 @@ def scaffold_ticket_directory(
             written.append(path)
 
     if print_next_steps:
-        print(ticket_next_steps(resolved_ticket_id, ticket_dir))
+        print(ticket_next_steps(resolved_ticket_id, ticket_dir, spec_root))
 
     return written
 

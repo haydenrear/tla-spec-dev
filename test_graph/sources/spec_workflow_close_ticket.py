@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from testgraphsdk import NodeResult, NodeSpec, node, procs
@@ -30,8 +29,8 @@ SPEC = (
 @node(SPEC)
 def main(ctx):
     repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
-    source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "")
     ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
     ticket_dir = repo / "specs" / "tickets" / ticket_id
     history_dir = repo / "specs" / ".history" / "desired-ticket-workflow" / f"ticket-000-{ticket_id}"
 
@@ -40,11 +39,12 @@ def main(ctx):
         ctx,
         "close-ticket",
         [
-            sys.executable,
-            str(source_repo / "scripts" / "close_ticket.py"),
+            str(cli_path),
+            "--spec-root",
+            "specs",
+            "close",
+            "ticket",
             ticket_id,
-            "--repo-root",
-            str(repo),
             "--summary",
             "closed from Test Graph",
             "--result",

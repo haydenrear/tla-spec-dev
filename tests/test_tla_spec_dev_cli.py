@@ -58,11 +58,11 @@ def test_cli_subcommand_help_documents_external_command_surface() -> None:
 
 
 def test_planned_commands_fail_with_next_ticket_guidance() -> None:
-    result = run_cli("--spec-root", "project_specs", "open", "ticket", "CLI-004")
+    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests")
 
     assert result.returncode == 2
     assert "spec root: project_specs" in result.stderr
-    assert "CLI-004" in result.stderr
+    assert "CLI-005" in result.stderr
 
 
 def test_incomplete_parent_commands_fail_with_next_step_guidance() -> None:
@@ -100,6 +100,66 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
     assert (tmp_path / "project_specs/current/CliProject.tla").exists()
     assert (tmp_path / "project_specs/desired_program_model/CliProject.tla").exists()
     assert "CLI-123" in (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").read_text(encoding="utf-8")
+
+
+def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
+    ticket_id = "CLI-200"
+    result_project = run_cli(
+        "--spec-root",
+        "project_specs",
+        "scaffold",
+        "project",
+        "--name",
+        "CliProject",
+        cwd=tmp_path,
+    )
+    result_workflow = run_cli(
+        "--spec-root",
+        "project_specs",
+        "scaffold",
+        "workflow",
+        ticket_id,
+        "CLI ticket lifecycle",
+        cwd=tmp_path,
+    )
+    result_open = run_cli(
+        "--spec-root",
+        "project_specs",
+        "open",
+        "ticket",
+        ticket_id,
+        cwd=tmp_path,
+    )
+
+    assert result_project.returncode == 0, result_project.stderr
+    assert result_workflow.returncode == 0, result_workflow.stderr
+    assert result_open.returncode == 0, result_open.stderr
+    assert "Edit" in result_open.stdout
+    assert "desired" in result_open.stdout
+    ticket_dir = tmp_path / "project_specs" / "tickets" / ticket_id
+    assert (ticket_dir / "desired" / "CliProject.tla").exists()
+    assert (ticket_dir / "current" / "CliProject.tla").exists()
+
+    plan_path = tmp_path / "project_specs" / "desired_program_model" / "ticket_plan.yaml"
+    plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
+    result_close = run_cli(
+        "--spec-root",
+        "project_specs",
+        "close",
+        "ticket",
+        ticket_id,
+        "--summary",
+        "closed from CLI test",
+        cwd=tmp_path,
+    )
+
+    history_dir = tmp_path / "project_specs" / ".history" / "desired-ticket-workflow" / f"ticket-000-{ticket_id}"
+    assert result_close.returncode == 0, result_close.stderr
+    assert "recorded spec history entry" in result_close.stdout
+    assert not ticket_dir.exists()
+    assert (history_dir / "manifest.json").exists()
+    assert (history_dir / "ticket" / "desired" / "CliProject.tla").exists()
+    assert (tmp_path / "project_specs" / "current" / "CliProject.tla").exists()
 
 
 def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:

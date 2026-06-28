@@ -93,6 +93,42 @@ def run_scaffold_workflow(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_open_ticket(args: argparse.Namespace) -> int:
+    from scripts.new_ticket_workflow import scaffold_ticket_directory
+
+    repo_root = Path(args.repo_root).resolve()
+    written = scaffold_ticket_directory(
+        repo_root=repo_root,
+        ticket_ref=args.ticket_name,
+        force=args.force,
+        dry_run=args.dry_run,
+        spec_root=Path(args.spec_root),
+        ticket_root=args.ticket_root,
+        print_next_steps=True,
+    )
+    print(f"scaffolded ticket-local workflow files: {len(written)}")
+    return 0
+
+
+def run_close_ticket(args: argparse.Namespace) -> int:
+    from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
+
+    result = create_ticket_history_entry(
+        repo_root=Path(args.repo_root).resolve(),
+        spec_root=Path(args.spec_root),
+        ticket_ref=args.ticket_name,
+        summary=args.summary,
+        result_paths=args.result,
+        workflow=args.workflow_name,
+        entry_name=args.entry_name,
+        allow_open=args.allow_open,
+        ticket_root=args.ticket_root,
+        promote_current=not args.no_promote_current,
+    )
+    print_commit_recommendation(result)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = TlaSpecDevParser(
         prog="tla-spec-dev",
@@ -177,11 +213,14 @@ def build_parser() -> argparse.ArgumentParser:
         description="Open a ticket and print desired-first implementation instructions.",
         allow_abbrev=False,
     )
-    open_ticket.add_argument("ticket_name", nargs="?", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    open_ticket.add_argument("ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    open_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+    open_ticket.add_argument("--force", action="store_true", help="Overwrite existing ticket-local files.")
+    open_ticket.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
     open_ticket.set_defaults(
-        func=planned_command,
+        func=run_open_ticket,
         command_path="tla-spec-dev open ticket",
-        next_step="CLI-004 wires this command to scripts/start_ticket.py.",
+        next_step="Edit ticket desired first, then update current to match.",
     )
 
     run_parser = subparsers.add_parser(
@@ -226,11 +265,18 @@ def build_parser() -> argparse.ArgumentParser:
         description="Close a ticket, write append-only history, and promote ticket desired into project current.",
         allow_abbrev=False,
     )
-    close_ticket.add_argument("ticket_name", nargs="?", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    close_ticket.add_argument("ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml.")
+    close_ticket.add_argument("--workflow-name", help="Override ticket_plan.yaml name/status.workflow for the history directory.")
+    close_ticket.add_argument("--entry-name", help="Override the default ticket-NNN-id history entry name.")
+    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
+    close_ticket.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+    close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+    close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+    close_ticket.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
     close_ticket.set_defaults(
-        func=planned_command,
+        func=run_close_ticket,
         command_path="tla-spec-dev close ticket",
-        next_step="CLI-004 wires this command to scripts/close_ticket.py.",
+        next_step="Open the next ticket or close the workflow.",
     )
 
     return parser

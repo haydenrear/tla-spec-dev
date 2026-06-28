@@ -6,8 +6,6 @@
 # testgraphsdk = { path = "../sdk/python", editable = true }
 # ///
 from __future__ import annotations
-
-import sys
 from pathlib import Path
 
 from testgraphsdk import NodeResult, NodeSpec, node, procs
@@ -27,7 +25,6 @@ SPEC = (
 @node(SPEC)
 def main(ctx):
     repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
-    source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "")
     ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
     cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
     ticket_dir = repo / "specs" / "tickets" / ticket_id
@@ -59,13 +56,14 @@ def main(ctx):
             ],
         ),
         (
-            "start-ticket",
+            "cli-open-ticket",
             [
-                sys.executable,
-                str(source_repo / "scripts" / "start_ticket.py"),
+                str(cli_path),
+                "--spec-root",
+                "specs",
+                "open",
+                "ticket",
                 ticket_id,
-                "--repo-root",
-                str(repo),
             ],
         ),
         ("git-add", ["git", "add", "."]),

@@ -15,12 +15,11 @@ The `specWorkflow` graph performs the workflow end to end:
 1. `spec.workflow.repo` creates a temporary git repository with
    no spec model yet and publishes the installed `tla-spec-dev` path.
 2. `spec.workflow.start` runs `tla-spec-dev scaffold project`,
-   `tla-spec-dev scaffold workflow`, and then the lower-level ticket-open
-   script until CLI-004 lands.
+   `tla-spec-dev scaffold workflow`, and `tla-spec-dev open ticket`.
 3. `spec.workflow.complete` updates ticket-local `desired/` first, mirrors it
    into `current/`, adds spec adapter/test files, adds Test Graph artifacts, and
    marks the ticket done.
-4. `spec.workflow.close` runs `scripts/close_ticket.py`, asserts ticket
+4. `spec.workflow.close` runs `tla-spec-dev close ticket`, asserts ticket
    `current/ == desired/` closed correctly, verifies project `specs/current`
    and Test Graph artifacts were merged, and commits the close in the temp repo.
 5. `spec.workflow.cleanup` removes the disposable git repository from the build
