@@ -10,10 +10,10 @@ sys.path.insert(0, str(ROOT))
 from scripts import tla_spec_dev
 
 
-def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+def run_cli(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), *args],
-        cwd=ROOT,
+        cwd=cwd,
         text=True,
         capture_output=True,
         check=False,
@@ -58,11 +58,48 @@ def test_cli_subcommand_help_documents_external_command_surface() -> None:
 
 
 def test_planned_commands_fail_with_next_ticket_guidance() -> None:
-    result = run_cli("--spec-root", "project_specs", "scaffold", "project")
+    result = run_cli("--spec-root", "project_specs", "open", "ticket", "CLI-004")
 
     assert result.returncode == 2
     assert "spec root: project_specs" in result.stderr
-    assert "CLI-003" in result.stderr
+    assert "CLI-004" in result.stderr
+
+
+def test_incomplete_parent_commands_fail_with_next_step_guidance() -> None:
+    for command in ["scaffold", "open", "run", "close"]:
+        result = run_cli(command)
+
+        assert result.returncode == 2
+        assert f"incomplete command: tla-spec-dev {command}" in result.stderr
+        assert "next:" in result.stderr
+
+
+def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None:
+    result_project = run_cli(
+        "--spec-root",
+        "project_specs",
+        "scaffold",
+        "project",
+        "--name",
+        "CliProject",
+        cwd=tmp_path,
+    )
+    result_workflow = run_cli(
+        "--spec-root",
+        "project_specs",
+        "scaffold",
+        "workflow",
+        "CLI-123",
+        "CLI scaffold ticket",
+        cwd=tmp_path,
+    )
+
+    assert result_project.returncode == 0, result_project.stderr
+    assert result_workflow.returncode == 0, result_workflow.stderr
+    assert (tmp_path / "project_specs/program_model/CliProject.tla").exists()
+    assert (tmp_path / "project_specs/current/CliProject.tla").exists()
+    assert (tmp_path / "project_specs/desired_program_model/CliProject.tla").exists()
+    assert "CLI-123" in (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").read_text(encoding="utf-8")
 
 
 def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:

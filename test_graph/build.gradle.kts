@@ -6,6 +6,7 @@ validationGraph {
     sourcesDir("sources")
 
     testGraph("specWorkflow") {
+        node("sources/tla_spec_dev_cli_install.py")
         node("sources/spec_workflow_create_repo.py")
         node("sources/spec_workflow_start_ticket.py")
         node("sources/spec_workflow_complete_ticket.py")

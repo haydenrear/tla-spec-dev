@@ -32,6 +32,17 @@ def run_and_assert(ctx, result: NodeResult, label: str, argv: list[str], expecte
     return result
 
 
+def run_and_assert_exit(ctx, result: NodeResult, label: str, argv: list[str], expected_exit: int, expected: list[str]) -> NodeResult:
+    record = procs.run(ctx, label, argv)
+    result.process(record).assertion(f"{label} exited {expected_exit}", record.exit_code == expected_exit)
+    output = ""
+    if record.log_path:
+        output = (ctx.report_dir / record.log_path).read_text(encoding="utf-8")
+    for needle in expected:
+        result.assertion(f"{label} mentions {needle}", needle in output)
+    return result
+
+
 @node(SPEC)
 def main(ctx):
     cli = Path(ctx.get("spec.cli.install", "cliPath") or "")
@@ -48,6 +59,15 @@ def main(ctx):
     ]
     for label, argv, expected in commands:
         result = run_and_assert(ctx, result, label, argv, expected)
+    for command in ["scaffold", "open", "run", "close"]:
+        result = run_and_assert_exit(
+            ctx,
+            result,
+            f"incomplete-{command}",
+            [str(cli), command],
+            2,
+            [f"incomplete command: tla-spec-dev {command}", "next:"],
+        )
     return result.assertion("cli path came from install node", cli.is_file())
 
 

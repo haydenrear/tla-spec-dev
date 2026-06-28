@@ -29,19 +29,33 @@ def main(ctx):
     repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
     source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "")
     ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
     ticket_dir = repo / "specs" / "tickets" / ticket_id
 
     result = NodeResult.pass_(SPEC.id)
     commands = [
         (
-            "scaffold-workflow",
+            "cli-scaffold-project",
             [
-                sys.executable,
-                str(source_repo / "scripts" / "new_ticket_workflow.py"),
+                str(cli_path),
+                "--spec-root",
+                "specs",
+                "scaffold",
+                "project",
+                "--name",
+                "ProgramModel",
+            ],
+        ),
+        (
+            "cli-scaffold-workflow",
+            [
+                str(cli_path),
+                "--spec-root",
+                "specs",
+                "scaffold",
+                "workflow",
                 ticket_id,
                 "Spec workflow end to end",
-                "--repo-root",
-                str(repo),
             ],
         ),
         (
@@ -65,6 +79,8 @@ def main(ctx):
     desired_tla = ticket_dir / "desired" / "ProgramModel.tla"
     return (
         result
+        .assertion("program model scaffolded by CLI", (repo / "specs" / "program_model" / "ProgramModel.tla").is_file())
+        .assertion("project workflow scaffolded by CLI", (repo / "specs" / "desired_program_model" / "ticket_plan.yaml").is_file())
         .assertion("ticket directory exists", ticket_dir.is_dir())
         .assertion("ticket current copied", current_tla.is_file())
         .assertion("ticket desired copied from current", desired_tla.is_file() and desired_tla.read_text() == current_tla.read_text())
