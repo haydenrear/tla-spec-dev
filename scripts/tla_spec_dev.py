@@ -71,8 +71,26 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         spec_root=Path(args.spec_root),
     )
+    spec_root = args.spec_root
     print(f"scaffolded program model files: {len(written)}")
-    print(f"next: tla-spec-dev --spec-root {args.spec_root} scaffold workflow")
+    print(
+        "\nThese are PLACEHOLDERS to restructure, not a finished baseline.\n"
+        "The baseline is not complete until it has both views and both adapter mappings:\n"
+        f"  - {spec_root}/program_model/Internal.tla + Internal.cfg  -> spec-unit cases\n"
+        f"  - {spec_root}/program_model/External.tla + External.cfg  -> Test Graph cases\n"
+        f"  - {spec_root}/program_model/case_adapters.toml           -> spec-unit adapters\n"
+        f"  - {spec_root}/program_model/testgraph_bindings.yml       -> Test Graph adapters\n"
+        f"  - {spec_root}/program_model/adapters.py                  -> both, plus projector/assertion\n"
+        "\nTest Graph adapters are foundational to every project, not an add-on for\n"
+        "distributed systems. Without the External view the public surface is never validated.\n"
+        "\nRead references/testgraph_adapters.md, then diff your tree against\n"
+        "examples/distributed_history/specs/program_model/ before calling onboarding done."
+    )
+    print("\nnext:")
+    print("  1. Replace the placeholder semantics with this repository's real behavior.")
+    print(f"  2. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
+    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
+    print(f"  4. tla-spec-dev --spec-root {spec_root} scaffold workflow")
     return 0
 
 
@@ -126,6 +144,7 @@ def run_close_ticket(args: argparse.Namespace) -> int:
         allow_open=args.allow_open,
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
+        accept_new=args.accept_new,
     )
     print_commit_recommendation(result)
     return 0
@@ -209,7 +228,10 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
 
     def command_env(target_dir: Path) -> dict[str, str]:
         env = base_env.copy()
-        python_path = [str(target_dir), str(repo_root), env.get("PYTHONPATH", "")]
+        # ROOT carries spec_double_compiler, which the scaffolded adapters.py
+        # imports (CaseRunResult). Without it, pytest collection of a spec dir in
+        # a user repo dies on ModuleNotFoundError before running a single test.
+        python_path = [str(target_dir), str(repo_root), str(ROOT), env.get("PYTHONPATH", "")]
         env["PYTHONPATH"] = os.pathsep.join(part for part in python_path if part)
         return env
 
@@ -464,6 +486,11 @@ def build_parser() -> argparse.ArgumentParser:
     close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
     close_ticket.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+    close_ticket.add_argument(
+        "--accept-new",
+        action="store_true",
+        help="Accept the ticket desired/ as the new current/: skip the current==desired check and overwrite current/ from desired/ before promotion.",
+    )
     close_ticket.set_defaults(
         func=run_close_ticket,
         command_path="tla-spec-dev close ticket",

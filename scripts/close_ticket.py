@@ -24,6 +24,11 @@ def main() -> int:
     parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
     parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+    parser.add_argument(
+        "--accept-new",
+        action="store_true",
+        help="Accept the ticket desired/ as the new current/: skip the current==desired check and overwrite current/ from desired/ before promotion.",
+    )
     args = parser.parse_args()
 
     result = create_ticket_history_entry(
@@ -37,6 +42,7 @@ def main() -> int:
         allow_open=args.allow_open,
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
+        accept_new=args.accept_new,
     )
     print_commit_recommendation(result)
     return 0

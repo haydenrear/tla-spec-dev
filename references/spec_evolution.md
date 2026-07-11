@@ -68,6 +68,29 @@ specs/.history/
 `manifest.json` is the machine-readable index. `summary.md` is the human
 overview. The copied snapshots are evidence, not active state.
 
+## Preparing For Promotion
+
+A ticket close promotes the ticket `desired/` into the project `current/`, so
+before closing you must decide what the accepted state is:
+
+- The default close requires ticket-local `current/` to *semantically match*
+  `desired/`. Semantic comparison covers `.tla`, `.cfg`, `.yaml`/`.yml`, `.py`,
+  `.toml`, and `.json` files; planning files (`README.md`, `ticket_plan.yaml`,
+  `desired_state.yaml`, `ticket.yaml`) and `status`/`notes`/`promotion`
+  metadata keys are ignored. They do **not** need to be byte-identical — only
+  semantically equal.
+- To prepare, edit `current/` (the TLA+ modules, model `.yml`, adapters, and
+  tests) until it matches `desired/`, re-run `tla-spec-dev run spec-unit-tests`,
+  then close.
+- If the ticket `desired/` already *is* the intended accepted state and you do
+  not want to hand-reconcile `current/`, pass `--accept-new`. That overwrites
+  ticket `current/` from `desired/` before promotion, so no divergence check is
+  needed. The whole-workflow close accepts `--accept-new` the same way to adopt
+  `desired_program_model/` as the new `current/` and `program_model/`.
+
+The same applies to the whole-workflow close, which requires `current/`,
+`desired_program_model/`, and the promoted `program_model/` to converge.
+
 ## Per-Ticket Close
 
 First create and work in a ticket-local directory:
@@ -93,6 +116,17 @@ ticket directory into the history entry, replaces project `specs/current` with
 ticket `desired/`, merges ticket-local Test Graph artifacts into project specs,
 and recommends committing the created history entry.
 
+To accept the ticket `desired/` as the new `current/` without hand-reconciling
+a divergent `current/`, add `--accept-new`:
+
+```bash
+tla-spec-dev --spec-root specs close ticket TICKET-123 --accept-new \
+  --summary "Accepted ticket desired state as current"
+```
+
+`--accept-new` overwrites ticket `current/` from `desired/`, skips the
+`current == desired` gate, and records `accept_new` in the entry manifest.
+
 ## Whole-Workflow Close
 
 After `current`, `desired_program_model`, and promoted `program_model` converge,
@@ -106,6 +140,16 @@ python scripts/close_tickets.py \
 
 This writes `closed-snapshot` under the workflow history directory before
 removing `current` and `desired_program_model`.
+
+If `current`, `desired_program_model`, and `program_model` have not been
+hand-reconciled but `desired_program_model` is the intended accepted state, pass
+`--accept-new` to promote its semantic files into `current` and `program_model`
+before the snapshot (tickets must still be marked closed):
+
+```bash
+python scripts/close_tickets.py --repo-root . --accept-new \
+  --summary "Accepted desired_program_model as the new program_model"
+```
 
 ## Searching History
 

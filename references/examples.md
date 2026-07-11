@@ -61,17 +61,35 @@ deployments plus service-level REST traffic are verified in the default mode.
 
 ## Tutorial Scaffolding
 
-`scripts/scaffold_spec.py` creates standalone tutorial/example specs. For
-view-aware scaffolds, use:
+`scripts/scaffold_spec.py` creates standalone tutorial/example specs:
 
 ```bash
-python3 scripts/scaffold_spec.py request-flow --root /tmp --views internal,external
+python3 scripts/scaffold_spec.py request-flow --root /tmp
 ```
 
-This creates `model/Core.tla`, `model/Internal.tla`, `model/External.tla`, and
-active desired overlays `DesiredCore.tla`, `DesiredInternal.tla`, and
-`DesiredExternal.tla`. The accepted `program_model` should not retain those
-desired overlays after workflow closeout.
+It emits the same accepted baseline shape as `tla-spec-dev scaffold project`,
+because there is only one accepted shape:
+
+```
+Core.tla
+Internal.tla  Internal.cfg    internal view -> spec-unit cases
+External.tla  External.cfg    external view -> Test Graph cases
+actions.yml
+adapters.py                   spec-unit adapters AND Test Graph adapters
+case_adapters.toml            internal action -> spec-unit adapter
+testgraph_bindings.yml        external action -> Test Graph adapter
+tlc_projection.py
+spec_manifest.yaml
+```
+
+Both views are always emitted; there is no view-less scaffold. A spec with no
+External view generates no Test Graph cases, so it can never be validated
+against its public surface.
+
+It also creates the active desired overlays `DesiredCore.tla`,
+`DesiredInternal.tla`, and `DesiredExternal.tla`. These belong to an open spec
+workflow; promote them into the baseline and delete them at closeout. An
+accepted, closed `program_model` must not retain them.
 
 For production onboarding, use
 `tla-spec-dev --spec-root specs scaffold project --name ProjectName` so only

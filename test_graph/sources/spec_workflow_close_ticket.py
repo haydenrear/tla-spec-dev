@@ -63,9 +63,15 @@ def main(ctx):
     assertions = {
         "active ticket directory removed": not ticket_dir.exists(),
         "history directory exists": history_dir.is_dir(),
-        "history contains ticket current": (history_dir / "ticket" / "current" / "ProgramModel.tla").is_file(),
-        "project current promoted TLA": "CompleteTicket" in (repo / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8"),
-        "project current has spec adapter": (repo / "specs" / "current" / "adapters" / "unit" / "complete_ticket_adapter.py").is_file(),
+        "history contains ticket current": (history_dir / "ticket" / "current" / "Internal.tla").is_file(),
+        "history contains ticket external view": (history_dir / "ticket" / "current" / "External.tla").is_file(),
+        "project current promoted internal view": "CompleteTicket"
+        in (repo / "specs" / "current" / "Internal.tla").read_text(encoding="utf-8"),
+        "project current promoted external view": "SubmitCompleteTicket"
+        in (repo / "specs" / "current" / "External.tla").read_text(encoding="utf-8"),
+        "project current promoted Test Graph binding": "SubmitCompleteTicket"
+        in (repo / "specs" / "current" / "testgraph_bindings.yml").read_text(encoding="utf-8"),
+        "project current has spec adapter": (repo / "specs" / "current" / "spec_adapters" / "complete_ticket_adapter.py").is_file(),
         "project current has adapter test": (repo / "specs" / "current" / "tests" / "test_complete_ticket_adapter.py").is_file(),
         "project testgraph bindings merged": (repo / "specs" / "testgraph" / "bindings.yml").is_file(),
         "project test_graph sources merged": (repo / "specs" / "test_graph" / "sources" / "complete_ticket_external.py").is_file(),

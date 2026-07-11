@@ -96,9 +96,13 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
 
     assert result_project.returncode == 0, result_project.stderr
     assert result_workflow.returncode == 0, result_workflow.stderr
-    assert (tmp_path / "project_specs/program_model/CliProject.tla").exists()
-    assert (tmp_path / "project_specs/current/CliProject.tla").exists()
-    assert (tmp_path / "project_specs/desired_program_model/CliProject.tla").exists()
+    for view_file in ("Core.tla", "Internal.tla", "External.tla", "adapters.py", "testgraph_bindings.yml"):
+        assert (tmp_path / "project_specs/program_model" / view_file).exists()
+        assert (tmp_path / "project_specs/current" / view_file).exists()
+        assert (tmp_path / "project_specs/desired_program_model" / view_file).exists()
+    # The three-module baseline must not leave a single-module stand-in behind.
+    assert not (tmp_path / "project_specs/current/CliProject.tla").exists()
+    assert not (tmp_path / "project_specs/current/MC.cfg").exists()
     assert not (tmp_path / "project_specs/current/tests/test_program_model_onboarding.py").exists()
     assert not (tmp_path / "project_specs/desired_program_model/tests/test_program_model_onboarding.py").exists()
     assert "CLI-123" in (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").read_text(encoding="utf-8")
@@ -246,8 +250,9 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert "Edit" in result_open.stdout
     assert "desired" in result_open.stdout
     ticket_dir = tmp_path / "project_specs" / "tickets" / ticket_id
-    assert (ticket_dir / "desired" / "CliProject.tla").exists()
-    assert (ticket_dir / "current" / "CliProject.tla").exists()
+    assert (ticket_dir / "desired" / "External.tla").exists()
+    assert (ticket_dir / "current" / "External.tla").exists()
+    assert (ticket_dir / "desired" / "testgraph_bindings.yml").exists()
 
     plan_path = tmp_path / "project_specs" / "desired_program_model" / "ticket_plan.yaml"
     plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
@@ -267,8 +272,8 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert "recorded spec history entry" in result_close.stdout
     assert not ticket_dir.exists()
     assert (history_dir / "manifest.json").exists()
-    assert (history_dir / "ticket" / "desired" / "CliProject.tla").exists()
-    assert (tmp_path / "project_specs" / "current" / "CliProject.tla").exists()
+    assert (history_dir / "ticket" / "desired" / "External.tla").exists()
+    assert (tmp_path / "project_specs" / "current" / "External.tla").exists()
 
 
 def test_cli_open_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:

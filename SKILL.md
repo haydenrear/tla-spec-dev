@@ -111,25 +111,38 @@ dead-lettered.
 
 ## Internal/External Test Graph Views
 
-Use one semantic authority with two generated views when integration behavior
-matters:
+**Every project uses one semantic authority with two generated views. This is
+not conditional on the project looking "integration-heavy."**
 
 - Internal view: fine-grained program/component behavior for spec-unit
   adapters.
 - External view: public or harness-driven behavior for Test Graph adapters.
 
+Test Graph adapters are foundational to every project. A model with only an
+internal view generates no Test Graph cases, so the repository's public surface
+is never validated — which is the entire point of the workflow. There is no such
+thing as a project too small, too local, or too single-process for an External
+view.
+
 External does not mean distributed. It means the behavior a test harness can
 drive or observe outside the modeled internals: HTTP calls, CLI commands,
 browser actions, filesystem changes, queue operations, admin/debug endpoints,
 or Kubernetes fault injection. A CLI project can use External to generate
-command invocations and assertions without running a cluster.
+command invocations and assertions without running a cluster. A library whose
+public surface is observable filesystem behavior — paths, envelopes, sidecars —
+has an External view that *is* the library, not an add-on to it.
 
-For onboarding and generative integration testing, read
-`references/testgraph_adapters.md`. When selecting edge cases and negative
-public behaviors for External, read `references/edge-cases.md`. The worked
-example in `examples/distributed_history/` shows an External model that records
-public service routes and bounded input data, then lets TLC expand those
-declarations into hundreds of Test Graph cases executed against k3d.
+Read `references/testgraph_adapters.md` **before authoring any spec baseline**,
+not later when wiring the graph. Onboarding is when the Internal/External split
+gets decided; by the time you are "wiring the graph" the decision is already
+made. When selecting edge cases and negative public behaviors for External, read
+`references/edge-cases.md`. The worked example in
+`examples/distributed_history/` shows an External model that records public
+service routes and bounded input data, then lets TLC expand those declarations
+into hundreds of Test Graph cases executed against k3d.
+
+Graph nodes are end-to-end External-view executions only. TLC runs and spec-unit
+runs are direct `tla-spec-dev` commands, never Test Graph nodes.
 
 ## Program Spec Rule
 
@@ -168,6 +181,12 @@ invariants, resource boundaries, manifests, adapter mappings, and validation
 evidence needed to generate and run spec-derived cases. It is not a desired
 future state and it is not a ticket plan.
 
+Before authoring any baseline, read `references/testgraph_adapters.md` and
+`references/edge-cases.md`, and list `examples/distributed_history/specs/program_model/`.
+Onboarding is exactly when the Internal/External split gets decided; it is not a
+later concern. Deferring those references is how a baseline ends up as a single
+module that can never be validated.
+
 To onboard an existing repository for the first time, use:
 
 ```bash
@@ -178,6 +197,44 @@ Use `--name SkillManager` or another explicit module name when the repository
 directory name is not the desired TLA+ module name. Use the same `--spec-root`
 on every `tla-spec-dev` command when the repository keeps specs somewhere other
 than `specs`.
+
+### The baseline is not complete until it has all of these
+
+The scaffold emits placeholder files to restructure. It is not the answer, and a
+filled-in single module is not a baseline. `specs/program_model/` is done only
+when it has:
+
+- [ ] `Core.tla` — shared constants and operators.
+- [ ] `Internal.tla` + `Internal.cfg` — internal view. Generates spec-unit cases.
+- [ ] `External.tla` + `External.cfg` — external view. Generates Test Graph cases.
+- [ ] `actions.yml` — per-action layer, controllability, and what it generates.
+- [ ] `adapters.py` — spec-unit adapters AND Test Graph adapters, projector,
+      expected projection, and projected-state assertion.
+- [ ] `case_adapters.toml` — internal action -> spec-unit adapter.
+- [ ] `testgraph_bindings.yml` — external action -> Test Graph adapter.
+- [ ] `tlc_projection.py` — TLC state -> generated-case shapes.
+- [ ] `spec_manifest.yaml` — ports, invariants, finite model, onboarding status.
+- [ ] TLC passes on **both** cfgs.
+- [ ] A `test_graph` project exists in the repository.
+
+**Test Graph adapters are foundational to every project.** They are not an
+add-on for distributed systems. Without `External.tla` and its adapters, the
+repository's public surface is never validated and the workflow delivers
+nothing. If the library's public surface is observable filesystem behavior, then
+the External view *is* the library.
+
+Before calling onboarding done, diff your tree against
+`examples/distributed_history/specs/program_model/`. That 30-second structural
+diff catches every omission this checklist exists to prevent.
+
+The External view, the bindings, and the skeleton adapters are **onboarding
+deliverables**. Tickets own per-slice adapter *implementations*, not the
+structure itself. Do not defer the structure to a ticket.
+
+If a template, ticket, or issue names files your repository does not have (for
+example `Internal.tla` / `External.tla`), that is a **stop-and-reconcile
+checkpoint**, not a copyediting task. Ask why the template expects files you did
+not create instead of rewording the template to fit a thinner model.
 
 After `specs/program_model` exists, later behavior tickets may use
 `tla-spec-dev --spec-root specs scaffold workflow` to create `specs/current`
@@ -307,6 +364,24 @@ project-level `specs/current` with ticket `desired/`, merges ticket-local Test
 Graph artifacts into project specs, and moves `specs/tickets/TICKET-123` into
 history.
 
+Prepare for promotion before closing. The close promotes the ticket `desired/`
+into `specs/current`, so ticket `current/` must first semantically match
+`desired/` (comparing `.tla`, `.cfg`, `.yaml`/`.yml`, `.py`, `.toml`, `.json`
+files; planning files and `status`/`notes`/`promotion` metadata are ignored —
+they need to be semantically equal, not byte-identical). Either edit `current/`
+until it matches `desired/` and re-run the spec-unit validations, or accept the
+ticket `desired/` as the new `current/` directly:
+
+```bash
+tla-spec-dev --spec-root specs close ticket TICKET-123 --accept-new
+```
+
+`--accept-new` overwrites ticket `current/` from `desired/` and skips the
+`current == desired` check, so the ticket's proposed desired state is promoted
+as-is. `scripts/close_tickets.py` accepts the same `--accept-new` flag to adopt
+`specs/desired_program_model` as the new `specs/current` and
+`specs/program_model` during whole-workflow closeout.
+
 After `specs/current` semantically equals `specs/desired_program_model`,
 promote the converged model into `specs/program_model`, regenerate accepted
 artifacts, and then remove the workflow directories. `close_tickets.py` can do
@@ -369,9 +444,13 @@ generation and TLC state-graph case generation. Read
 
 0. For first onboarding of a repository with no accepted model, create
    `specs/program_model` with
-   `tla-spec-dev --spec-root specs scaffold project --name ProjectName`. Do not
-   create `specs/current`, `specs/desired_program_model`, or `ticket_plan.yaml`
-   during first onboarding.
+   `tla-spec-dev --spec-root specs scaffold project --name ProjectName`. The
+   scaffold emits placeholders to restructure, not a finished baseline: complete
+   **both** the Internal and External views plus **both** adapter mappings before
+   moving on. See the completeness checklist in "First Project Onboarding
+   Workflow" — onboarding is not done until TLC passes on both cfgs and a
+   `test_graph` project exists. Do not create `specs/current`,
+   `specs/desired_program_model`, or `ticket_plan.yaml` during first onboarding.
 1. For later behavior changes, create or refresh `specs/desired_program_model` with
    both the target model and the implementation plan: ticket breakdown, steps,
    dependencies, status metadata, acceptance criteria, and validation commands.

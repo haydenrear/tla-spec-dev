@@ -288,6 +288,22 @@ def semantic_file_matches(left: Path, right: Path) -> bool:
     return left.read_bytes() == right.read_bytes()
 
 
+def ticket_promotion_guidance(active_dir: Path) -> str:
+    """Explain how to prepare a ticket for promotion when current/ diverges from desired/."""
+    semantic_suffixes = ", ".join(sorted(SEMANTIC_SUFFIXES))
+    return (
+        "How to prepare this ticket for promotion:\n"
+        f"- Closing promotes the ticket desired/ into the project current/, so ticket current/ "
+        f"must first semantically match desired/ under {rel(active_dir)}.\n"
+        f"- Compared semantic files: {semantic_suffixes} (planning files such as README.md, "
+        "ticket_plan.yaml, and status/notes/promotion metadata are ignored).\n"
+        "- Option A: edit current/ (the TLA+ .tla/.cfg, model .yml, adapters, and tests) until it "
+        "matches desired/, re-run the spec-unit validations, then re-run the close.\n"
+        "- Option B: re-run the close with --accept-new to accept the ticket desired/ as the new "
+        "current/ automatically (current/ is overwritten from desired/ before promotion)."
+    )
+
+
 def validate_equivalent_model_dirs(left_dir: Path, right_dir: Path, *, left_label: str = "current", right_label: str = "desired") -> list[str]:
     errors: list[str] = []
     if not left_dir.exists():
@@ -368,6 +384,17 @@ def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
     }
 
 
+def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
+    """Overwrite ticket current/ with desired/ so the accepted outcome is the ticket desired state."""
+    return {
+        "role": "accept_new_current",
+        "source": rel(active_dir / "desired"),
+        "destination": rel(active_dir / "current"),
+        "operation": "replace ticket current with ticket desired (accept-new)",
+        "files": replace_tree(active_dir / "desired", active_dir / "current"),
+    }
+
+
 def create_ticket_history_entry(
     *,
     repo_root: Path,
@@ -380,6 +407,7 @@ def create_ticket_history_entry(
     allow_open: bool = False,
     ticket_root: Path = Path("tickets"),
     promote_current: bool = True,
+    accept_new: bool = False,
 ) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
@@ -391,8 +419,11 @@ def create_ticket_history_entry(
         raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
 
     active_dir = active_ticket_dir(specs_dir, resolved_ticket_id, ticket_root)
+    accept_new_record: dict[str, Any] | None = None
+    if active_dir.exists() and accept_new:
+        accept_new_record = accept_new_ticket_current(active_dir)
     ticket_close_errors: list[str] = []
-    if active_dir.exists():
+    if active_dir.exists() and not accept_new:
         ticket_close_errors.extend(
             validate_equivalent_model_dirs(
                 active_dir / "current",
@@ -402,7 +433,12 @@ def create_ticket_history_entry(
             )
         )
     if ticket_close_errors:
-        raise SystemExit("ERROR: cannot close ticket-local workflow:\n" + "\n".join(f"- {error}" for error in ticket_close_errors))
+        raise SystemExit(
+            "ERROR: cannot close ticket-local workflow:\n"
+            + "\n".join(f"- {error}" for error in ticket_close_errors)
+            + "\n\n"
+            + ticket_promotion_guidance(active_dir)
+        )
 
     resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
     make_history_appendable(specs_dir, resolved_workflow)
@@ -457,6 +493,8 @@ def create_ticket_history_entry(
         "results": results,
         "active_ticket_dir": rel(active_dir),
         "ticket_workdir": ticket_workdir_record,
+        "accept_new": accept_new,
+        "accept_new_promotion": accept_new_record,
         "promotion": promotion_record,
         "commit_recommendation": {
             "message": close_result.recommendation,

@@ -166,8 +166,37 @@ def load_manifest(path: Path) -> dict[str, Any]:
     return loaded
 
 
+# The accepted baseline spreads its semantics across three modules. Actions live
+# in Internal.tla and External.tla; there is no single {module}.tla.
+BASELINE_MODULES = ("Core.tla", "Internal.tla", "External.tla")
+
+
 def _module_path(manifest_path: Path, module_name: str) -> Path:
     return manifest_path.with_name(f"{module_name}.tla")
+
+
+def _baseline_module_paths(manifest_path: Path) -> list[Path]:
+    return [
+        path
+        for path in (manifest_path.with_name(name) for name in BASELINE_MODULES)
+        if path.exists()
+    ]
+
+
+def _spec_sources(manifest_path: Path, module_name: str) -> tuple[list[Path], str | None]:
+    """Resolve the TLA+ sources a manifest describes.
+
+    Prefers the three-module baseline (Core/Internal/External). Falls back to a
+    legacy single {module}.tla so older specs keep validating.
+    """
+    baseline = _baseline_module_paths(manifest_path)
+    if any(path.name == "Internal.tla" for path in baseline):
+        return baseline, None
+
+    legacy = _module_path(manifest_path, module_name)
+    if legacy.exists():
+        return [legacy], module_name
+    return [], None
 
 
 def validate_manifest(manifest: dict[str, Any], manifest_path: Path) -> list[str]:
@@ -177,25 +206,33 @@ def validate_manifest(manifest: dict[str, Any], manifest_path: Path) -> list[str
             errors.append(f"missing required manifest key: {key}")
 
     module_name = str(manifest.get("module", ""))
-    tla_path = _module_path(manifest_path, module_name)
-    if module_name and not tla_path.exists():
-        errors.append(f"TLA+ module not found: {tla_path}")
+    if not module_name:
         return errors
 
-    if module_name:
-        text = tla_path.read_text()
-        if f"MODULE {module_name}" not in text:
-            errors.append(f"{tla_path.name} does not declare MODULE {module_name}")
+    paths, declared_module = _spec_sources(manifest_path, module_name)
+    if not paths:
+        errors.append(
+            f"TLA+ module not found: expected {manifest_path.parent / 'Internal.tla'} "
+            f"(accepted baseline) or {_module_path(manifest_path, module_name)} (legacy)"
+        )
+        return errors
 
-        for command_name, command in dict(manifest.get("commands", {})).items():
-            action = command.get("action") if isinstance(command, dict) else None
-            if action and not re.search(rf"(?m)^\s*{re.escape(str(action))}\b", text):
-                errors.append(f"command {command_name} references missing action {action}")
+    text = "\n".join(path.read_text() for path in paths)
 
-        for invariant in manifest.get("invariants", []) or []:
-            invariant_name = str(invariant)
-            if invariant_name and not re.search(rf"(?m)^\s*{re.escape(invariant_name)}\b", text):
-                errors.append(f"missing invariant definition {invariant_name}")
+    # Only a legacy single-module spec must declare MODULE <module>. In the
+    # three-module baseline `module` is the logical program name, not a filename.
+    if declared_module and f"MODULE {declared_module}" not in text:
+        errors.append(f"{paths[0].name} does not declare MODULE {declared_module}")
+
+    for command_name, command in dict(manifest.get("commands", {})).items():
+        action = command.get("action") if isinstance(command, dict) else None
+        if action and not re.search(rf"(?m)^\s*{re.escape(str(action))}\b", text):
+            errors.append(f"command {command_name} references missing action {action}")
+
+    for invariant in manifest.get("invariants", []) or []:
+        invariant_name = str(invariant)
+        if invariant_name and not re.search(rf"(?m)^\s*{re.escape(invariant_name)}\b", text):
+            errors.append(f"missing invariant definition {invariant_name}")
 
     return errors
 

@@ -22,29 +22,61 @@ SPEC = (
 )
 
 
-FINISHED_TLA = """----------------------------- MODULE ProgramModel -----------------------------
-EXTENDS TLC
-
-VARIABLES accepted, lastAction
-
-vars == <<accepted, lastAction>>
-
-Init ==
-  /\\ accepted = FALSE
-  /\\ lastAction = "Init"
-
+# A ticket that changes behavior touches BOTH views: the internal transition and
+# the external projection a caller can observe. The new external action must also
+# be mapped in testgraph_bindings.yml or it generates no Test Graph case.
+INTERNAL_ACTION = """
+\\* @action CompleteTicket
+\\* @layer internal
+\\* @controllability unit_direct
 CompleteTicket ==
-  /\\ accepted' = TRUE
-  /\\ lastAction' = "CompleteTicket"
-
-Next == CompleteTicket
-
-Spec == Init /\\ [][Next]_vars
-
-AcceptedBoolean == accepted \\in BOOLEAN
-
-=============================================================================
+  /\\ lastInternalAction' = [name |-> "CompleteTicket", params |-> <<>>]
+  /\\ UNCHANGED <<owners, records, outbox, projections>>
 """
+
+EXTERNAL_ACTION = """
+\\* @action SubmitCompleteTicket
+\\* @layer external
+\\* @controllability e2e_direct
+SubmitCompleteTicket(c) ==
+  /\\ c \\in Clients
+  /\\ CompleteTicket
+  /\\ UNCHANGED responses
+  /\\ MarkExternal("SubmitCompleteTicket", [client |-> c])
+"""
+
+ACTIONS_ENTRIES = """  CompleteTicket:
+    layer: internal
+    controllability: unit_direct
+    generates:
+      - spec_unit
+  SubmitCompleteTicket:
+    layer: external
+    controllability: e2e_direct
+    generates:
+      - testgraph
+"""
+
+BINDING_ENTRY = """  SubmitCompleteTicket:
+    view: external
+    layer: external
+    controllability: e2e_direct
+    kind: program-external
+    adapter: specs.program_model.adapters:RegisterActorExternalAdapter
+    projector: specs.program_model.adapters:ProgramStateProjector
+    expected_projection: specs.program_model.adapters:ExpectedProgramProjection
+    assertion: specs.program_model.adapters:ProjectedStateAssertion
+"""
+
+
+def append_before_terminator(path: Path, addition: str) -> None:
+    """Insert a definition before a TLA+ module's trailing ==== line."""
+    lines = path.read_text(encoding="utf-8").rstrip("\n").split("\n")
+    while lines and not lines[-1].startswith("===="):
+        lines.pop()
+    terminator = lines.pop() if lines else "=" * 77
+    body = "\n".join(lines).rstrip("\n")
+    path.write_text(f"{body}\n{addition}\n{terminator}\n", encoding="utf-8")
 
 ADAPTER = '''"""Ticket-local spec-unit adapter carried into project current on close."""
 
@@ -55,7 +87,7 @@ def apply(case):
     return {"status": "accepted", "case": getattr(case, "name", "unknown")}
 '''
 
-ADAPTER_TEST = """from adapters.unit.complete_ticket_adapter import ACTION_NAME
+ADAPTER_TEST = """from spec_adapters.complete_ticket_adapter import ACTION_NAME
 
 
 def test_complete_ticket_adapter_declares_action():
@@ -87,8 +119,17 @@ def main(ctx):
     ticket_dir = Path(ctx.get("spec.workflow.start", "ticketDir") or repo / "specs" / "tickets" / ticket_id)
 
     for model_dir in (ticket_dir / "desired", ticket_dir / "current"):
-        write_text(model_dir / "ProgramModel.tla", FINISHED_TLA)
-        write_text(model_dir / "adapters" / "unit" / "complete_ticket_adapter.py", ADAPTER)
+        append_before_terminator(model_dir / "Internal.tla", INTERNAL_ACTION)
+        append_before_terminator(model_dir / "External.tla", EXTERNAL_ACTION)
+
+        actions = model_dir / "actions.yml"
+        actions.write_text(actions.read_text(encoding="utf-8") + ACTIONS_ENTRIES, encoding="utf-8")
+
+        # A new external action is not done until it is mapped for the Test Graph.
+        bindings = model_dir / "testgraph_bindings.yml"
+        bindings.write_text(bindings.read_text(encoding="utf-8") + BINDING_ENTRY, encoding="utf-8")
+
+        write_text(model_dir / "spec_adapters" / "complete_ticket_adapter.py", ADAPTER)
         write_text(model_dir / "tests" / "test_complete_ticket_adapter.py", ADAPTER_TEST)
 
     write_text(ticket_dir / "testgraph" / "bindings.yml", TESTGRAPH_BINDINGS)
@@ -108,14 +149,21 @@ def main(ctx):
         record = procs.run(ctx, label, argv, cwd=repo)
         result.process(record).assertion(f"{label} succeeded", record.exit_code == 0)
 
-    desired_tla = ticket_dir / "desired" / "ProgramModel.tla"
-    current_tla = ticket_dir / "current" / "ProgramModel.tla"
+    def read(view: str, name: str) -> str:
+        return (ticket_dir / view / name).read_text(encoding="utf-8")
+
+    views_match = all(
+        read("current", name) == read("desired", name)
+        for name in ("Internal.tla", "External.tla", "actions.yml", "testgraph_bindings.yml")
+    )
     return (
         result
         .assertion("ticket plan marked done", "status: done" in updated)
-        .assertion("desired updated first-class", "CompleteTicket" in desired_tla.read_text(encoding="utf-8"))
-        .assertion("current matches desired", current_tla.read_text(encoding="utf-8") == desired_tla.read_text(encoding="utf-8"))
-        .assertion("ticket spec adapter written", (ticket_dir / "desired" / "adapters" / "unit" / "complete_ticket_adapter.py").is_file())
+        .assertion("desired internal view updated first-class", "CompleteTicket" in read("desired", "Internal.tla"))
+        .assertion("desired external view updated first-class", "SubmitCompleteTicket" in read("desired", "External.tla"))
+        .assertion("new external action mapped for Test Graph", "SubmitCompleteTicket" in read("desired", "testgraph_bindings.yml"))
+        .assertion("current matches desired across both views", views_match)
+        .assertion("ticket spec adapter written", (ticket_dir / "desired" / "spec_adapters" / "complete_ticket_adapter.py").is_file())
         .assertion("ticket Test Graph binding written", (ticket_dir / "testgraph" / "bindings.yml").is_file())
         .artifact("ticket-plan", str(ticket_plan))
     )

@@ -3,6 +3,37 @@
 This reference describes the External/Test Graph adapter path. Use
 `examples/distributed_history/` as the concrete reference implementation.
 
+Read this **before authoring any spec baseline**. Test Graph adapters are
+foundational to every project, not an add-on for distributed systems. A baseline
+without an External view and its adapters generates no Test Graph cases, so the
+repository's public surface is never validated.
+
+## What the scaffold gives you
+
+`tla-spec-dev scaffold project` emits the full baseline shape:
+
+```
+specs/program_model/
+  Core.tla                 shared constants and operators
+  Internal.tla  Internal.cfg   internal view  -> spec-unit cases
+  External.tla  External.cfg   external view  -> Test Graph cases
+  actions.yml              per-action layer, controllability, what it generates
+  adapters.py              spec-unit adapters AND Test Graph adapters
+  case_adapters.toml       internal action -> spec-unit adapter
+  testgraph_bindings.yml   external action -> Test Graph adapter
+  tlc_projection.py        TLC state -> generated-case shapes
+  spec_manifest.yaml       ports, invariants, finite model, status
+```
+
+These are placeholders to restructure, not a finished baseline. Onboarding is
+done only when both views model-check under TLC, both adapter mappings cover
+every action of their layer, and the repository has a `test_graph` project.
+Diff your tree against `examples/distributed_history/specs/program_model/`
+before calling it done.
+
+The External view, the bindings, and the skeleton adapters are **onboarding
+deliverables**. Tickets own per-slice adapter implementations, not the structure.
+
 ## Views
 
 The workflow uses one semantic authority with two executable views:

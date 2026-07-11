@@ -98,6 +98,42 @@ def validate_equivalent(current_dir: Path, desired_dir: Path, label: str = "desi
     return errors
 
 
+def workflow_promotion_guidance() -> str:
+    """Explain how to prepare current/desired/program_model for workflow closeout."""
+    semantic_suffixes = ", ".join(sorted(SEMANTIC_SUFFIXES))
+    return (
+        "How to prepare this workflow for closeout:\n"
+        "- Closeout requires the semantic files in current/, desired_program_model/, and the promoted "
+        "program_model/ to match, and every ticket in ticket_plan.yaml to be closed.\n"
+        f"- Compared semantic files: {semantic_suffixes} (planning files such as README.md, "
+        "ticket_plan.yaml, and status/notes metadata are ignored).\n"
+        "- Option A: reconcile the models by hand (finish landing current/, promote the converged model "
+        "into program_model/, mark every ticket closed), then re-run this command.\n"
+        "- Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and "
+        "program_model/ automatically (their semantic files are overwritten from desired_program_model/ "
+        "before the snapshot); tickets must still be marked closed."
+    )
+
+
+def promote_semantic_files(src: Path, dst: Path) -> list[str]:
+    """Make dst's semantic files identical to src's, preserving dst planning/metadata files."""
+    if not src.exists():
+        return []
+    dst.mkdir(parents=True, exist_ok=True)
+    src_files = _semantic_files(src)
+    dst_files = _semantic_files(dst)
+    promoted: list[str] = []
+    for relative in sorted(set(dst_files) - set(src_files)):
+        dst_files[relative].unlink()
+        promoted.append(f"removed {relative}")
+    for relative in sorted(src_files):
+        destination = dst / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_files[relative], destination)
+        promoted.append(f"wrote {relative}")
+    return promoted
+
+
 def validate_ticket_plan_closed(ticket_plan: Path) -> list[str]:
     if not ticket_plan.exists():
         return [f"missing ticket plan: {ticket_plan}"]
@@ -126,17 +162,42 @@ def close_ticket_workflow(
     result_paths: list[Path] | None = None,
     workflow_name: str | None = None,
     history_entry: str = "closed-snapshot",
+    accept_new: bool = False,
 ) -> list[Path]:
     resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
     program_dir = resolved_spec_root / "program_model"
     current_dir = resolved_spec_root / "current"
     desired_dir = resolved_spec_root / "desired_program_model"
 
-    errors = validate_equivalent(current_dir, desired_dir)
-    errors.extend(validate_ticket_plan_closed(desired_dir / "ticket_plan.yaml"))
-    errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
-    if errors:
-        raise SystemExit("cannot close ticket workflow:\n" + "\n".join(f"- {error}" for error in errors))
+    if accept_new:
+        if not desired_dir.exists():
+            raise SystemExit(f"cannot accept new workflow state: missing model directory: {desired_dir}")
+        errors = validate_ticket_plan_closed(desired_dir / "ticket_plan.yaml")
+        if errors:
+            raise SystemExit(
+                "cannot close ticket workflow:\n"
+                + "\n".join(f"- {error}" for error in errors)
+                + "\n\n"
+                + workflow_promotion_guidance()
+            )
+        if not dry_run:
+            for relative in promote_semantic_files(desired_dir, current_dir):
+                print(f"accept-new current: {relative}")
+            for relative in promote_semantic_files(desired_dir, program_dir):
+                print(f"accept-new program_model: {relative}")
+        else:
+            print("would accept desired_program_model as the new current and program_model")
+    else:
+        errors = validate_equivalent(current_dir, desired_dir)
+        errors.extend(validate_ticket_plan_closed(desired_dir / "ticket_plan.yaml"))
+        errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
+        if errors:
+            raise SystemExit(
+                "cannot close ticket workflow:\n"
+                + "\n".join(f"- {error}" for error in errors)
+                + "\n\n"
+                + workflow_promotion_guidance()
+            )
 
     if not dry_run:
         result = create_workflow_closed_snapshot(
@@ -168,6 +229,11 @@ def main() -> int:
     parser.add_argument("--history-entry", default="closed-snapshot", help="History entry name under the workflow directory.")
     parser.add_argument("--summary", default="", help="Human-readable summary for the closed workflow snapshot.")
     parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+    parser.add_argument(
+        "--accept-new",
+        action="store_true",
+        help="Accept desired_program_model/ as the new current/ and program_model/: skip the semantic-equivalence checks and overwrite them from desired_program_model/ before the snapshot. Tickets must still be closed.",
+    )
     args = parser.parse_args()
 
     close_ticket_workflow(
@@ -178,6 +244,7 @@ def main() -> int:
         result_paths=args.result,
         workflow_name=args.workflow_name,
         history_entry=args.history_entry,
+        accept_new=args.accept_new,
     )
     return 0
 

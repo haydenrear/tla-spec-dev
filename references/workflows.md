@@ -24,17 +24,28 @@ For first onboarding of a repository with no accepted baseline, prefer
 there so only `specs/program_model` is created. Use the same `--spec-root` for
 every later workflow command when the repository does not use `specs`.
 
+The scaffold emits placeholders to restructure, not a finished baseline. It is
+complete only when it carries both views (`Internal.tla` + `External.tla`), both
+adapter mappings (`case_adapters.toml` + `testgraph_bindings.yml`), and the
+adapters/projector/assertion in `adapters.py`. Read
+`references/testgraph_adapters.md` and diff against
+`examples/distributed_history/specs/program_model/` before calling it done.
+
 ## Scaffold A Spec
 
-Use this when creating a concrete TLA+ model and manifest.
+`scripts/scaffold_spec.py` is for **standalone tutorial/example specs only**.
 
 ```bash
-python scripts/scaffold_spec.py workspace --root specs/current
+python3 scripts/scaffold_spec.py workspace --root examples
 ```
 
-For example specs, `--root examples` remains fine. For production desired/current
-work, keep project state under `specs/current`, keep the planned project
-destination under `specs/desired_program_model`, and keep tickets in
+Do not use it for production `specs/current` or `specs/desired_program_model`
+work. Without `--views` it emits a single module with no External view, which
+cannot generate Test Graph cases — so the project's public surface would never
+be validated. Production baselines come from
+`tla-spec-dev scaffold project`, and `specs/current` /
+`specs/desired_program_model` are created from that accepted baseline by
+`tla-spec-dev scaffold workflow`. Keep tickets in
 `specs/desired_program_model/ticket_plan.yaml`.
 
 ## Work A Ticket

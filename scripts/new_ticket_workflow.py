@@ -12,12 +12,20 @@ import argparse
 import json
 import re
 import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+# Importable both as `scripts.new_ticket_workflow` and as a direct script, where
+# sys.path[0] is scripts/ rather than the repository root.
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from scripts.onboard_program_model import missing_baseline_files
+
 TICKET_COPY_IGNORE = {
     ".DS_Store",
     "__pycache__",
@@ -79,6 +87,14 @@ class Baseline:
     tla_path: Path | None
     cfg_path: Path | None
     manifest_path: Path | None
+    # "three_module" is the accepted shape: Core/Internal/External plus adapter
+    # mappings for both views. "legacy_single_module" is a pre-Internal/External
+    # baseline that cannot generate Test Graph cases.
+    layout: str = "three_module"
+
+    @property
+    def is_legacy_single_module(self) -> bool:
+        return self.layout == "legacy_single_module"
 
 
 def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
@@ -101,6 +117,38 @@ def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) ->
     manifest = _load_manifest(manifest_path)
     module = str(manifest.get("module") or fallback_module)
     package = str(manifest.get("package") or f"{_slug(module).replace('-', '_')}_cases")
+
+    # Accepted shape: Core.tla + Internal.tla/.cfg + External.tla/.cfg. Internal
+    # is the module-level entry point; the whole program_model tree is copied
+    # into ticket dirs, so no single module stands in for the baseline.
+    internal_tla = program_dir / "Internal.tla"
+    internal_cfg = program_dir / "Internal.cfg"
+    if internal_tla.exists():
+        baseline = Baseline(
+            module=module,
+            package=package,
+            repo_root=repo_root,
+            spec_root=resolved_spec_root,
+            program_dir=program_dir,
+            tla_path=internal_tla,
+            cfg_path=internal_cfg if internal_cfg.exists() else None,
+            manifest_path=manifest_path if manifest_path.exists() else None,
+            layout="three_module",
+        )
+        missing = missing_baseline_files(program_dir)
+        if missing:
+            details = "\n".join(f"- {program_dir / name}" for name in missing)
+            raise SystemExit(
+                "the accepted program model is incomplete. Every project needs BOTH views "
+                "and BOTH adapter mappings; without them the public surface is never "
+                "validated.\nMissing baseline files:\n"
+                + details
+                + "\n\nRead references/testgraph_adapters.md and diff against "
+                "examples/distributed_history/specs/program_model/."
+            )
+        return baseline
+
+    # Legacy: a pre-Internal/External baseline built from a single module.
     tla_path = program_dir / f"{module}.tla"
     if not tla_path.exists():
         candidates = sorted(program_dir.glob("*.tla"))
@@ -119,6 +167,7 @@ def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) ->
         tla_path=tla_path if tla_path and tla_path.exists() else None,
         cfg_path=cfg_path if cfg_path.exists() else None,
         manifest_path=manifest_path if manifest_path.exists() else None,
+        layout="legacy_single_module",
     )
     missing = []
     if baseline.manifest_path is None:
@@ -131,8 +180,16 @@ def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) ->
         details = "\n".join(f"- {path}" for path in missing)
         raise SystemExit(
             "cannot scaffold ticket workflow without an accepted program model. "
-            "Run onboard_program_model.py first.\nMissing baseline files:\n" + details
+            "Run 'tla-spec-dev scaffold project' first.\nMissing baseline files:\n" + details
         )
+
+    print(
+        f"WARNING: {program_dir} is a single-module baseline with no Internal.tla/External.tla.\n"
+        "         It cannot generate Test Graph cases, so this project's public surface is\n"
+        "         not validated. Split it into Core/Internal/External and add adapters.py +\n"
+        "         testgraph_bindings.yml. See references/testgraph_adapters.md.",
+        file=sys.stderr,
+    )
     return baseline
 
 
@@ -478,13 +535,18 @@ Initial ticket: `{ticket_id}` - {title}
 Baseline:
 
 - Program model manifest: `../program_model/spec_manifest.yaml`
-- Program model TLA module: `../program_model/{baseline.module}.tla`
+- Program model: `../program_model/` (Core.tla, Internal.tla, External.tla)
 
 Files:
 
-- `{baseline.module}.tla`: desired whole-program model target. Start from the
-  accepted program model, then add the desired semantic state.
-- `MC.cfg`: bounded TLC model for the desired target.
+- `Core.tla`: shared constants and operators for the desired target.
+- `Internal.tla` / `Internal.cfg`: desired internal view. Drives spec-unit cases.
+- `External.tla` / `External.cfg`: desired external view. Drives Test Graph
+  cases. Edit this whenever the ticket changes publicly observable behavior.
+- `actions.yml`: keep in sync with both modules.
+- `case_adapters.toml` / `testgraph_bindings.yml`: spec-unit and Test Graph
+  adapter mappings. A new action is not done until it is mapped in the one that
+  matches its layer.
 - `spec_manifest.yaml`: desired generated-case manifest plus workflow status.
 - `ticket_plan.yaml`: ticket breakdown with dependencies, current-model
   increments, adapter expectations, validation commands, and evidence slots.
@@ -524,7 +586,9 @@ status:
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
-  program_model_module: ../program_model/{module}.tla
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
   desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
 
 case_codegen:
@@ -568,7 +632,9 @@ status:
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
-  program_model_module: ../program_model/{module}.tla
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
   baseline_package: {package}
 
 case_codegen:
@@ -664,13 +730,23 @@ def desired_state(ticket_id: str, title: str, module: str, spec_root: Path = Pat
     return f"""version: 1
 name: desired-program-model
 canonical_tla_module: {module}
-canonical_tla_file: {module}.tla
-bounded_model_config: MC.cfg
+views:
+  internal:
+    module: Internal.tla
+    config: Internal.cfg
+    generates: spec_unit
+    adapter_mapping: case_adapters.toml
+  external:
+    module: External.tla
+    config: External.cfg
+    generates: testgraph
+    adapter_mapping: testgraph_bindings.yml
 manifest: spec_manifest.yaml
 ticket_plan: ticket_plan.yaml
 
 relationship:
-  extends_current_program_model: ../program_model/{module}.tla
+  extends_current_program_model: ../program_model/Internal.tla
+  extends_current_external_model: ../program_model/External.tla
   purpose: desired whole-program model for ticket workflow
   generation_status: planned
 
@@ -849,8 +925,6 @@ def scaffold(
     files = [
         (current_dir / "README.md", current_readme(ticket_id, title, baseline, spec_root)),
         (current_dir / "spec_manifest.yaml", current_manifest(module, package, ticket_id, title, spec_root)),
-        (current_dir / "case_adapters.toml", case_adapters_toml()),
-        (current_dir / "production_adapters.py", production_adapters_py()),
         (current_dir / "tests" / "test_current_ticket_workflow.py", current_test_for_spec_root(ticket_id, spec_root)),
         (desired_dir / "README.md", desired_readme(ticket_id, title, baseline)),
         (desired_dir / "spec_manifest.yaml", desired_manifest(module, package, ticket_id, title, spec_root)),
@@ -861,13 +935,30 @@ def scaffold(
         if write_file(path, content, force=force, dry_run=dry_run):
             written.append(path)
 
-    for target_dir in [current_dir, desired_dir]:
-        tla_target = target_dir / f"{module}.tla"
-        cfg_target = target_dir / "MC.cfg"
-        if copy_file(baseline.tla_path, tla_target, "", force=force, dry_run=dry_run):
-            written.append(tla_target)
-        if copy_file(baseline.cfg_path, cfg_target, "", force=force, dry_run=dry_run):
-            written.append(cfg_target)
+    # Adapter mappings and adapters belong to the baseline and arrive via
+    # copy_baseline_tree. Never write over them -- even with --force, which would
+    # otherwise replace a real spec-unit mapping with an empty stub. A
+    # three-module baseline carries adapters.py plus both mappings, so these
+    # placeholders exist only to seed a legacy baseline that had neither.
+    if baseline.is_legacy_single_module:
+        for path, content in [
+            (current_dir / "case_adapters.toml", case_adapters_toml()),
+            (current_dir / "production_adapters.py", production_adapters_py()),
+        ]:
+            if not path.exists() and write_file(path, content, force=False, dry_run=dry_run):
+                written.append(path)
+
+    # A three-module baseline already arrived whole via copy_baseline_tree:
+    # Core/Internal/External plus both adapter mappings. Only a legacy
+    # single-module baseline needs its module and MC.cfg placed by name.
+    if baseline.is_legacy_single_module:
+        for target_dir in [current_dir, desired_dir]:
+            tla_target = target_dir / f"{module}.tla"
+            cfg_target = target_dir / "MC.cfg"
+            if copy_file(baseline.tla_path, tla_target, "", force=force, dry_run=dry_run):
+                written.append(tla_target)
+            if copy_file(baseline.cfg_path, cfg_target, "", force=force, dry_run=dry_run):
+                written.append(cfg_target)
 
     return written
 

@@ -18,21 +18,33 @@ def main() -> int:
     with TemporaryDirectory(prefix="tla-spec-desired-views-") as tmp:
         target = scaffold("request-flow", Path(tmp), parse_views("internal,external"))
         expected = [
-            "model/Core.tla",
-            "model/Internal.tla",
-            "model/External.tla",
-            "model/DesiredCore.tla",
-            "model/DesiredInternal.tla",
-            "model/DesiredExternal.tla",
-            "model/actions.yml",
-            "testgraph/bindings.yml",
-            "testgraph/selectors.yml",
-            "testgraph/assertions.yml",
+            # The accepted baseline shape, flat, with both views and both
+            # adapter mappings. Same shape as `tla-spec-dev scaffold project`.
+            "Core.tla",
+            "Internal.tla",
+            "Internal.cfg",
+            "External.tla",
+            "External.cfg",
+            "actions.yml",
+            "adapters.py",
+            "case_adapters.toml",
+            "testgraph_bindings.yml",
+            "tlc_projection.py",
+            "spec_manifest.yaml",
+            # Active desired overlays for an open workflow.
+            "DesiredCore.tla",
+            "DesiredInternal.tla",
+            "DesiredExternal.tla",
         ]
         missing = [path for path in expected if not (target / path).exists()]
         forbidden = [
             "model/Desired.tla",
             "model/Desired.cfg",
+            # The old divergent layout, and the single-module stand-in it implied.
+            "model/Core.tla",
+            "testgraph/bindings.yml",
+            "RequestFlow.tla",
+            "MC.cfg",
         ]
         stale = [path for path in forbidden if (target / path).exists()]
         if missing or stale:

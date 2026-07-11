@@ -73,16 +73,49 @@ def main(ctx):
         record = procs.run(ctx, label, argv, cwd=repo)
         result.process(record).assertion(f"{label} succeeded", record.exit_code == 0)
 
-    current_tla = ticket_dir / "current" / "ProgramModel.tla"
-    desired_tla = ticket_dir / "desired" / "ProgramModel.tla"
+    # The accepted baseline is a three-module model with both views and both
+    # adapter mappings. A single-module baseline generates no Test Graph cases,
+    # so it can never be validated against its public surface.
+    baseline_files = [
+        "Core.tla",
+        "Internal.tla",
+        "Internal.cfg",
+        "External.tla",
+        "External.cfg",
+        "actions.yml",
+        "adapters.py",
+        "case_adapters.toml",
+        "testgraph_bindings.yml",
+        "tlc_projection.py",
+        "spec_manifest.yaml",
+    ]
+    program_model = repo / "specs" / "program_model"
+    missing_baseline = [name for name in baseline_files if not (program_model / name).is_file()]
+
+    def copied(name: str) -> bool:
+        current = ticket_dir / "current" / name
+        desired = ticket_dir / "desired" / name
+        return (
+            current.is_file()
+            and desired.is_file()
+            and desired.read_text() == current.read_text()
+        )
+
+    not_copied = [name for name in baseline_files if not copied(name)]
+
     return (
         result
-        .assertion("program model scaffolded by CLI", (repo / "specs" / "program_model" / "ProgramModel.tla").is_file())
+        .assertion("program model scaffolded by CLI with both views", not missing_baseline)
         .assertion("project workflow scaffolded by CLI", (repo / "specs" / "desired_program_model" / "ticket_plan.yaml").is_file())
         .assertion("ticket directory exists", ticket_dir.is_dir())
-        .assertion("ticket current copied", current_tla.is_file())
-        .assertion("ticket desired copied from current", desired_tla.is_file() and desired_tla.read_text() == current_tla.read_text())
+        .assertion("ticket current + desired carry the whole baseline", not not_copied)
+        .assertion(
+            "no single-module stand-in left behind",
+            not (program_model / "ProgramModel.tla").exists() and not (program_model / "MC.cfg").exists(),
+        )
         .assertion("ticket metadata written", (ticket_dir / "ticket.yaml").is_file())
+        .metric("baselineFilesMissing", len(missing_baseline))
+        .metric("baselineFilesNotCopiedToTicket", len(not_copied))
         .artifact("ticket-dir", str(ticket_dir))
         .publish("ticketDir", str(ticket_dir))
     )

@@ -243,6 +243,72 @@ def test_close_ticket_requires_ticket_current_to_match_desired(tmp_path: Path) -
         raise AssertionError("expected divergent ticket current/desired to block close")
 
 
+def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-131", "Accept new ticket", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-131", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-131"
+    (ticket_dir / "current" / "ProgramModel.tla").write_text("stale current\n", encoding="utf-8")
+    desired_tla = "---- MODULE ProgramModel ----\nAccepted == TRUE\n====\n"
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text(desired_tla, encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-131
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    result = create_ticket_history_entry(
+        repo_root=tmp_path,
+        spec_root=Path("specs"),
+        ticket_ref="AUTH-131",
+        summary="accepted new",
+        result_paths=[],
+        accept_new=True,
+    )
+    manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest["accept_new"] is True
+    assert manifest["accept_new_promotion"]["operation"] == "replace ticket current with ticket desired (accept-new)"
+    # ticket current/ was overwritten from desired/ before being moved to history
+    assert (result.entry_dir / "ticket" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == desired_tla
+    # project current/ was promoted from the accepted desired state
+    assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == desired_tla
+
+
+def test_close_ticket_divergence_error_explains_how_to_prepare(tmp_path: Path) -> None:
+    write_program_model(tmp_path)
+    scaffold(tmp_path, "AUTH-132", "Divergent ticket guidance", force=False, dry_run=False)
+    scaffold_ticket_directory(tmp_path, "AUTH-132", force=False, dry_run=False)
+    ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-132"
+    (ticket_dir / "current" / "ProgramModel.tla").write_text("current\n", encoding="utf-8")
+    (ticket_dir / "desired" / "ProgramModel.tla").write_text("desired\n", encoding="utf-8")
+    (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-132
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    try:
+        create_ticket_history_entry(
+            repo_root=tmp_path,
+            spec_root=Path("specs"),
+            ticket_ref="AUTH-132",
+            summary="closed",
+            result_paths=[],
+        )
+    except SystemExit as exc:
+        message = str(exc)
+        assert "semantic file differs: ProgramModel.tla" in message
+        assert "--accept-new" in message
+        assert "How to prepare this ticket for promotion" in message
+    else:
+        raise AssertionError("expected divergent ticket to block close with guidance")
+
+
 def test_close_ticket_requires_ticket_adapters_to_match_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-130", "Reject divergent adapter", force=False, dry_run=False)
@@ -280,7 +346,7 @@ def test_scaffold_ticket_workflow_requires_program_model_baseline(tmp_path: Path
     try:
         scaffold(tmp_path, "AUTH-126", "No baseline", force=False, dry_run=False)
     except SystemExit as exc:
-        assert "Run onboard_program_model.py first" in str(exc)
+        assert "Run 'tla-spec-dev scaffold project' first" in str(exc)
     else:
         raise AssertionError("expected missing baseline to fail")
 
@@ -384,6 +450,60 @@ def test_close_ticket_workflow_requires_program_model_promotion(tmp_path: Path) 
     try:
         close_ticket_workflow(tmp_path, Path("specs"), dry_run=True)
     except SystemExit as exc:
-        assert "semantic file differs: ProgramModel.tla" in str(exc)
+        message = str(exc)
+        assert "semantic file differs: ProgramModel.tla" in message
+        assert "--accept-new" in message
+        assert "How to prepare this workflow for closeout" in message
     else:
         raise AssertionError("expected unpromoted program_model to block closeout")
+
+
+def test_close_ticket_workflow_accept_new_promotes_desired_into_program_model(tmp_path: Path) -> None:
+    program = tmp_path / "specs" / "program_model"
+    current = tmp_path / "specs" / "current"
+    desired = tmp_path / "specs" / "desired_program_model"
+    for directory in [program, current, desired]:
+        directory.mkdir(parents=True)
+        (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    (program / "ProgramModel.tla").write_text("stale program\n", encoding="utf-8")
+    (current / "ProgramModel.tla").write_text("stale current\n", encoding="utf-8")
+    accepted_tla = "---- MODULE ProgramModel ----\nAccepted == TRUE\n====\n"
+    (desired / "ProgramModel.tla").write_text(accepted_tla, encoding="utf-8")
+    (desired / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-133
+    status: done
+""",
+        encoding="utf-8",
+    )
+
+    removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False, accept_new=True)
+
+    # program_model adopts the accepted desired semantic files; planning files are not promoted
+    assert (program / "ProgramModel.tla").read_text(encoding="utf-8") == accepted_tla
+    assert not (program / "ticket_plan.yaml").exists()
+    # current and desired are removed after the snapshot, program_model remains the baseline
+    assert removed == [current, desired]
+    assert not current.exists()
+    assert not desired.exists()
+    assert program.exists()
+
+
+def test_close_ticket_workflow_accept_new_still_requires_closed_tickets(tmp_path: Path) -> None:
+    desired = tmp_path / "specs" / "desired_program_model"
+    desired.mkdir(parents=True)
+    (desired / "ProgramModel.tla").write_text("desired\n", encoding="utf-8")
+    (desired / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: AUTH-134
+    status: next
+""",
+        encoding="utf-8",
+    )
+
+    try:
+        close_ticket_workflow(tmp_path, Path("specs"), dry_run=True, accept_new=True)
+    except SystemExit as exc:
+        assert "ticket AUTH-134 is not closed" in str(exc)
+    else:
+        raise AssertionError("expected accept-new to still require closed tickets")
