@@ -80,6 +80,24 @@ def _parse_block(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[
     return _parse_dict(rows, index, indent)
 
 
+def _parse_folded_scalar(
+    rows: list[tuple[int, str]], index: int, parent_indent: int, indicator: str
+) -> tuple[str, int]:
+    if index >= len(rows) or rows[index][0] <= parent_indent:
+        return "", index
+
+    content_indent = rows[index][0]
+    lines: list[str] = []
+    while index < len(rows) and rows[index][0] >= content_indent:
+        lines.append(rows[index][1])
+        index += 1
+
+    value = " ".join(lines)
+    if indicator != ">-" and lines:
+        value += "\n"
+    return value, index
+
+
 def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[dict[str, Any], int]:
     result: dict[str, Any] = {}
     while index < len(rows):
@@ -93,6 +111,9 @@ def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[d
 
         key, value = _split_key_value(content)
         index += 1
+        if value in {">", ">-", ">+"}:
+            result[key], index = _parse_folded_scalar(rows, index, row_indent, value)
+            continue
         if value:
             result[key] = _parse_scalar(value)
             continue
@@ -127,6 +148,15 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
 
         if ":" in item and not item.startswith(("'", '"')):
             key, value_text = _split_key_value(item)
+            if value_text in {">", ">-", ">+"}:
+                folded, index = _parse_folded_scalar(rows, index, row_indent, value_text)
+                value = {key: folded}
+                if index < len(rows) and rows[index][0] > row_indent:
+                    child, index = _parse_block(rows, index, rows[index][0])
+                    if isinstance(child, dict):
+                        value.update(child)
+                result.append(value)
+                continue
             value: dict[str, Any] = {key: _parse_scalar(value_text) if value_text else {}}
             if index < len(rows) and rows[index][0] > row_indent:
                 child, index = _parse_block(rows, index, rows[index][0])
