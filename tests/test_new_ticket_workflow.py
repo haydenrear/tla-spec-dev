@@ -11,6 +11,21 @@ from scripts.close_tickets import close_ticket_workflow, validate_equivalent
 from scripts.spec_evolution import create_ticket_history_entry
 
 
+def test_skill_requires_two_minute_case_generation_budget() -> None:
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    generation_modes = (ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
+
+    assert "hard 120-second timeout" in skill
+    assert "Do not simply raise the timeout" in skill
+    assert "perform bounded discovery of the state explosion" in skill
+    assert "accidental complexity" in skill
+    assert "Provide concrete recommendations" in skill
+    assert "discuss the tradeoff with the user" in skill
+    assert "hard two-minute budget" in generation_modes
+    assert "Distinguish compressible modeling detail from" in generation_modes
+    assert "concrete options for lowering" in generation_modes
+
+
 def write_program_model(tmp_path: Path, spec_root: Path = Path("specs")) -> Path:
     program_model = tmp_path / spec_root / "program_model"
     program_model.mkdir(parents=True)
@@ -177,6 +192,14 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
         test_file.write_text("def test_adapter_ready():\n    assert True\n", encoding="utf-8")
     (ticket_dir / "testgraph").mkdir()
     (ticket_dir / "testgraph" / "report.json").write_text('{"passed": true}\n', encoding="utf-8")
+    for model_dir in ["current", "desired"]:
+        states = ticket_dir / model_dir / "states"
+        states.mkdir()
+        (states / "large-state-dump.json").write_text('{"generated": true}\n', encoding="utf-8")
+    for model_dir in ["program_model", "current", "desired_program_model"]:
+        states = tmp_path / "specs" / model_dir / "states"
+        states.mkdir()
+        (states / "large-state-dump.json").write_text('{"generated": true}\n', encoding="utf-8")
     stale_current = tmp_path / "specs" / "current" / "stale_adapter.py"
     stale_current.write_text("SHOULD_BE_REMOVED = True\n", encoding="utf-8")
     (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
@@ -200,8 +223,10 @@ tickets:
     manifest = json.loads((result.entry_dir / "manifest.json").read_text(encoding="utf-8"))
 
     assert not ticket_dir.exists()
+    assert not list((tmp_path / "specs").glob("*/states"))
     assert (result.entry_dir / "ticket" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
     assert (result.entry_dir / "ticket" / "testgraph" / "report.json").exists()
+    assert not list(result.entry_dir.rglob("states"))
     assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
     assert (tmp_path / "specs" / "current" / "adapters" / "unit" / "finished_adapter.py").exists()
     assert (tmp_path / "specs" / "current" / "tests" / "test_finished_adapter.py").exists()
@@ -372,6 +397,9 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
     for directory in [program, current, desired]:
         (directory / "ProgramModel.tla").write_text("---- MODULE ProgramModel ----\n====\n", encoding="utf-8")
         (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+        states = directory / "states"
+        states.mkdir()
+        (states / "large-state-dump.json").write_text('{"generated": true}\n', encoding="utf-8")
     (desired / "ticket_plan.yaml").write_text(
         """tickets:
   - id: AUTH-123
@@ -388,6 +416,8 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
     assert removed == [current, desired]
     assert not current.exists()
     assert not desired.exists()
+    assert not (program / "states").exists()
+    assert not list(entry_dir.rglob("states"))
     assert entry_dir.stat().st_mode & 0o200
     assert (entry_dir / "manifest.json").stat().st_mode & 0o200
     assert manifest["history_policy"].startswith("append-only by convention")

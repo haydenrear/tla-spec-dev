@@ -440,6 +440,38 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 generation and TLC state-graph case generation. Read
 `templates/tla/annotations.md` before designing the manifest.
 
+## Two-Minute State-Space Budget
+
+Apply a hard 120-second timeout to every TLC model-check or diagram run that
+generates cases from a reachable state graph. Never let an agent wait longer in
+the hope that state-space exploration will finish. Use an external timeout
+around the TLC command so this limit still applies when TLC itself remains
+responsive.
+
+If the run does not finish within two minutes, treat the model as too large for
+case generation. Do not simply raise the timeout or retry the same diagram.
+Before changing the model, perform bounded discovery of the state explosion:
+inspect the modeled variables, constant-domain cardinalities, action branching,
+interleavings, symmetry, and the last available TLC progress output. Separate
+accidental complexity that can be abstracted away from essential complexity
+that the program actually requires, and identify which dimensions multiply the
+state count. Record these findings instead of reporting only that TLC timed out.
+
+Then introduce another diagram or refinement abstraction with a smaller state
+space while preserving the behavior and invariants needed by the ticket.
+Typical reductions include narrowing constants and domains, splitting
+independent lifecycles, projecting irrelevant state, and modeling fewer
+equivalent actors or resources.
+
+If a smaller abstraction would omit behavior whose inclusion is a material
+product or correctness decision, stop and discuss the tradeoff with the user.
+Explain which dimensions cause the state explosion and ask how to reduce the
+program's modeled complexity. Provide concrete recommendations, including the
+expected coverage tradeoff and which program or model dimensions each option
+removes. A case-generating diagram is acceptable only when it completes within
+120 seconds; record the bounded command, discovery findings, recommendation,
+and result as validation evidence.
+
 ## Standard Workflow
 
 0. For first onboarding of a repository with no accepted model, create

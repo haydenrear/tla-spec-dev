@@ -41,6 +41,19 @@ Repository-local adapters then map real production boundaries to these generic
 case descriptors through `case_adapters.toml` and
 `scripts/run_generated_case_adapters.py`.
 
+Every TLC run used to produce this state graph has a hard two-minute budget.
+Wrap the model-check command in an external 120-second timeout and stop it when
+the budget expires. A timeout means the diagram is not a viable case-generation
+abstraction. First inspect domain cardinalities, variable combinations, action
+branching, interleavings, symmetry, and TLC progress output to identify what
+multiplies the state count. Distinguish compressible modeling detail from
+essential program complexity. Then introduce another diagram/refinement with
+smaller bounded domains, less irrelevant state, or separated independent
+lifecycles. Do not increase the timeout or wait for the same state space. When
+essential complexity remains, give the user concrete options for lowering
+program complexity, with the semantic and coverage tradeoff of each option,
+before choosing what to omit.
+
 ## Relationship To Program Workflow
 
 `program_model`, `current`, and `desired_program_model` are workflow roles, not

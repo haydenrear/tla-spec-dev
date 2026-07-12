@@ -25,6 +25,7 @@ IGNORED_COPY_NAMES = {
     ".gradle",
     ".pytest_cache",
     "build",
+    "states",
 }
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
 SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml", ".py", ".toml", ".json"}
@@ -122,6 +123,23 @@ def copy_snapshot(source: Path, destination: Path) -> None:
         shutil.copytree(source, destination, ignore=copy_ignore)
     else:
         shutil.copy2(source, destination)
+
+
+def remove_state_directories(*roots: Path) -> list[Path]:
+    """Remove generated TLC state directories before archiving workflow data."""
+    removed: list[Path] = []
+    for root in roots:
+        if not root.exists():
+            continue
+        state_dirs = sorted(
+            (path for path in root.rglob("states") if path.is_dir()),
+            key=lambda path: len(path.parts),
+            reverse=True,
+        )
+        for state_dir in state_dirs:
+            shutil.rmtree(state_dir)
+            removed.append(state_dir)
+    return removed
 
 
 def add_copied_path(records: list[dict[str, Any]], *, role: str, source: Path, destination: Path) -> None:
@@ -447,6 +465,8 @@ def create_ticket_history_entry(
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
     entry_dir.mkdir(parents=True)
 
+    remove_state_directories(active_dir, *(specs_dir / name for name in MODEL_DIRS))
+
     ticket_workdir_record: dict[str, Any] | None = None
     promotion_record: dict[str, Any] | None = None
     if active_dir.exists() and promote_current:
@@ -538,6 +558,8 @@ def create_workflow_closed_snapshot(
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
     entry_dir.mkdir(parents=True)
+
+    remove_state_directories(*(specs_dir / name for name in MODEL_DIRS))
 
     snapshots = snapshot_models(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
