@@ -1,0 +1,21 @@
+# skill-manager 0.18.1 traverses table references through the legacy `name`
+# projection. Keep the full pinned git coordinate in `name`; bare string direct
+# git references parse but are skipped by that release's transitive walker.
+skill_references = [
+"github:haydenrear/git-issue-skill",
+"github:haydenrear/git-issue-workflow-skill",
+"github:haydenrear/tla-spec-dev",
+"github:haydenrear/git-issue-skill",
+"github:haydenrear/test_graph_skill",
+"github:haydenrear/skill-manager-skill",
+"github:haydenrear/skill-publisher-skill"
+]
+
+[[cli_dependencies]]
+spec = "brew:gh"
+on_path = "gh"
+
+[skill]
+name = "git-epic-workflow"
+version = "0.1.0"
+description = "Plan and finalize spec-backed Git epics through dependency-aware GitHub issues, epic branches, and a shared TLA+ workflow."
