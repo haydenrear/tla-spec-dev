@@ -27,16 +27,41 @@ and ticket PRs. Reconcile those artifacts instead of scaffolding again.
 
 ## 2. Create the epic integration branch
 
+### Worktree provisioning conventions (index-base pinning)
+
+Every worktree this skill creates — the epic worktree here and every ticket
+worktree in `epic-ticket.md` — follows these conventions so its base is
+immutable and reproducible (index platforms such as commit-diff-context
+snapshot branching consume these OIDs as base-snapshot identity):
+
+1. **Clean slate** — `git status --porcelain` empty before provisioning;
+   stop and reconcile otherwise.
+2. **Resolve the base rev to object IDs once** — capture
+   `commit_oid=$(git rev-parse <base-ref>)` and
+   `tree_oid=$(git rev-parse "<base-ref>^{tree}")`; record them; never
+   re-resolve the branch name afterwards.
+3. **Retention ref** — create-only
+   `git update-ref refs/index-bases/<repo-id>/<tree_oid> <commit_oid> ""`;
+   an existing ref pointing at a different commit is a hard error. Reserved
+   namespace, never public tags.
+4. **Branch from the pinned commit**, not from the moving ref name.
+
 Choose a short stable slug and create a dedicated epic worktree from the fetched
 default-branch tip:
 
 ```bash
-git worktree add ../wt-epic-<slug> -b epic/<slug> origin/<default-branch>
+git fetch origin
+test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; exit 1; }
+commit_oid=$(git rev-parse origin/<default-branch>)
+tree_oid=$(git rev-parse "origin/<default-branch>^{tree}")
+git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/${tree_oid}" "$commit_oid" ""
+git worktree add ../wt-epic-<slug> -b epic/<slug> "$commit_oid"
 cd ../wt-epic-<slug>
 ```
 
-Record the starting SHA. Never create ticket branches from the primary checkout
-or from the default branch once the epic exists. Never force-push `epic/<slug>`.
+Record the starting SHA (`commit_oid`). Never create ticket branches from the
+primary checkout or from the default branch once the epic exists. Never
+force-push `epic/<slug>`.
 
 ## 3. Discover the whole change
 

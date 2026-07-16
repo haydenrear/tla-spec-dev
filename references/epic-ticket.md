@@ -89,10 +89,21 @@ satisfied dependency.
 
 ### 2. Create the worktree from the epic branch
 
+Apply the index-base pinning conventions (see "Worktree provisioning
+conventions" in `plan-and-schedule.md`): clean tree, resolve the epic branch
+to `commit_oid`/`tree_oid` **once**, create-only
+`refs/index-bases/<repo-id>/<tree_oid>` retention ref, branch from the pinned
+commit. Never re-resolve `origin/epic/<slug>` after creation — a ref is a
+symbolic name, not an identity.
+
 ```bash
 git fetch origin
+test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; exit 1; }
+commit_oid=$(git rev-parse origin/epic/<slug>)
+tree_oid=$(git rev-parse "origin/epic/<slug>^{tree}")
+git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/${tree_oid}" "$commit_oid" ""
 git worktree add ../wt-<issue-number>-<slug> \
-  -b feature/<issue-number>-<slug> origin/epic/<slug>
+  -b feature/<issue-number>-<slug> "$commit_oid"
 cd ../wt-<issue-number>-<slug>
 ```
 
