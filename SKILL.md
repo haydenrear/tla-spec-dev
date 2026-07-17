@@ -109,6 +109,31 @@ emitted, notification consumed, retrain request derived, dataset exported,
 training started, training completed, duplicate suppressed, and failure
 dead-lettered.
 
+## Modular Representation Rule
+
+Represent the program as components, each described as a pure function plus
+declared side effects:
+
+- Local state owned by the component alone.
+- A pure transition `(state, input) -> (state', output, effects)`.
+- Declared effects on named ports — the only way anything leaves the
+  component. One component's effects are another component's inputs, or
+  externally observable behavior.
+
+This workflow is spec-guided differential fuzzing with a generated reference
+implementation: TLC and Hypothesis generate inputs, the spec double is the
+reference, adapters are the harness, and invariants plus projected-state and
+effect conformance are the sanitizers. A representation is judged empirically
+— by the seeded bugs it kills and the coverage it achieves within budget —
+never by TLC passing, which only proves self-consistency.
+
+Read `references/modular_fuzzing.md` before authoring or reviewing any
+baseline. It defines the decomposition method (read/write matrix, port cuts,
+contract environments, interface model), the per-program budgets, the four
+oracles including effect conformance and the mutation kill test, and the
+strict External content rule. For moving an existing repository onto this
+shape, read `references/migration.md`.
+
 ## Internal/External Test Graph Views
 
 **Every project uses one semantic authority with two generated views. This is
@@ -131,6 +156,15 @@ or Kubernetes fault injection. A CLI project can use External to generate
 command invocations and assertions without running a cluster. A library whose
 public surface is observable filesystem behavior — paths, envelopes, sidecars —
 has an External view that *is* the library, not an add-on to it.
+
+The External content rule is strict: External contains exactly the public
+input surface and the externally observable projection of composed state,
+nothing component-level. An External adapter drives the program as deployed —
+separate process or real deployment, through a declared channel, observing
+only externally visible state. An adapter that imports the production package
+in-process is a spec-unit adapter wearing an External badge; rebind it as
+Internal or fix it. See `references/modular_fuzzing.md` for the port binding
+ladder that connects the two views.
 
 Read `references/testgraph_adapters.md` **before authoring any spec baseline**,
 not later when wiring the graph. Onboarding is when the Internal/External split
@@ -440,13 +474,20 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 generation and TLC state-graph case generation. Read
 `templates/tla/annotations.md` before designing the manifest.
 
-## Two-Minute State-Space Budget
+## Complexity And Case Budgets
 
-Apply a hard 120-second timeout to every TLC model-check or diagram run that
-generates cases from a reachable state graph. Never let an agent wait longer in
-the hope that state-space exploration will finish. Use an external timeout
-around the TLC command so this limit still applies when TLC itself remains
-responsive.
+Budgets are per-program and set with the user during scaffolding: propose the
+defaults in `references/modular_fuzzing.md`, ask which to adjust for this
+program, and record the agreed values with a one-line rationale under
+`budgets:` in `spec_manifest.yaml`. Budgets cover TLC wall time, distinct
+states per component model, case caps per view, component-size heuristics,
+and the mutation kill-rate floor. They are hard gates, not aspirations.
+
+Apply a hard 120-second timeout (the `tlc_seconds` default) to every TLC
+model-check or diagram run that generates cases from a reachable state graph.
+Never let an agent wait longer in the hope that state-space exploration will
+finish. Use an external timeout around the TLC command so this limit still
+applies when TLC itself remains responsive.
 
 If the run does not finish within two minutes, treat the model as too large for
 case generation. Do not simply raise the timeout or retry the same diagram.
@@ -458,10 +499,13 @@ that the program actually requires, and identify which dimensions multiply the
 state count. Record these findings instead of reporting only that TLC timed out.
 
 Then introduce another diagram or refinement abstraction with a smaller state
-space while preserving the behavior and invariants needed by the ticket.
-Typical reductions include narrowing constants and domains, splitting
-independent lifecycles, projecting irrelevant state, and modeling fewer
-equivalent actors or resources.
+space while preserving the behavior and invariants needed by the ticket. The
+rigorous method is decomposition, not domain-shrinking: build the variables x
+actions read/write matrix, cut along minimum-interaction edges into component
+models with contract environments at the ports, and keep a thin interface
+model — see `references/modular_fuzzing.md`. Narrowing constants alone is the
+last resort, and the mutation kill-rate floor exists to catch models shrunk
+past usefulness.
 
 If a smaller abstraction would omit behavior whose inclusion is a material
 product or correctness decision, stop and discuss the tradeoff with the user.
@@ -754,7 +798,15 @@ back to centralized semantic state.
 2. Adapter conformance tests: real adapters produce the same results as
    the spec double for generated traces, preserve invariants, and expose
    observable state that validates.
-3. Regression tests from counterexamples: TLC counterexamples,
+3. Effect conformance: the real component, run in a sandbox, produces only
+   declared side effects. Undeclared observed effects are representation
+   gaps; declared-but-never-observed effects are dead model surface. See
+   `references/modular_fuzzing.md`.
+4. Mutation kill tests: seeded production faults — at minimum one per port
+   and one per invariant — must be caught by the generated cases at the
+   `kill_rate_floor` from the budgets. A baseline without a passing kill
+   test is unvalidated.
+5. Regression tests from counterexamples: TLC counterexamples,
    Hypothesis failures, and production bugs become named Python traces,
    TLA+ model changes, or validator improvements.
 
@@ -820,6 +872,11 @@ current change.
 - `references/conformance_testing.md`: production adapter conformance.
 - `references/testgraph_adapters.md`: internal/external Test Graph adapter
   onboarding, hook order, projected-state assertions, and example commands.
+- `references/modular_fuzzing.md`: modular pure-function/side-effect
+  representations, decomposition method, budgets, oracles, corpus
+  discipline, and the External content rule.
+- `references/migration.md`: migrating an existing repository onto modular
+  representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases
   for External views without assuming a distributed deployment.
 - `references/ai_retrieval.md`: AI context selection.
