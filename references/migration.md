@@ -65,17 +65,24 @@ Build the component's sandbox harness: run the real component code with
 temp directories, fake transports, and recorded boundaries, then diff
 observed side effects against declared effects.
 
-Undeclared observed effects are the migration's main signal. For each one,
-choose exactly one:
+Undeclared observed effects are the migration's main signal — and so are
+complexity-gate failures (see `references/architecture_tractability.md`).
+For each one, choose exactly one:
 
 - Model it: add the port and effect to the representation.
 - Justify it: record an explicit out-of-contract note in the manifest.
-- Refactor the source: this is the invited outcome, not a failure. Extract
-  the pure transition into a functional core and push the effect emission to
-  the port boundary (functional core, imperative shell). The spec drives the
-  refactor; the effect diff verifies convergence. Refactors are normal
-  production changes — they go through the same ticket's current/desired
-  loop and tests.
+- Refactor the source: this is the invited outcome, not a failure — but it
+  is a **recommendation the user must approve** before any production
+  change begins. Present the evidence (effect diff, dimension table, R/W
+  matrix, failed-abstraction kill results), the target shape, and the
+  cost. If the user vetoes — some pieces score poorly and still need to
+  exist in that form — escalate to a creative representation from
+  `references/architecture_tractability.md` instead of looping on domain
+  shrinking. When approved: extract the pure transition into a functional
+  core and push the effect emission to the port boundary (functional core,
+  imperative shell). The spec drives the refactor; the effect diff verifies
+  convergence. Refactors are normal production changes — they go through
+  the same ticket's current/desired loop and tests.
 
 Iterate until the effect diff is clean or every residue is justified.
 

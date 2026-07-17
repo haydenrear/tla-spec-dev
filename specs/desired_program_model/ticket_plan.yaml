@@ -19,6 +19,9 @@ epic:
     feature branch into epic/modular-fuzzing themselves after validation and
     ticket close; the epic owner reviews post-merge and prepares the next
     ticket. The epic owner closes GitHub issues; ticket agents never do.
+    2026-07-17: MF-011 amended (schedule_revision 2) before start to add
+    tractability diagnostics per references/architecture_tractability.md;
+    architectural moves are recommendations requiring user approval.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -105,7 +108,7 @@ tickets:
     title: "Analyze complexity command"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: [MF-012]
     blocks: []
     wave: 2
@@ -117,7 +120,7 @@ tickets:
       adapters: [specs/program_model/production_adapters.py]
       test_graph: []
       workflow: []
-    objective: "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md."
+    objective: "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, R/W-matrix modularity score, suggested move (abstract/decompose/refactor) emitted as a recommendation requiring user approval and never auto-applied, unjustified-variable flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md and references/architecture_tractability.md."
     desired_actions:
       - AnalyzeComplexity
     implementation_scope:
@@ -145,6 +148,8 @@ tickets:
         - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
         - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
         - case generation refuses above-gate models without the explicit override flag.
+        - modularity score and suggested move are emitted, labeled as recommendations requiring user approval, with evidence (candidate cut or dense rows/columns).
+        - variables lacking a justification linkage are flagged as dead weight when a justification table is present.
       evidence: []
 
   - id: MF-014
@@ -300,7 +305,7 @@ tickets:
       adapters: []
       test_graph: []
       workflow: []
-    objective: "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md."
+    objective: "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, kill-rate before/after comparison across model revisions so the kill test doubles as the abstraction validator (references/architecture_tractability.md), and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md."
     desired_actions:
       - RunKillTest
     implementation_scope:

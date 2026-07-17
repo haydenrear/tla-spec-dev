@@ -507,6 +507,15 @@ model — see `references/modular_fuzzing.md`. Narrowing constants alone is the
 last resort, and the mutation kill-rate floor exists to catch models shrunk
 past usefulness.
 
+Tractability is an architectural fitness function: a gate failure is a
+review finding about the program, not a tooling inconvenience. When neither
+abstraction nor decomposition works, the program itself may need refactoring
+— but that diagnosis is a **recommendation the user approves, adjusts, or
+vetoes**, never a decision the agent takes alone. Some pieces score poorly
+and still need to exist in that form; those get creative representations
+instead. Read `references/architecture_tractability.md` for the three moves,
+their diagnostics, and the grow-the-model-by-evidence loop.
+
 If a smaller abstraction would omit behavior whose inclusion is a material
 product or correctness decision, stop and discuss the tradeoff with the user.
 Explain which dimensions cause the state explosion and ask how to reduce the
@@ -875,6 +884,10 @@ current change.
 - `references/modular_fuzzing.md`: modular pure-function/side-effect
   representations, decomposition method, budgets, oracles, corpus
   discipline, and the External content rule.
+- `references/architecture_tractability.md`: the three moves when the
+  complexity gate fails (abstract/decompose/refactor), user-approval rules,
+  creative representations for irreducible pieces, and the
+  grow-by-evidence modeling loop.
 - `references/migration.md`: migrating an existing repository onto modular
   representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases

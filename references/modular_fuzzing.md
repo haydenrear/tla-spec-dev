@@ -98,6 +98,14 @@ Default component-size heuristics (tunable per program, see "Budgets"):
 at most ~6 state variables, ~8 actions, and 2 instances of any symmetric
 actor per component model. A component above that gets cut again.
 
+When the gate still fails — abstraction would lose bug-catching power, or
+the R/W matrix is too dense for any narrow cut — read
+`references/architecture_tractability.md`. It defines the three moves
+(abstract, decompose, refactor), the diagnostics that choose among them,
+and the creative representations for pieces that score poorly but must
+exist in their current form. All three moves are recommendations the user
+approves; a production refactor always requires explicit user approval.
+
 ## Budgets
 
 Budgets are per-program and are set in conversation with the user during

@@ -19,4 +19,8 @@ Acceptance criteria:
   variable or action to refine.
 - Onboarding and promotion are the required kill-test moments; per-ticket
   work reuses baseline mutants plus one new mutant at the changed boundary.
+- The kill test doubles as the abstraction validator: an abstraction is
+  legitimate iff the kill rate holds after it (see
+  `references/architecture_tractability.md`), so the runner supports
+  before/after comparison across model revisions.
 - The distributed_history example gains a worked kill test.
