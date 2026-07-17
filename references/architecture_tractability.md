@@ -184,6 +184,16 @@ Three self-checks an agent applies to any representation:
   everything between commit points is hidden progress. (This is the exact
   boundary LLM-written specs get wrong most often.)
 
+## Deferred Direction: Domain-Driven Representations
+
+A planned research direction (tickets/018) strengthens Move 1 and Move 2 by
+relocating the abstraction into the code: domain value objects and enums
+make illegal states unrepresentable, so the spec's small domains become the
+actual domains rather than optimistic approximations, and aggregate
+boundaries with fixed command/event protocols make interaction cardinality
+the number of message types. Keep it in mind when designing diagnostics,
+effect declarations, and kill tests — do not foreclose it.
+
 ## Where This Is Mechanized
 
 - `tla-spec-dev analyze complexity` (tickets/011): emits the dimension
