@@ -1,0 +1,378 @@
+# Canonical plan for the modular-fuzzing epic. GitHub issues mirror this file
+# for handoff; this file remains the source of truth. Dispatched ticket IDs,
+# dependency edges, waves, and promotion order are immutable after issue
+# assignment — add amendment tickets instead of editing dispatched identities.
+version: 1
+name: modular-fuzzing-epic
+updated: "2026-07-16"
+purpose: "Mechanize the modular pure-function/side-effect fuzzing doctrine (references/modular_fuzzing.md) in the tla-spec-dev CLI: per-program budgets, complexity analysis gates, corpus distillation, effect conformance, External channel enforcement, mutation kill tests, and the skill feedback loop."
+
+epic:
+  id: modular-fuzzing
+  branch: epic/modular-fuzzing
+  default_branch: main
+  base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >
+    Per repository-owner direction, ticket agents merge their reviewed-green
+    feature branch into epic/modular-fuzzing themselves after validation and
+    ticket close; the epic owner reviews post-merge and prepares the next
+    ticket. The epic owner closes GitHub issues; ticket agents never do.
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands (scaffold, analyze, generate, close) ARE program behavior for this repository.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
+  promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-012
+  active_ticket_title: "Scaffold-time budget prompts"
+  desired_module: TlaSpecDevCli
+  phase: planning
+
+service_catalog:
+  existing_boundaries:
+    - tla-spec-dev CLI (scaffold/open/run/close)
+    - scripts/generate_cases_from_tlc_dump.py case generation
+    - scripts/run_generated_case_adapters.py adapter runner
+    - spec_manifest.yaml / actions.yml / testgraph_bindings.yml schemas
+  desired_boundaries:
+    - budgets block in spec_manifest.yaml read by all gates
+    - analyze complexity pre-TLC gate
+    - sandboxed effect observation in the adapter runner
+    - channel-authentic Test Graph bindings with double|real port configurations
+  adapter_boundaries:
+    - specs/program_model/production_adapters.py spec-unit adapters
+    - test_graph specWorkflow / cliWorkflow graphs
+  known_gaps:
+    - "This repository's own baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Out of scope for this epic; migrate via references/migration.md in a follow-up epic."
+
+tickets:
+  - id: MF-012
+    title: "Scaffold-time budget prompts"
+    status: next
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: [MF-011, MF-014, MF-016]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: [scripts/tla_spec_dev.py, scripts/onboard_program_model.py, templates/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "Budgets become per-program program state: scaffold emits a budgets block in spec_manifest.yaml (tlc_seconds, max_distinct_states, case caps, component-size heuristics, kill_rate_floor), instructs the agent to negotiate values with the user, and downstream commands read gates from the manifest with documented defaults and a warning on fallback. See tickets/012-scaffold-budget-prompts.md."
+    desired_actions:
+      - RecordBudgets
+    implementation_scope:
+      - scripts/tla_spec_dev.py (scaffold project/workflow budget emission)
+      - scripts/onboard_program_model.py
+      - templates/ manifest templates
+      - references/modular_fuzzing.md defaults kept in sync
+    current_increment:
+      model_state:
+        - budgets_recorded
+      model_actions:
+        - RecordBudgets
+      adapters:
+        - specs/.../production_adapters.py scaffold adapter asserting budgets block emission
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-012/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-012
+      assertions:
+        - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
+        - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
+        - a consumer helper reads budgets with default fallback and warning.
+      evidence: []
+
+  - id: MF-011
+    title: "Analyze complexity command"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: []
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: MF-012
+    conflict_keys:
+      production: [scripts/analyze_complexity.py, scripts/tla_spec_dev.py, scripts/generate_cases_from_tlc_dump.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md."
+    desired_actions:
+      - AnalyzeComplexity
+    implementation_scope:
+      - scripts/analyze_complexity.py (new)
+      - scripts/tla_spec_dev.py (analyze subcommand)
+      - scripts/generate_cases_from_tlc_dump.py (gate integration)
+    current_increment:
+      model_state:
+        - complexity_gate
+      model_actions:
+        - AnalyzeComplexity
+      adapters:
+        - spec-unit adapter running analyze complexity against a fixture spec
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-011/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-011/current/TlaSpecDevCli.tla specs/tickets/MF-011/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-011
+      assertions:
+        - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
+        - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
+        - case generation refuses above-gate models without the explicit override flag.
+      evidence: []
+
+  - id: MF-014
+    title: "Corpus distillation"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: [MF-016]
+    wave: 3
+    promotion_order: 30
+    promotion_predecessor: MF-011
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Stratified case selection: at least one case per (action, label class), remaining budget filled by state-predicate novelty, manifest-recorded drops (no silent truncation), named regression traces always retained, caps read from manifest budgets. See tickets/014-corpus-distillation.md."
+    desired_actions:
+      - DistillCorpus
+    implementation_scope:
+      - scripts/generate_cases_from_tlc_dump.py
+      - scripts/export_testgraph_cases.py
+    current_increment:
+      model_state:
+        - corpus_distilled
+      model_actions:
+        - DistillCorpus
+      adapters:
+        - spec-unit adapter asserting stratification and drop records on a fixture dump
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-014/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-014
+      assertions:
+        - selection covers every (action, label class) before novelty fill.
+        - generated manifest lists every dropped case and the dropping rule.
+        - named regression traces survive caps.
+      evidence: []
+
+  - id: MF-013
+    title: "Effect conformance harness"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 4
+    promotion_order: 40
+    promotion_predecessor: MF-014
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, spec_double_compiler/runtime.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [actions.yml-effects-schema]
+    objective: "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; undeclared observed effects fail or record representation gaps; declared-never-observed effects reported as dead surface; out-of-contract justifications suppress gaps. See tickets/013-effect-conformance-harness.md."
+    desired_actions:
+      - RunEffectConformance
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py
+      - spec_double_compiler/runtime.py
+      - actions.yml / spec_manifest.yaml effect declarations
+    current_increment:
+      model_state:
+        - effect_conformance
+      model_actions:
+        - RunEffectConformance
+      adapters:
+        - spec-unit adapter with a deliberate undeclared effect proving the diff fails
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-013/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-013/current/TlaSpecDevCli.tla specs/tickets/MF-013/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-013
+      assertions:
+        - sandboxed observation collects filesystem and transport effects per case.
+        - undeclared observed effect fails or records a gap; dead declared effects are reported.
+        - justified out-of-contract effects suppress the gap report.
+      evidence: []
+
+  - id: MF-015
+    title: "External channel enforcement"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 5
+    promotion_order: 50
+    promotion_predecessor: MF-013
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, scripts/export_testgraph_cases.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: [testgraph_bindings.yml-schema]
+      workflow: []
+    objective: "Require channel per Test Graph binding (http/cli/fs/queue/k8s), verify Test Graph adapters cannot import the production package (static analysis or isolated interpreter), report violations with remediation, and make double|real port binding configurations declarable for integration-ladder rungs. See tickets/015-external-channel-enforcement.md."
+    desired_actions:
+      - EnforceExternalChannels
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py (testgraph path)
+      - scripts/export_testgraph_cases.py
+      - testgraph_bindings.yml schema
+    current_increment:
+      model_state:
+        - channel_enforcement
+      model_actions:
+        - EnforceExternalChannels
+      adapters:
+        - spec-unit adapter proving an in-process import is detected and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-015/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-015
+      assertions:
+        - bindings without a channel field are rejected with remediation guidance.
+        - production-package imports from Test Graph adapters are detected.
+        - port binding configurations (double|real) are declarable and validated.
+      evidence: []
+
+  - id: MF-016
+    title: "Mutation kill test"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [MF-012, MF-014]
+    blocks: []
+    wave: 6
+    promotion_order: 60
+    promotion_predecessor: MF-015
+    conflict_keys:
+      production: [scripts/run_kill_test.py, examples/distributed_history/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md."
+    desired_actions:
+      - RunKillTest
+    implementation_scope:
+      - scripts/run_kill_test.py (new) or documented procedure with runner support
+      - examples/distributed_history/ worked kill test
+      - references/modular_fuzzing.md kept in sync
+    current_increment:
+      model_state:
+        - kill_test
+      model_actions:
+        - RunKillTest
+      adapters:
+        - spec-unit adapter proving a seeded fault is killed and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-016/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-016/current/TlaSpecDevCli.tla specs/tickets/MF-016/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-016
+        - python3 examples/run_distributed_history_validation.py --mode local
+      assertions:
+        - kill rate is computed against kill_rate_floor from budgets and gates nonzero below it.
+        - mutants, kill matrix, and surviving-mutant analysis land under ticket evidence.
+        - distributed_history carries a worked kill test in local mode.
+      evidence: []
+
+  - id: MF-017
+    title: "Skill feedback loop"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 7
+    promotion_order: 70
+    promotion_predecessor: MF-016
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/close_spec_workflow.py, scripts/close_tickets.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [close-out-templates]
+    objective: "Workflow close-out emits a skill_feedback.md template into specs/results/ prompting for surviving mutants, unmodelable effects, budget adjustments, and profile/CLI workarounds; template instructs turning items into tickets/PRs against spec-double-compiler; history entries record whether feedback was filed. See tickets/017-skill-feedback-loop.md."
+    desired_actions:
+      - EmitSkillFeedback
+    implementation_scope:
+      - scripts/close_ticket.py
+      - scripts/close_spec_workflow.py
+      - scripts/close_tickets.py
+      - references/migration.md kept in sync
+    current_increment:
+      model_state:
+        - skill_feedback
+      model_actions:
+        - EmitSkillFeedback
+      adapters:
+        - spec-unit adapter asserting close-out writes the feedback template
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-017/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-017/current/TlaSpecDevCli.tla specs/tickets/MF-017/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-017
+      assertions:
+        - close emits specs/results/skill_feedback.md with the four prompt sections.
+        - history entries record whether feedback was filed and where.
+      evidence: []
