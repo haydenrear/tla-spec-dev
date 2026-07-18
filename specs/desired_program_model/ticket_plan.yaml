@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 4
+  schedule_revision: 5
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -92,6 +92,29 @@ epic:
     Test evidence from prior tickets remains SOUND — pytest, the spec-unit
     adapters, and the test_graph nodes all resolve to the repository
     independently of PATH.
+    2026-07-18: MF-011 accepted and closed at post-merge review (merge
+    463c906). The analyze command reports its own gate FAILING on this
+    repository rather than tuning the budget to pass, applied MF-020's
+    self-loop lesson to its own idempotent AnalyzeComplexity transitions, and
+    independently derived the setup_phase collapse from the model alone
+    (393,216 -> 73,728 at 11 -> 7 variables), matching the figure MF-020
+    measured separately — real validation that the metric works. Complexity
+    rose 11 -> 12 variables and 919 -> 2923 distinct states, justified: the
+    gate is externally-visible behavior and the x3 is its 3-valued domain.
+    SECOND SPEC-LEVEL ERROR FOUND (same class as the withdrawn -13.1%): the
+    MF-011 spec instructed gating the static state-space upper bound against
+    max_distinct_states, but the quantities are incommensurable. On this
+    repository the bound is 1,179,648 while actual reachable distinct states
+    are 2,923 — a ~400x over-approximation — so the gate fails a model that
+    is 17x UNDER its own budget. Decisive: the tool's own recommended optimum
+    (setup_phase, bound 73,728) STILL fails the 50,000 budget. The
+    implementation was correct; the specification was wrong. MF-022 added at
+    promotion_order 25 to add a distinct max_state_space_bound and, per owner
+    decision, to bundle the approved setup_phase collapse into the same
+    model touch. MF-014 bumped to revision 2 (depends_on gains MF-022;
+    promotion_predecessor MF-011 -> MF-022) because corpus distillation needs
+    case generation, which the miscalibrated gate currently refuses.
+    Component-size heuristics are unaffected and working correctly.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -105,8 +128,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-011
-  active_ticket_title: "Analyze complexity command"
+  active_ticket: MF-022
+  active_ticket_title: "Recalibrate the bound gate and collapse setup booleans"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -363,16 +386,64 @@ tickets:
         - specs/tickets/MF-011/results/testgraph-specWorkflow/summary.json
         - specs/tickets/MF-011/results/testgraph-cliWorkflow/summary.json
 
+  - id: MF-022
+    title: "Recalibrate the bound gate and collapse setup booleans"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-011, MF-012, MF-020]
+    blocks: [MF-014]
+    wave: 3
+    promotion_order: 25
+    promotion_predecessor: MF-011
+    conflict_keys:
+      production: [scripts/analyze_complexity.py, scripts/budgets.py, scripts/onboard_program_model.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "Two bundled changes that both touch the model and the budgets block, so they land as one TlaSpecDevCli.tla touch. (1) GATE RECALIBRATION: MF-011 gates the static state-space upper bound against max_distinct_states, but the quantities are incommensurable — on this repo the bound is 1,179,648 while actual reachable distinct states are 2,923, a ~400x over-approximation, so the gate FAILS a model that is 17x UNDER its own budget. Decisive evidence of miscalibration: applying the only reduction the tool itself recommends (setup_phase) yields a bound of 73,728, which STILL fails the 50,000 budget — a gate its own recommended optimum cannot satisfy is wrong by construction. Add a distinct max_state_space_bound budget for the static estimate and gate the bound against it; keep max_distinct_states for post-TLC comparison against actual reachable states. The error originated in the MF-011 spec, not its implementation. (2) SETUP_PHASE COLLAPSE: owner-approved architectural move, found independently by both the MF-020 and MF-011 agents — collapse cli_built / cli_installed / project_scaffolded / budgets_recorded / workflow_scaffolded into a single ordinal setup_phase in 0..5. They form a strict bootstrap chain pinned by their own action guards, so only 6 of 32 combinations are reachable. Measured: 11 -> 7 variables and declared bound 393,216 -> 73,728 at identical reachable states. See tickets/022-gate-recalibration-and-setup-phase.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/budgets.py (new max_state_space_bound default)
+      - scripts/analyze_complexity.py (gate the bound against the new budget)
+      - scripts/onboard_program_model.py (emit the new budget at scaffold time)
+      - specs/program_model/TlaSpecDevCli.tla (setup_phase collapse)
+    current_increment:
+      model_state:
+        - setup_phase
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read setup_phase
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-022/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-022/current/TlaSpecDevCli.tla specs/tickets/MF-022/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-022
+      assertions:
+        - budgets carry a distinct max_state_space_bound; the static bound is gated against it, not against max_distinct_states.
+        - the chosen default is justified against real measurements, not picked to make this repo pass; state the reasoning.
+        - after both changes analyze complexity PASSES on this repository's own model, and the pass is honest — actual reachable states remain far under max_distinct_states.
+        - the component-size heuristics are unchanged and still fire (C1 touched by 11 actions exceeding 8 remains a reported finding).
+        - the five setup booleans are gone; setup_phase carries the bootstrap ordering; every invariant over them has an equivalent.
+        - reachable distinct states and depth are unchanged by the collapse — behavior retention proven by equality, and reported separately from the gate change so the two deltas are not conflated.
+      evidence: []
+
   - id: MF-014
     title: "Corpus distillation"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
-    schedule_revision: 1
-    depends_on: [MF-012]
+    schedule_revision: 2
+    depends_on: [MF-012, MF-022]
     blocks: [MF-016]
     wave: 3
     promotion_order: 30
-    promotion_predecessor: MF-011
+    promotion_predecessor: MF-022
     conflict_keys:
       production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py]
       tla: [TlaSpecDevCli.tla]
