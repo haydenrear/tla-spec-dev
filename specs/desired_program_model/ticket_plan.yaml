@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 7
+  schedule_revision: 8
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -259,8 +259,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-015
-  active_ticket_title: "External channel enforcement"
+  active_ticket: MF-025
+  active_ticket_title: "Collapse the per-ticket lifecycle into one ordinal"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -728,16 +728,64 @@ tickets:
         - declared-but-never-observed effects are removed or exercised by a case; prose does not resolve dead model surface.
       evidence: []
 
+  - id: MF-025
+    title: "Collapse the per-ticket lifecycle into one ordinal"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-014]
+    blocks: [MF-015]
+    wave: 4
+    promotion_order: 33
+    promotion_predecessor: MF-014
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Owner-approved architectural move, third instance of the pattern after MF-020 and MF-022. Replace active_tickets (SUBSET Tickets), closed_tickets (SUBSET Tickets) and ticket_phase ([Tickets -> 0..3]) with a single ticket_state in [Tickets -> 0..5]. These are not independent facts but one per-ticket lifecycle recorded three ways -- 0 unopened, 1..4 active at phases 0..3, 5 closed. VERIFIED against the model before scheduling, which is what makes this a faithful re-representation rather than a packing trick -- OpenTicket guards on the ticket being in neither set so it is never reopened and the lifecycle is monotonic; CloseTicket leaves ticket_phase UNCHANGED so a closed ticket retains phase 3 and there is no closed-with-other-phase state; NoOpenClosedOverlap already forbids being both. Exactly six per-ticket combinations are reachable and they are totally ordered. Declared representation 8 x 8 x 64 = 4,096 becomes 6^3 = 216, a factor of 18.96 derived from the model, projecting bound 663,552 -> ~34,992 which must be MEASURED on-branch not quoted. Scheduled now rather than later because each gate ticket triples the bound and the next one breaches the 1,000,000 budget; the standing objective answers a bad measurement with an architecture change, not a raised budget. See tickets/025-ticket-state-collapse.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla (variable, guard and invariant rewrite)
+      - specs/program_model/production_adapters.py (lifecycle-aware adapters)
+      - specs/current/tests (adapter assertions referencing the removed variables)
+    current_increment:
+      model_state:
+        - ticket_state
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read ticket_state
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-025/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-025/current/TlaSpecDevCli.tla specs/tickets/MF-025/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-025
+      assertions:
+        - the three variables are gone and ticket_state carries the lifecycle.
+        - reachable distinct states remain 9,011 and depth remains 24, matching the MF-014 baseline exactly; the baseline is established on-branch first and divergence in EITHER direction stops the ticket.
+        - derived operators ActiveTickets and ClosedTickets are defined so every set-valued reader still reads a set; the model reads as a lifecycle, not arithmetic on an integer.
+        - every invariant and guard has an equivalent over ticket_state, with the before/after mapping enumerated; invariants that become structurally true are RETAINED BY NAME per the MF-020 and MF-022 precedent.
+        - no adapter references a removed variable.
+        - if a reachable combination is found that does not fit the six, the ticket STOPS and reports -- that finding means the premise is wrong and the collapse must not proceed.
+        - the declared bound drop is measured and reported separately from any other change.
+      evidence: []
+
   - id: MF-015
     title: "External channel enforcement"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/16"
-    schedule_revision: 2
-    depends_on: []
+    schedule_revision: 3
+    depends_on: [MF-025]
     blocks: []
     wave: 4
     promotion_order: 35
-    promotion_predecessor: MF-014
+    promotion_predecessor: MF-025
     conflict_keys:
       production: [scripts/run_generated_case_adapters.py, scripts/export_testgraph_cases.py]
       tla: [TlaSpecDevCli.tla]
