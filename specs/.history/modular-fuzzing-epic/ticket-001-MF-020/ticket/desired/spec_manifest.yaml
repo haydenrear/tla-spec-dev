@@ -3,41 +3,31 @@ package: current_program_cases
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-020
-  active_ticket_title: "Collapse ticket phase booleans into an ordinal"
+  active_ticket: MF-012
+  active_ticket_title: "Scaffold-time budget prompts"
   relation_to_program_model: starts_equivalent_then_advances_as_slices_land
   relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
   current_model_rule: whole_program_working_copy_not_ticket_projection
   test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
   updated: "2026-07-18"
   current_slice:
-    name: ticket-phase-ordinal
+    name: scaffold-time-budget-prompts
     status: implemented
-    refines: [scaffold-time-budget-prompts]
-    implemented_actions: []
-    representation_change:
-      note: >-
-        Pure representation change: no CLI surface and no new behavior. The three
-        parallel booleans desired_ready / current_ready / spec_unit_tests_passed
-        collapse into one ordinal ticket_phase in [Tickets -> 0..3]. Retention is
-        proven by equality, not asserted: 919 distinct states and depth 21 are
-        unchanged from the MF-012 baseline.
-      state_variables: 13 -> 11
-      declared_state_space_bound: 3145728 -> 393216
-      distinct_states: 919 -> 919
-      search_depth: 21 -> 21
+    refines: [shipped-tla-spec-dev-cli-workflow]
+    implemented_actions:
+      - RecordBudgets
     validation:
       unit:
         - uv run --with pytest -m pytest tests -q
       tlc:
-        - bash scripts/run_tlc.sh specs/current/TlaSpecDevCli.tla specs/current/MC.cfg
+        - bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg
       graph:
         - specWorkflow
         - cliWorkflow
       evidence:
-        - specs/.history/modular-fuzzing-epic/ticket-001-MF-020/results
+        - specs/tickets/MF-012/results
   next:
-    - MF-011 (analyze gate) is calibrated against this retained model shape.
+    - MF-011 (analyze gate), MF-014 (case caps), and MF-016 (kill_rate_floor) read this budgets block.
 
 # Per-program complexity and case budgets. Scaffolding emits this block with
 # the documented defaults from references/modular_fuzzing.md and instructs the

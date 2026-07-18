@@ -39,3 +39,40 @@ def test_current_model_carries_the_budgets_gate() -> None:
     assert "RecordBudgets" in model
     assert "WorkflowRequiresBudgets" in model
     assert "budgets:" in manifest
+
+
+def test_current_model_carries_the_ticket_phase_ordinal() -> None:
+    """MF-020 collapsed three parallel lifecycle booleans into one ordinal.
+
+    The three booleans were pinned to a strict total order by the invariants, so
+    only 4 of their 8 combinations were reachable. ``ticket_phase`` represents
+    exactly the reachable set: 0=open, 1=desired, 2=current, 3=units passed.
+    """
+    model = (SPEC_ROOT / "current/TlaSpecDevCli.tla").read_text(encoding="utf-8")
+
+    assert "ticket_phase" in model
+    assert "ticket_phase \\in [Tickets -> 0..3]" in model, (
+        "TypeInvariant must bound the ordinal to 0..3"
+    )
+
+    # Check code lines only: the module carries an explanatory comment that
+    # names the old booleans on purpose, to document the encoding.
+    code = "\n".join(
+        line for line in model.splitlines() if not line.lstrip().startswith("\\*")
+    )
+    for gone in ("desired_ready", "current_ready", "spec_unit_tests_passed"):
+        assert gone not in code, f"{gone} survived the MF-020 collapse"
+
+    # The ordering invariants are deliberately retained rather than deleted:
+    # keeping them documents that the constraint still holds and was absorbed
+    # into the representation instead of dropped.
+    assert "CurrentRequiresDesired" in model
+    assert "SpecUnitTestsRequireCurrent" in model
+    assert "ClosedTicketsPassedSpecUnitTests" in model
+
+    # RunSpecUnitTests must stay re-runnable on an already-passing ticket, which
+    # is why its guard is `>= 2` and not `= 2`. Tightening it would delete the
+    # idempotent re-run transition (measured: 3664 -> 3184 generated states).
+    assert "/\\ ticket_phase[ticket] >= 2" in model, (
+        "RunSpecUnitTests guard must remain >= 2 to preserve the re-run self-loop"
+    )
