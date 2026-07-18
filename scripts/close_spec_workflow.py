@@ -23,6 +23,11 @@ def main() -> int:
     parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting when ticket_plan.yaml still has open tickets.")
     parser.add_argument("--remove-active", action="store_true", help="Remove desired/current after they have been snapshotted.")
+    parser.add_argument(
+        "--no-skill-feedback",
+        action="store_true",
+        help="Do not emit/append the references/migration.md Phase 6 skill-feedback retro into <spec-root>/results/skill_feedback.md.",
+    )
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
@@ -34,6 +39,7 @@ def main() -> int:
         workflow=args.workflow_name,
         entry_name=args.entry_name,
         allow_open=args.allow_open,
+        emit_feedback=not args.no_skill_feedback,
     )
     if args.remove_active:
         specs_dir = resolve_spec_root(repo_root, args.spec_root)

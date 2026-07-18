@@ -15,6 +15,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from .skill_feedback import emit_skill_feedback, print_skill_feedback_report
+except ImportError:  # pragma: no cover - direct script execution
+    from skill_feedback import emit_skill_feedback, print_skill_feedback_report
+
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
@@ -40,6 +45,7 @@ class HistoryEntryResult:
     git_add_command: str
     git_commit_command: str
     promotion: dict[str, Any] | None = None
+    skill_feedback: dict[str, Any] | None = None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -530,6 +536,7 @@ def create_ticket_history_entry(
     ticket_root: Path = Path("tickets"),
     promote_current: bool = True,
     accept_new: bool = False,
+    emit_feedback: bool = True,
 ) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
@@ -595,12 +602,31 @@ def create_ticket_history_entry(
         for name in ("testgraph", "test_graph"):
             if (specs_dir / name).exists():
                 promoted_paths.append(specs_dir / name)
+
+    # MF-017: close-out runs the migration.md Phase 6 retro. The template is
+    # emitted (once) and this close is appended to it, so the history entry can
+    # record whether feedback was filed and where.
+    skill_feedback_record: dict[str, Any] | None = None
+    if emit_feedback:
+        skill_feedback_record = emit_skill_feedback(
+            specs_dir,
+            scope="ticket",
+            scope_id=resolved_ticket_id,
+            workflow=resolved_workflow,
+            summary=summary,
+        )
+        promoted_paths.append(Path(skill_feedback_record["path"]))
+
     close_result = commit_recommendation(
         entry_dir,
         f"record spec history for {resolved_ticket_id}",
         extra_paths=promoted_paths,
     )
-    close_result = dataclasses.replace(close_result, promotion=promotion_record)
+    close_result = dataclasses.replace(
+        close_result,
+        promotion=promotion_record,
+        skill_feedback=skill_feedback_record,
+    )
     manifest = {
         "schema_version": 1,
         "kind": "ticket",
@@ -621,6 +647,9 @@ def create_ticket_history_entry(
         "accept_new": accept_new,
         "accept_new_promotion": accept_new_record,
         "promotion": promotion_record,
+        "skill_feedback": skill_feedback_record,
+        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
         "commit_recommendation": {
             "message": close_result.recommendation,
             "git_add": close_result.git_add_command,
@@ -643,6 +672,7 @@ def create_workflow_closed_snapshot(
     workflow: str | None = None,
     entry_name: str = "closed-snapshot",
     allow_open: bool = False,
+    emit_feedback: bool = True,
 ) -> HistoryEntryResult:
     specs_dir = resolve_spec_root(repo_root, spec_root)
     plan = load_ticket_plan(specs_dir)
@@ -668,7 +698,23 @@ def create_workflow_closed_snapshot(
 
     snapshots = snapshot_models(specs_dir, entry_dir)
     results = snapshot_results(specs_dir, entry_dir, result_paths)
-    close_result = commit_recommendation(entry_dir, "close spec ticket workflow")
+
+    # MF-017: the workflow close is the last chance to run the Phase 6 retro,
+    # so it emits/appends the same feedback document as ticket close.
+    skill_feedback_record: dict[str, Any] | None = None
+    extra_paths: list[Path] = []
+    if emit_feedback:
+        skill_feedback_record = emit_skill_feedback(
+            specs_dir,
+            scope="workflow",
+            scope_id=resolved_workflow,
+            workflow=resolved_workflow,
+            summary=summary,
+        )
+        extra_paths.append(Path(skill_feedback_record["path"]))
+
+    close_result = commit_recommendation(entry_dir, "close spec ticket workflow", extra_paths=extra_paths)
+    close_result = dataclasses.replace(close_result, skill_feedback=skill_feedback_record)
     manifest = {
         "schema_version": 1,
         "kind": "workflow-close",
@@ -681,6 +727,9 @@ def create_workflow_closed_snapshot(
         "summary": summary,
         "snapshots": snapshots,
         "results": results,
+        "skill_feedback": skill_feedback_record,
+        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
         "commit_recommendation": {
             "message": close_result.recommendation,
             "git_add": close_result.git_add_command,
@@ -720,6 +769,7 @@ def print_promotion_report(result: HistoryEntryResult) -> None:
 
 def print_commit_recommendation(result: HistoryEntryResult) -> None:
     print_promotion_report(result)
+    print_skill_feedback_report(result.skill_feedback)
     print(f"recorded spec history entry: {result.entry_dir}")
     print(result.recommendation)
     print("recommended next step:")

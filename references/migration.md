@@ -119,17 +119,43 @@ Once components exist:
 Close tickets through the normal workflow until current equals desired,
 promote, and clean up.
 
-Then run the retro. Write `specs/results/skill_feedback.md` covering what
-the migration could not express or automate:
+Then run the retro. **You do not have to remember to.** Every close-out —
+`tla-spec-dev close ticket` and the workflow close — emits
+`specs/results/skill_feedback.md` and appends a `## Close-out …` entry to it,
+covering what the migration could not express or automate:
 
-- mutants that survived and why the profile or generators could not reach
-  them;
-- observed effects that had no reasonable modeling as port state;
-- budget values that had to move, and what that says about the defaults;
-- places the constrained TLA+ profile, the manifest schema, or the CLI
-  forced a workaround.
+- `surviving-mutants` — mutants that survived and why the profile or
+  generators could not reach them;
+- `unmodelable-effects` — observed effects that had no reasonable modeling as
+  port state;
+- `budget-and-metric` — budget values that had to move, and gates or metrics
+  that measured the wrong quantity or were blind to a real change;
+- `profile-schema-cli` — places the constrained TLA+ profile, the manifest
+  schema, or the CLI forced a workaround, produced a wrong result, or
+  destroyed data.
+
+Each finding is a `### SF-NNN` block of `- key: value` lines. The required
+fields exist so a finding is *evidence about a real target*, not a wish:
+`target:` (the exact surface — command, script and function, budget key,
+manifest field), `observed_on:` (the repository/module/ticket it was run
+against), `evidence:` (a durable path, not prose), `severity:`,
+`root_cause:` (`tool` / `spec` / `target` — a correct implementation of a
+wrong specification is `spec`, and filing it against the code files it in the
+wrong place), and `workaround_applied:`. Category-specific fields structure the
+common cases; the emitted template lists them, with worked examples.
 
 Turn each item into a concrete recommendation against the
-spec-double-compiler skill itself — a ticket or PR on the skill repository.
+spec-double-compiler skill itself — a ticket or PR on the skill repository —
+and record its URL in `recommendation:` with `status: filed`. If you looked
+and found nothing, set `feedback_status: none-found`; silence is not an
+answer.
+
+Close-out reads the document back and records **whether feedback was filed and
+where** in the append-only history entry (`feedback_filed`,
+`feedback_filed_where`, and the full `skill_feedback` record in
+`manifest.json`), and prints the unfiled findings by id. The document is
+append-only: close-out writes the template once and thereafter only appends,
+so a filled finding is never overwritten by the next close.
+
 This feedback loop is part of the workflow, not optional polish: the skill
 improves only through what real migrations fail to express.

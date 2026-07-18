@@ -25,6 +25,11 @@ def main() -> int:
     parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
     parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
     parser.add_argument(
+        "--no-skill-feedback",
+        action="store_true",
+        help="Do not emit/append the references/migration.md Phase 6 skill-feedback retro into <spec-root>/results/skill_feedback.md.",
+    )
+    parser.add_argument(
         "--accept-new",
         action="store_true",
         help="Accept the ticket desired/ as the new current/: skip the current==desired check and overwrite current/ from desired/ before promotion.",
@@ -43,6 +48,7 @@ def main() -> int:
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
         accept_new=args.accept_new,
+        emit_feedback=not args.no_skill_feedback,
     )
     print_commit_recommendation(result)
     return 0
