@@ -86,11 +86,15 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
         "\nRead references/testgraph_adapters.md, then diff your tree against\n"
         "examples/distributed_history/specs/program_model/ before calling onboarding done."
     )
-    print("\nnext:")
-    print("  1. Replace the placeholder semantics with this repository's real behavior.")
-    print(f"  2. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
-    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
-    print(f"  4. tla-spec-dev --spec-root {spec_root} scaffold workflow")
+    from scripts.budgets import budget_prompt
+
+    print(budget_prompt(f"{spec_root}/program_model/spec_manifest.yaml"))
+    print("next:")
+    print("  1. Propose the budgets above to the user and record the agreed values.")
+    print("  2. Replace the placeholder semantics with this repository's real behavior.")
+    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
+    print(f"  4. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
+    print(f"  5. tla-spec-dev --spec-root {spec_root} scaffold workflow")
     return 0
 
 
@@ -108,7 +112,10 @@ def run_scaffold_workflow(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         spec_root=Path(args.spec_root),
     )
+    from scripts.budgets import budget_prompt
+
     print(f"scaffolded ticket workflow files: {len(written)}")
+    print(budget_prompt(f"{args.spec_root}/current/spec_manifest.yaml"))
     print(f"next: tla-spec-dev --spec-root {args.spec_root} open ticket {ticket_id}")
     return 0
 

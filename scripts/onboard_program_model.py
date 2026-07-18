@@ -25,7 +25,12 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from budgets import budgets_block  # noqa: E402
 
 
 # The accepted baseline is not complete until every one of these exists. This
@@ -854,7 +859,13 @@ status:
       - Run TLC on the internal view - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
       - Run TLC on the external view - scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
       - Generate cases and validate adapter coverage for both views.
+      - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
+# Per-program complexity and case budgets. These are hard gates read by
+# analyze complexity, case generation, the adapter runner, and the mutation
+# kill test. Defaults come from references/modular_fuzzing.md; negotiate them
+# with the user and record a one-line rationale for each changed value.
+{budgets_block()}
 views:
   internal:
     module: Internal.tla
