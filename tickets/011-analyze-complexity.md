@@ -1,6 +1,6 @@
 # Analyze Complexity Command
 
-Status: Open
+Status: Done (MF-011)
 
 Agents currently discover state explosion by running TLC, timing out, and
 poking constants. The decomposition method in

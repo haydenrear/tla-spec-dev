@@ -1,0 +1,34 @@
+MF-011 post-close self-verification (run AFTER close ticket promoted specs/current)
+Date: 2026-07-18T18:10:43Z
+
+FINDING (recorded, not worked around):
+  The first post-close run FAILED 2 of 151 repository tests:
+    test_repository_own_model_reproduces_the_recorded_state_space_bound
+    test_repository_own_model_surfaces_the_setup_phase_collapse
+  Cause: both assert against specs/current, which promotion had just advanced
+  from the 11-variable model (bound 393,216) to the 12-variable model
+  (bound 1,179,648). The tests were correct about a model that no longer
+  existed. This is a real defect in the tests as originally written --
+  calibration pinned to a moving target -- not a defect in the analyzer.
+  Fixed by asserting BOTH the post-promotion figure and its relationship
+  to the recorded MF-020 figure (bound // 3 == 393,216), so the
+  calibration survives the promotion instead of silently drifting.
+  The analyzer itself was not changed.
+
+=== repository unit tests (post-close, post-fix) ===
+........................................................................ [ 95%]
+.......                                                                  [100%]
+151 passed in 11.33s
+
+=== spec-unit tests (project scope, promoted specs/current) ===
+spec-unit target: /Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/current
+running pytest:/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/current: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/current/tests -q
+spec-unit validation passed for 1 target(s)
+
+=== TLC on promoted specs/current ===
+Model checking completed. No error has been found.
+18720 states generated, 2923 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 23.
+
+=== analyze complexity on promoted specs/current (exit 1 expected: over budget) ===
+exit=1

@@ -753,6 +753,53 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def enforce_complexity_gate(
+    tla_path: Path,
+    cfg_path: Path,
+    spec_dir: Path,
+    *,
+    allow_over_budget: bool,
+) -> None:
+    """Refuse to generate cases for a model that exceeds its manifest budgets.
+
+    Generation is the expensive step: TLC has to explore the whole reachable
+    state graph before a single case exists. Above budget that is not slow, it
+    is unbounded, so the useful behavior is to stop and name the dominant
+    dimensions rather than time out. ``--allow-over-budget`` is the explicit,
+    recorded override.
+    """
+    manifest_path = spec_dir / "spec_manifest.yaml"
+    try:
+        from scripts.analyze_complexity import gate_report
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import gate_report  # type: ignore[no-redef]
+
+    try:
+        passed, message = gate_report(
+            tla_path, cfg_path, manifest_path if manifest_path.is_file() else None
+        )
+    except Exception as exc:  # a gate that cannot parse must not block generation
+        print(f"warning: complexity gate could not analyze {tla_path}: {exc}", file=sys.stderr)
+        return
+
+    if passed:
+        print(message)
+        return
+    print(message, file=sys.stderr)
+    if allow_over_budget:
+        print(
+            "\nPROCEEDING ANYWAY -- overridden by --allow-over-budget.",
+            file=sys.stderr,
+        )
+        return
+    print(
+        "\nREFUSING to generate cases. Re-run with --allow-over-budget to override once "
+        "the cost is understood.",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tla", type=Path)
@@ -783,6 +830,14 @@ def main() -> int:
         default=[],
         help="Optional module:function returning extra labels for before/action/after/changed",
     )
+    parser.add_argument(
+        "--allow-over-budget",
+        action="store_true",
+        help=(
+            "Generate cases even when the complexity gate fails. Explicit override: "
+            "without it, generation refuses above budget instead of exhausting TLC."
+        ),
+    )
     args = parser.parse_args()
 
     tla_path = resolve_existing_from_cwd(args.tla)
@@ -800,6 +855,12 @@ def main() -> int:
         resolved = str(root.resolve())
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
+
+    # Complexity gate (MF-011). Runs BEFORE run_tlc_dump: the whole point is to
+    # refuse with the dominant dimensions rather than let TLC exhaust itself on
+    # a model that was never going to finish.
+    enforce_complexity_gate(tla_path, cfg_path, spec_dir, allow_over_budget=args.allow_over_budget)
+
     run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
     states, edges = load_dot(dot_path)
     if not states:
