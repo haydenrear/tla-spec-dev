@@ -156,20 +156,28 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
 
     MF-022 then collapsed the five setup booleans into `setup_phase \in 0..5`,
     replacing a 2^5 = 32 factor with a factor of 6:
-    1,179,648 / 32 * 6 = 221,184. Asserting the current figure AND its
-    relationship to each recorded predecessor keeps the calibration meaningful
-    across every promotion.
+    1,179,648 / 32 * 6 = 221,184.
+
+    MF-014 then added `corpus_gate` (3 values) as the case-cap hard gate,
+    tripling it again: 221,184 * 3 = 663,552. That growth is deliberate --
+    an unrepresented gate is not a gate -- and stays inside
+    `max_state_space_bound` 1,000,000.
+
+    Asserting the current figure AND its relationship to each recorded
+    predecessor keeps the calibration meaningful across every promotion.
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 221_184
-    # Undo the MF-022 collapse to recover the MF-011 figure...
-    assert result.bound // 6 * 32 == 1_179_648
-    # ...and divide out the 3-valued gate to recover the MF-020 figure.
-    assert (result.bound // 6 * 32) // 3 == 393_216
+    assert result.bound == 663_552
+    # Divide out the MF-014 case-cap gate to recover the MF-022 figure...
+    assert result.bound // 3 == 221_184
+    # ...undo the MF-022 collapse to recover the MF-011 figure...
+    assert result.bound // 3 // 6 * 32 == 1_179_648
+    # ...and divide out the 3-valued complexity gate for the MF-020 figure.
+    assert (result.bound // 3 // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
 
@@ -227,8 +235,13 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
     32 declared combinations admitted only 6, and projected the collapse would
     take the declared bound 1,179,648 -> 221,184. MF-022 applied it. This test
     now guards the landed state: the ordinal is present, no five-member
-    latching chain remains, and the bound is exactly the projected figure --
-    which is also the check that the analyzer's projection was honest.
+    latching chain remains, and the bound still factors through the projected
+    figure -- which is also the check that the analyzer's projection was honest.
+
+    MF-014 later multiplied the bound by 3 by adding `corpus_gate`, so the
+    projected 221,184 is asserted as a FACTOR rather than as the total. Gates
+    added after the collapse do not invalidate it; a change to the setup-phase
+    factor itself would still break this test.
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
@@ -246,8 +259,10 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
         assert removed not in result.variables
     # The collapse consumed the chain it was derived from.
     assert not [c for c in result.chains if len(c.members) == 5]
-    # Exactly the figure MF-011 projected before the move was applied.
-    assert result.bound == 221_184
+    # The figure MF-011 projected, still present as a factor of the bound
+    # after MF-014's corpus_gate tripled it.
+    assert result.bound % 221_184 == 0
+    assert result.bound // 221_184 == 3  # corpus_gate, the only later addition
 
 
 # ---------------------------------------------------------------------------
