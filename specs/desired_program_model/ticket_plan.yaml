@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 6
+  schedule_revision: 7
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -264,7 +264,7 @@ tickets:
       assertions:
         - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
         - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
-        - a consumer helper reads budgets with default fallback and warning.
+        - a consumer helper reads budgets. NOTE 2026-07-18 -- the silent default fallback-with-warning this shipped with is WITHDRAWN; a missing budgets block must fail, since budgets are negotiated per program. Tracked as MF-024.
       evidence:
         - specs/tickets/MF-012/results/validation-summary.md
         - specs/tickets/MF-012/results/complexity-ledger.md
@@ -441,9 +441,9 @@ tickets:
       assertions:
         - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
         - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
-        - case generation refuses above-gate models without the explicit override flag.
+        - case generation refuses above-gate models. NOTE 2026-07-18 -- the --allow-over-budget override this shipped with is WITHDRAWN as degeneracy; removal tracked as MF-024.
         - modularity score and suggested move are emitted, labeled as recommendations requiring user approval, with evidence (candidate cut or dense rows/columns).
-        - variables lacking a justification linkage are flagged as dead weight when a justification table is present.
+        - variables lacking a justification linkage are flagged as dead weight. NOTE 2026-07-18 -- the 'when a justification table is present' conditional this shipped with is WITHDRAWN; a check that disables itself when its input is absent is degeneracy. Tracked as MF-024.
       evidence:
         - specs/tickets/MF-011/results/design-decision.md
         - specs/tickets/MF-011/results/complexity-ledger.md
@@ -573,16 +573,63 @@ tickets:
         - references/modular_fuzzing.md Corpus Discipline matches what shipped.
       evidence: []
 
+  - id: MF-024
+    title: "Purge shipped degeneracy from the toolchain"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-011, MF-012, MF-014]
+    blocks: [MF-013]
+    wave: 4
+    promotion_order: 35
+    promotion_predecessor: MF-014
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/budgets.py, scripts/analyze_complexity.py, references/modular_fuzzing.md, references/architecture_tractability.md]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "The 2026-07-18 degeneracy audit purged escape hatches from the doctrine and every unstarted ticket. Three had ALREADY SHIPPED into code and must be removed there too, or doctrine and tool disagree -- the failure mode tracked as #33. (1) --allow-over-budget in generate_cases_from_tlc_dump.py converts the complexity gate into a suggestion and is reached for under exactly the pressure that makes exceeding it dangerous; MF-022 already observed routine use defeats the gate entirely. (2) load_budgets in budgets.py falls back to documented defaults with a warning when the budgets block is missing, which defeats MF-012 whose whole purpose was per-program negotiated budgets -- a program can run its life on generic defaults nobody agreed to while the warning scrolls past. (3) analyze_complexity.py line 1084 skips dead-weight analysis when no justification table is present, which is the purest form of the pattern -- the model with NO justification table is precisely the one most likely to carry unjustified variables, and it is the one case the analysis declines to examine. Absence of the table is itself the finding. Each becomes a hard failure with a regression test proving the escape stays gone. See tickets/024-purge-shipped-degeneracy.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/generate_cases_from_tlc_dump.py (remove the override)
+      - scripts/budgets.py (missing budgets block fails)
+      - scripts/analyze_complexity.py (missing justification table fails)
+      - references/ kept in sync with shipped behavior
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - adapters asserting each purged escape now fails
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-024/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-024
+      assertions:
+        - no code path accepts --allow-over-budget or any equivalent override of a complexity or case-cap gate; grep proves zero references outside historical snapshots.
+        - a missing budgets block FAILS with a message naming the scaffold command that creates one; every consumer that relied on the fallback is identified and fixed, not exempted.
+        - a missing justification table FAILS rather than skipping the analysis.
+        - a regression test per purged escape asserts the failure, guarding against reintroduction.
+        - references/modular_fuzzing.md and references/architecture_tractability.md match shipped behavior exactly.
+        - any NEW escape introduced while doing this -- a flag, a default, a conditional -- is itself a failure of this ticket.
+        - gates that newly fail are REPORTED, not weakened; that report is a legitimate output.
+      evidence: []
+
   - id: MF-013
     title: "Effect conformance harness"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/15"
-    schedule_revision: 1
-    depends_on: []
+    schedule_revision: 2
+    depends_on: [MF-024]
     blocks: []
     wave: 4
     promotion_order: 40
-    promotion_predecessor: MF-014
+    promotion_predecessor: MF-024
     conflict_keys:
       production: [scripts/run_generated_case_adapters.py, spec_double_compiler/runtime.py]
       tla: [TlaSpecDevCli.tla]
@@ -615,8 +662,9 @@ tickets:
         - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-013
       assertions:
         - sandboxed observation collects filesystem and transport effects per case.
-        - undeclared observed effect fails or records a gap; dead declared effects are reported.
-        - justified out-of-contract effects suppress the gap report.
+        - undeclared observed effect FAILS -- the gap is recorded AND the run fails; recording is not an alternative to failing.
+        - no justification, annotation, or manifest entry suppresses a gap report; a test proves the inverse (a recorded justification does NOT prevent the failure).
+        - declared-but-never-observed effects are removed or exercised by a case; prose does not resolve dead model surface.
       evidence: []
 
   - id: MF-015
