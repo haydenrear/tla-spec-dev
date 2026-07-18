@@ -107,6 +107,36 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-18: MF-017 accepted and closed at post-merge review (merge
+    7336036). Skill-feedback template ships with all four of the epic's real
+    findings round-tripping through it as asserted tests. Two field choices
+    exceed what was asked and are worth keeping as doctrine -- root_cause
+    (tool/spec/target), because this epic's most expensive findings were
+    correct implementations of WRONG SPECIFICATIONS that would otherwise be
+    filed against the code; and severity silent-data-loss, because the
+    promotion defect is not describable as friction. Emission is append-only
+    with read-back into manifest.json, and feedback_status none-found is a
+    first-class answer so silence records as unresolved.
+    ZERO MODEL DELTA accepted, deviating from this entry's prescribed
+    desired_actions EmitSkillFeedback / model_state skill_feedback (written
+    when the ticket sat at promotion_order 70). Close-out already exists as
+    CloseTicket; the feature adds a file effect and a history field, not a
+    command, guard, or branch, and filing status is recorded rather than
+    enforced. Precedent MF-021, same close path, same rationale. Verified
+    alternative cost -- a 3-valued fact would take the bound 221,184 ->
+    663,552 to represent a document field. Modeling filing status as state
+    would gate close and is a real behavior change; amendment ticket if
+    wanted. The deviation is recorded in the ticket entry outcome field.
+    The loop produced three findings on its first run, all verified and filed
+    as GitHub issues -- SF-003 (#32) promotion enumerates removed and
+    preserved but NOT overwritten, so an edit to specs/current is reverted
+    with no record, an incomplete transparency guarantee from MF-021;
+    SF-002 (#33) the plan's prescriptive desired_actions/model_state are
+    never reconciled against implementation, third instance after MF-011 and
+    MF-020, same root cause as the three recorded spec-level errors;
+    SF-001 (#34) scaffold workflow emits a one-ticket plan, so cross-close
+    behavior such as append-only accumulation cannot be tested without
+    hand-editing YAML, which the MF-019 ledger will hit too.
     2026-07-18: MF-021 accepted and closed at post-merge review (merge
     8a458f2). Promotion is now provenance-aware: `open ticket` records a
     seed_manifest in ticket.yaml, and close partitions current-minus-desired
@@ -167,8 +197,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-017
-  active_ticket_title: "Skill feedback loop"
+  active_ticket: MF-014
+  active_ticket_title: "Corpus distillation"
   desired_module: TlaSpecDevCli
   phase: implementation
 
