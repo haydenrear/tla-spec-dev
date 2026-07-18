@@ -170,6 +170,15 @@ model exceeds `max_state_space_bound`, `max_component_variables`, or
 `max_component_actions`, and case generation refuses above the gate unless
 given `--allow-over-budget`.
 
+*Amended 2026-07-18 — `--allow-over-budget` is withdrawn.* An override flag
+on a complexity gate is degeneracy: it converts a hard limit into a
+suggestion, and it is reached for under exactly the budget pressure that
+makes exceeding the limit dangerous. Over the gate, the architecture
+changes. A program that genuinely needs more room gets its budget raised
+explicitly in `spec_manifest.yaml` with a recorded rationale, which is
+visible and reviewable in a way a command-line flag never is. Removing the
+flag from the shipped code is tracked as its own amendment ticket.
+
 It also emits a **suggested move** — abstract, decompose, or refactor. That
 is a recommendation requiring user approval, never an automatic change; see
 `references/architecture_tractability.md`.
@@ -197,10 +206,22 @@ falsifiable.
 3. Effect conformance: run the component in a sandbox (temp directories,
    fake transports, recorded HTTP) and diff observed side effects against
    declared effects.
-   - An observed effect with no declared port is a representation gap:
-     model it, or record an explicit out-of-contract justification.
+   - An observed effect with no declared port **fails**. The model is blind
+     to real behavior, which is the one thing a representation may not be.
+     Model the effect, or change the program so it no longer emits it.
+     There is no third option, and in particular there is no annotation
+     that makes it acceptable.
    - A declared effect never observed across the whole corpus is dead model
-     surface: remove it or explain it.
+     surface: remove it, or produce a case that exercises it. Prose
+     explaining why it is unobserved does not resolve it.
+
+   *Amended 2026-07-18.* This previously read "model it, or record an
+   explicit out-of-contract justification" and "remove it or explain it".
+   Both escapes are withdrawn: they let a representation stay blind to real
+   behavior provided someone wrote a sentence about it. See "No Degenerate
+   Escapes" in `architecture_tractability.md`, and note that the CEGAR
+   section there already treats an undeclared observed effect as evidence
+   that *demands* a model addition.
 4. Mutation kill test: the representation's falsifiable experiment.
    - Hypothesis: representation R captures the bug-relevant behavior of
      component C at its port surface.
