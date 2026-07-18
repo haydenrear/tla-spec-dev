@@ -163,6 +163,7 @@ def close_ticket_workflow(
     workflow_name: str | None = None,
     history_entry: str = "closed-snapshot",
     accept_new: bool = False,
+    emit_feedback: bool = True,
 ) -> list[Path]:
     resolved_spec_root = _resolve_spec_root(repo_root, spec_root)
     program_dir = resolved_spec_root / "program_model"
@@ -207,8 +208,21 @@ def close_ticket_workflow(
             result_paths=result_paths or [],
             workflow=workflow_name,
             entry_name=history_entry,
+            emit_feedback=emit_feedback,
         )
         print_commit_recommendation(result)
+        # MF-017: migration.md Phase 6 calls the retro part of the workflow, not
+        # optional polish. Workflow close records the filing status rather than
+        # gating on it, but it must never be quiet about an unresolved retro:
+        # current/ and desired/ are removed just below, so this is the last
+        # moment the omission is cheap to fix.
+        feedback = result.skill_feedback
+        if feedback and not feedback.get("resolved"):
+            print(
+                "WARNING: skill feedback is unresolved at workflow close. "
+                f"Fill in {feedback['path']} and file each finding as a ticket or PR "
+                f"against {feedback['feedback_repository']}; the close history records this as not filed."
+            )
 
     removed = [current_dir, desired_dir]
     for directory in removed:
@@ -230,6 +244,11 @@ def main() -> int:
     parser.add_argument("--summary", default="", help="Human-readable summary for the closed workflow snapshot.")
     parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     parser.add_argument(
+        "--no-skill-feedback",
+        action="store_true",
+        help="Do not emit/append the references/migration.md Phase 6 skill-feedback retro into <spec-root>/results/skill_feedback.md.",
+    )
+    parser.add_argument(
         "--accept-new",
         action="store_true",
         help="Accept desired_program_model/ as the new current/ and program_model/: skip the semantic-equivalence checks and overwrite them from desired_program_model/ before the snapshot. Tickets must still be closed.",
@@ -245,6 +264,7 @@ def main() -> int:
         workflow_name=args.workflow_name,
         history_entry=args.history_entry,
         accept_new=args.accept_new,
+        emit_feedback=not args.no_skill_feedback,
     )
     return 0
 

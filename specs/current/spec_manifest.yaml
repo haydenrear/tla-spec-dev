@@ -3,29 +3,33 @@ package: current_program_cases
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-020
-  active_ticket_title: "Collapse ticket phase booleans into an ordinal"
+  active_ticket: MF-017
+  active_ticket_title: "Skill feedback loop"
   relation_to_program_model: starts_equivalent_then_advances_as_slices_land
   relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
   current_model_rule: whole_program_working_copy_not_ticket_projection
   test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
   updated: "2026-07-18"
   current_slice:
-    name: ticket-phase-ordinal
+    name: skill-feedback-loop
     status: implemented
-    refines: [scaffold-time-budget-prompts]
+    refines: [gate-recalibration-and-setup-phase]
     implemented_actions: []
-    representation_change:
+    file_effect_change:
       note: >-
-        Pure representation change: no CLI surface and no new behavior. The three
-        parallel booleans desired_ready / current_ready / spec_unit_tests_passed
-        collapse into one ordinal ticket_phase in [Tickets -> 0..3]. Retention is
-        proven by equality, not asserted: 919 distinct states and depth 21 are
-        unchanged from the MF-012 baseline.
-      state_variables: 13 -> 11
-      declared_state_space_bound: 3145728 -> 393216
-      distinct_states: 919 -> 919
-      search_depth: 21 -> 21
+        Close-out gains a file effect and a history field, not a command. Ticket
+        close and workflow close now emit/append specs/results/skill_feedback.md
+        (the references/migration.md Phase 6 retro) and record whether feedback
+        was filed and where in the append-only history manifest. No new CLI
+        subcommand, no new guard, no new sequencing: CloseTicket already models
+        the command, and the four prompt categories are content of an emitted
+        document rather than program state. Same class of change as MF-021
+        (promotion preserve-and-enumerate), which also changed close's file
+        effect at zero model delta.
+      state_variables: 8 -> 8
+      declared_state_space_bound: 221184 -> 221184
+      distinct_states: 2923 -> 2923
+      search_depth: 23 -> 23
     validation:
       unit:
         - uv run --with pytest -m pytest tests -q
@@ -35,9 +39,12 @@ status:
         - specWorkflow
         - cliWorkflow
       evidence:
-        - specs/.history/modular-fuzzing-epic/ticket-001-MF-020/results
+        - specs/.history/modular-fuzzing-epic/ticket-009-MF-017/results
   next:
-    - MF-011 (analyze gate) is calibrated against this retained model shape.
+    - MF-023 (Internal/External decomposition by dogfooding) is the first real
+      consumer of the feedback loop: its surviving mutants, unmodelable effects,
+      budget adjustments and CLI workarounds are recorded as structured findings
+      in specs/results/skill_feedback.md.
 
 # Per-program complexity and case budgets. Scaffolding emits this block with
 # the documented defaults from references/modular_fuzzing.md and instructs the
