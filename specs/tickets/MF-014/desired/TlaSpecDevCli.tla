@@ -282,10 +282,12 @@ RunSpecUnitTests(root, ticket, override) ==
   \* MF-014: generation produces the corpus, then the case caps are measured
   \* over it. The corpus is complete either way -- the gate refuses, it never
   \* trims -- so a failing verdict advances nothing and reports instead.
-  \* `override` is deliberately NOT consulted here: the complexity gate has an
-  \* explicit --allow-over-budget escape, and the case caps have none. Raising
-  \* the cap with a recorded rationale is the accept path, and that is a
-  \* different verdict rather than a bypassed one.
+  \* `override` is deliberately NOT consulted here. The case caps have no
+  \* override and never will: raising the cap with a recorded rationale is the
+  \* accept path, and that is a different verdict rather than a bypassed one.
+  \* `override` survives only for complexity_gate, whose --allow-over-budget
+  \* flag doctrine withdrew on 2026-07-18 as degeneracy; removing it from the
+  \* shipped CLI is MF-023's, not this ticket's.
   /\ corpus_gate' \in {"pass", "fail"}
   /\ ticket_phase' = IF corpus_gate' = "pass"
                        THEN [ticket_phase EXCEPT ![ticket] = 3]

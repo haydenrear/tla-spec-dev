@@ -557,7 +557,7 @@ tickets:
 
   - id: MF-014
     title: "Corpus diagnostics and hard caps"
-    status: pending
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
     schedule_revision: 4
     depends_on: [MF-012, MF-022]
@@ -596,6 +596,52 @@ tickets:
         - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-014
       assertions:
         - no code path drops, filters, samples, or truncates a case to fit a budget -- not silently and not with a recorded drop rule. A --distill style opt-in filter is also a failure.
+      evidence:
+        - specs/tickets/MF-014/results/tlc-current.txt
+        - specs/tickets/MF-014/results/spec-unit-tests.txt
+        - specs/tickets/MF-014/results/repository-unit-tests.txt
+        - specs/tickets/MF-014/results/analyze-complexity.txt
+        - specs/tickets/MF-014/results/analyze-corpus-committed-example.txt
+        - specs/tickets/MF-014/results/analyze-corpus-732-fixture.txt
+        - specs/tickets/MF-014/results/graph-specWorkflow
+        - specs/tickets/MF-014/results/graph-cliWorkflow
+        - specs/tickets/MF-014/results/complexity-ledger.md
+        - specs/tickets/MF-014/results/deferred-validations.md
+    outcome: >-
+      Shipped as a hard gate, DEVIATING from the desired_actions / model_state
+      fields above (DistillCorpus / corpus_distilled). Those fields were written
+      for the withdrawn Corpus Distillation scope; distillation no longer exists,
+      so there is nothing named DistillCorpus to model and no corpus_distilled
+      fact to record. Staleness class tracked as #33; precedent for recording the
+      deviation here rather than inventing a model change is MF-017.
+      What landed: scripts/corpus_diagnostics.py, wired as a post-write gate in
+      generate_cases_from_tlc_dump.py, a pre-selection gate in
+      export_testgraph_cases.py, and the `tla-spec-dev analyze corpus` command.
+      Model delta is NOT zero: corpus_gate (a 3-valued global verdict) plus the
+      AnalyzeCorpus action, 8 -> 9 variables, 11 -> 12 actions, bound 221,184 ->
+      663,552, distinct states 2,923 -> 9,011, depth 23 -> 24, all within budget.
+      The growth is deliberate -- an unrepresented gate is not a gate, and hiding
+      a real command to hold a count down is the under-representation this
+      ticket's own doctrine forbids.
+      NOTHING IS DROPPED: no code path removes a case to satisfy a cap. Generation
+      writes the complete package BEFORE the gate runs, and the export gate
+      measures the full corpus BEFORE --label/--case/--limit selection, so no flag
+      can bring a corpus under cap. corpus_gate deliberately has no override; the
+      accept path is raising the cap in spec_manifest.yaml with a recorded
+      rationale, which the failure output prints as a ready-to-paste block.
+      Two findings reported rather than worked around. (1) The 732-case corpus the
+      ticket names as a committed fixture is NOT committed -- that path holds 4
+      traces; 732 is a run-time figure documented in four reference files.
+      tests/corpus_fixtures.py reconstructs the documented distribution and is
+      labelled a fixture. (2) scripts/extract_spec_manifest.py could not parse a
+      wrapped plain-scalar list item, and since PyYAML is absent in this
+      environment that fallback parser is the only one -- every budget gate was
+      silently degrading to documented defaults, which would have made this
+      ticket's cap-raise accept path a no-op. Fixed minimally; the
+      fallback-with-warning policy itself is untouched and stays with MF-023.
+      Spec-case execution deferred epic-wide; see deferred-validations.md. The
+      C1 action-count finding goes 11 -> 12 and was NOT worked around with
+      --allow-over-budget or by renegotiating component budgets.
         - max_internal_cases_per_component and max_external_cases_per_action are hard gates read through scripts/budgets.py -- over budget exits nonzero and reports.
         - raising a cap with a recorded one-line rationale is supported as the explicit accept path.
         - on cap failure the diagnostics report count per (action, label class), dominant strata, starved strata, and what varies across the redundant group.

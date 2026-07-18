@@ -299,10 +299,11 @@ measures the **complete** corpus before `--label`/`--case`/`--limit`
 selection applies, so a narrow flag can never bring a corpus under cap. And
 generation writes the whole package **before** the gate runs, so the
 artifacts on disk hold every generated case whether the gate passes or fails.
-There is deliberately no `--allow-over-budget` equivalent for case caps: the
-complexity gate has an explicit override and the caps have none, because
-raising a cap with a recorded rationale is a different verdict rather than a
-bypassed one.
+The case caps never had an `--allow-over-budget` equivalent and never will:
+raising a cap in the manifest with a recorded rationale is a different
+verdict, not a bypassed one. That is the same conclusion the amendment above
+reached for the complexity gate's own override, from the other direction —
+see "No Degenerate Escapes" in `architecture_tractability.md`.
 
 Counterexamples, Hypothesis failures, and production bugs are still promoted
 to named regression traces, exactly as fuzz crashes get minimized into the
