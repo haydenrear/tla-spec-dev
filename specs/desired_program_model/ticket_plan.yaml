@@ -69,6 +69,26 @@ epic:
     (11 -> 7 variables, bound 393,216 -> 73,728 at identical 919/21, found
     and measured by the MF-020 agent) remains an open owner decision,
     deliberately deferred until promotion is safe.
+    2026-07-18: MF-022 accepted and closed at post-merge review (merge
+    2095b11). max_state_space_bound added at 1,000,000 and the static bound
+    gated against it; setup_phase collapse landed 12 -> 8 variables with bound
+    1,179,648 -> 221,184 at identical 18,720 generated / 2,923 distinct /
+    depth 23. The chosen default was NOT gamed: 1,000,000 is BELOW the
+    repository's own bound at the time it was chosen, so the honest default
+    failed the host repo and passes only after the genuine structural
+    reduction. THIRD SPEC-LEVEL ERROR (mine): MF-022's acceptance criteria
+    required both "analyze complexity PASSES" and "the component heuristics
+    still fire", which cannot both hold because the surviving C1 finding IS a
+    gate violation; the agent correctly escalated instead of suppressing.
+    OPEN CONSEQUENCE: enforce_budget_gate refuses on the whole gate verdict,
+    so C1 (11 actions vs max_component_actions 8) still blocks case
+    generation and therefore MF-014.
+    OWNER DIRECTION 2026-07-18: the Internal/External decomposition moves IN
+    scope but is scheduled LAST, as MF-023 at promotion_order 85, to be
+    performed by running the finished toolchain on this repository itself —
+    making it the epic's end-to-end dogfooding acceptance test rather than a
+    hand migration. C1 is therefore a true finding that MF-023 resolves at the
+    root, not a miscalibration to tune away.
     2026-07-18: MF-021 accepted and closed at post-merge review (merge
     8a458f2). Promotion is now provenance-aware: `open ticket` records a
     seed_manifest in ticket.yaml, and close partitions current-minus-desired
@@ -148,7 +168,7 @@ service_catalog:
     - specs/program_model/production_adapters.py spec-unit adapters
     - test_graph specWorkflow / cliWorkflow graphs
   known_gaps:
-    - "This repository's own baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Out of scope for this epic; migrate via references/migration.md in a follow-up epic."
+    - "This repository's baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Originally recorded as out of scope for this epic. Owner direction 2026-07-18: it is now IN scope but scheduled LAST, as MF-023 at promotion_order 85, after every mechanism ticket has landed. The decomposition is to be performed by running the finished toolchain on this repository itself — analyze complexity for the cut, corpus distillation, effect conformance, External channel enforcement, and the mutation kill test — making it the epic's first end-to-end dogfooding test rather than a hand migration. It is therefore both the migration and the acceptance test of everything the epic built. See references/migration.md and tickets/023-decompose-via-dogfooding.md."
 
 tickets:
   - id: MF-012
@@ -388,7 +408,7 @@ tickets:
 
   - id: MF-022
     title: "Recalibrate the bound gate and collapse setup booleans"
-    status: closed
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/28"
     schedule_revision: 1
     depends_on: [MF-011, MF-012, MF-020]
@@ -730,4 +750,51 @@ tickets:
         - close reports the complexity delta; increases require a recorded justification naming the new essential behavior.
         - a complexity decrease with degraded retention evidence is rejected at close; deltas are only reported jointly with retention evidence.
         - the refinement loop record (approved recommendation or searched-found-none) is required at close; recommendations are advisory and user-approved.
+      evidence: []
+
+  - id: MF-023
+    title: "Decompose this repository by dogfooding the finished toolchain"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022]
+    blocks: []
+    wave: 9
+    promotion_order: 85
+    promotion_predecessor: MF-019
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: [specWorkflow, cliWorkflow]
+      workflow: []
+    objective: "Perform the Internal/External decomposition this repository has carried as a known gap since the epic began — but perform it BY RUNNING THE FINISHED TOOLCHAIN ON THIS REPOSITORY ITSELF, not by hand. Every mechanism the epic built is exercised end-to-end on a real target for the first time: analyze complexity proposes the cut from the R/W matrix and modularity score, corpus distillation produces the case corpus, effect conformance validates the side-effect contracts at the new ports, External channel enforcement checks the channel-authentic bindings, and the mutation kill test proves the decomposed models are not shrunk past usefulness. The decomposition is the deliverable; the dogfooding is the acceptance test of the epic. Where a tool proves inadequate to its own repository, that finding outranks completing the migration — record it rather than working around it by hand. Motivating trigger: MF-011's component-size heuristics fail on the undecomposed model (C1 touched by 11 actions vs max_component_actions 8), which is a true finding this ticket resolves at the root. See tickets/023-decompose-via-dogfooding.md and references/migration.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/ (Core.tla / Internal.tla / External.tla split)
+      - specs/program_model/production_adapters.py (per-view adapters)
+      - specs/program_model/spec_manifest.yaml (reconcile the MF-020/MF-022 desync recorded in epic notes)
+      - test_graph specWorkflow / cliWorkflow bindings
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - per-view adapters for the decomposed Internal and External models
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-023/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-023
+      assertions:
+        - the cut is PROPOSED BY analyze complexity from the R/W matrix and modularity score, not chosen by hand; record the command output that produced it.
+        - Core/Internal/External replace the single module; every action and invariant maps to a view with the mapping enumerated.
+        - the component-size heuristics PASS on the decomposed views without renegotiating max_component_actions -- if they do not, that is a finding about the budget or the cut, and must be reported rather than tuned away.
+        - reachable behavior is retained across the split, proven against the pre-split baseline rather than asserted.
+        - every epic mechanism is exercised on this repository and its output recorded as evidence: analyze complexity, corpus distillation, effect conformance, External channel enforcement, mutation kill test, and the MF-019 complexity ledger.
+        - each mechanism that proves inadequate, awkward, or wrong on a real target is recorded as a first-class finding with the evidence; this is the point of the ticket and outranks a clean migration.
+        - the MF-019 refinement loop runs on the finished decomposition and its recommendations are recorded for owner approval.
       evidence: []
