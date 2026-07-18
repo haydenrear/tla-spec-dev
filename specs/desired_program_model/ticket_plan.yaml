@@ -22,6 +22,11 @@ epic:
     2026-07-17: MF-011 amended (schedule_revision 2) before start to add
     tractability diagnostics per references/architecture_tractability.md;
     architectural moves are recommendations requiring user approval.
+    2026-07-17: MF-019 added (complexity minimization objective, wave 8,
+    promotion after MF-017); MF-011 bumped to revision 3 and MF-016 to
+    revision 2 for the new reverse blocks edges. The standing objective and
+    recursive refinement loop doctrine landed in
+    references/architecture_tractability.md and SKILL.md.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -108,9 +113,9 @@ tickets:
     title: "Analyze complexity command"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
-    schedule_revision: 2
+    schedule_revision: 3
     depends_on: [MF-012]
-    blocks: []
+    blocks: [MF-019]
     wave: 2
     promotion_order: 20
     promotion_predecessor: MF-012
@@ -293,9 +298,9 @@ tickets:
     title: "Mutation kill test"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/17"
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: [MF-012, MF-014]
-    blocks: []
+    blocks: [MF-019]
     wave: 6
     promotion_order: 60
     promotion_predecessor: MF-015
@@ -380,4 +385,52 @@ tickets:
       assertions:
         - close emits specs/results/skill_feedback.md with the four prompt sections.
         - history entries record whether feedback was filed and where.
+      evidence: []
+
+  - id: MF-019
+    title: "Complexity minimization objective"
+    status: pending
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [MF-011, MF-016]
+    blocks: []
+    wave: 8
+    promotion_order: 80
+    promotion_predecessor: MF-017
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/analyze_complexity.py, scripts/close_spec_workflow.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [spec_manifest.yaml-complexity-ledger]
+    objective: "Mechanize the standing objective — programming as complexity minimization under behavior retention: a complexity ledger recorded per ticket/workflow close from analyze-complexity metrics, close-time complexity deltas with required justification for increases, anti-gaming rejection when a decrease coincides with degraded retention evidence (kill rate, effect conformance, external coverage), and the recursive refinement loop as a required close-out step emitting user-approved recommendations or an explicit searched-found-none record. See tickets/019-complexity-minimization-objective.md and references/architecture_tractability.md."
+    desired_actions:
+      - TrackComplexity
+    implementation_scope:
+      - scripts/close_ticket.py and scripts/close_spec_workflow.py (ledger entry, delta report, anti-gaming check, refinement-loop record)
+      - scripts/analyze_complexity.py (ledger-format output)
+      - spec_manifest.yaml complexity_ledger schema
+      - SKILL.md / references/architecture_tractability.md consistency check
+    current_increment:
+      model_state:
+        - complexity_ledger
+      model_actions:
+        - TrackComplexity
+      adapters:
+        - spec-unit adapter closing a fixture ticket and asserting ledger entry, delta report, justification requirement, and anti-gaming rejection
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-019/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-019/current/TlaSpecDevCli.tla specs/tickets/MF-019/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-019
+      assertions:
+        - analyze-complexity metrics are recorded as a ledger entry at ticket close and workflow close.
+        - close reports the complexity delta; increases require a recorded justification naming the new essential behavior.
+        - a complexity decrease with degraded retention evidence is rejected at close; deltas are only reported jointly with retention evidence.
+        - the refinement loop record (approved recommendation or searched-found-none) is required at close; recommendations are advisory and user-approved.
       evidence: []

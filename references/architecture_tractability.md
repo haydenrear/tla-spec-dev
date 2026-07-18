@@ -9,6 +9,68 @@ needs a more creative shape. The agent's job is to diagnose which — and then
 to **recommend, never decide**. Every architectural move below is a
 recommendation that the user approves, adjusts, or vetoes.
 
+## The Standing Objective: Programming As Complexity Minimization
+
+The whole point of this workflow is to minimize the complexity of the
+program. TLA+ gives us something programming has always lacked: a
+**measurable metric of program complexity** — the state-space bound, the
+distinct-state count, the action count, the R/W-matrix density. That turns
+programming into an optimization problem:
+
+```text
+minimize   complexity(program), as measured through its TLA+ model
+subject to all behaviors retained:
+           - kill rate >= kill_rate_floor
+           - effect conformance clean (no undeclared effects)
+           - external surface fully covered by generated cases
+           - the program represented in its ENTIRETY
+```
+
+Rules that follow:
+
+- **The objective is standing, not triggered.** Do not wait for a gate
+  failure. On every ticket, every review, every model change, actively look
+  for a design that retains the behaviors at lower measured complexity.
+  Gate failure is merely the forced case of an optimization that should be
+  running continuously.
+- **Minimize through design, verify through TLA+.** The complexity that
+  must go down is the program's, demonstrated by its model. Lowering the
+  number the cheap way — omitting behavior from the model, narrowing
+  domains past usefulness, quietly dropping a boundary — is **gaming the
+  metric**, and the constraint set exists to catch it: a complexity drop
+  accompanied by a kill-rate drop, a new unjustified coverage gap, or lost
+  external coverage is rejected, not celebrated.
+- **The metric is only meaningful under the constraints.** The complexity
+  of a partial representation is not the complexity of the program. Full
+  representation first; minimization second; both always.
+- **Report deltas jointly.** A complexity delta is only evidence when
+  presented alongside the behavior-retention evidence from the same run.
+  Never report one without the other.
+
+### The Recursive Refinement Loop
+
+Complexity minimization is part of the working loop, not a one-time design
+activity. Every pass through the ticket lifecycle includes a refinement
+check, and the loop recurses — each refinement changes the measurements,
+which may expose the next refinement:
+
+1. Measure: run the complexity analysis; record the metrics as the ticket's
+   complexity ledger entry.
+2. Compare: diff against the previous ledger entry. Complexity up requires
+   a recorded justification naming the new essential behavior. Complexity
+   flat or down: continue.
+3. Refine: ask explicitly — can the architecture be refined to lower the
+   measured complexity while retaining the behaviors? Use the three moves
+   and their diagnostics. Emit any candidate as a recommendation with
+   evidence for user approval.
+4. Verify: after an approved refinement, rerun the constraint set (kill
+   rate, effect conformance, external coverage) and the measurement. A
+   refinement that lowers complexity but degrades retention is reverted.
+5. Recurse: a landed refinement re-opens step 1 — decompositions expose
+   projectable state, projections expose narrower cuts. Stop when a full
+   pass yields no approvable candidate, and record that as the ticket's
+   refinement evidence (searched, found none) rather than silence.
+
 ## The Principle
 
 Tractability is an architectural fitness function. The model checker is an

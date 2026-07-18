@@ -476,12 +476,23 @@ generation and TLC state-graph case generation. Read
 
 ## Complexity And Case Budgets
 
+The standing objective of this workflow is **minimizing program complexity
+while retaining every behavior**. TLA+ provides the complexity metric;
+programming becomes an optimization problem — minimize the measured
+complexity through design, verify with TLC, subject to the kill-rate floor,
+clean effect conformance, and full representation of the program. Look for
+complexity reductions on every ticket, not only when a gate fails, and never
+game the metric by under-representing the program: a complexity drop is only
+evidence when reported jointly with behavior-retention evidence. See "The
+Standing Objective" in `references/architecture_tractability.md`.
+
 Budgets are per-program and set with the user during scaffolding: propose the
 defaults in `references/modular_fuzzing.md`, ask which to adjust for this
 program, and record the agreed values with a one-line rationale under
 `budgets:` in `spec_manifest.yaml`. Budgets cover TLC wall time, distinct
 states per component model, case caps per view, component-size heuristics,
-and the mutation kill-rate floor. They are hard gates, not aspirations.
+and the mutation kill-rate floor. They are hard gates — ceilings the model
+must stay under while the standing objective pushes it lower.
 
 Apply a hard 120-second timeout (the `tlc_seconds` default) to every TLC
 model-check or diagram run that generates cases from a reachable state graph.
