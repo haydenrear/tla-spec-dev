@@ -107,6 +107,40 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-18: MF-025 accepted and merged by the epic owner PRE-merge review
+    (merge cfadb40), the only ticket so far reviewed before landing rather
+    than after. Bound 663,552 -> 34,992 (18.96x), variables 9 -> 7, at
+    87,464 generated / 9,011 distinct / depth 24 -- IDENTICAL to the MF-014
+    baseline in all three figures, verified by the epic owner running TLC
+    directly on the PR model. Matching generated states is stronger than the
+    required gate and rules out a deleted self-loop. Measured bound equals
+    the independently derived 34,992 exactly. All 12 invariants retained by
+    name; named stage constants and derived ActiveTickets/ClosedTickets
+    operators keep the model reading as a lifecycle rather than arithmetic on
+    an integer, which was the owner's explicit concern.
+    The agent re-verified the premise rather than trusting it, with a
+    SixCombinationsOnly invariant across all 9,011 states plus reachability
+    probes for each ordinal -- proving the representation is neither lossy nor
+    padded. Its most valuable catch: the old gate invariants quantified
+    ticket_phase[t] >= 3, which CLOSED tickets also satisfied because close
+    left phase at 3, so mapping to an equality would have silently weakened
+    both gates. The faithful equivalent covers states 4 AND 5.
+    FIFTH SPEC-LEVEL ERROR (mine): issue #38 was created without the
+    git-epic-workflow:assignment block and without the owner deviation note
+    authorizing self-merge -- I reused the lighter format deliberately chosen
+    for MF-023 instead of the full block every dispatched ticket carries. The
+    agent correctly refused to self-merge and stopped at PR open, treating
+    missing authorization as a possible error rather than license. The owner
+    merged after review. Rendering the full assignment block is required for
+    every dispatched ticket.
+    NEW FINDING referred to MF-023, not worked around: collapsing the three
+    dissolved component C2 (which was exactly those three variables), so
+    ticket_state joins C1 and modularity Q falls 0.022 -> 0.000, with
+    analyze complexity now also reporting C1 has 7 variables > 6 alongside
+    the pre-existing 12 actions > 8. This is a metric artifact of the merge
+    rather than increased coupling -- three coupled variables became one.
+    Both are C1 decomposition, which is MF-023 scope; the gate was already
+    FAIL so its state is unchanged.
     2026-07-18: MF-014 accepted and closed at post-merge review (merges
     f2bffee and 344b15d). No case is dropped -- generation writes the complete
     package then gates, export gates the COMPLETE corpus before any
@@ -259,8 +293,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-025
-  active_ticket_title: "Collapse the per-ticket lifecycle into one ordinal"
+  active_ticket: MF-015
+  active_ticket_title: "External channel enforcement"
   desired_module: TlaSpecDevCli
   phase: implementation
 
