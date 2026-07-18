@@ -107,6 +107,38 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-18: degeneracy audit. Every hard rule had grown a documented
+    bypass, so architecture_tractability.md gained "No Degenerate Escapes" as
+    the governing section, stating the five owner rules and declaring they
+    outrank older conflicting text. modular_fuzzing.md amended -- Corpus
+    Discipline no longer says to distill (MF-014 rewritten to diagnostics and
+    hard caps), an undeclared observed effect FAILS with no annotation that
+    makes it acceptable, and dead model surface must be removed or exercised
+    rather than explained. MF-013 criteria amended in place -- out-of-contract
+    justifications withdrawn, nothing suppresses a gap report, and its test
+    inverted to prove a recorded justification does NOT prevent the failure.
+    SCOPE CORRECTION by owner, same day -- the audit over-corrected. The rule
+    is do not codify the ALLOWANCE OF BAD CASES; it is not remove every
+    override. An override someone types is an accepted cost, visible at the
+    call site. A filter that quietly runs is a hidden loss. --allow-over-budget,
+    the budgets fallback and the justification-table behavior all STAY. MF-024
+    (which proposed purging them from shipped code) is WITHDRAWN and its issue
+    closed; its residue -- confirming overrides are explicit, visible, recorded
+    and never the default path -- is absorbed into MF-023, where the toolchain
+    is actually driven end to end and where a silent default would show up.
+    MF-015 promoted to promotion_order 35, next after MF-014, on the same
+    reasoning that made MF-017 the right call under the spec-case execution
+    deferral -- its deliverables (channel field in the bindings schema, static
+    check that test-graph adapters cannot import the production package) are
+    verifiable now, whereas MF-013 is a runtime sandbox whose value is
+    inherently execution-shaped. Verified MF-015 does not need the External
+    view that arrives with MF-023; its scope is bindings and import isolation.
+    MF-015 -> revision 2, MF-013 -> revision 3 (predecessor MF-015), MF-016 ->
+    revision 3 (predecessor MF-013).
+    MF-019 depends_on MF-016 RESOLVED rather than left open -- the edge is
+    kept, because MF-019 reads the kill-rate evidence MF-016 defines and so
+    needs its schema to exist. The dependency is on the MECHANISM, not on
+    evidence from a run, which is consistent with the execution deferral.
     2026-07-18: MF-017 accepted and closed at post-merge review (merge
     7336036). Skill-feedback template ships with all four of the epic's real
     findings round-tripping through it as asserted tests. Two field choices
@@ -573,63 +605,16 @@ tickets:
         - references/modular_fuzzing.md Corpus Discipline matches what shipped.
       evidence: []
 
-  - id: MF-024
-    title: "Purge shipped degeneracy from the toolchain"
-    status: pending
-    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/35"
-    schedule_revision: 1
-    depends_on: [MF-011, MF-012, MF-014]
-    blocks: [MF-013]
-    wave: 4
-    promotion_order: 35
-    promotion_predecessor: MF-014
-    conflict_keys:
-      production: [scripts/generate_cases_from_tlc_dump.py, scripts/budgets.py, scripts/analyze_complexity.py, references/modular_fuzzing.md, references/architecture_tractability.md]
-      tla: []
-      adapters: []
-      test_graph: []
-      workflow: [spec_manifest.yaml-budgets-schema]
-    objective: "The 2026-07-18 degeneracy audit purged escape hatches from the doctrine and every unstarted ticket. Three had ALREADY SHIPPED into code and must be removed there too, or doctrine and tool disagree -- the failure mode tracked as #33. (1) --allow-over-budget in generate_cases_from_tlc_dump.py converts the complexity gate into a suggestion and is reached for under exactly the pressure that makes exceeding it dangerous; MF-022 already observed routine use defeats the gate entirely. (2) load_budgets in budgets.py falls back to documented defaults with a warning when the budgets block is missing, which defeats MF-012 whose whole purpose was per-program negotiated budgets -- a program can run its life on generic defaults nobody agreed to while the warning scrolls past. (3) analyze_complexity.py line 1084 skips dead-weight analysis when no justification table is present, which is the purest form of the pattern -- the model with NO justification table is precisely the one most likely to carry unjustified variables, and it is the one case the analysis declines to examine. Absence of the table is itself the finding. Each becomes a hard failure with a regression test proving the escape stays gone. See tickets/024-purge-shipped-degeneracy.md."
-    desired_actions: []
-    implementation_scope:
-      - scripts/generate_cases_from_tlc_dump.py (remove the override)
-      - scripts/budgets.py (missing budgets block fails)
-      - scripts/analyze_complexity.py (missing justification table fails)
-      - references/ kept in sync with shipped behavior
-    current_increment:
-      model_state: []
-      model_actions: []
-      adapters:
-        - adapters asserting each purged escape now fails
-      unit_tests:
-        - uv run --with pytest -m pytest tests -q
-        - uv run --with pytest -m pytest specs/tickets/MF-024/current/tests -q
-      graph_after_unit_pass:
-        - specWorkflow
-        - cliWorkflow
-    acceptance:
-      commands:
-        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-024
-      assertions:
-        - no code path accepts --allow-over-budget or any equivalent override of a complexity or case-cap gate; grep proves zero references outside historical snapshots.
-        - a missing budgets block FAILS with a message naming the scaffold command that creates one; every consumer that relied on the fallback is identified and fixed, not exempted.
-        - a missing justification table FAILS rather than skipping the analysis.
-        - a regression test per purged escape asserts the failure, guarding against reintroduction.
-        - references/modular_fuzzing.md and references/architecture_tractability.md match shipped behavior exactly.
-        - any NEW escape introduced while doing this -- a flag, a default, a conditional -- is itself a failure of this ticket.
-        - gates that newly fail are REPORTED, not weakened; that report is a legitimate output.
-      evidence: []
-
   - id: MF-013
     title: "Effect conformance harness"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/15"
-    schedule_revision: 2
-    depends_on: [MF-024]
+    schedule_revision: 3
+    depends_on: []
     blocks: []
     wave: 4
     promotion_order: 40
-    promotion_predecessor: MF-024
+    promotion_predecessor: MF-015
     conflict_keys:
       production: [scripts/run_generated_case_adapters.py, spec_double_compiler/runtime.py]
       tla: [TlaSpecDevCli.tla]
@@ -671,12 +656,12 @@ tickets:
     title: "External channel enforcement"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/16"
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: []
     blocks: []
-    wave: 5
-    promotion_order: 50
-    promotion_predecessor: MF-013
+    wave: 4
+    promotion_order: 35
+    promotion_predecessor: MF-014
     conflict_keys:
       production: [scripts/run_generated_case_adapters.py, scripts/export_testgraph_cases.py]
       tla: [TlaSpecDevCli.tla]
@@ -717,12 +702,12 @@ tickets:
     title: "Mutation kill test"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/17"
-    schedule_revision: 2
+    schedule_revision: 3
     depends_on: [MF-012, MF-014]
     blocks: [MF-019]
     wave: 6
     promotion_order: 60
-    promotion_predecessor: MF-015
+    promotion_predecessor: MF-013
     conflict_keys:
       production: [scripts/run_kill_test.py, examples/distributed_history/]
       tla: [TlaSpecDevCli.tla]
@@ -920,4 +905,5 @@ tickets:
         - every epic mechanism is exercised on this repository and its output recorded as evidence: analyze complexity, corpus distillation, effect conformance, External channel enforcement, mutation kill test, and the MF-019 complexity ledger.
         - each mechanism that proves inadequate, awkward, or wrong on a real target is recorded as a first-class finding with the evidence; this is the point of the ticket and outranks a clean migration.
         - the MF-019 refinement loop runs on the finished decomposition and its recommendations are recorded for owner approval.
+        - ABSORBED FROM THE WITHDRAWN MF-024 -- every override the toolchain offers (--allow-over-budget, the budgets fallback, the justification-table behavior) is exercised during the dogfooding run and confirmed to be explicit, visible in output, and recorded in evidence when used, and confirmed never to be the DEFAULT path. Overrides record an accepted cost; they must not normalize a bad state or make degradation what happens when the agent says nothing. If any override turns out to be the silent default, that is a first-class finding.
       evidence: []
