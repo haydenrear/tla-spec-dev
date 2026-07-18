@@ -282,6 +282,29 @@ is the corpus analogue of `analyze complexity`'s suggested move, and it is
 subject to the same rule: recommendations require user approval and are
 never auto-applied.
 
+The command is `tla-spec-dev analyze corpus <cases-dir>`, and the same gate
+runs automatically at the end of case generation and before Test Graph
+export. It reads the caps through `scripts/budgets.py`, exits nonzero over
+budget, and prints the exact `budgets:` edit — raised cap value, `source:
+negotiated`, and a `rationale:` slot — that constitutes the accept path.
+Three causes are named from what actually varies across the redundant group:
+values that are **permutations of one multiset** (unconstrained ordering →
+state constraint), **parameters sweeping a domain over a fixed transition
+shape** (interchangeable values → symmetry reduction), and **one change shape
+replayed from many distinct source states** (action enabled across equivalent
+states → abstraction).
+
+Two properties are structural rather than merely intended. The export gate
+measures the **complete** corpus before `--label`/`--case`/`--limit`
+selection applies, so a narrow flag can never bring a corpus under cap. And
+generation writes the whole package **before** the gate runs, so the
+artifacts on disk hold every generated case whether the gate passes or fails.
+The case caps never had an `--allow-over-budget` equivalent and never will:
+raising a cap in the manifest with a recorded rationale is a different
+verdict, not a bypassed one. That is the same conclusion the amendment above
+reached for the complexity gate's own override, from the other direction —
+see "No Degenerate Escapes" in `architecture_tractability.md`.
+
 Counterexamples, Hypothesis failures, and production bugs are still promoted
 to named regression traces, exactly as fuzz crashes get minimized into the
 seed corpus. That part was always right and is unchanged.

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_diagnostics import enforce_case_cap
     from .generate_cases_from_tlc_dump import TRACE_SCHEMA_VERSION
     from .run_generated_case_adapters import (
         case_controllability,
@@ -20,6 +21,7 @@ try:
     )
     from .spec_paths import resolve_existing_from_cwd
 except ImportError:  # pragma: no cover - direct script execution
+    from corpus_diagnostics import enforce_case_cap
     from generate_cases_from_tlc_dump import TRACE_SCHEMA_VERSION
     from run_generated_case_adapters import case_controllability, case_view, load_cases, selected_cases
     from spec_paths import resolve_existing_from_cwd
@@ -92,18 +94,59 @@ def export_cases(cases: list[Any], out_dir: Path, module: str | None = None) -> 
     return written
 
 
+def default_manifest_for(cases_dir: Path) -> Path | None:
+    """Find the spec_manifest.yaml governing a generated case package.
+
+    Packages land at ``<spec-dir>/generated/<view-dir>/<package>``, so walk up
+    looking for the manifest rather than guessing a fixed depth.
+    """
+    for parent in [cases_dir, *cases_dir.parents]:
+        candidate = parent / "spec_manifest.yaml"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("cases_dir", type=Path, help="Generated external case package directory")
     parser.add_argument("--out", type=Path, required=True, help="Directory for Test Graph trace JSON files")
     parser.add_argument("--label", action="append", default=[], help="Only export cases with this label")
     parser.add_argument("--case", action="append", default=[], help="Only export this case name")
-    parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help=(
+            "Limit how many selected cases are exported in THIS run. This is a "
+            "user-driven selection for a focused run, not a budget mechanism: "
+            "the case-cap gate below measures the full corpus before any "
+            "selection applies, so --limit/--label can never bring a corpus "
+            "under cap."
+        ),
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        help="spec_manifest.yaml supplying the case caps. Defaults to the spec dir beside the case package.",
+    )
     args = parser.parse_args()
 
     cases_dir = resolve_existing_from_cwd(args.cases_dir)
     sys.path.insert(0, str(cases_dir.parent))
     cases_module = load_cases(cases_dir)
+
+    # Case-cap hard gate (MF-014), measured over the COMPLETE external corpus
+    # and deliberately BEFORE --label/--case/--limit selection. Gating after
+    # selection would let a narrow flag silently satisfy a budget, which is
+    # exactly the trimming this ticket forbids.
+    all_external = [case for case in cases_module.CASES if case_view(case) == "external"]
+    enforce_case_cap(
+        all_external,
+        view="external",
+        manifest_path=args.manifest or default_manifest_for(cases_dir),
+        source=str(cases_dir),
+    )
+
     cases = selected_cases(list(cases_module.CASES), args.label, args.case, args.limit, "external")
     if not cases:
         raise SystemExit("ERROR: no external cases selected")
