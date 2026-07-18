@@ -20,9 +20,31 @@ Measured on the MF-012 model before scheduling:
 |---|---|---|---|
 | State variables | 13 | 11 | **-2** |
 | Declared state-space bound | 3,145,728 | 393,216 | **8x smaller** |
-| States generated | 3,664 | 3,183 | **-13.1%** |
+| ~~States generated~~ | ~~3,664~~ | ~~3,183~~ | ~~**-13.1%**~~ (WITHDRAWN — see below) |
 | Reachable distinct states | 919 | 919 | **0 (identical)** |
 | Search depth | 21 | 21 | **0 (identical)** |
+
+**Correction (recorded at MF-020 close).** The projected -13.1% in generated
+states was wrong and has been withdrawn. It originated in the MF-012 complexity
+ledger and was propagated into this ticket and issue #21 unchecked.
+
+Reproducing it requires tightening the `RunSpecUnitTests` guard from `>= 2` to
+`= 2`. The baseline action guards only on `current_ready[ticket]` with no
+`~spec_unit_tests_passed` conjunct, so it can legitimately re-fire on an
+already-passing ticket — an idempotent re-run that matches the real CLI, where
+nothing stops you running spec-unit-tests twice. Tightening the guard deletes
+that transition. That is a **behavior change**, not a representation change.
+
+The figure therefore conflated a pure re-representation with an unlabelled
+behavior tightening. Actual generated states after the faithful collapse:
+**3,664 — unchanged from baseline.**
+
+This is exactly the failure mode the standing objective's anti-gaming clause
+exists to catch, and it is instructive that it slipped through as a *projection*
+rather than a claim: the distinct-state gate cannot see it, because deleting a
+self-loop returns to an already-known state. Only reading the guard catches it.
+Treat projected reductions as unverified until the transition-level diff is
+inspected.
 
 The identical reachable-state count and depth are the point: they are the
 evidence that this is a representation change and not a behavior deletion. A

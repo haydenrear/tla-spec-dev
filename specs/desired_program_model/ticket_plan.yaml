@@ -42,6 +42,21 @@ epic:
     MF-020). Waves of already-dispatched tickets deliberately NOT renumbered:
     promotion_order is the real serialization and its gaps of 10 exist for
     insertion, so only MF-011's assignment needed re-rendering.
+    2026-07-18: MF-020 accepted and closed at post-merge review (merge
+    690b7389). Variables 13 -> 11 and declared bound 3,145,728 -> 393,216 at
+    identical 919 reachable states and depth 21. IMPORTANT CORRECTION: the
+    projected -13.1% generated-states reduction (originating in the MF-012
+    ledger, propagated into tickets/020 and issue #21) was WITHDRAWN as
+    erroneous. Reproducing it required tightening the RunSpecUnitTests guard
+    from >= 2 to = 2, deleting a legitimate idempotent re-fire transition —
+    a behavior change, not a re-representation. Generated states are
+    unchanged at 3,664. The distinct-state gate is structurally blind to
+    deleted self-loops, so MF-011 and MF-019 must treat projected reductions
+    as unverified until the transition-level diff is inspected; a
+    generated-states drop at constant distinct states is a red flag, not a
+    win. Known desync: specs/program_model/spec_manifest.yaml still names the
+    three collapsed booleans (frozen accepted baseline, promoted wholesale at
+    epic finalization) — must be reconciled there.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -54,8 +69,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-020
-  active_ticket_title: "Collapse ticket phase booleans into an ordinal"
+  active_ticket: MF-011
+  active_ticket_title: "Analyze complexity command"
   desired_module: TlaSpecDevCli
   phase: implementation
 
