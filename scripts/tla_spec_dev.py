@@ -137,6 +137,12 @@ def run_open_ticket(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_analyze_complexity(args: argparse.Namespace) -> int:
+    from scripts import analyze_complexity
+
+    return analyze_complexity.run(args)
+
+
 def run_close_ticket(args: argparse.Namespace) -> int:
     from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
 
@@ -331,7 +337,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Work with a spec-double-compiler project through the modeled spec workflow.",
         epilog=(
             "Typical order: scaffold project -> scaffold workflow -> open ticket -> "
-            "run spec-unit-tests -> close ticket."
+            "analyze complexity -> run spec-unit-tests -> close ticket."
         ),
         allow_abbrev=False,
     )
@@ -465,6 +471,40 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_spec_unit_tests,
         command_path="tla-spec-dev run spec-unit-tests",
         next_step="tla-spec-dev close ticket <ticket>",
+    )
+
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Analyze model complexity against the budgets.",
+        description="Analyze a spec + cfg for state-space complexity and gate it against manifest budgets.",
+        allow_abbrev=False,
+    )
+    analyze_parser.set_defaults(
+        func=incomplete_command,
+        command_path="tla-spec-dev analyze",
+        next_step="Choose a target: tla-spec-dev analyze complexity <spec.tla> [<cfg>].",
+    )
+    analyze_sub = analyze_parser.add_subparsers(dest="analyze_target", metavar="target")
+    analyze_complexity_parser = analyze_sub.add_parser(
+        "complexity",
+        help="Print the dimension table, R/W matrix, modularity, and budget verdict.",
+        description=(
+            "Print the per-variable domain cardinality table, the state-space upper bound, "
+            "the variables x actions read/write matrix, the graph-modularity score with "
+            "near-decomposable clusters and candidate port-crossing actions, unjustified "
+            "variables, and a suggested move (abstract/decompose/refactor) that is a "
+            "RECOMMENDATION REQUIRING USER APPROVAL. Exits nonzero when the manifest budgets "
+            "are exceeded."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.analyze_complexity import add_arguments as _add_analyze_arguments
+
+    _add_analyze_arguments(analyze_complexity_parser)
+    analyze_complexity_parser.set_defaults(
+        func=run_analyze_complexity,
+        command_path="tla-spec-dev analyze complexity",
+        next_step="Record the report under the ticket results/ directory as evidence.",
     )
 
     close_parser = subparsers.add_parser(

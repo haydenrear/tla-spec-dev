@@ -1,0 +1,117 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-011",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.",
+        "exit is nonzero when budgets are exceeded; output names the dominant dimensions.",
+        "case generation refuses above-gate models without the explicit override flag.",
+        "modularity score and suggested move are emitted, labeled as recommendations requiring user approval, with evidence (candidate cut or dense rows/columns).",
+        "variables lacking a justification linkage are flagged as dead weight when a justification table is present."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-011/current/TlaSpecDevCli.tla specs/tickets/MF-011/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-011"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-019"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "scripts/analyze_complexity.py",
+        "scripts/tla_spec_dev.py",
+        "scripts/generate_cases_from_tlc_dump.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "spec-unit adapter running analyze complexity against a fixture spec"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "AnalyzeComplexity"
+      ],
+      "model_state": [
+        "complexity_gate"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-011/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-012",
+      "MF-020",
+      "MF-021"
+    ],
+    "desired_actions": [
+      "AnalyzeComplexity"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/13",
+    "id": "MF-011",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py (new)",
+      "scripts/tla_spec_dev.py (analyze subcommand)",
+      "scripts/generate_cases_from_tlc_dump.py (gate integration)"
+    ],
+    "objective": "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, R/W-matrix modularity score, suggested move (abstract/decompose/refactor) emitted as a recommendation requiring user approval and never auto-applied, unjustified-variable flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md and references/architecture_tractability.md.",
+    "promotion_order": 20,
+    "promotion_predecessor": "MF-021",
+    "schedule_revision": 5,
+    "status": "pending",
+    "title": "Analyze complexity command",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/tickets/MF-011",
+  "ticket_id": "MF-011",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/tickets"
+}

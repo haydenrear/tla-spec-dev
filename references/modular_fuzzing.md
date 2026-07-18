@@ -130,9 +130,35 @@ decomposed or re-abstracted, never waited on. The 120-second TLC rule in
 `SKILL.md` is the `tlc_seconds` default, and everything it says about
 diagnosing state explosion before changing the model applies here.
 
-Until the CLI mechanizes this analysis (see `tickets/011`), compute the
-dimension table and read/write matrix by hand or with a throwaway script,
-and attach them to the ticket's `results/` evidence.
+This analysis is mechanized. Run it and attach the report to the ticket's
+`results/` evidence:
+
+```bash
+tla-spec-dev analyze complexity path/to/Model.tla path/to/MC.cfg \
+  --out specs/tickets/<ticket>/results/analyze-complexity.txt
+```
+
+It prints the dimension table, the state-space upper bound with its dominant
+dimensions, the variables x actions read/write matrix, the graph-modularity
+score with near-decomposable clusters and candidate port-crossing actions,
+and any variables lacking a justification linkage. It exits nonzero when the
+model exceeds `max_distinct_states`, `max_component_variables`, or
+`max_component_actions`, and case generation refuses above the gate unless
+given `--allow-over-budget`.
+
+It also emits a **suggested move** — abstract, decompose, or refactor. That
+is a recommendation requiring user approval, never an automatic change; see
+`references/architecture_tractability.md`.
+
+Two cautions the report carries in its own output, because both have already
+cost real work:
+
+- Every figure is labeled `[MEASURED]` or `[PROJECTED]`. A projected
+  reduction is **unverified** until the transition-level diff is read.
+- Pass `--tlc-report` and `--baseline-tlc` to compare two TLC runs. A drop in
+  generated states at constant distinct states and depth is reported as a RED
+  FLAG, not a win: the distinct-state count is structurally blind to a deleted
+  self-loop, because removing one returns to an already-known state.
 
 ## Oracles
 
