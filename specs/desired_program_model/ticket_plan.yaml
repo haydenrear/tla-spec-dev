@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 3
+  schedule_revision: 4
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -57,6 +57,18 @@ epic:
     win. Known desync: specs/program_model/spec_manifest.yaml still names the
     three collapsed booleans (frozen accepted baseline, promoted wholesale at
     epic finalization) — must be reconciled there.
+    2026-07-18: MF-021 added at promotion_order 17, before MF-011, per owner
+    direction to fix the promotion data-loss defect (GitHub #22) before any
+    further model refactor runs that gauntlet. Root cause located:
+    replace_tree rmtree's specs/current before copying the ticket desired/
+    tree, and desired/ is seeded from a different source than current/, so
+    current-only files are destroyed silently. It has now fired on two
+    consecutive tickets and destroyed the sole copy of a prior ticket's
+    regression test. MF-011 bumped to revision 5 (depends_on gains MF-021;
+    promotion_predecessor MF-020 -> MF-021). The setup_phase collapse
+    (11 -> 7 variables, bound 393,216 -> 73,728 at identical 919/21, found
+    and measured by the MF-020 agent) remains an open owner decision,
+    deliberately deferred until promotion is safe.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -69,8 +81,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-011
-  active_ticket_title: "Analyze complexity command"
+  active_ticket: MF-021
+  active_ticket_title: "Promotion must not destroy files unique to specs/current"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -206,16 +218,59 @@ tickets:
         - "Refinement search FOUND a further reduction (setup_phase bootstrap chain, 11 -> 7 variables, bound -> 73,728 at identical 919/21). Prototyped and measured; recommendation only, awaiting owner approval."
 
 
+  - id: MF-021
+    title: "Promotion must not destroy files unique to specs/current"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-020]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 17
+    promotion_predecessor: MF-020
+    conflict_keys:
+      production: [scripts/spec_evolution.py, scripts/close_ticket.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Fix the silent data-loss defect in ticket promotion (GitHub #22). promote_ticket_outputs calls replace_tree(active_dir/'desired', specs_dir/'current'), and replace_tree does shutil.rmtree(dst) before copying. Because the ticket's desired/ tree is seeded from a different source than specs/current, any file unique to specs/current is destroyed with no warning and no failure. Observed twice: MF-012 and MF-020 both lost specs/current/tests/test_current_ticket_workflow.py, which carried MF-012's budgets retention test; the file was not in the history seal either, so the on-disk copy was the only one. Deleted tests cannot fail, so the loss is invisible exactly when it matters. Promotion must either preserve current-only files or abort loudly enumerating every file it would remove. Silent deletion is not an acceptable default for test files."
+    desired_actions: []
+    implementation_scope:
+      - scripts/spec_evolution.py (replace_tree / promote_ticket_outputs)
+      - scripts/close_ticket.py (close-time reporting of removals)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py close adapter asserting current-only files survive promotion
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-021/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-021/current/TlaSpecDevCli.tla specs/tickets/MF-021/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-021
+      assertions:
+        - a file present in specs/current but absent from the ticket desired/ tree survives promotion, or promotion fails naming it.
+        - the close output enumerates every path promotion removed; no path is removed silently.
+        - a regression test reproduces the original loss (seed a current-only test file, promote, assert it survives) and fails against the pre-fix behavior.
+        - directories unique to specs/current (e.g. refinement-probe/) are covered by the same rule, not just files.
+      evidence: []
+
   - id: MF-011
     title: "Analyze complexity command"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
-    schedule_revision: 4
-    depends_on: [MF-012, MF-020]
+    schedule_revision: 5
+    depends_on: [MF-012, MF-020, MF-021]
     blocks: [MF-019]
     wave: 2
     promotion_order: 20
-    promotion_predecessor: MF-020
+    promotion_predecessor: MF-021
     conflict_keys:
       production: [scripts/analyze_complexity.py, scripts/tla_spec_dev.py, scripts/generate_cases_from_tlc_dump.py]
       tla: [TlaSpecDevCli.tla]
