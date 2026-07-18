@@ -107,6 +107,36 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-18: MF-014 accepted and closed at post-merge review (merges
+    f2bffee and 344b15d). No case is dropped -- generation writes the complete
+    package then gates, export gates the COMPLETE corpus before any
+    --limit/--label selection, and no removal API or --distill flag exists
+    anywhere. Diagnostics distinguish ordering, symmetry and abstraction with
+    the evidence separating them; the accept path prints a paste-ready budgets
+    block with a rationale slot and no override.
+    FOURTH SPEC-LEVEL ERROR (mine): I told the ticket the 732-case corpus was
+    committed. It is not -- find reports 732 files on disk, git ls-files
+    reports 0 tracked, and the path is not even gitignored. I measured the
+    working directory and asserted a fact about the repository. The agent
+    reconstructed the documented distribution as a labelled fixture AND ran
+    against the genuinely committed 4-case corpus, which was the right
+    response.
+    MAJOR FINDING, VERIFIED: PyYAML is absent from the default python3
+    environment, so the hand-rolled fallback in extract_spec_manifest.py is
+    the ONLY parser, and it could not parse a wrapped list item in
+    specs/current/spec_manifest.yaml -- with the failure swallowed. Every
+    budget gate was silently reading defaults. Confirmed fixed: a manifest
+    carrying max_external_cases_per_action 777 now returns 777. Without this
+    MF-014 own accept path would have been a no-op.
+    BOUND TRAJECTORY WARNING: each gate ticket adds a 3-valued fact and
+    triples the declared bound. 221,184 -> 663,552 with MF-014. Currently
+    under the 1,000,000 max_state_space_bound, but a further gate takes it to
+    1,990,656 (BREACH) and another to 5,971,968. The deferred ticket_state
+    collapse (active_tickets/closed_tickets/ticket_phase into one ordinal,
+    measured 19x at the pre-MF-014 shape) is therefore no longer optional
+    housekeeping -- it is the refactor the standing objective demands before
+    more gates land. Note the 19x is MEASURED at the old shape and only
+    PROJECTED at the current one.
     2026-07-18: degeneracy audit. Every hard rule had grown a documented
     bypass, so architecture_tractability.md gained "No Degenerate Escapes" as
     the governing section, stating the five owner rules and declaring they
@@ -229,8 +259,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-014
-  active_ticket_title: "Corpus diagnostics and hard caps"
+  active_ticket: MF-015
+  active_ticket_title: "External channel enforcement"
   desired_module: TlaSpecDevCli
   phase: implementation
 
