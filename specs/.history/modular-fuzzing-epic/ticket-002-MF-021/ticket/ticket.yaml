@@ -1,0 +1,84 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-021",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "a file present in specs/current but absent from the ticket desired/ tree survives promotion, or promotion fails naming it.",
+        "the close output enumerates every path promotion removed; no path is removed silently.",
+        "a regression test reproduces the original loss (seed a current-only test file, promote, assert it survives) and fails against the pre-fix behavior.",
+        "directories unique to specs/current (e.g. refinement-probe/) are covered by the same rule, not just files."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-021/current/TlaSpecDevCli.tla specs/tickets/MF-021/current/MC.cfg",
+        "tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-021"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-011"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "scripts/spec_evolution.py",
+        "scripts/close_ticket.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/.../production_adapters.py close adapter asserting current-only files survive promotion"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-021/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-020"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/25",
+    "id": "MF-021",
+    "implementation_scope": [
+      "scripts/spec_evolution.py (replace_tree / promote_ticket_outputs)",
+      "scripts/close_ticket.py (close-time reporting of removals)"
+    ],
+    "objective": "Fix the silent data-loss defect in ticket promotion (GitHub #22). promote_ticket_outputs calls replace_tree(active_dir/'desired', specs_dir/'current'), and replace_tree does shutil.rmtree(dst) before copying. Because the ticket's desired/ tree is seeded from a different source than specs/current, any file unique to specs/current is destroyed with no warning and no failure. Observed twice: MF-012 and MF-020 both lost specs/current/tests/test_current_ticket_workflow.py, which carried MF-012's budgets retention test; the file was not in the history seal either, so the on-disk copy was the only one. Deleted tests cannot fail, so the loss is invisible exactly when it matters. Promotion must either preserve current-only files or abort loudly enumerating every file it would remove. Silent deletion is not an acceptable default for test files.",
+    "promotion_order": 17,
+    "promotion_predecessor": "MF-020",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Promotion must not destroy files unique to specs/current",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/tickets/MF-021",
+  "ticket_id": "MF-021",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/tickets"
+}

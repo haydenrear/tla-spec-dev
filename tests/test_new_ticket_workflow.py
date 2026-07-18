@@ -149,7 +149,16 @@ def test_start_ticket_scaffolds_ticket_local_current_and_desired_from_plan(tmp_p
     assert (ticket_dir / "testgraph" / "bindings.yml").read_text(encoding="utf-8") == "actions: {}\n"
     ticket_state = json.loads((ticket_dir / "ticket.yaml").read_text(encoding="utf-8"))
     assert ticket_state["ticket_id"] == "AUTH-127"
-    assert ticket_state["promotion"]["on_close"] == "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/"
+    assert ticket_state["promotion"]["on_close"] == (
+        "promote ticket desired/ onto project current/ (removing only seeded paths this ticket "
+        "dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/"
+    )
+    # MF-021: `open` records exactly what it seeded so promotion can tell a
+    # deliberate deletion from a file the ticket was never given.
+    seed = ticket_state["seed_manifest"]
+    assert seed["excluded"] == ["tests/test_current_ticket_workflow.py"]
+    assert "ProgramModel.tla" in seed["desired"]
+    assert "tests/test_current_ticket_workflow.py" not in seed["desired"]
 
 
 def test_start_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:
@@ -178,8 +187,17 @@ def test_start_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Pat
 def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp_path: Path) -> None:
     write_program_model(tmp_path)
     scaffold(tmp_path, "AUTH-128", "Close parallel ticket", force=False, dry_run=False)
+
+    # MF-021: promotion decides removals by provenance, so this file must exist
+    # before the workspace is seeded. It is offered to the ticket, the ticket
+    # drops it, and promotion is therefore entitled to remove it.
+    seeded_stale = tmp_path / "specs" / "current" / "seeded_stale_adapter.py"
+    seeded_stale.write_text("DROPPED_BY_THE_TICKET = True\n", encoding="utf-8")
+
     scaffold_ticket_directory(tmp_path, "AUTH-128", force=False, dry_run=False)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-128"
+    for model_dir in ["current", "desired"]:
+        (ticket_dir / model_dir / "seeded_stale_adapter.py").unlink()
     finished_tla = "---- MODULE ProgramModel ----\nFinished == TRUE\n====\n"
     (ticket_dir / "current" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
@@ -200,8 +218,12 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
         states = tmp_path / "specs" / model_dir / "states"
         states.mkdir()
         (states / "large-state-dump.json").write_text('{"generated": true}\n', encoding="utf-8")
-    stale_current = tmp_path / "specs" / "current" / "stale_adapter.py"
-    stale_current.write_text("SHOULD_BE_REMOVED = True\n", encoding="utf-8")
+    # MF-021: written to project current/ AFTER the workspace was seeded, so
+    # the ticket was never offered it and recorded no decision about it. This
+    # is the shape of the loss that destroyed MF-012's budgets retention test
+    # and MF-020's refinement-probe/ directory. It must survive.
+    unseeded_current_only = tmp_path / "specs" / "current" / "unseeded_adapter.py"
+    unseeded_current_only.write_text("MUST_SURVIVE_PROMOTION = True\n", encoding="utf-8")
     (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
         """version: 1
 name: desired-ticket-workflow
@@ -230,7 +252,19 @@ tickets:
     assert (tmp_path / "specs" / "current" / "ProgramModel.tla").read_text(encoding="utf-8") == finished_tla
     assert (tmp_path / "specs" / "current" / "adapters" / "unit" / "finished_adapter.py").exists()
     assert (tmp_path / "specs" / "current" / "tests" / "test_finished_adapter.py").exists()
-    assert not stale_current.exists()
+    # specs/current stays a whole-program working copy: a path the ticket was
+    # given and deliberately dropped is still removed.
+    assert not seeded_stale.exists()
+    # ...but it is not an accumulating union either -- and never a graveyard:
+    # a path the ticket never saw is preserved, not silently destroyed.
+    assert unseeded_current_only.exists()
+    assert unseeded_current_only.read_text(encoding="utf-8") == "MUST_SURVIVE_PROMOTION = True\n"
+
+    current_promotion = next(item for item in manifest["promotion"]["merged"] if item["role"] == "current")
+    assert current_promotion["removed"] == ["seeded_stale_adapter.py"]
+    assert "unseeded_adapter.py" in current_promotion["preserved"]
+    assert current_promotion["seed_recorded"] is True
+
     assert (tmp_path / "specs" / "testgraph" / "report.json").exists()
     assert manifest["promotion"]["operation"] == "replace project current with ticket desired and merge ticket artifacts into project specs"
     assert str(result.entry_dir) in result.git_add_command

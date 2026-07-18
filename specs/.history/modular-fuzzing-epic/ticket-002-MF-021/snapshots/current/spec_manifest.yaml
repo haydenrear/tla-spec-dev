@@ -1,0 +1,75 @@
+module: TlaSpecDevCli
+package: current_program_cases
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-020
+  active_ticket_title: "Collapse ticket phase booleans into an ordinal"
+  relation_to_program_model: starts_equivalent_then_advances_as_slices_land
+  relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
+  updated: "2026-07-18"
+  current_slice:
+    name: ticket-phase-ordinal
+    status: implemented
+    refines: [scaffold-time-budget-prompts]
+    implemented_actions: []
+    representation_change:
+      note: >-
+        Pure representation change: no CLI surface and no new behavior. The three
+        parallel booleans desired_ready / current_ready / spec_unit_tests_passed
+        collapse into one ordinal ticket_phase in [Tickets -> 0..3]. Retention is
+        proven by equality, not asserted: 919 distinct states and depth 21 are
+        unchanged from the MF-012 baseline.
+      state_variables: 13 -> 11
+      declared_state_space_bound: 3145728 -> 393216
+      distinct_states: 919 -> 919
+      search_depth: 21 -> 21
+    validation:
+      unit:
+        - uv run --with pytest -m pytest tests -q
+      tlc:
+        - bash scripts/run_tlc.sh specs/current/TlaSpecDevCli.tla specs/current/MC.cfg
+      graph:
+        - specWorkflow
+        - cliWorkflow
+      evidence:
+        - specs/.history/modular-fuzzing-epic/ticket-001-MF-020/results
+  next:
+    - MF-011 (analyze gate) is calibrated against this retained model shape.
+
+# Per-program complexity and case budgets. Scaffolding emits this block with
+# the documented defaults from references/modular_fuzzing.md and instructs the
+# agent to negotiate the values with the user, recording a one-line rationale
+# per changed value. Downstream gates read it through scripts/budgets.py.
+budgets:
+  tlc_seconds: 120                          # hard external timeout per TLC run
+  max_distinct_states: 50000                # per component model
+  max_internal_cases_per_component: 200     # spec-unit case cap per component
+  max_external_cases_per_action: 50         # Test Graph case cap per external action
+  kill_rate_floor: 0.8                      # minimum mutation kill rate
+  max_component_variables: 6                # component-size heuristic
+  max_component_actions: 8                  # component-size heuristic
+  max_symmetric_instances: 2                # component-size heuristic
+  source: defaults
+  rationale: {}
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
+  desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+state_fields: []
+actions: []
+ports: {}
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  budgets_helper: scripts/budgets.py

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import re
 import shlex
@@ -38,6 +39,7 @@ class HistoryEntryResult:
     recommendation: str
     git_add_command: str
     git_commit_command: str
+    promotion: dict[str, Any] | None = None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -372,15 +374,117 @@ def replace_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
     return merge_tree(src, dst)
 
 
+def tree_relative_files(root: Path) -> set[str]:
+    """Relative posix paths of every copyable file under ``root``."""
+    if not root.exists():
+        return set()
+    found: set[str] = set()
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root)
+        if any(part in IGNORED_COPY_NAMES for part in relative.parts):
+            continue
+        found.add(relative.as_posix())
+    return found
+
+
+def load_ticket_seed_manifest(active_dir: Path) -> set[str] | None:
+    """Paths the ticket workspace was seeded with, or None when unrecorded.
+
+    ``open ticket`` records the exact set of project ``current/`` paths it
+    copied into the ticket ``desired/`` tree. That set is the only evidence of
+    what the ticket had the opportunity to delete. Tickets opened before this
+    was recorded return None, which callers must treat as "no deletion intent
+    is provable" rather than as an empty seed.
+    """
+    path = active_dir / "ticket.yaml"
+    if not path.exists():
+        return None
+    # ticket.yaml is written by `open ticket` as JSON (a YAML subset); the
+    # repository's minimal YAML reader cannot parse JSON, so try JSON first.
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        try:
+            payload = _load_yaml(path)
+        except Exception:  # noqa: BLE001 - an unreadable ticket.yaml means "no evidence"
+            return None
+    if not isinstance(payload, dict):
+        return None
+    seed = payload.get("seed_manifest")
+    if not isinstance(seed, dict):
+        return None
+    desired = seed.get("desired")
+    if not isinstance(desired, list):
+        return None
+    return {str(item) for item in desired}
+
+
+def prune_empty_directories(root: Path) -> None:
+    if not root.exists():
+        return
+    for path in sorted((p for p in root.rglob("*") if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
+        try:
+            next(path.iterdir())
+        except StopIteration:
+            path.rmdir()
+
+
+def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[str, Any]:
+    """Promote ticket ``desired/`` onto project ``current/`` without silent loss.
+
+    ``dst`` stays a whole-program working copy rather than becoming an
+    accumulating union: a path the ticket genuinely deleted is still removed
+    from ``dst``. The distinction is provenance, not existence. A path is only
+    removed when it was seeded into the ticket workspace and the ticket then
+    dropped it -- that is a recorded deletion decision. A path that was never
+    seeded (excluded from the workspace by design, or added to project
+    ``current/`` after the ticket was opened) carries no such decision, so
+    promotion has no authority to delete it and preserves it instead.
+
+    Every removal and every preservation is reported so that close output can
+    enumerate them. Nothing leaves ``dst`` unannounced.
+    """
+    src_files = tree_relative_files(src)
+    dst_files = tree_relative_files(dst)
+    unmatched = dst_files - src_files
+
+    if seed is None:
+        removed = set()
+        preserved = unmatched
+        basis = "no seed manifest recorded for this ticket; preserving every current-only path"
+    else:
+        removed = unmatched & seed
+        preserved = unmatched - seed
+        basis = "seed manifest recorded at open; removing only seeded paths the ticket dropped"
+
+    for relative in sorted(removed):
+        target = dst / relative
+        if target.is_file():
+            target.unlink()
+    prune_empty_directories(dst)
+
+    return {
+        "role": "current",
+        "source": rel(src),
+        "destination": rel(dst),
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "seed_basis": basis,
+        "seed_recorded": seed is not None,
+        "removed": sorted(removed),
+        "preserved": sorted(preserved),
+        "files": merge_tree(src, dst),
+    }
+
+
 def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
     merged = [
-        {
-            "role": "current",
-            "source": rel(active_dir / "desired"),
-            "destination": rel(specs_dir / "current"),
-            "operation": "replace",
-            "files": replace_tree(active_dir / "desired", specs_dir / "current"),
-        }
+        promote_current_tree(
+            active_dir / "desired",
+            specs_dir / "current",
+            load_ticket_seed_manifest(active_dir),
+        )
     ]
     for name in ("testgraph", "test_graph"):
         source = active_dir / name
@@ -496,6 +600,7 @@ def create_ticket_history_entry(
         f"record spec history for {resolved_ticket_id}",
         extra_paths=promoted_paths,
     )
+    close_result = dataclasses.replace(close_result, promotion=promotion_record)
     manifest = {
         "schema_version": 1,
         "kind": "ticket",
@@ -589,7 +694,32 @@ def create_workflow_closed_snapshot(
     return close_result
 
 
+def print_promotion_report(result: HistoryEntryResult) -> None:
+    """Enumerate every path promotion removed or preserved. Never stay silent."""
+    promotion = result.promotion
+    if not promotion:
+        return
+    for record in promotion.get("merged", []):
+        if record.get("role") != "current":
+            continue
+        removed = record.get("removed") or []
+        preserved = record.get("preserved") or []
+        print(f"promotion -> {record.get('destination')}")
+        print(f"  basis: {record.get('seed_basis')}")
+        if removed:
+            print(f"  removed {len(removed)} path(s) this ticket dropped from its seeded workspace:")
+            for relative in removed:
+                print(f"    - {relative}")
+        else:
+            print("  removed 0 paths")
+        if preserved:
+            print(f"  preserved {len(preserved)} current-only path(s) the ticket never carried:")
+            for relative in preserved:
+                print(f"    = {relative}")
+
+
 def print_commit_recommendation(result: HistoryEntryResult) -> None:
+    print_promotion_report(result)
     print(f"recorded spec history entry: {result.entry_dir}")
     print(result.recommendation)
     print("recommended next step:")
