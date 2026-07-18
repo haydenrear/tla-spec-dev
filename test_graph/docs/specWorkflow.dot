@@ -1,0 +1,19 @@
+digraph "specWorkflow" {
+  rankdir=LR;
+  node [shape=box,fontname="Courier"];
+  "spec.cli.install" [label="spec.cli.install\n(testbed, uv)"];
+  "spec.workflow.repo" [label="spec.workflow.repo\n(testbed, uv)"];
+  "spec.workflow.start" [label="spec.workflow.start\n(action, uv)"];
+  "spec.workflow.complete" [label="spec.workflow.complete\n(action, uv)"];
+  "spec.workflow.spec_units" [label="spec.workflow.spec_units\n(assertion, uv)"];
+  "spec.workflow.close" [label="spec.workflow.close\n(assertion, uv)"];
+  "spec.workflow.failure_cleanup_probe" [label="spec.workflow.failure_cleanup_probe\n(assertion, uv)"];
+  "spec.workflow.cleanup" [label="spec.workflow.cleanup\n(fixture, uv)"];
+  "spec.cli.install" -> "spec.workflow.repo";
+  "spec.workflow.repo" -> "spec.workflow.start";
+  "spec.workflow.start" -> "spec.workflow.complete";
+  "spec.workflow.complete" -> "spec.workflow.spec_units";
+  "spec.workflow.spec_units" -> "spec.workflow.close";
+  "spec.workflow.close" -> "spec.workflow.failure_cleanup_probe";
+  "spec.workflow.repo" -> "spec.workflow.cleanup";
+}

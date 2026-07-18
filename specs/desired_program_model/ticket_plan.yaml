@@ -45,10 +45,10 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-012
-  active_ticket_title: "Scaffold-time budget prompts"
+  active_ticket: MF-011
+  active_ticket_title: "Analyze complexity command"
   desired_module: TlaSpecDevCli
-  phase: planning
+  phase: implementation
 
 service_catalog:
   existing_boundaries:
@@ -70,7 +70,7 @@ service_catalog:
 tickets:
   - id: MF-012
     title: "Scaffold-time budget prompts"
-    status: next
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/12"
     schedule_revision: 1
     depends_on: []
@@ -113,7 +113,14 @@ tickets:
         - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
         - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
         - a consumer helper reads budgets with default fallback and warning.
-      evidence: []
+      evidence:
+        - specs/tickets/MF-012/results/validation-summary.md
+        - specs/tickets/MF-012/results/complexity-ledger.md
+        - specs/tickets/MF-012/results/tlc-current.txt
+        - specs/tickets/MF-012/results/spec-unit-tests.txt
+        - specs/tickets/MF-012/results/repository-unit-tests.txt
+        - specs/tickets/MF-012/results/graph-reports/specWorkflow-20260718-153853-c3144c6b
+        - specs/tickets/MF-012/results/graph-reports/cliWorkflow-20260718-153934-857a0f5c
 
   - id: MF-011
     title: "Analyze complexity command"

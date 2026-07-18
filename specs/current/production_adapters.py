@@ -177,8 +177,8 @@ class OpenTicketAdapter:
         return {
             "accepted": all(record.returncode == 0 for record in setup)
             and result.returncode == 0
-            and (ticket_dir / "desired" / "CliProject.tla").is_file()
-            and (ticket_dir / "current" / "CliProject.tla").is_file()
+            and (ticket_dir / "desired" / "Internal.tla").is_file()
+            and (ticket_dir / "current" / "Internal.tla").is_file()
             and "Edit" in result.stdout
             and "desired" in result.stdout,
             "setup_exit_codes": [record.returncode for record in setup],
@@ -225,7 +225,7 @@ class CloseTicketAdapter:
             and result.returncode == 0
             and not ticket_dir.exists()
             and (history_dir / "manifest.json").is_file()
-            and (target_repo / spec_root / "current" / "CliProject.tla").is_file(),
+            and (target_repo / spec_root / "current" / "Internal.tla").is_file(),
             "setup_exit_codes": [record.returncode for record in setup],
             "open_exit_code": opened.returncode,
             "exit_code": result.returncode,

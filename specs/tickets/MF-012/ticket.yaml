@@ -1,0 +1,94 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-012",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/wt-12-mf012-budget-prompts/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-12-mf012-budget-prompts/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "scaffold project and scaffold workflow emit a budgets block with the documented defaults.",
+        "scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.",
+        "a consumer helper reads budgets with default fallback and warning."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg",
+        "tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-012"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-011",
+      "MF-014",
+      "MF-016"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "scripts/tla_spec_dev.py",
+        "scripts/onboard_program_model.py",
+        "templates/"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": [
+        "spec_manifest.yaml-budgets-schema"
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/.../production_adapters.py scaffold adapter asserting budgets block emission"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "RecordBudgets"
+      ],
+      "model_state": [
+        "budgets_recorded"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-012/current/tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [
+      "RecordBudgets"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/12",
+    "id": "MF-012",
+    "implementation_scope": [
+      "scripts/tla_spec_dev.py (scaffold project/workflow budget emission)",
+      "scripts/onboard_program_model.py",
+      "templates/ manifest templates",
+      "references/modular_fuzzing.md defaults kept in sync"
+    ],
+    "objective": "Budgets become per-program program state: scaffold emits a budgets block in spec_manifest.yaml (tlc_seconds, max_distinct_states, case caps, component-size heuristics, kill_rate_floor), instructs the agent to negotiate values with the user, and downstream commands read gates from the manifest with documented defaults and a warning on fallback. See tickets/012-scaffold-budget-prompts.md.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "next",
+    "title": "Scaffold-time budget prompts",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-12-mf012-budget-prompts/specs/tickets/MF-012",
+  "ticket_id": "MF-012",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-12-mf012-budget-prompts/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-12-mf012-budget-prompts/specs/tickets"
+}

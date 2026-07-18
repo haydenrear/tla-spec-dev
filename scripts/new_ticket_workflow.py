@@ -24,6 +24,7 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
 
+from scripts.budgets import budgets_block
 from scripts.onboard_program_model import missing_baseline_files
 
 TICKET_COPY_IGNORE = {
@@ -583,7 +584,12 @@ status:
     - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
     - Preserve all existing {spec_root_text}/program_model state/actions unless production behavior changes them.
     - Run TLC and adapter/unit tests before adding graph execution coverage.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
+# Per-program complexity and case budgets -- hard gates read by analyze
+# complexity, case generation, the adapter runner, and the mutation kill test.
+# Defaults come from references/modular_fuzzing.md.
+{budgets_block()}
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
   program_model_core: ../program_model/Core.tla
@@ -629,7 +635,12 @@ status:
     - Break the work into tickets in ticket_plan.yaml.
     - Update {spec_root_text}/current as each ticket lands.
     - Promote converged desired/current model back into {spec_root_text}/program_model.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
+# Per-program complexity and case budgets -- hard gates read by analyze
+# complexity, case generation, the adapter runner, and the mutation kill test.
+# Defaults come from references/modular_fuzzing.md.
+{budgets_block()}
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
   program_model_core: ../program_model/Core.tla
