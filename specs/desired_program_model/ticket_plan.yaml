@@ -69,6 +69,29 @@ epic:
     (11 -> 7 variables, bound 393,216 -> 73,728 at identical 919/21, found
     and measured by the MF-020 agent) remains an open owner decision,
     deliberately deferred until promotion is safe.
+    2026-07-18: MF-021 accepted and closed at post-merge review (merge
+    8a458f2). Promotion is now provenance-aware: `open ticket` records a
+    seed_manifest in ticket.yaml, and close partitions current-minus-desired
+    by whether the ticket was actually given the path. Seeded-then-dropped is
+    a real deletion decision and still propagates; never-seeded is preserved.
+    specs/current therefore remains a whole-program working copy rather than
+    an accumulating union. Regression test verified to FAIL against a
+    pre-fix shim (4 failed / 2 passed before, 6 passed after). Model delta
+    zero — preserve-and-enumerate changes promotion's file effect, not the
+    command state machine.
+    TOOLCHAIN INTEGRITY FINDING (epic-wide, surfaced by MF-021): the PATH
+    `tla-spec-dev` wrapper execs the installed skill clone, which tracks main
+    at da0a7ff — this epic's base_sha — so every lifecycle command run this
+    epic executed PRE-EPIC code. That is why the promotion defect destroyed
+    files on three separate closes, including once after the fix merged. The
+    MF-021 agent's recommended remedy (`skill-manager sync`) would NOT have
+    worked and would have produced false confidence: the installed clone
+    tracks main, and the epic does not reach main until finalization. All
+    remaining epic issues (#13-#19) and this plan were repinned to
+    `python3 scripts/tla_spec_dev.py`; see planning_rules.toolchain_rule.
+    Test evidence from prior tickets remains SOUND — pytest, the spec-unit
+    adapters, and the test_graph nodes all resolve to the repository
+    independently of PATH.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -78,11 +101,12 @@ planning_rules:
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
+  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (this epic's base_sha), so it runs pre-epic behavior and contains none of the epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-021
-  active_ticket_title: "Promotion must not destroy files unique to specs/current"
+  active_ticket: MF-011
+  active_ticket_title: "Analyze complexity command"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -144,7 +168,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-012
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-012
       assertions:
         - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
         - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
@@ -195,7 +219,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-020/current/TlaSpecDevCli.tla specs/tickets/MF-020/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-020
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-020
       assertions:
         - the three booleans are gone; ticket_phase carries the ordering.
         - reachable distinct states remain 919 and depth remains 21 — behavior retention is proven by equality, not asserted.
@@ -253,7 +277,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-021/current/TlaSpecDevCli.tla specs/tickets/MF-021/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-021
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-021
       assertions:
         - a file present in specs/current but absent from the ticket desired/ tree survives promotion, or promotion fails naming it.
         - the close output enumerates every path promotion removed; no path is removed silently.
@@ -321,7 +345,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-011/current/TlaSpecDevCli.tla specs/tickets/MF-011/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-011
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-011
       assertions:
         - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
         - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
@@ -368,7 +392,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-014
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-014
       assertions:
         - selection covers every (action, label class) before novelty fill.
         - generated manifest lists every dropped case and the dropping rule.
@@ -414,7 +438,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-013/current/TlaSpecDevCli.tla specs/tickets/MF-013/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-013
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-013
       assertions:
         - sandboxed observation collects filesystem and transport effects per case.
         - undeclared observed effect fails or records a gap; dead declared effects are reported.
@@ -460,7 +484,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-015
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-015
       assertions:
         - bindings without a channel field are rejected with remediation guidance.
         - production-package imports from Test Graph adapters are detected.
@@ -506,7 +530,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-016/current/TlaSpecDevCli.tla specs/tickets/MF-016/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-016
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-016
         - python3 examples/run_distributed_history_validation.py --mode local
       assertions:
         - kill rate is computed against kill_rate_floor from budgets and gates nonzero below it.
@@ -554,7 +578,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-017/current/TlaSpecDevCli.tla specs/tickets/MF-017/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-017
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-017
       assertions:
         - close emits specs/results/skill_feedback.md with the four prompt sections.
         - history entries record whether feedback was filed and where.
@@ -600,7 +624,7 @@ tickets:
     acceptance:
       commands:
         - bash scripts/run_tlc.sh specs/tickets/MF-019/current/TlaSpecDevCli.tla specs/tickets/MF-019/current/MC.cfg
-        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-019
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-019
       assertions:
         - analyze-complexity metrics are recorded as a ledger entry at ticket close and workflow close.
         - close reports the complexity delta; increases require a recorded justification naming the new essential behavior.
