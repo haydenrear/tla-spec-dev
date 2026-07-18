@@ -220,7 +220,7 @@ tickets:
 
   - id: MF-021
     title: "Promotion must not destroy files unique to specs/current"
-    status: pending
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/25"
     schedule_revision: 1
     depends_on: [MF-020]
@@ -259,7 +259,28 @@ tickets:
         - the close output enumerates every path promotion removed; no path is removed silently.
         - a regression test reproduces the original loss (seed a current-only test file, promote, assert it survives) and fails against the pre-fix behavior.
         - directories unique to specs/current (e.g. refinement-probe/) are covered by the same rule, not just files.
-      evidence: []
+      evidence:
+        - specs/tickets/MF-021/results/design-decision.md
+        - specs/tickets/MF-021/results/complexity-ledger.md
+        - specs/tickets/MF-021/results/self-verification.md
+        - specs/tickets/MF-021/results/self-verification-postclose.txt
+        - specs/tickets/MF-021/results/close-output.txt
+        - specs/tickets/MF-021/results/close-output-prefix-cli-defect.txt
+        - specs/tickets/MF-021/results/prefix-failure.txt
+        - specs/tickets/MF-021/results/postfix-pass.txt
+        - specs/tickets/MF-021/results/tlc-current.txt
+        - specs/tickets/MF-021/results/spec-unit-tests.txt
+        - specs/tickets/MF-021/results/repository-unit-tests.txt
+        - specs/tickets/MF-021/results/testgraph-specWorkflow/summary.json
+        - specs/tickets/MF-021/results/testgraph-cliWorkflow/summary.json
+    outcome:
+      - "Chose provenance-aware promotion (seed manifest recorded at open) over repairing the seed filter; the seed repair fixes only the one excluded path and cannot reach paths added to specs/current after the ticket opened (MF-020's refinement-probe/). See design-decision.md."
+      - "Retention gate MET: 919 distinct states, depth 21, 11 variables - identical to the MF-020 baseline. No new close-failure path was modelled because the fix preserves and enumerates rather than aborting."
+      - "Regression gate MET: the regression suite FAILS 4/6 against the pre-fix replace_tree behaviour (prefix-failure.txt) and passes 6/6 after (postfix-pass.txt)."
+      - "Repository unit tests 117 -> 123 passing; no regression."
+      - "Complexity: model delta zero (correct for a mechanics fix). Refinement search found duplicate hyphenated script entrypoints (scripts/close-ticket.py, scripts/close-spec-workflow.py) - RECOMMENDATION only, owner approval required, not applied. setup_phase collapse remains deferred per owner decision."
+      - "Self-verification MET on the second attempt: close preserved and enumerated specs/current/tests/test_current_ticket_workflow.py. The FIRST attempt destroyed it a third time because the `tla-spec-dev` binary on PATH runs the INSTALLED skill copy (~/.skill-manager/skills/spec-double-compiler), not the repository under test; the close was fully reverted and re-run via `python3 scripts/tla_spec_dev.py`. See self-verification-postclose.txt."
+      - "OWNER ACTION REQUIRED (out of MF-021 scope): run `skill-manager sync` after merge so the installed spec-double-compiler carries this fix - otherwise the next ticket loses the file again despite the fix being merged. Consider pinning the epic validation matrix to `python3 scripts/tla_spec_dev.py` for this repository."
 
   - id: MF-011
     title: "Analyze complexity command"

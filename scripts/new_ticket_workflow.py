@@ -277,6 +277,29 @@ def copy_workflow_tree(
     return copied
 
 
+def workflow_tree_seed_paths(src_dir: Path, skip_paths: set[str] | None = None) -> list[str]:
+    """Relative paths ``copy_workflow_tree`` seeds from ``src_dir``.
+
+    This is the logical seeded set, independent of which files a resumed
+    scaffold actually rewrote, so it stays stable across ``--force`` and
+    re-runs. Promotion reads it back to tell a path the ticket deliberately
+    deleted from a path the ticket was never given.
+    """
+    if not src_dir.exists():
+        return []
+    skipped = skip_paths or set()
+    seeded: list[str] = []
+    for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
+        relative = src.relative_to(src_dir)
+        if any(part in TICKET_COPY_IGNORE for part in relative.parts):
+            continue
+        posix = relative.as_posix()
+        if posix in skipped:
+            continue
+        seeded.append(posix)
+    return seeded
+
+
 def copy_optional_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
     if not src_dir.exists():
         return []
@@ -417,9 +440,11 @@ def ticket_state_payload(
     source_current: Path,
     source_project_desired: Path,
     spec_root: Path,
+    seed_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "schema_version": "tla-spec-dev.ticket-workflow.v1",
+        "seed_manifest": seed_manifest if seed_manifest is not None else {},
         "ticket_id": ticket_id,
         "ticket_index": ticket_index,
         "status": "active",
@@ -434,7 +459,7 @@ def ticket_state_payload(
         "testgraph_dir": "testgraph",
         "promotion": {
             "close_command": ticket_close_command(ticket_id, spec_root, ticket_root_arg),
-            "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+            "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
         "ticket": ticket,
@@ -883,6 +908,16 @@ def scaffold_ticket_directory(
     written: list[Path] = []
     written.extend(copy_workflow_tree(source_current, current_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
     written.extend(copy_workflow_tree(source_current, desired_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
+    seed_manifest = {
+        "source": str(source_current),
+        "excluded": sorted(skip_project_tests),
+        "desired": workflow_tree_seed_paths(source_current, skip_project_tests),
+        "note": (
+            "Paths seeded from project current/ into this ticket workspace. Promotion may "
+            "remove a project current/ path only if it appears here and the ticket dropped it; "
+            "paths absent from this list were never offered to the ticket and are preserved."
+        ),
+    }
     written.extend(copy_optional_tree(specs_dir / "testgraph", ticket_dir / "testgraph", force=force, dry_run=dry_run))
     written.extend(copy_optional_tree(specs_dir / "test_graph", ticket_dir / "test_graph", force=force, dry_run=dry_run))
 
@@ -897,6 +932,7 @@ def scaffold_ticket_directory(
         source_current=source_current,
         source_project_desired=source_project_desired,
         spec_root=spec_root,
+        seed_manifest=seed_manifest,
     )
     files = [
         (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root, ticket_root)),
