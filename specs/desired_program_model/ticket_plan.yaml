@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 5
+  schedule_revision: 6
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -89,6 +89,24 @@ epic:
     making it the epic's end-to-end dogfooding acceptance test rather than a
     hand migration. C1 is therefore a true finding that MF-023 resolves at the
     root, not a miscalibration to tune away.
+    2026-07-18: MF-017 promoted from promotion_order 70 to 28, directly after
+    MF-022, per owner direction following the spec-case execution deferral. It
+    is the only remaining ticket whose validation is unaffected by that
+    deferral: it emits a skill_feedback.md close-out template and is fully
+    testable with unit tests and the repository test graphs, whereas MF-014,
+    MF-013, MF-015 and MF-016 all validate by running generated cases. Second
+    reason: MF-017 is the mechanism that CAPTURES surviving mutants,
+    unmodelable effects, budget adjustments and CLI workarounds — and MF-023
+    is the ticket that will generate that material in volume, so the capture
+    mechanism should exist well before the dogfooding run rather than
+    immediately before it. MF-017 bumped to revision 2 (wave 7 -> 3,
+    promotion_order 70 -> 28, promotion_predecessor MF-016 -> MF-022);
+    MF-014 to revision 3 (promotion_predecessor MF-022 -> MF-017); MF-019 to
+    revision 2 (promotion_predecessor MF-017 -> MF-016). Open question for
+    when MF-019 is reached: its depends_on MF-016 exists so the anti-gaming
+    check can consume kill-rate evidence, but with kill-test RUNS deferred to
+    MF-023 that edge may now only require the mechanism to exist, not the
+    evidence — revisit rather than assume.
     2026-07-18: MF-021 accepted and closed at post-merge review (merge
     8a458f2). Promotion is now provenance-aware: `open ticket` records a
     seed_manifest in ticket.yaml, and close partitions current-minus-desired
@@ -144,13 +162,13 @@ planning_rules:
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
-  case_execution_rule: Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale: runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
+  case_execution_rule: Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale -- runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
   toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (this epic's base_sha), so it runs pre-epic behavior and contains none of the epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-022
-  active_ticket_title: "Recalibrate the bound gate and collapse setup booleans"
+  active_ticket: MF-017
+  active_ticket_title: "Skill feedback loop"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -479,12 +497,12 @@ tickets:
     title: "Corpus distillation"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
-    schedule_revision: 2
+    schedule_revision: 3
     depends_on: [MF-012, MF-022]
     blocks: [MF-016]
     wave: 3
     promotion_order: 30
-    promotion_predecessor: MF-022
+    promotion_predecessor: MF-017
     conflict_keys:
       production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py]
       tla: [TlaSpecDevCli.tla]
@@ -663,12 +681,12 @@ tickets:
     title: "Skill feedback loop"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/18"
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: []
     blocks: []
-    wave: 7
-    promotion_order: 70
-    promotion_predecessor: MF-016
+    wave: 3
+    promotion_order: 28
+    promotion_predecessor: MF-022
     conflict_keys:
       production: [scripts/close_ticket.py, scripts/close_spec_workflow.py, scripts/close_tickets.py]
       tla: [TlaSpecDevCli.tla]
@@ -709,12 +727,12 @@ tickets:
     title: "Complexity minimization objective"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/19"
-    schedule_revision: 1
+    schedule_revision: 2
     depends_on: [MF-011, MF-016]
     blocks: []
     wave: 8
     promotion_order: 80
-    promotion_predecessor: MF-017
+    promotion_predecessor: MF-016
     conflict_keys:
       production: [scripts/close_ticket.py, scripts/analyze_complexity.py, scripts/close_spec_workflow.py]
       tla: [TlaSpecDevCli.tla]
