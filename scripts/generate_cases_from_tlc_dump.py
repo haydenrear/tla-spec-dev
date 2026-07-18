@@ -21,9 +21,11 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
+    from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 
@@ -549,7 +551,7 @@ def render_python_package(
     state_projector: Any | None = None,
     output_projector: Any | None = None,
     dedupe: str = "none",
-) -> None:
+) -> list[PreparedCase]:
     metadata = action_metadata or {}
     emitted_edges = [
         edge
@@ -573,6 +575,10 @@ def render_python_package(
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
     write(package_dir / "docs.md", render_docs(module, view, len(states), len(prepared_cases), len(emitted_edges), len(edges), dedupe))
+    # Every prepared case has now been written. The caller gates the corpus
+    # AFTER this point, so a failing cap gate never removes anything -- the
+    # package on disk is complete either way (MF-014).
+    return prepared_cases
 
 
 def render_init() -> str:
@@ -866,7 +872,7 @@ def main() -> int:
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
     action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
-    render_python_package(
+    prepared = render_python_package(
         module=tla_path.stem,
         states=states,
         edges=edges,
@@ -880,6 +886,18 @@ def main() -> int:
     )
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
+
+    # Case-cap hard gate (MF-014). Runs AFTER the complete package is written:
+    # the corpus is never trimmed to pass, so the artifacts on disk hold every
+    # generated case whether this gate passes or fails. Over cap it reports the
+    # distribution and what varies across the redundant group, then exits
+    # nonzero -- fix the diagram, or raise the cap with a recorded rationale.
+    enforce_case_cap(
+        prepared,
+        view=view,
+        manifest_path=spec_dir / "spec_manifest.yaml",
+        source=str(out_path / args.package),
+    )
     return 0
 
 

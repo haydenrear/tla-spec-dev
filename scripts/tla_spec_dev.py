@@ -143,6 +143,12 @@ def run_analyze_complexity(args: argparse.Namespace) -> int:
     return analyze_complexity.run(args)
 
 
+def run_analyze_corpus(args: argparse.Namespace) -> int:
+    from scripts import corpus_diagnostics
+
+    return corpus_diagnostics.run(args)
+
+
 def run_close_ticket(args: argparse.Namespace) -> int:
     from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
 
@@ -505,6 +511,32 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_analyze_complexity,
         command_path="tla-spec-dev analyze complexity",
         next_step="Record the report under the ticket results/ directory as evidence.",
+    )
+
+    analyze_corpus_parser = analyze_sub.add_parser(
+        "corpus",
+        help="Print the case distribution and gate it against the case caps.",
+        description=(
+            "Print the generated corpus distribution per (action, label class), which "
+            "strata dominate, which are starved, and what varies across any redundant "
+            "group -- the actionable part, since it points at symmetry reduction, a "
+            "state constraint, or abstraction as the cause. Exits nonzero when a "
+            "component or action exceeds its manifest case cap "
+            "(max_internal_cases_per_component / max_external_cases_per_action). "
+            "NOTHING IS EVER DROPPED, FILTERED, SAMPLED, OR TRUNCATED to fit a cap: "
+            "over budget the gate reports and refuses, and the two ways forward are "
+            "fixing the diagram or raising the cap with a recorded rationale. The "
+            "suggested move is a RECOMMENDATION REQUIRING USER APPROVAL."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.corpus_diagnostics import add_arguments as _add_corpus_arguments
+
+    _add_corpus_arguments(analyze_corpus_parser)
+    analyze_corpus_parser.set_defaults(
+        func=run_analyze_corpus,
+        command_path="tla-spec-dev analyze corpus",
+        next_step="Fix the diagram so the redundant cases are never generated, or raise the cap with a rationale.",
     )
 
     close_parser = subparsers.add_parser(

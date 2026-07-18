@@ -168,7 +168,29 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
                     value[key] = child
             result.append(value)
         else:
-            result.append(_parse_scalar(item))
+            # A plain-scalar list item may wrap onto more-indented continuation
+            # lines, which YAML folds into a single scalar. Without this the
+            # parser raised "unexpected indentation" on any manifest carrying a
+            # wrapped list entry -- and because PyYAML is an optional
+            # dependency that is frequently absent, this parser is usually the
+            # only one available. A parse failure there is not loud: every
+            # budget gate falls back to the documented defaults, so a
+            # negotiated cap recorded in the manifest would be silently
+            # ignored. Found while wiring the MF-014 case-cap gate, whose
+            # entire "raise the cap with a rationale" accept path depends on
+            # the manifest actually being read.
+            continuation: list[str] = []
+            while (
+                index < len(rows)
+                and rows[index][0] > row_indent
+                and not rows[index][1].startswith("- ")
+            ):
+                continuation.append(rows[index][1])
+                index += 1
+            if continuation:
+                result.append(" ".join([item, *continuation]))
+            else:
+                result.append(_parse_scalar(item))
     return result, index
 
 
