@@ -7,22 +7,16 @@ CONSTANTS
   NoRoot,
   NoReason
 
-\* MF-020: ticket lifecycle phase as a single ordinal rather than three
-\* parallel booleans. 0 = opened, 1 = desired model updated, 2 = current model
-\* updated, 3 = spec-unit tests passed. The old booleans were pinned to a strict
-\* total order by CurrentRequiresDesired / SpecUnitTestsRequireCurrent, so only
-\* 4 of their 8 combinations were ever reachable; the ordinal represents exactly
-\* the reachable set. Read desired_ready as >= 1, current_ready as >= 2, and
-\* spec_unit_tests_passed as >= 3.
 VARIABLES
   cli_built,
   cli_installed,
   spec_root,
   project_scaffolded,
-  budgets_recorded,
   workflow_scaffolded,
   active_tickets,
-  ticket_phase,
+  desired_ready,
+  current_ready,
+  spec_unit_tests_passed,
   closed_tickets,
   lastCommand,
   result
@@ -32,10 +26,11 @@ vars ==
      cli_installed,
      spec_root,
      project_scaffolded,
-     budgets_recorded,
      workflow_scaffolded,
      active_tickets,
-     ticket_phase,
+     desired_ready,
+     current_ready,
+     spec_unit_tests_passed,
      closed_tickets,
      lastCommand,
      result >>
@@ -48,10 +43,11 @@ Init ==
   /\ cli_installed = FALSE
   /\ spec_root = NoRoot
   /\ project_scaffolded = FALSE
-  /\ budgets_recorded = FALSE
   /\ workflow_scaffolded = FALSE
   /\ active_tickets = {}
-  /\ ticket_phase = [t \in Tickets |-> 0]
+  /\ desired_ready = [t \in Tickets |-> FALSE]
+  /\ current_ready = [t \in Tickets |-> FALSE]
+  /\ spec_unit_tests_passed = [t \in Tickets |-> FALSE]
   /\ closed_tickets = {}
   /\ lastCommand = "Init"
   /\ result = CommandResult(TRUE, NoReason, "BuildSkillCli")
@@ -68,10 +64,11 @@ BuildSkillCli ==
   /\ UNCHANGED << cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   active_tickets,
-                  ticket_phase,
+                  desired_ready,
+                  current_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
@@ -87,10 +84,11 @@ InstallLocalCli ==
   /\ UNCHANGED << cli_built,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   active_tickets,
-                  ticket_phase,
+                  desired_ready,
+                  current_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold project`
@@ -105,38 +103,14 @@ ScaffoldProject(root) ==
   /\ spec_root' = root
   /\ project_scaffolded' = TRUE
   /\ lastCommand' = "tla-spec-dev scaffold project"
-  /\ result' = CommandResult(TRUE, NoReason, "RecordBudgets")
-  /\ UNCHANGED << cli_built,
-                  cli_installed,
-                  budgets_recorded,
-                  workflow_scaffolded,
-                  active_tickets,
-                  ticket_phase,
-                  closed_tickets >>
-
-\* CLI: scaffold emits a `budgets:` block into spec_manifest.yaml and
-\* instructs the agent to propose the documented defaults to the user, ask
-\* which to adjust for this program, and record a one-line rationale per
-\* changed value. Budgets are established before any generation action, so
-\* every downstream gate reads them from the manifest.
-\* @command RecordBudgets
-\* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.record_budgets
-RecordBudgets(root) ==
-  /\ cli_installed
-  /\ project_scaffolded
-  /\ root = spec_root
-  /\ ~budgets_recorded
-  /\ budgets_recorded' = TRUE
-  /\ lastCommand' = "RecordBudgets"
   /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev scaffold workflow")
   /\ UNCHANGED << cli_built,
                   cli_installed,
-                  spec_root,
-                  project_scaffolded,
                   workflow_scaffolded,
                   active_tickets,
-                  ticket_phase,
+                  desired_ready,
+                  current_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold workflow`
@@ -147,7 +121,6 @@ RecordBudgets(root) ==
 ScaffoldWorkflow(root) ==
   /\ cli_installed
   /\ project_scaffolded
-  /\ budgets_recorded
   /\ root = spec_root
   /\ ~workflow_scaffolded
   /\ workflow_scaffolded' = TRUE
@@ -157,9 +130,10 @@ ScaffoldWorkflow(root) ==
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   active_tickets,
-                  ticket_phase,
+                  desired_ready,
+                  current_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
@@ -175,14 +149,15 @@ OpenTicket(root, ticket) ==
   /\ ticket \notin active_tickets
   /\ ticket \notin closed_tickets
   /\ active_tickets' = active_tickets \cup {ticket}
-  /\ ticket_phase' = [ticket_phase EXCEPT ![ticket] = 0]
+  /\ desired_ready' = [desired_ready EXCEPT ![ticket] = FALSE]
+  /\ current_ready' = [current_ready EXCEPT ![ticket] = FALSE]
+  /\ spec_unit_tests_passed' = [spec_unit_tests_passed EXCEPT ![ticket] = FALSE]
   /\ lastCommand' = "tla-spec-dev open ticket"
   /\ result' = CommandResult(TRUE, NoReason, "Update ticket desired TLA+ first")
   /\ UNCHANGED << cli_built,
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   closed_tickets >>
 
@@ -193,17 +168,18 @@ OpenTicket(root, ticket) ==
 \* @port TlaSpecDevCliPort.update_ticket_desired
 UpdateTicketDesired(ticket) ==
   /\ ticket \in active_tickets
-  /\ ticket_phase[ticket] = 0
-  /\ ticket_phase' = [ticket_phase EXCEPT ![ticket] = 1]
+  /\ ~desired_ready[ticket]
+  /\ desired_ready' = [desired_ready EXCEPT ![ticket] = TRUE]
   /\ lastCommand' = "UpdateTicketDesired"
   /\ result' = CommandResult(TRUE, NoReason, "Implement ticket and update current")
   /\ UNCHANGED << cli_built,
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   active_tickets,
+                  current_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* Agent step: production implementation has landed and current matches desired.
@@ -212,17 +188,19 @@ UpdateTicketDesired(ticket) ==
 \* @port TlaSpecDevCliPort.update_ticket_current
 UpdateTicketCurrent(ticket) ==
   /\ ticket \in active_tickets
-  /\ ticket_phase[ticket] = 1
-  /\ ticket_phase' = [ticket_phase EXCEPT ![ticket] = 2]
+  /\ desired_ready[ticket]
+  /\ ~current_ready[ticket]
+  /\ current_ready' = [current_ready EXCEPT ![ticket] = TRUE]
   /\ lastCommand' = "UpdateTicketCurrent"
   /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev run spec-unit-tests")
   /\ UNCHANGED << cli_built,
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   active_tickets,
+                  desired_ready,
+                  spec_unit_tests_passed,
                   closed_tickets >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
@@ -234,17 +212,18 @@ RunSpecUnitTests(root, ticket) ==
   /\ cli_installed
   /\ root = spec_root
   /\ ticket \in active_tickets
-  /\ ticket_phase[ticket] >= 2
-  /\ ticket_phase' = [ticket_phase EXCEPT ![ticket] = 3]
+  /\ current_ready[ticket]
+  /\ spec_unit_tests_passed' = [spec_unit_tests_passed EXCEPT ![ticket] = TRUE]
   /\ lastCommand' = "tla-spec-dev run spec-unit-tests"
   /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev close ticket <ticket>")
   /\ UNCHANGED << cli_built,
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
                   active_tickets,
+                  desired_ready,
+                  current_ready,
                   closed_tickets >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
@@ -256,7 +235,9 @@ CloseTicket(root, ticket) ==
   /\ cli_installed
   /\ root = spec_root
   /\ ticket \in active_tickets
-  /\ ticket_phase[ticket] = 3
+  /\ desired_ready[ticket]
+  /\ current_ready[ticket]
+  /\ spec_unit_tests_passed[ticket]
   /\ active_tickets' = active_tickets \ {ticket}
   /\ closed_tickets' = closed_tickets \cup {ticket}
   /\ lastCommand' = "tla-spec-dev close ticket"
@@ -265,9 +246,10 @@ CloseTicket(root, ticket) ==
                   cli_installed,
                   spec_root,
                   project_scaffolded,
-                  budgets_recorded,
                   workflow_scaffolded,
-                  ticket_phase >>
+                  desired_ready,
+                  current_ready,
+                  spec_unit_tests_passed >>
 
 Stutter ==
   UNCHANGED vars
@@ -277,8 +259,6 @@ Next ==
   \/ InstallLocalCli
   \/ \E root \in SpecRoots:
       ScaffoldProject(root)
-  \/ \E root \in SpecRoots:
-      RecordBudgets(root)
   \/ \E root \in SpecRoots:
       ScaffoldWorkflow(root)
   \/ \E root \in SpecRoots, ticket \in Tickets:
@@ -298,27 +278,18 @@ TypeInvariant ==
   /\ cli_installed \in BOOLEAN
   /\ spec_root \in SpecRoots \cup {NoRoot}
   /\ project_scaffolded \in BOOLEAN
-  /\ budgets_recorded \in BOOLEAN
   /\ workflow_scaffolded \in BOOLEAN
   /\ active_tickets \subseteq Tickets
   /\ closed_tickets \subseteq Tickets
-  /\ ticket_phase \in [Tickets -> 0..3]
+  /\ desired_ready \in [Tickets -> BOOLEAN]
+  /\ current_ready \in [Tickets -> BOOLEAN]
+  /\ spec_unit_tests_passed \in [Tickets -> BOOLEAN]
 
 CliInstalledRequiresBuilt ==
   cli_installed => cli_built
 
 WorkflowRequiresProject ==
   workflow_scaffolded => project_scaffolded
-
-\* Budgets are per-program state established during scaffolding.
-BudgetsRequireProject ==
-  budgets_recorded => project_scaffolded
-
-\* Every generation action runs behind recorded budgets: the workflow (and
-\* therefore every ticket, spec-unit run, and close) cannot be scaffolded
-\* until the budgets block exists in the manifest.
-WorkflowRequiresBudgets ==
-  workflow_scaffolded => budgets_recorded
 
 ProjectChoosesKnownSpecRoot ==
   project_scaffolded => spec_root \in SpecRoots
@@ -328,15 +299,15 @@ NoOpenClosedOverlap ==
 
 CurrentRequiresDesired ==
   \A ticket \in Tickets:
-    ticket_phase[ticket] >= 2 => ticket_phase[ticket] >= 1
+    current_ready[ticket] => desired_ready[ticket]
 
 SpecUnitTestsRequireCurrent ==
   \A ticket \in Tickets:
-    ticket_phase[ticket] >= 3 => ticket_phase[ticket] >= 2
+    spec_unit_tests_passed[ticket] => current_ready[ticket]
 
 ClosedTicketsPassedSpecUnitTests ==
   \A ticket \in closed_tickets:
-    ticket_phase[ticket] >= 3
+    spec_unit_tests_passed[ticket]
 
 Spec ==
   Init /\ [][Next]_vars

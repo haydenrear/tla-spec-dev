@@ -1,0 +1,84 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-020",
+    "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "source_current": "/Users/hayde/IdeaProjects/wt-21-mf020-ticket-phase-ordinal/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-21-mf020-ticket-phase-ordinal/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "the three booleans are gone; ticket_phase carries the ordering.",
+        "reachable distinct states remain 919 and depth remains 21 \u2014 behavior retention is proven by equality, not asserted.",
+        "declared state-space bound drops to 393,216; state variables drop by 2.",
+        "every invariant expressed over the old booleans has an equivalent over ticket_phase; none is silently dropped."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-020/current/TlaSpecDevCli.tla specs/tickets/MF-020/current/MC.cfg",
+        "tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-020"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-011"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/.../production_adapters.py updated to read ticket_phase"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [
+        "ticket_phase"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-020/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-012"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/21",
+    "id": "MF-020",
+    "implementation_scope": [
+      "specs/program_model/TlaSpecDevCli.tla (variable and invariant rewrite)",
+      "specs/program_model/production_adapters.py (phase-aware adapters)",
+      "specs/current/tests (adapter assertions referencing the booleans)"
+    ],
+    "objective": "Approved architectural move surfaced by the MF-012 complexity ledger: replace the three parallel booleans desired_ready / current_ready / spec_unit_tests_passed with a single ordinal ticket_phase in [Tickets -> 0..3]. The invariants already pin them to a strict total order, so only 4 of 8 combinations are reachable; the ordinal represents the same behavior with none of the unreachable product space. Measured on the MF-012 model: -2 state variables, -13.1% generated states, and an 8x smaller declared state-space bound (3,145,728 -> 393,216) at IDENTICAL 919 reachable states and identical depth 21 \u2014 the reachable-state equality is the proof that nothing is under-represented. Scheduled before MF-011 so the analyze-complexity gate is built and calibrated against the model shape the epic is keeping, rather than measuring a shape already slated for removal. See references/architecture_tractability.md.",
+    "promotion_order": 15,
+    "promotion_predecessor": "MF-012",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Collapse ticket phase booleans into an ordinal",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-21-mf020-ticket-phase-ordinal/specs/tickets/MF-020",
+  "ticket_id": "MF-020",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-21-mf020-ticket-phase-ordinal/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-21-mf020-ticket-phase-ordinal/specs/tickets"
+}
