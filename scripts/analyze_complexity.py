@@ -779,10 +779,18 @@ def analyze(
     )
 
     violations: list[str] = []
-    if bound > budgets["max_distinct_states"]:
+    # MF-022: the static bound is a Cartesian over-approximation of the
+    # DECLARED representation -- it ignores every action guard, so it counts
+    # combinations the program can never occupy. It is therefore gated against
+    # max_state_space_bound (a TLC-capacity ceiling), NOT against
+    # max_distinct_states, which caps ACTUAL reachable states measured by TLC
+    # after the fact. Comparing the two is a category error: on this
+    # repository the bound over-approximated reachable states by ~400x, failing
+    # a model that was 17x under its own reachable-state budget.
+    if bound > budgets["max_state_space_bound"]:
         violations.append(
-            f"state-space upper bound {bound:,} exceeds max_distinct_states "
-            f"{budgets['max_distinct_states']:,}"
+            f"state-space upper bound {bound:,} exceeds max_state_space_bound "
+            f"{budgets['max_state_space_bound']:,}"
         )
     for index, community in enumerate(communities, start=1):
         if len(community) > budgets["max_component_variables"]:
@@ -815,6 +823,27 @@ def analyze(
                     ),
                 }
             ]
+        # MF-022: max_distinct_states caps ACTUAL reachable states, so it can
+        # only be checked once TLC has measured them (--tlc-report). This is the
+        # comparison the budget was always for; before MF-022 it was applied
+        # to the static over-approximation instead.
+        if current_report.complete and current_report.distinct is not None:
+            if current_report.distinct > budgets["max_distinct_states"]:
+                violations.append(
+                    f"TLC-measured {current_report.distinct:,} distinct reachable states "
+                    f"exceeds max_distinct_states {budgets['max_distinct_states']:,}"
+                )
+            else:
+                tlc_findings.append(
+                    {
+                        "level": "INFO",
+                        "message": (
+                            f"TLC-measured {current_report.distinct:,} distinct reachable "
+                            f"states is within max_distinct_states "
+                            f"{budgets['max_distinct_states']:,}."
+                        ),
+                    }
+                )
 
     return Analysis(
         module=module,
@@ -1094,8 +1123,16 @@ def render_text(analysis: Analysis) -> str:
 
     add("[MEASURED] Budget gate")
     add(f"  source: {analysis.manifest_path or 'documented defaults'}")
-    for key in ("max_distinct_states", "max_component_variables", "max_component_actions"):
+    for key in (
+        "max_state_space_bound",
+        "max_distinct_states",
+        "max_component_variables",
+        "max_component_actions",
+    ):
         add(f"    {key}: {analysis.budgets[key]:,}")
+    add("  max_state_space_bound gates the STATIC declared-representation bound above.")
+    add("  max_distinct_states caps ACTUAL reachable states and is checked only once")
+    add("  TLC has measured them (--tlc-report); the two are not interchangeable.")
     if analysis.gate_passed:
         add("  VERDICT: PASS -- the model is within budget.")
     else:
@@ -1147,7 +1184,12 @@ def render_json(analysis: Analysis) -> str:
         "suggested_move": suggest_move(analysis),
         "budgets": {
             key: analysis.budgets[key]
-            for key in ("max_distinct_states", "max_component_variables", "max_component_actions")
+            for key in (
+                "max_state_space_bound",
+                "max_distinct_states",
+                "max_component_variables",
+                "max_component_actions",
+            )
         },
         "gate": {
             "passed": analysis.gate_passed,
@@ -1168,7 +1210,7 @@ def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> t
     if analysis.gate_passed:
         return True, (
             f"complexity gate PASS: state-space upper bound {analysis.bound:,} within "
-            f"max_distinct_states {analysis.budgets['max_distinct_states']:,}"
+            f"max_state_space_bound {analysis.budgets['max_state_space_bound']:,}"
         )
     lines = [
         "complexity gate FAIL -- this model exceeds its manifest budgets and would",

@@ -116,7 +116,8 @@ program, and record the answers with a one-line rationale in
 ```yaml
 budgets:
   tlc_seconds: 120                       # hard external timeout per TLC run
-  max_distinct_states: 50000             # per component model
+  max_distinct_states: 50000             # reachable states, per component model
+  max_state_space_bound: 1000000         # static declared-representation ceiling
   max_internal_cases_per_component: 200
   max_external_cases_per_action: 50
   kill_rate_floor: 0.8                   # see "Mutation kill test"
@@ -124,6 +125,29 @@ budgets:
   max_component_actions: 8
   max_symmetric_instances: 2
 ```
+
+`max_distinct_states` and `max_state_space_bound` measure different things and
+are not interchangeable.
+
+`max_state_space_bound` gates the **static** state-space upper bound reported
+by `analyze complexity`: the product of the declared cardinality of every
+bounded dimension in `TypeInvariant`. That figure is a Cartesian
+over-approximation of the *declared representation* -- it ignores every action
+guard, so it counts combinations the program can never occupy, and it routinely
+over-approximates reachable states by two or three orders of magnitude. Its
+ceiling therefore answers a capacity question: *if the type invariant were
+tight, could TLC still finish inside `tlc_seconds`?* The default of 1,000,000
+is derived from measured TLC throughput on a model of realistic expression cost
+(~16,000 distinct states/sec, so ~1.9M within the 120s budget), rounded down
+for slower hardware and more expensive models.
+
+`max_distinct_states` caps the **actual reachable** states TLC finds. It can
+only be checked after a run, so `analyze complexity` applies it when a TLC
+report is supplied via `--tlc-report`.
+
+Gating the static bound against `max_distinct_states` is a category error: it
+fails models that are comfortably within their real budget. This was MF-011's
+behavior and MF-022 corrected it.
 
 Budgets are hard gates, not aspirations. A component model over budget is
 decomposed or re-abstracted, never waited on. The 120-second TLC rule in
@@ -142,7 +166,7 @@ It prints the dimension table, the state-space upper bound with its dominant
 dimensions, the variables x actions read/write matrix, the graph-modularity
 score with near-decomposable clusters and candidate port-crossing actions,
 and any variables lacking a justification linkage. It exits nonzero when the
-model exceeds `max_distinct_states`, `max_component_variables`, or
+model exceeds `max_state_space_bound`, `max_component_variables`, or
 `max_component_actions`, and case generation refuses above the gate unless
 given `--allow-over-budget`.
 

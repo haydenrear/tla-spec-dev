@@ -21,6 +21,7 @@ from scripts.budgets import (  # noqa: E402
 DOCUMENTED = {
     "tlc_seconds": 120,
     "max_distinct_states": 50000,
+    "max_state_space_bound": 1000000,
     "max_internal_cases_per_component": 200,
     "max_external_cases_per_action": 50,
     "kill_rate_floor": 0.8,
