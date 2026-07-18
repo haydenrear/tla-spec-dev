@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 2
+  schedule_revision: 3
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -33,6 +33,15 @@ epic:
     architecture_tractability.md reference — their bodies predated the
     doctrine; per-ticket schedule revisions unchanged (no compared
     scheduling fields changed).
+    2026-07-18: MF-012 accepted and closed at post-merge review (merge
+    fb79bc5). Its complexity ledger surfaced an architectural move that the
+    owner approved: MF-020 added (ticket_phase ordinal collapse) at
+    promotion_order 15, between MF-012 and MF-011, so the analyze-complexity
+    gate is calibrated against the retained model shape. MF-011 bumped to
+    revision 4 (depends_on gains MF-020; promotion_predecessor MF-012 ->
+    MF-020). Waves of already-dispatched tickets deliberately NOT renumbered:
+    promotion_order is the real serialization and its gaps of 10 exist for
+    insertion, so only MF-011's assignment needed re-rendering.
 
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
@@ -45,8 +54,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-011
-  active_ticket_title: "Analyze complexity command"
+  active_ticket: MF-020
+  active_ticket_title: "Collapse ticket phase booleans into an ordinal"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -122,16 +131,61 @@ tickets:
         - specs/tickets/MF-012/results/graph-reports/specWorkflow-20260718-153853-c3144c6b
         - specs/tickets/MF-012/results/graph-reports/cliWorkflow-20260718-153934-857a0f5c
 
+  - id: MF-020
+    title: "Collapse ticket phase booleans into an ordinal"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 15
+    promotion_predecessor: MF-012
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Approved architectural move surfaced by the MF-012 complexity ledger: replace the three parallel booleans desired_ready / current_ready / spec_unit_tests_passed with a single ordinal ticket_phase in [Tickets -> 0..3]. The invariants already pin them to a strict total order, so only 4 of 8 combinations are reachable; the ordinal represents the same behavior with none of the unreachable product space. Measured on the MF-012 model: -2 state variables, -13.1% generated states, and an 8x smaller declared state-space bound (3,145,728 -> 393,216) at IDENTICAL 919 reachable states and identical depth 21 — the reachable-state equality is the proof that nothing is under-represented. Scheduled before MF-011 so the analyze-complexity gate is built and calibrated against the model shape the epic is keeping, rather than measuring a shape already slated for removal. See references/architecture_tractability.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla (variable and invariant rewrite)
+      - specs/program_model/production_adapters.py (phase-aware adapters)
+      - specs/current/tests (adapter assertions referencing the booleans)
+    current_increment:
+      model_state:
+        - ticket_phase
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read ticket_phase
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-020/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-020/current/TlaSpecDevCli.tla specs/tickets/MF-020/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-020
+      assertions:
+        - the three booleans are gone; ticket_phase carries the ordering.
+        - reachable distinct states remain 919 and depth remains 21 — behavior retention is proven by equality, not asserted.
+        - declared state-space bound drops to 393,216; state variables drop by 2.
+        - every invariant expressed over the old booleans has an equivalent over ticket_phase; none is silently dropped.
+      evidence: []
+
   - id: MF-011
     title: "Analyze complexity command"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
-    schedule_revision: 3
-    depends_on: [MF-012]
+    schedule_revision: 4
+    depends_on: [MF-012, MF-020]
     blocks: [MF-019]
     wave: 2
     promotion_order: 20
-    promotion_predecessor: MF-012
+    promotion_predecessor: MF-020
     conflict_keys:
       production: [scripts/analyze_complexity.py, scripts/tla_spec_dev.py, scripts/generate_cases_from_tlc_dump.py]
       tla: [TlaSpecDevCli.tla]
