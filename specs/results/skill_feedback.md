@@ -219,3 +219,106 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   overwritten paths whose content changed, the same way it already enumerates
   removed and preserved paths
 - status: open
+
+## Close-out ticket MF-014
+
+- close_scope: ticket
+- close_id: MF-014
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-18T22:39:57+00:00
+- summary: Corpus diagnostics and hard case caps. Case caps are hard gates in the shape of MF-011's state-space bound: over budget reports and exits nonzero, never trims. No code path drops, filters, samples, or truncates a case to fit a budget. Diagnostics report count per (action, label class), dominant and starved strata, and what varies across the redundant group, classified into unconstrained ordering / interchangeable values / action enabled across equivalent states. Labelers repurposed to diagnostic strata; remediation is a recommendation requiring user approval; named regression traces always retained. Accept path is raising the cap in spec_manifest.yaml with a recorded rationale. Model delta: corpus_gate + AnalyzeCorpus, 8->9 vars, 11->12 actions, deviating from the stale DistillCorpus/corpus_distilled plan fields.
+- feedback_status: items-recorded
+
+### SF-004 — the minimal YAML fallback parser could not read the repository's own manifests
+
+- category: profile-schema-cli
+- target: scripts/extract_spec_manifest.py::_parse_list
+- observed_on: tla-spec-dev @ MF-014
+- evidence: specs/tickets/MF-014/results/complexity-ledger.md
+- severity: silent-wrong-result
+- root_cause: tool
+- surface: every budget gate, via scripts/budgets.py::load_budgets
+- data_loss: no, but every gate read the WRONG thresholds
+- note: `_parse_list` raised "unexpected indentation" on a plain-scalar list
+  item wrapped onto continuation lines, which `specs/current/spec_manifest.yaml`
+  contains. PyYAML is an optional dependency and is absent in this environment
+  (`uv run --with pytest python -c "import yaml"` fails), so the fallback parser
+  is the ONLY parser. The parse failure was swallowed by
+  `budgets._read_manifest`, which returns None on any exception, so
+  `load_budgets` fell back to documented defaults with a warning. Net effect: a
+  negotiated budget recorded in the manifest was silently ignored by
+  `analyze complexity`, case generation, and the adapter runner. This ticket's
+  entire "raise the cap with a rationale" accept path would have been a no-op.
+- workaround_applied: none — fixed at the source in this ticket by folding
+  continuation lines into the scalar, per YAML semantics
+- recommendation: (none yet) — the parse bug is fixed, but the SHAPE of the
+  defect remains: `_read_manifest` catches bare `Exception` and returns None,
+  converting any future parser gap into a silent downgrade to defaults. That is
+  the "fall back to default budgets with a warning" degeneracy already named in
+  architecture_tractability.md "No Degenerate Escapes". MF-023 absorbed the
+  purge of that fallback from the withdrawn MF-024 and should treat a manifest
+  that exists but cannot be parsed as a hard failure, distinct from a manifest
+  that is absent.
+- status: open
+
+### SF-005 — a corpus documented in four places as committed is not committed
+
+- category: docs-and-examples
+- target: references/examples.md:48, references/edge-cases.md:84,
+  references/testgraph_adapters.md:141, examples/distributed_history/README.md:34
+- observed_on: tla-spec-dev @ MF-014
+- evidence: specs/tickets/MF-014/results/deferred-validations.md
+- severity: friction
+- root_cause: spec
+- gated_quantity: the 732-case ecommerce corpus named as this ticket's primary
+  test fixture
+- measured_quantity: 4 external traces + 4 external cases + 4 internal cases
+  actually committed
+- metric_blind_spot: the 732 figure is real but is produced at run time under
+  `test_graph/build/validation-reports/<run>/`, which is not committed. The
+  ticket, the issue, and the assignment all read the references as describing a
+  committed artifact and pointed the implementer at
+  `examples/distributed_history/specs/generated/testgraph/traces/`, which holds
+  4 files. Under the epic-wide spec-case execution deferral the corpus cannot be
+  regenerated to check, so the divergence is only discoverable by opening the
+  directory.
+- workaround_applied: reconstructed the documented distribution as
+  `tests/corpus_fixtures.py`, labelled a fixture in its module docstring, and
+  additionally ran the CLI against the genuinely committed 4-case corpus so at
+  least one end-to-end path touches real artifacts
+- recommendation: (none yet) — recommend the reference text state explicitly
+  that the 732-case corpus is regenerated per run and not committed, and that
+  MF-023 re-run `tla-spec-dev analyze corpus` against the real regenerated
+  output and record the actual distribution
+- status: open
+
+### SF-006 — plan prescribed model state for a scope that had been withdrawn
+
+- category: budget-and-metric
+- target: specs/desired_program_model/ticket_plan.yaml — MF-014
+  `desired_actions: [DistillCorpus]` / `current_increment.model_state:
+  [corpus_distilled]`
+- observed_on: tla-spec-dev @ MF-014
+- evidence: specs/tickets/MF-014/results/complexity-ledger.md
+- severity: friction
+- root_cause: spec
+- gated_quantity: prescribed model state (DistillCorpus, corpus_distilled)
+- measured_quantity: what the replaced scope actually needs (corpus_gate,
+  AnalyzeCorpus)
+- metric_blind_spot: this is the FOURTH instance of the SF-002 pattern
+  (MF-011, MF-020, MF-017, now MF-014), and the first where the prescribed
+  fields name a mechanism the same commit WITHDREW. The objective, acceptance
+  criteria, and referenced ticket file were all rewritten for the diagnostics
+  scope while `desired_actions`/`model_state` kept describing distillation.
+  Implementing them literally would have built the filter the ticket exists to
+  forbid.
+- workaround_applied: implemented the gate the replaced scope requires and
+  recorded the deviation in the plan entry's `outcome:` field, per the MF-017
+  precedent
+- recommendation: (none yet) — reinforces SF-002. A scope replacement should be
+  required to rewrite or explicitly null the `desired_actions` /
+  `current_increment` fields in the same change, since a stale prescription
+  that contradicts the new objective is worse than an absent one
+- status: open
+
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
