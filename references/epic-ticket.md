@@ -47,6 +47,11 @@ validation:
 review:
   mode: "external"
   ticket_agent_stops_after: "pr_open"
+deferment:
+  mode: "batch"          # batch | ask | inline
+  blocking: "escalate"   # escalate | ask
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
 ```
 
 This issue belongs to an existing shared spec workflow. The epic assignment
@@ -60,6 +65,10 @@ overrides ordinary instructions to branch from or target the default branch.
   and rerun the validation matrix.
 - Mark and close only this spec ticket with every evidence path. Never run the
   whole-workflow close script and never use `--accept-new`.
+- Defects found outside this ticket's conflict keys and semantic delta are
+  **deferred, not fixed**: record them in the backlog under the epic's
+  deferment policy and keep working the assigned slice. Escalate blocking
+  out-of-scope findings instead of widening scope.
 - Push the sealed ticket branch and open its PR with base `epic/<slug>` and
   `Refs #<issue-number>`. Stop for external review; do not merge to the default
   branch or close the GitHub issue.
@@ -145,6 +154,36 @@ graph, and any adapter commands from the issue. `specWorkflow` is the
 spec-double-compiler repository's own CLI-lifecycle graph; run it only when the
 plan explicitly targets that repository. Store reports under the evidence root.
 
+### 4a. Defer failure cases found outside the assigned slice
+
+Validation and review will surface real defects this ticket did not cause. Do
+not chase them. Read `deferment.md` and apply the policy from the **canonical
+plan** (`deferment_policy` in `ticket_plan.yaml`); the assignment block mirrors
+it, but the plan wins if they differ.
+
+For each failure case:
+
+1. Classify it. In scope — every touched surface is inside this ticket's
+   `conflict_keys` and its desired model already implies the fix — then it is
+   ordinary ticket work; fix it.
+2. Out of scope and blocking this ticket's REQUIRED matrix: stop, file the
+   backlog entry with `severity: blocking`, push without closing the spec ticket
+   or opening a promotion PR, and return the ticket to the epic owner with the
+   surfaces a fix would touch and the sibling tickets sharing those keys.
+3. Out of scope and non-blocking: append a backlog entry, then follow
+   `mode` — `batch` continue, `ask` ask the owner now-or-batch, `inline` fix
+   only within this ticket's conflict keys and record it.
+
+Stop implementing and report when deferred findings exceed `budget`: that many
+out-of-scope defects means the ticket's premise is wrong, and the next fix will
+not be the last one.
+
+Backlog entries are planning data. Commit them with the ticket's normal commits;
+never place them in ticket-local `desired/` or `current/`, and never offer them
+as close evidence. A deferred finding never justifies weakening a REQUIRED
+validation entry, loosening an invariant, skipping a test, or closing a ticket
+whose equality gate fails.
+
 ### 5. Enter the serialized promotion lane
 
 Parallel implementation ends here. Wait until the `promotion_predecessor` PR is
@@ -199,7 +238,9 @@ The PR body contains:
 - epic branch, workflow, and spec ticket ID;
 - dependency and promotion-predecessor checks;
 - exact commands run and report/evidence paths;
-- the close-history path and resulting commit SHA.
+- the close-history path and resulting commit SHA;
+- a `## Deferred findings` section listing each backlog ID filed by this ticket
+  with its severity and one-line summary, or `None`.
 
 Stop for external review. Do not self-merge, target the default branch, run
 whole-workflow promotion, sync the primary checkout to the default branch, or

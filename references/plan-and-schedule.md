@@ -96,6 +96,7 @@ Then replace the placeholder planning data with the complete epic:
 - expand `ticket_plan.yaml` to every stable ticket;
 - add an integer `schedule_revision` that changes whenever IDs, dependency
   edges, waves, promotion order, conflict ownership, or validation scope changes;
+- add the `deferment_policy` block agreed in step 4a;
 - remove placeholder actions, scopes, commands, and assertions.
 
 Do not run `open ticket` on the epic branch. Each ticket agent opens exactly its
@@ -118,6 +119,39 @@ conflict_keys:
   test_graph: []
   workflow: []
 ```
+
+## 4a. Agree the deferment policy
+
+Before any issue is dispatched, ask the user how ticket agents must handle
+failure cases they find outside their assigned slice. This is a required
+decision, not a default to assume silently — unbounded in-ticket bug fixing is
+the main way epic tickets lose their semantic boundary.
+
+Ask one question with the concrete tradeoff:
+
+> Ticket agents will find real defects outside their assigned slice. How should
+> they handle them?
+>
+> - **batch** (recommended) — record to the backlog, keep working the assigned
+>   slice, triage between waves and at finalization;
+> - **ask** — record, then stop and ask you per finding whether to open a ticket
+>   now or batch it;
+> - **inline** — allowed to fix within their own conflict keys, still recorded.
+>
+> Blocking findings (the ticket's REQUIRED validation cannot pass without
+> touching another surface) **escalate** to you by default; say so if you would
+> rather be asked to authorize an inline fix instead.
+
+Record the answer, a per-ticket deferral `budget`, and the backlog path in
+`ticket_plan.yaml` using the schema in `deferment.md`. Create the empty backlog
+file in the same commit:
+
+```yaml
+findings: []
+```
+
+Read `references/deferment.md` for scope classification, entry format, agent
+behavior, and triage.
 
 ## 5. Validate the schedule
 
@@ -217,6 +251,18 @@ Return a schedule such as:
 
 An issue is ready to hand off only when every dependency PR is merged into the
 remote epic branch. An open or green PR is not a satisfied dependency.
+
+Whenever you recommend the next ticket — at dispatch and on every resume — read
+the deferred-findings backlog and present pending entries in the same report:
+
+| ID | Found by | Severity | Summary | Blast radius | Disposition |
+| --- | --- | --- | --- | --- | --- |
+
+Ask the user, per pending finding, to promote it to a ticket now, keep it
+batched, or close it `wontfix`. Recommend batching unless it blocks a planned
+ticket. Promoting a finding is a plan change: new stable ID, dependency edges,
+wave, promotion order, conflict keys, revalidated schedule, bumped
+`schedule_revision`, new issue. Never retrofit it into a dispatched ticket.
 
 This version does not start agents or poll them. The user passes ready issue
 URLs to ticket agents, then invokes the epic workflow again to refresh readiness

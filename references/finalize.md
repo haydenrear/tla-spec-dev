@@ -19,6 +19,24 @@ Fetch remote state and verify, for every ticket in
 Also confirm there are no open ticket PRs targeting the epic branch and no
 uncommitted changes. An open/green PR or locally closed branch is not integrated.
 
+## 1a. Drain the deferred-findings backlog
+
+Read `specs/desired_program_model/deferred_findings.yaml`. No entry may remain
+`pending` at close. Present every pending finding to the user and settle each
+one as:
+
+- **`ticketed`** — worth fixing inside this epic. Add the ticket to the plan,
+  revalidate the schedule, bump `schedule_revision`, dispatch it, and wait for
+  its PR to merge into the epic branch before finalizing. Finalization restarts
+  from step 1.
+- **`wontfix`** — record the reason in the entry.
+- **carried out of the epic** — file a GitHub issue on the default branch, link
+  it from the entry, and list it in the epic PR body.
+
+Batching is a scheduling decision, not a way to lose defects: an epic must not
+close with an unexplained finding. Do not fix a deferred finding by hand on the
+epic branch; deferred work re-enters through the normal ticket close path.
+
 If the default branch advanced during the epic, integrate it before final
 validation. A semantic conflict becomes an explicit reconciliation ticket that
 uses the same ticket close path; do not hand-edit accepted state on the epic
@@ -101,6 +119,8 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - the dependency/promotion order actually integrated;
 - full validation commands, run IDs, summaries, and report paths;
 - the workflow closed-snapshot path;
+- the deferred-findings disposition: tickets opened, `wontfix` reasons, and
+  issues carried to the default branch;
 - issue-closing references for the child issues.
 
 Do not bypass branch protection or merge the epic PR unless the user explicitly

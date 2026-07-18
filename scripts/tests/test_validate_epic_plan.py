@@ -37,6 +37,12 @@ def valid_plan() -> dict:
         "workflow": [],
     }
     return {
+        "deferment_policy": {
+            "mode": "batch",
+            "blocking": "escalate",
+            "budget": 5,
+            "backlog": "specs/desired_program_model/deferred_findings.yaml",
+        },
         "tickets": [
             {
                 "id": "EPIC-1",
@@ -83,6 +89,34 @@ class EpicPlanValidatorTests(unittest.TestCase):
 
     def test_accepts_valid_parallel_schedule(self) -> None:
         self.assertEqual(validator.validate_plan(valid_plan()), [])
+
+    def test_rejects_plan_without_a_deferment_policy(self) -> None:
+        plan = valid_plan()
+        del plan["deferment_policy"]
+        self.assert_invalid(plan, "plan must declare deferment_policy")
+
+    def test_rejects_unknown_deferment_mode(self) -> None:
+        plan = valid_plan()
+        plan["deferment_policy"]["mode"] = "whenever"
+        self.assert_invalid(plan, "deferment_policy.mode must be one of")
+
+    def test_rejects_unknown_blocking_disposition(self) -> None:
+        plan = valid_plan()
+        plan["deferment_policy"]["blocking"] = "ignore"
+        self.assert_invalid(plan, "deferment_policy.blocking must be one of")
+
+    def test_rejects_non_positive_deferment_budget(self) -> None:
+        plan = valid_plan()
+        plan["deferment_policy"]["budget"] = 0
+        self.assert_invalid(plan, "deferment_policy.budget must be a positive integer")
+
+    def test_rejects_missing_backlog_path(self) -> None:
+        plan = valid_plan()
+        plan["deferment_policy"]["backlog"] = ""
+        self.assert_invalid(plan, "deferment_policy.backlog must be a non-empty path")
+
+    def test_reports_deferment_error_even_when_tickets_are_missing(self) -> None:
+        self.assert_invalid({"tickets": []}, "plan must declare deferment_policy")
 
     def test_rejects_duplicate_and_unstable_ticket_ids(self) -> None:
         plan = valid_plan()

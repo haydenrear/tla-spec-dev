@@ -23,6 +23,8 @@ import yaml
 DEFAULT_PLAN = Path("specs/desired_program_model/ticket_plan.yaml")
 STABLE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 MISSING = object()
+DEFERMENT_MODES = ("batch", "ask", "inline")
+DEFERMENT_BLOCKING = ("escalate", "ask")
 
 
 @dataclass(frozen=True)
@@ -321,9 +323,47 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
             )
 
 
+def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
+    """The policy is agreed with the user at epic creation, so require it here."""
+    if not isinstance(plan, dict):
+        return
+
+    policy = plan.get("deferment_policy", MISSING)
+    if policy is MISSING:
+        errors.append(
+            "plan must declare deferment_policy; agree the failure-case policy "
+            "with the user before dispatch (see references/deferment.md)"
+        )
+        return
+    if not isinstance(policy, dict):
+        errors.append("deferment_policy must be a mapping")
+        return
+
+    mode = policy.get("mode", MISSING)
+    if mode not in DEFERMENT_MODES:
+        errors.append(
+            f"deferment_policy.mode must be one of {list(DEFERMENT_MODES)}"
+        )
+
+    blocking = policy.get("blocking", MISSING)
+    if blocking not in DEFERMENT_BLOCKING:
+        errors.append(
+            f"deferment_policy.blocking must be one of {list(DEFERMENT_BLOCKING)}"
+        )
+
+    budget = policy.get("budget", MISSING)
+    if type(budget) is not int or budget < 1:
+        errors.append("deferment_policy.budget must be a positive integer")
+
+    backlog = policy.get("backlog", MISSING)
+    if not isinstance(backlog, str) or not backlog.strip():
+        errors.append("deferment_policy.backlog must be a non-empty path string")
+
+
 def validate_plan(plan: object) -> list[str]:
     """Return deterministic diagnostics; an empty list means the plan is valid."""
     errors: list[str] = []
+    _validate_deferment_policy(plan, errors)
     tickets = _parse_tickets(plan, errors)
     if not tickets:
         return errors

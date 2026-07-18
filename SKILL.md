@@ -73,6 +73,10 @@ This skill has three roles:
 8. **Only finalization closes the workflow.** After all ticket PRs are on the
    epic branch, the finalizer runs integrated validation, promotes the accepted
    model, closes the workflow, and opens the epic PR against the default branch.
+9. **Out-of-scope findings are deferred, not chased.** Agree a deferment policy
+   with the user when the epic branch is created. Ticket agents report failure
+   cases outside their declared slice to an append-only backlog instead of
+   expanding scope to fix them. Read `references/deferment.md`.
 
 ## Preconditions
 
@@ -121,17 +125,23 @@ canonical plan entry before starting and again before promotion.
 1. Follow `references/plan-and-schedule.md`.
 2. Use `git-issue` for discovery and issue authoring. For existing issues,
    preserve their bodies and replace only the marker-delimited epic assignment.
-3. Commit and push the epic branch before handing out any issue URL.
-4. Report the epic branch/tip, workflow name, and a table of issue URL, ticket
+3. Agree the deferment policy with the user before dispatch and record it in
+   the canonical plan (`references/deferment.md`).
+4. Commit and push the epic branch before handing out any issue URL.
+5. Report the epic branch/tip, workflow name, and a table of issue URL, ticket
    ID, dependencies, wave, and promotion predecessor. Hand out only ready issue
-   URLs.
+   URLs. When recommending the next ticket, present pending deferred findings
+   alongside it and triage them with the user.
 
 ### Work an epic issue
 
 1. Read the issue before touching git. If it contains the epic assignment
    markers, follow `references/epic-ticket.md`; do not apply the ordinary
    default-branch closeout from `git-issue-workflow`.
-2. Work and validate in the ticket worktree.
+2. Work and validate in the ticket worktree. Classify every failure case found
+   in validation or review against the ticket's declared slice; defer, batch, or
+   escalate out-of-scope findings under the epic's deferment policy rather than
+   widening the ticket to fix them.
 3. Wait for the declared promotion predecessor, reconcile the latest epic tip,
    close only the assigned spec ticket with evidence, push, and open the PR
    against the epic branch.
@@ -164,3 +174,4 @@ branch and every spec ticket has a close-history entry.
 | Create/resume branch, workflow, DAG, and issues | `references/plan-and-schedule.md` |
 | Author or execute the epic assignment | `references/epic-ticket.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
+| Classify, defer, batch, and triage failure cases | `references/deferment.md` |
