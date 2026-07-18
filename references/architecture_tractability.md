@@ -166,10 +166,65 @@ Refactor target shapes (for when the user approves):
 - explicit protocol state instead of implicit coordination — status fields
   and queues model tractably; shared mutable rows and polling do not.
 
+## No Degenerate Escapes
+
+Added 2026-07-18 by owner direction, after an audit found the same defect in
+several places at once: **every hard rule had grown a documented bypass.**
+Filter the corpus to fit a cap. Suppress an effect gap with an
+out-of-contract justification. Pass `--allow-over-budget`. Fall back to
+default budgets with a warning. Each looked reasonable alone. Together they
+made every limit optional, which is the same as having no limits — and worse
+than none, because the tooling still reports success.
+
+The governing rules. They outrank any older text in this repository that
+conflicts with them, including elsewhere in these references:
+
+1. **Complexity is pushed out, not accommodated.** Recursively modularize
+   the architecture, and the TLA+ spec with it, to minimize measured
+   complexity while retaining every behavior. When a measurement is bad,
+   the architecture changes. The measurement does not get adjusted, and the
+   thing being measured does not get trimmed.
+2. **The tools inform the architecture.** TLA+, the analysis commands, the
+   adapters, and the oracles exist to tell you where complexity actually
+   is. Their output is input to a design decision — never a number to be
+   satisfied by other means.
+3. **Never game a metric or a tool by removing evidence.** Do not drop,
+   filter, sample, or truncate cases; do not suppress a gap report; do not
+   silence a finding. Not silently, and not with a recorded rule either — a
+   recorded deletion is still a deletion. When the evidence is
+   inconvenient, the architecture is what changes.
+4. **The diagram is a faithful representation of the program.** If the
+   program cannot be represented in the diagram, **the program changes.**
+   There is no third option. An observed effect with no declared port, a
+   behavior that will not model, a shape that resists the views — each is a
+   statement about the program, not a gap to be annotated and waived.
+5. **The diagram has strict complexity limits.** Case caps, the
+   state-space bound, and the component-size heuristics are hard gates.
+   Over the limit fails. Raising a limit is a per-program decision recorded
+   with its rationale and reviewed as such — an explicit, visible act, never
+   an override flag, a fallback default, or a conditional check that
+   silently disables itself when its input is absent.
+
+**A rule with an escape hatch is not a rule.** When you find yourself
+writing "or record a justification", "unless overridden", "falls back to",
+or "when present" into a gate, you are building degeneracy. Write the
+failure instead.
+
+**Hard gates and advisory diagnosis are different things**, and the next
+section is not a loophole in this one. Suggested moves, modularity scores,
+and refactor targets are advisory: they propose architecture and require
+user approval. Case caps, the state-space bound, component-size heuristics,
+the kill-rate floor, and effect conformance are gates: they fail. "Some
+pieces score badly and still need to exist in that form" licenses a
+representation, never a breach of a limit. A piece that genuinely must
+exceed a cap gets that cap raised explicitly, in the manifest, with a
+rationale — it does not get waved through.
+
 ## Recommendations, Never Verdicts
 
 The diagnosis output is advisory everywhere it appears — CLI output, ticket
-evidence, migration notes. Rules:
+evidence, migration notes. This governs **suggested moves and scores**, not
+the hard gates enumerated in the previous section. Rules:
 
 - Every suggested move is labeled a recommendation and carries its
   evidence. The user approves, adjusts, or vetoes.
