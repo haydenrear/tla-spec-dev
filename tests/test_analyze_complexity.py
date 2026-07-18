@@ -103,6 +103,7 @@ def write_small_model(tmp_path: Path, budgets: str = "") -> tuple[Path, Path, Pa
 GENEROUS_BUDGETS = """module: Small
 budgets:
   max_distinct_states: 50000
+  max_state_space_bound: 1000000
   max_component_variables: 6
   max_component_actions: 8
 """
@@ -110,6 +111,7 @@ budgets:
 TIGHT_BUDGETS = """module: Small
 budgets:
   max_distinct_states: 4
+  max_state_space_bound: 4
   max_component_variables: 2
   max_component_actions: 1
 """
@@ -144,25 +146,30 @@ def test_variables_unconstrained_by_type_invariant_are_excluded_not_guessed(
 
 
 def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> None:
-    """Calibration against the figures this epic has actually recorded.
+    r"""Calibration against the figures this epic has actually recorded.
 
     MF-020 recorded 393,216 for the 11-variable shape:
     2*2*3*2*2*2 * 2^3 * 4^3 * 2^3 = 393,216.
 
-    MF-011 then added `complexity_gate` (3 values) and nothing else that
-    carries a domain, so the bound is exactly 3x that. Asserting both the
-    current figure AND its relationship to the recorded one keeps the
-    calibration meaningful across the promotion.
+    MF-011 then added `complexity_gate` (3 values), making the bound exactly
+    3x that: 1,179,648.
+
+    MF-022 then collapsed the five setup booleans into `setup_phase \in 0..5`,
+    replacing a 2^5 = 32 factor with a factor of 6:
+    1,179,648 / 32 * 6 = 221,184. Asserting the current figure AND its
+    relationship to each recorded predecessor keeps the calibration meaningful
+    across every promotion.
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 1_179_648
-    # The only new dimension is the 3-valued gate; divide it out to recover
-    # the figure MF-020 recorded.
-    assert result.bound // 3 == 393_216
+    assert result.bound == 221_184
+    # Undo the MF-022 collapse to recover the MF-011 figure...
+    assert result.bound // 6 * 32 == 1_179_648
+    # ...and divide out the 3-valued gate to recover the MF-020 figure.
+    assert (result.bound // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
 
@@ -212,36 +219,35 @@ def test_latching_booleans_in_a_guard_chain_are_surfaced_as_an_ordinal_collapse(
     assert result.chains[0].combinations_reachable == 3
 
 
-def test_repository_own_model_surfaces_the_setup_phase_collapse() -> None:
-    """The known-but-unimplemented reduction must be found independently.
+def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
+    """MF-022 applied the reduction MF-011's analyzer found on its own.
 
-    The five setup booleans are pinned into a total order by their own action
-    guards, so 32 declared combinations admit only 6. This is the open owner
-    decision recorded in the epic plan; the metric finding it on its own is the
-    validation signal that the metric works.
+    MF-011's analyzer derived, from the model alone, that the five setup
+    booleans were pinned into a total order by their own action guards so that
+    32 declared combinations admitted only 6, and projected the collapse would
+    take the declared bound 1,179,648 -> 221,184. MF-022 applied it. This test
+    now guards the landed state: the ordinal is present, no five-member
+    latching chain remains, and the bound is exactly the projected figure --
+    which is also the check that the analyzer's projection was honest.
     """
     tla = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
     cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    chains = [c for c in result.chains if len(c.members) == 5]
-    assert chains, [c.members for c in result.chains]
-    assert set(chains[0].members) == {
+    assert "setup_phase" in result.variables
+    for removed in (
         "cli_built",
         "cli_installed",
         "project_scaffolded",
         "budgets_recorded",
         "workflow_scaffolded",
-    }
-    assert chains[0].combinations_declared == 32
-    assert chains[0].combinations_reachable == 6
-    # On the 11-variable shape this projected 393,216 -> 73,728, which is
-    # exactly the figure the owner had already measured by hand. Post-MF-011
-    # the same collapse projects 1,179,648 -> 221,184; dividing out the
-    # 3-valued gate recovers the original 73,728.
-    assert result.bound // 32 * 6 == 221_184
-    assert (result.bound // 3) // 32 * 6 == 73_728
+    ):
+        assert removed not in result.variables
+    # The collapse consumed the chain it was derived from.
+    assert not [c for c in result.chains if len(c.members) == 5]
+    # Exactly the figure MF-011 projected before the move was applied.
+    assert result.bound == 221_184
 
 
 # ---------------------------------------------------------------------------
@@ -345,7 +351,9 @@ def test_gate_fails_and_exits_nonzero_over_budget(tmp_path: Path) -> None:
     result = analyze(tla, cfg, manifest)
     assert not result.gate_passed
     joined = " ".join(result.violations)
-    assert "max_distinct_states" in joined
+    # MF-022: the STATIC bound is gated against max_state_space_bound, not
+    # against max_distinct_states, which caps actual reachable states.
+    assert "max_state_space_bound" in joined
     assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_BUDGET_EXCEEDED
 
 

@@ -26,6 +26,7 @@ from typing import Any
 DEFAULT_BUDGETS: dict[str, Any] = {
     "tlc_seconds": 120,
     "max_distinct_states": 50000,
+    "max_state_space_bound": 1000000,
     "max_internal_cases_per_component": 200,
     "max_external_cases_per_action": 50,
     "kill_rate_floor": 0.8,
@@ -38,7 +39,8 @@ DEFAULT_BUDGETS: dict[str, Any] = {
 # and the user can negotiate values without opening the reference.
 BUDGET_COMMENTS: dict[str, str] = {
     "tlc_seconds": "hard external timeout per TLC run",
-    "max_distinct_states": "per component model",
+    "max_distinct_states": "reachable states TLC may find, per component model",
+    "max_state_space_bound": "static declared-representation ceiling; see modular_fuzzing.md",
     "max_internal_cases_per_component": "spec-unit case cap per component",
     "max_external_cases_per_action": "Test Graph case cap per external action",
     "kill_rate_floor": "minimum mutation kill rate",

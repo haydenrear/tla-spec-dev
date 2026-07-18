@@ -1,0 +1,95 @@
+analyze complexity -- TlaSpecDevCli
+  spec:     /Users/hayde/IdeaProjects/wt-28-mf022-gate-recalibration-setup-phase/specs/tickets/MF-022/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-28-mf022-gate-recalibration-setup-phase/specs/tickets/MF-022/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-28-mf022-gate-recalibration-setup-phase/specs/tickets/MF-022/current/spec_manifest.yaml
+
+LEGEND: [MEASURED] parsed from this spec + cfg. [PROJECTED] an estimate that is
+        UNVERIFIED until the transition-level diff is read and TLC is rerun.
+
+[MEASURED] Dimension table
+variable             domain                       cardinality  note
+-------------------  ---------------------------  -----------  ---------------------------------------------------------
+cli_built            BOOLEAN                      2
+cli_installed        BOOLEAN                      2
+spec_root            SpecRoots \cup {NoRoot}      3
+project_scaffolded   BOOLEAN                      2
+budgets_recorded     BOOLEAN                      2
+workflow_scaffolded  BOOLEAN                      2
+active_tickets       SUBSET Tickets               8            powerset of 3 elements
+ticket_phase         [Tickets -> 0..3]            64           4^3 total functions
+closed_tickets       SUBSET Tickets               8            powerset of 3 elements
+lastCommand          (unconstrained)              unknown      unconstrained by TypeInvariant -- excluded from the bound
+result               (unconstrained)              unknown      unconstrained by TypeInvariant -- excluded from the bound
+complexity_gate      {"unknown", "pass", "fail"}  3
+
+[MEASURED] State-space upper bound
+  bound = 1,179,648  (product of 10 bounded dimensions)
+  excluded (unconstrained by TypeInvariant): lastCommand, result
+  dominant dimensions:
+    ticket_phase: 64 (29.7% of the bound in log space)
+    active_tickets: 8 (14.9% of the bound in log space)
+    closed_tickets: 8 (14.9% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+variable             BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  RunSpecUnitTests  CloseTicket
+-------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  ----------------  -----------
+cli_built            rw             r                .                .              .                 .           .                    .                    .                  .                 .
+cli_installed        .              rw               r                r              r                 r           .                    .                    r                  r                 r
+spec_root            .              .                w                r              r                 r           .                    .                    r                  r                 r
+project_scaffolded   .              .                rw               r              r                 .           .                    .                    r                  .                 .
+budgets_recorded     .              .                .                rw             r                 .           .                    .                    r                  .                 .
+workflow_scaffolded  .              .                .                .              rw                r           .                    .                    .                  .                 .
+active_tickets       .              .                .                .              .                 rw          r                    r                    .                  r                 rw
+ticket_phase         .              .                .                .              .                 rw          rw                   rw                   .                  rw                r
+closed_tickets       .              .                .                .              .                 r           .                    .                    .                  .                 rw
+lastCommand          w              w                w                w              w                 w           w                    w                    w                  w                 w
+result               w              w                w                w              w                 w           w                    w                    w                  w                 w
+complexity_gate      .              .                .                .              .                 .           .                    .                    w                  r                 .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.029 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: active_tickets, cli_built, closed_tickets, lastCommand, result, ticket_phase  (6 variables, 11 actions)
+  C2: budgets_recorded, cli_installed, complexity_gate, project_scaffolded, spec_root, workflow_scaffolded  (6 variables, 8 actions)
+  candidate port-crossing actions:
+    AnalyzeComplexity crosses C1, C2
+    CloseTicket crosses C1, C2
+    InstallLocalCli crosses C1, C2
+    OpenTicket crosses C1, C2
+    RecordBudgets crosses C1, C2
+    RunSpecUnitTests crosses C1, C2
+    ScaffoldProject crosses C1, C2
+    ScaffoldWorkflow crosses C1, C2
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+==============================================================================
+SUGGESTED MOVE: ABSTRACT
+RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED
+==============================================================================
+  The representation carries dimensions the reachable state space does not use.
+  [MEASURED] evidence:
+    - latching booleans [cli_built, cli_installed, project_scaffolded, budgets_recorded, workflow_scaffolded] are pinned into a total order by their own action guards, so only 6 of 32 combinations are reachable
+    - no configured invariant reads [lastCommand, result]; Move 1 permits projecting variables no invariant reads
+  [PROJECTED] gain -- UNVERIFIED, requires the transition diff and a TLC rerun:
+    - collapsing [cli_built, cli_installed, project_scaffolded, budgets_recorded, workflow_scaffolded] into one ordinal 0..5 would take the model from 12 to 8 variables and the declared bound from 1,179,648 to 221,184; reachable states should be UNCHANGED -- verify with TLC, and treat a generated-states drop at constant distinct states as a red flag
+    - projecting [lastCommand, result] removes them from the model; legitimate IFF the mutation kill rate holds afterwards (tickets/016)
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY projected reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Budget gate
+  source: /Users/hayde/IdeaProjects/wt-28-mf022-gate-recalibration-setup-phase/specs/tickets/MF-022/current/spec_manifest.yaml
+    max_distinct_states: 50,000
+    max_component_variables: 6
+    max_component_actions: 8
+  VERDICT: FAIL -- budget exceeded:
+    - state-space upper bound 1,179,648 exceeds max_distinct_states 50,000
+    - component C1 is touched by 11 actions, exceeding max_component_actions 8
+  Case generation will refuse to run against this model.
+  Override explicitly with --allow-over-budget once the cost is understood.
