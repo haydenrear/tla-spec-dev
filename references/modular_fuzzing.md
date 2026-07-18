@@ -224,17 +224,53 @@ floor is a real optimization target; either alone invites gaming.
 
 ## Corpus Discipline
 
-Raw TLC edge lists are not a corpus. Distill them:
+Raw TLC edge lists are not a corpus. But the fix is **upstream, in the
+diagram** — not downstream, by deleting cases.
 
-- Stratify: guarantee at least one case per `(action, label class)` using
-  labelers, then fill remaining budget by state-predicate novelty.
-- Cap: respect `max_internal_cases_per_component` and
-  `max_external_cases_per_action`.
-- No silent truncation: record what was dropped and by which rule in the
-  generated manifest.
-- Counterexamples, Hypothesis failures, and production bugs get promoted to
-  named regression traces, exactly as fuzz crashes get minimized into the
-  seed corpus.
+**Amended 2026-07-18 (owner direction).** This section previously said to
+distill the corpus: stratify, cap, and record what was dropped. That is
+withdrawn. Filtering cases to fit a budget under-represents the program,
+which the standing objective in `architecture_tractability.md` forbids
+outright, and the `kill_rate_floor` does not make it safe — the kill test
+only samples for damage at seeded faults, so a dropped case no mutant probes
+is invisible to it. Dropping is also the wrong response to the signal:
+
+- Cases are **never** dropped, filtered, sampled, or truncated to satisfy a
+  budget. Not silently, and not with a recorded drop rule either.
+- Case caps (`max_internal_cases_per_component`,
+  `max_external_cases_per_action`) are **hard gates**, exactly like the
+  state-space bound. Over budget fails and reports; it does not trim.
+- Caps are per-program and negotiable, like every other budget: raise one
+  with a recorded one-line rationale when the program genuinely needs it.
+  That is an explicit, reviewable decision. Silent trimming is not.
+- Labelers survive, repurposed from selection criteria to **diagnostic
+  strata**. Their job is to show the distribution, not to choose survivors.
+
+A lopsided corpus is **evidence about the representation**. If one action
+emits two hundred near-identical cases while another emits two, the model is
+enumerating redundant interleavings — interchangeable values that want
+symmetry reduction, unconstrained orderings that want a state constraint, or
+an action enabled across many equivalent states that wants abstraction. The
+corpus is the symptom; the diagram is the defect. **Write the diagram so the
+redundant cases are never generated in the first place.**
+
+Corpus diagnostics therefore report, on a cap failure: the distribution per
+`(action, label class)`, which strata dominate, which are starved, and what
+varies across the redundant group — so the agent can act on the cause. This
+is the corpus analogue of `analyze complexity`'s suggested move, and it is
+subject to the same rule: recommendations require user approval and are
+never auto-applied.
+
+Counterexamples, Hypothesis failures, and production bugs are still promoted
+to named regression traces, exactly as fuzz crashes get minimized into the
+seed corpus. That part was always right and is unchanged.
+
+The fuzzing analogy has a limit worth naming, since this section was
+originally derived from it: fuzzing distills because its inputs are random
+and its corpus is unbounded, so redundancy is inherent and unfixable. TLC is
+bounded-exhaustive and its output is a function of the diagram you wrote.
+Redundancy there is not inherent — it is a fact about your model, and it is
+fixable at the source.
 
 ## What Belongs In External
 

@@ -198,7 +198,7 @@ planning_rules:
 status:
   workflow: modular-fuzzing-epic
   active_ticket: MF-014
-  active_ticket_title: "Corpus distillation"
+  active_ticket_title: "Corpus diagnostics and hard caps"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -524,22 +524,22 @@ tickets:
         - "Refinement search: recorded one further candidate (collapse active_tickets/closed_tickets/ticket_phase into one per-ticket ordinal, projected bound 221,184 -> 11,664) as a RECOMMENDATION requiring owner approval; NOT applied. lastCommand/result projection remains deferred to MF-016."
 
   - id: MF-014
-    title: "Corpus distillation"
+    title: "Corpus diagnostics and hard caps"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
-    schedule_revision: 3
+    schedule_revision: 4
     depends_on: [MF-012, MF-022]
     blocks: [MF-016]
     wave: 3
     promotion_order: 30
     promotion_predecessor: MF-017
     conflict_keys:
-      production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py]
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py, references/modular_fuzzing.md]
       tla: [TlaSpecDevCli.tla]
       adapters: []
       test_graph: []
       workflow: []
-    objective: "Stratified case selection: at least one case per (action, label class), remaining budget filled by state-predicate novelty, manifest-recorded drops (no silent truncation), named regression traces always retained, caps read from manifest budgets. See tickets/014-corpus-distillation.md."
+    objective: "Corpus diagnostics and HARD CAPS. Cases are never dropped, filtered, sampled, or truncated to fit a budget -- not silently and not with a recorded drop rule. Case caps (max_internal_cases_per_component, max_external_cases_per_action) become hard gates in the same shape as MF-011 state-space bound -- over budget exits nonzero and reports, and caps stay per-program negotiable so raising one with a recorded rationale is the explicit accept path. On failure the diagnostics report the count per (action, label class), which strata dominate, which are starved, and what varies across the redundant group, so the agent can fix the CAUSE. A lopsided corpus is evidence about the representation -- the committed example emits 200 cases for one action and 2 for another, which means the model enumerates redundant interleavings wanting symmetry reduction, a state constraint, or abstraction. The corpus is the symptom; the diagram is the defect. Labelers are retained but repurposed from selection criteria to diagnostic strata. Remediation is a recommendation requiring user approval, never auto-applied. Named regression traces are always retained. SCOPE CHANGE 2026-07-18 by owner direction -- this replaces the former Corpus Distillation scope, which transcribed the modular_fuzzing.md Corpus Discipline section; both were wrong, because filtering to fit a budget under-represents the program and the kill_rate_floor only samples for the damage. references/modular_fuzzing.md is amended in the same change. See tickets/014-corpus-diagnostics-and-caps.md."
     desired_actions:
       - DistillCorpus
     implementation_scope:
@@ -563,9 +563,14 @@ tickets:
         - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
         - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-014
       assertions:
-        - selection covers every (action, label class) before novelty fill.
-        - generated manifest lists every dropped case and the dropping rule.
-        - named regression traces survive caps.
+        - no code path drops, filters, samples, or truncates a case to fit a budget -- not silently and not with a recorded drop rule. A --distill style opt-in filter is also a failure.
+        - max_internal_cases_per_component and max_external_cases_per_action are hard gates read through scripts/budgets.py -- over budget exits nonzero and reports.
+        - raising a cap with a recorded one-line rationale is supported as the explicit accept path.
+        - on cap failure the diagnostics report count per (action, label class), dominant strata, starved strata, and what varies across the redundant group.
+        - labelers are retained as diagnostic strata; no labeler output selects which cases survive.
+        - remediation output is a recommendation requiring user approval, never auto-applied.
+        - named regression traces are always retained.
+        - references/modular_fuzzing.md Corpus Discipline matches what shipped.
       evidence: []
 
   - id: MF-013
