@@ -1,0 +1,721 @@
+{"runId":"specWorkflow-20260718-230806-393656b0","nodes":[{
+  "nodeId": "spec.cli.install",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:06.747895Z",
+  "endedAt": "2026-07-18T23:08:07.068309Z",
+  "assertions": [
+    {
+      "name": "install script succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "tla-spec-dev wrapper exists",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "tla-spec-dev",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev"
+    }
+  ],
+  "processes": [
+    {
+      "label": "install-tla-spec-dev",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/skill-scripts/install-tla-spec-dev.sh"
+      ],
+      "exitCode": 0,
+      "pid": 77143,
+      "log": "node-logs/spec.cli.install.install-tla-spec-dev.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:06.748322Z",
+      "endedAt": "2026-07-18T23:08:07.068131Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 320
+  },
+  "logs": [],
+  "published": {
+    "cliPath": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+    "binDir": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin"
+  }
+,"executorStartedAt":"2026-07-18T23:08:06.704364Z","executorEndedAt":"2026-07-18T23:08:07.075526Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.install.stdout.log","inputContextFile":"context/spec.cli.install.input.json"},{
+  "nodeId": "spec.workflow.cleanup",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:27.211793Z",
+  "endedAt": "2026-07-18T23:08:27.256576Z",
+  "assertions": [
+    {
+      "name": "fixture repo path was published",
+      "status": "passed"
+    },
+    {
+      "name": "fixture repo removed",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [],
+  "metrics": {
+    "removedRepos": 1,
+    "durationMs": 44
+  },
+  "logs": [],
+  "published": {}
+,"executorStartedAt":"2026-07-18T23:08:27.086262Z","executorEndedAt":"2026-07-18T23:08:27.263657Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.cleanup.stdout.log","inputContextFile":"context/spec.workflow.cleanup.input.json"},{
+  "nodeId": "spec.workflow.close",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:08.151926Z",
+  "endedAt": "2026-07-18T23:08:08.435186Z",
+  "assertions": [
+    {
+      "name": "close-ticket succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "active ticket directory removed",
+      "status": "passed"
+    },
+    {
+      "name": "history directory exists",
+      "status": "passed"
+    },
+    {
+      "name": "history contains ticket current",
+      "status": "passed"
+    },
+    {
+      "name": "history contains ticket external view",
+      "status": "passed"
+    },
+    {
+      "name": "project current promoted internal view",
+      "status": "passed"
+    },
+    {
+      "name": "project current promoted external view",
+      "status": "passed"
+    },
+    {
+      "name": "project current promoted Test Graph binding",
+      "status": "passed"
+    },
+    {
+      "name": "project current has spec adapter",
+      "status": "passed"
+    },
+    {
+      "name": "project current has adapter test",
+      "status": "passed"
+    },
+    {
+      "name": "project testgraph bindings merged",
+      "status": "passed"
+    },
+    {
+      "name": "project test_graph sources merged",
+      "status": "passed"
+    },
+    {
+      "name": "history captured result",
+      "status": "passed"
+    },
+    {
+      "name": "manifest records replace promotion",
+      "status": "passed"
+    },
+    {
+      "name": "git-add succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-commit succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-status succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git working tree clean after close commit",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "history-manifest",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/spec-workflow-history-manifest.json"
+    }
+  ],
+  "processes": [
+    {
+      "label": "close-ticket",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+        "--spec-root",
+        "specs",
+        "close",
+        "ticket",
+        "FLOW-1",
+        "--summary",
+        "closed from Test Graph",
+        "--result",
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1/results/tlc.txt"
+      ],
+      "exitCode": 0,
+      "pid": 77186,
+      "log": "node-logs/spec.workflow.close.close-ticket.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:08.152372Z",
+      "endedAt": "2026-07-18T23:08:08.295549Z"
+    },
+    {
+      "label": "git-add",
+      "command": [
+        "git",
+        "add",
+        "."
+      ],
+      "exitCode": 0,
+      "pid": 77190,
+      "log": "node-logs/spec.workflow.close.git-add.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:08.296753Z",
+      "endedAt": "2026-07-18T23:08:08.340089Z"
+    },
+    {
+      "label": "git-commit",
+      "command": [
+        "git",
+        "commit",
+        "-m",
+        "close ticket workflow"
+      ],
+      "exitCode": 0,
+      "pid": 77191,
+      "log": "node-logs/spec.workflow.close.git-commit.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:08.340407Z",
+      "endedAt": "2026-07-18T23:08:08.399308Z"
+    },
+    {
+      "label": "git-status",
+      "command": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exitCode": 0,
+      "pid": 77194,
+      "log": "node-logs/spec.workflow.close.git-status.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:08.399663Z",
+      "endedAt": "2026-07-18T23:08:08.418111Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 283
+  },
+  "logs": [],
+  "published": {
+    "historyDir": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo/specs/.history/desired-ticket-workflow/ticket-000-FLOW-1"
+  }
+,"executorStartedAt":"2026-07-18T23:08:08.105358Z","executorEndedAt":"2026-07-18T23:08:08.442015Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.close.stdout.log","inputContextFile":"context/spec.workflow.close.input.json"},{
+  "nodeId": "spec.workflow.complete",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:07.613263Z",
+  "endedAt": "2026-07-18T23:08:07.697126Z",
+  "assertions": [
+    {
+      "name": "git-add succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-commit succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "ticket plan marked done",
+      "status": "passed"
+    },
+    {
+      "name": "desired internal view updated first-class",
+      "status": "passed"
+    },
+    {
+      "name": "desired external view updated first-class",
+      "status": "passed"
+    },
+    {
+      "name": "new external action mapped for Test Graph",
+      "status": "passed"
+    },
+    {
+      "name": "current matches desired across both views",
+      "status": "passed"
+    },
+    {
+      "name": "ticket spec adapter written",
+      "status": "passed"
+    },
+    {
+      "name": "ticket Test Graph binding written",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "ticket-plan",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo/specs/desired_program_model/ticket_plan.yaml"
+    }
+  ],
+  "processes": [
+    {
+      "label": "git-add",
+      "command": [
+        "git",
+        "add",
+        "."
+      ],
+      "exitCode": 0,
+      "pid": 77173,
+      "log": "node-logs/spec.workflow.complete.git-add.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.616289Z",
+      "endedAt": "2026-07-18T23:08:07.651216Z"
+    },
+    {
+      "label": "git-commit",
+      "command": [
+        "git",
+        "commit",
+        "-m",
+        "complete ticket desired and current"
+      ],
+      "exitCode": 0,
+      "pid": 77174,
+      "log": "node-logs/spec.workflow.complete.git-commit.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.651520Z",
+      "endedAt": "2026-07-18T23:08:07.696506Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 83
+  },
+  "logs": [],
+  "published": {}
+,"executorStartedAt":"2026-07-18T23:08:07.566278Z","executorEndedAt":"2026-07-18T23:08:07.704431Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.complete.stdout.log","inputContextFile":"context/spec.workflow.complete.input.json"},{
+  "nodeId": "spec.workflow.failure_cleanup_probe",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:08.492043Z",
+  "endedAt": "2026-07-18T23:08:27.043611Z",
+  "assertions": [
+    {
+      "name": "probe graph failed as expected",
+      "status": "passed"
+    },
+    {
+      "name": "probe report was written",
+      "status": "passed"
+    },
+    {
+      "name": "repo allocation node passed",
+      "status": "passed"
+    },
+    {
+      "name": "forced downstream failure was captured",
+      "status": "passed"
+    },
+    {
+      "name": "cleanup finalizer ran after failure",
+      "status": "passed"
+    },
+    {
+      "name": "allocated fixture repo removed after failure",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "cleanup-failure-probe-report",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260718-230825-a9dc117b/report.md"
+    },
+    {
+      "type": "cleanup-failure-probe-summary",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260718-230825-a9dc117b/summary.json"
+    },
+    {
+      "type": "cleanup-failure-probe-root",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/cleanup-failure-probe-test-graph"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cleanup-failure-probe",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/cleanup-failure-probe-test-graph/gradlew",
+        "--console=plain",
+        "cleanupFailureProbe"
+      ],
+      "exitCode": 1,
+      "pid": 77201,
+      "log": "node-logs/spec.workflow.failure_cleanup_probe.cleanup-failure-probe.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:08.520699Z",
+      "endedAt": "2026-07-18T23:08:27.043045Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 18551
+  },
+  "logs": [],
+  "published": {}
+,"executorStartedAt":"2026-07-18T23:08:08.442994Z","executorEndedAt":"2026-07-18T23:08:27.085146Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.failure_cleanup_probe.stdout.log","inputContextFile":"context/spec.workflow.failure_cleanup_probe.input.json"},{
+  "nodeId": "spec.workflow.repo",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:07.120562Z",
+  "endedAt": "2026-07-18T23:08:07.227309Z",
+  "assertions": [
+    {
+      "name": "git-init succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-branch succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-email succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-name succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-add succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-commit succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "installed CLI path exists",
+      "status": "passed"
+    },
+    {
+      "name": "fixture repo starts without program model",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "fixture-repo",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo"
+    }
+  ],
+  "processes": [
+    {
+      "label": "git-init",
+      "command": [
+        "git",
+        "init"
+      ],
+      "exitCode": 0,
+      "pid": 77150,
+      "log": "node-logs/spec.workflow.repo.git-init.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.121407Z",
+      "endedAt": "2026-07-18T23:08:07.142994Z"
+    },
+    {
+      "label": "git-branch",
+      "command": [
+        "git",
+        "branch",
+        "-M",
+        "main"
+      ],
+      "exitCode": 0,
+      "pid": 77151,
+      "log": "node-logs/spec.workflow.repo.git-branch.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.143310Z",
+      "endedAt": "2026-07-18T23:08:07.157604Z"
+    },
+    {
+      "label": "git-email",
+      "command": [
+        "git",
+        "config",
+        "user.email",
+        "spec-workflow@example.invalid"
+      ],
+      "exitCode": 0,
+      "pid": 77152,
+      "log": "node-logs/spec.workflow.repo.git-email.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.157951Z",
+      "endedAt": "2026-07-18T23:08:07.171999Z"
+    },
+    {
+      "label": "git-name",
+      "command": [
+        "git",
+        "config",
+        "user.name",
+        "Spec Workflow Test"
+      ],
+      "exitCode": 0,
+      "pid": 77153,
+      "log": "node-logs/spec.workflow.repo.git-name.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.172309Z",
+      "endedAt": "2026-07-18T23:08:07.185675Z"
+    },
+    {
+      "label": "git-add",
+      "command": [
+        "git",
+        "add",
+        "."
+      ],
+      "exitCode": 0,
+      "pid": 77154,
+      "log": "node-logs/spec.workflow.repo.git-add.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.185946Z",
+      "endedAt": "2026-07-18T23:08:07.201016Z"
+    },
+    {
+      "label": "git-commit",
+      "command": [
+        "git",
+        "commit",
+        "-m",
+        "initial program model"
+      ],
+      "exitCode": 0,
+      "pid": 77155,
+      "log": "node-logs/spec.workflow.repo.git-commit.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.201325Z",
+      "endedAt": "2026-07-18T23:08:07.227045Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 106
+  },
+  "logs": [],
+  "published": {
+    "repoPath": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo",
+    "sourceRepo": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state",
+    "ticketId": "FLOW-1",
+    "cliPath": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev"
+  }
+,"executorStartedAt":"2026-07-18T23:08:07.077137Z","executorEndedAt":"2026-07-18T23:08:07.234321Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.repo.stdout.log","inputContextFile":"context/spec.workflow.repo.input.json"},{
+  "nodeId": "spec.workflow.spec_units",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:07.751260Z",
+  "endedAt": "2026-07-18T23:08:08.097767Z",
+  "assertions": [
+    {
+      "name": "cli spec-unit tests succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "spec-unit output names ticket current",
+      "status": "passed"
+    },
+    {
+      "name": "spec-unit output reports pass",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "spec-unit-log",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cli-run-spec-unit-tests",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+        "--spec-root",
+        "specs",
+        "run",
+        "spec-unit-tests",
+        "--ticket",
+        "FLOW-1"
+      ],
+      "exitCode": 0,
+      "pid": 77179,
+      "log": "node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.751680Z",
+      "endedAt": "2026-07-18T23:08:08.097418Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 346
+  },
+  "logs": [],
+  "published": {}
+,"executorStartedAt":"2026-07-18T23:08:07.705535Z","executorEndedAt":"2026-07-18T23:08:08.104348Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.spec_units.stdout.log","inputContextFile":"context/spec.workflow.spec_units.input.json"},{
+  "nodeId": "spec.workflow.start",
+  "status": "passed",
+  "startedAt": "2026-07-18T23:08:07.280188Z",
+  "endedAt": "2026-07-18T23:08:07.558359Z",
+  "assertions": [
+    {
+      "name": "cli-scaffold-project succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "cli-scaffold-workflow succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "cli-open-ticket succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-add succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "git-commit succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "program model scaffolded by CLI with both views",
+      "status": "passed"
+    },
+    {
+      "name": "project workflow scaffolded by CLI",
+      "status": "passed"
+    },
+    {
+      "name": "ticket directory exists",
+      "status": "passed"
+    },
+    {
+      "name": "ticket current + desired carry the whole baseline",
+      "status": "passed"
+    },
+    {
+      "name": "no single-module stand-in left behind",
+      "status": "passed"
+    },
+    {
+      "name": "ticket metadata written",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "ticket-dir",
+      "path": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cli-scaffold-project",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+        "--spec-root",
+        "specs",
+        "scaffold",
+        "project",
+        "--name",
+        "ProgramModel"
+      ],
+      "exitCode": 0,
+      "pid": 77160,
+      "log": "node-logs/spec.workflow.start.cli-scaffold-project.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.280524Z",
+      "endedAt": "2026-07-18T23:08:07.334544Z"
+    },
+    {
+      "label": "cli-scaffold-workflow",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+        "--spec-root",
+        "specs",
+        "scaffold",
+        "workflow",
+        "FLOW-1",
+        "Spec workflow end to end"
+      ],
+      "exitCode": 0,
+      "pid": 77161,
+      "log": "node-logs/spec.workflow.start.cli-scaffold-workflow.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.334829Z",
+      "endedAt": "2026-07-18T23:08:07.403114Z"
+    },
+    {
+      "label": "cli-open-ticket",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/tla-spec-dev-bin/tla-spec-dev",
+        "--spec-root",
+        "specs",
+        "open",
+        "ticket",
+        "FLOW-1"
+      ],
+      "exitCode": 0,
+      "pid": 77162,
+      "log": "node-logs/spec.workflow.start.cli-open-ticket.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.403425Z",
+      "endedAt": "2026-07-18T23:08:07.467737Z"
+    },
+    {
+      "label": "git-add",
+      "command": [
+        "git",
+        "add",
+        "."
+      ],
+      "exitCode": 0,
+      "pid": 77163,
+      "log": "node-logs/spec.workflow.start.git-add.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.468031Z",
+      "endedAt": "2026-07-18T23:08:07.508424Z"
+    },
+    {
+      "label": "git-commit",
+      "command": [
+        "git",
+        "commit",
+        "-m",
+        "start ticket workflow"
+      ],
+      "exitCode": 0,
+      "pid": 77164,
+      "log": "node-logs/spec.workflow.start.git-commit.log",
+      "error": null,
+      "startedAt": "2026-07-18T23:08:07.508753Z",
+      "endedAt": "2026-07-18T23:08:07.556863Z"
+    }
+  ],
+  "metrics": {
+    "baselineFilesMissing": 0,
+    "baselineFilesNotCopiedToTicket": 0,
+    "durationMs": 278
+  },
+  "logs": [],
+  "published": {
+    "ticketDir": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/test_graph/build/validation-reports/specWorkflow-20260718-230806-393656b0/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1"
+  }
+,"executorStartedAt":"2026-07-18T23:08:07.235584Z","executorEndedAt":"2026-07-18T23:08:07.564912Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.workflow.start.stdout.log","inputContextFile":"context/spec.workflow.start.input.json"}]}

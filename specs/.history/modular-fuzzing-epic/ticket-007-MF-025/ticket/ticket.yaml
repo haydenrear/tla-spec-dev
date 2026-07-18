@@ -1,0 +1,112 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-025",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "the three variables are gone and ticket_state carries the lifecycle.",
+        "reachable distinct states remain 9,011 and depth remains 24, matching the MF-014 baseline exactly; the baseline is established on-branch first and divergence in EITHER direction stops the ticket.",
+        "derived operators ActiveTickets and ClosedTickets are defined so every set-valued reader still reads a set; the model reads as a lifecycle, not arithmetic on an integer.",
+        "every invariant and guard has an equivalent over ticket_state, with the before/after mapping enumerated; invariants that become structurally true are RETAINED BY NAME per the MF-020 and MF-022 precedent.",
+        "no adapter references a removed variable.",
+        "if a reachable combination is found that does not fit the six, the ticket STOPS and reports -- that finding means the premise is wrong and the collapse must not proceed.",
+        "the declared bound drop is measured and reported separately from any other change."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-025/current/TlaSpecDevCli.tla specs/tickets/MF-025/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-025"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-015"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/.../production_adapters.py updated to read ticket_state"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [
+        "ticket_state"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-025/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-014"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/38",
+    "id": "MF-025",
+    "implementation_scope": [
+      "specs/program_model/TlaSpecDevCli.tla (variable, guard and invariant rewrite)",
+      "specs/program_model/production_adapters.py (lifecycle-aware adapters)",
+      "specs/current/tests (adapter assertions referencing the removed variables)"
+    ],
+    "objective": "Owner-approved architectural move, third instance of the pattern after MF-020 and MF-022. Replace active_tickets (SUBSET Tickets), closed_tickets (SUBSET Tickets) and ticket_phase ([Tickets -> 0..3]) with a single ticket_state in [Tickets -> 0..5]. These are not independent facts but one per-ticket lifecycle recorded three ways -- 0 unopened, 1..4 active at phases 0..3, 5 closed. VERIFIED against the model before scheduling, which is what makes this a faithful re-representation rather than a packing trick -- OpenTicket guards on the ticket being in neither set so it is never reopened and the lifecycle is monotonic; CloseTicket leaves ticket_phase UNCHANGED so a closed ticket retains phase 3 and there is no closed-with-other-phase state; NoOpenClosedOverlap already forbids being both. Exactly six per-ticket combinations are reachable and they are totally ordered. Declared representation 8 x 8 x 64 = 4,096 becomes 6^3 = 216, a factor of 18.96 derived from the model, projecting bound 663,552 -> ~34,992 which must be MEASURED on-branch not quoted. Scheduled now rather than later because each gate ticket triples the bound and the next one breaches the 1,000,000 budget; the standing objective answers a bad measurement with an architecture change, not a raised budget. See tickets/025-ticket-state-collapse.md.",
+    "promotion_order": 33,
+    "promotion_predecessor": "MF-014",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Collapse the per-ticket lifecycle into one ordinal",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/tickets/MF-025",
+  "ticket_id": "MF-025",
+  "ticket_index": 7,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/tickets"
+}

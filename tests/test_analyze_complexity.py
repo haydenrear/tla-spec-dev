@@ -163,6 +163,13 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     an unrepresented gate is not a gate -- and stays inside
     `max_state_space_bound` 1,000,000.
 
+    MF-025 then collapsed the per-ticket lifecycle -- active_tickets,
+    closed_tickets and ticket_phase -- into `ticket_state \\in [Tickets -> 0..5]`,
+    replacing an 8 * 8 * 64 = 4,096 factor with 6^3 = 216:
+    663,552 / 4096 * 216 = 34,992, a factor of 18.96. Reachable states and
+    depth were measured unchanged at 9,011 and 24 across that change, so the
+    drop is representation, not deleted behavior.
+
     Asserting the current figure AND its relationship to each recorded
     predecessor keeps the calibration meaningful across every promotion.
     """
@@ -171,13 +178,16 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 663_552
-    # Divide out the MF-014 case-cap gate to recover the MF-022 figure...
-    assert result.bound // 3 == 221_184
+    assert result.bound == 34_992
+    # Undo the MF-025 lifecycle collapse to recover the MF-014 figure...
+    pre_mf025 = result.bound // 216 * 4096
+    assert pre_mf025 == 663_552
+    # ...divide out the MF-014 case-cap gate to recover the MF-022 figure...
+    assert pre_mf025 // 3 == 221_184
     # ...undo the MF-022 collapse to recover the MF-011 figure...
-    assert result.bound // 3 // 6 * 32 == 1_179_648
+    assert pre_mf025 // 3 // 6 * 32 == 1_179_648
     # ...and divide out the 3-valued complexity gate for the MF-020 figure.
-    assert (result.bound // 3 // 6 * 32) // 3 == 393_216
+    assert (pre_mf025 // 3 // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
 
@@ -257,12 +267,21 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
         "workflow_scaffolded",
     ):
         assert removed not in result.variables
+    # MF-025: the per-ticket lifecycle is one ordinal now.
+    assert "ticket_state" in result.variables
+    for removed in ("active_tickets", "closed_tickets", "ticket_phase"):
+        assert removed not in result.variables
     # The collapse consumed the chain it was derived from.
     assert not [c for c in result.chains if len(c.members) == 5]
+    # MF-025 later divided the bound by 4096/216 by collapsing the per-ticket
+    # lifecycle, so recover the pre-MF-025 figure before checking the
+    # setup-phase factor. A change to the setup-phase factor itself would
+    # still break this.
+    pre_mf025 = result.bound // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
-    assert result.bound % 221_184 == 0
-    assert result.bound // 221_184 == 3  # corpus_gate, the only later addition
+    assert pre_mf025 % 221_184 == 0
+    assert pre_mf025 // 221_184 == 3  # corpus_gate, the only later addition
 
 
 # ---------------------------------------------------------------------------

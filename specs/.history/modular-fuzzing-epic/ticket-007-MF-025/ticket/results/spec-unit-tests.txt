@@ -1,0 +1,28 @@
+..F........................                                              [100%]
+=================================== FAILURES ===================================
+_____________ test_current_model_carries_the_ticket_state_ordinal ______________
+
+    def test_current_model_carries_the_ticket_state_ordinal() -> None:
+        """MF-025 collapsed the whole per-ticket lifecycle into one ordinal.
+    
+        ``active_tickets``, ``closed_tickets`` and ``ticket_phase`` were not three
+        independent facts but one lifecycle recorded three ways: OpenTicket guarded
+        on the ticket being in neither set (never reopened), CloseTicket left the
+        phase UNCHANGED (a closed ticket retains phase 3), and NoOpenClosedOverlap
+        forbade being both. Exactly six of the 4,096 declared combinations were
+        reachable and they were totally ordered, so ``ticket_state`` represents the
+        reachable set exactly: 0=unopened, 1..4=active at phases 0..3, 5=closed.
+        """
+        model = (SPEC_ROOT / "current/TlaSpecDevCli.tla").read_text(encoding="utf-8")
+    
+>       assert "ticket_state" in model
+E       AssertionError: assert 'ticket_state' in '----------------------------- MODULE TlaSpecDevCli -----------------------------\nEXTENDS Naturals, FiniteSets, TLC\n...\nSpec ==\n  Init /\\ [][Next]_vars\n\n=============================================================================\n'
+
+specs/current/tests/test_current_ticket_workflow.py:60: AssertionError
+=========================== short test summary info ============================
+FAILED specs/current/tests/test_current_ticket_workflow.py::test_current_model_carries_the_ticket_state_ordinal
+1 failed, 26 passed in 7.81s
+spec root: /Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs
+spec-unit target: /Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/current
+spec-unit target: /Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/tickets/MF-025/current
+running pytest:/Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/current: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-38-mf025-ticket-state/specs/current/tests -q
