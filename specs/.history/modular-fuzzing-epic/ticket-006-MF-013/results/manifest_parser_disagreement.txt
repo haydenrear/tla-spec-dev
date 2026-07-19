@@ -1,0 +1,43 @@
+MF-013 evidence: three manifest parsers, three outcomes, identical file.
+
+File: specs/current/spec_manifest.yaml as inherited from the epic tip 1dcce07
+(written by MF-015). Line 76 contains an unquoted block-sequence scalar with a
+colon-space:
+
+  next:
+    - MF-023 (Internal/External decomposition by dogfooding) owns every
+      deferred spec-case run for this ticket: case generation over the
+      reachable state graph, ...
+
+YAML reads "... for this ticket: case generation over the" as a mapping key
+inside a block sequence entry. The file is invalid YAML.
+
+Measured (see the reproducing commands in the close-out):
+
+  extract_spec_manifest.load_manifest : ACCEPTED (returned budgets)
+  budgets.load_budgets                : source = None  -> silent default fallback
+  PyYAML safe_load                    : REJECTED (ScannerError)
+
+Consequences observed in this ticket:
+
+  * analyze complexity printed
+      "warning: no readable spec manifest at .../spec_manifest.yaml;
+       using documented default budgets"
+    on EVERY run, including against the untouched baseline model, so the
+    budget gate was reading defaults rather than the declared manifest for the
+    whole epic. The declared values happen to equal the defaults, so no verdict
+    in this epic was wrong -- but a deliberately raised budget would have been
+    silently ignored, which is the accept path the doctrine depends on.
+
+  * close ticket MF-013 aborted with the ScannerError. That is how the defect
+    was found: MF-013 is the first close to reach the strict parse path.
+
+Repaired in this ticket by quoting the scalar (`- >-`); wording unchanged.
+After repair, analyze complexity reports
+  source: .../specs/current/spec_manifest.yaml
+with no fallback warning, and the budget gate reads the declared values.
+
+This is a RECURRENCE of SF-004 (MF-014), whose recommendation -- treat a
+manifest that exists but cannot be parsed as a hard failure, distinct from a
+manifest that is absent -- was never acted on. The defect regenerated the next
+time someone wrote ordinary English prose containing a colon into the manifest.

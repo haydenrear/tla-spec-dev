@@ -346,3 +346,53 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-013
+
+- close_scope: ticket
+- close_id: MF-013
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-19T18:59:05+00:00
+- summary: Effect conformance harness: declared typed emissions on named ports, sandboxed passive observation, per-case diff. Undeclared observed effect recorded AND FAILS; dead declared surface FAILS; nothing suppresses a gap report (out-of-contract justifications withdrawn 2026-07-18), proven by the inverse test. Spec-case execution deferred to MF-023.
+- feedback_status: items-recorded
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+### SF-007 — three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close
+
+- category: profile-schema-cli
+- target: scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path
+- observed_on: tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)
+- evidence: specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt
+- severity: blocks-migration
+- root_cause: tool
+- surface: every gate that reads spec_manifest.yaml, plus `close ticket`
+- data_loss: no
+- note: RECURRENCE of SF-004. An unquoted block-sequence scalar containing a
+  colon-space ("... for this ticket: case generation over the") made the file
+  invalid YAML. Three parsers, three outcomes on the identical file:
+  `extract_spec_manifest.load_manifest` ACCEPTED it and returned budgets;
+  `budgets.load_budgets` returned source=None and silently fell back to
+  documented defaults, emitting the "no readable spec manifest" warning on
+  every `analyze complexity` run for the whole epic; PyYAML on the close path
+  raised ScannerError and ABORTED `close ticket MF-013`. So "the manifest"
+  meant three different things to three different gates, and the budget gate
+  spent the epic reading defaults rather than the declared file. The declared
+  values equal the defaults here, so no verdict was wrong -- but a deliberately
+  raised budget, which is the doctrine's sanctioned accept path, would have
+  been silently ignored. MF-013 is simply the first close to reach the strict
+  parser.
+- workaround_applied: none — fixed at the source by quoting the scalar (`- >-`),
+  wording unchanged; both ticket-local manifests and the promoted
+  specs/current/spec_manifest.yaml now parse under all three parsers
+- recommendation: SF-004's recommendation, unactioned since MF-014, is what
+  would have prevented this: treat a manifest that EXISTS but cannot be parsed
+  as a hard failure, distinct from one that is ABSENT. Add to that: the
+  repository should have ONE manifest parser. Three parsers with three
+  tolerances mean a file can be simultaneously valid and invalid depending on
+  which gate reads it, and the most permissive one hides the defect from the
+  gates while the strictest one surfaces it only at close. Absorbed into
+  MF-023 with SF-004; not filed as a separate issue because it is the same
+  defect class and splitting it would fragment the fix.
+- status: open

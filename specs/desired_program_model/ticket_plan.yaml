@@ -736,7 +736,7 @@ tickets:
 
   - id: MF-013
     title: "Effect conformance harness"
-    status: pending
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/15"
     schedule_revision: 3
     depends_on: []
@@ -750,7 +750,7 @@ tickets:
       adapters: [specs/program_model/production_adapters.py]
       test_graph: []
       workflow: [actions.yml-effects-schema]
-    objective: "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; undeclared observed effects fail or record representation gaps; declared-never-observed effects reported as dead surface; out-of-contract justifications suppress gaps. See tickets/013-effect-conformance-harness.md."
+    objective: "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; an undeclared observed effect is recorded AND FAILS the run; declared-never-observed effects are dead model surface that must be removed or exercised by a case. Out-of-contract justifications WITHDRAWN 2026-07-18 -- nothing suppresses a gap report. See tickets/013-effect-conformance-harness.md."
     desired_actions:
       - RunEffectConformance
     implementation_scope:
@@ -779,7 +779,16 @@ tickets:
         - undeclared observed effect FAILS -- the gap is recorded AND the run fails; recording is not an alternative to failing.
         - no justification, annotation, or manifest entry suppresses a gap report; a test proves the inverse (a recorded justification does NOT prevent the failure).
         - declared-but-never-observed effects are removed or exercised by a case; prose does not resolve dead model surface.
-      evidence: []
+      evidence:
+        - specs/tickets/MF-013/results/tlc_current.txt
+        - specs/tickets/MF-013/results/complexity_current.txt
+        - specs/tickets/MF-013/results/complexity_delta.md
+        - specs/tickets/MF-013/results/deferred_to_MF023.md
+        - specs/tickets/MF-013/results/repository_unit_tests.txt
+        - specs/tickets/MF-013/results/ticket_spec_unit_tests.txt
+        - specs/tickets/MF-013/results/effect_conformance_declared.json
+        - specs/tickets/MF-013/results/specWorkflow-report
+        - specs/tickets/MF-013/results/cliWorkflow-report
 
   - id: MF-025
     title: "Collapse the per-ticket lifecycle into one ordinal"

@@ -21,10 +21,22 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .effect_conformance import (
+        EffectDeclarationError,
+        EffectSandbox,
+        diff_effects,
+        load_effect_declarations,
+    )
     from .extract_spec_manifest import load_manifest
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
     from .testgraph_channels import ChannelEnforcementError, enforce_external_bindings
 except ImportError:  # pragma: no cover - direct script execution
+    from effect_conformance import (
+        EffectDeclarationError,
+        EffectSandbox,
+        diff_effects,
+        load_effect_declarations,
+    )
     from extract_spec_manifest import load_manifest
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
     from testgraph_channels import ChannelEnforcementError, enforce_external_bindings
@@ -642,15 +654,55 @@ def generate_programs(
     return programs
 
 
+class _null_context:
+    """No-op context used when effect conformance has nothing declared to check."""
+
+    def __enter__(self) -> None:
+        return None
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        return None
+
+
+def load_effect_declarations_for_spec(spec_dir: Path | None):
+    """Read the ``effects:`` block from ``actions.yml`` or the manifest.
+
+    ``actions.yml`` wins when it declares effects, because that is where the
+    per-action surface lives; the manifest is the fallback home for
+    repositories that keep one file. Absence of any declaration is not an
+    error -- a program with no declared ports is checked as such, and any
+    effect it emits is a gap.
+    """
+    from effect_conformance import load_effect_declarations as _load
+
+    if spec_dir is None:
+        return _load(None)
+    for candidate in ("actions.yml", "spec_manifest.yaml"):
+        path = spec_dir / candidate
+        if not path.exists():
+            continue
+        data = load_manifest(path)
+        if isinstance(data, dict) and data.get("effects"):
+            return _load(data)
+    return _load(None)
+
+
 def execute_cases_in_batch(
     *,
     cases: list[Any],
     mappings: dict[str, AdapterMapping],
     work_dir: Path,
     import_roots: list[Path],
+    declarations: Any = None,
+    effect_report_path: Path | None = None,
 ) -> None:
     ensure_import_roots(import_roots)
     from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, assert_case_result, call_adapter, instantiate, load_object
+    from effect_conformance import EffectRecorder, EffectSandbox
+
+    effects_active = declarations is not None and bool(declarations.ports)
+    recorder = EffectRecorder()
+    observed_case_actions: dict[str, str] = {}
 
     failures: list[str] = []
     adapter_cache: dict[str, Any] = {}
@@ -717,23 +769,41 @@ def execute_cases_in_batch(
                             projector_cache[mapping.output_projection] = projector
                     case_work_dir = work_dir / "case-work" / case.name
                     case_work_dir.mkdir(parents=True, exist_ok=True)
+                    sandbox = (
+                        EffectSandbox(root=case_work_dir / "sandbox", recorder=recorder)
+                        if effects_active
+                        else None
+                    )
                     case_context = AdapterCaseContext(
                         kind=kind,
                         case=case,
                         work_dir=case_work_dir,
                         mapping=mapping,
                         shared=shared,
+                        sandbox=sandbox,
                     )
+                    observed_case_actions[case.name] = mapping.label
+                    # MF-013: the sandbox is entered around the adapter's own
+                    # setup/run/teardown. Everything the adapter causes to cross
+                    # a boundary in that window is recorded, whether or not the
+                    # adapter knows it is being watched.
+                    effect_scope = (
+                        sandbox.observe(action=mapping.label, case=case.name)
+                        if sandbox is not None
+                        else _null_context()
+                    )
+                    sandbox_scope = sandbox if sandbox is not None else _null_context()
                     try:
-                        if adapter is not None:
-                            call_optional_hook(adapter, "setup", case_context)
-                            case_context.result = call_adapter(adapter, case, case_work_dir)
-                            assert_case_result(
-                                case=case,
-                                result=case_context.result,
-                                projector=projector,
-                            )
-                        assert_projected_state_if_configured(case_context, mapping, object_cache)
+                        with sandbox_scope, effect_scope:
+                            if adapter is not None:
+                                call_optional_hook(adapter, "setup", case_context)
+                                case_context.result = call_adapter(adapter, case, case_work_dir)
+                                assert_case_result(
+                                    case=case,
+                                    result=case_context.result,
+                                    projector=projector,
+                                )
+                            assert_projected_state_if_configured(case_context, mapping, object_cache)
                     except Exception as exc:
                         case_context.error = exc
                         failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
@@ -759,6 +829,27 @@ def execute_cases_in_batch(
                     )
                 except Exception as exc:
                     failures.append(f"{kind} teardown_all via {mapping.label}: {type(exc).__name__}: {exc}")
+
+    # MF-013: effect conformance. The report is written unconditionally -- it is
+    # ticket evidence whether the verdict is clean or not -- and every finding
+    # is appended to `failures`, so a gap or a dead port fails the run exactly
+    # like a broken assertion. Nothing between here and the raise consults a
+    # justification, an annotation, or a manifest entry: recording a finding is
+    # not an alternative to failing on it.
+    if effects_active:
+        report = diff_effects(
+            declarations,
+            recorder.effects,
+            cases=[case.name for case in cases],
+            case_actions=observed_case_actions,
+        )
+        if effect_report_path is not None:
+            written = report.write(effect_report_path)
+            print(f"wrote effect conformance report to {written}")
+        print(report.render())
+        if not report.ok:
+            failures.append(f"effect conformance {report.verdict}:\n{report.render()}")
+
     if failures:
         details = "\n".join(failures[:50])
         suffix = f"\n... and {len(failures) - 50} more" if len(failures) > 50 else ""
@@ -816,6 +907,11 @@ def main() -> int:
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
     parser.add_argument("--batch", action="store_true", help="Execute selected cases in this process instead of one generated program per case")
+    parser.add_argument(
+        "--effect-report",
+        type=Path,
+        help="Write the MF-013 effect conformance diff report (JSON) to this path.",
+    )
     args = parser.parse_args()
 
     spec_dir = infer_spec_dir(args.cases_dir, args.mapping, args.spec_dir)
@@ -856,11 +952,17 @@ def main() -> int:
     print(f"validated {len(mappings)} adapter mappings for {len(case_labels(cases))} labels")
     if args.batch:
         if not args.validate_only:
+            try:
+                declarations = load_effect_declarations_for_spec(spec_dir)
+            except EffectDeclarationError as exc:
+                raise SystemExit(f"ERROR: malformed effect declarations: {exc}")
             execute_cases_in_batch(
                 cases=runnable_cases,
                 mappings=mappings,
                 work_dir=work_dir,
                 import_roots=default_import_roots,
+                declarations=declarations,
+                effect_report_path=args.effect_report,
             )
             print(f"executed {len(runnable_cases)} cases in batch")
     else:

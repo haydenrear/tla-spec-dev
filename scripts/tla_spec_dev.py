@@ -149,6 +149,18 @@ def run_analyze_corpus(args: argparse.Namespace) -> int:
     return corpus_diagnostics.run(args)
 
 
+def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
+    """MF-013: report the declared-vs-observed effect diff.
+
+    Exits nonzero on any finding. A gap and dead model surface are both
+    failures -- the report is written either way, because recording a finding
+    is evidence, never a substitute for failing on it.
+    """
+    from scripts import effect_conformance_report
+
+    return effect_conformance_report.run(args)
+
+
 def run_close_ticket(args: argparse.Namespace) -> int:
     from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
 
@@ -477,6 +489,33 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_spec_unit_tests,
         command_path="tla-spec-dev run spec-unit-tests",
         next_step="tla-spec-dev close ticket <ticket>",
+    )
+
+    run_effects = run_sub.add_parser(
+        "effect-conformance",
+        help="Diff observed adapter side effects against declared effect ports.",
+        description=(
+            "Execute component adapters in a sandbox (temp dirs, fake transports, recorded "
+            "boundaries), collect the side effects that actually crossed a boundary, and diff "
+            "them against the ports declared in actions.yml / spec_manifest.yaml. "
+            "An observed effect with no declared port is a GAP; a declared port no case "
+            "exercises is DEAD MODEL SURFACE. Both are recorded AND fail the command. "
+            "Nothing suppresses a gap report -- there is no justification, waiver, or "
+            "override flag, and out-of-contract justifications were withdrawn 2026-07-18."
+        ),
+        allow_abbrev=False,
+    )
+    run_effects.add_argument("--ticket", help="Use this ticket's current/ spec directory.")
+    run_effects.add_argument("--target", type=Path, help="Explicit spec directory carrying the effect declarations.")
+    run_effects.add_argument("--cases-dir", action="append", help="Generated spec-unit case package directory.")
+    run_effects.add_argument("--mapping", type=Path, help="Adapter mapping TOML/YAML. Defaults to target case_adapters.toml.")
+    run_effects.add_argument("--work-dir", type=Path, help="Work directory for sandboxed adapter execution.")
+    run_effects.add_argument("--out", type=Path, help="Write the JSON diff report here (ticket results/ evidence).")
+    run_effects.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+    run_effects.set_defaults(
+        func=run_effect_conformance_cmd,
+        command_path="tla-spec-dev run effect-conformance",
+        next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
     )
 
     analyze_parser = subparsers.add_parser(
