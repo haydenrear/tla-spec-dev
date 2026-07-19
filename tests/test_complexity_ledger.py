@@ -639,3 +639,100 @@ class TestReproducesTheElevenManualLedgers:
         verdict = evaluate(metrics(), previous(), make_input(narrative=narrative))
         assert not verdict.rejected
         assert verdict.entry["narrative"] == narrative
+
+
+# ---------------------------------------------------------------------------
+# MF-026 -- the coverage audit gate recorded in the ledger
+# ---------------------------------------------------------------------------
+
+
+def evaluate_scoped(scope, ledger_input, current=None, prev=None):
+    return cl.evaluate(
+        scope=scope,
+        scope_id="MF-TEST" if scope == "ticket" else "wf",
+        workflow="wf",
+        metrics=current if current is not None else metrics(),
+        ledger_input=ledger_input,
+        previous=prev if prev is not None else previous(),
+    )
+
+
+class TestCoverageAuditIsAlwaysVisible:
+    """MF-026. The four oracles check FIDELITY and are all bounded to what is
+    modeled. Unmodeled surface is invisible to every one of them while they
+    report green, so the completeness verdict is recorded separately -- and,
+    critically, recorded even when it is absent."""
+
+    def test_absent_block_is_recorded_as_not_run_never_omitted(self):
+        """An omitted block is not forgiven into a pass. It becomes a visible
+        `not_run`, which is the whole point: an epic that skipped the audit must
+        be legible from the ledger alone."""
+        verdict = evaluate_scoped("ticket", make_input())
+        assert verdict.entry["coverage_audit"]["status"] == "not_run"
+        assert verdict.entry["coverage_audit"]["passing"] is False
+        assert "coverage audit" in cl.render_report(verdict)
+
+    def test_not_run_is_reported_but_does_not_refuse_a_ticket_close(self):
+        """The audit is an END-OF-EPIC step. Failing it at every ticket close
+        would force each ticket to run a whole-epic audit or to fake a verdict;
+        both are worse than recording the absence."""
+        verdict = evaluate_scoped("ticket", make_input())
+        assert not verdict.rejected
+        assert any("end-of-epic" in note for note in verdict.notes)
+
+    def test_not_run_REFUSES_the_workflow_close(self):
+        """At workflow close the epic is over and there is no later chance. A
+        check that silently passes when its input is absent is not a check."""
+        verdict = evaluate_scoped("workflow", make_input())
+        assert verdict.rejected
+        assert any("coverage audit" in e for e in verdict.errors)
+
+    def test_fail_refuses_the_workflow_close(self):
+        payload = make_input(coverage_audit={"status": "fail", "in_scope_gaps": 3})
+        assert evaluate_scoped("workflow", payload).rejected
+
+    def test_incomplete_IS_NOT_pass(self):
+        """MF-027's polarity lesson, applied one level up: a sweep that did not
+        walk the surface carries no information about it. Promoting that to a
+        pass would dress an absence of evidence as a measurement."""
+        payload = make_input(coverage_audit={"status": "incomplete"})
+        assert not cl.parse_coverage_audit(payload["coverage_audit"]).passing
+        assert evaluate_scoped("workflow", payload).rejected
+
+    def test_pass_allows_the_workflow_close_and_records_the_report_path(self):
+        payload = make_input(
+            coverage_audit={
+                "status": "pass",
+                "report": "results/coverage_audit_report.md",
+                "in_scope_gaps": 0,
+                "scope_source": "ticket_plan.yaml:449-464",
+            }
+        )
+        verdict = evaluate_scoped("workflow", payload)
+        assert not verdict.rejected
+        assert verdict.entry["coverage_audit"]["report"] == "results/coverage_audit_report.md"
+        assert "results/coverage_audit_report.md" in cl.render_report(verdict)
+
+    def test_unrecognized_verdict_never_passes(self):
+        """Same polarity as the retention set: a status nobody enumerated
+        refuses rather than silently passing. `justified` and `accept_as_is`
+        are exactly the dispositions the prompt forbids -- neither becomes a
+        pass by being written into the ledger instead."""
+        for bogus in ("justified", "accept_as_is", "waived", "approved", "green", "ok"):
+            record = cl.parse_coverage_audit({"status": bogus})
+            assert record.normalized == "not_run", bogus
+            assert not record.passing, bogus
+            assert evaluate_scoped("workflow", make_input(coverage_audit={"status": bogus})).rejected
+
+    def test_template_sentinel_does_not_pass(self):
+        payload = make_input(coverage_audit={"status": "TODO", "report": "TODO"})
+        record = cl.parse_coverage_audit(payload["coverage_audit"])
+        assert not record.passing
+        assert record.report == ""
+
+    def test_scaffolded_template_carries_the_block_defaulted_to_not_run(self):
+        """`open ticket` must scaffold the block, or the first thing every
+        ticket does is omit it."""
+        assert "coverage_audit:" in cl.TEMPLATE
+        parsed = cl._load_structured(cl.TEMPLATE)
+        assert cl.parse_coverage_audit(parsed["coverage_audit"]).normalized == "not_run"

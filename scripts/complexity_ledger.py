@@ -108,6 +108,27 @@ DEGRADED_VERDICTS = {
 
 UNVERIFIED_VERDICTS = {"unknown", "deferred", "not_run", "n/a", "na", ""}
 
+# MF-026 -- the coverage audit gate. The four oracles check FIDELITY of what is
+# modeled; the coverage audit checks COMPLETENESS. Neither implies the other, so
+# the ledger records the audit verdict separately from the retention set.
+#
+# Recorded at EVERY close, including ticket closes where the audit has not run.
+# That is the point: the audit is an end-of-epic step, so most ticket closes
+# legitimately carry `not_run` -- but an epic that reached its workflow close
+# without ever running it must be VISIBLE rather than silent. Omitting the block
+# is never treated as passing.
+COVERAGE_AUDIT_VERDICTS = {
+    "pass": "no in-scope gaps",
+    "fail": "in-scope gaps -- model it or change the program",
+    "incomplete": "surface not fully walked -- NOT a pass",
+    "not_run": "audit has not been run for this scope",
+}
+
+# Only `pass` is a pass. `incomplete` sits with `fail` deliberately: a sweep that
+# did not walk the surface carries no information about it, and promoting that to
+# a pass would dress an absence of evidence as a measurement (MF-027's lesson).
+COVERAGE_AUDIT_PASSING = {"pass"}
+
 # Sentinel the scaffolded template carries. It must fail every gate it touches,
 # so an unfilled template can never be closed through.
 TEMPLATE_SENTINEL = "TODO"
@@ -187,6 +208,35 @@ class RefinementRecord:
     @property
     def none(self) -> bool:
         return str(self.outcome or "").strip().lower() == "none"
+
+
+@dataclass
+class CoverageAuditRecord:
+    """MF-026 -- the completeness gate's verdict, recorded at every close.
+
+    Absence is recorded as ``not_run`` rather than dropped. A missing block is
+    not an omission the ledger forgives; it is the visible fact that the epic
+    has not yet run the audit.
+    """
+
+    status: str = "not_run"
+    report: str = ""
+    in_scope_gaps: Any = None
+    scope_source: str = ""
+
+    @property
+    def normalized(self) -> str:
+        value = str(self.status or "").strip().lower()
+        return value if value in COVERAGE_AUDIT_VERDICTS else "not_run"
+
+    @property
+    def passing(self) -> bool:
+        return self.normalized in COVERAGE_AUDIT_PASSING
+
+    def describe(self) -> str:
+        note = COVERAGE_AUDIT_VERDICTS[self.normalized]
+        flag = "" if self.passing else "  <-- does not pass"
+        return f"coverage_audit={self.normalized} ({note}){flag}"
 
 
 @dataclass
@@ -436,6 +486,30 @@ def parse_refinement(raw: dict[str, Any] | None) -> RefinementRecord:
     )
 
 
+def parse_coverage_audit(raw: dict[str, Any] | None) -> CoverageAuditRecord:
+    """An absent or template-sentinel block becomes an explicit ``not_run``.
+
+    Never a missing key, and never an assumed pass -- same polarity as the
+    retention set: the verdict is granted only on positive evidence.
+    """
+    raw = raw if isinstance(raw, dict) else {}
+    status = str(raw.get("status", "") or "").strip()
+    if TEMPLATE_SENTINEL in status:
+        status = ""
+    report = str(raw.get("report", "") or "")
+    if TEMPLATE_SENTINEL in report:
+        report = ""
+    scope_source = str(raw.get("scope_source", "") or "")
+    if TEMPLATE_SENTINEL in scope_source:
+        scope_source = ""
+    return CoverageAuditRecord(
+        status=status or "not_run",
+        report=report,
+        in_scope_gaps=raw.get("in_scope_gaps"),
+        scope_source=scope_source,
+    )
+
+
 def load_input(path: Path) -> dict[str, Any]:
     path = Path(path)
     if not path.exists():
@@ -472,6 +546,7 @@ def evaluate(
     direction = delta["direction"]
     retention = parse_retention(ledger_input.get("retention"))
     refinement = parse_refinement(ledger_input.get("refinement"))
+    coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
     justification = str(ledger_input.get("justification", "") or "").strip()
     if TEMPLATE_SENTINEL in justification:
         justification = ""
@@ -575,7 +650,41 @@ def evaluate(
             "never auto-applied."
         )
 
-    # ---- Gate 6: the narrative is required ---------------------------------
+    # ---- Gate 6: the coverage audit (MF-026) -------------------------------
+    # Scope-sensitive by design, and the asymmetry is deliberate.
+    #
+    # The audit is an END-OF-EPIC step -- it runs after every mechanism ticket
+    # has landed and before final integration. So a ticket close carrying
+    # `not_run` is the normal, correct case, and failing it there would force
+    # every ticket to run a whole-epic audit or to fake a verdict. Both are
+    # worse than recording the absence.
+    #
+    # At WORKFLOW close the epic is over, and there is no later opportunity. A
+    # missing or failing audit refuses, exactly like every other gate here: a
+    # check that silently passes when its input is absent is not a check.
+    #
+    # `incomplete` refuses alongside `fail`. A sweep that did not walk the
+    # surface carries no information about it; promoting that to a pass would
+    # dress an absence of evidence as a measurement.
+    if scope == "workflow" and not coverage_audit.passing:
+        errors.append(
+            "REJECTED -- coverage audit (MF-026) verdict is "
+            f"`{coverage_audit.normalized}`: {COVERAGE_AUDIT_VERDICTS[coverage_audit.normalized]}. "
+            "The four oracles check FIDELITY of what is modeled and are all bounded to "
+            "it; unmodeled surface is invisible to every one of them while they report "
+            "green. Run `prompts/coverage_audit.md` and record `coverage_audit.status: "
+            "pass` with its report path. In-scope gaps are closed by modeling them or "
+            "changing the program -- there is no justified/accept-as-is disposition."
+        )
+    elif not coverage_audit.passing:
+        # Recorded and printed, never silently dropped: an epic that never ran
+        # the audit must be legible from the ledger alone.
+        notes.append(
+            f"coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
+            "MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+        )
+
+    # ---- Gate 7: the narrative is required ---------------------------------
     # The machine-checked core is narrow by design; the narrative is where the
     # ledger actually says what happened. Requiring it is what keeps the
     # mechanization from silently narrowing the record.
@@ -616,6 +725,13 @@ def evaluate(
             "measured": refinement.measured,
             "applied": refinement.applied,
             "approved_by": refinement.approved_by,
+        },
+        "coverage_audit": {
+            "status": coverage_audit.normalized,
+            "passing": coverage_audit.passing,
+            "report": coverage_audit.report,
+            "in_scope_gaps": coverage_audit.in_scope_gaps,
+            "scope_source": coverage_audit.scope_source,
         },
         "transition_diff": transition_diff,
         "narrative": narrative,
@@ -673,6 +789,16 @@ def render_report(verdict: LedgerVerdict) -> str:
     else:
         lines.append("  refinement: (missing)")
 
+    # Completeness is printed next to fidelity, always -- including `not_run`.
+    # The four oracles above are all bounded to what is modeled; this line is
+    # the only one that speaks to what is not.
+    audit = entry.get("coverage_audit") or {}
+    audit_status = audit.get("status", "not_run")
+    audit_flag = "" if audit.get("passing") else "  <-- does not pass"
+    lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
+    if audit.get("report"):
+        lines.append(f"            report: {audit['report']}")
+
     for note in entry.get("notes", []):
         lines.append(f"  note:     {note}")
     if verdict.rejected:
@@ -715,6 +841,25 @@ retention:
   external_coverage:
     status: "TODO"
     evidence: "TODO -- path to the external coverage report"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
 
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the

@@ -88,6 +88,138 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-026",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-19T23:36:50.109594+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/tickets/MF-026/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-019",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": 231621,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": 5619356,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 25,
+            "after": 25,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=deferred (UNVERIFIED)",
+        "effect_conformance=deferred (UNVERIFIED)",
+        "external_coverage=deferred (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "`analyze complexity` (results/analyze-complexity.txt) surfaces the standing ABSTRACT recommendation: no configured invariant reads [lastCommand, result], so Move 1 permits projecting both out of the model. NOT APPLIED, for two independent reasons. (1) The gain is [PROJECTED] and explicitly UNVERIFIED; the analyzer itself requires a transition-level diff plus a TLC rerun before any projected reduction may be recorded as a result -- MF-020 withdrew a projected -13.1% for exactly this reason, having found it required deleting a legitimate idempotent re-fire transition that the distinct-state gate was structurally blind to. (2) Legitimacy is conditional on the mutation kill rate holding afterwards (MF-016), and spec-case execution is deferred epic-wide to MF-023 -- the evidence that would license the projection is precisely the evidence this epic has not yet produced. Applying an advisory recommendation on projected figures, without kill-test evidence, inside a ticket whose model delta is required to be zero, would be three violations at once. The recommendation stands for MF-023, which re-runs it post-decomposition.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "incomplete",
+        "passing": false,
+        "report": "results/coverage_audit_report.md",
+        "in_scope_gaps": 19,
+        "scope_source": "specs/desired_program_model/ticket_plan.yaml:449-464 (service_catalog) + 15 implementation_scope blocks; READ from the plan, not chosen -- 145 of 160 rows escalated for want of a closure rule"
+      },
+      "transition_diff": "",
+      "narrative": "results/complexity-ledger.md",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (incomplete) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

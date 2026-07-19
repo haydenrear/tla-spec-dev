@@ -1,0 +1,100 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+#
+# Recorded as `deferred` -- NOT as passing. Spec-case execution is deferred
+# epic-wide to MF-023 (#30), so none of the three was measured for this ticket.
+# Per MF-027's polarity rule and Gate 3 above, absent evidence is not passing
+# evidence and `deferred` classifies as UNVERIFIED.
+#
+# That is sound here ONLY because the delta is ZERO. Gates 2 and 3 reject
+# unverified retention when complexity DECREASED, precisely because a reduction
+# can be bought by deleting behavior. This ticket claims no reduction -- 9
+# variables, bound 699,840, 231,621 distinct states, all identical to the epic
+# tip -- so there is nothing for retention evidence to license. Had it claimed
+# any reduction, `deferred` would have refused this close, correctly.
+retention:
+  kill_rate:
+    status: "deferred"
+    evidence: "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026"
+  effect_conformance:
+    status: "deferred"
+    evidence: "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026"
+  external_coverage:
+    status: "deferred"
+    evidence: "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026"
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "found"
+  detail: >-
+    `analyze complexity` (results/analyze-complexity.txt) surfaces the standing
+    ABSTRACT recommendation: no configured invariant reads [lastCommand, result],
+    so Move 1 permits projecting both out of the model. NOT APPLIED, for two
+    independent reasons. (1) The gain is [PROJECTED] and explicitly UNVERIFIED;
+    the analyzer itself requires a transition-level diff plus a TLC rerun before
+    any projected reduction may be recorded as a result -- MF-020 withdrew a
+    projected -13.1% for exactly this reason, having found it required deleting a
+    legitimate idempotent re-fire transition that the distinct-state gate was
+    structurally blind to. (2) Legitimacy is conditional on the mutation kill
+    rate holding afterwards (MF-016), and spec-case execution is deferred
+    epic-wide to MF-023 -- the evidence that would license the projection is
+    precisely the evidence this epic has not yet produced. Applying an advisory
+    recommendation on projected figures, without kill-test evidence, inside a
+    ticket whose model delta is required to be zero, would be three violations at
+    once. The recommendation stands for MF-023, which re-runs it post-decomposition.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Coverage audit -- MF-026, the completeness gate this ticket ships. Verdict
+# emitted by the audit run itself (results/coverage_audit_ledger_block.yaml).
+#
+# `incomplete` is NOT a pass. Recorded honestly rather than rounded up: 19
+# in-scope gaps would independently be a FAIL, but FAIL asserts the surface was
+# walked, and three sweep categories (225 + 196 + 314 raw rows) were not
+# enumerated at the mandated granularity while 145 of 160 Sweep-1 rows could not
+# be classified against an inclusion-only plan scope with no closure rule.
+#
+# This does not refuse the TICKET close -- the audit is an end-of-epic gate and
+# `not_run`/`incomplete` is expected here. It DOES refuse the WORKFLOW close,
+# which is exactly where it should bite: the 19 gaps gate the epic's promotion,
+# and G13/G14 (neither view exists) are MF-023's charter.
+coverage_audit:
+  status: "incomplete"
+  report: "results/coverage_audit_report.md"
+  in_scope_gaps: 19
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:449-464 (service_catalog) + 15 implementation_scope blocks; READ from the plan, not chosen -- 145 of 160 rows escalated for want of a closure rule"
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "results/complexity-ledger.md"

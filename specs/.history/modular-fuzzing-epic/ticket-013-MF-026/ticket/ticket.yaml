@@ -1,0 +1,113 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-026",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        {
+          "the prompt requires four complete enumeration sweeps -- program surface, effect sites by category, behaviors including error paths and retries and timeouts and fallbacks and concurrency and config branches, and both views -- each a table with a per-row verdict and file": "line evidence."
+        },
+        "the prompt explicitly FORBIDS a justified or accept-as-is disposition for an in-scope gap; the only dispositions are model it, change the program, or (out of scope) inventory it.",
+        "the prompt requires the epic declared scope to be READ FROM THE PLAN, not chosen by the auditing agent -- an agent that picks its own scope can define every gap out of existence.",
+        "Internal and External are reported separately; a single merged verdict is not acceptable.",
+        "the report is emitted as ticket evidence and recorded in the MF-019 complexity ledger, so an epic that skipped the audit is visible.",
+        "a worked example run against this repository is included as evidence; a prompt nobody has executed is unvalidated.",
+        "if the worked example shows the agent skipping surface or producing impressionistic findings, that is REPORTED as a finding about the prompt rather than smoothed over, with a follow-up ticket for a mechanical inventory as the honest outcome."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-026"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "coverage-audit-prompt"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-013",
+      "MF-015",
+      "MF-016",
+      "MF-019"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/41",
+    "id": "MF-026",
+    "implementation_scope": [
+      "a checked-in sub-agent prompt and report template",
+      "SKILL.md and epic doctrine updated with the required end-of-epic ordering",
+      "worked example run against this repository, included as evidence"
+    ],
+    "objective": "An end-of-epic sub-agent procedure that finds what the model DOES NOT REPRESENT, gating promotion on closing the in-scope gaps. Fills a structural hole -- all four oracles are bounded to what is already modeled (output and projected-state conformance to cases that exist, effect conformance to a corpus generated FROM the model, and the kill test to faults seeded one per port and one per invariant, i.e. modeled boundaries only), so unmodeled program surface is never generated into a case, never adapted, never mutated, and is invisible to every gate while all of them report green. The oracles check FIDELITY of what is modeled; this checks COMPLETENESS. Coverage appears in the doctrine only as an assertion and is measured nowhere. Deliverable is prompt-only by owner decision, so the prompt itself must impose completeness discipline through required enumeration tables with per-row verdicts and file:line evidence, across four sweeps -- program surface, effect sites by category, behaviors (error paths, retries, timeouts, fallbacks, concurrency, config branches), and both Internal and External views reported separately. GATE SEMANTICS -- in-scope gaps are HARD (model it or change the program, per the fourth governing rule), out-of-scope surface is inventoried without gating, and the scope is declared once in the plan and reviewed once rather than waived per finding. That distinction is the design -- a gate whose findings can each be closed by a recorded justification is the out-of-contract suppression purged from MF-013 rebuilt one level up. Remediation is advisory; the existence of an in-scope gap is not. See tickets/026-coverage-audit-gate.md.",
+    "promotion_order": 82,
+    "promotion_predecessor": "MF-019",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Coverage audit gate",
+    "wave": 9
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/tickets/MF-026",
+  "ticket_id": "MF-026",
+  "ticket_index": 13,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/tickets"
+}

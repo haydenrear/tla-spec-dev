@@ -199,6 +199,16 @@ Every fuzzed case is checked against up to four oracles. The first two
 exist today; the third and fourth are what make a representation's quality
 falsifiable.
 
+**All four are bounded to what is already modeled**, and that bound is
+structural rather than incidental: output and projected-state conformance check
+cases that exist, effect conformance checks a corpus generated *from the model*,
+and the kill test seeds faults one per port and one per invariant — modeled
+boundaries only. Unmodeled surface is never generated into a case, never
+adapted, never mutated. **A subsystem with no representation is invisible to all
+four while all four report green.** These oracles measure FIDELITY.
+COMPLETENESS is measured by the coverage audit gate, below; neither implies the
+other.
+
 1. Output conformance: the real component's normalized output equals the
    spec double's output for the same `(state, input)`.
 2. Projected-state conformance: the real system's observed state projects
@@ -377,6 +387,46 @@ mutant, and under the MF-027 effect oracle a `process.spawn` is `unobservable`
 even when a declared port matches it. The kill test must therefore run OUTSIDE
 the effect sandbox here. Neither oracle is relaxed to resolve this; see
 `specs/tickets/MF-016/results/DEFERRED-TO-MF-023.md`.
+
+## The Coverage Audit Gate — required at the end of every epic
+
+The four oracles above cannot see what the model does not represent. The
+coverage audit closes that hole, and it is **a required end-of-epic step**, not
+an optional review.
+
+**Ordering, and it is load-bearing in both directions:**
+
+> **after every mechanism ticket has landed, and before final end-to-end
+> integration.**
+
+*After the mechanisms*, because the audit measures the model as the epic
+actually leaves it — run earlier it reports gaps that later tickets were always
+going to close. *Before final integration*, because it is a **promotion gate**;
+an audit run after integration is a report, not a gate.
+
+The procedure is a sub-agent prompt, `prompts/coverage_audit.md`, filling
+`templates/coverage_audit_report.md`. It requires four sweeps — program surface,
+effects enumerated **by category**, behaviors (error paths, retries, timeouts,
+fallbacks, concurrency, config branches), and Internal/External reported
+**separately** — each as a table whose row set is produced by a recorded
+enumeration command, with every row dispositioned and carrying `file:line`
+evidence.
+
+**Gate semantics.** In-scope gaps are HARD: per the fourth governing rule, model
+it or change the program, and there is no third option. Out-of-scope surface is
+inventoried and does not gate. **The scope is declared once, in the plan, and
+reviewed once — never waived per finding.** A gate whose findings can each be
+closed by a recorded justification is the out-of-contract suppression purged
+from MF-013, rebuilt one level up; one reviewable boundary decision is a
+boundary, N per-finding justifications are an escape hatch. The prompt therefore
+offers no "justified" or "accept as-is" disposition for an in-scope gap, and
+requires the scope to be **read from the plan** rather than chosen by the
+auditing agent. Remediation is advisory; the gap is not.
+
+The verdict is recorded in the complexity ledger's `coverage_audit` block, so an
+epic that skipped the audit is visible rather than silent. It defaults to
+`not_run` and **refuses the workflow close** at anything but `pass` —
+`incomplete` is not a pass. Full doctrine: `references/coverage_audit.md`.
 
 ## Corpus Discipline
 

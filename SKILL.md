@@ -884,6 +884,39 @@ back to centralized semantic state.
 5. Regression tests from counterexamples: TLC counterexamples,
    Hypothesis failures, and production bugs become named Python traces,
    TLA+ model changes, or validator improvements.
+6. **Coverage audit — completeness, not fidelity. Required once per epic.**
+
+   Layers 1-4 are all bounded to what is **already modeled**: conformance
+   checks cases that exist, effect conformance checks a corpus generated *from
+   the model*, and the kill test seeds faults one per port and one per
+   invariant — modeled boundaries only. Unmodeled program surface is never
+   generated into a case, never adapted, never mutated. **A subsystem with no
+   representation is invisible to every layer above while all of them report
+   green.** Fidelity and completeness are independent properties.
+
+   **Ordering — a required end-of-epic step: after every mechanism ticket has
+   landed, and before final end-to-end integration.** After the mechanisms, so
+   it measures the model as the epic actually leaves it; before integration,
+   because it is a promotion gate rather than a report.
+
+   Dispatch `prompts/coverage_audit.md` to a sub-agent; it fills
+   `templates/coverage_audit_report.md`. Four sweeps — program surface, effects
+   **by category**, behaviors (error paths, retries, timeouts, fallbacks,
+   concurrency, config branches), and Internal/External **reported separately**
+   — each a table whose row set comes from a recorded enumeration command, with
+   per-row verdicts and `file:line` evidence.
+
+   **In-scope gaps are HARD**: model it, or change the program. No third
+   option, and the prompt offers no "justified"/"accept as-is" disposition for
+   one. Out-of-scope surface is inventoried and does not gate. **The scope is
+   read from the plan, declared once and reviewed once — never waived per
+   finding**; N per-finding justifications would be the escape hatch that one
+   reviewable boundary decision is not.
+
+   The verdict is recorded in the complexity ledger's `coverage_audit` block so
+   an epic that skipped the audit is visible. It defaults to `not_run` and
+   refuses the workflow close at anything but `pass`; `incomplete` is not a
+   pass. See `references/coverage_audit.md`.
 
 When example or repository tests need pytest but the project does not have a
 managed Python environment, make the test file directly runnable with a PEP 723
@@ -950,6 +983,11 @@ current change.
 - `references/modular_fuzzing.md`: modular pure-function/side-effect
   representations, decomposition method, budgets, oracles, corpus
   discipline, and the External content rule.
+- `references/coverage_audit.md`: the end-of-epic completeness gate — why
+  the four oracles cannot see unmodeled surface, the required ordering
+  (after mechanisms land, before final integration), and the gate semantics.
+  Procedure: `prompts/coverage_audit.md`; report shape:
+  `templates/coverage_audit_report.md`.
 - `references/architecture_tractability.md`: the three moves when the
   complexity gate fails (abstract/decompose/refactor), user-approval rules,
   creative representations for irreducible pieces, and the

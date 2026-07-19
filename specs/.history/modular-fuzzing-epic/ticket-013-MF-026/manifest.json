@@ -1,0 +1,626 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-026",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-013-MF-026 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-026'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-013-MF-026"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": 25,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 231621,
+        "before": 231621,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 5619356,
+        "before": 5619356,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-019"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": 19,
+      "passing": false,
+      "report": "results/coverage_audit_report.md",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml:449-464 (service_catalog) + 15 implementation_scope blocks; READ from the plan, not chosen -- 145 of 160 rows escalated for want of a closure rule",
+      "status": "incomplete"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": 25,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 231621,
+          "before": 231621,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 5619356,
+          "before": 5619356,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-019"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-026/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/tickets/MF-026/results/tlc-current.txt",
+      "variables": 9
+    },
+    "narrative": "results/complexity-ledger.md",
+    "notes": [
+      "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (incomplete) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-19T23:36:50.109594+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "`analyze complexity` (results/analyze-complexity.txt) surfaces the standing ABSTRACT recommendation: no configured invariant reads [lastCommand, result], so Move 1 permits projecting both out of the model. NOT APPLIED, for two independent reasons. (1) The gain is [PROJECTED] and explicitly UNVERIFIED; the analyzer itself requires a transition-level diff plus a TLC rerun before any projected reduction may be recorded as a result -- MF-020 withdrew a projected -13.1% for exactly this reason, having found it required deleting a legitimate idempotent re-fire transition that the distinct-state gate was structurally blind to. (2) Legitimacy is conditional on the mutation kill rate holding afterwards (MF-016), and spec-case execution is deferred epic-wide to MF-023 -- the evidence that would license the projection is precisely the evidence this epic has not yet produced. Applying an advisory recommendation on projected figures, without kill-test evidence, inside a ticket whose model delta is required to be zero, would be three violations at once. The recommendation stands for MF-023, which re-runs it post-decomposition.",
+      "measured": false,
+      "outcome": "found",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+        "status": "deferred",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+        "status": "deferred",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+        "status": "deferred",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=deferred (UNVERIFIED)",
+      "effect_conformance=deferred (UNVERIFIED)",
+      "external_coverage=deferred (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-026",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-19T23:36:50.240523+00:00",
+  "entry_name": "ticket-013-MF-026",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/41-mf026-coverage-audit-gate",
+    "commit": "1176aa2",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-026/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-026/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-026/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-026/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-026/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-026/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-026/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-026/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-026/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-026"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "`analyze complexity` (results/analyze-complexity.txt) surfaces the standing ABSTRACT recommendation: no configured invariant reads [lastCommand, result], so Move 1 permits projecting both out of the model. NOT APPLIED, for two independent reasons. (1) The gain is [PROJECTED] and explicitly UNVERIFIED; the analyzer itself requires a transition-level diff plus a TLC rerun before any projected reduction may be recorded as a result -- MF-020 withdrew a projected -13.1% for exactly this reason, having found it required deleting a legitimate idempotent re-fire transition that the distinct-state gate was structurally blind to. (2) Legitimacy is conditional on the mutation kill rate holding afterwards (MF-016), and spec-case execution is deferred epic-wide to MF-023 -- the evidence that would license the projection is precisely the evidence this epic has not yet produced. Applying an advisory recommendation on projected figures, without kill-test evidence, inside a ticket whose model delta is required to be zero, would be three violations at once. The recommendation stands for MF-023, which re-runs it post-decomposition.",
+    "measured": false,
+    "outcome": "found",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/coverage_audit_report.md",
+      "source": "specs/tickets/MF-026/results/coverage_audit_report.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/complexity-ledger.md",
+      "source": "specs/tickets/MF-026/results/complexity-ledger.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/tlc-current.txt",
+      "source": "specs/tickets/MF-026/results/tlc-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/analyze-complexity.txt",
+      "source": "specs/tickets/MF-026/results/analyze-complexity.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/spec-unit-tests.txt",
+      "source": "specs/tickets/MF-026/results/spec-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/pytest-pre-promotion.txt",
+      "source": "specs/tickets/MF-026/results/pytest-pre-promotion.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph",
+      "source": "specs/tickets/MF-026/results/testgraph"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+      "status": "deferred",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+      "status": "deferred",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "spec-case execution deferred epic-wide to MF-023 (#30); not measured for MF-026",
+      "status": "deferred",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 9,
+    "close_out_entry": "Close-out ticket MF-026",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-41-mf026-coverage-audit-gate/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket",
+      "source": "specs/tickets/MF-026"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "MF-026: coverage audit gate -- prompt, report template, doctrine, ledger recording, and a worked example that found 19 in-scope gaps and real defects in the prompt itself. Zero model delta.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        {
+          "the prompt requires four complete enumeration sweeps -- program surface, effect sites by category, behaviors including error paths and retries and timeouts and fallbacks and concurrency and config branches, and both views -- each a table with a per-row verdict and file": "line evidence."
+        },
+        "the prompt explicitly FORBIDS a justified or accept-as-is disposition for an in-scope gap; the only dispositions are model it, change the program, or (out of scope) inventory it.",
+        "the prompt requires the epic declared scope to be READ FROM THE PLAN, not chosen by the auditing agent -- an agent that picks its own scope can define every gap out of existence.",
+        "Internal and External are reported separately; a single merged verdict is not acceptable.",
+        "the report is emitted as ticket evidence and recorded in the MF-019 complexity ledger, so an epic that skipped the audit is visible.",
+        "a worked example run against this repository is included as evidence; a prompt nobody has executed is unvalidated.",
+        "if the worked example shows the agent skipping surface or producing impressionistic findings, that is REPORTED as a finding about the prompt rather than smoothed over, with a follow-up ticket for a mechanical inventory as the honest outcome."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-026"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "coverage-audit-prompt"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-013",
+      "MF-015",
+      "MF-016",
+      "MF-019"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/41",
+    "id": "MF-026",
+    "implementation_scope": [
+      "a checked-in sub-agent prompt and report template",
+      "SKILL.md and epic doctrine updated with the required end-of-epic ordering",
+      "worked example run against this repository, included as evidence"
+    ],
+    "objective": "An end-of-epic sub-agent procedure that finds what the model DOES NOT REPRESENT, gating promotion on closing the in-scope gaps. Fills a structural hole -- all four oracles are bounded to what is already modeled (output and projected-state conformance to cases that exist, effect conformance to a corpus generated FROM the model, and the kill test to faults seeded one per port and one per invariant, i.e. modeled boundaries only), so unmodeled program surface is never generated into a case, never adapted, never mutated, and is invisible to every gate while all of them report green. The oracles check FIDELITY of what is modeled; this checks COMPLETENESS. Coverage appears in the doctrine only as an assertion and is measured nowhere. Deliverable is prompt-only by owner decision, so the prompt itself must impose completeness discipline through required enumeration tables with per-row verdicts and file:line evidence, across four sweeps -- program surface, effect sites by category, behaviors (error paths, retries, timeouts, fallbacks, concurrency, config branches), and both Internal and External views reported separately. GATE SEMANTICS -- in-scope gaps are HARD (model it or change the program, per the fourth governing rule), out-of-scope surface is inventoried without gating, and the scope is declared once in the plan and reviewed once rather than waived per finding. That distinction is the design -- a gate whose findings can each be closed by a recorded justification is the out-of-contract suppression purged from MF-013 rebuilt one level up. Remediation is advisory; the existence of an in-scope gap is not. See tickets/026-coverage-audit-gate.md.",
+    "promotion_order": 82,
+    "promotion_predecessor": "MF-019",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Coverage audit gate",
+    "wave": 9
+  },
+  "ticket_id": "MF-026",
+  "ticket_index": 13,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket",
+    "source": "specs/tickets/MF-026"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}
