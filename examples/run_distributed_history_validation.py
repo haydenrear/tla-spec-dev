@@ -47,6 +47,7 @@ def main() -> int:
     try:
         regenerate_tlc_cases()
         validate_internal_cases()
+        validate_kill_test()
         validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
         report_dir = latest_report_dir()
@@ -89,6 +90,117 @@ def validate_internal_cases() -> None:
         ],
         cwd=EXAMPLE_ROOT,
     )
+
+
+def validate_kill_test() -> None:
+    """MF-016 oracle 4: the worked mutation kill test.
+
+    Seeds one real behavioral fault per boundary of the internal model into the
+    ecommerce backend, runs the internal spec-unit corpus against each, and
+    requires the kill rate to meet `kill_rate_floor` from the example's
+    manifest budgets.
+
+    This asserts the STRICT outcome: a green control run and a verdict of
+    "pass". It is deliberately not softened, and the floor is deliberately not
+    lowered to match what the example currently scores.
+
+    KNOWN CURRENT RESULT, recorded rather than tuned away: the first real
+    end-to-end run measured **0.571 (4/7)** against the 0.8 floor, with three
+    surviving mutants, each carrying a true refinement pointer:
+
+      * store-projection_store -> refine `projections` / `ProjectOrder`.
+        No generated case distinguishes the projected status, so the read
+        model's advance is unmodeled.
+      * inv-InternalInvariant  -> refine `orders` / `Checkout`.
+        No generated case checks out against a nonexistent account, so
+        referential integrity is unexercised.
+      * inv-Invariant          -> refine `responses` / `SubmitCreateAccount`.
+        The HTTP boundary is genuinely outside the in-process internal corpus;
+        the external corpus is what must cover it.
+
+    All three are TRUE findings about the example's representation, which is
+    exactly what the oracle exists to produce. Refining the example's model
+    until they die is real modeling work and belongs with the other deferred
+    case-generation work in MF-023 -- note that `--mode local` cannot reach
+    this step today anyway, because case generation for the External model is
+    already refused by a pre-existing complexity-gate finding (C2 is touched
+    by 9 actions, exceeding max_component_actions 8).
+
+    Making this assertion pass by lowering the floor, waiving the survivors, or
+    dropping the mutants would be precisely the degeneracy the kill test exists
+    to prevent, so none of that was done.
+    """
+
+    spec_dir = EXAMPLE_ROOT / "specs" / "program_model"
+    corpus_command = " ".join(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
+            "--mapping",
+            str(spec_dir / "case_adapters.toml"),
+            "--view",
+            "internal",
+            "--batch",
+            "--work-dir",
+            "/tmp/ecommerce-kill-test-work",
+            "--import-root",
+            str(EXAMPLE_ROOT),
+        ]
+    )
+    report_path = GENERATED_ROOT / "kill-test.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "run_kill_test.py"),
+            "--target",
+            str(spec_dir),
+            "--root",
+            str(EXAMPLE_ROOT),
+            # The internal corpus measures the internal model. The external
+            # model is a separate kill test with its own corpus; this narrows
+            # the coverage obligation only -- every mutant still runs.
+            "--cfg",
+            "Internal.cfg",
+            "--corpus-command",
+            corpus_command,
+            "--out",
+            str(report_path),
+        ],
+        cwd=EXAMPLE_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    combined = completed.stdout + completed.stderr
+    if not report_path.is_file():
+        raise SystemExit(f"kill test wrote no evidence to {report_path}:\n{combined}")
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    # The control run first: without it, a corpus that is already red would
+    # report a perfect and meaningless 1.0.
+    if report.get("control_green") is not True:
+        raise SystemExit(
+            f"kill test control run failed -- the corpus does not pass on the unmutated "
+            f"program, so no kill can be attributed to any mutation:\n{combined}"
+        )
+    if report["uncovered_boundaries"]:
+        raise SystemExit(
+            f"kill test ran with uncovered boundaries: {report['uncovered_boundaries']}"
+        )
+    # Every survivor must carry an actionable pointer, whatever the verdict.
+    for pointer in report["surviving_mutants"]:
+        if not pointer.get("refine_variable") or not pointer.get("refine_action"):
+            raise SystemExit(f"surviving mutant carries no refinement pointer: {pointer}")
+
+    if completed.returncode != 0 or report["verdict"] != "pass":
+        raise SystemExit(
+            f"kill test did not clear the floor: {report.get('summary')}\n"
+            f"Each surviving mutant above names the variable and action to refine. "
+            f"Do not lower kill_rate_floor to make this pass.\n{combined}"
+        )
+
+    print(f"kill test ok: {report['summary']}")
 
 
 def validate_projected_state_assertion_catches_mismatch() -> None:

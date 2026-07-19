@@ -1,0 +1,128 @@
+# MF-016: the worked mutation kill test for the distributed_history example.
+#
+# One seeded fault per declared effect port (spec_manifest.yaml) and one per
+# model invariant (Internal.cfg). The obligation is recomputed every run by
+# scripts/kill_test.py, so this file cannot silently fall behind the model.
+#
+# Every mutant is a real, reviewable behavioral break in the ecommerce backend
+# -- an off-by-one, a dropped write, a swapped status code. None of them is a
+# syntax error: a mutant that breaks the parse is killed by every case
+# trivially and proves nothing about whether the REPRESENTATION is faithful.
+#
+# Run it:
+#   python3 examples/run_distributed_history_validation.py --mode local
+# or directly:
+#   python3 scripts/run_kill_test.py \
+#     --target examples/distributed_history/specs/program_model \
+#     --root examples/distributed_history \
+#     --corpus-command "<the internal spec-unit corpus command>"
+
+# ---------------------------------------------------------------------------
+# Faults at the internal component's surface.
+#
+# The internal model declares ONE invariant, so every fault below is seeded at
+# that boundary. Coverage requires at least one; six is better than one, and
+# extra mutants beyond the required minimum are always welcome -- more
+# measurement is never gaming. See spec_manifest.yaml for why this component
+# declares no effect ports.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "store-account_store"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = '            self._conn.execute("insert or ignore into accounts(account_id) values (?)", (account_id,))'
+replace = "            pass  # MUTANT: the account is never persisted"
+description = "creating an account returns 201 but writes nothing to the account store"
+refine_variable = "accounts"
+refine_action = "CreateAccount"
+
+[[mutants]]
+id = "store-cart_store"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = """            self._conn.execute(
+                "insert into cart_items(account_id, sku, qty) values (?, ?, 1)",
+                (account_id, sku),
+            )
+        return OperationResult(202, {"account": account_id, "sku": sku})"""
+replace = """            pass  # MUTANT: the cart item is never persisted
+        return OperationResult(202, {"account": account_id, "sku": sku})"""
+description = "adding a cart item is acknowledged with 202 but never written to the cart store"
+refine_variable = "carts"
+refine_action = "AddCartItem"
+
+[[mutants]]
+id = "store-order_store"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = '                (order_id, account_id, json.dumps(items, sort_keys=True), "accepted"),'
+replace = '                (order_id, account_id, json.dumps(items, sort_keys=True), "pending"),'
+description = "a checked-out order is stored with status 'pending' instead of 'accepted'"
+refine_variable = "orders"
+refine_action = "Checkout"
+
+[[mutants]]
+id = "store-outbox"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = """            self._conn.execute(
+                "insert into outbox(order_id, event_name) values (?, ?)",
+                (order_id, "OrderAccepted"),
+            )"""
+replace = "            pass  # MUTANT: checkout emits no outbox event"
+description = "checkout persists the order but emits no outbox event, so nothing is ever projected"
+refine_variable = "outbox"
+refine_action = "Checkout"
+
+[[mutants]]
+id = "store-projection_store"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = '                (row["order_id"], "ready_to_ship"),'
+replace = '                (row["order_id"], "accepted"),'
+description = "the projection records the pre-fulfillment status, so the read model never advances"
+refine_variable = "projections"
+refine_action = "ProjectOrder"
+
+[[mutants]]
+id = "inv-InternalInvariant"
+boundary_kind = "invariant"
+boundary_ref = "InternalInvariant"
+path = "ecommerce_backend/domain.py"
+find = """        if not self._account_exists(account_id):
+            return OperationResult(404, {"error": "account_not_found"})
+        existing = self._conn.execute("select order_id from orders where order_id = ?", (order_id,)).fetchone()"""
+replace = """        if False:  # MUTANT: checkout no longer requires the account to exist
+            return OperationResult(404, {"error": "account_not_found"})
+        existing = self._conn.execute("select order_id from orders where order_id = ?", (order_id,)).fetchone()"""
+description = "an order can be checked out for an account that was never created, breaking referential integrity"
+refine_variable = "orders"
+refine_action = "Checkout"
+
+# The external model's invariant lives at the HTTP boundary, which the
+# in-process internal corpus does not cross. This mutant is therefore EXPECTED
+# to survive a local-mode internal-only run -- and that is the point of
+# including it rather than omitting it. Its survivor pointer is a true report:
+# the internal corpus cannot observe this boundary, so the external corpus must
+# cover it. Omitting the mutant would have hidden the same gap behind a
+# flattering 6/6.
+[[mutants]]
+id = "inv-Invariant"
+boundary_kind = "invariant"
+boundary_ref = "Invariant"
+path = "ecommerce_backend/service.py"
+find = """        if path == "/accounts":
+            result = self.store.create_account(body["account"])
+            _write_json(self, result.status, result.body)"""
+replace = """        if path == "/accounts":
+            result = self.store.create_account(body["account"])
+            _write_json(self, 200, result.body)  # MUTANT: 201 collapsed to 200"""
+description = "the HTTP boundary reports 200 instead of 201 for account creation, so clients cannot distinguish create from no-op"
+refine_variable = "responses"
+refine_action = "SubmitCreateAccount"

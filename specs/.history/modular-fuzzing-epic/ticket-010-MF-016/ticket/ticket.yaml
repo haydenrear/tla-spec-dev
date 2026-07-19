@@ -1,0 +1,116 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-016",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "kill rate is computed against kill_rate_floor from budgets and gates nonzero below it.",
+        "mutants, kill matrix, and surviving-mutant analysis land under ticket evidence.",
+        "distributed_history carries a worked kill test in local mode."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-016/current/TlaSpecDevCli.tla specs/tickets/MF-016/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-016",
+        "python3 examples/run_distributed_history_validation.py --mode local"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-019"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/run_kill_test.py",
+        "examples/distributed_history/"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "spec-unit adapter proving a seeded fault is killed and reported"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "RunKillTest"
+      ],
+      "model_state": [
+        "kill_test"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-016/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-012",
+      "MF-014"
+    ],
+    "desired_actions": [
+      "RunKillTest"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/17",
+    "id": "MF-016",
+    "implementation_scope": [
+      "scripts/run_kill_test.py (new) or documented procedure with runner support",
+      "examples/distributed_history/ worked kill test",
+      "references/modular_fuzzing.md kept in sync"
+    ],
+    "objective": "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, kill-rate before/after comparison across model revisions so the kill test doubles as the abstraction validator (references/architecture_tractability.md), and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md.",
+    "promotion_order": 60,
+    "promotion_predecessor": "MF-027",
+    "schedule_revision": 4,
+    "status": "pending",
+    "title": "Mutation kill test",
+    "wave": 6
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/tickets/MF-016",
+  "ticket_id": "MF-016",
+  "ticket_index": 10,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-17-mf016-kill-test/specs/tickets"
+}

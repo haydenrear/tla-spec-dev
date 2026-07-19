@@ -188,6 +188,20 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     and no variable or action was added (still 8 variables), so the whole
     delta is this one domain.
 
+    MF-016 then added `kill_test` as the mutation kill-test gate -- oracle 4,
+    the value floor that keeps every cost cap above it honest. It is 4-valued:
+    "unknown", "pass", "below_floor", and "incomplete_catalog". The last two
+    are kept apart for the same reason MF-013 kept "gaps" apart from
+    "dead_surface" -- different findings with different remedies (refine the
+    model at the surviving mutant's variable vs. seed a fault for an uncovered
+    boundary) and distinct `result.next` strings. All three non-"unknown"
+    values were confirmed individually reachable by TLC before the domain was
+    fixed at four, so the domain represents the reachable set exactly.
+    The factor is 4: 174,960 * 4 = 699,840, still inside
+    `max_state_space_bound` 1,000,000. Measured alongside: 8 -> 9 variables,
+    depth 24 -> 25, and TLC 1,067,828 -> 5,619,356 generated / 49,875 ->
+    231,621 distinct (46.3% of the negotiated max_distinct_states 500,000).
+
     Asserting the current figure AND its relationship to each recorded
     predecessor keeps the calibration meaningful across every promotion.
     """
@@ -196,9 +210,12 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 174_960
-    # Divide out the MF-027 5-valued effect gate to recover the MF-025 figure...
-    pre_mf013 = result.bound // 5
+    assert result.bound == 699_840
+    # Divide out the MF-016 4-valued kill-test gate...
+    pre_mf016 = result.bound // 4
+    assert pre_mf016 == 174_960
+    # ...then the MF-027 5-valued effect gate to recover the MF-025 figure...
+    pre_mf013 = pre_mf016 // 5
     assert pre_mf013 == 34_992
     # ...undo the MF-025 lifecycle collapse to recover the MF-014 figure...
     pre_mf025 = pre_mf013 // 216 * 4096
@@ -295,11 +312,12 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
     # The collapse consumed the chain it was derived from.
     assert not [c for c in result.chains if len(c.members) == 5]
     # MF-013 later multiplied the bound by 4 (effect_conformance), MF-027 took
-    # that factor to 5 by adding the "unobservable" verdict, and MF-025 divided
-    # the bound by 4096/216 (the per-ticket lifecycle collapse), so undo both
+    # that factor to 5 by adding the "unobservable" verdict, MF-016 multiplied
+    # by a further 4 (kill_test), and MF-025 divided the bound by 4096/216 (the
+    # per-ticket lifecycle collapse), so undo all of them
     # before checking the setup-phase factor. A change to the setup-phase
     # factor itself would still break this.
-    pre_mf025 = result.bound // 5 // 216 * 4096
+    pre_mf025 = result.bound // 4 // 5 // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
     assert pre_mf025 % 221_184 == 0

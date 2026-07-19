@@ -862,6 +862,25 @@ back to centralized semantic state.
    and one per invariant — must be caught by the generated cases at the
    `kill_rate_floor` from the budgets. A baseline without a passing kill
    test is unvalidated.
+
+   Run it with `tla-spec-dev run kill-test --corpus-command "<corpus>"`, and
+   declare the faults in `<spec-dir>/kill_mutants.toml`. The required boundary
+   set is re-derived from the port declarations and the model configs on every
+   run, so an uncovered boundary refuses (exit 2) and computes no rate — adding
+   a port breaks the kill test until you seed a fault for it. The corpus is run
+   unmutated first as a control, because a corpus that already fails would kill
+   every mutant and report a meaningless 1.0.
+
+   Below the floor FAILS. There is no `--allow-below-floor`, no
+   `--accept-survivors`, and no expected-to-survive annotation; suppression-
+   shaped keys are reported and never honored. This is the value floor that
+   keeps every cost cap in the toolchain honest, since a trivial model passes
+   every cap and kills no mutants.
+
+   A surviving mutant names the model variable and action to refine — treat it
+   as a pointer to the place the representation is too abstract, not as a score.
+   Use `--baseline`/`--compare` to validate an abstraction: a revision that
+   kills fewer mutants deleted behavior rather than re-representing it.
 5. Regression tests from counterexamples: TLC counterexamples,
    Hypothesis failures, and production bugs become named Python traces,
    TLA+ model changes, or validator improvements.
