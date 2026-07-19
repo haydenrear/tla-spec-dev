@@ -7,6 +7,7 @@ User-facing workflow guidance lives in:
 - `SKILL.md`
 - `references/typical_workflow.md`
 - `references/generation_modes.md`
+- `references/streaming_case_protocol.md`
 - `references/runtime_requirements.md`
 - `references/codegen_contract.md`
 - `references/conformance_testing.md`
@@ -85,6 +86,26 @@ python3 scripts/generate_cases_from_tlc_dump.py path/to/Internal.tla path/to/Int
 python3 scripts/generate_cases_from_tlc_dump.py path/to/External.tla path/to/External.cfg --out generated --package external_cases --view external --actions-metadata model/actions.yml
 python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces
 ```
+
+For large graphs and cross-language adapters, emit the bounded JSONL protocol
+instead of a runtime `cases.py`:
+
+```bash
+python3 scripts/generate_cases_from_tlc_dump.py \
+  path/to/Internal.tla path/to/Internal.cfg \
+  --out generated \
+  --package internal_cases \
+  --format streaming-jsonl \
+  --max-cases 10000 \
+  --max-output-bytes 134217728 \
+  --max-rss-mib 512 \
+  --max-seconds 120 \
+  --seed model-seed
+```
+
+The output is `case-manifest.json` plus `cases.jsonl`. A hard resource breach
+removes the partial case stream, writes a typed incomplete manifest, and exits
+nonzero. See `references/streaming_case_protocol.md`.
 
 External adapter bindings may include `kind` to batch cases that need the same
 external harness setup and cleanup. Batch adapters can define optional

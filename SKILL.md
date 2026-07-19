@@ -664,6 +664,14 @@ For whole-program case generation, generated packages may instead include:
 These whole-program case fixtures are generated from TLC's reachable state graph,
 not from Python behavior templates.
 
+For large state graphs and cross-language conformance, prefer the versioned
+streaming interchange described in `references/streaming_case_protocol.md`.
+It emits `case-manifest.json` and `cases.jsonl` under four resource budgets,
+never creates runtime `cases.py`, and deterministically selects a
+stable-hash/action-outcome-stratified subset when the candidate count exceeds
+the declared case budget. Legacy Python packages remain supported for
+deliberately bounded graphs.
+
 Adapter mappings are repository-local. A TOML mapping connects generated case
 labels to adapter entrypoints:
 
@@ -813,6 +821,8 @@ current change.
   promotion, and closeout.
 - `references/generation_modes.md`: manifest-driven generation vs TLC
   state-graph cases.
+- `references/streaming_case_protocol.md`: bounded JSONL case generation,
+  deterministic action/outcome selection, digests, and typed resource failures.
 - `references/runtime_requirements.md`: CLI dependencies, TLC wrapper, and
   local runtime expectations.
 - `references/tla_profile.md`: constrained TLA+ subset.

@@ -41,6 +41,29 @@ Repository-local adapters then map real production boundaries to these generic
 case descriptors through `case_adapters.toml` and
 `scripts/run_generated_case_adapters.py`.
 
+For large graphs or cross-language adapters, use the resource-bounded
+streaming interchange instead of a generated `cases.py`:
+
+```bash
+python scripts/generate_cases_from_tlc_dump.py \
+  path/to/Model.tla path/to/MC.cfg \
+  --out path/to/generated \
+  --package model_cases \
+  --format streaming-jsonl \
+  --max-cases 10000 \
+  --max-output-bytes 134217728 \
+  --max-rss-mib 512 \
+  --max-seconds 120 \
+  --seed model-seed
+```
+
+This emits `case-manifest.json` plus `cases.jsonl`, performs deterministic
+stable-hash selection stratified by action/outcome, and writes a typed
+incomplete manifest with a nonzero exit when a hard resource budget is
+exceeded. It never emits runtime `cases.py`. Read
+`references/streaming_case_protocol.md` for the versioned record fields,
+canonical JSON rules, digest accounting, and failure semantics.
+
 Every TLC run used to produce this state graph has a hard two-minute budget.
 Wrap the model-check command in an external 120-second timeout and stop it when
 the budget expires. A timeout means the diagram is not a viable case-generation
