@@ -1,0 +1,43 @@
+# MF-016: the worked kill test for the distributed_history example.
+#
+# The example predates the manifest format used by the toolchain's own specs;
+# this file adds the two blocks oracle 4 needs -- the effect ports it must seed
+# a fault at, and the budgets it gates against. The TLA+ modules, actions.yml,
+# and case_adapters.toml are unchanged.
+module: EcommerceHistory
+
+budgets:
+  # Documented defaults from references/modular_fuzzing.md. The example is
+  # small enough that none needed negotiating; a real program records a
+  # one-line rationale per changed value.
+  tlc_seconds: 120
+  max_distinct_states: 50000
+  max_state_space_bound: 1000000
+  max_internal_cases_per_component: 200
+  max_external_cases_per_action: 50
+  kill_rate_floor: 0.8                      # minimum mutation kill rate
+  max_component_variables: 6
+  max_component_actions: 8
+  max_symmetric_instances: 2
+  source: defaults
+  rationale: {}
+
+# NO effects ports are declared for this component, and that absence is a
+# deliberate, evidence-backed decision rather than an omission.
+#
+# An earlier revision of this file declared five filesystem.write ports
+# (account_store, cart_store, order_store, outbox, projection_store). They were
+# FALSE: EcommerceStore runs on in-memory sqlite in the internal spec-unit
+# configuration, so it crosses no observable filesystem boundary at all. The
+# effect oracle caught it immediately and reported all five as DEAD MODEL
+# SURFACE, which failed the corpus on the unmutated program and -- before the
+# control run existed -- made the kill test score a meaningless 7/7 with every
+# "kill" being that same unrelated failure.
+#
+# The doctrine's rule 4 decides this: the diagram is a faithful representation
+# of the program. A port the program never crosses is not a richer model, it is
+# a wrong one. Declaring effects here would require the program to actually
+# cross them (persist to a real database file), which is a change to the
+# example, not to the manifest.
+
+adapters: case_adapters.toml

@@ -321,6 +321,63 @@ The kill test is also what makes budgets safe: constants cannot be shrunk to
 nothing, because a trivial model stops killing mutants. Cost cap plus value
 floor is a real optimization target; either alone invites gaming.
 
+**Mechanized by MF-016** as `tla-spec-dev run kill-test`
+(`scripts/kill_test.py`, `scripts/run_kill_test.py`). Five properties are
+load-bearing, and each exists to close a specific way the experiment could be
+faked:
+
+- **Coverage is computed, not promised.** The required boundary set — one per
+  declared port, one per invariant — is re-derived on every run from
+  `effects.components.*.ports` in the manifest and the `INVARIANT(S)` blocks
+  of every `*.cfg` in the spec directory. A boundary with no seeded fault is an
+  `incomplete_catalog` refusal (exit 2) and **no kill rate is computed at all**,
+  because a number over a surface nobody covered asserts what the run has no
+  evidence for. Declaring a new port breaks the kill test until a fault is
+  seeded for it, so the experiment cannot drift behind the model.
+- **The control run.** "Killed" means "the corpus run failed", so a corpus that
+  is already red kills every mutant trivially and reports a perfect 1.0. The
+  corpus is therefore run **unmutated first**, and a red control refuses
+  (`control_failed`) without seeding anything. This is not a precaution: the
+  first real run of the worked `distributed_history` kill test scored 7/7
+  exactly this way, every "kill" being one unrelated pre-existing failure.
+- **A survivor is a pointer, not a statistic.** Every mutant must declare
+  `refine_variable` and `refine_action`; the loader rejects one that does not.
+  A survivor reports "the representation is too abstract at variable X /
+  action Y", which is actionable, rather than a decimal that dropped.
+- **No waiver.** There is no `--allow-below-floor`, no `--accept-survivors`, no
+  expected-to-survive annotation, and no manifest key that records a sub-floor
+  rate as acceptable. Suppression-shaped keys are scanned for, reported in
+  `ignored_suppression_keys`, and honored never. Weakening this gate weakens
+  every cost cap above it at once, which is the entire reason it exists.
+- **Per-component scoping narrows the obligation, never the measurement.**
+  `--cfg` selects which model's invariants must be covered, because a
+  repository with Internal and External models has two kill tests rather than
+  one blended one. Omitting it is the strict default (every config required),
+  and every mutant in the catalog runs either way — so an out-of-scope survivor
+  still reports.
+
+**Abstraction validation.** `--baseline` and `--compare` implement
+`architecture_tractability.md`'s rule that an abstraction is legitimate iff the
+kill rate holds after it. A rate that drops is refused; so is a swap that holds
+the aggregate rate while losing a previously-killed mutant, because the rate is
+an aggregate and a lost boundary is still a lost boundary. This is what
+distinguishes a genuine re-representation from a deletion wearing its costume,
+and it is what lets the standing complexity objective be pursued honestly.
+
+**Onboarding and promotion are the required kill-test moments.** Per-ticket work
+reuses the baseline mutants plus one new mutant at the changed boundary. There
+is deliberately no enforcing copy inside `run spec-unit-tests`, unlike the
+effect oracle: the effect oracle observes a corpus run that was happening
+anyway, whereas the kill test runs the whole corpus once per mutant. Folding
+that into every spec-unit invocation would make the inner loop unusable, and a
+gate people disable to get work done protects nothing.
+
+**Known constraint in this repository.** The runner spawns a child process per
+mutant, and under the MF-027 effect oracle a `process.spawn` is `unobservable`
+even when a declared port matches it. The kill test must therefore run OUTSIDE
+the effect sandbox here. Neither oracle is relaxed to resolve this; see
+`specs/tickets/MF-016/results/DEFERRED-TO-MF-023.md`.
+
 ## Corpus Discipline
 
 Raw TLC edge lists are not a corpus. But the fix is **upstream, in the

@@ -408,3 +408,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-016
+
+- close_scope: ticket
+- close_id: MF-016
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-19T21:17:14+00:00
+- summary: MF-016: mutation kill test (oracle 4). Coverage derived from port/invariant declarations every run; control run refuses a red corpus; kill_rate_floor gate fails below floor with no waiver; survivors point at the variable and action to refine; abstraction validator via --baseline/--compare. Mechanism built and unit/adapter/example-validated; empirical proof over this repository's corpus deferred to MF-023 per epic policy.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

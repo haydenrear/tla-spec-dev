@@ -161,6 +161,19 @@ def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
     return effect_conformance_report.run(args)
 
 
+def run_kill_test_cmd(args: argparse.Namespace) -> int:
+    """MF-016: oracle 4, the mutation kill test.
+
+    Exits 1 when the kill rate falls below ``kill_rate_floor`` and 2 when the
+    mutant catalog does not cover every declared port and every invariant.
+    There is no flag that accepts a surviving mutant or a sub-floor rate: this
+    is the value floor that keeps every cost cap in the toolchain honest.
+    """
+    from scripts import run_kill_test as run_kill_test_module
+
+    return run_kill_test_module.run(args)
+
+
 def run_close_ticket(args: argparse.Namespace) -> int:
     from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
 
@@ -516,6 +529,36 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_effect_conformance_cmd,
         command_path="tla-spec-dev run effect-conformance",
         next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
+    )
+
+    run_kill = run_sub.add_parser(
+        "kill-test",
+        help="Seed faults at every declared boundary and gate the kill rate against the floor.",
+        description=(
+            "Oracle 4. Seeds one fault per declared effect port and one per model invariant "
+            "into real production source, runs the distilled corpus against each mutant, and "
+            "requires the resulting kill rate to meet kill_rate_floor from the manifest "
+            "budgets. A mutant that SURVIVES is not a score -- it is a pointer: the corpus "
+            "executed a deliberately broken program and could not tell it from the correct "
+            "one, so the representation is too abstract at that boundary, and the report "
+            "names the model variable and action to refine. "
+            "The required boundary set is recomputed every run from the port declarations "
+            "and the INVARIANTS block, so a newly declared port breaks the kill test until a "
+            "fault is seeded for it; an uncovered boundary exits 2 and computes NO rate. "
+            "THERE IS NO WAIVER: no --allow-below-floor, no --accept-survivors, and no "
+            "expected-to-survive annotation. This is the value floor that makes every cost "
+            "cap in this toolchain safe, because a trivial model passes every cap and kills "
+            "no mutants. Weakening it weakens all of them."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.run_kill_test import add_arguments as _add_kill_test_arguments
+
+    _add_kill_test_arguments(run_kill)
+    run_kill.set_defaults(
+        func=run_kill_test_cmd,
+        command_path="tla-spec-dev run kill-test",
+        next_step="Record the kill matrix under the ticket results/ directory as evidence.",
     )
 
     analyze_parser = subparsers.add_parser(
