@@ -107,6 +107,44 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: MF-016 accepted (merge c568522). The fourth and final oracle.
+    MOST IMPORTANT FINDING OF THE EPIC -- the agent nearly shipped a DEGENERATE
+    ORACLE and caught itself. Its first end-to-end run scored a perfect 7/7
+    PASS, entirely spurious: the corpus was already failing an unrelated
+    effect-oracle dead_surface finding BEFORE any mutant was seeded, and since
+    "killed" is operationalized as "the corpus run failed", every mutant was
+    killed by that one pre-existing failure. The property is nasty -- a kill
+    test without a control reports its MOST FLATTERING number exactly when the
+    corpus is MOST BROKEN, so 1.0 would have been read as a perfect
+    representation while meaning the opposite. control_run() now runs the
+    corpus unmutated first and refuses to seed anything without a green
+    control. The dead_surface finding was real, and it removed the five false
+    port declarations rather than suppressing the finding (rule 4 applied
+    correctly). Corrected measurement is 0.571 (4/7) BELOW FLOOR with three
+    genuine survivors -- it shipped a FAILING kill test rather than tuning the
+    floor or waiving survivors.
+    Per-port and per-invariant coverage is COMPUTED, not promised -- re-derived
+    every run from the manifest and the .cfg invariant blocks, with an
+    uncovered boundary producing incomplete_catalog, exit 2, and no rate
+    computed at all. It fired on the agent own work when a new invariant grew
+    the required set 18 -> 19.
+    Verified -- 370 unit tests, 79 kill tests, TLC no error at 231,621
+    distinct, negotiated budget survived promotion, and the only
+    waiver-shaped strings in the code are docstrings stating no waiver exists.
+    EPIC-OWNER ESTIMATE WAS WRONG -- I told the ticket a gate was affordable at
+    10% headroom; it consumed 36 percentage points in one ticket (49,875 ->
+    231,621 distinct, 4.64x growth, now 46.3% of the negotiated cap). The
+    agent flagged this as larger than the brief framing and reported it as
+    measured rather than defending it. Another 4.6x ticket would breach.
+    It also found a measured 26.2% reduction and refused it on MF-027 standard,
+    with retention evidence that all four kill_test values are individually
+    TLC-reachable.
+    SEPARATE PRE-EXISTING BREAKAGE FOUND: run_distributed_history_validation.py
+    --mode local cannot complete because the example External model is refused
+    by the complexity gate (C2 touched by 9 actions). Verified pre-existing by
+    re-running with the ticket files removed. The example runner is currently
+    unusable and nobody had noticed. C1 is now touched by 14 actions, up from
+    13, not worked around.
     2026-07-19: MF-027 accepted by epic owner and repository owner (merge
     e605920). The effect oracle now refuses targets it cannot observe rather
     than reporting clean. The load-bearing design choice is POLARITY --
@@ -373,8 +411,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-016
-  active_ticket_title: "Mutation kill test"
+  active_ticket: MF-019
+  active_ticket_title: "Complexity minimization objective"
   desired_module: TlaSpecDevCli
   phase: implementation
 
