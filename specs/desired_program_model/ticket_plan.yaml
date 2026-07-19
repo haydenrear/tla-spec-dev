@@ -107,6 +107,37 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: MF-026 accepted (merge 3650755). Coverage audit prompt shipped,
+    zero model delta, 420 unit tests, negotiated budget survived promotion.
+    Its control is that every table row set is produced by a RECORDED COMMAND
+    rather than the agent attention -- report states the command, raw count N,
+    table row count M, and reconciles N == M -- plus default polarity
+    unrepresented, partial requiring the uncovered part be NAMED so hedges
+    become gaps, and scope classifications required to cite a verbatim plan
+    line so an agent cannot pick its own boundary.
+    THE AUDIT FOUND FOUR REAL DESYNCS THAT NO ORACLE CHECKS, two verified
+    directly by the epic owner. (1) specs/current/spec_manifest.yaml lines
+    111-113 point at Core.tla, Internal.tla and External.tla -- ALL THREE
+    MISSING -- and nothing fails; analyze complexity runs clean past it. The
+    epic owner had the raw evidence earlier in the session, searched for those
+    files, got nothing, and failed to connect it to the manifest referencing
+    them. (2) The @port annotations in the TLA files and the declared effect
+    ports in the manifest have EMPTY INTERSECTION -- annotations name
+    build_skill_cli, scaffold_project, run_kill_test and so on while declared
+    ports are cli_artifact, evidence_report, spec_tree, test_process,
+    tlc_process. Two vocabularies for the same concept with nothing checking
+    they refer to each other. (3) neither view exists, which is MF-023 charter.
+    (4) the manifest describes a variable and an action absent from the model.
+    Worked-example verdict INCOMPLETE with 19 in-scope gaps and 145 of 160
+    rows escalated.
+    HONEST LIMIT RECORDED: the N == M reconciliation is SELF-REPORTED. The
+    agent reported a mismatch against itself three times, which is the wanted
+    behavior, but nothing forces it. Mechanical inventory filed as #48, where
+    tooling owns enumeration and the agent keeps disposition. It also flagged
+    that its own fixes mean the worked report validates prompt v1 rather than
+    the shipped version, so re-validation belongs to #48 -- a caveat easy to
+    omit. Prompt-only was right as a first step and wrong as an end state,
+    which is now tracked rather than assumed.
     2026-07-19: MF-019 accepted (merge e247242). The standing objective is
     mechanized -- ledger per close, delta with required justification for
     increases, anti-gaming rejection of a decrease under degraded retention,
@@ -441,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-026
-  active_ticket_title: "Coverage audit gate"
+  active_ticket: MF-023
+  active_ticket_title: "Decompose this repository by dogfooding the finished toolchain"
   desired_module: TlaSpecDevCli
   phase: implementation
 
