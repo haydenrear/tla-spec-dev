@@ -85,7 +85,17 @@ status:
 # per changed value. Downstream gates read it through scripts/budgets.py.
 budgets:
   tlc_seconds: 120                          # hard external timeout per TLC run
-  max_distinct_states: 50000                # reachable states TLC may find, per component model
+  # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
+  # 50000. Derived, not chosen to fit: TLC completes this model in 2s at ~19,120
+  # distinct/sec, so ~2,294,400 are reachable inside the 120s tlc_seconds budget
+  # -- halved to ~1,147,200 for throughput decay as the model grows. The epic's
+  # remaining worst case (two further 3x gates on 38,241) is ~344,169. 500000
+  # sits 1.5x above that trajectory and 4.6x under the measured ceiling, running
+  # in ~26s. The 50000 default was MF-012's generic value, never calibrated to
+  # this program, and the real constraint (TLC wall time) is nowhere near
+  # binding. REVISIT AT MF-023: decomposition gives each component its own much
+  # smaller state space, and this should drop back toward the default then.
+  max_distinct_states: 500000               # reachable states TLC may find, per component model
   max_state_space_bound: 1000000            # static declared-representation ceiling; see modular_fuzzing.md
   max_internal_cases_per_component: 200     # spec-unit case cap per component
   max_external_cases_per_action: 50         # Test Graph case cap per external action

@@ -107,6 +107,38 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: max_distinct_states NEGOTIATED 50000 -> 500000 by owner
+    decision, recorded in specs/current/spec_manifest.yaml with its derivation.
+    Trigger -- after MF-013 the model sits at 38,241 distinct states, 76.5% of
+    the 50000 cap, and ANY further gate breaches it (even a 2x reaches 76,482).
+    Unlike the declared-bound trajectory MF-025 resolved, this is actual
+    reachable states against the real gate, and the obvious reduction was
+    already measured and correctly REJECTED by the MF-013 agent as
+    under-representation. The structural fix is decomposition, which is MF-023
+    and scheduled last by design because it dogfoods the finished toolchain.
+    The raise is DERIVED, not chosen to fit -- TLC completes this model in 2s
+    at ~19,120 distinct/sec, so ~2,294,400 are reachable inside the 120s
+    tlc_seconds budget, halved to ~1,147,200 for throughput decay; the epic
+    remaining worst case is ~344,169; 500000 sits 1.5x above that trajectory
+    and 4.6x under the measured ceiling at ~26s. The 50000 default was
+    MF-012 generic, never calibrated to this program, and TLC wall time -- the
+    real constraint -- is nowhere near binding. REVISIT AT MF-023 when
+    decomposition gives each component a much smaller state space.
+    NOTE the budgets block lives ONLY in specs/current/spec_manifest.yaml,
+    which promotion overwrites from a ticket desired/ tree. That is the SF-003
+    blind spot (#32), so every subsequent ticket must carry this negotiated
+    value through its own desired/ and verify it survived promotion.
+    EPIC-OWNER REVIEW MISS (mine): I accepted MF-015 without parsing its
+    spec_manifest.yaml, which was invalid YAML at 1dcce07. budgets.load_budgets
+    silently fell back to defaults on every analyze complexity run until MF-013
+    found it. No verdict was wrong because declared equalled default, but a
+    raised budget would have been ignored -- exactly the risk now that one is
+    raised. This was the second YAML-validity failure of the epic and the first
+    was my own broken ticket_plan.yaml, after which I added the habit for that
+    one file and failed to generalise. Closed structurally by
+    tests/test_spec_yaml_valid.py, which parses every YAML under specs/
+    (excluding the append-only .history tree) and is verified to catch the real
+    MF-015 break.
     2026-07-19: MF-015 accepted by the epic owner AND by the repository owner
     (merge 1dcce07). Channel required per Test Graph binding, an external block
     declaring the production package and per-port double|real bindings with at
