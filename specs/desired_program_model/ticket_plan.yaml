@@ -107,6 +107,35 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: MF-027 accepted by epic owner and repository owner (merge
+    e605920). The effect oracle now refuses targets it cannot observe rather
+    than reporting clean. The load-bearing design choice is POLARITY --
+    observability is granted only on positive evidence (adapter resolved to a
+    live Python object and called in-process), so every runtime nobody
+    enumerated refuses rather than silently passing; defaulting to observable
+    with a refusal list would have been the original defect wearing a longer
+    list. Verified -- 315 unit tests, 29 observability tests, the
+    unrecognised-runtime-defaults-to-refusal test, TLC 1,067,828 generated /
+    49,875 distinct / depth 24, bound 174,960, 8 variables unchanged. The
+    negotiated max_distinct_states 500000 and all its rationale comments
+    survived promotion, avoiding the SF-003 silent revert that would have
+    breached the cap on the next ticket.
+    It applied the standing objective against its own interest -- the
+    refinement search found that collapsing the three failure verdicts gives
+    26,607 distinct, 47% below this ticket and 30% below the epic baseline,
+    MEASURED by real TLC run rather than projected, and REFUSED to apply it
+    because it deletes externally-visible result.next distinctions, i.e. a
+    complexity reduction bought by dropping a boundary. Recorded as an
+    owner-approval recommendation with the number in hand.
+    Non-zero model delta, departing from three consecutive zero-delta tickets,
+    but it widened an existing enumerated domain 4 -> 5 rather than adding a
+    variable, so variables stayed at 8 and the bound moved exactly x5/4.
+    CONSEQUENCE FOR MF-023 -- this repository declares two process.spawn ports,
+    so a real corpus sweep will now report unobservable rather than clean. That
+    is accurate, since the harness genuinely cannot see inside java/pytest
+    children. MF-023 must route those through in-process adapters or record it
+    as a known limitation, NOT by relaxing the rule. Follow-up #44 opened for
+    JVM-capable observation as a separate implementation.
     2026-07-19: max_distinct_states NEGOTIATED 50000 -> 500000 by owner
     decision, recorded in specs/current/spec_manifest.yaml with its derivation.
     Trigger -- after MF-013 the model sits at 38,241 distinct states, 76.5% of
@@ -344,8 +373,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-027
-  active_ticket_title: "Effect oracle must refuse targets it cannot observe"
+  active_ticket: MF-016
+  active_ticket_title: "Mutation kill test"
   desired_module: TlaSpecDevCli
   phase: implementation
 
