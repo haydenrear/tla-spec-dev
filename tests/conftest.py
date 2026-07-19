@@ -43,9 +43,28 @@ transition_diff: ""
 narrative: "Test fixture ledger narrative."
 """
 
+# MF-026: the workflow close additionally requires a coverage audit verdict.
+# `not_run` refuses there -- the epic is over and there is no later chance --
+# so a fixture exercising a whole-workflow close must supply a real one, just as
+# MF-019 made it supply real retention evidence. Deliberately appended only to
+# the WORKFLOW fixture: a ticket close legitimately carries `not_run`, and
+# writing a `pass` into the ticket fixture would hide that asymmetry from the
+# very tests meant to exercise it.
+COVERAGE_AUDIT_PASS = """\
+coverage_audit:
+  status: "pass"
+  report: "results/coverage_audit_report.md"
+  in_scope_gaps: 0
+  scope_source: "ticket_plan.yaml (test fixture)"
+"""
+
 
 def write_ticket_ledger_input(ticket_dir: Path) -> Path:
-    """Fill the scaffolded per-ticket complexity ledger input."""
+    """Fill the scaffolded per-ticket complexity ledger input.
+
+    No coverage-audit block: at ticket scope the audit is legitimately
+    `not_run`, which is recorded and reported but does not refuse.
+    """
     path = Path(ticket_dir) / "results" / "complexity_ledger.yaml"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(PASSING_LEDGER_INPUT, encoding="utf-8")
@@ -53,8 +72,8 @@ def write_ticket_ledger_input(ticket_dir: Path) -> Path:
 
 
 def write_workflow_ledger_input(specs_dir: Path) -> Path:
-    """Fill the workflow-close complexity ledger input."""
+    """Fill the workflow-close complexity ledger input, coverage audit included."""
     path = Path(specs_dir) / "results" / "complexity_ledger_input.yaml"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(PASSING_LEDGER_INPUT, encoding="utf-8")
+    path.write_text(PASSING_LEDGER_INPUT + COVERAGE_AUDIT_PASS, encoding="utf-8")
     return path

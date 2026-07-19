@@ -210,6 +210,22 @@ writing "or record a justification", "unless overridden", "falls back to",
 or "when present" into a gate, you are building degeneracy. Write the
 failure instead.
 
+**A boundary is not an escape hatch, and the difference is countable.** The
+coverage audit gate (MF-026, `references/coverage_audit.md`) turns on exactly
+this distinction. Its findings are classified against a scope the *plan*
+declares — one decision, made once by the owner, reviewed once, visible in one
+place. That is a boundary. Had the gate instead let each finding be closed by a
+recorded justification, it would have been the out-of-contract suppression
+purged from MF-013, rebuilt one level up: **one reviewable boundary decision is
+a boundary; N per-finding justifications are an escape hatch.** The test to
+apply when adding any new gate is whether the number of judgment calls scales
+with the number of findings. If it does, you have built degeneracy regardless of
+how principled each individual call looks.
+
+The corollary is that an auditing agent must never choose its own scope. An
+agent that picks the boundary can define every finding out of existence, and no
+amount of per-finding rigor recovers from that.
+
 **Hard gates and advisory diagnosis are different things**, and the next
 section is not a loophole in this one. Suggested moves, modularity scores,
 and refactor targets are advisory: they propose architecture and require
