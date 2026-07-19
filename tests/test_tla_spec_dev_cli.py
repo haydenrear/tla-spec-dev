@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from conftest import write_ticket_ledger_input
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -254,6 +256,12 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert (ticket_dir / "current" / "External.tla").exists()
     assert (ticket_dir / "desired" / "testgraph_bindings.yml").exists()
 
+    # MF-019: `open ticket` scaffolds the complexity-ledger input with TODO
+    # sentinels that fail the close gate. Filling it in is a required close-out
+    # step, so the end-to-end lifecycle exercises it here.
+    assert (ticket_dir / "results" / "complexity_ledger.yaml").exists()
+    write_ticket_ledger_input(ticket_dir)
+
     plan_path = tmp_path / "project_specs" / "desired_program_model" / "ticket_plan.yaml"
     plan_path.write_text(plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1), encoding="utf-8")
     result_close = run_cli(
@@ -274,6 +282,16 @@ def test_cli_open_ticket_and_close_ticket_use_spec_root(tmp_path: Path) -> None:
     assert (history_dir / "manifest.json").exists()
     assert (history_dir / "ticket" / "desired" / "External.tla").exists()
     assert (tmp_path / "project_specs" / "current" / "External.tla").exists()
+    # MF-019: the close recorded a complexity ledger entry, and the delta is
+    # stored jointly with its retention evidence in the history manifest.
+    assert "complexity ledger" in result_close.stdout
+    ledger = tmp_path / "project_specs" / "results" / "complexity_ledger.json"
+    assert ledger.exists()
+    import json as _json
+    manifest = _json.loads((history_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["complexity_delta"] is not None
+    assert manifest["retention_evidence"]["effect_conformance"]["classification"] == "retained"
+    assert manifest["refinement_record"]["outcome"] == "none"
 
 
 def test_cli_open_ticket_records_custom_ticket_root_in_close_guidance(tmp_path: Path) -> None:

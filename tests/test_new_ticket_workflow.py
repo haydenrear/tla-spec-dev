@@ -9,6 +9,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.new_ticket_workflow import scaffold, scaffold_ticket_directory
 from scripts.close_tickets import close_ticket_workflow, validate_equivalent
 from scripts.spec_evolution import create_ticket_history_entry
+from conftest import write_ticket_ledger_input, write_workflow_ledger_input
 
 
 def test_skill_requires_two_minute_case_generation_budget() -> None:
@@ -235,6 +236,8 @@ tickets:
         encoding="utf-8",
     )
 
+    write_ticket_ledger_input(ticket_dir)
+
     result = create_ticket_history_entry(
         repo_root=tmp_path,
         spec_root=Path("specs"),
@@ -317,6 +320,8 @@ def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> N
 """,
         encoding="utf-8",
     )
+
+    write_ticket_ledger_input(ticket_dir)
 
     result = create_ticket_history_entry(
         repo_root=tmp_path,
@@ -442,6 +447,8 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
         encoding="utf-8",
     )
 
+    write_workflow_ledger_input(tmp_path / "specs")
+
     removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False)
 
     entry_dir = tmp_path / "specs" / ".history" / "spec-workflow" / "closed-snapshot"
@@ -540,6 +547,8 @@ def test_close_ticket_workflow_accept_new_promotes_desired_into_program_model(tm
 """,
         encoding="utf-8",
     )
+
+    write_workflow_ledger_input(tmp_path / "specs")
 
     removed = close_ticket_workflow(tmp_path, Path("specs"), dry_run=False, accept_new=True)
 

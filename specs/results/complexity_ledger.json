@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-019",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-19T22:44:51.281571+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-19-mf019-complexity-objective/specs/tickets/MF-019/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": null,
+        "metrics": {},
+        "direction": "baseline",
+        "note": "no previous ledger entry; this entry establishes the baseline"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "deferred",
+          "classification": "unverified",
+          "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=deferred (UNVERIFIED)",
+        "effect_conformance=deferred (UNVERIFIED)",
+        "external_coverage=deferred (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found no NEW reduction. The four standing candidates are recorded and deliberately not re-litigated: projecting lastCommand/result (PROJECTED, pending the kill rate, MF-023's to settle); collapsing kill_test 4->3 (MF-016 MEASURED 26.2% and REFUSED, all four values individually TLC-reachable); collapsing the three failure verdicts (MF-027 MEASURED 47% and REFUSED, deletes externally-visible result.next distinctions); further ticket_state collapse (MF-025 searched, found none). Re-taking any would contradict a prior ticket's recorded refusal on evidence not re-measured. New surfaces were searched for duplication: the self-loop red-flag detector is delegated to MF-011's compare_tlc_reports and the YAML subset parser is reused from extract_spec_manifest, rather than either being reimplemented.\n",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/MF-019/results/complexity-ledger.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    }
+  ]
+}
