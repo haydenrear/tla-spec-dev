@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 9
+  schedule_revision: 10
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -344,8 +344,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-013
-  active_ticket_title: "Effect conformance harness"
+  active_ticket: MF-027
+  active_ticket_title: "Effect oracle must refuse targets it cannot observe"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -957,16 +957,60 @@ tickets:
         - "The two live findings were NOT worked around and are unchanged: 'C1 has 7 variables, exceeding max_component_variables 6' and 'C1 is touched by 12 actions, exceeding max_component_actions 8'. Component budgets were not renegotiated and --allow-over-budget was not used; the budget gate remains FAIL exactly as at the epic tip. Both are C1 decomposition, resolved at the root by MF-023."
         - "Validations DEFERRED to MF-023 per the epic-wide instruction, enumerated in specs/tickets/MF-015/results/deferred-to-mf023.md: spec-case generation, the corpus run, effect conformance, and the mutation kill test. Called out there for MF-015 specifically -- MF-023 must confirm the transitive import analysis raises no false positive against the REAL adapter tree, where adapters legitimately import spec_double_compiler.runtime while the declared production package is the CLI itself; fixtures cannot prove that."
 
+  - id: MF-027
+    title: "Effect oracle must refuse targets it cannot observe"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-013]
+    blocks: []
+    wave: 5
+    promotion_order: 45
+    promotion_predecessor: MF-013
+    conflict_keys:
+      production: [scripts/effect_conformance.py, scripts/effect_conformance_report.py, references/modular_fuzzing.md]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Amendment to MF-013, which shipped correct behavior with a SILENT boundary. EffectSandbox observes by monkeypatching the in-process Python runtime (builtins.open, os mutators, subprocess.run/Popen, socket.connect), so a Java or Kotlin adapter in a separate JVM is entirely invisible -- not hypothetical, since the Test Graph SDK ships Java and JVM nodes are first-class -- and a spawned subprocess is recorded as a spawn while everything it does is unobserved. Neither case reports a problem; the oracle returns GREEN. A clean report on an unobservable target is indistinguishable from a real one, which is the defect class this epic purged five times (corpus filtering, gap suppression, a self-disabling justification check, a budgets fallback hiding a broken parser, an override making a hard gate advisory). The problem is NOT that the oracle is Python-only -- that is useful and honest if declared -- it is that it does not declare it. Fix: the sandbox determines observability and FAILS with target-not-observable rather than returning clean; a subprocess spawn becomes an explicit unobservable-boundary finding; and the External/test-graph gap (exported cases run in JBang/uv nodes with no effect checking at all) is documented with a follow-up, since observing a JVM target needs a different mechanism behind the same port schema and is a second implementation rather than an extension. Scrapping the oracle was considered and rejected -- effect conformance is one of exactly three members of the doctrine constraint set and is the only one that catches boundaries never modeled at all. See tickets/027-effect-oracle-refuses-unobservable-targets.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/effect_conformance.py (observability determination and refusal)
+      - scripts/effect_conformance_report.py (unobservable verdict)
+      - references/modular_fuzzing.md and SKILL.md (declared observable scope)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - adapter proving an unobservable target fails rather than reporting clean
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-027/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-027
+      assertions:
+        - an adapter not observable in-process produces a FAILING verdict naming why, never a clean report; proven by a test running a deliberately unobservable target.
+        - a subprocess spawn produces an explicit unobservable-boundary finding naming the process, not silence; proven by a test.
+        - no configuration, flag, annotation or manifest entry can downgrade an unobservable-target verdict to a pass; the inverse is proven, as MF-013 did for gap suppression.
+        - the External/test-graph gap is documented in references/modular_fuzzing.md with a filed follow-up issue for JVM-capable observation.
+        - SKILL.md states the oracle observable scope plainly, so a user onboarding a JVM project learns it from documentation rather than from a false green.
+      evidence: []
+
   - id: MF-016
     title: "Mutation kill test"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/17"
-    schedule_revision: 3
+    schedule_revision: 4
     depends_on: [MF-012, MF-014]
     blocks: [MF-019]
     wave: 6
     promotion_order: 60
-    promotion_predecessor: MF-013
+    promotion_predecessor: MF-027
     conflict_keys:
       production: [scripts/run_kill_test.py, examples/distributed_history/]
       tla: [TlaSpecDevCli.tla]
