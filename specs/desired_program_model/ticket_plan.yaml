@@ -107,6 +107,25 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: MF-015 accepted by the epic owner AND by the repository owner
+    (merge 1dcce07). Channel required per Test Graph binding, an external block
+    declaring the production package and per-port double|real bindings with at
+    least one real, and a shared import-isolation module applied by BOTH entry
+    points so they cannot drift -- transitive static ast analysis covering
+    importlib.import_module and __import__. Verified independently -- 226 unit
+    tests, 3 import-proof tests, model unchanged at 7 variables and bound
+    34,992, and no pre-existing assertion removed or relaxed (661 insertions
+    against 4 deletions). Zero model delta accepted -- the gates sit on the
+    Test-Graph-invoked path, no modeled CLI command reads a bindings file, and
+    the entry conflict_keys corroborate by naming the two scripts and
+    deliberately not tla_spec_dev.py; modeling it would have meant inventing a
+    subcommand at 3x the bound for a variable with no invariant linkage. Third
+    consecutive ticket to record a deviation from a stale prescribed field
+    rather than invent a model change, which is issue #33 in action. Known
+    limitation queued for MF-023 -- the import check is proven against
+    fixtures, so MF-023 must confirm the transitive analysis raises no false
+    positive against the real adapter tree, where adapters legitimately import
+    spec_double_compiler.runtime while the production package is the CLI.
     2026-07-18: MF-025 accepted and merged by the epic owner PRE-merge review
     (merge cfadb40), the only ticket so far reviewed before landing rather
     than after. Bound 663,552 -> 34,992 (18.96x), variables 9 -> 7, at
@@ -293,8 +312,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-015
-  active_ticket_title: "External channel enforcement"
+  active_ticket: MF-013
+  active_ticket_title: "Effect conformance harness"
   desired_module: TlaSpecDevCli
   phase: implementation
 
