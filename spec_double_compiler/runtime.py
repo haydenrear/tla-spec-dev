@@ -20,6 +20,11 @@ class AdapterBatchContext:
     work_dir: Path
     mapping: Any
     shared: dict[str, Any]
+    #: MF-013: the effect sandbox for this batch, when effect conformance is
+    #: active. Adapters take temp dirs and fake transports from it. They do not
+    #: report effects through it -- observation is passive, so that an adapter
+    #: cannot decline to disclose a boundary crossing.
+    sandbox: Any = None
 
 
 @dataclass
@@ -31,6 +36,8 @@ class AdapterCaseContext:
     shared: dict[str, Any]
     result: CaseRunResult | None = None
     error: BaseException | None = None
+    #: MF-013: see AdapterBatchContext.sandbox.
+    sandbox: Any = None
 
 
 @dataclass

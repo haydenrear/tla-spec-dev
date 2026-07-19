@@ -1,0 +1,114 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-013",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "sandboxed observation collects filesystem and transport effects per case.",
+        "undeclared observed effect FAILS -- the gap is recorded AND the run fails; recording is not an alternative to failing.",
+        "no justification, annotation, or manifest entry suppresses a gap report; a test proves the inverse (a recorded justification does NOT prevent the failure).",
+        "declared-but-never-observed effects are removed or exercised by a case; prose does not resolve dead model surface."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-013/current/TlaSpecDevCli.tla specs/tickets/MF-013/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-013"
+      ],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "scripts/run_generated_case_adapters.py",
+        "spec_double_compiler/runtime.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": [
+        "actions.yml-effects-schema"
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "spec-unit adapter with a deliberate undeclared effect proving the diff fails"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "RunEffectConformance"
+      ],
+      "model_state": [
+        "effect_conformance"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-013/current/tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [
+      "RunEffectConformance"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/15",
+    "id": "MF-013",
+    "implementation_scope": [
+      "scripts/run_generated_case_adapters.py",
+      "spec_double_compiler/runtime.py",
+      "actions.yml / spec_manifest.yaml effect declarations"
+    ],
+    "objective": "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; undeclared observed effects fail or record representation gaps; declared-never-observed effects reported as dead surface; out-of-contract justifications suppress gaps. See tickets/013-effect-conformance-harness.md.",
+    "promotion_order": 40,
+    "promotion_predecessor": "MF-015",
+    "schedule_revision": 3,
+    "status": "pending",
+    "title": "Effect conformance harness",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/tickets/MF-013",
+  "ticket_id": "MF-013",
+  "ticket_index": 6,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-15-mf013-effect-conformance/specs/tickets"
+}
