@@ -26,6 +26,7 @@ if str(SKILL_ROOT) not in sys.path:
 
 from scripts.budgets import budgets_block
 from scripts.onboard_program_model import missing_baseline_files
+from scripts import complexity_ledger
 
 TICKET_COPY_IGNORE = {
     ".DS_Store",
@@ -939,6 +940,11 @@ def scaffold_ticket_directory(
         (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
         (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
         (ticket_dir / "results" / ".gitkeep", ""),
+        # MF-019: every ticket opens with the complexity-ledger input already
+        # scaffolded, carrying TODO sentinels that FAIL the close gate. The
+        # standing objective is therefore a step you fill in, never a step you
+        # can omit -- an unfilled template cannot be closed through.
+        (ticket_dir / "results" / "complexity_ledger.yaml", complexity_ledger.TEMPLATE),
     ]
     for path, content in files:
         if write_file(path, content, force=force, dry_run=dry_run):

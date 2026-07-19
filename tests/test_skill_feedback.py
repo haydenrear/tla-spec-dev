@@ -7,7 +7,11 @@ close-out can tell mechanically whether they were filed. The
 findings this epic produced before the template existed.
 """
 
+import importlib
+
 import importlib.util
+
+from conftest import write_workflow_ledger_input
 import json
 import sys
 from pathlib import Path
@@ -338,6 +342,8 @@ def test_history_manifest_records_feedback_filing_status(tmp_path: Path) -> None
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
     (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)
     (specs_dir / "desired_program_model" / "ticket_plan.yaml").write_text(
         "version: 1\nname: fixture-workflow\ntickets:\n  - id: T-1\n    status: done\n",
@@ -367,6 +373,8 @@ def test_history_manifest_records_where_feedback_was_filed(tmp_path: Path) -> No
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
     (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)
     (specs_dir / "desired_program_model" / "ticket_plan.yaml").write_text(
         "version: 1\nname: fixture-workflow\ntickets:\n  - id: T-1\n    status: done\n"
@@ -398,6 +406,8 @@ def test_no_skill_feedback_opt_out(tmp_path: Path) -> None:
     specs_dir = tmp_path / "specs"
     (specs_dir / "current").mkdir(parents=True)
     (specs_dir / "current" / "M.tla").write_text("---- MODULE M ----\n====\n", encoding="utf-8")
+    (specs_dir / "current" / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+    write_workflow_ledger_input(specs_dir)
     (specs_dir / "desired_program_model").mkdir(parents=True)
     (specs_dir / "desired_program_model" / "ticket_plan.yaml").write_text(
         "version: 1\nname: fixture-workflow\ntickets:\n  - id: T-1\n    status: done\n",

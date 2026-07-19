@@ -420,3 +420,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-019
+
+- close_scope: ticket
+- close_id: MF-019
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-19T22:44:51+00:00
+- summary: Mechanize the standing objective: complexity ledger recorded per ticket/workflow close with the delta reported jointly with retention evidence; increases require a recorded justification; a decrease with degraded or unverified retention is rejected at close; the MF-020 self-loop red flag is a hard gate; and the recursive refinement record is required. Zero model delta -- max_state_space_bound is at 70.0% with 1.43x headroom, so no new bounded variable of any cardinality fits; recorded as a finding for MF-023.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

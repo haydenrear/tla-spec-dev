@@ -20,6 +20,11 @@ try:
 except ImportError:  # pragma: no cover - direct script execution
     from skill_feedback import emit_skill_feedback, print_skill_feedback_report
 
+try:
+    from . import complexity_ledger
+except ImportError:  # pragma: no cover - direct script execution
+    import complexity_ledger
+
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIRS = ("program_model", "desired_program_model", "current")
@@ -46,6 +51,7 @@ class HistoryEntryResult:
     git_commit_command: str
     promotion: dict[str, Any] | None = None
     skill_feedback: dict[str, Any] | None = None
+    complexity_ledger: dict[str, Any] | None = None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -523,6 +529,110 @@ def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
     }
 
 
+def find_model_files(model_dir: Path) -> tuple[Path, Path, Path | None] | None:
+    """Locate (tla, cfg, manifest) inside a model tree, or None when absent.
+
+    Returning None is NOT a pass. Callers treat an unlocatable model as a hard
+    failure of the complexity ledger; the separation exists so the error message
+    can name the directory it searched.
+    """
+    model_dir = Path(model_dir)
+    if not model_dir.is_dir():
+        return None
+    tla_files = sorted(p for p in model_dir.glob("*.tla") if not p.name.startswith("MC"))
+    if not tla_files:
+        return None
+    tla_path = tla_files[0]
+    cfg_path = model_dir / "MC.cfg"
+    if not cfg_path.exists():
+        candidates = sorted(model_dir.glob("*.cfg"))
+        if not candidates:
+            return None
+        cfg_path = candidates[0]
+    manifest_path = model_dir / "spec_manifest.yaml"
+    return tla_path, cfg_path, manifest_path if manifest_path.exists() else None
+
+
+def complexity_ledger_input_path(specs_dir: Path, active_dir: Path | None, scope: str) -> Path:
+    """Deterministic location of the ledger input for this close.
+
+    Deterministic on purpose: a path the caller can vary is a path the caller
+    can point somewhere empty.
+    """
+    if scope == "ticket" and active_dir is not None:
+        return active_dir / "results" / "complexity_ledger.yaml"
+    return specs_dir / "results" / "complexity_ledger_input.yaml"
+
+
+def record_complexity_ledger(
+    specs_dir: Path,
+    *,
+    scope: str,
+    scope_id: str,
+    workflow: str,
+    model_dir: Path,
+    input_path: Path,
+    tlc_report: Path | None = None,
+) -> dict[str, Any]:
+    """Evaluate the standing objective and refuse the close when it is not met.
+
+    Called BEFORE the history entry is created and before promotion, so a
+    refused close leaves the tree untouched.
+    """
+    located = find_model_files(model_dir)
+    if located is None:
+        raise SystemExit(
+            f"ERROR: complexity ledger cannot find a model to measure in {rel(model_dir)}.\n"
+            "The ledger records measured complexity; it does not estimate and it does "
+            "not skip. Point the close at a tree containing <module>.tla and MC.cfg."
+        )
+    tla_path, cfg_path, manifest_path = located
+    try:
+        ledger_input = complexity_ledger.load_input(input_path)
+    except complexity_ledger.LedgerError as error:
+        raise SystemExit(f"ERROR: {error}") from error
+
+    resolved_tlc = tlc_report
+    if resolved_tlc is None:
+        # Conventional per-ticket TLC evidence. When absent the reachable-state
+        # figures stay null and are reported as unmeasured -- they are never
+        # estimated, and never carried forward from the previous entry.
+        for candidate in ("tlc-current.txt", "tlc.txt", "tlc-baseline.txt"):
+            probe = input_path.parent / candidate
+            if probe.exists():
+                resolved_tlc = probe
+                break
+
+    metrics = complexity_ledger.collect_metrics(tla_path, cfg_path, manifest_path, resolved_tlc)
+    path = complexity_ledger.ledger_path(specs_dir)
+    ledger = complexity_ledger.load_ledger(path)
+    verdict = complexity_ledger.evaluate(
+        scope=scope,
+        scope_id=scope_id,
+        workflow=workflow,
+        metrics=metrics,
+        ledger_input=ledger_input,
+        previous=complexity_ledger.previous_entry(ledger),
+    )
+    report = complexity_ledger.render_report(verdict)
+    if verdict.rejected:
+        # Append the rejection before refusing. The rejected entry is part of the
+        # append-only record -- a refused close is evidence, not a non-event --
+        # and previous_entry() skips rejections so it never becomes a baseline.
+        complexity_ledger.append_entry(path, verdict.entry)
+        raise SystemExit(
+            report
+            + "\nERROR: close refused by the complexity ledger (MF-019 standing objective).\n"
+            "Complexity is minimized under behavior retention. There is no override flag."
+        )
+    print(report)
+    complexity_ledger.append_entry(path, verdict.entry)
+    record = dict(verdict.entry)
+    record["ledger_path"] = rel(path)
+    record["input_path"] = rel(input_path)
+    return record
+
+
 def create_ticket_history_entry(
     *,
     repo_root: Path,
@@ -568,6 +678,24 @@ def create_ticket_history_entry(
             + "\n\n"
             + ticket_promotion_guidance(active_dir)
         )
+
+    # MF-019: the standing objective is a gate, and it runs BEFORE the history
+    # entry exists and before promotion, so a refused close mutates nothing.
+    # There is deliberately no flag, parameter, or environment variable that
+    # skips this. When the ticket workdir is absent the ledger measures the
+    # promoted whole-program model instead of skipping -- "no model here" must
+    # never be a way to close without a ledger entry.
+    _has_workdir = active_dir.exists()
+    complexity_record = record_complexity_ledger(
+        specs_dir,
+        scope="ticket",
+        scope_id=resolved_ticket_id,
+        workflow=resolved_workflow,
+        model_dir=(active_dir / "current") if _has_workdir else (specs_dir / "current"),
+        input_path=complexity_ledger_input_path(
+            specs_dir, active_dir if _has_workdir else None, "ticket"
+        ),
+    )
 
     resolved_entry_name = safe_segment(entry_name) if entry_name else ticket_entry_name(index, ticket)
     make_history_appendable(specs_dir, resolved_workflow)
@@ -617,6 +745,12 @@ def create_ticket_history_entry(
         )
         promoted_paths.append(Path(skill_feedback_record["path"]))
 
+    # MF-019: the ledger is written by this close, so it belongs in the commit
+    # the close recommends. Omitting it leaves the recorded delta uncommitted --
+    # an append-only record that is not committed is not a record.
+    if complexity_record is not None:
+        promoted_paths.append(Path(complexity_record["ledger_path"]))
+
     close_result = commit_recommendation(
         entry_dir,
         f"record spec history for {resolved_ticket_id}",
@@ -626,6 +760,7 @@ def create_ticket_history_entry(
         close_result,
         promotion=promotion_record,
         skill_feedback=skill_feedback_record,
+        complexity_ledger=complexity_record,
     )
     manifest = {
         "schema_version": 1,
@@ -650,6 +785,13 @@ def create_ticket_history_entry(
         "skill_feedback": skill_feedback_record,
         "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
         "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
+        # MF-019: the complexity delta and its retention evidence are recorded
+        # in the history entry together. Reading either alone is the failure the
+        # standing objective forbids, so they are never stored apart.
+        "complexity_ledger": complexity_record,
+        "complexity_delta": (complexity_record or {}).get("delta"),
+        "retention_evidence": (complexity_record or {}).get("retention"),
+        "refinement_record": (complexity_record or {}).get("refinement"),
         "commit_recommendation": {
             "message": close_result.recommendation,
             "git_add": close_result.git_add_command,
@@ -687,6 +829,18 @@ def create_workflow_closed_snapshot(
         if open_tickets:
             raise SystemExit("ERROR: cannot write closed workflow snapshot with open tickets:\n" + "\n".join(f"- {item}" for item in open_tickets))
 
+    # MF-019: workflow close records a ledger entry too, measured against the
+    # promoted whole-program model. Same gate, same refusal, evaluated before
+    # the snapshot exists.
+    complexity_record = record_complexity_ledger(
+            specs_dir,
+            scope="workflow",
+            scope_id=resolved_workflow,
+            workflow=resolved_workflow,
+        model_dir=specs_dir / "current",
+        input_path=complexity_ledger_input_path(specs_dir, None, "workflow"),
+    )
+
     resolved_entry_name = safe_segment(entry_name)
     make_history_appendable(specs_dir, resolved_workflow)
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
@@ -713,8 +867,14 @@ def create_workflow_closed_snapshot(
         )
         extra_paths.append(Path(skill_feedback_record["path"]))
 
+    if complexity_record is not None:
+        extra_paths.append(Path(complexity_record["ledger_path"]))
     close_result = commit_recommendation(entry_dir, "close spec ticket workflow", extra_paths=extra_paths)
-    close_result = dataclasses.replace(close_result, skill_feedback=skill_feedback_record)
+    close_result = dataclasses.replace(
+        close_result,
+        skill_feedback=skill_feedback_record,
+        complexity_ledger=complexity_record,
+    )
     manifest = {
         "schema_version": 1,
         "kind": "workflow-close",
@@ -727,6 +887,10 @@ def create_workflow_closed_snapshot(
         "summary": summary,
         "snapshots": snapshots,
         "results": results,
+        "complexity_ledger": complexity_record,
+        "complexity_delta": (complexity_record or {}).get("delta"),
+        "retention_evidence": (complexity_record or {}).get("retention"),
+        "refinement_record": (complexity_record or {}).get("refinement"),
         "skill_feedback": skill_feedback_record,
         "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
         "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
@@ -767,8 +931,26 @@ def print_promotion_report(result: HistoryEntryResult) -> None:
                 print(f"    = {relative}")
 
 
+def print_complexity_ledger_report(record: dict[str, Any] | None) -> None:
+    """Restate the recorded ledger location after a successful close.
+
+    The full delta/retention report is printed by record_complexity_ledger at
+    gate time, before anything is mutated. This is the pointer to the durable
+    entry, printed alongside the other close-out records.
+    """
+    if not record:
+        return
+    delta = record.get("delta") or {}
+    print(
+        f"complexity ledger: {record.get('ledger_path')} "
+        f"(delta {delta.get('direction')} vs {delta.get('previous_scope_id') or 'baseline'}, "
+        f"refinement {(record.get('refinement') or {}).get('outcome')})"
+    )
+
+
 def print_commit_recommendation(result: HistoryEntryResult) -> None:
     print_promotion_report(result)
+    print_complexity_ledger_report(result.complexity_ledger)
     print_skill_feedback_report(result.skill_feedback)
     print(f"recorded spec history entry: {result.entry_dir}")
     print(result.recommendation)

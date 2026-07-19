@@ -1,0 +1,46 @@
+# MF-019's own ledger input, filled in with the mechanism this ticket ships.
+#
+# Retention is recorded as DEFERRED, not as pass. Spec-case execution is
+# deferred epic-wide to MF-023, so these three constraints were not measured.
+# Writing "pass" here would be fabricating retention evidence inside the very
+# mechanism built to refuse fabricated retention evidence.
+#
+# This ticket's delta is ZERO, so the anti-gaming gate does not fire: it gates
+# REDUCTIONS, and no reduction is claimed. Had this ticket claimed one on this
+# evidence, its own gate would have refused the close.
+retention:
+  kill_rate:
+    status: "deferred"
+    evidence: "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md"
+  effect_conformance:
+    status: "deferred"
+    evidence: "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md"
+  external_coverage:
+    status: "deferred"
+    evidence: "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md"
+
+# No increase to justify: the model delta is zero on every metric.
+justification: ""
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >
+    Searched, found no NEW reduction. The four standing candidates are recorded
+    and deliberately not re-litigated: projecting lastCommand/result (PROJECTED,
+    pending the kill rate, MF-023's to settle); collapsing kill_test 4->3
+    (MF-016 MEASURED 26.2% and REFUSED, all four values individually
+    TLC-reachable); collapsing the three failure verdicts (MF-027 MEASURED 47%
+    and REFUSED, deletes externally-visible result.next distinctions); further
+    ticket_state collapse (MF-025 searched, found none). Re-taking any would
+    contradict a prior ticket's recorded refusal on evidence not re-measured.
+    New surfaces were searched for duplication: the self-loop red-flag detector
+    is delegated to MF-011's compare_tlc_reports and the YAML subset parser is
+    reused from extract_spec_manifest, rather than either being reimplemented.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: "specs/tickets/MF-019/results/complexity-ledger.md"

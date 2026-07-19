@@ -35,6 +35,29 @@ def main(ctx):
     history_dir = repo / "specs" / ".history" / "desired-ticket-workflow" / f"ticket-000-{ticket_id}"
 
     result = NodeResult.pass_(SPEC.id)
+
+    # MF-019: `close ticket` refuses until the complexity-ledger input is filled
+    # in. `open ticket` scaffolds it with TODO sentinels that fail the gate on
+    # purpose -- the standing objective is a required close-out step and there is
+    # no bypass flag -- so the graph fills it and then goes through the real gate.
+    ledger_input = ticket_dir / "results" / "complexity_ledger.yaml"
+    scaffolded_with_sentinels = ledger_input.is_file() and "TODO" in ledger_input.read_text(encoding="utf-8")
+    result.assertion(
+        "open ticket scaffolded the complexity ledger input with TODO sentinels",
+        scaffolded_with_sentinels,
+    )
+    ledger_input.parent.mkdir(parents=True, exist_ok=True)
+    ledger_input.write_text(
+        "retention:\n"
+        '  kill_rate:\n    status: "pass"\n    evidence: "results/kill-test.json"\n'
+        '  effect_conformance:\n    status: "clean"\n    evidence: "results/effects.txt"\n'
+        '  external_coverage:\n    status: "pass"\n    evidence: "results/coverage.txt"\n'
+        'justification: "Test Graph fixture close; no model growth claimed."\n'
+        "refinement:\n  searched: true\n  outcome: \"none\"\n"
+        'narrative: "Test Graph fixture ledger narrative."\n',
+        encoding="utf-8",
+    )
+
     close_record = procs.run(
         ctx,
         "close-ticket",
@@ -53,6 +76,24 @@ def main(ctx):
         cwd=repo,
     )
     result.process(close_record).assertion("close-ticket succeeded", close_record.exit_code == 0)
+    # The durable artifact, not the console text: the close must have written an
+    # append-only ledger entry carrying the delta together with its retention
+    # evidence and the refinement record.
+    ledger_file = repo / "specs" / "results" / "complexity_ledger.json"
+    ledger_entries = []
+    if ledger_file.is_file():
+        ledger_entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+    latest = ledger_entries[-1] if ledger_entries else {}
+    result.assertion("close wrote a complexity ledger entry", bool(latest))
+    result.assertion(
+        "ledger entry records the delta jointly with retention evidence",
+        bool(latest.get("delta")) and bool(latest.get("retention")),
+    )
+    result.assertion(
+        "ledger entry carries the required refinement record",
+        (latest.get("refinement") or {}).get("outcome") in {"found", "none"},
+    )
+    result.assertion("ledger entry verdict is recorded", latest.get("verdict") == "recorded")
 
     manifest_path = history_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
