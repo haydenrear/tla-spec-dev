@@ -20,6 +20,21 @@ Three surfaces:
    reporting. Temp dirs and fake transports are handed to the adapter so the
    effects are contained, not so they are hidden.
 
+   **The sandbox observes the in-process CPython runtime and nothing else**
+   (MF-027). Its patches are monkeypatches on ``builtins.open``, ``os``,
+   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+   in *this* interpreter. No patch crosses a process boundary. A Java or
+   Kotlin adapter in a separate JVM, a JBang/uv Test Graph node, or any
+   adapter that delegates its real work to a child process is therefore
+   **invisible** to it.
+
+   MF-027 makes that edge declared rather than silent. Observability is
+   granted only on positive evidence -- the adapter was actually imported and
+   called as a Python object in this interpreter -- and is refused otherwise.
+   A refused target produces the :data:`VERDICT_UNOBSERVABLE` verdict, which
+   is a **failure**, not a clean report. See :class:`UnobservableTarget` and
+   :func:`assess_target_observability`.
+
 3. **Diff.** Observed effects are matched against the ports declared for the
    case's action. Two findings, both hard failures:
 
@@ -43,6 +58,14 @@ are reported loudly and have no effect on any verdict. A silently ignored key
 would be nearly as bad as an honored one -- an author could believe a gap was
 waived. See ``references/architecture_tractability.md``, "No Degenerate
 Escapes", rules 3 and 4, and ``references/modular_fuzzing.md`` oracle 3.
+
+**NOTHING DOWNGRADES AN UNOBSERVABLE VERDICT EITHER.** MF-027 extends the same
+rule to the observability edge, for the same reason: the tempting "helpful"
+move is to let a user whose runtime the sandbox cannot support opt out of the
+check, and that opt-out would reintroduce exactly the silence this ticket
+removed. The observability-shaped keys in :data:`SUPPRESSION_KEYS` are scanned,
+reported, and never honored, and :attr:`EffectConformanceReport.ok` consults no
+configuration at all.
 """
 
 from __future__ import annotations
@@ -89,12 +112,71 @@ SUPPRESSION_KEYS = frozenset(
         "allow_undeclared",
         "ignore_undeclared",
         "expected_gap",
+        # MF-027: the observability-shaped variants. A user whose runtime the
+        # sandbox cannot observe will reach for one of these; they are scanned
+        # and reported exactly like the gap-suppression keys, and honored
+        # exactly as much -- not at all.
+        "assume_observable",
+        "assume_observed",
+        "observable",
+        "skip_observability",
+        "skip_effect_conformance",
+        "allow_unobservable",
+        "ignore_unobservable",
+        "unobservable_ok",
+        "trusted_runtime",
+        "external_runtime_ok",
     }
 )
 
 VERDICT_CLEAN = "clean"
 VERDICT_GAPS = "gaps"
 VERDICT_DEAD_SURFACE = "dead_surface"
+#: MF-027: the sandbox could not observe the target at all. This DOMINATES the
+#: other verdicts: a diff computed over a target that was never seen carries no
+#: information, so reporting it as "clean" -- or even as "gaps" -- would assert
+#: something the run has no evidence for.
+VERDICT_UNOBSERVABLE = "unobservable"
+
+#: Runtime identifiers the sandbox can actually observe. The sandbox patches
+#: objects in this CPython interpreter, so this set has exactly one member in
+#: spirit: code running in-process, here, now.
+OBSERVABLE_RUNTIMES = frozenset({"python", "cpython", "in-process", "python:in-process"})
+
+#: Substrings in an adapter reference, kind, or channel that prove the work
+#: happens somewhere the sandbox's monkeypatches do not reach. Matching is
+#: deliberately broad: a false "unobservable" costs a user an explicit
+#: declaration, while a false "observable" costs them a green report on an
+#: unchecked program, which is the failure mode this ticket exists to remove.
+NON_PYTHON_RUNTIME_MARKERS = (
+    "jvm",
+    "java",
+    "kotlin",
+    "jbang",
+    "gradle",
+    "scala",
+    "clojure",
+    "node",
+    "npx",
+    "npm",
+    "deno",
+    "bun",
+    "golang",
+    "rust",
+    "cargo",
+    "dotnet",
+    "ruby",
+    "docker",
+    "container",
+    "podman",
+    "kubectl",
+    "ssh",
+    "shell",
+    "bash",
+    "subprocess",
+    "exec",
+    "remote",
+)
 
 
 class EffectDeclarationError(ValueError):
@@ -133,6 +215,160 @@ class ObservedEffect:
     def describe(self) -> str:
         where = f" during {self.case}" if self.case else ""
         return f"{self.type} -> {self.target}{where}"
+
+
+#: MF-027 finding kinds. ``runtime`` means the target itself runs outside this
+#: interpreter; ``process-boundary`` means an observable target handed work to a
+#: child process whose own effects were never seen.
+UNOBSERVABLE_RUNTIME = "runtime"
+UNOBSERVABLE_PROCESS_BOUNDARY = "process-boundary"
+
+
+@dataclass(frozen=True)
+class UnobservableTarget:
+    """Something the sandbox could not see. Always a failure.
+
+    This is the finding MF-013 was missing. Its absence is what let a JVM
+    adapter and a subprocess-delegating adapter both return ``clean``: the
+    sandbox observed nothing, nothing observed matched nothing declared, and
+    an empty diff read as a passing one.
+    """
+
+    target: str
+    reason: str
+    kind: str = UNOBSERVABLE_RUNTIME
+    detail: str = ""
+
+    def describe(self) -> str:
+        if self.kind == UNOBSERVABLE_PROCESS_BOUNDARY:
+            head = f"UNOBSERVABLE BOUNDARY: process {self.target!r}"
+        else:
+            head = f"TARGET NOT OBSERVABLE: {self.target!r}"
+        tail = f" [{self.detail}]" if self.detail else ""
+        return f"{head} -- {self.reason}{tail}"
+
+
+@dataclass(frozen=True)
+class TargetObservability:
+    """The verdict on whether one target can be observed in-process."""
+
+    target: str
+    observable: bool
+    reason: str
+    detail: str = ""
+
+    def finding(self) -> UnobservableTarget | None:
+        if self.observable:
+            return None
+        return UnobservableTarget(
+            target=self.target,
+            reason=self.reason,
+            kind=UNOBSERVABLE_RUNTIME,
+            detail=self.detail,
+        )
+
+
+def assess_target_observability(
+    target: str,
+    *,
+    resolved: Any = None,
+    runtime: str | None = None,
+    kind: str | None = None,
+    channel: str | None = None,
+) -> TargetObservability:
+    """Decide whether ``target`` is observable by the in-process sandbox.
+
+    Observability is granted only on **positive evidence**, never assumed. The
+    only evidence that counts is ``resolved``: a live Python object, imported
+    into this interpreter, that the runner is about to call directly. If the
+    runner cannot hand over such an object, the target's real work happens
+    somewhere the monkeypatches do not reach, and the sandbox says so.
+
+    This polarity is the whole point. Defaulting to "observable" and refusing
+    only on recognised non-Python markers would mean every runtime nobody
+    thought to enumerate silently reports clean -- the exact defect MF-027
+    closes. Defaulting to "unobservable" means an unrecognised runtime costs
+    its author an explicit refusal they can read and act on.
+    """
+    label = str(target)
+
+    declared = (runtime or "").strip().lower()
+    if declared and declared not in OBSERVABLE_RUNTIMES:
+        return TargetObservability(
+            target=label,
+            observable=False,
+            reason=(
+                f"declared runtime {declared!r} is not the in-process CPython runtime; "
+                "the sandbox patches only objects in this interpreter and no patch "
+                "crosses a process boundary"
+            ),
+            detail=f"runtime={declared}",
+        )
+
+    for field_name, value in (("kind", kind), ("channel", channel), ("adapter", label)):
+        marker = _non_python_marker(value)
+        if marker is not None:
+            return TargetObservability(
+                target=label,
+                observable=False,
+                reason=(
+                    f"{field_name} {value!r} names the out-of-process runtime {marker!r}; "
+                    "the in-process sandbox cannot observe it"
+                ),
+                detail=f"{field_name}={value}",
+            )
+
+    if resolved is None:
+        return TargetObservability(
+            target=label,
+            observable=False,
+            reason=(
+                "no in-process Python object was resolved for this target, so the "
+                "sandbox has no evidence it can observe anything it does"
+            ),
+            detail="resolved=None",
+        )
+
+    if not _is_python_reference(label):
+        return TargetObservability(
+            target=label,
+            observable=False,
+            reason=(
+                "target is not a Python 'module:object' reference, so it does not "
+                "name code this interpreter runs"
+            ),
+            detail="reference-shape",
+        )
+
+    return TargetObservability(
+        target=label,
+        observable=True,
+        reason="resolved to an in-process Python object in this interpreter",
+        detail=f"module={getattr(resolved, '__module__', type(resolved).__module__)}",
+    )
+
+
+def _non_python_marker(value: Any) -> str | None:
+    if not value:
+        return None
+    text = str(value).lower()
+    for marker in NON_PYTHON_RUNTIME_MARKERS:
+        if marker in text:
+            return marker
+    return None
+
+
+def _is_python_reference(reference: str) -> bool:
+    """True for a ``module.path:object`` reference and nothing else."""
+    if ":" not in reference:
+        return False
+    module_part, _, object_part = reference.partition(":")
+    if not module_part or not object_part:
+        return False
+    if any(char in reference for char in " \t/\\"):
+        return False
+    parts = module_part.split(".") + object_part.split(".")
+    return all(part.isidentifier() for part in parts)
 
 
 def _target_matches(pattern: str, target: str) -> bool:
@@ -278,6 +514,16 @@ class EffectRecorder:
     effects: list[ObservedEffect] = field(default_factory=list)
     current_action: str = ""
     current_case: str = ""
+    #: MF-027: targets the sandbox was asked to observe and could not. Kept
+    #: beside the effects because they are the same kind of fact -- what the
+    #: run actually saw -- and because a diff that ignored them would be a
+    #: diff over an unknown population.
+    unobservable: list[UnobservableTarget] = field(default_factory=list)
+
+    def record_unobservable(self, finding: UnobservableTarget) -> None:
+        """Record a refusal. There is no matching ``clear``/``waive`` method."""
+        if finding not in self.unobservable:
+            self.unobservable.append(finding)
 
     def record(self, effect: ObservedEffect) -> None:
         self.effects.append(
@@ -311,6 +557,32 @@ class EffectSandbox:
         self.root.mkdir(parents=True, exist_ok=True)
         self.recorder = recorder if recorder is not None else EffectRecorder()
         self._originals: dict[str, Any] = {}
+
+    # -- observability --------------------------------------------------
+    def require_observable(
+        self,
+        target: str,
+        *,
+        resolved: Any = None,
+        runtime: str | None = None,
+        kind: str | None = None,
+        channel: str | None = None,
+    ) -> TargetObservability:
+        """Assess ``target`` and record a refusal when it cannot be observed.
+
+        Runners call this **before** executing an adapter. The return value is
+        informational -- callers may skip work they know will not be seen --
+        but the finding is already recorded either way, so declining to check
+        the return value cannot produce a clean report. Refusal is recorded at
+        the sandbox, not decided at the call site.
+        """
+        assessment = assess_target_observability(
+            target, resolved=resolved, runtime=runtime, kind=kind, channel=channel
+        )
+        finding = assessment.finding()
+        if finding is not None:
+            self.recorder.record_unobservable(finding)
+        return assessment
 
     # -- transports -----------------------------------------------------
     def transport(self, name: str) -> RecordingTransport:
@@ -539,6 +811,8 @@ class EffectConformanceReport:
     declared: list[str] = field(default_factory=list)
     cases: list[str] = field(default_factory=list)
     ignored_suppression_keys: list[str] = field(default_factory=list)
+    #: MF-027: targets the run could not observe. Non-empty => the run FAILS.
+    unobservable: list[UnobservableTarget] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -546,11 +820,25 @@ class EffectConformanceReport:
         # consulted here. Findings exist => the run fails. This property is the
         # gate the 2026-07-18 audit required, and inverting it is the escape it
         # withdrew.
-        return not self.gaps and not self.dead_surface
+        #
+        # MF-027 adds `unobservable` to the same conjunction rather than
+        # beside it, so there is no second code path that could be relaxed
+        # independently. An unobservable target is not a caveat attached to a
+        # pass; it is a failure.
+        return not self.gaps and not self.dead_surface and not self.unobservable
 
     @property
     def verdict(self) -> str:
-        """Maps onto the TLA ``effect_conformance`` variable."""
+        """Maps onto the TLA ``effect_conformance`` variable.
+
+        ``unobservable`` is tested FIRST and deliberately outranks the others.
+        When the sandbox could not see a target, the gap and dead-surface
+        counts are statements about an empty or partial observation set, and
+        promoting either of them to the headline would dress an absence of
+        evidence as a measurement.
+        """
+        if self.unobservable:
+            return VERDICT_UNOBSERVABLE
         if self.gaps:
             return VERDICT_GAPS
         if self.dead_surface:
@@ -561,7 +849,8 @@ class EffectConformanceReport:
         return (
             f"effect conformance {self.verdict}: {len(self.observed)} observed effect(s) over "
             f"{len(self.cases)} case(s), {len(self.declared)} declared port(s), "
-            f"{len(self.gaps)} gap(s), {len(self.dead_surface)} dead port(s)"
+            f"{len(self.gaps)} gap(s), {len(self.dead_surface)} dead port(s), "
+            f"{len(self.unobservable)} unobservable target(s)"
         )
 
     def render(self) -> str:
@@ -574,11 +863,28 @@ class EffectConformanceReport:
                 "were withdrawn 2026-07-18; nothing suppresses a gap report:"
             )
             lines.extend(f"  - {key}" for key in self.ignored_suppression_keys)
+        if self.unobservable:
+            lines.append("")
+            lines.append(
+                "REFUSED -- the sandbox could not observe the target(s) below. This "
+                "report certifies NOTHING about them. The effect oracle observes the "
+                "in-process CPython runtime only; it does not cross a process boundary."
+            )
+            for finding in self.unobservable:
+                lines.append(f"  - {finding.describe()}")
         for gap in self.gaps:
             lines.append(f"  - {gap.describe()}")
         for dead in self.dead_surface:
             lines.append(f"  - {dead.describe()}")
-        if not self.ok:
+        if self.unobservable:
+            lines.append("")
+            lines.append(
+                "Run the target in-process as a Python adapter, or accept that this "
+                "oracle does not cover it and check that boundary another way. There "
+                "is no flag, annotation, or manifest entry that turns this into a "
+                "pass -- see references/modular_fuzzing.md, oracle 3."
+            )
+        elif not self.ok:
             lines.append("")
             lines.append(
                 "Model the effect (declare the port), or change the program so it no "
@@ -618,10 +924,27 @@ class EffectConformanceReport:
                 {"port": dead.port.qualified, "type": dead.port.type, "target": dead.port.target}
                 for dead in self.dead_surface
             ],
+            "unobservable_targets": [
+                {
+                    "target": finding.target,
+                    "reason": finding.reason,
+                    "kind": finding.kind,
+                    "detail": finding.detail,
+                    "message": finding.describe(),
+                }
+                for finding in self.unobservable
+            ],
+            "observable_scope": (
+                "in-process CPython only: builtins.open, os/shutil/pathlib mutators, "
+                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+                "patch crosses a process boundary; JVM, JBang/uv node, and child-process "
+                "work is not observed (MF-027)"
+            ),
             "ignored_suppression_keys": list(self.ignored_suppression_keys),
             "suppression_policy": (
                 "withdrawn 2026-07-18: no justification, annotation, or manifest entry "
-                "suppresses a gap report"
+                "suppresses a gap report. MF-027: the same holds for an unobservable "
+                "target -- no configuration downgrades that verdict to a pass"
             ),
         }
 
@@ -638,12 +961,22 @@ def diff_effects(
     *,
     cases: Iterable[str] = (),
     case_actions: dict[str, str] | None = None,
+    unobservable: Iterable[UnobservableTarget] = (),
 ) -> EffectConformanceReport:
     """Diff observed effects against declared ports.
 
     Per case: every observed effect must match a port declared for that case's
     action. Across the corpus: every declared port must have matched at least
     one observed effect.
+
+    MF-027: ``unobservable`` carries the sandbox's refusals into the report,
+    and every observed ``process.spawn`` additionally produces a
+    process-boundary finding here. The second half is the important one: a
+    spawn that MATCHES a declared port is still a boundary the sandbox cannot
+    see through. Declaring ``tlc_process`` says "I spawn java"; it does not
+    say what java then wrote. Treating a declared spawn as fully accounted for
+    is precisely the silence this ticket removes, so the finding is derived
+    from the observation itself and no declaration suppresses it.
     """
     observed_list = list(observed)
     case_actions = case_actions or {}
@@ -652,7 +985,24 @@ def diff_effects(
         declared=declarations.all_qualified(),
         cases=list(cases),
         ignored_suppression_keys=list(declarations.ignored_suppression_keys),
+        unobservable=list(unobservable),
     )
+
+    for effect in observed_list:
+        if effect.type != "process.spawn":
+            continue
+        finding = UnobservableTarget(
+            target=effect.target,
+            reason=(
+                "a child process was spawned; the sandbox records the spawn but "
+                "observes nothing the child does -- its writes, deletes and "
+                "connections are invisible to this run"
+            ),
+            kind=UNOBSERVABLE_PROCESS_BOUNDARY,
+            detail=f"case={effect.case or '<none>'} action={effect.action or '<unmapped>'}",
+        )
+        if finding not in report.unobservable:
+            report.unobservable.append(finding)
 
     exercised: set[str] = set()
     seen_gaps: set[tuple[str, str, str, str]] = set()

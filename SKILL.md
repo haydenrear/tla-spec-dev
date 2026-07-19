@@ -833,6 +833,31 @@ back to centralized semantic state.
    declared side effects. Undeclared observed effects are representation
    gaps; declared-but-never-observed effects are dead model surface. See
    `references/modular_fuzzing.md`.
+
+   **Observable scope — read this before onboarding a non-Python project.**
+   The effect sandbox observes the **in-process CPython runtime only**. It
+   works by monkeypatching `builtins.open`, the `os`/`shutil`/`pathlib`
+   mutators, `subprocess`, and `socket.connect` inside the interpreter running
+   the harness. **No patch crosses a process boundary.** Therefore:
+
+   - A **Java or Kotlin adapter in a separate JVM is not observed.**
+   - **Exported Test Graph cases are not observed** — they run in JBang/uv
+     nodes in their own processes, and receive no effect checking at all.
+   - A **spawned subprocess is not observed**; only the spawn itself is.
+
+   The oracle **refuses** rather than reporting clean in each of these cases:
+   the verdict is `unobservable` and the run **fails**, naming the target and
+   why. This is deliberate — a clean report on something the sandbox could not
+   see would be indistinguishable from a real one. Observability is granted
+   only when an adapter is resolved to a live Python object and called
+   in-process; an unrecognised runtime refuses rather than defaulting to
+   observable.
+
+   No flag, annotation, manifest entry, or environment variable downgrades an
+   `unobservable` verdict to a pass. If your target is not in-process Python,
+   this oracle does not cover it, and you must check that boundary another
+   way. JVM-capable observation is tracked in
+   [issue #44](https://github.com/haydenrear/tla-spec-dev/issues/44).
 4. Mutation kill tests: seeded production faults — at minimum one per port
    and one per invariant — must be caught by the generated cases at the
    `kill_rate_floor` from the budgets. A baseline without a passing kill

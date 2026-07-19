@@ -396,3 +396,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   MF-023 with SF-004; not filed as a separate issue because it is the same
   defect class and splitting it would fragment the fix.
 - status: open
+
+## Close-out ticket MF-027
+
+- close_scope: ticket
+- close_id: MF-027
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-19T19:50:48+00:00
+- summary: MF-027: effect oracle refuses targets it cannot observe. Observability granted only on positive in-process evidence; unobservable targets and subprocess boundaries FAIL with explicit findings; inverse test proves no config downgrades the verdict; External/test-graph gap documented with follow-up #44.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

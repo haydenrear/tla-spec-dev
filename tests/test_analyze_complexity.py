@@ -171,12 +171,22 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     drop is representation, not deleted behavior.
 
     MF-013 then added `effect_conformance` as the effect-conformance hard
-    gate. It is 4-valued, unlike its 3-valued predecessors -- "clean", "gaps"
+    gate. It was 4-valued, unlike its 3-valued predecessors -- "clean", "gaps"
     and "dead_surface" are distinct findings with distinct remedies and
-    distinct CLI next-steps -- so it multiplies the bound by 4:
+    distinct CLI next-steps -- so it multiplied the bound by 4:
     34,992 * 4 = 139,968. Same reasoning as MF-014: an unrepresented gate is
-    not a gate, and 139,968 stays well inside `max_state_space_bound`
-    1,000,000. Depth was measured unchanged at 24 across the change.
+    not a gate. Depth was measured unchanged at 24 across the change.
+
+    MF-027 then made that same variable 5-valued by adding "unobservable":
+    the effect sandbox observes the in-process CPython runtime only, and a
+    target it cannot see must FAIL rather than report clean. That verdict
+    selects a distinct `result.next` and a distinct CLI exit path, so leaving
+    it unrepresented would make the model blind to a real outcome of a modeled
+    command -- which is precisely what the verdict itself exists to report.
+    The factor goes 4 -> 5: 34,992 * 5 = 174,960, still well inside
+    `max_state_space_bound` 1,000,000. Depth measured unchanged at 24 again,
+    and no variable or action was added (still 8 variables), so the whole
+    delta is this one domain.
 
     Asserting the current figure AND its relationship to each recorded
     predecessor keeps the calibration meaningful across every promotion.
@@ -186,9 +196,9 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 139_968
-    # Divide out the MF-013 4-valued effect gate to recover the MF-025 figure...
-    pre_mf013 = result.bound // 4
+    assert result.bound == 174_960
+    # Divide out the MF-027 5-valued effect gate to recover the MF-025 figure...
+    pre_mf013 = result.bound // 5
     assert pre_mf013 == 34_992
     # ...undo the MF-025 lifecycle collapse to recover the MF-014 figure...
     pre_mf025 = pre_mf013 // 216 * 4096
@@ -284,11 +294,12 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
         assert removed not in result.variables
     # The collapse consumed the chain it was derived from.
     assert not [c for c in result.chains if len(c.members) == 5]
-    # MF-013 later multiplied the bound by 4 (effect_conformance) and MF-025
-    # divided it by 4096/216 (the per-ticket lifecycle collapse), so undo both
+    # MF-013 later multiplied the bound by 4 (effect_conformance), MF-027 took
+    # that factor to 5 by adding the "unobservable" verdict, and MF-025 divided
+    # the bound by 4096/216 (the per-ticket lifecycle collapse), so undo both
     # before checking the setup-phase factor. A change to the setup-phase
     # factor itself would still break this.
-    pre_mf025 = result.bound // 4 // 216 * 4096
+    pre_mf025 = result.bound // 5 // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
     assert pre_mf025 % 221_184 == 0
