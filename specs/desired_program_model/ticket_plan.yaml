@@ -107,6 +107,36 @@ epic:
     check can consume kill-rate evidence, but with kill-test RUNS deferred to
     MF-023 that edge may now only require the mechanism to exist, not the
     evidence — revisit rather than assume.
+    2026-07-19: MF-019 accepted (merge e247242). The standing objective is
+    mechanized -- ledger per close, delta with required justification for
+    increases, anti-gaming rejection of a decrease under degraded retention,
+    and a required refinement record where silence fails.
+    BINDING-CONSTRAINT CORRECTION, and the epic-owner brief was wrong: I said
+    headroom was tight at max_distinct_states (46.3%, 2.16x left). The actual
+    binding gate is max_state_space_bound at 70.0% with 1.43x headroom. A
+    BOOLEAN variable -- the smallest possible bounded addition -- takes the
+    bound to 1,399,680 and breaches the 1,000,000 cap. NO NEW BOUNDED VARIABLE
+    FITS AT ANY CARDINALITY. This reframes MF-023: decomposition is no longer
+    only a dogfooding exercise, it is what unblocks any further modeling at
+    all, since each component gets its own much smaller bound.
+    MF-019 therefore recorded a zero model delta with an honest gap that cuts
+    against itself -- it DOES add a real close-time refusal which by MF-011
+    standard should be modeled, and it is not modeled because of the budget
+    breach rather than because it is unmodelable. Handed to MF-023.
+    It refused to trim the ledger format to look complete: the machine-checked
+    core cannot express per-value reachability proofs, per-part attribution,
+    outdegree density or budget provenance, so it kept a narrow checked core
+    plus a mandatory unparsed narrative rather than narrowing until everything
+    validated -- a schema tight enough to validate all of them would be loose
+    enough to mean nothing. It also removed a record_ledger bypass it had
+    added early, and fixed the 15 resulting failures by supplying real ledger
+    inputs rather than weakening the gate.
+    FINDINGS ABOUT THE MANUAL RECORD ITSELF: ledger filenames drifted across
+    three spellings; MF-016 wrote no ledger file at all (its content is inside
+    DEFERRED-TO-MF-023.md); and the eleven entries do NOT form a chain, with
+    baselines keyed variously to a git SHA, a tree path and a ticket id, once
+    to a ticket that promoted later. The mechanism derives the previous entry
+    rather than trusting a citation.
     2026-07-19: MF-016 accepted (merge c568522). The fourth and final oracle.
     MOST IMPORTANT FINDING OF THE EPIC -- the agent nearly shipped a DEGENERATE
     ORACLE and caught itself. Its first end-to-end run scored a perfect 7/7
@@ -411,8 +441,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-019
-  active_ticket_title: "Complexity minimization objective"
+  active_ticket: MF-026
+  active_ticket_title: "Coverage audit gate"
   desired_module: TlaSpecDevCli
   phase: implementation
 
