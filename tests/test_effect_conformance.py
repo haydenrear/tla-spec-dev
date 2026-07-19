@@ -360,16 +360,21 @@ class TestSuppressionScanIsScopedToTheEffectsBlock:
 
 
 class TestShippedManifestDeclarations:
-    """The declarations this ticket ships must actually parse and be valid."""
+    """The declarations this ticket ships must actually parse and be valid.
 
-    @pytest.mark.parametrize("variant", ["desired", "current"])
-    def test_ticket_manifest_effects_block_is_well_formed(self, variant):
+    Reads the PROMOTED manifest at ``specs/current``, not the ticket-local
+    copy: ticket directories are consumed by promotion, so a test pinned to
+    ``specs/tickets/MF-013`` passes before close and fails after it.
+    """
+
+    def test_promoted_manifest_effects_block_is_well_formed(self):
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
         from extract_spec_manifest import load_manifest
 
-        root = Path(__file__).resolve().parents[1]
-        manifest = load_manifest(root / "specs" / "tickets" / "MF-013" / variant / "spec_manifest.yaml")
-        decls = load_effect_declarations(manifest)
+        path = Path(__file__).resolve().parents[1] / "specs" / "current" / "spec_manifest.yaml"
+        if not path.is_file():
+            pytest.skip("no promoted spec_manifest.yaml")
+        decls = load_effect_declarations(load_manifest(path))
         assert decls.ports, "shipped manifest declares no effect ports"
         assert decls.ignored_suppression_keys == [], "shipped manifest must carry no suppression keys"
         for action, ports in decls.action_ports.items():

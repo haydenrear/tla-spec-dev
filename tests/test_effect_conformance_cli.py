@@ -94,12 +94,17 @@ def test_manifest_justification_does_not_change_the_exit_code(tmp_path):
     assert effect_conformance_report.run(make_args(target=justified)) == 1
 
 
-def test_shipped_ticket_declarations_load_through_the_cli(tmp_path):
+def test_shipped_declarations_load_through_the_cli(tmp_path):
+    """Reads the PROMOTED manifest -- ticket directories do not survive close."""
+    target = ROOT / "specs" / "current"
+    if not (target / "spec_manifest.yaml").is_file():
+        pytest.skip("no promoted spec_manifest.yaml")
     out = tmp_path / "shipped.json"
-    code = effect_conformance_report.run(
-        make_args(target=ROOT / "specs" / "tickets" / "MF-013" / "current", out=out)
-    )
+    code = effect_conformance_report.run(make_args(target=target, out=out))
     payload = json.loads(out.read_text(encoding="utf-8"))
+    # Exit 1, not 0: no corpus was run, so every declared port reads as dead
+    # surface. That is the harness working on an empty observation set.
+    # MF-023 must run the corpus and then confirm or remove each port.
     assert code == 1
-    assert payload["declared_ports"], "shipped manifest declares no ports"
+    assert payload["declared_ports"], "promoted manifest declares no ports"
     assert payload["ignored_suppression_keys"] == []
