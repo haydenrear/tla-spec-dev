@@ -17,9 +17,11 @@ See ``references/architecture_tractability.md`` "No Degenerate Escapes" and
 from __future__ import annotations
 
 import copy
+import inspect
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -27,13 +29,18 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from effect_conformance import (  # noqa: E402
+    SUPPRESSION_KEYS,
     VERDICT_CLEAN,
     VERDICT_DEAD_SURFACE,
     VERDICT_GAPS,
+    VERDICT_UNOBSERVABLE,
+    EffectConformanceReport,
     EffectDeclarationError,
     EffectRecorder,
     EffectSandbox,
     ObservedEffect,
+    UnobservableTarget,
+    assess_target_observability,
     diff_effects,
     load_effect_declarations,
 )
@@ -406,3 +413,361 @@ class TestReportEvidence:
         )
         payload = json.loads(report.write(tmp_path / "clean.json").read_text(encoding="utf-8"))
         assert payload["ok"] is True and payload["verdict"] == VERDICT_CLEAN
+
+
+# ---------------------------------------------------------------------------
+# MF-027: the oracle must refuse targets it cannot observe.
+#
+# MF-013 shipped correct behavior with a silent boundary: the sandbox patches
+# the in-process CPython runtime, so a JVM adapter and a subprocess-delegating
+# adapter were both invisible, both produced an empty observation set, and an
+# empty observation set read as a clean report. These tests pin the refusal.
+# ---------------------------------------------------------------------------
+
+
+class TestObservabilityAssessment:
+    """Observability is granted on evidence, never assumed."""
+
+    def test_resolved_python_object_is_observable(self):
+        assessment = assess_target_observability("pkg.mod:Adapter", resolved=object())
+        assert assessment.observable is True
+        assert assessment.finding() is None
+
+    def test_unresolved_target_is_not_observable(self):
+        """No live object => no evidence => refusal. This is the polarity."""
+        assessment = assess_target_observability("pkg.mod:Adapter", resolved=None)
+        assert assessment.observable is False
+        assert "no evidence" in assessment.reason
+
+    def test_declared_non_python_runtime_is_not_observable(self):
+        assessment = assess_target_observability(
+            "pkg.mod:Adapter", resolved=object(), runtime="jvm"
+        )
+        assert assessment.observable is False
+        assert "jvm" in assessment.reason
+
+    def test_jvm_adapter_reference_is_not_observable(self):
+        assessment = assess_target_observability(
+            "com.hayden.testgraphsdk:Node", resolved=object(), kind="java"
+        )
+        assert assessment.observable is False
+
+    def test_jbang_node_is_not_observable(self):
+        assessment = assess_target_observability(
+            "jbang test_graph/nodes/Verify.java", resolved=object()
+        )
+        assert assessment.observable is False
+
+    def test_command_string_is_not_a_python_reference(self):
+        assessment = assess_target_observability(
+            "/usr/bin/env python3 run.py", resolved=object()
+        )
+        assert assessment.observable is False
+
+    def test_unrecognised_runtime_defaults_to_refusal_not_to_clean(self):
+        """The default for something nobody enumerated must be refusal.
+
+        A default of "observable" is what made the original defect silent: any
+        runtime the author did not think to list reported green.
+        """
+        assessment = assess_target_observability(
+            "some-target", resolved=None, runtime="brand-new-runtime-9000"
+        )
+        assert assessment.observable is False
+
+
+class TestUnobservableTargetFails:
+    """An unobservable target FAILS. It never returns a clean report."""
+
+    def _report_for(self, **kwargs):
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        sandbox = EffectSandbox(root=Path(tempfile.mkdtemp()) / "sb")
+        sandbox.require_observable("com.example:JvmAdapter", **kwargs)
+        return diff_effects(
+            decls,
+            [ObservedEffect(type="filesystem.write", target="/tmp/workspace/a", action="Act", case="c1")],
+            cases=["c1"],
+            unobservable=sandbox.recorder.unobservable,
+        )
+
+    def test_jvm_target_fails_rather_than_reporting_clean(self):
+        """The headline case: a Java adapter in a separate JVM.
+
+        Note the observed effect in the fixture MATCHES the declared port, so
+        under MF-013 this exact input produced verdict=clean, ok=True. That is
+        the false green MF-027 removes.
+        """
+        report = self._report_for(resolved=object(), runtime="jvm")
+        assert report.ok is False
+        assert report.verdict == VERDICT_UNOBSERVABLE
+        assert report.gaps == [] and report.dead_surface == []
+        assert len(report.unobservable) == 1
+
+    def test_failure_names_why(self):
+        report = self._report_for(resolved=object(), runtime="jvm")
+        message = report.unobservable[0].describe()
+        assert "com.example:JvmAdapter" in message
+        assert "jvm" in message
+        assert "TARGET NOT OBSERVABLE" in message
+
+    def test_unobservable_outranks_a_clean_diff_in_the_rendered_report(self):
+        rendered = self._report_for(resolved=object(), runtime="jvm").render()
+        assert "REFUSED" in rendered
+        assert "certifies NOTHING" in rendered
+        assert "unobservable" in rendered
+
+    def test_unobservable_outranks_gaps_and_dead_surface(self):
+        """Precedence: absence of evidence is not a measurement of gaps."""
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        report = diff_effects(
+            decls,
+            [ObservedEffect(type="filesystem.write", target="/etc/passwd", action="Act", case="c1")],
+            cases=["c1"],
+            unobservable=[UnobservableTarget(target="x", reason="r")],
+        )
+        assert report.gaps, "the gap is still recorded"
+        assert report.verdict == VERDICT_UNOBSERVABLE
+        assert report.ok is False
+
+    def test_evidence_json_records_the_refusal_and_the_scope(self, tmp_path):
+        report = self._report_for(resolved=object(), runtime="jvm")
+        payload = json.loads(report.write(tmp_path / "e.json").read_text(encoding="utf-8"))
+        assert payload["ok"] is False
+        assert payload["verdict"] == VERDICT_UNOBSERVABLE
+        assert payload["unobservable_targets"][0]["kind"] == "runtime"
+        assert "in-process CPython only" in payload["observable_scope"]
+
+
+class TestSubprocessBoundaryIsAnExplicitFinding:
+    """A spawn is a boundary, not a fully-accounted-for effect."""
+
+    def _spawn_report(self, declare_the_port: bool):
+        ports = {"workspace": WRITE_PORT}
+        if declare_the_port:
+            ports["proc"] = {"type": "process.spawn", "target": "*java*"}
+        decls = load_effect_declarations(declarations(**ports))
+        return diff_effects(
+            decls,
+            [
+                ObservedEffect(type="filesystem.write", target="/tmp/workspace/a", action="Act", case="c1"),
+                ObservedEffect(type="process.spawn", target="java -jar tla2tools.jar", action="Act", case="c1"),
+            ],
+            cases=["c1"],
+        )
+
+    def test_spawn_surfaces_as_an_unobservable_finding_naming_the_process(self):
+        report = self._spawn_report(declare_the_port=True)
+        assert report.unobservable, "the spawn must not be silent"
+        finding = report.unobservable[0]
+        assert "java -jar tla2tools.jar" in finding.describe()
+        assert finding.kind == "process-boundary"
+
+    def test_declaring_a_spawn_port_does_not_silence_the_boundary(self):
+        """Declaring "I spawn java" does not say what java then wrote.
+
+        This is the subtle half. The declared port makes the spawn itself
+        non-gap, and under MF-013 that was the end of it -- verdict clean.
+        The child's own effects were never observed and never mentioned.
+        """
+        declared = self._spawn_report(declare_the_port=True)
+        assert declared.gaps == [], "the spawn matches its declared port"
+        assert declared.ok is False, "but the run still refuses"
+        assert declared.verdict == VERDICT_UNOBSERVABLE
+
+    def test_undeclared_spawn_is_both_a_gap_and_a_boundary_finding(self):
+        report = self._spawn_report(declare_the_port=False)
+        assert len(report.gaps) == 1
+        assert len(report.unobservable) == 1
+
+    def test_end_to_end_real_spawn_through_the_sandbox(self, tmp_path):
+        """Drive a real subprocess through the real patches."""
+        decls = load_effect_declarations(
+            declarations(proc={"type": "process.spawn", "target": "*"})
+        )
+        sandbox = EffectSandbox(root=tmp_path / "sb")
+        with sandbox, sandbox.observe(action="Act", case="c1"):
+            subprocess.run([sys.executable, "-c", "pass"], check=True)
+        report = diff_effects(
+            decls,
+            sandbox.recorder.effects,
+            cases=["c1"],
+            unobservable=sandbox.recorder.unobservable,
+        )
+        assert report.verdict == VERDICT_UNOBSERVABLE
+        assert report.ok is False
+        assert any(sys.executable in f.target for f in report.unobservable)
+
+    def test_a_child_that_writes_is_proof_the_boundary_is_real(self, tmp_path):
+        """The child writes a file; the sandbox never sees the write.
+
+        This is the concrete harm: the write below is a real filesystem
+        effect that no declared port authorised, and the oracle cannot see
+        it. The boundary finding is the honest report of that blindness.
+        """
+        victim = tmp_path / "written-by-child.txt"
+        decls = load_effect_declarations(
+            declarations(proc={"type": "process.spawn", "target": "*"})
+        )
+        sandbox = EffectSandbox(root=tmp_path / "sb")
+        with sandbox, sandbox.observe(action="Act", case="c1"):
+            subprocess.run(
+                [sys.executable, "-c", f"open({str(victim)!r},'w').write('x')"], check=True
+            )
+        assert victim.exists(), "the child really did write"
+        writes = [e for e in sandbox.recorder.effects if e.type == "filesystem.write"]
+        assert all(str(victim) not in e.target for e in writes), (
+            "the sandbox cannot see the child's write -- that is the gap being declared"
+        )
+        report = diff_effects(
+            decls, sandbox.recorder.effects, cases=["c1"],
+            unobservable=sandbox.recorder.unobservable,
+        )
+        assert report.ok is False and report.verdict == VERDICT_UNOBSERVABLE
+
+
+class TestNothingDowngradesAnUnobservableVerdict:
+    """The regression guard, built exactly as MF-013 built its inverse test.
+
+    Every test asserts the NEGATIVE: that some plausible opt-out does NOT turn
+    an unobservable verdict into a pass. There is deliberately no test that an
+    opt-out works, because no opt-out exists. The "helpful" instinct here is
+    to let a user whose runtime the sandbox cannot support declare their way
+    out of a check; that opt-out is the silence this ticket removed.
+    """
+
+    def _report_with(self, block_mutator=lambda block: None, **assess):
+        block = declarations(workspace=WRITE_PORT)
+        block_mutator(block)
+        decls = load_effect_declarations(block)
+        sandbox = EffectSandbox(root=Path(tempfile.mkdtemp()) / "sb")
+        sandbox.require_observable(
+            "com.example:JvmAdapter", **{"resolved": object(), "runtime": "jvm", **assess}
+        )
+        return diff_effects(
+            decls,
+            [ObservedEffect(type="filesystem.write", target="/tmp/workspace/a", action="Act", case="c1")],
+            cases=["c1"],
+            unobservable=sandbox.recorder.unobservable,
+        )
+
+    def test_baseline_is_a_failure(self):
+        report = self._report_with()
+        assert report.ok is False and report.verdict == VERDICT_UNOBSERVABLE
+
+    def test_manifest_level_observable_claim_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"].update({"observable": True})
+        )
+        assert report.ok is False
+        assert "effects.observable" in report.ignored_suppression_keys
+
+    def test_assume_observable_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"].update({"assume_observable": ["com.example:JvmAdapter"]})
+        )
+        assert report.ok is False
+        assert "effects.assume_observable" in report.ignored_suppression_keys
+
+    def test_port_level_skip_observability_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"]["components"]["C"]["ports"]["workspace"].update(
+                {"skip_observability": True}
+            )
+        )
+        assert report.ok is False
+
+    def test_trusted_runtime_entry_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"].update({"trusted_runtime": "jvm"})
+        )
+        assert report.ok is False
+
+    def test_allow_unobservable_flag_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"].update({"allow_unobservable": True})
+        )
+        assert report.ok is False
+
+    def test_justification_prose_does_not_downgrade(self):
+        report = self._report_with(
+            lambda block: block["effects"].update(
+                {"justification": "JVM adapters are audited manually every release"}
+            )
+        )
+        assert report.ok is False
+
+    def test_declaring_the_runtime_as_python_does_not_beat_the_reference_shape(self):
+        """Lying in the manifest does not create observability."""
+        sandbox = EffectSandbox(root=Path(tempfile.mkdtemp()) / "sb")
+        sandbox.require_observable(
+            "jbang nodes/Verify.java", resolved=object(), runtime="python"
+        )
+        assert sandbox.recorder.unobservable, "the reference shape still refuses"
+
+    def test_verdict_is_identical_with_and_without_every_suppression_key(self):
+        plain = self._report_with()
+        loaded = self._report_with(
+            lambda block: block["effects"].update(
+                {key: True for key in sorted(SUPPRESSION_KEYS)}
+            )
+        )
+        assert plain.verdict == loaded.verdict == VERDICT_UNOBSERVABLE
+        assert plain.ok is loaded.ok is False
+        assert len(plain.unobservable) == len(loaded.unobservable)
+
+    def test_no_diff_effects_keyword_can_clear_the_finding(self):
+        """The API offers no suppression parameter."""
+        import inspect
+
+        params = set(inspect.signature(diff_effects).parameters)
+        for forbidden in (
+            "allow_unobservable",
+            "ignore_unobservable",
+            "assume_observable",
+            "skip_observability",
+            "strict",
+        ):
+            assert forbidden not in params, f"diff_effects must not accept {forbidden}"
+
+    def test_recorder_offers_no_way_to_withdraw_a_refusal(self):
+        recorder = EffectRecorder()
+        recorder.record_unobservable(UnobservableTarget(target="t", reason="r"))
+        for forbidden in ("clear_unobservable", "waive", "waive_unobservable", "suppress"):
+            assert not hasattr(recorder, forbidden), f"EffectRecorder must not expose {forbidden}"
+        assert len(recorder.unobservable) == 1
+
+    def test_ok_reads_only_the_finding_lists(self):
+        """No configuration is consulted by the gate -- structurally."""
+        # Strip comments: the prose in this property explains what it refuses
+        # to consult, and naming a thing is not consulting it.
+        code = "\n".join(
+            line.split("#", 1)[0]
+            for line in inspect.getsource(EffectConformanceReport.ok.fget).splitlines()
+        )
+        assert "self.unobservable" in code
+        for forbidden in ("config", "flag", "os.environ", "getattr(", "manifest", "if "):
+            assert forbidden not in code, f"ok must not consult {forbidden}"
+
+    def test_environment_variables_do_not_downgrade(self, monkeypatch):
+        for name in (
+            "EFFECT_CONFORMANCE_ALLOW_UNOBSERVABLE",
+            "SPEC_DOUBLE_SKIP_OBSERVABILITY",
+            "TLA_SPEC_DEV_ASSUME_OBSERVABLE",
+        ):
+            monkeypatch.setenv(name, "1")
+        report = self._report_with()
+        assert report.ok is False and report.verdict == VERDICT_UNOBSERVABLE
+
+    def test_cli_exposes_no_downgrade_flag(self):
+        """The reporting command must not grow an opt-out flag."""
+        source = (
+            Path(__file__).resolve().parents[1] / "scripts" / "effect_conformance_report.py"
+        ).read_text(encoding="utf-8")
+        for forbidden in (
+            "--allow-unobservable",
+            "--skip-observability",
+            "--assume-observable",
+            "--no-observability",
+            "--ignore-unobservable",
+        ):
+            assert forbidden not in source, f"CLI must not offer {forbidden}"

@@ -215,6 +215,10 @@ falsifiable.
      surface: remove it, or produce a case that exercises it. Prose
      explaining why it is unobserved does not resolve it.
 
+   - **A target the sandbox cannot observe fails.** See "Observable scope"
+     below. The oracle never returns a clean report on something it could not
+     see.
+
    *Amended 2026-07-18.* This previously read "model it, or record an
    explicit out-of-contract justification" and "remove it or explain it".
    Both escapes are withdrawn: they let a representation stay blind to real
@@ -222,6 +226,80 @@ falsifiable.
    Escapes" in `architecture_tractability.md`, and note that the CEGAR
    section there already treats an undeclared observed effect as evidence
    that *demands* a model addition.
+
+### Observable scope of the effect oracle (MF-027)
+
+**The shipped oracle observes the in-process CPython runtime, and nothing
+else.** `EffectSandbox` (`scripts/effect_conformance.py`) works by
+monkeypatching `builtins.open`, the `os` / `shutil` / `pathlib.Path`
+mutators, `subprocess.run`/`Popen`, and `socket.connect` **in the
+interpreter that is running the harness**. No patch crosses a process
+boundary.
+
+That is a legitimate scope. A Python-only oracle is useful and honest — as
+long as it says so. Until 2026-07-19 it did not, and that was the defect:
+
+- A **Java or Kotlin adapter in a separate JVM** produced zero observations.
+  Zero observations diffed against declared ports produced an empty gap
+  list, and an empty gap list read as `clean`. Not hypothetical: the Test
+  Graph SDK ships Java (`test_graph/sdk/java/.../Node.java`), so JVM nodes
+  are first-class in this toolchain.
+- A **spawned subprocess** was recorded as a `process.spawn` and nothing
+  else. Everything the child did — every file it wrote, every socket it
+  opened — was invisible, and silently so.
+
+A clean report on a target the sandbox cannot see is indistinguishable from
+a clean report on one it can. That is the silent-degradation class this epic
+has purged repeatedly.
+
+**The oracle now refuses.** Observability is granted only on positive
+evidence: the adapter was resolved to a live Python object and called
+in-process. Anything else — a declared non-Python `runtime`, a binding whose
+`kind`/`channel`/reference names a JVM/JBang/node/container runtime, or a
+target the runner could not resolve into this interpreter — yields the
+`unobservable` verdict, which **fails**. Every observed `process.spawn`
+additionally yields an explicit process-boundary finding naming the command,
+*even when the spawn matches a declared port*: declaring `tlc_process` says
+"I spawn java", not "here is what java then wrote".
+
+`unobservable` outranks `gaps` and `dead_surface`. A diff computed over a
+target that was never seen carries no information, so promoting a gap count
+from it would dress an absence of evidence as a measurement.
+
+**No configuration downgrades this verdict.** There is no flag, annotation,
+manifest entry, or environment variable that turns an unobservable target
+into a pass, and `tests/test_effect_conformance.py` proves the inverse
+directly (`TestNothingDowngradesAnUnobservableVerdict`), exactly as MF-013
+did for gap suppression. Observability-shaped keys such as
+`assume_observable`, `skip_observability`, and `trusted_runtime` are scanned,
+reported in `ignored_suppression_keys`, and honored not at all. The opt-out
+is the silence.
+
+### Known limitation: exported Test Graph cases get no effect checking
+
+`scripts/export_testgraph_cases.py` has **zero** references to effect
+conformance, and this is not an oversight in that script — it is the same
+process boundary described above. Exported External cases execute in JBang
+and uv Test Graph nodes, in their own processes, outside any `EffectSandbox`.
+They therefore receive **no effect checking at all**.
+
+Two consequences worth stating plainly:
+
+1. External coverage and effect conformance are independent members of the
+   constraint set. A green Test Graph run says nothing about effects.
+2. For a non-Python project, the effect oracle currently covers whatever
+   part of the system has in-process Python adapters, and refuses the rest.
+   For a pure-JVM project that is the entire system, and the honest output
+   is a refusal rather than a green report.
+
+Closing this properly needs a **different observation mechanism** behind the
+same port-declaration schema — a JVM agent, syscall capture (eBPF/dtrace),
+or a container-level recorder — so that declarations stay portable while the
+recorder is swapped per runtime. That is a second implementation, not an
+extension of `EffectSandbox`, and it is tracked separately in
+[issue #44](https://github.com/haydenrear/tla-spec-dev/issues/44),
+"JVM-capable effect observation behind the port-declaration schema". It is
+explicitly **out of scope** for MF-027.
 4. Mutation kill test: the representation's falsifiable experiment.
    - Hypothesis: representation R captures the bug-relevant behavior of
      component C at its port surface.

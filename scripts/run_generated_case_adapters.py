@@ -774,6 +774,20 @@ def execute_cases_in_batch(
                         if effects_active
                         else None
                     )
+                    if sandbox is not None:
+                        # MF-027: assess BEFORE running. `adapter` is the live
+                        # Python object the runner is about to call, which is
+                        # the only evidence of in-process observability that
+                        # counts. When it is absent, or when the binding names
+                        # an out-of-process runtime, the refusal is recorded on
+                        # the recorder here and no later step can clear it.
+                        sandbox.require_observable(
+                            mapping.adapter or mapping.label,
+                            resolved=adapter,
+                            runtime=getattr(mapping, "runtime", None),
+                            kind=mapping.kind,
+                            channel=mapping.channel,
+                        )
                     case_context = AdapterCaseContext(
                         kind=kind,
                         case=case,
@@ -842,6 +856,7 @@ def execute_cases_in_batch(
             recorder.effects,
             cases=[case.name for case in cases],
             case_actions=observed_case_actions,
+            unobservable=recorder.unobservable,
         )
         if effect_report_path is not None:
             written = report.write(effect_report_path)

@@ -11,8 +11,14 @@ ENFORCING copy of the same measurement runs inside ``run spec-unit-tests``,
 because a gate you have to remember to invoke is not a gate; this command
 exists so the diff can be produced and inspected on its own.
 
-Exit codes: 0 clean, 1 gaps or dead model surface, 2 malformed declarations.
-No flag changes that mapping.
+Exit codes: 0 clean, 1 gaps, dead model surface, or an unobservable target,
+2 malformed declarations. No flag changes that mapping.
+
+MF-027: this command observes the in-process CPython runtime only. A target it
+cannot observe -- a JVM adapter, a JBang/uv Test Graph node, an adapter that
+delegates to a child process -- exits 1 with an ``unobservable`` verdict. It
+never reports clean on a target it could not see, and there is no flag here
+that changes that.
 """
 
 from __future__ import annotations
@@ -90,7 +96,12 @@ def run(args: argparse.Namespace) -> int:
         ran_corpus = True
         _execute_corpus(args, spec_dir, cases_dirs, recorder, observed_cases)
 
-    report = diff_effects(declarations, recorder.effects, cases=observed_cases)
+    report = diff_effects(
+        declarations,
+        recorder.effects,
+        cases=observed_cases,
+        unobservable=recorder.unobservable,
+    )
 
     if getattr(args, "out", None):
         written = report.write(Path(args.out))
@@ -152,6 +163,16 @@ def _execute_corpus(
             case_dir.mkdir(parents=True, exist_ok=True)
             sandbox = EffectSandbox(root=case_dir / "sandbox", recorder=recorder)
             observed_cases.append(case.name)
+            # MF-027: same assessment as the enforcing copy in
+            # run_generated_case_adapters. Both runners refuse; neither is the
+            # lenient one.
+            sandbox.require_observable(
+                mapping.adapter or mapping.label,
+                resolved=adapter,
+                runtime=getattr(mapping, "runtime", None),
+                kind=mapping.kind,
+                channel=mapping.channel,
+            )
             with sandbox, sandbox.observe(action=mapping.label, case=case.name):
                 call_adapter(adapter, case, case_dir)
 
