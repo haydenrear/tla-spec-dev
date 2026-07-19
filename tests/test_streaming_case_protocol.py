@@ -7,16 +7,24 @@ import subprocess
 import sys
 from pathlib import Path
 
+import jsonschema
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.generate_cases_from_tlc_dump import (
     CASE_ENVELOPE_SCHEMA_VERSION,
+    CASE_ENVELOPE_SCHEMA_PATH,
     CASE_MANIFEST_SCHEMA_VERSION,
+    CASE_MANIFEST_SCHEMA_PATH,
     CaseBudgets,
+    ResourceProbe,
     canonical_json_bytes,
+    file_sha256,
     render_streaming_case_protocol,
     sha256_digest,
+    source_digest_bundle,
 )
 
 
@@ -51,6 +59,8 @@ def generate(
     package: str,
     budgets: CaseBudgets,
     seed: str = "seed-1",
+    started_at_ns: int | None = None,
+    resource_probe: ResourceProbe | None = None,
 ):
     tla, cfg, dot = write_inputs(root, edges)
     return render_streaming_case_protocol(
@@ -61,7 +71,24 @@ def generate(
         package_dir=root / package,
         budgets=budgets,
         seed=seed,
+        started_at_ns=started_at_ns,
+        resource_probe=resource_probe,
     )
+
+
+def load_schema(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def assert_exact_integer_protocol(value: object) -> None:
+    if isinstance(value, float):
+        raise AssertionError(f"protocol contains a float: {value!r}")
+    if isinstance(value, dict):
+        for nested in value.values():
+            assert_exact_integer_protocol(nested)
+    elif isinstance(value, list):
+        for nested in value:
+            assert_exact_integer_protocol(nested)
 
 
 def test_streaming_protocol_writes_canonical_digest_accounted_records(tmp_path: Path) -> None:
@@ -96,9 +123,26 @@ def test_streaming_protocol_writes_canonical_digest_accounted_records(tmp_path: 
     assert manifest["emitted_case_count"] == 4
     assert manifest["selection_policy"] == "stable-hash-stratified"
     assert manifest["cases_digest"] == sha256_digest(result.cases_path.read_bytes())
+    assert manifest["budgets"]["per_case_timeout_ms"] == 30_000
+    assert manifest["source_digests"]["module"] == file_sha256(tmp_path / "Program.tla")
+    assert manifest["source_digests"]["config"] == file_sha256(tmp_path / "MC.cfg")
+    assert manifest["source_digests"]["dot"] == file_sha256(tmp_path / "Program.dot")
+    assert manifest["spec_digest"] == manifest["source_digests"]["spec"]
+    assert manifest["module_digest"] == manifest["source_digests"]["module"]
+    assert manifest["config_digest"] == manifest["source_digests"]["config"]
+    assert manifest["projection_digest"] == manifest["source_digests"]["projection"]
+    assert manifest["source_digests"] == source_digest_bundle(
+        module_digest=manifest["module_digest"],
+        config_digest=manifest["config_digest"],
+        projection_digest_value=manifest["projection_digest"],
+        dot_digest=manifest["source_digests"]["dot"],
+    )
+    jsonschema.validate(manifest, load_schema(CASE_MANIFEST_SCHEMA_PATH))
+    assert_exact_integer_protocol(manifest)
 
-    manifest_digest = manifest.pop("manifest_digest")
-    assert manifest_digest == sha256_digest(canonical_json_bytes(manifest))
+    unsigned_manifest = dict(manifest)
+    manifest_digest = unsigned_manifest.pop("manifest_digest")
+    assert manifest_digest == sha256_digest(canonical_json_bytes(unsigned_manifest))
 
     records = [
         json.loads(line)
@@ -112,11 +156,30 @@ def test_streaming_protocol_writes_canonical_digest_accounted_records(tmp_path: 
         assert isinstance(record["input"], dict)
         assert "expected_output" in record
         assert record["expected_projection"] == record["after"]
-        digest = record.pop("record_digest")
-        assert digest == sha256_digest(canonical_json_bytes(record))
+        assert record["case_id"].startswith("sha256:")
+        assert record["provenance"] == {"kind": "tlc-generated"}
+        assert "required_adapters" not in record
+        assert record["spec_digest"] == manifest["spec_digest"]
+        assert record["module_digest"] == manifest["module_digest"]
+        assert record["config_digest"] == manifest["config_digest"]
+        assert record["projection_digest"] == manifest["projection_digest"]
+        assert record["source_digests"] == manifest["source_digests"]
+        assert set(record["selection"]) == {
+            "policy",
+            "seed",
+            "selection_index",
+            "transition_ordinal",
+            "stable_hash",
+            "stratum",
+        }
+        jsonschema.validate(record, load_schema(CASE_ENVELOPE_SCHEMA_PATH))
+        assert_exact_integer_protocol(record)
+        unsigned_record = dict(record)
+        digest = unsigned_record.pop("record_digest")
+        assert digest == sha256_digest(canonical_json_bytes(unsigned_record))
 
 
-def test_canonical_json_preserves_integers_sorts_sets_and_encodes_bytes() -> None:
+def test_canonical_json_preserves_integers_sorts_sets_encodes_bytes_and_rejects_floats() -> None:
     encoded = canonical_json_bytes(
         {
             "integer": 9_007_199_254_740_993,
@@ -130,12 +193,25 @@ def test_canonical_json_preserves_integers_sorts_sets_and_encodes_bytes() -> Non
         "members": [1, 2, 3],
         "path_bytes": {"$bytes_base64url": "_y9h"},
     }
-    try:
-        canonical_json_bytes({"invalid": math.nan})
-    except ValueError as exc:
-        assert "non-finite" in str(exc)
-    else:
-        raise AssertionError("non-finite canonical JSON must be rejected")
+    for invalid in (math.nan, 1.5, 1.0):
+        with pytest.raises(ValueError, match="floats are not valid canonical JSON"):
+            canonical_json_bytes({"invalid": invalid})
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("max_cases", 1.0),
+        ("max_output_bytes", 1.0),
+        ("max_rss_mib", 1.0),
+        ("max_seconds", 1.0),
+        ("per_case_timeout_ms", 1.0),
+    ],
+)
+def test_protocol_budgets_reject_float_values(field: str, value: float) -> None:
+    values = CaseBudgets().__dict__ | {field: value}
+    with pytest.raises(ValueError, match=f"{field} must be a positive integer"):
+        CaseBudgets(**values)
 
 
 def test_selection_is_seeded_stable_and_action_outcome_stratified(tmp_path: Path) -> None:
@@ -212,6 +288,10 @@ def test_output_budget_writes_only_typed_incomplete_manifest(tmp_path: Path) -> 
 
 
 def test_time_budget_writes_typed_incomplete_manifest(tmp_path: Path) -> None:
+    probe = ResourceProbe(
+        monotonic_ns=lambda: 2_000_000_001,
+        peak_rss_bytes=lambda: 0,
+    )
     result = generate(
         tmp_path,
         edges=[(0, 1, "Submit")],
@@ -220,16 +300,24 @@ def test_time_budget_writes_typed_incomplete_manifest(tmp_path: Path) -> None:
             max_cases=10,
             max_output_bytes=1024 * 1024,
             max_rss_mib=512,
-            max_seconds=0.000001,
+            max_seconds=1,
         ),
+        started_at_ns=0,
+        resource_probe=probe,
     )
 
     assert result.exit_code == 2
     assert result.manifest["budget_outcome"]["budget"] == "max_seconds"
+    assert result.manifest["budget_outcome"]["observed"] == 3
+    jsonschema.validate(result.manifest, load_schema(CASE_MANIFEST_SCHEMA_PATH))
     assert not result.cases_path.exists()
 
 
 def test_rss_budget_writes_typed_incomplete_manifest(tmp_path: Path) -> None:
+    probe = ResourceProbe(
+        monotonic_ns=lambda: 0,
+        peak_rss_bytes=lambda: 2 * 1024 * 1024,
+    )
     result = generate(
         tmp_path,
         edges=[(0, 1, "Submit")],
@@ -237,13 +325,17 @@ def test_rss_budget_writes_typed_incomplete_manifest(tmp_path: Path) -> None:
         budgets=CaseBudgets(
             max_cases=10,
             max_output_bytes=1024 * 1024,
-            max_rss_mib=0.001,
+            max_rss_mib=1,
             max_seconds=30,
         ),
+        started_at_ns=0,
+        resource_probe=probe,
     )
 
     assert result.exit_code == 2
     assert result.manifest["budget_outcome"]["budget"] == "max_rss_mib"
+    assert result.manifest["budget_outcome"]["observed"] == 2
+    jsonschema.validate(result.manifest, load_schema(CASE_MANIFEST_SCHEMA_PATH))
     assert not result.cases_path.exists()
 
 
@@ -318,10 +410,77 @@ def test_75701_transition_fixture_stays_bounded_and_exact(tmp_path: Path) -> Non
     assert result.manifest["candidate_case_count"] == transition_count
     assert result.manifest["selected_case_count"] == 64
     assert result.manifest["emitted_case_count"] == 64
-    assert result.manifest["resource_usage"]["peak_rss_mib"] <= 512
+    assert result.manifest["resource_usage"]["peak_rss_bytes"] <= 512 * 1024 * 1024
     assert result.manifest["cases_digest"] == sha256_digest(
         result.cases_path.read_bytes()
     )
+    jsonschema.validate(result.manifest, load_schema(CASE_MANIFEST_SCHEMA_PATH))
+    for line in result.cases_path.read_text(encoding="utf-8").splitlines():
+        jsonschema.validate(json.loads(line), load_schema(CASE_ENVELOPE_SCHEMA_PATH))
     assert len(result.cases_path.read_text(encoding="utf-8").splitlines()) == 64
     assert not (result.cases_path.parent / "cases.py").exists()
     assert not list(result.cases_path.parent.glob(".case-selection-*.sqlite3"))
+
+
+def test_pipeline_reviewed_case_is_schema_valid_without_adapter_routing() -> None:
+    digest = f"sha256:{'a' * 64}"
+    record = {
+        "schema_version": CASE_ENVELOPE_SCHEMA_VERSION,
+        "case_id": f"sha256:{'b' * 64}",
+        "spec_digest": digest,
+        "module_digest": digest,
+        "config_digest": digest,
+        "projection_digest": digest,
+        "provenance": {"kind": "reviewed"},
+        "view": "pipeline-internal",
+        "action": "ExtractFileLocalArtifact",
+        "outcome": "artifact-created",
+        "labels": ["pipeline", "file-local"],
+        "tlc_source_id": None,
+        "tlc_target_id": None,
+        "before": {"artifacts": []},
+        "input": {
+            "blob_oid": "sha256:blob",
+            "path_bytes": {"$path_bytes_base64url": "c3JjL0EuamF2YQ"},
+        },
+        "expected_output": {
+            "artifact_id": {"$bytes_base64url": "YWJj"},
+            "resolved_targets": [],
+        },
+        "after": {"artifacts": ["artifact-1"]},
+        "expected_projection": {"artifacts": ["artifact-1"]},
+        "tier": "gold",
+        "selection": {
+            "policy": "stable-hash-stratified",
+            "seed": 41,
+            "selection_index": 1,
+            "transition_ordinal": 1,
+            "stable_hash": "c" * 64,
+            "stratum": {
+                "action": "ExtractFileLocalArtifact",
+                "outcome": "artifact-created",
+            },
+        },
+        "budgets": {
+            "max_cases": 128,
+            "max_output_bytes": 8 * 1024 * 1024,
+            "max_rss_mib": 512,
+            "max_seconds": 120,
+            "per_case_timeout_ms": 30_000,
+        },
+    }
+    record["record_digest"] = sha256_digest(canonical_json_bytes(record))
+
+    schema = load_schema(CASE_ENVELOPE_SCHEMA_PATH)
+    jsonschema.validate(record, schema)
+    assert "required_adapters" not in record
+
+    routed_shape = dict(record)
+    routed_shape["required_adapters"] = ["python-reference"]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(routed_shape, schema)
+
+    generated_shape = dict(record)
+    generated_shape["provenance"] = {"kind": "tlc-generated"}
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(generated_shape, schema)

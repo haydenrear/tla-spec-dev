@@ -666,8 +666,9 @@ not from Python behavior templates.
 
 For large state graphs and cross-language conformance, prefer the versioned
 streaming interchange described in `references/streaming_case_protocol.md`.
-It emits `case-manifest.json` and `cases.jsonl` under four resource budgets,
-never creates runtime `cases.py`, and deterministically selects a
+It emits schema-validated `case-manifest.json` and `cases.jsonl` under four
+generation budgets plus an exact per-case adapter timeout, never creates
+runtime `cases.py`, and deterministically selects a
 stable-hash/action-outcome-stratified subset when the candidate count exceeds
 the declared case budget. Legacy Python packages remain supported for
 deliberately bounded graphs.

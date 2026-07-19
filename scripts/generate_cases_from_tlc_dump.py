@@ -15,7 +15,6 @@ import hashlib
 import importlib
 import inspect
 import json
-import math
 import os
 import re
 import shutil
@@ -26,7 +25,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 try:
     import resource
@@ -48,10 +47,14 @@ CASE_MANIFEST_SCHEMA_VERSION = "cdc.case-manifest.v1"
 CASE_ENVELOPE_SCHEMA_VERSION = "cdc.case-envelope.v1"
 STREAM_PROTOCOL_VERSION = "cdc.tlc-case-stream.v1"
 SELECTION_POLICY = "stable-hash-stratified"
+SCHEMA_ROOT = Path(__file__).resolve().parents[1] / "schemas" / "cdc"
+CASE_ENVELOPE_SCHEMA_PATH = SCHEMA_ROOT / "case-envelope-v1.schema.json"
+CASE_MANIFEST_SCHEMA_PATH = SCHEMA_ROOT / "case-manifest-v1.schema.json"
 DEFAULT_MAX_CASES = 10_000
 DEFAULT_MAX_OUTPUT_BYTES = 128 * 1024 * 1024
-DEFAULT_MAX_RSS_MIB = 512.0
-DEFAULT_MAX_SECONDS = 120.0
+DEFAULT_MAX_RSS_MIB = 512
+DEFAULT_MAX_SECONDS = 120
+DEFAULT_PER_CASE_TIMEOUT_MS = 30_000
 LEGACY_GENERATED_FILES = (
     "__init__.py",
     "types.py",
@@ -101,29 +104,29 @@ class PreparedCase:
 class CaseBudgets:
     max_cases: int = DEFAULT_MAX_CASES
     max_output_bytes: int = DEFAULT_MAX_OUTPUT_BYTES
-    max_rss_mib: float = DEFAULT_MAX_RSS_MIB
-    max_seconds: float = DEFAULT_MAX_SECONDS
+    max_rss_mib: int = DEFAULT_MAX_RSS_MIB
+    max_seconds: int = DEFAULT_MAX_SECONDS
+    per_case_timeout_ms: int = DEFAULT_PER_CASE_TIMEOUT_MS
 
     def __post_init__(self) -> None:
-        for name in ("max_cases", "max_output_bytes"):
+        for name in (
+            "max_cases",
+            "max_output_bytes",
+            "max_rss_mib",
+            "max_seconds",
+            "per_case_timeout_ms",
+        ):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise ValueError(f"{name} must be a positive integer")
-        for name in ("max_rss_mib", "max_seconds"):
-            value = getattr(self, name)
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or value <= 0
-            ):
-                raise ValueError(f"{name} must be positive")
 
-    def as_dict(self) -> dict[str, int | float]:
+    def as_dict(self) -> dict[str, int]:
         return {
             "max_cases": self.max_cases,
             "max_output_bytes": self.max_output_bytes,
             "max_rss_mib": self.max_rss_mib,
             "max_seconds": self.max_seconds,
+            "per_case_timeout_ms": self.per_case_timeout_ms,
         }
 
 
@@ -148,7 +151,7 @@ class StreamingGenerationResult:
 
 
 class BudgetExceeded(RuntimeError):
-    def __init__(self, budget: str, limit: int | float, observed: int | float, stage: str):
+    def __init__(self, budget: str, limit: int, observed: int, stage: str):
         super().__init__(f"{budget} exceeded during {stage}: observed {observed}, limit {limit}")
         self.budget = budget
         self.limit = limit
@@ -165,29 +168,68 @@ class BudgetExceeded(RuntimeError):
         }
 
 
+def _process_peak_rss_bytes() -> int:
+    if resource is None:
+        return 0
+    peak = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    if sys.platform == "darwin":
+        return peak
+    return peak * 1024
+
+
+@dataclass(frozen=True)
+class ResourceProbe:
+    """Injectable exact-integer probes used by the budget guard and its tests."""
+
+    monotonic_ns: Callable[[], int] = time.monotonic_ns
+    peak_rss_bytes: Callable[[], int] = _process_peak_rss_bytes
+
+
 class ResourceBudget:
-    def __init__(self, budgets: CaseBudgets, started_at: float | None = None):
+    def __init__(
+        self,
+        budgets: CaseBudgets,
+        started_at_ns: int | None = None,
+        probe: ResourceProbe | None = None,
+    ):
         self.budgets = budgets
-        self.started_at = started_at if started_at is not None else time.monotonic()
+        self.probe = probe or ResourceProbe()
+        self.started_at_ns = (
+            started_at_ns
+            if started_at_ns is not None
+            else self.probe.monotonic_ns()
+        )
 
-    def elapsed_seconds(self) -> float:
-        return max(0.0, time.monotonic() - self.started_at)
+    def elapsed_ns(self) -> int:
+        return max(0, self.probe.monotonic_ns() - self.started_at_ns)
 
-    def peak_rss_mib(self) -> float:
-        if resource is None:
-            return 0.0
-        peak = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-        if sys.platform == "darwin":
-            return peak / (1024.0 * 1024.0)
-        return peak / 1024.0
+    def elapsed_ms(self) -> int:
+        elapsed = self.elapsed_ns()
+        return (elapsed + 999_999) // 1_000_000
+
+    def peak_rss_bytes(self) -> int:
+        return max(0, int(self.probe.peak_rss_bytes()))
 
     def check(self, stage: str) -> None:
-        elapsed = self.elapsed_seconds()
-        if elapsed > self.budgets.max_seconds:
-            raise BudgetExceeded("max_seconds", self.budgets.max_seconds, elapsed, stage)
-        peak_rss = self.peak_rss_mib()
-        if peak_rss > self.budgets.max_rss_mib:
-            raise BudgetExceeded("max_rss_mib", self.budgets.max_rss_mib, peak_rss, stage)
+        elapsed_ns = self.elapsed_ns()
+        if elapsed_ns > self.budgets.max_seconds * 1_000_000_000:
+            observed_seconds = (elapsed_ns + 999_999_999) // 1_000_000_000
+            raise BudgetExceeded(
+                "max_seconds",
+                self.budgets.max_seconds,
+                observed_seconds,
+                stage,
+            )
+        peak_rss_bytes = self.peak_rss_bytes()
+        max_rss_bytes = self.budgets.max_rss_mib * 1024 * 1024
+        if peak_rss_bytes > max_rss_bytes:
+            observed_mib = (peak_rss_bytes + (1024 * 1024) - 1) // (1024 * 1024)
+            raise BudgetExceeded(
+                "max_rss_mib",
+                self.budgets.max_rss_mib,
+                observed_mib,
+                stage,
+            )
 
 
 def run_tlc_dump(
@@ -749,9 +791,9 @@ def canonical_value(value: Any) -> Any:
     if isinstance(value, bytes):
         encoded = base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
         return {"$bytes_base64url": encoded}
-    if isinstance(value, float) and not math.isfinite(value):
-        raise ValueError("non-finite floats are not valid canonical JSON")
-    if value is None or isinstance(value, (str, int, float, bool)):
+    if isinstance(value, float):
+        raise ValueError("floats are not valid canonical JSON; use an exact integer unit")
+    if value is None or isinstance(value, (str, int, bool)):
         return value
     raise TypeError(f"unsupported canonical JSON value: {type(value).__name__}")
 
@@ -887,6 +929,35 @@ def projection_digest(
     )
 
 
+def source_digest_bundle(
+    *,
+    module_digest: str,
+    config_digest: str,
+    projection_digest_value: str,
+    dot_digest: str | None = None,
+) -> dict[str, str]:
+    """Build the exact semantic-source digest set shared by records/manifests."""
+
+    spec_digest = sha256_digest(
+        canonical_json_bytes(
+            {
+                "module_digest": module_digest,
+                "config_digest": config_digest,
+                "projection_digest": projection_digest_value,
+            }
+        )
+    )
+    source_digests = {
+        "spec": spec_digest,
+        "module": module_digest,
+        "config": config_digest,
+        "projection": projection_digest_value,
+    }
+    if dot_digest is not None:
+        source_digests["dot"] = dot_digest
+    return source_digests
+
+
 def stable_candidate_hash(
     *,
     seed: str,
@@ -941,6 +1012,11 @@ def case_envelope(
     record: dict[str, Any] = {
         "schema_version": CASE_ENVELOPE_SCHEMA_VERSION,
         "case_id": case_id,
+        "spec_digest": source_digests["spec"],
+        "module_digest": source_digests["module"],
+        "config_digest": source_digests["config"],
+        "projection_digest": source_digests["projection"],
+        "provenance": {"kind": "tlc-generated"},
         "view": view,
         "action": case.edge.action,
         "outcome": outcome,
@@ -1011,10 +1087,10 @@ def _finalize_manifest_bytes(
     return encoded, cases_output_bytes + len(encoded)
 
 
-def _resource_evidence(guard: ResourceBudget) -> dict[str, float]:
+def _resource_evidence(guard: ResourceBudget) -> dict[str, int]:
     return {
-        "elapsed_seconds": round(guard.elapsed_seconds(), 6),
-        "peak_rss_mib": round(guard.peak_rss_mib(), 3),
+        "elapsed_ms": guard.elapsed_ms(),
+        "peak_rss_bytes": guard.peak_rss_bytes(),
     }
 
 
@@ -1041,6 +1117,10 @@ def _base_manifest(
         "selection_policy": SELECTION_POLICY,
         "seed": seed,
         "budgets": budgets.as_dict(),
+        "spec_digest": source_digests["spec"],
+        "module_digest": source_digests["module"],
+        "config_digest": source_digests["config"],
+        "projection_digest": source_digests["projection"],
         "source_digests": source_digests,
         "state_count": accounting.state_count,
         "observed_transition_count": accounting.observed_transition_count,
@@ -1181,7 +1261,8 @@ def render_streaming_case_protocol(
     budgets: CaseBudgets | None = None,
     seed: str = "0",
     tier: str = "model",
-    started_at: float | None = None,
+    started_at_ns: int | None = None,
+    resource_probe: ResourceProbe | None = None,
 ) -> StreamingGenerationResult:
     """Generate resource-bounded JSONL without transition/case arrays in RAM."""
 
@@ -1202,23 +1283,30 @@ def render_streaming_case_protocol(
     ):
         stale.unlink(missing_ok=True)
 
-    guard = ResourceBudget(budget_values, started_at)
+    guard = ResourceBudget(
+        budget_values,
+        started_at_ns=started_at_ns,
+        probe=resource_probe,
+    )
     accounting = GenerationAccounting()
-    source_digests = {
-        "spec": file_sha256(tla_path),
-        "config": file_sha256(cfg_path),
-        "projection": projection_digest(
-            view=view,
-            dedupe=dedupe,
-            state_projector=state_projector,
-            output_projector=output_projector,
-            outcome_projector=outcome_projector,
-            declared_state_projector=declared_state_projector,
-            declared_output_projector=declared_output_projector,
-            declared_outcome_projector=declared_outcome_projector,
-        ),
-        "dot": file_sha256(dot_path),
-    }
+    module_digest = file_sha256(tla_path)
+    config_digest = file_sha256(cfg_path)
+    projection_digest_value = projection_digest(
+        view=view,
+        dedupe=dedupe,
+        state_projector=state_projector,
+        output_projector=output_projector,
+        outcome_projector=outcome_projector,
+        declared_state_projector=declared_state_projector,
+        declared_output_projector=declared_output_projector,
+        declared_outcome_projector=declared_outcome_projector,
+    )
+    source_digests = source_digest_bundle(
+        module_digest=module_digest,
+        config_digest=config_digest,
+        projection_digest_value=projection_digest_value,
+        dot_digest=file_sha256(dot_path),
+    )
     connection: sqlite3.Connection | None = None
     database_path: Path | None = None
     try:
@@ -1784,8 +1872,14 @@ def main() -> int:
     )
     parser.add_argument("--max-cases", type=int, default=DEFAULT_MAX_CASES)
     parser.add_argument("--max-output-bytes", type=int, default=DEFAULT_MAX_OUTPUT_BYTES)
-    parser.add_argument("--max-rss-mib", type=float, default=DEFAULT_MAX_RSS_MIB)
-    parser.add_argument("--max-seconds", type=float, default=DEFAULT_MAX_SECONDS)
+    parser.add_argument("--max-rss-mib", type=int, default=DEFAULT_MAX_RSS_MIB)
+    parser.add_argument("--max-seconds", type=int, default=DEFAULT_MAX_SECONDS)
+    parser.add_argument(
+        "--per-case-timeout-ms",
+        type=int,
+        default=DEFAULT_PER_CASE_TIMEOUT_MS,
+        help="Exact integer timeout budget exported for each downstream case.",
+    )
     parser.add_argument("--seed", default="0")
     parser.add_argument("--tier", choices=["gold", "model", "fuzz"], default="model")
     args = parser.parse_args()
@@ -1823,8 +1917,9 @@ def main() -> int:
             max_output_bytes=args.max_output_bytes,
             max_rss_mib=args.max_rss_mib,
             max_seconds=args.max_seconds,
+            per_case_timeout_ms=args.per_case_timeout_ms,
         )
-        started_at = time.monotonic()
+        started_at_ns = time.monotonic_ns()
         if not args.input_dot:
             try:
                 run_tlc_dump(
@@ -1841,22 +1936,25 @@ def main() -> int:
                     *(package_dir / name for name in LEGACY_GENERATED_FILES),
                 ):
                     stale.unlink(missing_ok=True)
-                guard = ResourceBudget(budgets, started_at)
+                guard = ResourceBudget(budgets, started_at_ns=started_at_ns)
                 accounting = GenerationAccounting()
-                source_digests = {
-                    "spec": file_sha256(tla_path),
-                    "config": file_sha256(cfg_path),
-                    "projection": projection_digest(
-                        view=view,
-                        dedupe=args.dedupe,
-                        state_projector=state_projector,
-                        output_projector=output_projector,
-                        outcome_projector=outcome_projector,
-                        declared_state_projector=args.state_projector,
-                        declared_output_projector=args.output_projector,
-                        declared_outcome_projector=args.outcome_projector,
-                    ),
-                }
+                module_digest = file_sha256(tla_path)
+                config_digest = file_sha256(cfg_path)
+                projection_digest_value = projection_digest(
+                    view=view,
+                    dedupe=args.dedupe,
+                    state_projector=state_projector,
+                    output_projector=output_projector,
+                    outcome_projector=outcome_projector,
+                    declared_state_projector=args.state_projector,
+                    declared_output_projector=args.output_projector,
+                    declared_outcome_projector=args.outcome_projector,
+                )
+                source_digests = source_digest_bundle(
+                    module_digest=module_digest,
+                    config_digest=config_digest,
+                    projection_digest_value=projection_digest_value,
+                )
                 manifest = _write_incomplete_manifest(
                     manifest_path=package_dir / "case-manifest.json",
                     cases_path=package_dir / "cases.jsonl",
@@ -1871,7 +1969,7 @@ def main() -> int:
                     outcome=BudgetExceeded(
                         "max_seconds",
                         budgets.max_seconds,
-                        guard.elapsed_seconds(),
+                        (guard.elapsed_ns() + 999_999_999) // 1_000_000_000,
                         "tlc-state-graph-generation",
                     ).as_dict(),
                 )
@@ -1900,7 +1998,7 @@ def main() -> int:
             budgets=budgets,
             seed=str(args.seed),
             tier=args.tier,
-            started_at=started_at,
+            started_at_ns=started_at_ns,
         )
         print(f"spec directory: {spec_dir}")
         if result.exit_code:

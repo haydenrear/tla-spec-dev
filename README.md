@@ -32,8 +32,8 @@ The skill declares CLI dependencies for `jinja2`, `pytest`, and a
 Run focused checks while editing:
 
 ```bash
-python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py
-uv run --with pytest -m pytest tests
+PYTHONPYCACHEPREFIX=/tmp/spec-double-pyc python3 -m py_compile scripts/*.py tests/*.py spec_double_compiler/*.py
+uv run --with pytest --with jsonschema -m pytest tests
 uv run examples/distributed_history/tests/test_ecommerce_backend.py
 uv run examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py
 ```
@@ -100,6 +100,7 @@ python3 scripts/generate_cases_from_tlc_dump.py \
   --max-output-bytes 134217728 \
   --max-rss-mib 512 \
   --max-seconds 120 \
+  --per-case-timeout-ms 30000 \
   --seed model-seed
 ```
 

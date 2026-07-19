@@ -29,6 +29,7 @@ python3 scripts/generate_cases_from_tlc_dump.py \
   --max-output-bytes 134217728 \
   --max-rss-mib 512 \
   --max-seconds 120 \
+  --per-case-timeout-ms 30000 \
   --seed ticket-seed \
   --tier model
 ```
@@ -46,36 +47,59 @@ remains the default output format for bounded existing callers.
 `case_schema_version: cdc.case-envelope.v1`. Every JSONL record uses
 `schema_version: cdc.case-envelope.v1`.
 
+The authoritative Draft 2020-12 schemas ship with the skill:
+
+- `schemas/cdc/case-envelope-v1.schema.json`
+- `schemas/cdc/case-manifest-v1.schema.json`
+
+Consumers should use these files directly instead of maintaining a looser
+repository-local copy.
+
 The manifest records:
 
 - completion status and a typed budget outcome;
 - observed, eligible, candidate, selected, staged, and emitted counts;
 - exact counts by action/outcome stratum;
-- selection policy, seed, tier, and all four declared budgets;
+- selection policy, seed, tier, four generation budgets, and the downstream
+  per-case timeout;
 - spec, configuration, projection, and DOT digests;
 - the digest and byte size of the exact `cases.jsonl` stream;
-- elapsed time and process peak RSS.
+- exact-integer elapsed milliseconds and process peak RSS bytes.
 
 Each case envelope records:
 
 - a stable case ID and per-record digest;
+- top-level spec, module, configuration, and projection digests;
+- required provenance (`tlc-generated` or `reviewed`);
 - view, action, outcome, labels, and TLC source/target IDs;
 - canonical before/input/expected-output/after/expected-projection values;
 - tier, selection stratum/rank/hash, seed, and budgets;
 - the source digests needed to reproduce its semantic identity.
+
+TLC-generated records always carry string source/target node IDs. Reviewed
+cases may use `null` for those IDs. Adapter IDs and campaign routing are not
+producer data and are deliberately absent from `CaseEnvelope`; brokers keep
+that mapping in their campaign configuration.
 
 `cases_digest` is SHA-256 over the exact JSONL bytes, including one newline per
 record. `record_digest` is SHA-256 over the canonical record with
 `record_digest` omitted. `manifest_digest` is computed the same way over the
 manifest with `manifest_digest` omitted.
 
+`module_digest` hashes the TLA+ module bytes, `config_digest` hashes the
+configuration bytes, and `projection_digest` commits the view, dedupe policy,
+and projector implementations. `spec_digest` hashes that three-digest semantic
+bundle. The optional nested `source_digests` repeats those values and, when a
+DOT graph exists, adds its exact file digest.
+
 ## Canonical JSON
 
 Canonical JSON has sorted object keys and no insignificant whitespace.
 Mathematical sets become arrays sorted by each member's canonical JSON bytes;
-sequences retain their order. Integers remain JSON integers without float
-coercion. Non-finite floats are rejected. Raw bytes and filesystem paths use
-explicit unpadded base64url wrappers:
+sequences retain their order. Protocol numerics are exact JSON integers;
+floats, including integer-valued floats, are rejected. Resource telemetry uses
+integer milliseconds and bytes. Raw bytes and filesystem paths use explicit
+unpadded base64url wrappers:
 
 ```json
 {"$bytes_base64url":"..."}

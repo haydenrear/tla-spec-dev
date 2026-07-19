@@ -1,0 +1,324 @@
+{
+  "$id": "https://haydenrear.github.io/tla-spec-dev/schemas/cdc/case-envelope-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CDC CaseEnvelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "cdc.case-envelope.v1"
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^(?:sha256:[0-9a-f]{64}|[a-z0-9][a-z0-9._-]*)$"
+    },
+    "spec_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "module_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "config_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "projection_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "view": {
+      "enum": [
+        "internal",
+        "external",
+        "pipeline-internal",
+        "pipeline-external"
+      ]
+    },
+    "action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outcome": {
+      "type": "string",
+      "minLength": 1
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "tlc_source_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tlc_target_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "before": {
+      "$ref": "#/$defs/canonicalObject"
+    },
+    "input": {
+      "$ref": "#/$defs/canonicalObject"
+    },
+    "expected_output": {
+      "$ref": "#/$defs/canonicalValue"
+    },
+    "after": {
+      "$ref": "#/$defs/canonicalObject"
+    },
+    "expected_projection": {
+      "$ref": "#/$defs/canonicalValue"
+    },
+    "tier": {
+      "enum": [
+        "gold",
+        "model",
+        "fuzz"
+      ]
+    },
+    "selection": {
+      "$ref": "#/$defs/selection"
+    },
+    "budgets": {
+      "$ref": "#/$defs/budgets"
+    },
+    "source_digests": {
+      "$ref": "#/$defs/sourceDigests"
+    },
+    "record_digest": {
+      "$ref": "#/$defs/digest"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "spec_digest",
+    "module_digest",
+    "config_digest",
+    "projection_digest",
+    "provenance",
+    "view",
+    "action",
+    "outcome",
+    "labels",
+    "tlc_source_id",
+    "tlc_target_id",
+    "before",
+    "input",
+    "expected_output",
+    "after",
+    "expected_projection",
+    "tier",
+    "selection",
+    "budgets",
+    "record_digest"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "provenance": {
+            "properties": {
+              "kind": {
+                "const": "tlc-generated"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "provenance"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tlc_source_id": {
+            "type": "string"
+          },
+          "tlc_target_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "canonicalValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/canonicalValue"
+          }
+        },
+        {
+          "$ref": "#/$defs/canonicalObject"
+        }
+      ]
+    },
+    "canonicalObject": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/canonicalValue"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "tlc-generated",
+            "reviewed"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ]
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_cases": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_rss_mib": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "per_case_timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "max_cases",
+        "max_output_bytes",
+        "max_rss_mib",
+        "max_seconds",
+        "per_case_timeout_ms"
+      ]
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "const": "stable-hash-stratified"
+        },
+        "seed": {
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "selection_index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "transition_ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "stable_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stratum": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "type": "string",
+              "minLength": 1
+            },
+            "outcome": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "action",
+            "outcome"
+          ]
+        }
+      },
+      "required": [
+        "policy",
+        "seed",
+        "selection_index",
+        "transition_ordinal",
+        "stable_hash",
+        "stratum"
+      ]
+    },
+    "sourceDigests": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spec": {
+          "$ref": "#/$defs/digest"
+        },
+        "module": {
+          "$ref": "#/$defs/digest"
+        },
+        "config": {
+          "$ref": "#/$defs/digest"
+        },
+        "projection": {
+          "$ref": "#/$defs/digest"
+        },
+        "dot": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "required": [
+        "spec",
+        "module",
+        "config",
+        "projection"
+      ]
+    }
+  }
+}

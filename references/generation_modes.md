@@ -54,6 +54,7 @@ python scripts/generate_cases_from_tlc_dump.py \
   --max-output-bytes 134217728 \
   --max-rss-mib 512 \
   --max-seconds 120 \
+  --per-case-timeout-ms 30000 \
   --seed model-seed
 ```
 
