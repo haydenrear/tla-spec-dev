@@ -289,13 +289,27 @@ TESTGRAPH_BINDINGS_YML = """# TEST GRAPH ADAPTERS (external view).
 # Every External.tla action with `generates: [testgraph]` needs an entry.
 # Read references/testgraph_adapters.md before editing this file.
 #
+#   channel             -> HOW the program is driven: http/cli/fs/queue/k8s
 #   adapter             -> drives the public action
 #   projector           -> observes real state, projected into the TLA shape
 #   expected_projection -> expected state, usually a projection of case.after
 #   assertion           -> compares the two and writes per-case evidence
+#
+# MF-015 external channel enforcement (hard gate, no override):
+#   * every binding declares a `channel`;
+#   * no adapter/projector/expected_projection/assertion module imports
+#     `external.production_package`, directly or via a first-party helper;
+#   * `external.port_bindings` names each port double or real, at least one
+#     real -- all-doubles is a spec-unit run, never a Test Graph node.
+external:
+  production_package: REPLACE_ME_program_package
+  port_bindings:
+    REPLACE_ME_Port: real
+
 actions:
   Submit:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: tutorial-external
@@ -305,6 +319,7 @@ actions:
     assertion: adapters:ProjectedStateAssertion
   SubmitRejected:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: tutorial-external
@@ -314,6 +329,7 @@ actions:
     assertion: adapters:ProjectedStateAssertion
   SubmitDuplicate:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: tutorial-external

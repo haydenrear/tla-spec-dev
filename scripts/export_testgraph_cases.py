@@ -20,11 +20,13 @@ try:
         selected_cases,
     )
     from .spec_paths import resolve_existing_from_cwd
+    from .testgraph_channels import ChannelEnforcementError, ExternalContract, enforce_external_bindings
 except ImportError:  # pragma: no cover - direct script execution
     from corpus_diagnostics import enforce_case_cap
     from generate_cases_from_tlc_dump import TRACE_SCHEMA_VERSION
     from run_generated_case_adapters import case_controllability, case_view, load_cases, selected_cases
     from spec_paths import resolve_existing_from_cwd
+    from testgraph_channels import ChannelEnforcementError, ExternalContract, enforce_external_bindings
 
 
 def to_jsonable(value: Any) -> Any:
@@ -75,7 +77,20 @@ def case_to_trace(case: Any, module: str | None = None) -> dict[str, Any]:
     }
 
 
-def export_cases(cases: list[Any], out_dir: Path, module: str | None = None) -> list[Path]:
+def export_cases(
+    cases: list[Any],
+    out_dir: Path,
+    module: str | None = None,
+    *,
+    contract: "ExternalContract",
+) -> list[Path]:
+    """Write Test Graph traces plus a manifest naming the integration rung.
+
+    ``contract`` is required rather than optional: the exported manifest states
+    which ports were real and which were doubled, so a graph run can say which
+    rung of the integration ladder it occupies. A trace package that cannot say
+    that is not usable as a Test Graph node.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for case in cases:
@@ -88,6 +103,13 @@ def export_cases(cases: list[Any], out_dir: Path, module: str | None = None) -> 
         "view": "external",
         "trace_count": len(written),
         "traces": [path.name for path in written],
+        # MF-015: the integration-ladder rung this package was exported for.
+        "integration_rung": {
+            "rung": contract.rung(),
+            "real_ports": list(contract.real_ports),
+            "double_ports": list(contract.double_ports),
+            "production_package": contract.production_package,
+        },
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     written.append(out_dir / "manifest.json")
@@ -129,6 +151,19 @@ def main() -> int:
         type=Path,
         help="spec_manifest.yaml supplying the case caps. Defaults to the spec dir beside the case package.",
     )
+    parser.add_argument(
+        "--bindings",
+        type=Path,
+        required=True,
+        help=(
+            "testgraph_bindings.yml for the exported actions. REQUIRED: MF-015 "
+            "gates export on every external binding declaring a channel, not "
+            "importing the production package, and naming its double|real port "
+            "binding configuration. Exporting Test Graph traces whose bindings "
+            "were never checked is the degeneracy this gate exists to stop, so "
+            "there is no flag that skips it."
+        ),
+    )
     args = parser.parse_args()
 
     cases_dir = resolve_existing_from_cwd(args.cases_dir)
@@ -147,10 +182,32 @@ def main() -> int:
         source=str(cases_dir),
     )
 
+    # MF-015: external channel enforcement, measured over the COMPLETE external
+    # corpus and deliberately BEFORE --label/--case/--limit selection, for the
+    # same reason as the case cap above: gating after selection would let a
+    # narrow flag hide an unchecked binding.
+    try:
+        contract = enforce_external_bindings(
+            resolve_existing_from_cwd(args.bindings),
+            actions={case.input.action for case in all_external},
+        )
+    except ChannelEnforcementError as exc:
+        raise SystemExit(str(exc))
+    print(
+        f"external channel enforcement passed; integration rung {contract.rung()} "
+        f"(real: {', '.join(contract.real_ports) or 'none'}; "
+        f"double: {', '.join(contract.double_ports) or 'none'})"
+    )
+
     cases = selected_cases(list(cases_module.CASES), args.label, args.case, args.limit, "external")
     if not cases:
         raise SystemExit("ERROR: no external cases selected")
-    written = export_cases(cases, args.out, getattr(cases_module, "SOURCE_MODULE", None))
+    written = export_cases(
+        cases,
+        args.out,
+        getattr(cases_module, "SOURCE_MODULE", None),
+        contract=contract,
+    )
     print(f"exported {len(written) - 1} Test Graph traces into {args.out}")
     return 0
 

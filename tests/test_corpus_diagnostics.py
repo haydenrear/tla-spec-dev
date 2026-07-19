@@ -346,6 +346,31 @@ def _external_package(tmp_path: Path, count: int) -> Path:
     return package_dir
 
 
+def _external_bindings(tmp_path: Path) -> Path:
+    """MF-015: export requires a validated external contract for the actions."""
+    adapters = tmp_path / "export_adapters.py"
+    adapters.write_text(
+        "class SubmitHttpAdapter:\n"
+        "    def run(self, case, work_dir=None):\n"
+        "        return {'ok': True}\n",
+        encoding="utf-8",
+    )
+    path = tmp_path / "testgraph_bindings.yml"
+    path.write_text(
+        "external:\n"
+        "  production_package: program_under_test\n"
+        "  port_bindings:\n"
+        "    RequestPort: real\n"
+        "actions:\n"
+        "  Submit:\n"
+        "    view: external\n"
+        "    channel: http\n"
+        "    adapter: export_adapters:SubmitHttpAdapter\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 def test_export_limit_cannot_bring_an_over_cap_corpus_under_cap(tmp_path: Path) -> None:
     """--limit is a focused-run selection, never a way to satisfy a budget."""
     package_dir = _external_package(tmp_path, 60)
@@ -354,7 +379,8 @@ def test_export_limit_cannot_bring_an_over_cap_corpus_under_cap(tmp_path: Path) 
 
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
-         "--out", str(tmp_path / "traces"), "--limit", "5", "--manifest", str(manifest)],
+         "--out", str(tmp_path / "traces"), "--limit", "5", "--manifest", str(manifest),
+         "--bindings", str(_external_bindings(tmp_path))],
         capture_output=True, text=True, cwd=ROOT,
     )
     assert result.returncode == 2, result.stdout + result.stderr
@@ -370,7 +396,8 @@ def test_export_proceeds_when_the_corpus_is_within_cap(tmp_path: Path) -> None:
 
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
-         "--out", str(tmp_path / "traces"), "--manifest", str(manifest)],
+         "--out", str(tmp_path / "traces"), "--manifest", str(manifest),
+         "--bindings", str(_external_bindings(tmp_path))],
         capture_output=True, text=True, cwd=ROOT,
     )
     assert result.returncode == 0, result.stdout + result.stderr
