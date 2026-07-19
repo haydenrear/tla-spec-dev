@@ -453,6 +453,7 @@ def testgraph_bindings_yml() -> str:
 # surface, plus the projector/assertion that compare deployed state back to the
 # model. Read references/testgraph_adapters.md before editing this file.
 #
+#   channel             -> HOW the program is driven: http/cli/fs/queue/k8s
 #   adapter             -> drives the public action (HTTP call, CLI run, ...)
 #   projector           -> observes real state, projected into the TLA shape
 #   expected_projection -> expected state, usually a projection of case.after
@@ -461,9 +462,30 @@ def testgraph_bindings_yml() -> str:
 # Every action in External.tla with `generates: [testgraph]` needs an entry.
 # Test Graph nodes are end-to-end External-view executions only. TLC runs and
 # spec-unit runs are direct tla-spec-dev commands, never graph nodes.
+#
+# MF-015 external channel enforcement. Both the runner and the exporter refuse
+# to proceed unless:
+#   * every binding below declares a `channel`;
+#   * no adapter/projector/expected_projection/assertion module imports
+#     `external.production_package`, directly or via a first-party helper --
+#     an adapter that imports the program under test is running it in-process
+#     and is a spec-unit adapter however it is labelled; and
+#   * `external.port_bindings` names each port double or real, with at least
+#     one real. All-doubles is a spec-unit run, never a Test Graph node.
+# Replace the placeholders below with this program's real values.
+external:
+  production_package: REPLACE_ME_program_package
+  port_bindings:
+    REPLACE_ME_Port: real
+  # Uncomment to drive a transport beyond the base five. Explicit and visible,
+  # per-program -- it widens the accepted set, it never excuses a binding that
+  # declares no channel.
+  # additional_channels: [grpc]
+
 actions:
   SubmitRegisterActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -473,6 +495,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateRegisterActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -482,6 +505,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAcceptRecord:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -491,6 +515,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAcceptRecordUnknownActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -500,6 +525,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateAcceptRecord:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -509,6 +535,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunPublishWorker:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -518,6 +545,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunPublishWorkerNoop:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external

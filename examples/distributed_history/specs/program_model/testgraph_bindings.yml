@@ -1,6 +1,26 @@
+# MF-015: external channel enforcement.
+#
+# Every binding below declares the CHANNEL it drives the deployed program over.
+# The runner and the exporter both refuse a binding without one, and both parse
+# the adapter/projector/expected_projection/assertion modules to prove they do
+# not import the production package in-process -- an adapter that imports the
+# program under test is a spec-unit adapter, however it is labelled.
+external:
+  # The importable package that IS the program under test. Test Graph adapter
+  # modules may not import it, directly or through a first-party helper.
+  production_package: ecommerce
+  # The integration-ladder rung this binding set expresses. At least one port
+  # must be real: with everything doubled nothing real is exercised, which is a
+  # spec-unit run rather than a Test Graph node.
+  port_bindings:
+    HistoryPort: real
+    OrderPort: real
+    ClockPort: double
+
 actions:
   SubmitCreateAccount:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -10,6 +30,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateCreateAccount:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -19,6 +40,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAddCartItem:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -28,6 +50,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateAddCartItem:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -37,6 +60,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAddCartItemMissingAccount:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -46,6 +70,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitCheckout:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -55,6 +80,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitCheckoutMissingAccount:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -64,6 +90,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitCheckoutEmptyCart:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -73,6 +100,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateCheckout:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -82,6 +110,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunFulfillmentWorker:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http
@@ -91,6 +120,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunFulfillmentWorkerNoop:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: ecommerce-http

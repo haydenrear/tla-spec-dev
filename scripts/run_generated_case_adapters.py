@@ -23,9 +23,11 @@ from typing import Any
 try:
     from .extract_spec_manifest import load_manifest
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
+    from .testgraph_channels import ChannelEnforcementError, enforce_external_bindings
 except ImportError:  # pragma: no cover - direct script execution
     from extract_spec_manifest import load_manifest
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_relative_path
+    from testgraph_channels import ChannelEnforcementError, enforce_external_bindings
 
 try:
     import tomllib
@@ -45,6 +47,10 @@ class AdapterMapping:
     projector: str | None = None
     assertion: str | None = None
     kind: str | None = None
+    #: MF-015: the external channel this binding drives (http/cli/fs/queue/k8s).
+    #: None on spec-unit bindings, which are in-process by contract. Every
+    #: EXTERNAL binding must declare one -- see enforce_external_channels.
+    channel: str | None = None
     order: int = 0
 
 
@@ -160,6 +166,7 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
                 projector=projector,
                 assertion=assertion,
                 kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+                channel=spec.get("channel") if isinstance(spec.get("channel"), str) else None,
                 order=len(mappings),
             )
 
@@ -284,6 +291,43 @@ def validate_mapping_coverage(cases: list[Any], mappings: dict[str, AdapterMappi
             + "\nAdd entries such as [adapters.LabelName] adapter = \"module:Adapter\" for unit/direct actions "
             + "or [actions.LabelName] bindings for external observable actions."
         )
+
+
+def enforce_external_channels(
+    cases: list[Any],
+    mappings: dict[str, AdapterMapping],
+    mapping_path: Path,
+    import_roots: list[Path],
+) -> None:
+    """MF-015: hold every EXTERNAL case's binding to the external contract.
+
+    The gate is driven by the CASE's own view, not by a ``--view external``
+    flag. A mixed corpus run without the flag would otherwise execute external
+    cases with no channel check at all, which is exactly the silent degradation
+    the doctrine forbids. Internal cases are untouched: a spec-unit adapter is
+    in-process by contract and correctly imports the production package.
+    """
+    external_actions = {
+        mapping.label
+        for case in cases
+        if case_view(case) == "external"
+        for mapping in [adapter_for_case(case, mappings)]
+        if mapping is not None
+    }
+    if not external_actions:
+        return
+
+    contract = enforce_external_bindings(
+        mapping_path,
+        import_roots=import_roots,
+        actions=external_actions,
+    )
+    print(
+        f"external channel enforcement passed for {len(external_actions)} binding(s); "
+        f"integration rung {contract.rung()} "
+        f"(real: {', '.join(contract.real_ports) or 'none'}; "
+        f"double: {', '.join(contract.double_ports) or 'none'})"
+    )
 
 
 def selected_cases(
@@ -531,6 +575,7 @@ MAPPING = AdapterMapping(
     projector={mapping.projector!r},
     assertion={mapping.assertion!r},
     kind={mapping.kind!r},
+    channel={mapping.channel!r},
     order={mapping.order!r},
 )
 
@@ -790,6 +835,12 @@ def main() -> int:
     mappings = load_mappings(args.mapping)
     coverage_cases = selected_cases(cases, [], [], None, args.view)
     validate_mapping_coverage(coverage_cases, mappings)
+    # MF-015: external bindings must declare a channel, must not import the
+    # production package, and must name their port binding configuration.
+    try:
+        enforce_external_channels(coverage_cases, mappings, args.mapping, default_import_roots)
+    except ChannelEnforcementError as exc:
+        raise SystemExit(str(exc))
     runnable_cases = selected_cases(cases, args.label, args.case, args.limit, args.view)
     if not runnable_cases:
         raise SystemExit("ERROR: no cases selected")

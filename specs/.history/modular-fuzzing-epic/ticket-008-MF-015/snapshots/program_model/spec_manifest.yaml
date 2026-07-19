@@ -1,0 +1,154 @@
+module: TlaSpecDevCli
+package: tlaspecdevcli_program_cases
+
+status:
+  workflow: closed
+  active_ticket: null
+  active_ticket_title: null
+  model_role: accepted_program_model
+  relation_to_current: none_until_next_ticket_workflow
+  relation_to_desired_program_model: none_until_next_ticket_workflow
+  updated: null
+  accepted_slice:
+    name: shipped-tla-spec-dev-cli-workflow
+    status: accepted
+    summary: "The shipped CLI workflow is implemented, documented, validated through spec-unit adapters, and covered by the parent specWorkflow Test Graph."
+    implemented_actions:
+      - BuildSkillCli
+      - InstallLocalCli
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - CloseTicket
+      - RunSpecUnitTests
+    validation:
+      tlc:
+        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/program_model/TlaSpecDevCli.tla','specs/program_model/MC.cfg'], timeout=30, check=True)"
+      unit:
+        - rg "tla-spec-dev --spec-root" README.md SKILL.md references test_graph/README.md
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/program_model/tests -q
+      graph:
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+      evidence:
+        - "SKILL.md, README.md, references, and test_graph/README.md introduce tla-spec-dev before lower-level implementation scripts."
+        - "Docs preserve the desired-first ticket workflow, spec-root rule, and specWorkflow reference path."
+        - "Workflow close snapshot is recorded under specs/.history/tla-spec-dev-cli-workflow/closed-snapshot."
+  next_workflow: "scaffold specs/current and specs/desired_program_model only when opening the next desired/current ticket workflow."
+
+source_model:
+  closed_workflow_history: ../.history/tla-spec-dev-cli-workflow/closed-snapshot
+
+state:
+  TlaSpecDevCliState:
+    fields:
+      cli_built:
+        type: bool
+        tla: cli_built
+      cli_installed:
+        type: bool
+        tla: cli_installed
+      spec_root:
+        type: SpecRoot
+        tla: spec_root
+      project_scaffolded:
+        type: bool
+        tla: project_scaffolded
+      workflow_scaffolded:
+        type: bool
+        tla: workflow_scaffolded
+      active_tickets:
+        type: frozenset[TicketId]
+        tla: active_tickets
+      desired_ready:
+        type: dict[TicketId, bool]
+        tla: desired_ready
+      current_ready:
+        type: dict[TicketId, bool]
+        tla: current_ready
+      spec_unit_tests_passed:
+        type: dict[TicketId, bool]
+        tla: spec_unit_tests_passed
+      closed_tickets:
+        type: frozenset[TicketId]
+        tla: closed_tickets
+      last_command:
+        type: str
+        tla: lastCommand
+
+actions:
+  - BuildSkillCli
+  - InstallLocalCli
+  - ScaffoldProject
+  - ScaffoldWorkflow
+  - OpenTicket
+  - UpdateTicketDesired
+  - UpdateTicketCurrent
+  - RunSpecUnitTests
+  - CloseTicket
+
+commands:
+  build_skill_cli:
+    cli: skill-script:tla-spec-dev creates the local wrapper
+    action: BuildSkillCli
+    adapter: BuildSkillCliAdapter
+  install_local_cli:
+    cli: tla-spec-dev --help
+    action: InstallLocalCli
+    adapter: InstallLocalCliAdapter
+  scaffold_project:
+    cli: tla-spec-dev --spec-root <root> scaffold project
+    action: ScaffoldProject
+    adapter: ScaffoldProjectAdapter
+  scaffold_workflow:
+    cli: tla-spec-dev --spec-root <root> scaffold workflow
+    action: ScaffoldWorkflow
+    adapter: ScaffoldWorkflowAdapter
+  open_ticket:
+    cli: tla-spec-dev --spec-root <root> open ticket <ticket-name>
+    action: OpenTicket
+    adapter: OpenTicketAdapter
+  run_spec_unit_tests:
+    cli: tla-spec-dev --spec-root <root> run spec-unit-tests
+    action: RunSpecUnitTests
+    adapter: RunSpecUnitTestsAdapter
+  close_ticket:
+    cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
+    action: CloseTicket
+    adapter: CloseTicketAdapter
+  validate_test_graph_cli:
+    cli: python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+    action: ValidateTestGraphCli
+    adapter: TestGraphCliAdapter
+
+ports:
+  TlaSpecDevCliPort:
+    role: production_adapter_surface
+    commands:
+      - BuildSkillCli
+      - InstallLocalCli
+      - ScaffoldProject
+      - ScaffoldWorkflow
+      - OpenTicket
+      - CloseTicket
+      - RunSpecUnitTests
+      - ValidateTestGraphCli
+
+invariants:
+  - TypeInvariant
+  - CliInstalledRequiresBuilt
+  - WorkflowRequiresProject
+  - ProjectChoosesKnownSpecRoot
+  - NoOpenClosedOverlap
+  - CurrentRequiresDesired
+  - SpecUnitTestsRequireCurrent
+  - ClosedTicketsPassedSpecUnitTests
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  progressive_disclosure: "CLI-007 documents the end-to-end CLI workflow through progressive-disclosure onboarding references."

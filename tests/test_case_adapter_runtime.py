@@ -449,9 +449,21 @@ class RequestStateProjector:
         encoding="utf-8",
     )
     mapping = tmp_path / "bindings.toml"
+    # MF-015: an external binding must declare its channel, its production
+    # package, and its double|real port bindings. The adapter above imports
+    # spec_double_compiler.runtime, which is the ADAPTER HARNESS rather than the
+    # program under test -- the gate targets the declared production package, so
+    # returning a CaseRunResult stays legal for a Test Graph adapter.
     mapping.write_text(
-        """[actions.Submit]
+        """[external]
+production_package = "program_under_test"
+
+[external.port_bindings]
+RequestPort = "real"
+
+[actions.Submit]
 view = "external"
+channel = "http"
 layer = "external"
 controllability = "e2e_direct"
 adapter = "non_batch_projection_adapters:SubmitAdapter"

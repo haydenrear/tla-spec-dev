@@ -83,8 +83,14 @@ View-aware case generation writes explicit internal and external outputs:
 ```bash
 python3 scripts/generate_cases_from_tlc_dump.py path/to/Internal.tla path/to/Internal.cfg --out generated --package internal_cases --view internal --actions-metadata model/actions.yml
 python3 scripts/generate_cases_from_tlc_dump.py path/to/External.tla path/to/External.cfg --out generated --package external_cases --view external --actions-metadata model/actions.yml
-python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces
+python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces --bindings model/testgraph_bindings.yml
 ```
+
+`--bindings` is required: export is gated on every external binding declaring
+a `channel`, on no adapter importing the declared `external.production_package`,
+and on `external.port_bindings` naming each port `double` or `real` with at
+least one `real`. See "External channel enforcement" in
+`references/testgraph_adapters.md`.
 
 External adapter bindings may include `kind` to batch cases that need the same
 external harness setup and cleanup. Batch adapters can define optional

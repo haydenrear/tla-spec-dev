@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.export_testgraph_cases import case_to_trace, export_cases
 from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
 from scripts.run_generated_case_adapters import load_cases
+from scripts.testgraph_channels import ExternalContract
 
 
 def test_export_external_case_as_testgraph_trace(tmp_path: Path) -> None:
@@ -25,7 +26,14 @@ def test_export_external_case_as_testgraph_trace(tmp_path: Path) -> None:
     )
 
     cases = list(load_cases(package_dir).CASES)
-    written = export_cases(cases, tmp_path / "traces", module="Program")
+    # MF-015: the exported manifest names the integration-ladder rung, so the
+    # validated external contract is a required input rather than an optional one.
+    contract = ExternalContract(
+        production_package="program_under_test",
+        port_bindings={"RequestPort": "real", "ClockPort": "double"},
+        additional_channels=frozenset(),
+    )
+    written = export_cases(cases, tmp_path / "traces", module="Program", contract=contract)
 
     trace_path = tmp_path / "traces" / f"{cases[0].name}.json"
     assert trace_path in written
@@ -37,6 +45,11 @@ def test_export_external_case_as_testgraph_trace(tmp_path: Path) -> None:
     assert trace["steps"][0]["controllability"] == "e2e_direct"
     assert trace["steps"][0]["post"]["seen"] == ["r1"]
     assert trace["steps"][0]["expected_response"]["changed"]["seen"]["after"] == ["r1"]
+
+    manifest = json.loads((tmp_path / "traces" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["integration_rung"]["rung"] == "RequestPort"
+    assert manifest["integration_rung"]["real_ports"] == ["RequestPort"]
+    assert manifest["integration_rung"]["double_ports"] == ["ClockPort"]
 
 
 def test_export_rejects_internal_cases(tmp_path: Path) -> None:

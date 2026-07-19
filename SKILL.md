@@ -166,6 +166,17 @@ in-process is a spec-unit adapter wearing an External badge; rebind it as
 Internal or fix it. See `references/modular_fuzzing.md` for the port binding
 ladder that connects the two views.
 
+**MF-015: that rule is now verified, not merely asserted.** Both the runner and
+the exporter refuse to proceed unless every external binding declares a
+`channel` (http/cli/fs/queue/k8s), no adapter/projector/expected_projection/
+assertion module imports the declared `external.production_package` — checked
+by static import analysis, transitively, so laundering it through a helper does
+not evade the check — and `external.port_bindings` names each port `double` or
+`real` with at least one `real`, since an all-doubles configuration exercises
+nothing real and is a spec-unit run rather than a Test Graph node. Violations
+report the adapter, the offending import, and the remediation. There is no
+override flag, and an absent declaration fails rather than skipping the check.
+
 Read `references/testgraph_adapters.md` **before authoring any spec baseline**,
 not later when wiring the graph. Onboarding is when the Internal/External split
 gets decided; by the time you are "wiring the graph" the decision is already
