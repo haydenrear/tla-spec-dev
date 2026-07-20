@@ -1,0 +1,106 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-029",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "generated cases carry real params for every action where recovery is possible, derived from the state pair.",
+        "a per-action recoverability audit covers ALL THIRTEEN labels, naming the mechanism used (guard-pinned / except-index / written-through) or the reason recovery is impossible.",
+        "parameters that cannot be recovered are marked UNCHECKED, never fabricated; an action whose parameters are entirely unrecoverable is reported as a finding.",
+        "a negative-control test per action proves the parameter check can actually fail -- the regression guard against the tautology MF-028 caught in itself.",
+        "ZERO TLA+ model delta; if the model appears to need changing, the ticket STOPS and reports rather than reopening a decision the owner already made.",
+        "no case is dropped, filtered or skipped because its parameters could not be recovered -- mark and keep."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-029"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/generate_cases_from_tlc_dump.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-028"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/53",
+    "id": "MF-029",
+    "implementation_scope": [
+      "scripts/generate_cases_from_tlc_dump.py (parameter inference from the state pair)"
+    ],
+    "objective": "All 57,617 generated cases carry params={} -- the generator records THAT an action fired, not WITH WHAT. Until fixed, every downstream adapter fix buys reachability testing rather than argument testing, which for a CLI is most of the point. THIS IS A GENERATOR CHANGE, NOT A MODEL CHANGE. Adding a lastInternalAction marker was considered and REJECTED by the owner: unnecessary, because parameters are recoverable from the case own before/after state pair which the generator already has; and unaffordable, because max_state_space_bound is at 70% and MF-019 proved a boolean variable breaches it, so a marker carrying action names plus argument bindings would force decomposition before it could land. Being generator-side is also what makes this experimental and cheaply revertible, an explicit condition of approval -- nothing in the spec changes and reverting is deleting a function. Recovery verified across three mechanisms: GUARD-PINNED (OpenTicket root, via the guard root = spec_root), EXCEPT-INDEX (ticket, via ticket_state EXCEPT ![ticket]), and WRITTEN-THROUGH (ScaffoldProject root, via spec_root in the after-state). THE TRAP: MF-028 wrote a tautology into its own work, defaulting spec_root from case.after then checking against case.after, which passed vacuously and was caught only because a negative control that should have failed passed. Derive from the BEFORE-state and the transition, never from the field being checked; mark unrecoverable parameters UNCHECKED rather than fabricating a value; and require a negative control per action, because a check that cannot fail is not a check. See tickets/029-infer-action-parameters.md.",
+    "promotion_order": 84,
+    "promotion_predecessor": "MF-028",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Infer action parameters in the case generator",
+    "wave": 9
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/tickets/MF-029",
+  "ticket_id": "MF-029",
+  "ticket_index": 15,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-53-mf029-infer-action-parameters/specs/tickets"
+}
