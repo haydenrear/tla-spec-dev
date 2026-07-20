@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 11
+  schedule_revision: 12
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-028
-  active_ticket_title: "Spike -- make one adapter execute one generated case"
+  active_ticket: MF-029
+  active_ticket_title: "Infer action parameters in the case generator"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1426,16 +1426,57 @@ tickets:
         - out of scope and untouched -- the other fifteen adapters, EXTENDS resolution, analyze corpus OOM, the component-metric design question, the silent default, the alphabetical model pick.
       evidence: []
 
+  - id: MF-029
+    title: "Infer action parameters in the case generator"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-028]
+    blocks: [MF-023]
+    wave: 9
+    promotion_order: 84
+    promotion_predecessor: MF-028
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "All 57,617 generated cases carry params={} -- the generator records THAT an action fired, not WITH WHAT. Until fixed, every downstream adapter fix buys reachability testing rather than argument testing, which for a CLI is most of the point. THIS IS A GENERATOR CHANGE, NOT A MODEL CHANGE. Adding a lastInternalAction marker was considered and REJECTED by the owner: unnecessary, because parameters are recoverable from the case own before/after state pair which the generator already has; and unaffordable, because max_state_space_bound is at 70% and MF-019 proved a boolean variable breaches it, so a marker carrying action names plus argument bindings would force decomposition before it could land. Being generator-side is also what makes this experimental and cheaply revertible, an explicit condition of approval -- nothing in the spec changes and reverting is deleting a function. Recovery verified across three mechanisms: GUARD-PINNED (OpenTicket root, via the guard root = spec_root), EXCEPT-INDEX (ticket, via ticket_state EXCEPT ![ticket]), and WRITTEN-THROUGH (ScaffoldProject root, via spec_root in the after-state). THE TRAP: MF-028 wrote a tautology into its own work, defaulting spec_root from case.after then checking against case.after, which passed vacuously and was caught only because a negative control that should have failed passed. Derive from the BEFORE-state and the transition, never from the field being checked; mark unrecoverable parameters UNCHECKED rather than fabricating a value; and require a negative control per action, because a check that cannot fail is not a check. See tickets/029-infer-action-parameters.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/generate_cases_from_tlc_dump.py (parameter inference from the state pair)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-029
+      assertions:
+        - generated cases carry real params for every action where recovery is possible, derived from the state pair.
+        - a per-action recoverability audit covers ALL THIRTEEN labels, naming the mechanism used (guard-pinned / except-index / written-through) or the reason recovery is impossible.
+        - parameters that cannot be recovered are marked UNCHECKED, never fabricated; an action whose parameters are entirely unrecoverable is reported as a finding.
+        - a negative-control test per action proves the parameter check can actually fail -- the regression guard against the tautology MF-028 caught in itself.
+        - ZERO TLA+ model delta; if the model appears to need changing, the ticket STOPS and reports rather than reopening a decision the owner already made.
+        - no case is dropped, filtered or skipped because its parameters could not be recovered -- mark and keep.
+      evidence: []
+
   - id: MF-023
     title: "Decompose this repository by dogfooding the finished toolchain"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/30"
-    schedule_revision: 3
-    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028]
+    schedule_revision: 4
+    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028, MF-029]
     blocks: []
     wave: 9
     promotion_order: 85
-    promotion_predecessor: MF-028
+    promotion_predecessor: MF-029
     conflict_keys:
       production: []
       tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
