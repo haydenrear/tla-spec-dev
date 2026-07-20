@@ -243,3 +243,33 @@ replace = "    if False:  # MUTANT: history entry created for a ticket that neve
 description = "close history is written for a ticket that never reached a closed status"
 refine_variable = "ticket_state"
 refine_action = "CloseTicket"
+
+# ---------------------------------------------------------------------------
+# MF-023: the Internal/External decomposition added ExternalInvariant, and the
+# catalog went INCOMPLETE the moment it did -- `run kill-test --list-boundaries`
+# reported 19/20 with `[NO MUTANT] invariant ExternalInvariant` and four unit
+# tests failed. That refusal is the coverage mechanism working exactly as
+# MF-016 designed it: the obligation is recomputed from the port declarations
+# and the INVARIANTS blocks on every run, so adding an invariant BREAKS the kill
+# test until somebody seeds a fault for it. The obligation cannot drift behind
+# the model.
+#
+# It was resolved by seeding the fault, which is the only resolution the design
+# admits. The invariant was not removed from External.cfg, no boundary was
+# excluded, and no waiver exists to add.
+#
+# ExternalInvariant asserts the observable channel is well-formed:
+# `result.accepted \in BOOLEAN` and `result.next /= NoReason` -- every command
+# the CLI completes reports a next step. The fault below makes a real modeled
+# command emit an empty next step, which is precisely the channel defect the
+# invariant forbids.
+[[mutants]]
+id = "inv-ExternalInvariant"
+boundary_kind = "invariant"
+boundary_ref = "ExternalInvariant"
+path = "scripts/tla_spec_dev.py"
+find = '    print(f"next: tla-spec-dev --spec-root {args.spec_root} open ticket {ticket_id}")'
+replace = '    print("next:")  # MUTANT: the command completes but reports no next step'
+description = "scaffold workflow completes but emits an empty next step, so result.next carries no instruction and the observable channel is malformed"
+refine_variable = "result"
+refine_action = "ScaffoldWorkflow"
