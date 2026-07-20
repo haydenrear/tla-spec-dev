@@ -1,0 +1,118 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+retention:
+  # NOT RE-MEASURED by MF-030, and said so rather than asserting a pass. This
+  # ticket changes scripts/analyze_complexity.py only: it touches no TLA+ file
+  # (git diff of '*.tla'/'*.cfg' vs origin/epic/modular-fuzzing is empty), no
+  # adapter, and no generated case. TLC re-measured 231,621 distinct / depth 25
+  # / bound 699,840 (70.0%), identical to MF-029. There is no mechanism by which
+  # it could move any of the three, so MF-029's verdicts are carried forward
+  # verbatim, all NON-PASSING and left non-passing.
+  kill_rate:
+    status: "incomplete_catalog"
+    evidence: "CARRIED FORWARD from MF-029 (specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/complexity_ledger.yaml). No kill rate is computable while case execution is blocked. MF-030 is an analyzer change and does not re-measure or claim improvement."
+  effect_conformance:
+    status: "unobservable"
+    evidence: "CARRIED FORWARD from MF-029. Adapters drive the CLI via subprocess; the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal stands. MF-030 touches no adapter and no observation boundary."
+  external_coverage:
+    status: "incomplete"
+    evidence: "CARRIED FORWARD from MF-029. 72.5% of the corpus has a before-state this repository cannot materialize. MF-030 adds no runnable case; it corrects how EXTENDS-decomposed models are scored, which is orthogonal to external coverage."
+
+# Coverage audit -- MF-026. Completeness gate. `not_run` is CORRECT at a ticket
+# close; it is an end-of-epic step run before final integration.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries.
+justification: >-
+  No representation added and none needed. MF-030 is a scripts-only change to the
+  complexity analyzer -- it makes `analyze complexity` follow EXTENDS and union
+  declarations across the module hierarchy, and fail closed on constructs it
+  cannot model (INSTANCE, WITH substitution, parameterized instantiation, LOCAL,
+  unresolved EXTENDS). The bound is UNCHANGED for every single-file spec, because
+  such specs extend only standard library modules and resolution is a no-op:
+  TlaSpecDevCli.tla still resolves to 9 variables and bound 699,840, and TLC
+  re-measured 231,621 distinct / depth 25. Zero delta is the required outcome:
+  max_state_space_bound is at 70% and MF-019 proved a single boolean breaches it,
+  so the owner forbade adding model state. The correction the ticket makes is to
+  the MEASUREMENT of decomposed models, not to any model.
+
+# The recursive refinement loop -- REQUIRED at every close.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, and found none this ticket should apply. The analyzer's standing
+    recommendation remains to project [lastCommand, result], which no configured
+    invariant reads; MF-028 and MF-029 both recorded strong arguments and still
+    declined, and MF-030 adds no new evidence for or against it -- it changes how
+    EXTENDS-decomposed models are scored, not what the binding model represents.
+    MF-030's own finding is the opposite of a reduction: it reveals that the
+    shipped decomposed example was previously UNDER-measured (External scored on
+    4 of 10 variables), so the honest movement here is toward MORE representation
+    being counted, not less. The projection remains deferred to MF-023, where
+    decomposition revisits it with per-component state spaces. Doctrine also bars
+    a decrease independently while the three retention members are non-passing.
+  measured: true
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+# REQUIRED. The narrative ledger.
+narrative: >-
+  MF-030 closes a silent failure of the epic's binding complexity gate.
+  analyze_complexity.py read one .tla file and stopped at EXTENDS, so on the
+  decomposed architecture SKILL.md mandates it scored only the declarations
+  literally present in the analyzed file. The error is never conservative:
+  missing variables only ever shrink the product bound, so the gate failed
+  toward PASS on exactly the shape the skill requires. MF-023 measured External
+  reporting bound = 1 over 2 of 9 variables from this.
+
+  The fix is a partial module resolver (resolve_module) that follows EXTENDS
+  through the hierarchy and unions VARIABLES, CONSTANTS, and the top-level
+  definitions carrying TypeInvariant/Init/actions, base-first with the extending
+  module overriding inherited names. Standard TLA+ library modules (Naturals,
+  Integers, Reals, Sequences, FiniteSets, Bags, TLC, Json) declare no VARIABLES
+  the bound reads and are skipped rather than resolved to a file. Every construct
+  the resolver cannot model FAILS CLOSED with a named error rather than
+  under-reporting: INSTANCE / named and unnamed instantiation, WITH substitution,
+  and parameterized instantiation via UnsupportedModuleConstructError; LOCAL via
+  the same; and an EXTENDS naming a non-standard module with no findable .tla via
+  UnresolvedExtendsError. analyze() propagates these; run() and gate_report()
+  catch them and fail closed (nonzero / gate FAIL with the reason). This honours
+  references/architecture_tractability.md "No Degenerate Escapes": when a model
+  cannot be resolved, write the failure, not a smaller number.
+
+  Measured alternatives and the self-scrutiny check: the risk flagged for this
+  ticket was a resolver that appears to work on a model where the extended
+  declarations do not matter to the bound. The regression fixture is deliberately
+  the opposite -- Channel EXTENDS Counter, where the EXTENDED module carries the
+  only bound-bearing variable (tick in 0..3) and the extending module adds only
+  an unconstrained channel variable. Pre-fix the analyzer reports variables=
+  ['emitted'], bound=1, Bump absent; post-fix variables={tick,emitted}, bound=4,
+  Bump present. The number moves 1->4 and the assertions were run against the
+  HEAD analyzer to confirm they fail pre-fix. Shipped example re-measured
+  (examples/distributed_history, External EXTENDS Internal EXTENDS Core, no
+  TypeInvariant so bound is 1 both ways): its verdict stays FAIL but the diagnosis
+  is corrected from a spurious "C2 {responses} touched by 9 actions" (an artifact
+  of seeing only External's 4 variables) to the true "C1 {accounts,carts,orders,
+  responses} touched by 13 actions" over all 10 variables, with named
+  port-crossing actions and modularity 0.000 -> 0.230. That corrected figure is
+  relevant to MF-037 and the ticket-workflow example: any downstream copy of the
+  old 9-action number is stale. Evidence: results/tlc_current.txt,
+  results/shipped_example_external_postfix.txt, results/graph-reports/*.

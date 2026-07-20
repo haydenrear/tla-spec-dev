@@ -468,3 +468,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-030
+
+- close_scope: ticket
+- close_id: MF-030
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-20T22:09:21+00:00
+- summary: Resolve EXTENDS in analyze_complexity: follow the module hierarchy and union VARIABLES/CONSTANTS/definitions; fail closed (named errors) on INSTANCE, WITH substitution, parameterized instantiation, LOCAL, and unresolved EXTENDS. Zero TLA+ model delta (TLC 231,621 distinct/depth 25; binding bound 699,840 unchanged). Regression proves bound moves 1->4 across an EXTENDS edge and fails pre-fix. Shipped example re-measured: External verdict diagnosis corrected from spurious 'C2 {responses} 9 actions' to true 'C1 13 actions' over all 10 variables (relevant to MF-037).
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

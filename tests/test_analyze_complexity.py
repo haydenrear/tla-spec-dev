@@ -22,15 +22,20 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+import pytest  # noqa: E402
+
 from scripts.analyze_complexity import (  # noqa: E402
     EXIT_BUDGET_EXCEEDED,
     EXIT_PASS,
+    UnresolvedExtendsError,
+    UnsupportedModuleConstructError,
     analyze,
     compare_tlc_reports,
     gate_report,
     main,
     parse_cfg_constants,
     parse_tlc_report,
+    resolve_module,
     suggest_move,
 )
 
@@ -590,3 +595,222 @@ def test_cfg_defaults_to_mc_cfg_beside_the_module(tmp_path: Path) -> None:
     tla, _, manifest = write_small_model(tmp_path, GENEROUS_BUDGETS)
     result = run_cli("analyze", "complexity", str(tla), "--manifest", str(manifest))
     assert result.returncode == EXIT_PASS, result.stderr
+
+
+# ---------------------------------------------------------------------------
+# EXTENDS resolution (MF-030)
+# ---------------------------------------------------------------------------
+#
+# The analyzer used to read one .tla file and stop at EXTENDS, so a decomposed
+# model was scored on only the declarations literally present in that file.
+# Because missing variables only ever shrink the product bound, the error was
+# never conservative: the gate failed toward PASS. These tests measure a
+# decomposed model where the EXTENDED module contributes a BOUNDED variable, so
+# the fix is proved by the bound MOVING -- not merely by the model parsing.
+
+# A base module that carries the bound. `tick` is constrained by TypeInvariant
+# (cardinality 4); the extending module inherits both `tick` and TypeInvariant
+# through EXTENDS. This mirrors MF-023's Internal/External split, where the
+# extending view adds an unconstrained channel variable and inherits the whole
+# of the bounded constraint from the module it extends.
+BASE_COUNTER_TLA = """---------------------------- MODULE Counter ----------------------------
+EXTENDS Naturals
+
+VARIABLES tick
+
+CounterInit == tick = 0
+
+Bump ==
+  /\\ tick < 3
+  /\\ tick' = tick + 1
+
+TypeInvariant == tick \\in 0..3
+=============================================================================
+"""
+
+# The extending view. `emitted` is an unconstrained channel variable, exactly
+# like MF-023's `lastCommand`/`result`: it adds ZERO to the bound, so the bound
+# a correct resolver reports comes ENTIRELY from the extended module.
+CHANNEL_TLA = """---------------------------- MODULE Channel ----------------------------
+EXTENDS Counter
+
+VARIABLES emitted
+
+ChannelInit ==
+  /\\ CounterInit
+  /\\ emitted = "none"
+
+Emit ==
+  /\\ Bump
+  /\\ emitted' = "bumped"
+
+Next == Emit
+
+TypeInvariantWholeModel ==
+  /\\ TypeInvariant
+  /\\ emitted \\in {"none", "bumped"}
+
+Spec == ChannelInit /\\ [][Next]_<< tick, emitted >>
+=============================================================================
+"""
+
+CHANNEL_CFG = """SPECIFICATION Spec
+
+INVARIANTS
+  TypeInvariant
+"""
+
+
+def write_decomposed_model(tmp_path: Path) -> tuple[Path, Path]:
+    (tmp_path / "Counter.tla").write_text(BASE_COUNTER_TLA, encoding="utf-8")
+    channel = tmp_path / "Channel.tla"
+    channel.write_text(CHANNEL_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(CHANNEL_CFG, encoding="utf-8")
+    return channel, cfg
+
+
+def test_extends_is_followed_and_the_bound_reflects_all_variables(tmp_path: Path) -> None:
+    r"""The MF-030 regression. Measures the EXTENDING module, `Channel`.
+
+    PRE-FIX behavior (analyzer reads Channel.tla only):
+      * variables == ['emitted']              -- the 1 declared in this file
+      * TypeInvariant is absent (it lives in  -- so nothing is bounded
+        the extended Counter)
+      * bound == 1                            -- product of 0 bounded dimensions
+      * `Bump` is not an action               -- it is defined in Counter
+
+    POST-FIX behavior (EXTENDS Counter followed):
+      * variables == ['tick', 'emitted']      -- unioned across the hierarchy
+      * TypeInvariant inherited from Counter  -- bounds `tick` at cardinality 4
+      * bound == 4                            -- entirely from the extended module
+      * `Bump` is an action                   -- its declaration is included
+
+    Every assertion below is one PRE-FIX would fail: the bound moves 1 -> 4, the
+    extended variable and the extended action appear. That is what makes this a
+    regression rather than a test that passes both before and after.
+    """
+    channel, cfg = write_decomposed_model(tmp_path)
+    result = analyze(channel, cfg, None)
+
+    # All variables from the whole hierarchy, not just this file's.
+    assert set(result.variables) == {"tick", "emitted"}
+
+    # The bound reflects the extended module's bounded variable. Pre-fix this
+    # was 1 (the extending file carries no TypeInvariant of its own).
+    assert result.bound == 4
+    cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+    assert cardinalities["tick"] == 4
+    # The channel variable stays honestly unbounded and adds nothing -- so the
+    # whole of the bound provably came from across the EXTENDS edge.
+    assert "emitted" in result.unbounded
+
+    # The extended module's action is included in the dimension-bearing content.
+    assert "Bump" in {a.name for a in result.actions}
+
+
+def test_resolve_module_unions_a_three_level_hierarchy(tmp_path: Path) -> None:
+    """Core <- Internal <- External, the shape SKILL.md mandates."""
+    (tmp_path / "Root.tla").write_text(
+        "---- MODULE Root ----\nEXTENDS Naturals\nVARIABLES a\n"
+        "TypeInvariant == a \\in 0..1\n====\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Mid.tla").write_text(
+        "---- MODULE Mid ----\nEXTENDS Root\nVARIABLES b\n"
+        "MidInv == b \\in 0..1\n====\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Leaf.tla").write_text(
+        "---- MODULE Leaf ----\nEXTENDS Mid\nVARIABLES c\n"
+        "LeafInv == c \\in 0..1\n====\n",
+        encoding="utf-8",
+    )
+    resolved = resolve_module(tmp_path / "Leaf.tla")
+    assert resolved.root == "Leaf"
+    assert resolved.modules == ["Root", "Mid", "Leaf"]
+    assert set(resolved.variables) == {"a", "b", "c"}
+    # TypeInvariant, defined only in Root, is reachable from the leaf's view.
+    assert "TypeInvariant" in {d.name for d in resolved.defs}
+
+
+def test_extends_of_standard_library_modules_needs_no_file(tmp_path: Path) -> None:
+    """EXTENDS Naturals/FiniteSets/TLC must not demand a Naturals.tla."""
+    tla = tmp_path / "Solo.tla"
+    tla.write_text(
+        "---- MODULE Solo ----\nEXTENDS Naturals, FiniteSets, TLC\n"
+        "VARIABLES n\nTypeInvariant == n \\in 0..2\n====\n",
+        encoding="utf-8",
+    )
+    resolved = resolve_module(tla)
+    assert resolved.variables == ["n"]
+    assert resolved.modules == ["Solo"]
+
+
+# --- Fail-closed on constructs the resolver cannot model --------------------
+
+
+def test_instance_fails_closed_rather_than_under_reporting(tmp_path: Path) -> None:
+    (tmp_path / "Base.tla").write_text(
+        "---- MODULE Base ----\nEXTENDS Naturals\nVARIABLES x\n"
+        "TypeInvariant == x \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    tla = tmp_path / "UsesInstance.tla"
+    tla.write_text(
+        "---- MODULE UsesInstance ----\nEXTENDS Naturals\nVARIABLES y\n"
+        "B == INSTANCE Base\nTypeInvariant == y \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(UnsupportedModuleConstructError, match="INSTANCE"):
+        resolve_module(tla)
+
+
+def test_local_fails_closed_rather_than_under_reporting(tmp_path: Path) -> None:
+    tla = tmp_path / "UsesLocal.tla"
+    tla.write_text(
+        "---- MODULE UsesLocal ----\nEXTENDS Naturals\nVARIABLES w\n"
+        "LOCAL Helper == 1\nTypeInvariant == w \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(UnsupportedModuleConstructError, match="LOCAL"):
+        resolve_module(tla)
+
+
+def test_missing_extended_module_fails_closed(tmp_path: Path) -> None:
+    tla = tmp_path / "Orphan.tla"
+    tla.write_text(
+        "---- MODULE Orphan ----\nEXTENDS Naturals, Missing\nVARIABLES z\n"
+        "TypeInvariant == z \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(UnresolvedExtendsError, match="Missing"):
+        resolve_module(tla)
+
+
+def test_gate_report_fails_closed_on_an_unresolvable_hierarchy(tmp_path: Path) -> None:
+    """The gate must REFUSE, not score the fragment it can read."""
+    tla = tmp_path / "Orphan.tla"
+    tla.write_text(
+        "---- MODULE Orphan ----\nEXTENDS Naturals, Missing\nVARIABLES z\n"
+        "TypeInvariant == z \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text("SPECIFICATION Spec\nINVARIANTS TypeInvariant\n", encoding="utf-8")
+    passed, message = gate_report(tla, cfg, None)
+    assert passed is False
+    assert "could not be resolved" in message
+    assert "Missing" in message
+
+
+def test_cli_fails_closed_nonzero_on_an_unresolvable_hierarchy(tmp_path: Path) -> None:
+    tla = tmp_path / "UsesInstance.tla"
+    tla.write_text(
+        "---- MODULE UsesInstance ----\nEXTENDS Naturals\nVARIABLES y\n"
+        "B == INSTANCE Base\nTypeInvariant == y \\in 0..3\n====\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text("SPECIFICATION Spec\nINVARIANTS TypeInvariant\n", encoding="utf-8")
+    assert main([str(tla), str(cfg)]) == EXIT_BUDGET_EXCEEDED

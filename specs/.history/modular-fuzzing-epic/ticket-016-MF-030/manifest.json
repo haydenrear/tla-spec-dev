@@ -1,0 +1,602 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-030",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-016-MF-030 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-030'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-016-MF-030"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-029"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-029"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-030/results/complexity_ledger.yaml",
+    "justification": "No representation added and none needed. MF-030 is a scripts-only change to the complexity analyzer -- it makes `analyze complexity` follow EXTENDS and union declarations across the module hierarchy, and fail closed on constructs it cannot model (INSTANCE, WITH substitution, parameterized instantiation, LOCAL, unresolved EXTENDS). The bound is UNCHANGED for every single-file spec, because such specs extend only standard library modules and resolution is a no-op: TlaSpecDevCli.tla still resolves to 9 variables and bound 699,840, and TLC re-measured 231,621 distinct / depth 25. Zero delta is the required outcome: max_state_space_bound is at 70% and MF-019 proved a single boolean breaches it, so the owner forbade adding model state. The correction the ticket makes is to the MEASUREMENT of decomposed models, not to any model.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.011742315426601493,
+      "variables": 9
+    },
+    "narrative": "MF-030 closes a silent failure of the epic's binding complexity gate. analyze_complexity.py read one .tla file and stopped at EXTENDS, so on the decomposed architecture SKILL.md mandates it scored only the declarations literally present in the analyzed file. The error is never conservative: missing variables only ever shrink the product bound, so the gate failed toward PASS on exactly the shape the skill requires. MF-023 measured External reporting bound = 1 over 2 of 9 variables from this. The fix is a partial module resolver (resolve_module) that follows EXTENDS through the hierarchy and unions VARIABLES, CONSTANTS, and the top-level definitions carrying TypeInvariant/Init/actions, base-first with the extending module overriding inherited names. Standard TLA+ library modules (Naturals, Integers, Reals, Sequences, FiniteSets, Bags, TLC, Json) declare no VARIABLES the bound reads and are skipped rather than resolved to a file. Every construct the resolver cannot model FAILS CLOSED with a named error rather than under-reporting: INSTANCE / named and unnamed instantiation, WITH substitution, and parameterized instantiation via UnsupportedModuleConstructError; LOCAL via the same; and an EXTENDS naming a non-standard module with no findable .tla via UnresolvedExtendsError. analyze() propagates these; run() and gate_report() catch them and fail closed (nonzero / gate FAIL with the reason). This honours references/architecture_tractability.md \"No Degenerate Escapes\": when a model cannot be resolved, write the failure, not a smaller number. Measured alternatives and the self-scrutiny check: the risk flagged for this ticket was a resolver that appears to work on a model where the extended declarations do not matter to the bound. The regression fixture is deliberately the opposite -- Channel EXTENDS Counter, where the EXTENDED module carries the only bound-bearing variable (tick in 0..3) and the extending module adds only an unconstrained channel variable. Pre-fix the analyzer reports variables= ['emitted'], bound=1, Bump absent; post-fix variables={tick,emitted}, bound=4, Bump present. The number moves 1->4 and the assertions were run against the HEAD analyzer to confirm they fail pre-fix. Shipped example re-measured (examples/distributed_history, External EXTENDS Internal EXTENDS Core, no TypeInvariant so bound is 1 both ways): its verdict stays FAIL but the diagnosis is corrected from a spurious \"C2 {responses} touched by 9 actions\" (an artifact of seeing only External's 4 variables) to the true \"C1 {accounts,carts,orders, responses} touched by 13 actions\" over all 10 variables, with named port-crossing actions and modularity 0.000 -> 0.230. That corrected figure is relevant to MF-037 and the ticket-workflow example: any downstream copy of the old 9-action number is stale. Evidence: results/tlc_current.txt, results/shipped_example_external_postfix.txt, results/graph-reports/*.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-20T22:09:21.953809+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, and found none this ticket should apply. The analyzer's standing recommendation remains to project [lastCommand, result], which no configured invariant reads; MF-028 and MF-029 both recorded strong arguments and still declined, and MF-030 adds no new evidence for or against it -- it changes how EXTENDS-decomposed models are scored, not what the binding model represents. MF-030's own finding is the opposite of a reduction: it reveals that the shipped decomposed example was previously UNDER-measured (External scored on 4 of 10 variables), so the honest movement here is toward MORE representation being counted, not less. The projection remains deferred to MF-023, where decomposition revisits it with per-component state spaces. Doctrine also bars a decrease independently while the three retention members are non-passing.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "degraded",
+        "evidence": "CARRIED FORWARD from MF-029. Adapters drive the CLI via subprocess; the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal stands. MF-030 touches no adapter and no observation boundary.",
+        "status": "unobservable",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "degraded",
+        "evidence": "CARRIED FORWARD from MF-029. 72.5% of the corpus has a before-state this repository cannot materialize. MF-030 adds no runnable case; it corrects how EXTENDS-decomposed models are scored, which is orthogonal to external coverage.",
+        "status": "incomplete",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "degraded",
+        "evidence": "CARRIED FORWARD from MF-029 (specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/complexity_ledger.yaml). No kill rate is computable while case execution is blocked. MF-030 is an analyzer change and does not re-measure or claim improvement.",
+        "status": "incomplete_catalog",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=incomplete_catalog (DEGRADED)",
+      "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+      "external_coverage=incomplete (DEGRADED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-030",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-20T22:09:21.992283+00:00",
+  "entry_name": "ticket-016-MF-030",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/55-mf030-resolve-extends",
+    "commit": "c078408",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-030/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/MF-030/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-030/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-030/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-030/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-030/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-030/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-030/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-030/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-030/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-030"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, and found none this ticket should apply. The analyzer's standing recommendation remains to project [lastCommand, result], which no configured invariant reads; MF-028 and MF-029 both recorded strong arguments and still declined, and MF-030 adds no new evidence for or against it -- it changes how EXTENDS-decomposed models are scored, not what the binding model represents. MF-030's own finding is the opposite of a reduction: it reveals that the shipped decomposed example was previously UNDER-measured (External scored on 4 of 10 variables), so the honest movement here is toward MORE representation being counted, not less. The projection remains deferred to MF-023, where decomposition revisits it with per-component state spaces. Doctrine also bars a decrease independently while the three retention members are non-passing.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/results/tlc_current.txt",
+      "source": "specs/tickets/MF-030/results/tlc_current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/results/shipped_example_external_postfix.txt",
+      "source": "specs/tickets/MF-030/results/shipped_example_external_postfix.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/results/shipped_example_internal_postfix.txt",
+      "source": "specs/tickets/MF-030/results/shipped_example_internal_postfix.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/results/summary.json",
+      "source": "specs/tickets/MF-030/results/graph-reports/specWorkflow-20260720-220448-dbbd2a05/summary.json"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/results/summary.json",
+      "source": "specs/tickets/MF-030/results/graph-reports/cliWorkflow-20260720-220517-0d721865/summary.json"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "degraded",
+      "evidence": "CARRIED FORWARD from MF-029. Adapters drive the CLI via subprocess; the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal stands. MF-030 touches no adapter and no observation boundary.",
+      "status": "unobservable",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "degraded",
+      "evidence": "CARRIED FORWARD from MF-029. 72.5% of the corpus has a before-state this repository cannot materialize. MF-030 adds no runnable case; it corrects how EXTENDS-decomposed models are scored, which is orthogonal to external coverage.",
+      "status": "incomplete",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "degraded",
+      "evidence": "CARRIED FORWARD from MF-029 (specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/complexity_ledger.yaml). No kill rate is computable while case execution is blocked. MF-030 is an analyzer change and does not re-measure or claim improvement.",
+      "status": "incomplete_catalog",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 12,
+    "close_out_entry": "Close-out ticket MF-030",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket",
+      "source": "specs/tickets/MF-030"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Resolve EXTENDS in analyze_complexity: follow the module hierarchy and union VARIABLES/CONSTANTS/definitions; fail closed (named errors) on INSTANCE, WITH substitution, parameterized instantiation, LOCAL, and unresolved EXTENDS. Zero TLA+ model delta (TLC 231,621 distinct/depth 25; binding bound 699,840 unchanged). Regression proves bound moves 1->4 across an EXTENDS edge and fails pre-fix. Shipped example re-measured: External verdict diagnosis corrected from spurious 'C2 {responses} 9 actions' to true 'C1 13 actions' over all 10 variables (relevant to MF-037).",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "EXTENDS is followed and declarations from extended modules are included in the dimension table and bound.",
+        "constructs the resolver cannot handle (INSTANCE, substitution, LOCAL, parameterized instantiation) FAIL CLOSED with a named error rather than silently under-reporting.",
+        "a regression test measures a decomposed model and asserts the bound reflects ALL variables, failing against the pre-fix behavior.",
+        "the shipped example is re-measured and its corrected figures recorded; any prior verdict that changes is reported."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-030"
+      ],
+      "evidence": [
+        "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/tlc_current.txt",
+        "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/shipped_example_external_postfix.txt",
+        "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/shipped_example_internal_postfix.txt",
+        "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/graph-reports/specWorkflow-20260720-220448-dbbd2a05/summary.json",
+        "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/graph-reports/cliWorkflow-20260720-220517-0d721865/summary.json"
+      ]
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-029"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/55",
+    "id": "MF-030",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py"
+    ],
+    "objective": "CRITICAL -- the epic binding gate silently disables itself on the architecture SKILL.md mandates. analyze_complexity.py line 101 uses EXTENDS as a PARSE TERMINATOR, so a decomposed model is scored on only the declarations literally present in that file. MF-023 measured External reporting bound = 1 over 2 of 9 variables. THE ERROR IS NEVER CONSERVATIVE -- missing variables always shrink the bound, so the gate always fails TOWARD PASS. The shipped example has been scored this way for the whole epic. Resolve EXTENDS by following the module hierarchy and unioning declarations; report explicitly what is and is not handled (INSTANCE, substitution, LOCAL, parameterized instantiation) rather than implying full TLA+ module semantics. A partial resolver that DECLARES its limits and fails closed on constructs it cannot handle is acceptable; one that silently under-reports is not.",
+    "promotion_order": 86,
+    "promotion_predecessor": "MF-029",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Resolve EXTENDS in the complexity analyzer",
+    "wave": 10
+  },
+  "ticket_id": "MF-030",
+  "ticket_index": 16,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket",
+    "source": "specs/tickets/MF-030"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}
