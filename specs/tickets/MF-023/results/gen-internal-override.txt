@@ -1,0 +1,157 @@
+complexity gate FAIL -- this model exceeds its manifest budgets and would
+likely exhaust TLC rather than finish.
+
+  - component C1 has 7 variables, exceeding max_component_variables 6
+  - component C1 is touched by 14 actions, exceeding max_component_actions 8
+
+Dominant dimensions:
+  spec_root: 3  (SpecRoots \cup {NoRoot})
+
+Suggested move: REFACTOR (RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED)
+  - dense rows (god-state): setup_phase touched by 12/14 actions, spec_root touched by 10/14 actions
+  - dense columns (actions touching almost everything): RunSpecUnitTests
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full report.
+
+PROCEEDING ANYWAY -- overridden by --allow-over-budget.
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 8496851129541026495 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 51477] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/Internal.tla
+Parsing file /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/Core.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Core
+Semantic processing of module Internal
+Starting... (2026-07-19 20:01:58)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-19 20:01:58.
+Progress(20) at 2026-07-19 20:02:01: 881,124 states generated (881,124 s/min), 40,676 distinct states found (40,676 ds/min), 1,945 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.2E-9
+  based on the actual fingerprints:  val = 2.6E-11
+999636 states generated, 42861 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 24.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 19 and the 95th percentile is 7).
+Finished in 03s at (2026-07-19 20:02:02)
+corpus gate FAIL: 999635 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/gen/internal/spec-unit/tlaspecdevcli_internal_cases
+
+Distribution per (action, label class) -- 15 stratum/strata:
+  RunSpecUnitTests / (unlabeled)      396288   39.6%
+  RunEffectConformance / (unlabeled)  171424   17.1%
+  RunKillTest / (unlabeled)           128568   12.9%
+  AnalyzeComplexity / (unlabeled)      85712    8.6%
+  AnalyzeCorpus / (unlabeled)          85712    8.6%
+  InternalStutter / (unlabeled)        42861    4.3%
+  OpenTicket / (unlabeled)             24960    2.5%
+  UpdateTicketCurrent / (unlabeled)    24960    2.5%
+  UpdateTicketDesired / (unlabeled)    24960    2.5%
+  CloseTicket / (unlabeled)            13824    1.4%
+  ScaffoldWorkflow / (unlabeled)         360    0.0%
+  RecordBudgets / (unlabeled)              2    0.0%
+  ScaffoldProject / (unlabeled)            2    0.0%
+  BuildSkillCli / (unlabeled)              1    0.0%
+  InstallLocalCli / (unlabeled)            1    0.0%
+
+Strata that DOMINATE the corpus:
+  RunSpecUnitTests / (unlabeled)      396288   39.6%
+  RunEffectConformance / (unlabeled)  171424   17.1%
+  RunKillTest / (unlabeled)           128568   12.9%
+  AnalyzeComplexity / (unlabeled)      85712    8.6%
+  AnalyzeCorpus / (unlabeled)          85712    8.6%
+
+Strata that are STARVED:
+  CloseTicket / (unlabeled)        13824    1.4%
+  ScaffoldWorkflow / (unlabeled)     360    0.0%
+  RecordBudgets / (unlabeled)          2    0.0%
+  ScaffoldProject / (unlabeled)        2    0.0%
+  BuildSkillCli / (unlabeled)          1    0.0%
+  InstallLocalCli / (unlabeled)        1    0.0%
+
+  Skew: RunSpecUnitTests / (unlabeled) holds 396288x the cases of InstallLocalCli / (unlabeled).
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+corpus gate FAIL -- this corpus exceeds its manifest cap. Nothing was
+trimmed: the full corpus was written, and this gate refuses instead.
+
+A lopsided corpus is evidence about the REPRESENTATION, not noise to
+clean up. The corpus is the symptom; the diagram is the defect.
+
+--- component component: 999635 cases, cap 200 (over by 999435)
+
+  Strata within this group that DOMINATE:
+    RunSpecUnitTests / (unlabeled)      396288   39.6%
+    RunEffectConformance / (unlabeled)  171424   17.1%
+    RunKillTest / (unlabeled)           128568   12.9%
+    AnalyzeComplexity / (unlabeled)      85712    8.6%
+    AnalyzeCorpus / (unlabeled)          85712    8.6%
+
+  Strata within this group that are STARVED:
+    CloseTicket / (unlabeled)        13824    1.4%
+    ScaffoldWorkflow / (unlabeled)     360    0.0%
+    RecordBudgets / (unlabeled)          2    0.0%
+    ScaffoldProject / (unlabeled)        2    0.0%
+    BuildSkillCli / (unlabeled)          1    0.0%
+    InstallLocalCli / (unlabeled)        1    0.0%
+
+  What VARIES across the redundant group:
+    after.setup_phase                       6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    after.ticket_state.cli_entrypoint       6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    after.ticket_state.cli_validation       6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    after.ticket_state.cli_workflow         6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    before.setup_phase                      6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    before.ticket_state.cli_entrypoint      6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    before.ticket_state.cli_validation      6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+    before.ticket_state.cli_workflow        6 distinct / 999635 cases
+                                        e.g. 0; 1; 2
+
+  Held CONSTANT across the group: params
+
+  Likely cause: action enabled across equivalent states
+    - 12 distinct change shape(s) across 999635 cases
+    - but the before-state varies widely: after.setup_phase (6 values), after.ticket_state.cli_entrypoint (6 values), after.ticket_state.cli_validation (6 values)
+    - 42861 distinct source states in the reachable graph
+    - the action does one thing, generated once per reachable state that enables it
+
+  Suggested move: Abstract the before-state: replace the concrete carrier with the predicate the action actually reads, so equivalent states collapse into one.
+  RECOMMENDATION REQUIRING USER APPROVAL -- not applied automatically.
+
+Two ways forward, and neither deletes a case:
+
+  1. FIX THE DIAGRAM so the redundant cases are never generated.
+     Apply the suggested move above, once the user approves it.
+
+  2. ACCEPT PATH -- raise the cap, with a rationale, in /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/spec_manifest.yaml:
+     
+       budgets:
+         max_internal_cases_per_component: 999635    # was 200
+         source: negotiated
+         rationale:
+           max_internal_cases_per_component: "<one line: why this program genuinely needs 999635 cases per component>"
+     
+     That is an explicit, reviewable decision recorded in program state.
+     There is no trimming option, opt-in or otherwise: cases are never
+     dropped, filtered, sampled, or truncated to fit a budget.
+
+REFUSING to accept this corpus. Fix the diagram, or raise the cap with a
+recorded rationale. There is no override that trims cases.
+spec directory: /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired
+generated internal transition cases from 42861 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/gen/internal/spec-unit/tlaspecdevcli_internal_cases
