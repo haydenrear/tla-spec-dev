@@ -1,0 +1,621 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-036",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-022-MF-036 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-036'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-022-MF-036"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": 231621,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": 5619356,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-030"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": 231621,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": 5619356,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-030"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-036/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-61-mf036-complexity-advisory/specs/tickets/MF-036/results/tlc.txt",
+      "variables": 9
+    },
+    "narrative": "MF-036 makes the complexity check ADVISORY. A probe built a plain 5-variable, 10-command god-object CLI (recorded under results/probe/GodObjectCli.tla) and ran `analyze complexity`; it HARD-FAILED with \"component C1 is touched by 10 actions, exceeding max_component_actions 8\" (exit 1). Any program with more than eight commands over shared state failed the same way -- i.e. most real programs. Per owner direction 2026-07-20 and references/architecture_tractability.md (\"Advisory, Not Blocking\"), complexity is a scanner, not a gate. What changed (scripts only, zero TLA delta): (1) Every complexity threshold breach -- state-space bound, component variables, component actions, and the TLC distinct-states check -- is now an advisory WARNING that names the component/variable/action and RECOMMENDS a concrete move (e.g. \"split the densest state <v> into its own component\"). `analyze complexity` exits 0 whenever it can analyze the model; it exits nonzero ONLY when it CANNOT analyze it (the MF-030 fail-closed on an unresolved EXTENDS/INSTANCE hierarchy). \"I could not measure this\" stays an error; \"this is complex\" is now a finding. (2) Case generation no longer refuses above threshold. `enforce_complexity_gate` became `advise_complexity`: it prints the warnings and proceeds. The `--allow-over-budget` override was removed entirely -- there is no gate left to override. (3) Frame-condition accuracy fix: `v' = v` (the written-out form of UNCHANGED) was counted as a read AND a write, so every variable an action leaves alone showed as coupled to it. It is now stripped. On the GodObjectCli probe this drops the over-reported god-state from all five variables at 10/10 to the real coupling (only the shared `status` at 10/10; the four domain vars at 3/3/2/2), and the R/W interaction graph de-densifies from the complete graph (10 edges) to a star (4 edges). Evidence integrity is untouched: no case is dropped, no effect gap suppressed, no finding silenced. The kill-test mutant inv-SpecUnitTestsRequireAnalyzedGate was kept (its `find` pattern retargeted to the renamed variable) so that bypassing the scan -- which would silence the warnings -- is still a killable breach. The corpus case caps (corpus_diagnostics.py) and the faithfulness oracles remain as they were; un-gating those is out of this ticket's scope (MF-033 and later). Acceptance proof (results/): the probe model now emits the exact \"C1 touched by 10 actions\" finding as a WARNING with a recommendation and exits 0 (probe/analyze-complexity-after.txt); this repository's own model, which previously failed \"C1 touched by 14 actions\", now emits the same warning and promotes cleanly (repo-model-analyze-complexity-after.txt). Delta vs MF-030 is zero: bound 699,840, distinct 231,621, depth 25 (tlc.txt). Retention oracles (kill_rate/effect_conformance/external_coverage) were not re-run because the model is byte-identical to MF-030; behavior retention is witnessed by the identical TLC run rather than by a fresh oracle pass, and no complexity decrease is claimed that would require them.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-20T23:03:55.600905+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Zero-delta ticket. No complexity reduction was sought or made: this is a scripts-only change (analyze_complexity.py, generate_cases_from_tlc_dump.py, references/modular_fuzzing.md) that converts the complexity check from a hard gate into advisory warnings. The TLA+ model is byte-identical to MF-030 and TLC reports the same 231,621 distinct states / depth 25 (bound 699,840 unchanged). The recursive-refinement search for a further architectural reduction found none applicable, because the ticket's objective was to STOP the tooling from blocking promotion on complexity, not to reduce complexity. The one measurement-accuracy correction -- the v'=v frame-condition R/W fix -- reduces over-reported coupling in the scanner but does not change this model's own bound or reachable-state count (the model uses UNCHANGED tuples, which were already stripped; the fix matters for models that write explicit frame conditions, e.g. the recorded GodObjectCli probe).",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the effect-conformance report",
+        "status": "",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the external coverage report",
+        "status": "",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the kill-test report",
+        "status": "",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=(absent) (UNVERIFIED)",
+      "effect_conformance=(absent) (UNVERIFIED)",
+      "external_coverage=(absent) (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-036",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-20T23:03:55.629861+00:00",
+  "entry_name": "ticket-022-MF-036",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/61-mf036-complexity-advisory",
+    "commit": "285468f",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-036/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/MF-036/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-036/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-036/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-036/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-036/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-036/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-036/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-036/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-036/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-036"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Zero-delta ticket. No complexity reduction was sought or made: this is a scripts-only change (analyze_complexity.py, generate_cases_from_tlc_dump.py, references/modular_fuzzing.md) that converts the complexity check from a hard gate into advisory warnings. The TLA+ model is byte-identical to MF-030 and TLC reports the same 231,621 distinct states / depth 25 (bound 699,840 unchanged). The recursive-refinement search for a further architectural reduction found none applicable, because the ticket's objective was to STOP the tooling from blocking promotion on complexity, not to reduce complexity. The one measurement-accuracy correction -- the v'=v frame-condition R/W fix -- reduces over-reported coupling in the scanner but does not change this model's own bound or reachable-state count (the model uses UNCHANGED tuples, which were already stripped; the fix matters for models that write explicit frame conditions, e.g. the recorded GodObjectCli probe).",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/analyze-complexity-after.txt",
+      "source": "specs/tickets/MF-036/results/probe/analyze-complexity-after.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/frame-condition-before-after.txt",
+      "source": "specs/tickets/MF-036/results/probe/frame-condition-before-after.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/repo-model-analyze-complexity-after.txt",
+      "source": "specs/tickets/MF-036/results/repo-model-analyze-complexity-after.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/spec-unit-tests.txt",
+      "source": "specs/tickets/MF-036/results/spec-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/tlc.txt",
+      "source": "specs/tickets/MF-036/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/graph-specWorkflow.txt",
+      "source": "specs/tickets/MF-036/results/graph-specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/results/graph-cliWorkflow.txt",
+      "source": "specs/tickets/MF-036/results/graph-cliWorkflow.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the effect-conformance report",
+      "status": "",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the external coverage report",
+      "status": "",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the kill-test report",
+      "status": "",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 13,
+    "close_out_entry": "Close-out ticket MF-036",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-61-mf036-complexity-advisory/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket",
+      "source": "specs/tickets/MF-036"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Made complexity advisory: analyze complexity and case generation no longer block or refuse over threshold (exit 0 with warnings + recommendations); only an unanalyzable model (ModuleResolutionError) still exits nonzero. Fixed the v'=v frame-condition R/W over-count. Zero TLA delta; TLC 231,621 distinct/depth 25.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "no complexity check exits nonzero to block promotion, refuses case generation, or fails a close; each emits a warning and a recommendation instead.",
+        "a warning names the component/variable/action and recommends a concrete move, rather than only reporting a threshold breach.",
+        "the frame-condition bug is fixed -- a variable left UNCHANGED by an action is NOT counted as touched by it; the probe 10-of-10 god-state over-report drops to the real coupling.",
+        "the existing scanner content (dimension table, bound, R/W matrix, modularity, dense-row detection, suggested moves) is preserved and still produced.",
+        {
+          "evidence integrity is untouched": "no case dropped, no effect gap suppressed, no finding silenced -- those remain hard because they corrupt the measurement."
+        },
+        "the probe 5-variable 10-command model, and this repository own model, now produce a complexity REPORT rather than a promotion failure; the reports are recorded as evidence."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-036"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "references/modular_fuzzing.md",
+        "scripts/analyze_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-030"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/61",
+    "id": "MF-036",
+    "implementation_scope": [
+      "references/modular_fuzzing.md",
+      "scripts/analyze_complexity.py"
+    ],
+    "objective": "GOVERNING REFRAME (owner direction 2026-07-20), pulled to the front of the remaining work. A probe measured what the complexity gate does to ordinary programs: a 5-variable 10-command model, an unremarkable CLI over shared state, HARD-FAILED promotion because component C1 is touched by 10 actions exceeding the cap of 8. Any program with more than eight commands over shared state fails, which is most real programs, so as a hard gate the complexity metric fails in nearly every user project instead of helping. Complexity is a SCANNER, not a gate: it produces metrics, warnings and recommendations and tells the agent where to refactor, and it NEVER blocks promotion. Remove every complexity hard-fail -- analyze complexity exit-nonzero-to-block, case generation refusing above-gate, the component-size and bound checks that exit 1 -- and convert each to a warning that names what and where and recommends a move. Also fix the scanner-accuracy bug the probe found: v-prime-equals-v frame conditions are counted as touched, over-reporting coupling so every UNCHANGED variable shows as touched by every action. Keep the good scanner content that already exists: dimension table, state-space bound, R/W matrix, modularity score, dense-row god-state detection, suggested moves. What does NOT change is evidence integrity -- no dropping cases, no suppressing effect gaps, no silencing findings, because a scanner fed doctored input is worthless. See references/architecture_tractability.md Advisory Not Blocking. This resolves the everyone-fails-to-promote risk at its root.",
+    "promotion_order": 87,
+    "promotion_predecessor": "MF-030",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Make complexity advisory: warnings and recommendations, never blocks promotion",
+    "wave": 10
+  },
+  "ticket_id": "MF-036",
+  "ticket_index": 22,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket",
+    "source": "specs/tickets/MF-036"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}

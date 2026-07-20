@@ -18,8 +18,14 @@ What it emits:
   manifest carries a ``justification:`` table;
 * a **suggested move** -- abstract, decompose, or refactor -- which is a
   RECOMMENDATION REQUIRING USER APPROVAL and is never auto-applied; and
-* a budget verdict read through :mod:`scripts.budgets` (the MF-012 helper),
-  which drives a nonzero exit.
+* **advisory complexity warnings** read against the thresholds in
+  :mod:`scripts.budgets` (the MF-012 helper). Each threshold breach becomes a
+  WARNING that names the component/variable/action and RECOMMENDS a concrete
+  move. It NEVER drives a nonzero exit and NEVER blocks promotion (MF-036;
+  references/architecture_tractability.md, "Advisory, Not Blocking"). The scan
+  exits nonzero only when it *cannot analyze* the model at all -- an unresolved
+  module hierarchy (MF-030 fail-closed) or a usage error -- which is a
+  different thing from "this model is complex".
 
 Two standing cautions are wired into the output rather than left to prose,
 because both have already cost this repository real work (see MF-020):
@@ -54,7 +60,12 @@ MODULARITY_CUT_THRESHOLD = 0.30
 
 # Exit codes.
 EXIT_PASS = 0
-EXIT_BUDGET_EXCEEDED = 1
+# MF-036: this is the "I could not analyze this model" exit, NOT "this model is
+# complex". A complex model now exits EXIT_PASS with advisory warnings; only an
+# unresolvable module hierarchy (MF-030 fail-closed) reaches here. The old name
+# is retained for import compatibility.
+EXIT_ANALYSIS_ERROR = 1
+EXIT_BUDGET_EXCEEDED = EXIT_ANALYSIS_ERROR
 EXIT_USAGE = 2
 
 
@@ -401,6 +412,33 @@ def strip_unchanged(body: str) -> str:
     return body
 
 
+def strip_frame_conditions(body: str, variables: Iterable[str]) -> str:
+    """Remove explicit ``v' = v`` frame-condition conjuncts (MF-036).
+
+    ``v' = v`` says the action leaves ``v`` UNCHANGED -- it is the written-out
+    form of ``UNCHANGED v`` and is neither a read nor a write of ``v``. Counting
+    it as a touch inflates the R/W matrix: every variable an action leaves alone
+    then shows as coupled to it, over-reporting the god-state. A probe's
+    5-variable / 10-command CLI (each command touching only two variables, the
+    rest pinned with ``v' = v``) reported a fully-coupled 10/10 component that
+    was almost entirely frame conditions.
+
+    Only an EXACT frame condition is removed: the right-hand side must be the
+    bare variable, ending at a conjunction/disjunction boundary or the end of
+    the body. ``v' = v + 1`` and ``v' = v \\cup {x}`` genuinely read the old
+    value of ``v`` and are left intact, so a real write-that-reads is never
+    silenced.
+    """
+    for name in variables:
+        escaped = re.escape(name)
+        body = re.sub(
+            rf"(?<![A-Za-z0-9_]){escaped}'\s*=\s*{escaped}(?=\s*(?:/\\|\\/|$))",
+            " ",
+            body,
+        )
+    return body
+
+
 def references(body: str, name: str) -> bool:
     return re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_'])", body) is not None
 
@@ -425,7 +463,11 @@ def extract_actions(defs: Sequence[Definition], variables: Sequence[str]) -> lis
     """An action is a top-level definition that primes at least one variable."""
     actions: list[Action] = []
     for definition in defs:
-        body = strip_unchanged(definition.body)
+        # MF-036: strip BOTH forms of "leaves it alone" -- the UNCHANGED clause
+        # and the explicit ``v' = v`` frame condition -- before reads/writes are
+        # extracted, so a variable an action does not touch is not counted as
+        # coupled to it.
+        body = strip_frame_conditions(strip_unchanged(definition.body), variables)
         writes = {v for v in variables if primed_references(body, v)}
         if not writes:
             continue
@@ -853,6 +895,23 @@ def compare_tlc_reports(baseline: TlcReport, current: TlcReport) -> list[dict[st
 
 
 @dataclass
+class Advisory:
+    """One advisory complexity finding: what/where it is, and a concrete move.
+
+    MF-036: complexity is a scanner, not a gate
+    (references/architecture_tractability.md, "Advisory, Not Blocking"). Each
+    Advisory is a WARNING that NEVER blocks promotion. ``finding`` names the
+    component / variable / action and the measured threshold breach;
+    ``recommendation`` names a concrete move the owner may take. Both are
+    reported; neither is enforced.
+    """
+
+    kind: str
+    finding: str
+    recommendation: str
+
+
+@dataclass
 class Analysis:
     module: str
     tla_path: Path
@@ -871,7 +930,7 @@ class Analysis:
     projectable: list[str]
     unjustified: list[str] | None
     budgets: dict[str, Any]
-    violations: list[str]
+    warnings: list[Advisory]
     tlc_findings: list[dict[str, str]]
 
     @property
@@ -883,8 +942,25 @@ class Analysis:
         return bound
 
     @property
+    def violations(self) -> list[str]:
+        """The advisory finding strings.
+
+        Retained under this name so the complexity ledger (out of MF-036's
+        scope) keeps recording the findings. Since MF-036 these are WARNINGS,
+        not gate violations -- they are recorded as evidence, never enforced.
+        """
+        return [w.finding for w in self.warnings]
+
+    @property
     def gate_passed(self) -> bool:
-        return not self.violations
+        """True when the scan raised no complexity warnings.
+
+        MF-036: complexity is advisory -- this value NEVER gates promotion. A
+        False result means "the scan raised warnings the owner should read", not
+        "the build fails". The name and the ledger field are kept for
+        continuity with the pre-reframe ledger schema.
+        """
+        return not self.warnings
 
 
 def load_justification(manifest: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -980,32 +1056,108 @@ def analyze(
         stream=warn_stream if warn_stream is not None else sys.stderr,
     )
 
-    violations: list[str] = []
+    # MF-036: each threshold breach is an ADVISORY warning that names the
+    # component/variable/action and recommends a concrete move. None of these
+    # block promotion, refuse case generation, or drive a nonzero exit -- they
+    # are findings for the owner, per references/architecture_tractability.md,
+    # "Advisory, Not Blocking". The only nonzero exit is for a model the scan
+    # CANNOT analyze (ModuleResolutionError / usage), handled in the CLI.
+    warnings: list[Advisory] = []
+    dominant = sorted(
+        (d for d in dimensions if d.bounded), key=lambda d: -(d.cardinality or 0)
+    )
     # MF-022: the static bound is a Cartesian over-approximation of the
     # DECLARED representation -- it ignores every action guard, so it counts
-    # combinations the program can never occupy. It is therefore gated against
-    # max_state_space_bound (a TLC-capacity ceiling), NOT against
+    # combinations the program can never occupy. It is therefore compared
+    # against max_state_space_bound (a TLC-capacity ceiling), NOT against
     # max_distinct_states, which caps ACTUAL reachable states measured by TLC
     # after the fact. Comparing the two is a category error: on this
-    # repository the bound over-approximated reachable states by ~400x, failing
-    # a model that was 17x under its own reachable-state budget.
+    # repository the bound over-approximated reachable states by ~400x, on a
+    # model that was 17x under its own reachable-state budget.
     if bound > budgets["max_state_space_bound"]:
-        violations.append(
-            f"state-space upper bound {bound:,} exceeds max_state_space_bound "
-            f"{budgets['max_state_space_bound']:,}"
+        if dominant:
+            top = dominant[0]
+            rec = (
+                f"consider abstracting the dominant dimension {top.variable} "
+                f"({top.cardinality:,}) -- collapse latching booleans into one ordinal, "
+                "or project a variable no invariant reads (see the SUGGESTED MOVE above) "
+                f"-- to bring the declared bound under {budgets['max_state_space_bound']:,}"
+            )
+        else:
+            rec = (
+                "consider abstracting the representation (see the SUGGESTED MOVE above) "
+                f"to bring the declared bound under {budgets['max_state_space_bound']:,}"
+            )
+        warnings.append(
+            Advisory(
+                kind="state_space_bound",
+                finding=(
+                    f"state-space upper bound {bound:,} exceeds max_state_space_bound "
+                    f"{budgets['max_state_space_bound']:,}"
+                ),
+                recommendation=rec,
+            )
         )
     for index, community in enumerate(communities, start=1):
         if len(community) > budgets["max_component_variables"]:
-            violations.append(
-                f"component C{index} has {len(community)} variables, exceeding "
-                f"max_component_variables {budgets['max_component_variables']}"
+            members = ", ".join(sorted(community))
+            port_here = sorted(
+                name for name, where in crossings.items() if f"C{index}" in where
+            )
+            rec = (
+                f"consider decomposing component C{index} along the modularity cut "
+                f"(Q={score:.3f})"
+            )
+            if port_here:
+                rec += (
+                    f"; {', '.join(port_here)} already cross into other components and are "
+                    "candidate port boundaries to place behind a contract"
+                )
+            warnings.append(
+                Advisory(
+                    kind="component_variables",
+                    finding=(
+                        f"component C{index} has {len(community)} variables "
+                        f"({members}), exceeding max_component_variables "
+                        f"{budgets['max_component_variables']}"
+                    ),
+                    recommendation=rec,
+                )
             )
     for index, community in enumerate(communities, start=1):
         touching = [a.name for a in actions if a.touched & community]
         if len(touching) > budgets["max_component_actions"]:
-            violations.append(
-                f"component C{index} is touched by {len(touching)} actions, exceeding "
-                f"max_component_actions {budgets['max_component_actions']}"
+            # Name the densest state in the component -- the variable the most
+            # of these actions touch -- so the recommendation points at a
+            # concrete split target rather than just reporting the count.
+            per_var = {
+                v: sum(1 for a in actions if v in a.touched) for v in community
+            }
+            densest = sorted(per_var, key=lambda v: (-per_var[v], v))[0]
+            port_here = sorted(
+                name for name, where in crossings.items() if f"C{index}" in where
+            )
+            rec = (
+                f"consider splitting the densest state {densest} (touched by "
+                f"{per_var[densest]} of these {len(touching)} actions) into its own "
+                f"component so no component is touched by more than "
+                f"{budgets['max_component_actions']} actions"
+            )
+            if port_here:
+                rec += (
+                    f", and/or move the port-crossing action(s) {', '.join(port_here)} "
+                    "behind a contract"
+                )
+            warnings.append(
+                Advisory(
+                    kind="component_actions",
+                    finding=(
+                        f"component C{index} is touched by {len(touching)} actions "
+                        f"({', '.join(touching)}), exceeding max_component_actions "
+                        f"{budgets['max_component_actions']}"
+                    ),
+                    recommendation=rec,
+                )
             )
 
     tlc_findings: list[dict[str, str]] = []
@@ -1031,9 +1183,21 @@ def analyze(
         # to the static over-approximation instead.
         if current_report.complete and current_report.distinct is not None:
             if current_report.distinct > budgets["max_distinct_states"]:
-                violations.append(
-                    f"TLC-measured {current_report.distinct:,} distinct reachable states "
-                    f"exceeds max_distinct_states {budgets['max_distinct_states']:,}"
+                warnings.append(
+                    Advisory(
+                        kind="distinct_states",
+                        finding=(
+                            f"TLC-measured {current_report.distinct:,} distinct reachable "
+                            f"states exceeds max_distinct_states "
+                            f"{budgets['max_distinct_states']:,}"
+                        ),
+                        recommendation=(
+                            "consider abstracting the dominant dimension to shrink the "
+                            "reachable space (see the SUGGESTED MOVE above), or raise "
+                            "max_distinct_states in the manifest with a recorded rationale "
+                            "if these states are genuinely needed"
+                        ),
+                    )
                 )
             else:
                 tlc_findings.append(
@@ -1065,7 +1229,7 @@ def analyze(
         projectable=projectable,
         unjustified=unjustified,
         budgets=budgets,
-        violations=violations,
+        warnings=warnings,
         tlc_findings=tlc_findings,
     )
 
@@ -1323,7 +1487,7 @@ def render_text(analysis: Analysis) -> str:
     add("  deleted self-loop), not a win -- the distinct-state gate cannot see it.")
     add("")
 
-    add("[MEASURED] Budget gate")
+    add("[MEASURED] Complexity thresholds (advisory -- warnings only)")
     add(f"  source: {analysis.manifest_path or 'documented defaults'}")
     for key in (
         "max_state_space_bound",
@@ -1332,17 +1496,26 @@ def render_text(analysis: Analysis) -> str:
         "max_component_actions",
     ):
         add(f"    {key}: {analysis.budgets[key]:,}")
-    add("  max_state_space_bound gates the STATIC declared-representation bound above.")
-    add("  max_distinct_states caps ACTUAL reachable states and is checked only once")
+    add("  max_state_space_bound compares against the STATIC declared-representation bound above.")
+    add("  max_distinct_states compares against ACTUAL reachable states and is checked only once")
     add("  TLC has measured them (--tlc-report); the two are not interchangeable.")
-    if analysis.gate_passed:
-        add("  VERDICT: PASS -- the model is within budget.")
+    add("")
+    if not analysis.warnings:
+        add("  No complexity warnings -- every metric is within its advisory threshold.")
     else:
-        add("  VERDICT: FAIL -- budget exceeded:")
-        for violation in analysis.violations:
-            add(f"    - {violation}")
-        add("  Case generation will refuse to run against this model.")
-        add("  Override explicitly with --allow-over-budget once the cost is understood.")
+        add("  COMPLEXITY WARNINGS -- these are RECOMMENDATIONS. They do NOT block promotion,")
+        add("  do NOT refuse case generation, and do NOT change the exit code. Complexity is a")
+        add("  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not")
+        add("  Blocking'). The owner decides, with the user, whether to act on each one.")
+        for warning in analysis.warnings:
+            add("")
+            add(f"  WARNING: {warning.finding}")
+            add(f"    recommendation: {warning.recommendation}")
+    add("")
+    add("  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model")
+    add("  is a finding, not a failure. It exits nonzero ONLY when the model cannot be")
+    add("  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not")
+    add("  measure this', which is distinct from 'this is complex'.")
     return "\n".join(out) + "\n"
 
 
@@ -1393,47 +1566,63 @@ def render_json(analysis: Analysis) -> str:
                 "max_component_actions",
             )
         },
-        "gate": {
-            "passed": analysis.gate_passed,
-            "violations": analysis.violations,
+        "advisory": {
+            "blocks_promotion": False,
+            "clean": analysis.gate_passed,
+            "warnings": [
+                {
+                    "kind": warning.kind,
+                    "finding": warning.finding,
+                    "recommendation": warning.recommendation,
+                }
+                for warning in analysis.warnings
+            ],
         },
     }
     return json.dumps(payload, indent=2, sort_keys=False) + "\n"
 
 
 # --------------------------------------------------------------------------
-# Gate helper used by case generation
+# Advisory report helper used by case generation
 # --------------------------------------------------------------------------
 
 
 def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> tuple[bool, str]:
-    """Run the gate for case generation. Returns ``(passed, message)``."""
+    """Advisory complexity report for case generation. Returns ``(clean, message)``.
+
+    MF-036: this is a scanner, not a gate. ``clean`` is True when the scan
+    raised no complexity warnings; a False value means the caller should print
+    the warnings, NOT that it should refuse. Case generation is expected to
+    proceed either way (references/architecture_tractability.md, "Advisory, Not
+    Blocking"). The one thing that is not a mere finding is a model the scan
+    cannot analyze at all (MF-030 fail-closed): that is reported as ``clean =
+    False`` with a "could not be resolved" message so the caller can surface it,
+    but even then the caller proceeds -- TLC may handle a model the static
+    scanner cannot.
+    """
     try:
         analysis = analyze(tla_path, cfg_path, manifest_path)
     except ModuleResolutionError as exc:
-        # MF-030: a hierarchy the analyzer cannot resolve fails the gate. It is
-        # NOT scored on the declarations that happen to be present, because that
-        # number would only ever be smaller than the truth (missing variables
-        # shrink the product) -- the gate would fail toward PASS.
         return False, (
-            "complexity gate FAIL -- the module hierarchy could not be "
-            "resolved, so the model cannot be measured:\n"
+            "complexity scan could not analyze this model -- the module "
+            "hierarchy could not be resolved:\n"
             f"  {exc}\n"
-            "Failing closed: an unresolved hierarchy would under-report the "
-            "bound and pass a model that was never measured."
+            "This is an 'I could not measure this' note, not a promotion block; "
+            "case generation still proceeds."
         )
     if analysis.gate_passed:
         return True, (
-            f"complexity gate PASS: state-space upper bound {analysis.bound:,} within "
-            f"max_state_space_bound {analysis.budgets['max_state_space_bound']:,}"
+            f"complexity scan clean: state-space upper bound {analysis.bound:,} within "
+            f"max_state_space_bound {analysis.budgets['max_state_space_bound']:,}, and "
+            "every component within its advisory thresholds"
         )
     lines = [
-        "complexity gate FAIL -- this model exceeds its manifest budgets and would",
-        "likely exhaust TLC rather than finish.",
+        "complexity scan -- ADVISORY WARNINGS (these do NOT block case generation):",
         "",
     ]
-    for violation in analysis.violations:
-        lines.append(f"  - {violation}")
+    for warning in analysis.warnings:
+        lines.append(f"  WARNING: {warning.finding}")
+        lines.append(f"    recommendation: {warning.recommendation}")
     lines.append("")
     lines.append("Dominant dimensions:")
     dominant = sorted(
@@ -1488,14 +1677,16 @@ def run(args: argparse.Namespace) -> int:
             current_tlc=Path(args.tlc_report).resolve() if args.tlc_report else None,
         )
     except ModuleResolutionError as exc:
-        # MF-030: fail closed (nonzero) with the named reason rather than crash
-        # or emit an under-reported number.
+        # MF-030 / MF-036: a hierarchy the analyzer CANNOT resolve is the one
+        # genuine error -- "I could not measure this model" -- so it fails closed
+        # nonzero rather than emit an under-reported number. This is distinct
+        # from "this model is complex", which is now advisory and exits 0.
         print(
-            "ERROR: complexity analysis FAILED CLOSED -- the module hierarchy "
-            f"could not be resolved:\n  {exc}",
+            "ERROR: complexity analysis could not analyze this model -- the module "
+            f"hierarchy could not be resolved:\n  {exc}",
             file=sys.stderr,
         )
-        return EXIT_BUDGET_EXCEEDED
+        return EXIT_ANALYSIS_ERROR
 
     rendered = render_json(analysis) if args.format == "json" else render_text(analysis)
     sys.stdout.write(rendered)
@@ -1504,7 +1695,10 @@ def run(args: argparse.Namespace) -> int:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(rendered, encoding="utf-8")
         print(f"wrote evidence: {out_path}", file=sys.stderr)
-    return EXIT_PASS if analysis.gate_passed else EXIT_BUDGET_EXCEEDED
+    # MF-036: a complex model is a finding, not a failure. Once the model could
+    # be analyzed, the command exits 0 regardless of how many advisory warnings
+    # the scan raised -- complexity never blocks promotion.
+    return EXIT_PASS
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:

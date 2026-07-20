@@ -1,0 +1,17 @@
+MF-036 frame-condition fix -- GodObjectCli probe (v'=v no longer counted as touched)
+
+=== BEFORE fix (v'=v counted as touched -- the bug) ===
+  Cmd01 touched: ['status', 'v1', 'v2', 'v3', 'v4']
+  dense-row counts (actions touching each var, of 10): {'status': 10, 'v1': 10, 'v2': 10, 'v3': 10, 'v4': 10}
+  modularity Q = 0.000
+  C1 = ['status', 'v1', 'v2', 'v3', 'v4']  touched by 10 actions
+
+=== AFTER fix (v'=v correctly NOT counted) ===
+  Cmd01 touched: ['status', 'v1']
+  dense-row counts (actions touching each var, of 10): {'status': 10, 'v1': 3, 'v2': 3, 'v3': 2, 'v4': 2}
+  modularity Q = 0.000
+  C1 = ['status', 'v1', 'v2', 'v3', 'v4']  touched by 10 actions
+
+The 10/10 god-state (all five variables reported touched by all ten commands)
+drops to the real coupling: only the genuinely shared `status` is 10/10; the
+four domain variables show their true 3/3/2/2 coupling.

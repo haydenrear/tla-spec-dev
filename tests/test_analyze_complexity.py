@@ -1,4 +1,4 @@
-"""`analyze complexity` measures the model and gates it against the budgets.
+"""`analyze complexity` measures the model and ADVISES against the thresholds.
 
 The load-bearing properties, in order of how much damage their absence has
 already caused this repository:
@@ -8,8 +8,12 @@ already caused this repository:
 3. A generated-states drop at constant distinct states is reported as a RED
    FLAG, because the distinct-state gate is structurally blind to a deleted
    self-loop (MF-020).
-4. The budget gate exits nonzero, and case generation refuses above it unless
-   explicitly overridden.
+4. MF-036: complexity is advisory, not a gate. A model over a threshold gets a
+   WARNING that names the component/variable/action and RECOMMENDS a concrete
+   move -- it exits 0 and case generation still proceeds. The command exits
+   nonzero ONLY when it cannot analyze the model at all (an unresolved
+   hierarchy); "I could not measure this" is an error, "this is complex" is a
+   finding.
 """
 
 from __future__ import annotations
@@ -33,9 +37,13 @@ from scripts.analyze_complexity import (  # noqa: E402
     compare_tlc_reports,
     gate_report,
     main,
+    extract_actions,
+    interaction_graph,
     parse_cfg_constants,
+    parse_definitions,
     parse_tlc_report,
     resolve_module,
+    strip_frame_conditions,
     suggest_move,
 )
 
@@ -255,6 +263,108 @@ def test_read_write_matrix_separates_reads_writes_and_unchanged(tmp_path: Path) 
     assert "finished" not in by_name["Bump"].touched
 
 
+# ---------------------------------------------------------------------------
+# Frame-condition fix (MF-036): `v' = v` is UNCHANGED, not a touch
+# ---------------------------------------------------------------------------
+
+
+def test_strip_frame_conditions_removes_exact_v_prime_equals_v() -> None:
+    body = "status' = status + 1 /\\ v1' = v1 /\\ v2' = v2"
+    stripped = strip_frame_conditions(body, ["status", "v1", "v2"])
+    # The genuine write-that-reads survives; the two frame conditions are gone.
+    assert "status' = status + 1" in stripped
+    assert "v1' = v1" not in stripped
+    assert "v2' = v2" not in stripped
+
+
+def test_strip_frame_conditions_keeps_genuine_writes_that_read() -> None:
+    # `v' = v + 1` and `v' = v \cup {x}` genuinely read the old value: never strip.
+    body = "a' = a + 1 /\\ b' = b \\cup {x}"
+    stripped = strip_frame_conditions(body, ["a", "b"])
+    assert "a' = a + 1" in stripped
+    assert "b' = b \\cup {x}" in stripped
+
+
+def test_frame_condition_variable_is_not_counted_as_touched() -> None:
+    """A variable left UNCHANGED by `v' = v` is NOT touched by that action."""
+    module = (
+        "---- MODULE Frame ----\n"
+        "VARIABLES status, v1, v2\n"
+        "Act == status' = status + 1 /\\ v1' = v1 /\\ v2' = v2\n"
+        "====\n"
+    )
+    defs = parse_definitions(module)
+    actions = extract_actions(defs, ["status", "v1", "v2"])
+    act = {a.name: a for a in actions}["Act"]
+    # Only `status` is genuinely written/read; the two frame conditions vanish.
+    assert act.writes == {"status"}
+    assert "v1" not in act.touched
+    assert "v2" not in act.touched
+
+
+def test_god_object_frame_conditions_drop_from_10_of_10_to_real_coupling() -> None:
+    """The probe: five vars, ten commands, each touching only two.
+
+    Every command frames the three variables it does not use with `v' = v`.
+    Counting those as touches (the bug) reports all five variables coupled to all
+    ten commands -- a fully dense 10/10 god-state. The fix reveals the real
+    coupling: only the shared `status` is touched by all ten; the four domain
+    variables drop to their true 2-or-3-of-10.
+    """
+    variables = ["status", "v1", "v2", "v3", "v4"]
+    lines = []
+    domain_for = ["v1", "v1", "v1", "v2", "v2", "v2", "v3", "v3", "v4", "v4"]
+    for i, dom in enumerate(domain_for, start=1):
+        others = [v for v in ("v1", "v2", "v3", "v4") if v != dom]
+        frame = " /\\ ".join(f"{o}' = {o}" for o in others)
+        lines.append(
+            f"Cmd{i:02d} == status' = (status + 1) % 3 /\\ {dom}' = ({dom} + 1) % 3 /\\ {frame}"
+        )
+    module = "---- MODULE God ----\nVARIABLES status, v1, v2, v3, v4\n" + "\n".join(lines) + "\n====\n"
+    defs = parse_definitions(module)
+
+    # With the fix applied (the shipped behavior): real coupling.
+    fixed = extract_actions(defs, variables)
+    touched_counts = {v: sum(1 for a in fixed if v in a.touched) for v in variables}
+    assert touched_counts["status"] == 10
+    assert touched_counts["v1"] == 3
+    assert touched_counts["v2"] == 3
+    assert touched_counts["v3"] == 2
+    assert touched_counts["v4"] == 2
+
+    # Contrast with the pre-fix behavior (frame conditions counted as touches):
+    # every variable reported touched by all ten commands.
+    def unfixed_actions():
+        from scripts.analyze_complexity import (
+            Action,
+            primed_references,
+            references,
+            strip_unchanged,
+        )
+
+        out = []
+        for d in defs:
+            b = strip_unchanged(d.body)
+            w = {v for v in variables if primed_references(b, v)}
+            if not w:
+                continue
+            r = {v for v in variables if references(b, v)}
+            out.append(Action(name=d.name, reads=r, writes=w, body=b))
+        return out
+
+    before = unfixed_actions()
+    before_counts = {v: sum(1 for a in before if v in a.touched) for v in variables}
+    assert before_counts == {"status": 10, "v1": 10, "v2": 10, "v3": 10, "v4": 10}
+
+    # The fix de-densifies the R/W interaction graph: the frame-condition bug
+    # coupled every pair of variables (a complete graph, C(5,2)=10 edges); the
+    # real coupling is a star around `status` (4 edges).
+    edges_before = interaction_graph(before, variables)
+    edges_after = interaction_graph(fixed, variables)
+    assert len(edges_before) == 10
+    assert len(edges_after) == 4
+
+
 def test_modularity_is_deterministic_for_the_same_model(tmp_path: Path) -> None:
     tla, cfg, _ = write_small_model(tmp_path)
     first = analyze(tla, cfg, None)
@@ -413,41 +523,64 @@ def test_a_fully_linked_table_flags_nothing(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Budget gate
+# Complexity thresholds -- advisory, not blocking (MF-036)
 # ---------------------------------------------------------------------------
 
 
-def test_gate_passes_within_budget(tmp_path: Path) -> None:
+def test_clean_within_budget(tmp_path: Path) -> None:
     tla, cfg, manifest = write_small_model(tmp_path, GENEROUS_BUDGETS)
     result = analyze(tla, cfg, manifest)
     assert result.gate_passed
+    assert result.warnings == []
     assert result.violations == []
     assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
 
 
-def test_gate_fails_and_exits_nonzero_over_budget(tmp_path: Path) -> None:
+def test_over_threshold_warns_but_still_exits_zero(tmp_path: Path) -> None:
+    """MF-036: over threshold is a WARNING, never a promotion block.
+
+    The scan raises warnings, but `analyze complexity` still exits 0 -- a
+    complex model is a finding, not a failure.
+    """
     tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
     result = analyze(tla, cfg, manifest)
     assert not result.gate_passed
+    assert result.warnings, "an over-threshold model must raise advisory warnings"
     joined = " ".join(result.violations)
-    # MF-022: the STATIC bound is gated against max_state_space_bound, not
+    # MF-022: the STATIC bound is compared against max_state_space_bound, not
     # against max_distinct_states, which caps actual reachable states.
     assert "max_state_space_bound" in joined
-    assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_BUDGET_EXCEEDED
+    # The exit code is EXIT_PASS despite the warnings -- complexity never blocks.
+    assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
 
 
-def test_component_size_budgets_are_enforced_independently(tmp_path: Path) -> None:
+def test_every_warning_names_a_target_and_recommends_a_move(tmp_path: Path) -> None:
+    """A warning must name the component/variable/action AND recommend a move."""
     tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
-    violations = " ".join(analyze(tla, cfg, manifest).violations)
-    assert "max_component_variables" in violations or "max_component_actions" in violations
+    result = analyze(tla, cfg, manifest)
+    assert result.warnings
+    for warning in result.warnings:
+        assert warning.finding.strip()
+        assert warning.recommendation.strip()
+        # A concrete move, not just a threshold restatement.
+        assert "consider" in warning.recommendation.lower()
 
 
-def test_gate_report_names_the_dominant_dimensions_on_failure(tmp_path: Path) -> None:
+def test_component_size_thresholds_are_reported_independently(tmp_path: Path) -> None:
     tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
-    passed, message = gate_report(tla, cfg, manifest)
-    assert passed is False
+    findings = " ".join(analyze(tla, cfg, manifest).violations)
+    assert "max_component_variables" in findings or "max_component_actions" in findings
+
+
+def test_gate_report_names_the_dominant_dimensions_and_recommends(tmp_path: Path) -> None:
+    tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
+    clean, message = gate_report(tla, cfg, manifest)
+    assert clean is False
+    assert "ADVISORY WARNINGS" in message
+    assert "recommendation:" in message
     assert "Dominant dimensions" in message
-    assert "count" in message
+    # It must NOT tell the caller to refuse -- generation always proceeds now.
+    assert "REFUSING" not in message
 
 
 def test_evidence_can_be_written_into_a_results_directory(tmp_path: Path) -> None:
@@ -544,22 +677,28 @@ def run_generation(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[s
     )
 
 
-def test_case_generation_refuses_above_the_gate_without_running_tlc(tmp_path: Path) -> None:
+def test_case_generation_advises_above_the_threshold_but_does_not_refuse(tmp_path: Path) -> None:
+    """MF-036: over threshold, generation PRINTS the warnings and proceeds.
+
+    It never refuses -- complexity is advisory. TLC may be unavailable in this
+    environment, so the property under test is the advisory decision (no
+    refusal, no nonzero-for-complexity), not whether TLC then runs.
+    """
     result = run_generation(tmp_path)
-    assert result.returncode != 0
-    assert "complexity gate FAIL" in result.stderr
-    assert "REFUSING to generate cases" in result.stderr
-    assert "Dominant dimensions" in result.stderr
-    # The refusal must happen instead of a TLC run, not after one.
-    assert "states generated" not in result.stdout
-
-
-def test_case_generation_proceeds_with_the_explicit_override(tmp_path: Path) -> None:
-    result = run_generation(tmp_path, "--allow-over-budget")
-    # TLC may be unavailable in some environments; the gate decision is the
-    # property under test, not TLC itself.
-    assert "PROCEEDING ANYWAY -- overridden by --allow-over-budget" in result.stderr
+    assert "ADVISORY WARNINGS" in result.stderr
+    assert "recommendation:" in result.stderr
+    assert "Proceeding with case generation" in result.stderr
+    # The old refusal and its override flag are gone entirely.
     assert "REFUSING to generate cases" not in result.stderr
+    assert "allow-over-budget" not in result.stderr
+
+
+def test_case_generation_has_no_over_budget_override_flag(tmp_path: Path) -> None:
+    """The override existed only to bypass the gate; there is no gate to bypass."""
+    result = run_generation(tmp_path, "--allow-over-budget")
+    # argparse rejects the removed flag: this is a usage error, not a bypass.
+    assert result.returncode != 0
+    assert "unrecognized arguments" in result.stderr or "allow-over-budget" in result.stderr
 
 
 # ---------------------------------------------------------------------------
