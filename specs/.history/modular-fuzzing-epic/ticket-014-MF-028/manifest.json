@@ -1,0 +1,647 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-028",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-014-MF-028 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-028'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-014-MF-028"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": 25,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 231621,
+        "before": 231621,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 5619356,
+        "before": 5619356,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-026"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": 25,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 231621,
+          "before": 231621,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 5619356,
+          "before": 5619356,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-026"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-028/results/complexity_ledger.yaml",
+    "justification": "No representation added. MF-028 is an investigation ticket; its deliverable is a measured answer, not a model change. Zero delta is the expected and desired outcome.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/tickets/MF-028/results/tlc.txt",
+      "variables": 9
+    },
+    "narrative": "specs/tickets/MF-028/results/spike-report.md",
+    "notes": [
+      "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-20T01:23:00.920446+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched for a refinement this ticket could justifiably apply, and found none that belongs here. The analyzer's standing recommendation is to project [lastCommand, result], which no configured invariant reads. This spike produced NEW evidence bearing directly on that recommendation: those two variables are also the only two that no filesystem projection can recover (spike-report.md a strong second argument for the projection -- but applying it would remove the `lastCommand` and `result.accepted` checks that are currently among the nine fields the executed case genuinely verifies, and it would shrink the model while three of four oracles cannot witness behavior retention. Under the doctrine a DECREASE requires all three retention members retained; two are unverified here (see above). Shrinking now would be exactly the budget-gaming the kill-rate floor exists to prevent. Recorded as a finding for the re-scope instead, with the evidence attached, for owner approval.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "degraded",
+        "evidence": "specs/tickets/MF-028/results/effect-conformance.json -- MEASURED. 6 observed effects over 2 cases, 5 declared ports, 3 gaps, 5 dead ports, 1 unobservable target. Every adapter drives the CLI via subprocess.run and the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal is correct. See spike-report.md#3.2b.",
+        "status": "unobservable",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "degraded",
+        "evidence": "specs/tickets/MF-028/results/corpus-structure.txt -- 72.5% of the corpus has a before-state this repository cannot materialize (UpdateTicketDesired / UpdateTicketCurrent have no adapter). Coverage cannot be asserted over a corpus that cannot be run.",
+        "status": "incomplete",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "degraded",
+        "evidence": "specs/tickets/MF-028/results/spike-report.md#3.3 -- no kill rate is computable while case execution is blocked. Not re-measured by this ticket; the blocking cause is characterized instead.",
+        "status": "incomplete_catalog",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=incomplete_catalog (DEGRADED)",
+      "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+      "external_coverage=incomplete (DEGRADED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-028",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-20T01:23:00.951888+00:00",
+  "entry_name": "ticket-014-MF-028",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/51-mf028-case-execution-spike",
+    "commit": "c2239a6",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-028/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/MF-028/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-028/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-028/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-028/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-028/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-028/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-028/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-028/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-028/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-028"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched for a refinement this ticket could justifiably apply, and found none that belongs here. The analyzer's standing recommendation is to project [lastCommand, result], which no configured invariant reads. This spike produced NEW evidence bearing directly on that recommendation: those two variables are also the only two that no filesystem projection can recover (spike-report.md a strong second argument for the projection -- but applying it would remove the `lastCommand` and `result.accepted` checks that are currently among the nine fields the executed case genuinely verifies, and it would shrink the model while three of four oracles cannot witness behavior retention. Under the doctrine a DECREASE requires all three retention members retained; two are unverified here (see above). Shrinking now would be exactly the budget-gaming the kill-rate floor exists to prevent. Recorded as a finding for the re-scope instead, with the evidence attached, for owner approval.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/spike-report.md",
+      "source": "specs/tickets/MF-028/results/spike-report.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/case-execution-run.txt",
+      "source": "specs/tickets/MF-028/results/case-execution-run.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/case-execution-projection.txt",
+      "source": "specs/tickets/MF-028/results/case-execution-projection.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/corpus-structure.txt",
+      "source": "specs/tickets/MF-028/results/corpus-structure.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/effect-conformance.json",
+      "source": "specs/tickets/MF-028/results/effect-conformance.json"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/tlc.txt",
+      "source": "specs/tickets/MF-028/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/pytest.txt",
+      "source": "specs/tickets/MF-028/results/pytest.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/spec-unit.txt",
+      "source": "specs/tickets/MF-028/results/spec-unit.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/graph-specWorkflow.txt",
+      "source": "specs/tickets/MF-028/results/graph-specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/results/graph-cliWorkflow.txt",
+      "source": "specs/tickets/MF-028/results/graph-cliWorkflow.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "degraded",
+      "evidence": "specs/tickets/MF-028/results/effect-conformance.json -- MEASURED. 6 observed effects over 2 cases, 5 declared ports, 3 gaps, 5 dead ports, 1 unobservable target. Every adapter drives the CLI via subprocess.run and the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal is correct. See spike-report.md#3.2b.",
+      "status": "unobservable",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "degraded",
+      "evidence": "specs/tickets/MF-028/results/corpus-structure.txt -- 72.5% of the corpus has a before-state this repository cannot materialize (UpdateTicketDesired / UpdateTicketCurrent have no adapter). Coverage cannot be asserted over a corpus that cannot be run.",
+      "status": "incomplete",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "degraded",
+      "evidence": "specs/tickets/MF-028/results/spike-report.md#3.3 -- no kill rate is computable while case execution is blocked. Not re-measured by this ticket; the blocking cause is characterized instead.",
+      "status": "incomplete_catalog",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 10,
+    "close_out_entry": "Close-out ticket MF-028",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket",
+      "source": "specs/tickets/MF-028"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Spike: measured the cost of case execution. One adapter (ScaffoldProject) executes one generated case end to end through the real runner -- before-state materialized by CLI prefix replay, action executed, after-state projected from the filesystem, 9 fields checked, 2 declared unchecked, 3 negative controls rejected. Before-state materialization -- the predicted hard part -- is cheap and ~100% shared. Found four structural blockers the ticket did not anticipate: all 57,617 cases carry empty action params (parameterized actions untestable); UpdateTicketDesired/UpdateTicketCurrent have no adapter, blocking 72.5% of the corpus; 16 adapters cover only 13 labels with 3 colliding on CloseTicket; and the effect oracle moved from 0 to 6 observed effects but still refuses as unobservable because every adapter shells out. run() alone does not restore oracle 3.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "one generated case executes end to end against one real adapter, with actual command output recorded as evidence -- not a unit test standing in for a run.",
+        "the written account is specific enough to scope the remaining fifteen; what was straightforward and what would differ for an adapter mutating more state are both named.",
+        "difficulty bands cover all fifteen remaining adapters with a reason for each.",
+        "if the current adapter design cannot support case execution without redesign, that is stated plainly as the result.",
+        "if the single case cannot be made to run at all, where it stops and why is reported with output, and no partial machinery is built to disguise a blocked spike.",
+        "out of scope and untouched -- the other fifteen adapters, EXTENDS resolution, analyze corpus OOM, the component-metric design question, the silent default, the alphabetical model pick."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-028"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "specs/program_model/production_adapters.py",
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "one adapter made case-executable as a proof of cost"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-026"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/51",
+    "id": "MF-028",
+    "implementation_scope": [
+      "one adapter in specs/program_model/production_adapters.py",
+      "scripts/run_generated_case_adapters.py only as needed to run the single case"
+    ],
+    "objective": "INVESTIGATION TICKET -- the deliverable is a measured answer, not a finished feature. MF-023 dogfooding found that no adapter can execute a generated case (FINDING 4). run_generated_case_adapters.py drives each case through an adapter run(case, ...); all 16 adapter classes implement apply(target_repo, ...) and not one implements run. The two paths never met -- the spec-unit suite calls apply() directly, so the adapters are thoroughly tested and simultaneously unreachable from the corpus, and case execution was deferred in every ticket of this epic so no run crossed the seam. THREE OF FOUR ORACLES THEREFORE PRODUCE NO SIGNAL AT ALL -- effect conformance reports 0 observed effects over 40 cases with all 5 ports dead, the kill test cannot compute a rate, and corpus distillation has nothing real to distil; output and projected-state conformance are blocked by the same root cause. A generated case carries a before-state, an action and an expected after-state, so run() must MATERIALIZE AN ARBITRARY BEFORE-STATE, execute, and project the result -- for a CLI whose state is a filesystem tree plus a manifest that means constructing a repository already in that state. Nobody knows what that costs per adapter, it is the largest remaining item, and everything else waits behind it, so it is measured ONCE before five or six tickets are scoped against a guess. Deliverable is one adapter executing one case end to end, a written account specific enough to scope the other fifteen, per-adapter difficulty bands with reasons, and a recommendation on shape (run() shim over apply(), shared before-state builder, per-adapter rewrite, or a design the adapters cannot support without change). A blocked spike reporting where it stops and why is a legitimate result. See tickets/028-case-execution-spike.md.",
+    "promotion_order": 83,
+    "promotion_predecessor": "MF-026",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Spike -- make one adapter execute one generated case",
+    "wave": 9
+  },
+  "ticket_id": "MF-028",
+  "ticket_index": 14,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket",
+    "source": "specs/tickets/MF-028"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}
