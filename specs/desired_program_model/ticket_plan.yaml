@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 12
+  schedule_revision: 13
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-029
-  active_ticket_title: "Infer action parameters in the case generator"
+  active_ticket: MF-030
+  active_ticket_title: "Resolve EXTENDS in the complexity analyzer"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1476,16 +1476,279 @@ tickets:
         - specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/graphs/specWorkflow-summary.json
         - specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/graphs/cliWorkflow-summary.json
 
+  - id: MF-030
+    title: "Resolve EXTENDS in the complexity analyzer"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-029]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 86
+    promotion_predecessor: MF-029
+    conflict_keys:
+      production: [scripts/analyze_complexity.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "CRITICAL -- the epic binding gate silently disables itself on the architecture SKILL.md mandates. analyze_complexity.py line 101 uses EXTENDS as a PARSE TERMINATOR, so a decomposed model is scored on only the declarations literally present in that file. MF-023 measured External reporting bound = 1 over 2 of 9 variables. THE ERROR IS NEVER CONSERVATIVE -- missing variables always shrink the bound, so the gate always fails TOWARD PASS. The shipped example has been scored this way for the whole epic. Resolve EXTENDS by following the module hierarchy and unioning declarations; report explicitly what is and is not handled (INSTANCE, substitution, LOCAL, parameterized instantiation) rather than implying full TLA+ module semantics. A partial resolver that DECLARES its limits and fails closed on constructs it cannot handle is acceptable; one that silently under-reports is not."
+    desired_actions: []
+    implementation_scope: [scripts/analyze_complexity.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-030
+      assertions:
+        - EXTENDS is followed and declarations from extended modules are included in the dimension table and bound.
+        - constructs the resolver cannot handle (INSTANCE, substitution, LOCAL, parameterized instantiation) FAIL CLOSED with a named error rather than silently under-reporting.
+        - a regression test measures a decomposed model and asserts the bound reflects ALL variables, failing against the pre-fix behavior.
+        - the shipped example is re-measured and its corrected figures recorded; any prior verdict that changes is reported.
+      evidence: []
+
+  - id: MF-031
+    title: "Write the two missing adapters"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-029]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 87
+    promotion_predecessor: MF-030
+    conflict_keys:
+      production: [specs/program_model/production_adapters.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "UpdateTicketDesired and UpdateTicketCurrent have NO adapter anywhere in production_adapters.py -- zero references, verified. MF-028 measured this as blocking 72.5% of the corpus by absence alone. Write both against the shape MF-028 established (before-state is a command prefix because setup_phase is an ordinal; ~145 shared lines, ~29 adapter-specific). Also resolve the three-way label collision on CloseTicket, where 16 classes cover 13 labels and only 11 bind under one-label-to-one-adapter."
+    desired_actions: []
+    implementation_scope: [specs/program_model/production_adapters.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-031
+      assertions:
+        - UpdateTicketDesired and UpdateTicketCurrent adapters exist and execute a generated case end to end, with actual command output as evidence.
+        - the CloseTicket label collision is resolved or reported as a binding-model limitation with evidence.
+        - corpus coverage is measured before and after; the 72.5% blocked figure is re-measured rather than assumed.
+      evidence: []
+
+  - id: MF-032
+    title: "Case execution across the remaining adapters"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-031]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 88
+    promotion_predecessor: MF-031
+    conflict_keys:
+      production: [specs/program_model/production_adapters.py, scripts/run_generated_case_adapters.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "MF-028 banded the remaining fifteen adapters: 2 trivial, 4 moderate, 5 hard, 4 blocked. Its measured ~29 adapter-specific lines over ~145 shared holds for 2 adapters, roughly for 4, and NOT for the hard or blocked ones where the obstruction is structural -- extrapolating it would predict a small uniform task and be wrong. Promote the shared before-state builder and projector as a MODULE, not a base class (the apply() signatures are incompatible). Keep apply() as the spec-unit test surface and add a separate narrower run() for the battery adapters; rewriting them would destroy the epic accumulated defect knowledge. Also fix the runner all-or-nothing == comparison once, centrally."
+    desired_actions: []
+    implementation_scope: [specs/program_model/production_adapters.py, scripts/run_generated_case_adapters.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-032
+      assertions:
+        - the shared before-state builder and projector are a module reused by every case-executing adapter, not duplicated.
+        - apply() is retained as the spec-unit surface; run() is additive.
+        - the runner all-or-nothing == comparison is replaced by per-field comparison with UNCHECKED honored.
+        - each adapter that gains run() has a negative control proving its check can fail; MF-029 showed a check that cannot fail is the structural hazard here.
+        - adapters that remain blocked are reported with the structural reason, not silently skipped.
+      evidence: []
+
+  - id: MF-033
+    title: "Make the effect oracle observe out-of-process work"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-032]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 89
+    promotion_predecessor: MF-032
+    conflict_keys:
+      production: [scripts/effect_conformance.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "MF-028 moved observed effects 0 -> 6 and the verdict still refuses as unobservable, because every adapter shells out and the sandbox sees only in-process CPython. run() ALONE DOES NOT RESTORE ORACLE 3 -- this is a second axis of work that was absent from the plan. Either route adapter work in-process so the existing sandbox sees it, or add out-of-process observation (subprocess wrapper, syscall capture, or container-level recorder) behind the same port-declaration schema. MF-027 established the polarity that must be preserved: observability is granted only on positive evidence and anything unrecognised REFUSES rather than passing."
+    desired_actions: []
+    implementation_scope: [scripts/effect_conformance.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-033
+      assertions:
+        - effect conformance produces a clean or gap verdict -- not unobservable -- for this repository own corpus, or the residual unobservable surface is named precisely with the reason.
+        - MF-027 polarity is preserved: unrecognised runtimes still refuse rather than pass, and no flag downgrades an unobservable verdict.
+        - the five declared ports are either observed by a case or removed; dead_surface is resolved by evidence rather than by deleting correct declarations.
+      evidence: []
+
+  - id: MF-034
+    title: "Stream corpus analysis instead of loading it"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-029]
+    blocks: []
+    wave: 10
+    promotion_order: 90
+    promotion_predecessor: MF-033
+    conflict_keys:
+      production: [scripts/corpus_diagnostics.py, scripts/generate_cases_from_tlc_dump.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "MF-023 FINDING 6: analyze corpus is OOM-killed by exactly the corpus it exists to catch -- 999,635 cases at 1.35 GB, and External generation exhausted the disk. MF-028 and MF-029 both had to use a reduced config, so every corpus count in this epic comes from a smaller model than the real one. Stream the dot dump and the case corpus rather than materializing them. This is the last thing standing between the toolchain and a full-scale run."
+    desired_actions: []
+    implementation_scope: [scripts/corpus_diagnostics.py, scripts/generate_cases_from_tlc_dump.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-034
+      assertions:
+        - analyze corpus completes against the full MC.cfg corpus without exhausting memory.
+        - case generation completes for both views without exhausting disk, or the residual limit is reported with measured numbers.
+        - the reduced-config counts recorded by MF-028 and MF-029 are re-measured at full scale and any conclusion that changes is reported.
+      evidence: []
+
+  - id: MF-035
+    title: "Close the silent default and the alphabetical model pick"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-029]
+    blocks: []
+    wave: 10
+    promotion_order: 91
+    promotion_predecessor: MF-034
+    conflict_keys:
+      production: [scripts/corpus_diagnostics.py, scripts/close_ticket.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Two bounded defects from MF-023. FINDING 9 -- analyze corpus gates against DEFAULT_BUDGETS with warn=False when --manifest is omitted, with zero warning, and that IS the default path; it is the silent default the epic hunted for, and MF-023 own escape sweep initially concluded there was none because it tested only the flagged path. FINDING 10 -- close ticket picks the model file ALPHABETICALLY, so on a decomposed tree it measures Core.tla and computes a fictitious -100% complexity collapse. Both are small; neither may be fixed by adding a flag."
+    desired_actions: []
+    implementation_scope: [scripts/corpus_diagnostics.py, scripts/close_ticket.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-035
+      assertions:
+        - the absent-manifest path either resolves the manifest or fails; it does not silently use defaults.
+        - close ticket selects the model deliberately rather than alphabetically, and a decomposed tree produces a correct delta.
+        - regression tests prove each defect stays fixed; neither fix introduces a new flag or opt-out.
+      evidence: []
+
+  - id: MF-036
+    title: "Decide the component-size metric"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-030]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 92
+    promotion_predecessor: MF-035
+    conflict_keys:
+      production: [references/modular_fuzzing.md, scripts/analyze_complexity.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "DESIGN DECISION, not a bug fix. MF-023 proved max_component_actions: 8 is UNSATISFIABLE BY ANY PARTITION of this model -- the singleton {setup_phase} alone is touched by 12 of 14 actions. The metric counts commands, not coupling, so no cut can satisfy it and the gate can never pass. This is one of MF-012 documented budget defaults, so changing it ripples into the doctrine and every scaffolded project. Options include measuring coupling rather than command count, scoping the count to writes rather than reads, or making it advisory while the state bound stays hard. Requires owner approval before implementation; produce the analysis and the recommendation, do not unilaterally change the doctrine."
+    desired_actions: []
+    implementation_scope: [references/modular_fuzzing.md, scripts/analyze_complexity.py]
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-036
+      assertions:
+        - the analysis states precisely why the current metric is unsatisfiable, with the per-variable action counts.
+        - at least two alternative formulations are evaluated against this repository and the shipped example.
+        - a recommendation is made and RECORDED FOR OWNER APPROVAL; the doctrine is not changed unilaterally.
+        - if the recommendation is to keep the metric and treat the failure as a true finding, that is stated with its consequence for MF-023.
+      evidence: []
+
   - id: MF-023
     title: "Decompose this repository by dogfooding the finished toolchain"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/30"
-    schedule_revision: 4
-    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028, MF-029]
+    schedule_revision: 5
+    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028, MF-029, MF-030, MF-031, MF-032, MF-033, MF-036]
     blocks: []
     wave: 9
-    promotion_order: 85
-    promotion_predecessor: MF-029
+    promotion_order: 95
+    promotion_predecessor: MF-036
     conflict_keys:
       production: []
       tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
@@ -1523,4 +1786,46 @@ tickets:
         - the MF-026 coverage audit is RE-RUN post-decomposition as this ticket promotion gate, reporting Internal and External separately now that both views exist; in-scope gaps are closed by modeling them or changing the program, never waived.
         - the MF-019 refinement loop runs on the finished decomposition and its recommendations are recorded for owner approval.
         - ABSORBED FROM THE WITHDRAWN MF-024 -- every override the toolchain offers (--allow-over-budget, the budgets fallback, the justification-table behavior) is exercised during the dogfooding run and confirmed to be explicit, visible in output, and recorded in evidence when used, and confirmed never to be the DEFAULT path. Overrides record an accepted cost; they must not normalize a bad state or make degradation what happens when the agent says nothing. If any override turns out to be the silent default, that is a first-class finding.
+      evidence: []
+
+  - id: MF-037
+    title: "Three validation projects run by real agents doing real tickets"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-023]
+    blocks: []
+    wave: 11
+    promotion_order: 96
+    promotion_predecessor: MF-023
+    conflict_keys:
+      production: [examples/]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "FINAL VALIDATION, and the only one that tests the toolchain on shapes other than this repository. MF-023 dogfoods against tla-spec-dev itself, which is ONE shape; real users arrive with others. Scaffold three example projects and then dispatch real agents at them doing real tickets, checking each performs AS EXPECTED, repeated until confident. (1) SCAFFOLD-ONLY -- instructions for scaffolding a spec workflow, testing the entry path a new user hits first. (2) TICKET WORKFLOW -- like examples/distributed_history, creating a ticket spec workflow end to end. Note run_distributed_history_validation.py --mode local currently CANNOT COMPLETE because the example External model is refused by the complexity gate (C2 touched by 9 actions, verified pre-existing), so that must be resolved first or the example is unusable. (3) DELIBERATELY OVER-COMPLEX PROJECT -- the agent must LOWER the complexity of the diagram. This is the sharpest and most falsifiable test in the plan: complexity must go DOWN while behavior is retained, and AN AGENT THAT RAISES A BUDGET OR WAIVES A GATE INSTEAD HAS FAILED THE VALIDATION, NOT THE EXAMPLE. Define expected behavior per example BEFORE dispatching, so as-expected is a prediction rather than a post-hoc reading. Owner rationale: correctness the first time is worth extra validation, and the epic gates value is entirely in whether agents actually behave correctly under them."
+    desired_actions: []
+    implementation_scope:
+      - examples/ (three scaffolded projects)
+      - validation dispatch records and expected-behavior definitions
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-037
+      assertions:
+        - three example projects exist -- scaffold-only, ticket-workflow, and deliberately over-complex.
+        - EXPECTED AGENT BEHAVIOR IS DEFINED PER EXAMPLE BEFORE ANY AGENT IS DISPATCHED, so as-expected is a prediction and not a post-hoc reading.
+        - real agents are dispatched at each example doing real tickets, and their transcripts and outputs are recorded as evidence.
+        - for the over-complex project, measured complexity goes DOWN with behavior retained; an agent that instead raises a budget, waives a gate or reaches for an override is recorded as a FAILED VALIDATION of the toolchain, not a failed example.
+        - each example is run more than once; divergence between runs is itself a finding about instruction determinism.
+        - findings about the toolchain gathered from these runs are filed rather than fixed inline, so the validation stays a measurement.
       evidence: []
