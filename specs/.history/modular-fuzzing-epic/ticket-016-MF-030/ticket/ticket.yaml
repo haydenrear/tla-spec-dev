@@ -1,0 +1,104 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-030",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "EXTENDS is followed and declarations from extended modules are included in the dimension table and bound.",
+        "constructs the resolver cannot handle (INSTANCE, substitution, LOCAL, parameterized instantiation) FAIL CLOSED with a named error rather than silently under-reporting.",
+        "a regression test measures a decomposed model and asserts the bound reflects ALL variables, failing against the pre-fix behavior.",
+        "the shipped example is re-measured and its corrected figures recorded; any prior verdict that changes is reported."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-030"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-029"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/55",
+    "id": "MF-030",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py"
+    ],
+    "objective": "CRITICAL -- the epic binding gate silently disables itself on the architecture SKILL.md mandates. analyze_complexity.py line 101 uses EXTENDS as a PARSE TERMINATOR, so a decomposed model is scored on only the declarations literally present in that file. MF-023 measured External reporting bound = 1 over 2 of 9 variables. THE ERROR IS NEVER CONSERVATIVE -- missing variables always shrink the bound, so the gate always fails TOWARD PASS. The shipped example has been scored this way for the whole epic. Resolve EXTENDS by following the module hierarchy and unioning declarations; report explicitly what is and is not handled (INSTANCE, substitution, LOCAL, parameterized instantiation) rather than implying full TLA+ module semantics. A partial resolver that DECLARES its limits and fails closed on constructs it cannot handle is acceptable; one that silently under-reports is not.",
+    "promotion_order": 86,
+    "promotion_predecessor": "MF-029",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Resolve EXTENDS in the complexity analyzer",
+    "wave": 10
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/tickets/MF-030",
+  "ticket_id": "MF-030",
+  "ticket_index": 16,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-55-mf030-resolve-extends/specs/tickets"
+}

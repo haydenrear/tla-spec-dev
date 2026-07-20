@@ -734,6 +734,253 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-030",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-20T22:07:45.820116+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-029",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the kill-test report",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the effect-conformance report",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the external coverage report",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=(absent) (UNVERIFIED)",
+        "effect_conformance=(absent) (UNVERIFIED)",
+        "external_coverage=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-030",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-20T22:09:21.953809+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-029",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No representation added and none needed. MF-030 is a scripts-only change to the complexity analyzer -- it makes `analyze complexity` follow EXTENDS and union declarations across the module hierarchy, and fail closed on constructs it cannot model (INSTANCE, WITH substitution, parameterized instantiation, LOCAL, unresolved EXTENDS). The bound is UNCHANGED for every single-file spec, because such specs extend only standard library modules and resolution is a no-op: TlaSpecDevCli.tla still resolves to 9 variables and bound 699,840, and TLC re-measured 231,621 distinct / depth 25. Zero delta is the required outcome: max_state_space_bound is at 70% and MF-019 proved a single boolean breaches it, so the owner forbade adding model state. The correction the ticket makes is to the MEASUREMENT of decomposed models, not to any model.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-029 (specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/results/complexity_ledger.yaml). No kill rate is computable while case execution is blocked. MF-030 is an analyzer change and does not re-measure or claim improvement.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-029. Adapters drive the CLI via subprocess; the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal stands. MF-030 touches no adapter and no observation boundary.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-029. 72.5% of the corpus has a before-state this repository cannot materialize. MF-030 adds no runnable case; it corrects how EXTENDS-decomposed models are scored, which is orthogonal to external coverage.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, and found none this ticket should apply. The analyzer's standing recommendation remains to project [lastCommand, result], which no configured invariant reads; MF-028 and MF-029 both recorded strong arguments and still declined, and MF-030 adds no new evidence for or against it -- it changes how EXTENDS-decomposed models are scored, not what the binding model represents. MF-030's own finding is the opposite of a reduction: it reveals that the shipped decomposed example was previously UNDER-measured (External scored on 4 of 10 variables), so the honest movement here is toward MORE representation being counted, not less. The projection remains deferred to MF-023, where decomposition revisits it with per-component state spaces. Doctrine also bars a decrease independently while the three retention members are non-passing.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "MF-030 closes a silent failure of the epic's binding complexity gate. analyze_complexity.py read one .tla file and stopped at EXTENDS, so on the decomposed architecture SKILL.md mandates it scored only the declarations literally present in the analyzed file. The error is never conservative: missing variables only ever shrink the product bound, so the gate failed toward PASS on exactly the shape the skill requires. MF-023 measured External reporting bound = 1 over 2 of 9 variables from this. The fix is a partial module resolver (resolve_module) that follows EXTENDS through the hierarchy and unions VARIABLES, CONSTANTS, and the top-level definitions carrying TypeInvariant/Init/actions, base-first with the extending module overriding inherited names. Standard TLA+ library modules (Naturals, Integers, Reals, Sequences, FiniteSets, Bags, TLC, Json) declare no VARIABLES the bound reads and are skipped rather than resolved to a file. Every construct the resolver cannot model FAILS CLOSED with a named error rather than under-reporting: INSTANCE / named and unnamed instantiation, WITH substitution, and parameterized instantiation via UnsupportedModuleConstructError; LOCAL via the same; and an EXTENDS naming a non-standard module with no findable .tla via UnresolvedExtendsError. analyze() propagates these; run() and gate_report() catch them and fail closed (nonzero / gate FAIL with the reason). This honours references/architecture_tractability.md \"No Degenerate Escapes\": when a model cannot be resolved, write the failure, not a smaller number. Measured alternatives and the self-scrutiny check: the risk flagged for this ticket was a resolver that appears to work on a model where the extended declarations do not matter to the bound. The regression fixture is deliberately the opposite -- Channel EXTENDS Counter, where the EXTENDED module carries the only bound-bearing variable (tick in 0..3) and the extending module adds only an unconstrained channel variable. Pre-fix the analyzer reports variables= ['emitted'], bound=1, Bump absent; post-fix variables={tick,emitted}, bound=4, Bump present. The number moves 1->4 and the assertions were run against the HEAD analyzer to confirm they fail pre-fix. Shipped example re-measured (examples/distributed_history, External EXTENDS Internal EXTENDS Core, no TypeInvariant so bound is 1 both ways): its verdict stays FAIL but the diagnosis is corrected from a spurious \"C2 {responses} touched by 9 actions\" (an artifact of seeing only External's 4 variables) to the true \"C1 {accounts,carts,orders, responses} touched by 13 actions\" over all 10 variables, with named port-crossing actions and modularity 0.000 -> 0.230. That corrected figure is relevant to MF-037 and the ticket-workflow example: any downstream copy of the old 9-action number is stale. Evidence: results/tlc_current.txt, results/shipped_example_external_postfix.txt, results/graph-reports/*.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

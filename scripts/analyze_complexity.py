@@ -148,6 +148,204 @@ def parse_definitions(text: str) -> list[Definition]:
     return defs
 
 
+# --------------------------------------------------------------------------
+# EXTENDS resolution (MF-030)
+# --------------------------------------------------------------------------
+#
+# The analyzer used to read one .tla file and stop. On a decomposed model --
+# the architecture SKILL.md mandates -- that scores only the declarations
+# literally present in that file and silently drops everything reached through
+# EXTENDS. The error is NEVER conservative: missing variables always shrink the
+# product bound, so the gate fails toward PASS. MF-023 measured `External`
+# reporting bound = 1 over 2 of its 9 variables for exactly this reason.
+#
+# The resolver below follows EXTENDS through the module hierarchy and unions
+# the declarations the analyzer reads (VARIABLES, CONSTANTS, and the top-level
+# definitions that carry TypeInvariant, Init, and the actions) into a single
+# resolved view. What it does and does NOT handle is declared explicitly, and
+# every construct it cannot model FAILS CLOSED with a named error rather than
+# under-reporting -- see references/architecture_tractability.md, "No
+# Degenerate Escapes": when you cannot resolve something, write the failure,
+# not a smaller number.
+#
+# HANDLED:
+#   * EXTENDS of one or more sibling modules, transitively, deduped, with the
+#     extending module's own declarations overriding inherited names.
+#   * EXTENDS of the standard TLA+ library modules below, which declare no
+#     VARIABLES/CONSTANTS the bound reads and are skipped rather than resolved.
+#
+# NOT HANDLED -- each fails closed with a named error:
+#   * INSTANCE / named instantiation (`Foo == INSTANCE M`) and unnamed
+#     instantiation (`INSTANCE M`);
+#   * substitution (`... WITH x <- y`) -- only ever appears with INSTANCE;
+#   * parameterized instantiation (`I(x) == INSTANCE M WITH ...`);
+#   * LOCAL definitions and LOCAL INSTANCE -- the analyzer cannot tell which
+#     LOCAL names an extending module sees;
+#   * an EXTENDS naming a non-standard module whose .tla file is not found.
+
+# Standard TLA+ library modules. Extending these contributes operators (`+`,
+# `Cardinality`, `Append`, ...) but declares no VARIABLES and no CONSTANTS the
+# static bound reads, so they are skipped rather than resolved to a file.
+# Anything NOT on this list must resolve to a real file or the analyzer fails
+# closed -- silently skipping an unknown module would under-report the bound.
+STANDARD_MODULES = frozenset(
+    {
+        "Naturals",
+        "Integers",
+        "Reals",
+        "Sequences",
+        "FiniteSets",
+        "Bags",
+        "TLC",
+        "Json",
+    }
+)
+
+_EXTENDS_RE = re.compile(r"(?m)^[ \t]*EXTENDS\b(.*)$")
+_INSTANCE_RE = re.compile(r"(?<![A-Za-z0-9_])INSTANCE(?![A-Za-z0-9_])")
+_LOCAL_RE = re.compile(r"(?m)^[ \t]*LOCAL(?![A-Za-z0-9_])")
+
+
+class ModuleResolutionError(Exception):
+    """The analyzer cannot faithfully resolve the EXTENDS hierarchy.
+
+    Raised instead of returning a bound so the complexity gate FAILS CLOSED. An
+    unresolved or unsupported hierarchy that returned a number would return a
+    smaller one -- missing declarations only ever shrink the product -- which is
+    the original MF-030 defect wearing a new hat. See
+    references/architecture_tractability.md, "No Degenerate Escapes".
+    """
+
+
+class UnresolvedExtendsError(ModuleResolutionError):
+    """An EXTENDS names a non-standard module whose ``.tla`` file was not found."""
+
+
+class UnsupportedModuleConstructError(ModuleResolutionError):
+    """A construct this static resolver does not model appears in the hierarchy.
+
+    INSTANCE, substitution (``WITH``), parameterized instantiation, or LOCAL.
+    Each changes which declarations are in scope in ways the resolver does not
+    compute, so it refuses rather than under-report.
+    """
+
+
+def parse_extends(text: str) -> list[str]:
+    """Names in every ``EXTENDS`` clause of a (comment-stripped) module."""
+    names: list[str] = []
+    for match in _EXTENDS_RE.finditer(text):
+        for chunk in match.group(1).split(","):
+            name = chunk.strip()
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+                names.append(name)
+    return names
+
+
+@dataclass
+class ResolvedModule:
+    """The union of declarations across an EXTENDS hierarchy.
+
+    ``variables``/``constants``/``defs`` are base-first: an extended module's
+    declarations precede the extending module's, and a name the extending
+    module redefines overrides the inherited one.
+    """
+
+    root: str
+    variables: list[str]
+    constants: list[str]
+    defs: list["Definition"]
+    modules: list[str]
+    extended_files: list[Path]
+
+
+def resolve_module(
+    tla_path: Path, *, _seen: set[Path] | None = None
+) -> ResolvedModule:
+    """Follow ``EXTENDS`` and union the declarations the analyzer reads.
+
+    Raises :class:`ModuleResolutionError` (fails closed) on any construct it
+    cannot model, rather than returning an under-reported view.
+    """
+    seen = _seen if _seen is not None else set()
+    resolved_path = tla_path.resolve()
+    if resolved_path in seen:
+        raise ModuleResolutionError(
+            f"cyclic EXTENDS detected at {resolved_path.name}; the module "
+            "hierarchy is not a tree"
+        )
+    seen.add(resolved_path)
+
+    text = strip_comments(resolved_path.read_text(encoding="utf-8"))
+    module_match = re.search(r"MODULE\s+([A-Za-z0-9_]+)", text)
+    module_name = module_match.group(1) if module_match else resolved_path.stem
+
+    # Fail closed on constructs whose scoping this static resolver does not model.
+    if _INSTANCE_RE.search(text):
+        raise UnsupportedModuleConstructError(
+            f"module {module_name} ({resolved_path.name}) uses INSTANCE "
+            "(module instantiation / substitution WITH / parameterized "
+            "instantiation). The complexity analyzer does not model which "
+            "declarations this brings into scope and FAILS CLOSED rather than "
+            "under-report the bound."
+        )
+    if _LOCAL_RE.search(text):
+        raise UnsupportedModuleConstructError(
+            f"module {module_name} ({resolved_path.name}) uses LOCAL. The "
+            "analyzer cannot tell which LOCAL declarations an extending module "
+            "sees and FAILS CLOSED rather than under-report the bound."
+        )
+
+    variables: list[str] = []
+    constants: list[str] = []
+    defs_by_name: dict[str, Definition] = {}
+    modules: list[str] = []
+    extended_files: list[Path] = []
+
+    def merge(dst: list[str], names: Iterable[str]) -> None:
+        for name in names:
+            if name not in dst:
+                dst.append(name)
+
+    for extended in parse_extends(text):
+        if extended in STANDARD_MODULES:
+            continue
+        candidate = resolved_path.parent / f"{extended}.tla"
+        if not candidate.is_file():
+            raise UnresolvedExtendsError(
+                f"module {module_name} ({resolved_path.name}) EXTENDS "
+                f"{extended}, but {candidate.name} was not found in "
+                f"{resolved_path.parent}. The analyzer cannot union "
+                "declarations from a module it cannot read and FAILS CLOSED "
+                "rather than under-report the bound. If it is a library module "
+                "with no VARIABLES, add it to STANDARD_MODULES once verified."
+            )
+        sub = resolve_module(candidate, _seen=seen)
+        merge(variables, sub.variables)
+        merge(constants, sub.constants)
+        for definition in sub.defs:
+            defs_by_name[definition.name] = definition
+        merge(modules, sub.modules)
+        extended_files.append(candidate)
+        extended_files.extend(sub.extended_files)
+
+    # The extending module's own declarations extend and override the inherited
+    # set (TLA+ forbids redefinition, so override is only reached on collision).
+    merge(variables, parse_declaration_block(text, "VARIABLE"))
+    merge(constants, parse_declaration_block(text, "CONSTANT"))
+    for definition in parse_definitions(text):
+        defs_by_name[definition.name] = definition
+    merge(modules, [module_name])
+
+    return ResolvedModule(
+        root=module_name,
+        variables=variables,
+        constants=constants,
+        defs=list(defs_by_name.values()),
+        modules=modules,
+        extended_files=extended_files,
+    )
+
+
 def parse_cfg_constants(cfg_text: str) -> dict[str, Any]:
     """Parse ``CONSTANTS`` assignments from a TLC ``.cfg``.
 
@@ -729,15 +927,19 @@ def analyze(
 ) -> Analysis:
     from scripts.budgets import load_budgets
 
-    tla_text = strip_comments(tla_path.read_text(encoding="utf-8"))
     cfg_text = cfg_path.read_text(encoding="utf-8")
 
-    module_match = re.search(r"MODULE\s+([A-Za-z0-9_]+)", tla_text)
-    module = module_match.group(1) if module_match else tla_path.stem
-
-    variables = parse_declaration_block(tla_text, "VARIABLE")
+    # MF-030: follow EXTENDS and union declarations across the module hierarchy.
+    # On a single-file spec that extends only standard library modules this is
+    # identical to reading the one file; on a decomposed model it recovers the
+    # variables, TypeInvariant, and actions the extended modules contribute.
+    # resolve_module raises ModuleResolutionError (fails closed) on any
+    # construct it cannot model -- callers must not swallow it into a bound.
+    resolved = resolve_module(tla_path)
+    module = resolved.root
+    variables = resolved.variables
     constants = parse_cfg_constants(cfg_text)
-    defs = parse_definitions(tla_text)
+    defs = resolved.defs
     by_name = {d.name: d for d in defs}
 
     actions = extract_actions(defs, variables)
@@ -1206,7 +1408,20 @@ def render_json(analysis: Analysis) -> str:
 
 def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> tuple[bool, str]:
     """Run the gate for case generation. Returns ``(passed, message)``."""
-    analysis = analyze(tla_path, cfg_path, manifest_path)
+    try:
+        analysis = analyze(tla_path, cfg_path, manifest_path)
+    except ModuleResolutionError as exc:
+        # MF-030: a hierarchy the analyzer cannot resolve fails the gate. It is
+        # NOT scored on the declarations that happen to be present, because that
+        # number would only ever be smaller than the truth (missing variables
+        # shrink the product) -- the gate would fail toward PASS.
+        return False, (
+            "complexity gate FAIL -- the module hierarchy could not be "
+            "resolved, so the model cannot be measured:\n"
+            f"  {exc}\n"
+            "Failing closed: an unresolved hierarchy would under-report the "
+            "bound and pass a model that was never measured."
+        )
     if analysis.gate_passed:
         return True, (
             f"complexity gate PASS: state-space upper bound {analysis.bound:,} within "
@@ -1264,13 +1479,23 @@ def run(args: argparse.Namespace) -> int:
         return EXIT_USAGE
     manifest_path = Path(args.manifest).resolve() if args.manifest else default_manifest_for(tla_path)
 
-    analysis = analyze(
-        tla_path,
-        cfg_path,
-        manifest_path,
-        baseline_tlc=Path(args.baseline_tlc).resolve() if args.baseline_tlc else None,
-        current_tlc=Path(args.tlc_report).resolve() if args.tlc_report else None,
-    )
+    try:
+        analysis = analyze(
+            tla_path,
+            cfg_path,
+            manifest_path,
+            baseline_tlc=Path(args.baseline_tlc).resolve() if args.baseline_tlc else None,
+            current_tlc=Path(args.tlc_report).resolve() if args.tlc_report else None,
+        )
+    except ModuleResolutionError as exc:
+        # MF-030: fail closed (nonzero) with the named reason rather than crash
+        # or emit an under-reported number.
+        print(
+            "ERROR: complexity analysis FAILED CLOSED -- the module hierarchy "
+            f"could not be resolved:\n  {exc}",
+            file=sys.stderr,
+        )
+        return EXIT_BUDGET_EXCEEDED
 
     rendered = render_json(analysis) if args.format == "json" else render_text(analysis)
     sys.stdout.write(rendered)
