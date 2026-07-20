@@ -8,7 +8,7 @@ Active ticket: `MF-012` - Modular fuzzing representation epic
 Baseline:
 
 - Program model manifest: `../program_model/spec_manifest.yaml`
-- Program model TLA module: `../program_model/TlaSpecDevCli.tla`
+- Program model TLA module: `Core.tla` / `Internal.tla` / `External.tla` (MF-023 decomposition)
 
 Workflow:
 

@@ -1,0 +1,16 @@
+complexity gate FAIL -- this model exceeds its manifest budgets and would
+likely exhaust TLC rather than finish.
+
+  - component C1 has 7 variables, exceeding max_component_variables 6
+  - component C1 is touched by 14 actions, exceeding max_component_actions 8
+
+Dominant dimensions:
+  spec_root: 3  (SpecRoots \cup {NoRoot})
+
+Suggested move: REFACTOR (RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED)
+  - dense rows (god-state): setup_phase touched by 12/14 actions, spec_root touched by 10/14 actions
+  - dense columns (actions touching almost everything): RunSpecUnitTests
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full report.
+
+REFUSING to generate cases. Re-run with --allow-over-budget to override once the cost is understood.

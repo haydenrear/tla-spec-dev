@@ -1,4 +1,14 @@
-module: TlaSpecDevCli
+# MF-023: the accepted baseline is now the DECOMPOSED model. Core.tla /
+# Internal.tla / External.tla replace the single TlaSpecDevCli.tla module, and
+# the state/action inventory below is reconciled with them. Before this ticket
+# this manifest still named cli_built, cli_installed, project_scaffolded,
+# workflow_scaffolded, active_tickets, desired_ready, current_ready,
+# spec_unit_tests_passed and closed_tickets -- variables collapsed by MF-020,
+# MF-022 and MF-025 -- and listed an action, ValidateTestGraphCli, that exists
+# in no model at all. Nothing checked either fact.
+module: External
+internal_module: Internal
+core_module: Core
 package: tlaspecdevcli_program_cases
 
 status:
@@ -23,7 +33,7 @@ status:
       - RunSpecUnitTests
     validation:
       tlc:
-        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/program_model/TlaSpecDevCli.tla','specs/program_model/MC.cfg'], timeout=30, check=True)"
+        - python3 -c "import subprocess; subprocess.run(['bash','scripts/run_tlc.sh','specs/program_model/Internal.tla','specs/program_model/Internal.cfg'], timeout=120, check=True)"
       unit:
         - rg "tla-spec-dev --spec-root" README.md SKILL.md references test_graph/README.md
         - uv run --with pytest -m pytest tests -q
@@ -40,50 +50,53 @@ source_model:
   closed_workflow_history: ../.history/tla-spec-dev-cli-workflow/closed-snapshot
 
 state:
-  TlaSpecDevCliState:
+  # Internal view -- the workflow state machine.
+  InternalState:
     fields:
-      cli_built:
-        type: bool
-        tla: cli_built
-      cli_installed:
-        type: bool
-        tla: cli_installed
+      setup_phase:
+        type: int          # 0..5 bootstrap ordinal (MF-022 collapse)
+        tla: setup_phase
       spec_root:
         type: SpecRoot
         tla: spec_root
-      project_scaffolded:
-        type: bool
-        tla: project_scaffolded
-      workflow_scaffolded:
-        type: bool
-        tla: workflow_scaffolded
-      active_tickets:
-        type: frozenset[TicketId]
-        tla: active_tickets
-      desired_ready:
-        type: dict[TicketId, bool]
-        tla: desired_ready
-      current_ready:
-        type: dict[TicketId, bool]
-        tla: current_ready
-      spec_unit_tests_passed:
-        type: dict[TicketId, bool]
-        tla: spec_unit_tests_passed
-      closed_tickets:
-        type: frozenset[TicketId]
-        tla: closed_tickets
+      ticket_state:
+        type: dict[TicketId, int]   # 0..5 lifecycle ordinal (MF-025 collapse)
+        tla: ticket_state
+      complexity_gate:
+        type: str
+        tla: complexity_gate
+      corpus_gate:
+        type: str
+        tla: corpus_gate
+      effect_conformance:
+        type: str
+        tla: effect_conformance
+      kill_test:
+        type: str
+        tla: kill_test
+  # External view -- the observable CLI channel, and nothing else.
+  ExternalState:
+    fields:
       last_command:
         type: str
         tla: lastCommand
+      result:
+        type: CliWorkflowResult
+        tla: result
 
 actions:
   - BuildSkillCli
   - InstallLocalCli
   - ScaffoldProject
+  - RecordBudgets
   - ScaffoldWorkflow
   - OpenTicket
   - UpdateTicketDesired
   - UpdateTicketCurrent
+  - AnalyzeComplexity
+  - AnalyzeCorpus
+  - RunEffectConformance
+  - RunKillTest
   - RunSpecUnitTests
   - CloseTicket
 
@@ -116,10 +129,13 @@ commands:
     cli: tla-spec-dev --spec-root <root> close ticket <ticket-name>
     action: CloseTicket
     adapter: CloseTicketAdapter
-  validate_test_graph_cli:
-    cli: python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
-    action: ValidateTestGraphCli
-    adapter: TestGraphCliAdapter
+  # MF-023: validate_test_graph_cli REMOVED. It named action
+  # ValidateTestGraphCli, which exists in no TLA model -- MF-026's fourth
+  # desync. It is a VALIDATION HARNESS invocation, and this manifest's own
+  # test_modeling_rule forbids modeling validation harnesses as program
+  # behavior, so the correct reconciliation is to drop it from the action
+  # vocabulary rather than to invent a model action for it. TestGraphCliAdapter
+  # and its unit test are retained as an ordinary harness test.
 
 ports:
   TlaSpecDevCliPort:
@@ -131,8 +147,14 @@ ports:
       - ScaffoldWorkflow
       - OpenTicket
       - CloseTicket
+      - RecordBudgets
+      - UpdateTicketDesired
+      - UpdateTicketCurrent
+      - AnalyzeComplexity
+      - AnalyzeCorpus
+      - RunEffectConformance
+      - RunKillTest
       - RunSpecUnitTests
-      - ValidateTestGraphCli
 
 invariants:
   - TypeInvariant

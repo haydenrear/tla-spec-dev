@@ -1,0 +1,138 @@
+examples/distributed_history/ecommerce_backend/service.py:58:    deadline = time.time() + 10
+examples/distributed_history/ecommerce_backend/service.py:61:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/ecommerce_backend/service.py:65:        except (OSError, TimeoutError, urllib.error.URLError):
+examples/distributed_history/ecommerce_backend/service.py:66:            if time.time() >= deadline:
+examples/distributed_history/scripts/k8s-deploy.sh:32:  kubectl -n ecommerce-history rollout status "deployment/$deployment" --timeout=90s
+examples/distributed_history/specs/program_model/adapters.py:95:        deadline = time.time() + 20
+examples/distributed_history/specs/program_model/adapters.py:97:        while time.time() < deadline:
+examples/distributed_history/specs/program_model/adapters.py:107:        with urllib.request.urlopen(base_url + path, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:119:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:159:        with urllib.request.urlopen(base_url.rstrip("/") + "/debug/state", timeout=5) as response:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:68:        process.wait(timeout=10)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:87:    deadline = time.time() + 10
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:88:    while time.time() < deadline:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:90:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:41:     * [ValidationNodeSpec.timeout] by `PlanExecutor`. Executors enforce
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:54: * timeout is.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:59:    object TimedOut : ExecutionOutcome()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:91: * by every concrete [ValidationExecutor] so the timeout-enforcement
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:114:        return ExecutionOutcome.TimedOut
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:134:        val timeoutMillis = TimeoutParser.parseMillis(spec.timeout)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:137:        var execOutcome: ExecutionOutcome = ExecutionOutcome.TimedOut
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:308:     *   0. executor reported a timeout → synthesize an "errored"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:336:        if (execOutcome is ExecutionOutcome.TimedOut) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:4: * Parses the `NodeSpec.timeout(...)` string into milliseconds.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:9: *     dependsOn/tags/timeout/etc on top of what the script self-declared).
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:87:            timeout = MiniJson.str(root["timeout"]) ?: "60s",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:13: *   - Scalars (timeout, cacheable) — OVERRIDE if set here; otherwise keep script's.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:30:    fun timeout(v: String): NodeOverlay { timeoutOverride = v; return this }
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:39:            timeout = timeoutOverride ?: spec.timeout,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:51: *    deps/tags/timeout on top of what the script self-declares)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:65: * `.dependsOn(...)`, `.tags(...)`, `.timeout(...)`, etc. on.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:16:    val timeout: String = "60s",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:19:     * exceeds its [timeout]. Default 0 means "fail fast on first timeout".
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:20:     * Retries trigger ONLY on a timeout outcome — a body-returned
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:30:    private String timeout = "60s";
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:48:    public NodeSpec timeout(String v)                { this.timeout = v; return this; }
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:51:     * spawned node-process exceeds {@link #timeout(String)}. Default 0 —
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:52:     * fail fast on the first timeout. Anything {@code > 0} only kicks in
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:57:     * <p>Retries trigger only on a timeout outcome from the executor;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:101:        out.put("timeout", timeout);
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:48:    def timeout(self, v: str) -> "NodeSpec":
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:55:        Default 0 — fail fast on the first timeout. Only set ``> 0`` for
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:110:                "timeout": self._timeout,
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:25:    .timeout("60s")
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:69:    deadline = time.time() + 45
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:71:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/collect_evidence.py:54:    .timeout("30s")
+examples/distributed_history/test_graph/sources/collect_evidence.py:64:    with urlopen(base_url + "/debug/state", timeout=5) as response:
+examples/distributed_history/test_graph/sources/collect_evidence.py:69:    with urlopen(base_url + "/debug/traffic", timeout=10) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:38:    .timeout("180s")
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:159:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:160:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:162:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:171:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:172:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:174:            with urlopen(base_url + "/debug/state", timeout=3) as response:
+examples/distributed_history/test_graph/sources/run_external_cases.py:23:    .timeout("900s")
+examples/run_distributed_history_validation.py:281:            process.wait(timeout=10)
+examples/run_distributed_history_validation.py:417:    deadline = time.time() + 10
+examples/run_distributed_history_validation.py:418:    while time.time() < deadline:
+examples/run_distributed_history_validation.py:420:            with urlopen(base_url + "/health", timeout=1) as response:
+scripts/budgets.py:41:    "tlc_seconds": "hard external timeout per TLC run",
+scripts/kill_test.py:592:    timeout: int = 600,
+scripts/kill_test.py:614:            timeout=timeout,
+scripts/run_kill_test.py:104:    parser.add_argument("--timeout", type=int, default=600, help="Per-mutant corpus timeout in seconds.")
+scripts/run_kill_test.py:198:    runner = subprocess_case_runner(command, root=root, timeout=args.timeout)
+specs/current/production_adapters.py:854:    exactly the timeout this command exists to prevent.
+specs/current/production_adapters.py:893:                timeout=180,
+specs/current/production_adapters.py:1040:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/current/production_adapters.py:1161:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/current/production_adapters.py:1295:                timeout=180,
+specs/tickets/MF-023/current/production_adapters.py:854:    exactly the timeout this command exists to prevent.
+specs/tickets/MF-023/current/production_adapters.py:893:                timeout=180,
+specs/tickets/MF-023/current/production_adapters.py:1040:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/tickets/MF-023/current/production_adapters.py:1161:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/tickets/MF-023/current/production_adapters.py:1295:                timeout=180,
+specs/tickets/MF-023/desired/production_adapters.py:854:    exactly the timeout this command exists to prevent.
+specs/tickets/MF-023/desired/production_adapters.py:893:                timeout=180,
+specs/tickets/MF-023/desired/production_adapters.py:1040:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/tickets/MF-023/desired/production_adapters.py:1161:                cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
+specs/tickets/MF-023/desired/production_adapters.py:1295:                timeout=180,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:41:     * [ValidationNodeSpec.timeout] by `PlanExecutor`. Executors enforce
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:54: * timeout is.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:59:    object TimedOut : ExecutionOutcome()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:91: * by every concrete [ValidationExecutor] so the timeout-enforcement
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:114:        return ExecutionOutcome.TimedOut
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:134:        val timeoutMillis = TimeoutParser.parseMillis(spec.timeout)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:137:        var execOutcome: ExecutionOutcome = ExecutionOutcome.TimedOut
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:308:     *   0. executor reported a timeout → synthesize an "errored"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:336:        if (execOutcome is ExecutionOutcome.TimedOut) {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:4: * Parses the `NodeSpec.timeout(...)` string into milliseconds.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:9: *     dependsOn/tags/timeout/etc on top of what the script self-declared).
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:87:            timeout = MiniJson.str(root["timeout"]) ?: "60s",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:13: *   - Scalars (timeout, cacheable) — OVERRIDE if set here; otherwise keep script's.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:30:    fun timeout(v: String): NodeOverlay { timeoutOverride = v; return this }
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:39:            timeout = timeoutOverride ?: spec.timeout,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:51: *    deps/tags/timeout on top of what the script self-declares)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:65: * `.dependsOn(...)`, `.tags(...)`, `.timeout(...)`, etc. on.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:16:    val timeout: String = "60s",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:19:     * exceeds its [timeout]. Default 0 means "fail fast on first timeout".
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:20:     * Retries trigger ONLY on a timeout outcome — a body-returned
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:30:    private String timeout = "60s";
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:48:    public NodeSpec timeout(String v)                { this.timeout = v; return this; }
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:51:     * spawned node-process exceeds {@link #timeout(String)}. Default 0 —
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:52:     * fail fast on the first timeout. Anything {@code > 0} only kicks in
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:57:     * <p>Retries trigger only on a timeout outcome from the executor;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:101:        out.put("timeout", timeout);
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:48:    def timeout(self, v: str) -> "NodeSpec":
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:55:        Default 0 — fail fast on the first timeout. Only set ``> 0`` for
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:110:                "timeout": self._timeout,
+test_graph/sources/spec_workflow_cleanup.py:21:    .timeout("30s")
+test_graph/sources/spec_workflow_close_ticket.py:23:    .timeout("60s")
+test_graph/sources/spec_workflow_complete_ticket.py:20:    .timeout("60s")
+test_graph/sources/spec_workflow_create_repo.py:21:    .timeout("60s")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:23:    .timeout("180s")
+test_graph/sources/spec_workflow_force_failure.py:20:    .timeout("30s")
+test_graph/sources/spec_workflow_spec_units.py:20:    .timeout("60s")
+test_graph/sources/spec_workflow_start_ticket.py:19:    .timeout("60s")
+test_graph/sources/tla_spec_dev_cli_help.py:20:    .timeout("60s")
+test_graph/sources/tla_spec_dev_cli_install.py:20:    .timeout("60s")
+tests/test_new_ticket_workflow.py:19:    assert "hard 120-second timeout" in skill
+tests/test_new_ticket_workflow.py:20:    assert "Do not simply raise the timeout" in skill

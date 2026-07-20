@@ -710,7 +710,12 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
     def test_the_real_catalog_has_one_mutant_per_port_and_per_invariant(self) -> None:
         catalog, _ = load_catalog(self.spec_dir / "kill_mutants.toml")
         required = required_boundaries(self.spec_dir)
-        assert len(required) == 19, "5 declared ports + 14 invariants"
+        # MF-023: 19 -> 20. The Internal/External split added ExternalInvariant
+        # (channel well-formedness), which External.cfg checks in addition to
+        # the 14 inherited ones. The count moved because the MODEL gained a
+        # real property, and the catalog was extended to match rather than the
+        # obligation being trimmed to fit.
+        assert len(required) == 20, "5 declared ports + 15 invariants (14 inherited + ExternalInvariant)"
         assert len(catalog) >= len(required)
 
     def test_the_real_catalog_declares_no_suppressions(self) -> None:
@@ -733,14 +738,29 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
         assert stale == [], f"stale mutants: {stale}"
 
     def test_every_real_mutant_names_a_variable_that_exists_in_the_model(self) -> None:
+        """MF-023: the model is now the DECOMPOSED views, so a mutant's
+        refine_variable must name a variable of Internal or of External.
+
+        The union is the right check rather than either view alone: a mutant
+        points at the variable whose representation is too abstract, and after
+        the split those variables are distributed across two views. Requiring
+        both views to be read also means a mutant naming a variable that was
+        deleted from BOTH still fails, which is the property this test exists
+        for.
+        """
         catalog, _ = load_catalog(self.spec_dir / "kill_mutants.toml")
-        tla = (self.spec_dir / "TlaSpecDevCli.tla").read_text(encoding="utf-8")
-        block = tla.split("VARIABLES", 1)[1].split("vars ==", 1)[0]
-        variables = {line.strip().rstrip(",") for line in block.splitlines() if line.strip()}
+        variables: set[str] = set()
+        for module, terminator in (("Internal.tla", "InternalVars =="),
+                                   ("External.tla", "ExternalVars ==")):
+            tla = (self.spec_dir / module).read_text(encoding="utf-8")
+            block = tla.split("VARIABLES", 1)[1].split(terminator, 1)[0]
+            variables |= {
+                line.strip().rstrip(",") for line in block.splitlines() if line.strip()
+            }
         for mutant in catalog:
             assert mutant.refine_variable in variables, (
                 f"{mutant.id} points at variable {mutant.refine_variable!r}, "
-                f"which is not declared in the model"
+                f"which is declared in neither Internal.tla nor External.tla"
             )
 
     def test_seeding_every_real_mutant_leaves_the_tree_byte_identical(self) -> None:
@@ -789,7 +809,11 @@ class TestCliSurface:
         result = self.run_cli("--target", "specs/current", "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
-        assert "19/19 declared boundaries carry a seeded fault." in result.stdout
+        # MF-023: 19 -> 20. The decomposition added ExternalInvariant, the
+        # catalog went incomplete the moment it did, and the resolution was to
+        # SEED the fault rather than to drop the invariant or waive the
+        # boundary. See the note in specs/current/kill_mutants.toml.
+        assert "20/20 declared boundaries carry a seeded fault." in result.stdout
 
     def test_a_missing_corpus_command_is_refused_not_defaulted(self) -> None:
         """Without a corpus there is nothing to kill mutants with, so

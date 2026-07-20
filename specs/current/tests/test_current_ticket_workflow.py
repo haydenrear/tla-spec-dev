@@ -1,3 +1,7 @@
+# MF-023: retargeted from the single TlaSpecDevCli.tla module to the decomposed
+# Internal.tla view. Core.tla / Internal.tla / External.tla replaced the single
+# module; the properties asserted here (the budgets gate, the setup_phase and
+# ticket_state ordinals) all live in the Internal view.
 from pathlib import Path
 
 SPEC_ROOT = Path(__file__).resolve().parents[1].parent
@@ -32,7 +36,7 @@ def test_current_ticket_workflow_scaffold_points_to_desired_plan() -> None:
 
 def test_current_model_carries_the_budgets_gate() -> None:
     """MF-012 promoted budgets into the whole-program current model."""
-    model = (SPEC_ROOT / "current/TlaSpecDevCli.tla").read_text(encoding="utf-8")
+    model = (SPEC_ROOT / "current/Internal.tla").read_text(encoding="utf-8")
     manifest = (SPEC_ROOT / "current/spec_manifest.yaml").read_text(encoding="utf-8")
 
     # MF-022 collapsed budgets_recorded into the setup_phase ordinal
@@ -55,11 +59,11 @@ def test_current_model_carries_the_ticket_state_ordinal() -> None:
     reachable and they were totally ordered, so ``ticket_state`` represents the
     reachable set exactly: 0=unopened, 1..4=active at phases 0..3, 5=closed.
     """
-    model = (SPEC_ROOT / "current/TlaSpecDevCli.tla").read_text(encoding="utf-8")
+    model = (SPEC_ROOT / "current/Internal.tla").read_text(encoding="utf-8")
 
     assert "ticket_state" in model
-    assert "ticket_state \\in [Tickets -> 0..5]" in model, (
-        "TypeInvariant must bound the ordinal to 0..5"
+    assert "ticket_state \\in [Tickets -> TicketStates]" in model, (
+        "TypeInvariant must bound the ordinal via Core.TicketStates (0..5)"
     )
 
     # Check code lines only: the module carries an explanatory comment that

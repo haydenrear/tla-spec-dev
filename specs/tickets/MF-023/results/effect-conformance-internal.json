@@ -1,0 +1,87 @@
+{
+  "cases": [
+    "case_0001_build_skill_cli",
+    "case_0002_install_local_cli",
+    "case_0003_scaffold_project",
+    "case_0004_record_budgets",
+    "case_0005_scaffold_workflow",
+    "case_0006_analyze_complexity",
+    "case_0007_analyze_complexity",
+    "case_0008_analyze_corpus",
+    "case_0009_analyze_corpus",
+    "case_0010_run_effect_conformance",
+    "case_0011_run_effect_conformance",
+    "case_0012_run_effect_conformance",
+    "case_0013_run_effect_conformance",
+    "case_0014_run_kill_test",
+    "case_0015_run_kill_test",
+    "case_0016_run_kill_test",
+    "case_0017_open_ticket",
+    "case_0018_analyze_complexity",
+    "case_0019_analyze_complexity",
+    "case_0020_analyze_corpus",
+    "case_0021_analyze_corpus",
+    "case_0022_run_effect_conformance",
+    "case_0023_run_effect_conformance",
+    "case_0024_run_effect_conformance",
+    "case_0025_run_effect_conformance",
+    "case_0026_run_kill_test",
+    "case_0027_run_kill_test",
+    "case_0028_run_kill_test",
+    "case_0029_scaffold_workflow",
+    "case_0030_analyze_complexity",
+    "case_0031_analyze_complexity",
+    "case_0032_analyze_corpus",
+    "case_0033_analyze_corpus",
+    "case_0034_run_effect_conformance",
+    "case_0035_run_effect_conformance",
+    "case_0036_run_effect_conformance",
+    "case_0037_run_effect_conformance",
+    "case_0038_run_kill_test",
+    "case_0039_run_kill_test",
+    "case_0040_run_kill_test"
+  ],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact",
+      "target": "**/.venv/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree",
+      "target": "**/specs/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.tlc_process",
+      "target": "*java*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.test_process",
+    "TlaSpecDevCliPort.tlc_process"
+  ],
+  "gaps": [],
+  "ignored_suppression_keys": [],
+  "observable_scope": "in-process CPython only: builtins.open, os/shutil/pathlib mutators, subprocess spawns and socket.connect patched in THIS interpreter. No patch crosses a process boundary; JVM, JBang/uv node, and child-process work is not observed (MF-027)",
+  "observed_effects": [],
+  "ok": false,
+  "summary": "effect conformance dead_surface: 0 observed effect(s) over 40 case(s), 5 declared port(s), 0 gap(s), 5 dead port(s), 0 unobservable target(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report. MF-027: the same holds for an unobservable target -- no configuration downgrades that verdict to a pass",
+  "unobservable_targets": [],
+  "verdict": "dead_surface"
+}

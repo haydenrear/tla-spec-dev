@@ -444,3 +444,246 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-023
+
+- ticket: MF-023
+- title: Decompose this repository by dogfooding the finished toolchain
+- closed: 2026-07-19
+- evidence: specs/tickets/MF-023/results
+- feedback_status: items-recorded
+
+MF-023 is the epic's first end-to-end run of the finished toolchain against a
+real target. Six findings below, all reproduced from recorded commands in
+`specs/tickets/MF-023/results/`.
+
+### SF-009 — `analyze complexity` does not resolve EXTENDS, so it scores every decomposed model on a fraction of itself, always toward PASS
+
+- category: budget-and-metric
+- target: scripts/analyze_complexity.py (single-file textual parse; `TypeInvariant` looked up by literal name at line 746)
+- observed_on: tla-spec-dev @ MF-023, specs/current/{Internal,External}.tla
+- evidence: specs/tickets/MF-023/results/analyze-complexity-{presplit,internal,external}.txt
+- severity: blocks-migration
+- root_cause: tool
+- surface: `analyze complexity`, and therefore the `max_state_space_bound` gate on every decomposed model
+- data_loss: no
+- note: Two mechanisms, one root cause. (1) Cross-module operator references are
+  unresolvable: `Internal.tla` constrains all 7 variables via Core-defined domain
+  names (`SetupPhases`, `TicketStates`, `ComplexityVerdicts`), and the tool -- which
+  understands only literal inline sets -- reports 6 of 7 as "unconstrained by
+  TypeInvariant" and computes bound = 3 instead of 233,280. (2) EXTENDSed
+  variables are invisible: `External.tla` inherits 7 variables, the tool sees only
+  its own 2, reports `bound = 1 (product of 0 bounded dimensions)`, and returns
+  VERDICT: PASS. The shipped example's own Internal.tla has been scored this way
+  (bound 1, PASS) for the entire epic. THE ERROR IS NEVER CONSERVATIVE: missing
+  variables always shrink the bound, so decomposition -- the architecture the
+  skill mandates -- silently weakens the skill's own binding gate. Structurally
+  unavoidable too: TLA+ forbids redefining an inherited operator, so both views
+  cannot carry a `TypeInvariant`, and the tool's single hardcoded name is
+  incompatible with a two-view decomposition.
+- workaround_applied: none — Internal keeps the literal name `TypeInvariant` so its
+  gate stays live; External's reported bound is recorded as vacuous rather than
+  banked as a pass
+- recommendation: resolve EXTENDS transitively before building the dimension
+  table; resolve operator references to set-valued definitions in extended
+  modules; treat "no TypeInvariant found" as a hard refusal rather than as
+  "everything unconstrained". FILE AGAINST THE SKILL.
+- status: open
+
+### SF-010 — no adapter implements the `run(case, ...)` protocol the case runner requires, so the generated-case path has never executed
+
+- category: profile-schema-cli
+- target: scripts/run_generated_case_adapters.py vs specs/current/production_adapters.py
+- observed_on: tla-spec-dev @ MF-023, first execution of a generated corpus in the epic
+- evidence: specs/tickets/MF-023/results/effect-conformance-internal.txt
+- severity: blocks-migration
+- root_cause: both (skill protocol undocumented at the adapter surface; repository adapters written to the other shape)
+- surface: every generated case, effect conformance, and the mutation kill test
+- data_loss: no
+- note: All 16 adapter classes implement `apply(target_repo, ...)`. The runner
+  requires `run(case, ...)`. Every case fails with
+  `TypeError: adapter <X> does not define run(case, ...)`. The two paths never
+  met: the spec-unit suite calls `apply()` directly, so the adapters are
+  thoroughly tested and simultaneously unreachable from the corpus. Because case
+  execution was deferred in EVERY ticket of this epic, no run crossed the seam
+  until now; the first run that did found it immediately. Downstream, effect
+  conformance reports `dead_surface` with 0 observed effects and 5/5 declared
+  ports dead, and the kill test cannot compute a rate. Note this also means
+  MF-027's predicted `unobservable` verdict for this repository's two
+  `process.spawn` ports is NOT reached and remains untested -- execution fails
+  before any spawn occurs.
+- workaround_applied: partial — `case_adapters.toml` was missing bindings for four
+  model actions (`RunEffectConformance`, `RunKillTest`, `UpdateTicketDesired`,
+  `UpdateTicketCurrent`); the first two already HAD adapter classes and were simply
+  never mapped. All 14 actions are now bound and two adapters written. The
+  PROTOCOL mismatch is not fixed — production scope this ticket does not carry.
+- recommendation: document the adapter protocol at the surface a repository
+  implements, and make the runner fail at BINDING time with a clear protocol
+  error rather than at case-execution time with a TypeError per case. A
+  conformance check that an adapter satisfies the protocol belongs next to the
+  binding validation that already exists. FILE AGAINST THE SKILL.
+- status: open
+
+### SF-011 — `analyze corpus` is OOM-killed by exactly the corpus it exists to catch, and the cap is measured only after the cost is paid
+
+- category: budget-and-metric
+- target: scripts/corpus_diagnostics.py::load_corpus (line 873, `list(module.CASES)` after import); scripts/generate_cases_from_tlc_dump.py
+- observed_on: tla-spec-dev @ MF-023, Internal view at the real model instance
+- evidence: specs/tickets/MF-023/results/{corpus-distribution-internal.txt,analyze-corpus-internal.txt}
+- severity: blocks-migration
+- root_cause: tool
+- surface: `analyze corpus`, case generation
+- data_loss: no
+- note: Generating the Internal view produced 999,635 cases in a 1.35 GB
+  `cases.py` -- 4,998x the declared `max_internal_cases_per_component: 200`.
+  Running the cap gate over it exits 137 (SIGKILL, OOM): the gate cannot report
+  on the condition it was built to detect, and its verdict is available only for
+  corpora small enough not to need it. At a reduced instance (15,336 cases) the
+  gate works and is genuinely good -- refuses, trims nothing, reports dominant
+  and starved strata and a 4112x skew. Two further problems from the same run:
+  the cap is measured AFTER generation writes the whole corpus, and the External
+  view's generation EXHAUSTED THE DISK (704 MB `.dot` plus a partial `cases.py`)
+  and had to be killed; and the corpus is dominated by the always-enabled oracle
+  actions (86.8% across five actions) while the bootstrap actions get 1-2 cases
+  each.
+- workaround_applied: none — the distribution was computed by streaming the file
+  with a throwaway script rather than by relaxing anything, and reported as a
+  hand computation
+- recommendation: stream the corpus rather than importing it; emit cases to a
+  streamable format instead of one Python literal; enforce the cap DURING
+  generation, refusing before the disk is spent rather than after. FILE AGAINST
+  THE SKILL.
+- status: open
+
+### SF-012 — `analyze corpus` gates against built-in defaults, silently, when `--manifest` is omitted
+
+- category: budget-and-metric
+- target: scripts/corpus_diagnostics.py:541 — `load_budgets(Path("__missing__"), warn=False)`
+- observed_on: tla-spec-dev @ MF-023
+- evidence: specs/tickets/MF-023/results/override-silent-default.txt
+- severity: degrades-model
+- root_cause: tool
+- surface: `analyze corpus` without `--manifest`
+- data_loss: no
+- note: THIS IS A SILENT DEFAULT, and it is the DEFAULT PATH. When no manifest is
+  supplied the cap gate loads `DEFAULT_BUDGETS` with warnings explicitly
+  suppressed -- `warn=False`, unconditionally, not inherited from the caller's
+  `warn`. Reproduced: zero occurrences of "warning" or "default" anywhere in the
+  output, while the gate prints `cap max_internal_cases_per_component = 200`
+  exactly as if that came from the negotiated manifest. Every other override in
+  the toolchain requires the agent to TYPE something; this one is what happens
+  when the agent says NOTHING, which
+  `references/architecture_tractability.md` explicitly forbids. It silently
+  discards a negotiated budget (`max_distinct_states` was negotiated 50000 ->
+  500000 with a recorded derivation). RECURRENCE of SF-004 and SF-007 in the same
+  helper: MF-013 found `analyze complexity` silently falling back and fixed the
+  YAML, but this `warn=False` call site was not found then and has been live
+  throughout. Found by the MF-026 coverage audit re-run, NOT by this ticket's own
+  escape sweep, which tested `--manifest <bad path>` (which warns) and wrongly
+  generalized to "the budgets fallback is not silent". That error is corrected in
+  findings.md FINDING 9 rather than quietly amended.
+- workaround_applied: none
+- recommendation: resolve the manifest from `--spec-root` (which the CLI already
+  knows) or refuse. `warn=False` should not be reachable from a gate at all: a
+  budget the user did not declare is a budget the user did not agree to, and a
+  gate that does not say which budgets it used has not reported its verdict.
+  FILE AGAINST THE SKILL.
+- status: open
+
+### SF-013 — `max_component_actions` counts read-touches, so it is unsatisfiable by any partition of a CLI model
+
+- category: budget-and-metric
+- target: scripts/analyze_complexity.py component-size heuristics
+- observed_on: tla-spec-dev @ MF-023
+- evidence: specs/tickets/MF-023/results/component-cap-satisfiability.txt
+- severity: degrades-model
+- root_cause: tool
+- surface: the component-size gate, and therefore case generation
+- data_loss: no
+- note: The epic carried `C1 is touched by 14 actions, exceeding
+  max_component_actions 8` since MF-011 as a true finding that decomposition
+  would resolve at the root. IT DOES NOT, AND CANNOT. Computed from the tool's
+  own MEASURED R/W matrix, the singleton `{setup_phase}` alone is touched by 12
+  of 14 actions, and `{spec_root}` by 10. Any partition places `setup_phase`
+  somewhere, and that component is touched by >=12 actions however the rest is
+  cut -- so the cap is unsatisfiable by ANY partition, and is therefore not
+  measuring the cut. The cause is structural and general to CLIs rather than
+  specific to this model: `setup_phase` and `spec_root` are read as PRECONDITIONS
+  by every command (`root = spec_root`, `setup_phase >= ...`), and a heuristic
+  that counts read-touches makes any component holding such a variable maximally
+  coupled by construction. The metric counts commands, not coupling. This is the
+  "gate comparing quantities that are not commensurable" that MF-017's
+  budget-and-metric category named as the live candidate, and the same class of
+  error MF-022 already corrected once for `max_distinct_states`.
+- workaround_applied: NONE. `max_component_actions` was not renegotiated and
+  `--allow-over-budget` was not used to make it pass. The Internal view fails the
+  heuristic and is reported failing.
+- recommendation: count only WRITE touches, or exclude read-only touches from an
+  action's touch set, or express the budget as coupling (modularity Q) rather
+  than a raw count. Separately, support the contract-environment shape the
+  budgets already presuppose, so precondition variables can be modeled as an
+  environment at the port rather than as component state. FILE AGAINST THE SKILL.
+- status: open
+
+### SF-014 — the coverage-audit prompt's enumeration commands return zero matches with exit 0 under ugrep
+
+- category: profile-schema-cli
+- target: prompts/coverage_audit.md — Step 2 and Step 3 enumeration command blocks
+- observed_on: tla-spec-dev @ MF-023, MF-026 audit re-run
+- evidence: specs/tickets/MF-023/results/coverage-audit.md §8.6
+- severity: degrades-model
+- root_cause: tool
+- surface: the MF-026 coverage audit, i.e. the epic's completeness gate
+- data_loss: yes — a silently empty sweep
+- note: On a machine where `grep` is `ugrep`, the prompt's patterns return ZERO
+  matches with EXIT 0. Following the prompt verbatim would have produced a clean,
+  well-formatted coverage report asserting the repository performs no filesystem,
+  subprocess, or network effects whatsoever -- a maximally flattering result
+  produced by a silently failing enumeration. This is the same failure shape as
+  MF-016's spurious 1.000 kill rate: the measurement breaks in the direction of
+  looking good, and nothing in the output says so. Separately, Step 3's command
+  block is still hardcoded to `scripts/ spec_double_compiler/` (32 of 240 in-scope
+  files) -- the identical defect the prompt already documents fixing for Step 2.
+- workaround_applied: the auditing agent detected the empty result and substituted
+  working enumeration commands, checking the raw output in under
+  specs/tickets/MF-023/results/sweep-raw/ so a reviewer can recount
+- recommendation: pin the enumeration to a specific tool and FAIL LOUDLY on an
+  empty sweep -- an enumeration that returns zero rows for "does this program
+  touch the filesystem" is a broken command, not a finding. Add a self-check that
+  a known-present pattern matches before trusting a zero result. Fix Step 3's
+  hardcoded path list. FILE AGAINST THE SKILL.
+- status: open
+
+### SF-015 — `close ticket` selects the model file alphabetically, measuring `Core.tla` on every decomposed tree
+
+- category: budget-and-metric
+- target: scripts/spec_evolution.py:542-545 — `tla_path = sorted(model_dir.glob("*.tla"))[0]`
+- observed_on: tla-spec-dev @ MF-023, close of the decomposed Core/Internal/External tree
+- evidence: specs/tickets/MF-023/results/close-ticket-REFUSED.txt
+- severity: blocks-migration
+- root_cause: tool
+- surface: `close ticket`, and therefore the MF-019 complexity ledger on every decomposed repository
+- data_loss: no
+- note: The selector takes the alphabetically first `*.tla`. On a decomposed tree
+  that is `Core.tla`, the module that by design holds constants and vocabulary
+  and NO variables and NO actions. `MC.cfg` is gone too, so the cfg falls through
+  to `sorted(*.cfg)[0]` = `External.cfg`. The ledger measured Core against
+  External.cfg and reported variables 9 -> 0, actions 14 -> 0, bound 699,840 -> 1
+  -- a fictitious -100% complexity collapse -- then REFUSED the close under the
+  anti-gaming rule that rejects a decrease while retention is degraded. The
+  manifest declares `module: External`; the selector never consults it.
+  COMPOUNDS SF-009: even pointed at the right file, the parser cannot resolve
+  EXTENDS, so any view reports fewer variables than the model has. Between them
+  the ledger CANNOT measure a decomposed model -- it can only ever report a
+  decrease, on the architecture the skill mandates.
+- workaround_applied: NONE. No override was attempted (there is none by design),
+  `--accept-new` was not used, and no retention verdict was softened. The MF-023
+  spec ticket is left OPEN and the ticket stops at PR-open rather than
+  self-merging, because the owner's self-merge authorization is conditional on
+  the ticket being closed and the matrix green.
+- recommendation: honor the manifest's declared `module:` (and
+  `internal_module:`/`core_module:`) when selecting the model to measure; refuse
+  rather than guess when no declaration resolves. A ledger that silently measures
+  a different module than the one the manifest names is reporting a number about
+  a file nobody asked about. FILE AGAINST THE SKILL.
+- status: open

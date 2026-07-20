@@ -1,0 +1,77 @@
+analyze complexity -- Internal
+  spec:     /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/Internal.tla
+  config:   /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/Internal.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/spec_manifest.yaml
+
+LEGEND: [MEASURED] parsed from this spec + cfg. [PROJECTED] an estimate that is
+        UNVERIFIED until the transition-level diff is read and TLC is rerun.
+
+[MEASURED] Dimension table
+variable            domain                     cardinality  note
+------------------  -------------------------  -----------  ---------------------------------------------------------
+setup_phase         SetupPhases                unknown      unconstrained by TypeInvariant -- excluded from the bound
+spec_root           SpecRoots \cup {NoRoot}    3
+ticket_state        [Tickets -> TicketStates]  unknown      unconstrained by TypeInvariant -- excluded from the bound
+complexity_gate     ComplexityVerdicts         unknown      unconstrained by TypeInvariant -- excluded from the bound
+corpus_gate         CorpusVerdicts             unknown      unconstrained by TypeInvariant -- excluded from the bound
+effect_conformance  EffectVerdicts             unknown      unconstrained by TypeInvariant -- excluded from the bound
+kill_test           KillTestVerdicts           unknown      unconstrained by TypeInvariant -- excluded from the bound
+
+[MEASURED] State-space upper bound
+  bound = 3  (product of 1 bounded dimensions)
+  excluded (unconstrained by TypeInvariant): setup_phase, ticket_state, complexity_gate, corpus_gate, effect_conformance, kill_test
+  dominant dimensions:
+    spec_root: 3 (100.0% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            r                 .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .
+kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.000 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: complexity_gate, corpus_gate, effect_conformance, kill_test, setup_phase, spec_root, ticket_state  (7 variables, 14 actions)
+  no port-crossing actions (single component, or fully independent components)
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+==============================================================================
+SUGGESTED MOVE: REFACTOR
+RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED
+==============================================================================
+  No projectable dimension and no narrow cut (Q=0.000 < 0.3). The failed search is itself the architecture finding.
+  [MEASURED] evidence:
+    - dense rows (god-state): setup_phase touched by 12/14 actions, spec_root touched by 10/14 actions
+    - dense columns (actions touching almost everything): RunSpecUnitTests
+  [PROJECTED] gain -- UNVERIFIED, requires the transition diff and a TLC rerun:
+    - target shapes: functional core / imperative shell, single-writer state, explicit commit points, explicit protocol state
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY projected reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Budget gate
+  source: /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound gates the STATIC declared-representation bound above.
+  max_distinct_states caps ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+  VERDICT: FAIL -- budget exceeded:
+    - component C1 has 7 variables, exceeding max_component_variables 6
+    - component C1 is touched by 14 actions, exceeding max_component_actions 8
+  Case generation will refuse to run against this model.
+  Override explicitly with --allow-over-budget once the cost is understood.

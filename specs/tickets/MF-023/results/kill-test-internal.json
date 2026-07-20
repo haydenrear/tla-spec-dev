@@ -1,0 +1,104 @@
+{
+  "baseline_kill_rate": null,
+  "baseline_source": null,
+  "control_detail": "allLocalCliAdapter object at 0x10a4f0320> does not define run(case, ...)\ncase_0003_scaffold_project via ScaffoldProject: TypeError: adapter <production_adapters.ScaffoldProjectAdapter object at 0x1151021e0> does not define run(case, ...)\ncase_0004_record_budgets via RecordBudgets: TypeError: adapter <production_adapters.RecordBudgetsAdapter object at 0x115103170> does not define run(case, ...)\ncase_0005_scaffold_workflow via ScaffoldWorkflow: TypeError: adapter <production_adapters.ScaffoldWorkflowAdapter object at 0x115102240> does not define run(case, ...)\ncase_0006_analyze_complexity via AnalyzeComplexity: TypeError: adapter <production_adapters.AnalyzeComplexityAdapter object at 0x115103380> does not define run(case, ...)\ncase_0007_analyze_complexity via AnalyzeComplexity: TypeError: adapter <production_adapters.AnalyzeComplexityAdapter object at 0x115103380> does not define run(case, ...)\ncase_0018_analyze_complexity via AnalyzeComplexity: TypeError: adapter <production_adapters.AnalyzeComplexityAdapter object at 0x115103380> does not define run(case, ...)\ncase_0019_analyze_complexity via AnalyzeComplexity: TypeError: adapter <production_adapters.AnalyzeComplexityAdapter object at 0x115103380> does not define run(case, ...)\ncase_0008_analyze_corpus via AnalyzeCorpus: TypeError: adapter <production_adapters.AnalyzeCorpusAdapter object at 0x10a42c110> does not define run(case, ...)\ncase_0009_analyze_corpus via AnalyzeCorpus: TypeError: adapter <production_adapters.AnalyzeCorpusAdapter object at 0x10a42c110> does not define run(case, ...)\ncase_0020_analyze_corpus via AnalyzeCorpus: TypeError: adapter <production_adapters.AnalyzeCorpusAdapter object at 0x10a42c110> does not define run(case, ...)\ncase_0010_run_effect_conformance via RunEffectConformance: TypeError: adapter <production_adapters.RunEffectConformanceAdapter object at 0x1056abe60> does not define run(case, ...)\ncase_0011_run_effect_conformance via RunEffectConformance: TypeError: adapter <production_adapters.RunEffectConformanceAdapter object at 0x1056abe60> does not define run(case, ...)\ncase_0012_run_effect_conformance via RunEffectConformance: TypeError: adapter <production_adapters.RunEffectConformanceAdapter object at 0x1056abe60> does not define run(case, ...)\ncase_0013_run_effect_conformance via RunEffectConformance: TypeError: adapter <production_adapters.RunEffectConformanceAdapter object at 0x1056abe60> does not define run(case, ...)\ncase_0014_run_kill_test via RunKillTest: TypeError: adapter <production_adapters.RunKillTestAdapter object at 0x10a295b20> does not define run(case, ...)\ncase_0015_run_kill_test via RunKillTest: TypeError: adapter <production_adapters.RunKillTestAdapter object at 0x10a295b20> does not define run(case, ...)\ncase_0016_run_kill_test via RunKillTest: TypeError: adapter <production_adapters.RunKillTestAdapter object at 0x10a295b20> does not define run(case, ...)\ncase_0017_open_ticket via OpenTicket: TypeError: adapter <production_adapters.OpenTicketAdapter object at 0x10a343e60> does not define run(case, ...)\neffect conformance dead_surface:\neffect conformance dead_surface: 0 observed effect(s) over 20 case(s), 5 declared port(s), 0 gap(s), 5 dead port(s), 0 unobservable target(s)\n  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_artifact (filesystem.write -> **/.venv/**) declared but never observed\n  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.evidence_report (filesystem.write -> **/results/**) declared but never observed\n  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.spec_tree (filesystem.write -> **/specs/**) declared but never observed\n  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.test_process (process.spawn -> *pytest*) declared but never observed\n  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.tlc_process (process.spawn -> *java*) declared but never observed\n\nModel the effect (declare the port), or change the program so it no longer emits it. Remove the dead port, or add a case that exercises it. There is no third option.",
+  "control_green": false,
+  "corpus_command": "python3 scripts/run_generated_case_adapters.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/gen/small/spec-unit/tlaspecdevcli_internal_cases --mapping specs/tickets/MF-023/desired/case_adapters.toml --view internal --batch --spec-dir specs/tickets/MF-023/desired --import-root specs/tickets/MF-023/desired --limit 20",
+  "exit_code": 2,
+  "ignored_suppression_keys": [],
+  "kill_matrix": [],
+  "kill_rate": null,
+  "kill_rate_floor": 0.8,
+  "manifest_path": "specs/tickets/MF-023/desired/spec_manifest.yaml",
+  "mutants_killed": 0,
+  "mutants_survived": 0,
+  "mutants_total": 0,
+  "notes": [
+    "This runner spawns a child process per mutant. Under the MF-027 effect oracle a process.spawn is an unobservable boundary even when a port declares it, so the kill test must run OUTSIDE the effect sandbox in this repository."
+  ],
+  "ok": false,
+  "required_boundaries": [
+    {
+      "kind": "port",
+      "ref": "cli_artifact"
+    },
+    {
+      "kind": "port",
+      "ref": "evidence_report"
+    },
+    {
+      "kind": "port",
+      "ref": "spec_tree"
+    },
+    {
+      "kind": "port",
+      "ref": "test_process"
+    },
+    {
+      "kind": "port",
+      "ref": "tlc_process"
+    },
+    {
+      "kind": "invariant",
+      "ref": "TypeInvariant"
+    },
+    {
+      "kind": "invariant",
+      "ref": "CliInstalledRequiresBuilt"
+    },
+    {
+      "kind": "invariant",
+      "ref": "WorkflowRequiresProject"
+    },
+    {
+      "kind": "invariant",
+      "ref": "BudgetsRequireProject"
+    },
+    {
+      "kind": "invariant",
+      "ref": "WorkflowRequiresBudgets"
+    },
+    {
+      "kind": "invariant",
+      "ref": "ProjectChoosesKnownSpecRoot"
+    },
+    {
+      "kind": "invariant",
+      "ref": "NoOpenClosedOverlap"
+    },
+    {
+      "kind": "invariant",
+      "ref": "CurrentRequiresDesired"
+    },
+    {
+      "kind": "invariant",
+      "ref": "SpecUnitTestsRequireCurrent"
+    },
+    {
+      "kind": "invariant",
+      "ref": "SpecUnitTestsRequireAnalyzedGate"
+    },
+    {
+      "kind": "invariant",
+      "ref": "SpecUnitTestsRequireMeasuredCorpus"
+    },
+    {
+      "kind": "invariant",
+      "ref": "SpecUnitTestsRequireMeasuredEffects"
+    },
+    {
+      "kind": "invariant",
+      "ref": "ClosedTicketsPassedSpecUnitTests"
+    },
+    {
+      "kind": "invariant",
+      "ref": "KillTestVerdictRequiresBudgets"
+    }
+  ],
+  "spec_dir": "specs/tickets/MF-023/desired",
+  "summary": "CONTROL FAILED: the corpus does not pass on the UNMUTATED program, so every mutant would be recorded as killed by that same pre-existing failure and the kill rate would be a meaningless 1.0. Fix the corpus, then measure. Nothing has been learned about the representation.",
+  "suppression_policy": "Suppression-shaped keys are reported and never honored. There is no waiver for a surviving mutant and no flag that accepts a sub-floor kill rate.",
+  "surviving_mutants": [],
+  "uncovered_boundaries": [],
+  "verdict": "control_failed"
+}

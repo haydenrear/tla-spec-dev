@@ -1,0 +1,115 @@
+corpus gate FAIL: 15336 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/gen/small/spec-unit/tlaspecdevcli_internal_cases
+
+Distribution per (action, label class) -- 15 stratum/strata:
+  RunEffectConformance / (unlabeled)    4112   26.8%
+  RunKillTest / (unlabeled)             3084   20.1%
+  RunSpecUnitTests / (unlabeled)        2208   14.4%
+  AnalyzeComplexity / (unlabeled)       2056   13.4%
+  AnalyzeCorpus / (unlabeled)           2056   13.4%
+  InternalStutter / (unlabeled)         1032    6.7%
+  OpenTicket / (unlabeled)               180    1.2%
+  ScaffoldWorkflow / (unlabeled)         180    1.2%
+  UpdateTicketCurrent / (unlabeled)      180    1.2%
+  UpdateTicketDesired / (unlabeled)      180    1.2%
+  CloseTicket / (unlabeled)               64    0.4%
+  BuildSkillCli / (unlabeled)              1    0.0%
+  InstallLocalCli / (unlabeled)            1    0.0%
+  RecordBudgets / (unlabeled)              1    0.0%
+  ScaffoldProject / (unlabeled)            1    0.0%
+
+Strata that DOMINATE the corpus:
+  RunEffectConformance / (unlabeled)    4112   26.8%
+  RunKillTest / (unlabeled)             3084   20.1%
+  RunSpecUnitTests / (unlabeled)        2208   14.4%
+  AnalyzeComplexity / (unlabeled)       2056   13.4%
+  AnalyzeCorpus / (unlabeled)           2056   13.4%
+  InternalStutter / (unlabeled)         1032    6.7%
+
+Strata that are STARVED:
+  OpenTicket / (unlabeled)              180    1.2%
+  ScaffoldWorkflow / (unlabeled)        180    1.2%
+  UpdateTicketCurrent / (unlabeled)     180    1.2%
+  UpdateTicketDesired / (unlabeled)     180    1.2%
+  CloseTicket / (unlabeled)              64    0.4%
+  BuildSkillCli / (unlabeled)             1    0.0%
+  InstallLocalCli / (unlabeled)           1    0.0%
+  RecordBudgets / (unlabeled)             1    0.0%
+  ScaffoldProject / (unlabeled)           1    0.0%
+
+  Skew: RunEffectConformance / (unlabeled) holds 4112x the cases of ScaffoldProject / (unlabeled).
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+corpus gate FAIL -- this corpus exceeds its manifest cap. Nothing was
+trimmed: the full corpus was written, and this gate refuses instead.
+
+A lopsided corpus is evidence about the REPRESENTATION, not noise to
+clean up. The corpus is the symptom; the diagram is the defect.
+
+--- component component: 15336 cases, cap 200 (over by 15136)
+
+  Strata within this group that DOMINATE:
+    RunEffectConformance / (unlabeled)    4112   26.8%
+    RunKillTest / (unlabeled)             3084   20.1%
+    RunSpecUnitTests / (unlabeled)        2208   14.4%
+    AnalyzeComplexity / (unlabeled)       2056   13.4%
+    AnalyzeCorpus / (unlabeled)           2056   13.4%
+    InternalStutter / (unlabeled)         1032    6.7%
+
+  Strata within this group that are STARVED:
+    OpenTicket / (unlabeled)              180    1.2%
+    ScaffoldWorkflow / (unlabeled)        180    1.2%
+    UpdateTicketCurrent / (unlabeled)     180    1.2%
+    UpdateTicketDesired / (unlabeled)     180    1.2%
+    CloseTicket / (unlabeled)              64    0.4%
+    BuildSkillCli / (unlabeled)             1    0.0%
+    InstallLocalCli / (unlabeled)           1    0.0%
+    RecordBudgets / (unlabeled)             1    0.0%
+    ScaffoldProject / (unlabeled)           1    0.0%
+
+  What VARIES across the redundant group:
+    after.setup_phase                       6 distinct / 15336 cases
+                                        e.g. 0; 1; 2
+    after.ticket_state.cli_entrypoint       6 distinct / 15336 cases
+                                        e.g. 0; 1; 2
+    before.setup_phase                      6 distinct / 15336 cases
+                                        e.g. 0; 1; 2
+    before.ticket_state.cli_entrypoint      6 distinct / 15336 cases
+                                        e.g. 0; 1; 2
+    after.effect_conformance                5 distinct / 15336 cases
+                                        e.g. 'clean'; 'dead_surface'; 'gaps'
+    before.effect_conformance               5 distinct / 15336 cases
+                                        e.g. 'clean'; 'dead_surface'; 'gaps'
+    after.kill_test                         4 distinct / 15336 cases
+                                        e.g. 'below_floor'; 'incomplete_catalog'; 'pass'
+    before.kill_test                        4 distinct / 15336 cases
+                                        e.g. 'below_floor'; 'incomplete_catalog'; 'pass'
+
+  Held CONSTANT across the group: params
+
+  Likely cause: action enabled across equivalent states
+    - 12 distinct change shape(s) across 15336 cases
+    - but the before-state varies widely: after.setup_phase (6 values), after.ticket_state.cli_entrypoint (6 values), before.setup_phase (6 values)
+    - 1032 distinct source states in the reachable graph
+    - the action does one thing, generated once per reachable state that enables it
+
+  Suggested move: Abstract the before-state: replace the concrete carrier with the predicate the action actually reads, so equivalent states collapse into one.
+  RECOMMENDATION REQUIRING USER APPROVAL -- not applied automatically.
+
+Two ways forward, and neither deletes a case:
+
+  1. FIX THE DIAGRAM so the redundant cases are never generated.
+     Apply the suggested move above, once the user approves it.
+
+  2. ACCEPT PATH -- raise the cap, with a rationale, in /Users/hayde/IdeaProjects/wt-30-mf023-decompose-dogfooding/specs/tickets/MF-023/desired/spec_manifest.yaml:
+     
+       budgets:
+         max_internal_cases_per_component: 15336    # was 200
+         source: negotiated
+         rationale:
+           max_internal_cases_per_component: "<one line: why this program genuinely needs 15336 cases per component>"
+     
+     That is an explicit, reviewable decision recorded in program state.
+     There is no trimming option, opt-in or otherwise: cases are never
+     dropped, filtered, sampled, or truncated to fit a budget.
