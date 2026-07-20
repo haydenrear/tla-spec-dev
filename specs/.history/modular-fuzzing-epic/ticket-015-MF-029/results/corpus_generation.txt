@@ -1,0 +1,60 @@
+MF-029 corpus generation evidence
+=================================
+
+MF-028 FINDING 6 (out of scope here) established that full-MC.cfg corpus
+generation exhausts memory. Both runs below therefore used a REDUCED config, so
+the counts must be read accordingly. The reduced configs were created for these
+runs and deleted afterwards; the ticket's MC.cfg is unmodified.
+
+RUN A -- Tickets = {cli_entrypoint, cli_workflow}, SpecRoots = both
+  states                              40,533
+  transitions emitted                798,411
+  transitions before dedupe          798,411   <- equal: NO CASE DROPPED
+  cases carrying arguments           757,876
+  cases with >=1 UNCHECKED argument  257,280   (kept, never dropped)
+
+  distinct action labels in the corpus (15, not the issue's "thirteen"):
+    257280 RunSpecUnitTests      15792 UpdateTicketDesired
+    162112 RunEffectConformance  15792 UpdateTicketCurrent
+    121584 RunKillTest           13840 OpenTicket
+     81056 AnalyzeCorpus          8320 CloseTicket
+     81056 AnalyzeComplexity      1040 ScaffoldWorkflow
+     40533 Stutter                   2 ScaffoldProject
+                                     2 RecordBudgets
+                                     1 InstallLocalCli
+                                     1 BuildSkillCli
+
+RUN B -- Tickets = {cli_entrypoint}, SpecRoots = {default_specs}
+  states                               3,984
+  transitions emitted                 61,081
+  transitions before dedupe           61,081   <- equal: NO CASE DROPPED
+  fully recovered arguments           46,703
+  at least one UNCHECKED argument     10,392
+  no arguments (nullary + Stutter)     3,986   = BuildSkillCli 1
+                                               + InstallLocalCli 1
+                                               + Stutter 3,984
+
+  The generated package imports cleanly and the sentinel behaves:
+    UNCHECKED == True  -> False
+    UNCHECKED == None  -> False
+  Sample recovered case:
+    OpenTicket params={'root': 'default_specs', 'ticket': 'cli_entrypoint'}
+    labels: ['params:recovered']
+  Sample partially recovered case:
+    labels: ['params:partial', 'params:unchecked', 'params:unchecked:override']
+
+The MF-014 case-cap gate refuses both corpora. That is PRE-EXISTING behavior
+unrelated to this ticket, and it runs AFTER the complete package is written --
+the corpus on disk holds every generated case whether the gate passes or fails.
+
+RUN A -- import verification of the full 798,411-case package
+  imported cases                     798,411
+  TLC transitions before filtering   798,411   <- equal at every stage:
+  emitted before dedupe              798,411      NO CASE DROPPED, FILTERED,
+  cases in package                   798,411      SKIPPED OR TRUNCATED
+
+  fully recovered arguments          500,596
+  at least one UNCHECKED argument    257,280   (all RunSpecUnitTests)
+  no arguments                        40,535   = Stutter 40,533
+                                               + BuildSkillCli 1
+                                               + InstallLocalCli 1

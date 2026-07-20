@@ -1,0 +1,16 @@
+MUTATION PROOF -- each mutated recovery must turn the suite RED
+
+  CAUGHT (suite red)   M1 guard-pinned returns a constant
+                      1 failed, 3 passed in 0.04s
+  CAUGHT (suite red)   M2 except-index always picks the first index
+                      1 failed, 5 passed in 0.03s
+  CAUGHT (suite red)   M3 except-index guesses when the diff is ambiguous/empty
+                      1 failed, 63 passed in 0.05s
+  CAUGHT (suite red)   M4 written-through reads the before-state instead
+                      1 failed, 2 passed in 0.03s
+  CAUGHT (suite red)   M5 UNCHECKED made permissive (compares equal to anything)
+                      1 failed, 26 passed in 0.04s
+  CAUGHT (suite red)   M6 guard-pinned reads the AFTER state instead of the before state
+                      1 failed, 38 passed in 0.04s
+
+6/6 mutations caught.

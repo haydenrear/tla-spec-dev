@@ -456,3 +456,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-029
+
+- close_scope: ticket
+- close_id: MF-029
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-20T02:25:41+00:00
+- summary: MF-029: recover action parameters from each case's before/after state pair, generator-side. Zero TLA+ model delta. Audited all 14 action labels plus Stutter: 9 guard-pinned, 5 except-index, 1 written-through (ScaffoldProject, the only action that sacrifices an after-state check), 1 UNRECOVERABLE (RunSpecUnitTests override) marked UNCHECKED and never fabricated. 14/14 negative controls verified to fail; 6/6 implementation mutations caught after closing an initially-surviving before-vs-after mutation. No case dropped: 798,411 TLC transitions in, 798,411 cases out.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

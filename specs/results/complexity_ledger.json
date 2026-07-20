@@ -487,6 +487,253 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-029",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-20T02:24:44.132505+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-028",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the kill-test report",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the effect-conformance report",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the external coverage report",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=(absent) (UNVERIFIED)",
+        "effect_conformance=(absent) (UNVERIFIED)",
+        "external_coverage=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-029",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-20T02:25:41.211329+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-028",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No representation added and none needed. MF-029 is deliberately a GENERATOR change, not a model change: parameters are recovered from each case's own before/after state pair, which the generator already held. TLC re-measured at 231,621 distinct / depth 25 / bound 699,840 (70.0%), identical to the MF-028 baseline, and `git diff origin/epic/modular-fuzzing -- '*.tla' '*.cfg'` is empty. Zero delta is the required outcome here, not merely an acceptable one: the owner rejected a lastInternalAction marker precisely because max_state_space_bound is at 70% and MF-019 proved a single boolean variable breaches it.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-028 (specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/results/complexity_ledger.yaml). No kill rate is computable while case execution is blocked. MF-029 did not re-measure and does not claim improvement.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-028. Adapters drive the CLI via subprocess.run; the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal stands. MF-029 changes generated case PARAMETERS only and no adapter consumes them yet, so the observability barrier is untouched.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-028. 72.5% of the corpus has a before-state this repository cannot materialize. MF-029 makes the arguments available for when those adapters land (that is its whole purpose) but does not itself make any additional case runnable.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, and found none this ticket should apply. The analyzer's standing recommendation remains to project [lastCommand, result], which no configured invariant reads. MF-028 recorded a strong second argument for it and still declined; that reasoning is unchanged and MF-029 adds no new evidence for or against it. MF-029 adds one argument AGAINST applying it now: this ticket makes action arguments available to adapters for the first time, so the next tickets will be extending what a case genuinely checks. Shrinking the checked surface in the same window as widening it would confound the two effects and make the resulting kill-rate movement uninterpretable. Deferred to MF-023, where decomposition revisits the projection with per-component state spaces. Doctrine also bars it independently: a DECREASE requires all three retention members retained, and all three are non-passing above.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/MF-029/results/recoverability_audit.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
