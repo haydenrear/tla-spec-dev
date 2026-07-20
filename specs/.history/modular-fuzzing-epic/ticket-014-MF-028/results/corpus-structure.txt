@@ -1,0 +1,28 @@
+# MF-028 corpus structure -- the numbers behind the report
+# corpus: reduced MC config (1 ticket, 1 spec root); full MC.cfg corpus generation
+# exhausts memory parsing a 695MB TLC dot dump -- FINDING 6, out of scope here.
+# The CASE SHAPE is identical; only the count differs.
+
+total cases: 57617
+SETUP segment  (ticket_state all 0)  :  15855  (27.5%)  -- reachable
+TICKET segment (some ticket_state>0) :  41762  (72.5%)  -- BLOCKED: no UpdateTicket* adapters
+
+cases per action label:
+  RunEffectConformance        15920  ( 27.6%)
+  RunKillTest                 11940  ( 20.7%)
+  AnalyzeComplexity            7960  ( 13.8%)
+  AnalyzeCorpus                7960  ( 13.8%)
+  RunSpecUnitTests             6928  ( 12.0%)
+  Stutter                      3984  (  6.9%)
+  OpenTicket                    699  (  1.2%)
+  UpdateTicketDesired           699  (  1.2%)
+  UpdateTicketCurrent           699  (  1.2%)
+  ScaffoldWorkflow              520  (  0.9%)
+  CloseTicket                   304  (  0.5%)
+  BuildSkillCli                   1  (  0.0%)
+  InstallLocalCli                 1  (  0.0%)
+  ScaffoldProject                 1  (  0.0%)
+  RecordBudgets                   1  (  0.0%)
+
+distinct action params across all cases: {'{}': 57617}
+  -> every parameterized action loses its argument (no lastInternalAction marker)

@@ -1,0 +1,122 @@
+{
+  "cases": [
+    "case_0001_build_skill_cli",
+    "case_0005_scaffold_project"
+  ],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact",
+      "target": "**/.venv/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree",
+      "target": "**/specs/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.tlc_process",
+      "target": "*java*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.test_process",
+    "TlaSpecDevCliPort.tlc_process"
+  ],
+  "gaps": [
+    {
+      "action": "BuildSkillCli",
+      "case": "case_0001_build_skill_cli",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0001_build_skill_cli/target-repo during case_0001_build_skill_cli (action BuildSkillCli) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0001_build_skill_cli/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "message": "UNDECLARED EFFECT: filesystem.write -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0005_scaffold_project/target-repo during case_0005_scaffold_project (action ScaffoldProject) -- no declared port accepts it",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0005_scaffold_project/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "message": "UNDECLARED EFFECT: process.spawn -> /opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during case_0005_scaffold_project (action ScaffoldProject) -- no declared port accepts it",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "observable_scope": "in-process CPython only: builtins.open, os/shutil/pathlib mutators, subprocess spawns and socket.connect patched in THIS interpreter. No patch crosses a process boundary; JVM, JBang/uv node, and child-process work is not observed (MF-027)",
+  "observed_effects": [
+    {
+      "action": "BuildSkillCli",
+      "case": "case_0001_build_skill_cli",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0001_build_skill_cli/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "BuildSkillCli",
+      "case": "case_0001_build_skill_cli",
+      "detail": "os.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0001_build_skill_cli/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "Path.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0005_scaffold_project/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "os.mkdir",
+      "target": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/effwork2/case-work/case_0005_scaffold_project/target-repo",
+      "type": "filesystem.write"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "subprocess.run",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "case_0005_scaffold_project",
+      "detail": "subprocess.Popen",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    }
+  ],
+  "ok": false,
+  "summary": "effect conformance unobservable: 6 observed effect(s) over 2 case(s), 5 declared port(s), 3 gap(s), 5 dead port(s), 1 unobservable target(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report. MF-027: the same holds for an unobservable target -- no configuration downgrades that verdict to a pass",
+  "unobservable_targets": [
+    {
+      "detail": "case=case_0005_scaffold_project action=ScaffoldProject",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=case_0005_scaffold_project action=ScaffoldProject]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    }
+  ],
+  "verdict": "unobservable"
+}

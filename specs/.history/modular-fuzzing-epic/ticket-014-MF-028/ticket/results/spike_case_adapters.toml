@@ -1,0 +1,57 @@
+# Map generated program-model action labels to production adapters.
+[adapters.BuildSkillCli]
+adapter = "production_adapters:BuildSkillCliAdapter"
+
+[adapters.InstallLocalCli]
+adapter = "production_adapters:InstallLocalCliAdapter"
+
+[adapters.ScaffoldProject]
+adapter = "production_adapters:ScaffoldProjectAdapter"
+
+[adapters.ScaffoldWorkflow]
+adapter = "production_adapters:ScaffoldWorkflowAdapter"
+
+[adapters.OpenTicket]
+adapter = "production_adapters:OpenTicketAdapter"
+
+[adapters.CloseTicket]
+adapter = "production_adapters:CloseTicketAdapter"
+
+[adapters.RunSpecUnitTests]
+adapter = "production_adapters:RunSpecUnitTestsAdapter"
+
+[adapters.ValidateTestGraphCli]
+adapter = "production_adapters:TestGraphCliAdapter"
+
+[adapters.RecordBudgets]
+adapter = "production_adapters:RecordBudgetsAdapter"
+
+[adapters.AnalyzeComplexity]
+adapter = "production_adapters:AnalyzeComplexityAdapter"
+
+[adapters.AnalyzeCorpus]
+adapter = "production_adapters:AnalyzeCorpusAdapter"
+
+# MF-028 SPIKE-ONLY additions. The runner's coverage gate is whole-corpus, so a
+# single case cannot execute until every label in the corpus is bound. These
+# three were unbound at the epic tip. They are recorded here, in the ticket's
+# evidence directory, rather than in the production mapping, because the
+# production bindings are MF-023's surface (open PR #50) and this spike must not
+# duplicate or pre-empt them.
+[adapters.RunEffectConformance]
+adapter = "production_adapters:RunEffectConformanceAdapter"
+
+[adapters.RunKillTest]
+adapter = "production_adapters:RunKillTestAdapter"
+
+[adapters.Stutter]
+adapter = "production_adapters:StutterAdapter"
+
+# MF-028 FINDING: these two modelled actions have NO adapter class anywhere in
+# the repository. They are bound to refusing stubs purely to clear the
+# whole-corpus coverage gate; they do not execute.
+[adapters.UpdateTicketDesired]
+adapter = "production_adapters:UpdateTicketDesiredAdapter"
+
+[adapters.UpdateTicketCurrent]
+adapter = "production_adapters:UpdateTicketCurrentAdapter"

@@ -1,0 +1,64 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# MF-028 is an INVESTIGATION ticket. It adds no model representation: the delta
+# is ZERO by construction (variables=9, actions=14, bound=699,840,
+# distinct=231,621, depth=25 -- byte-identical to the MF-026 baseline). Nothing
+# was minimized because nothing was added; the ledger below records what was
+# MEASURED, and is deliberately explicit that two of the three retention members
+# remain unverified rather than dressing them up as retained.
+
+# Retention evidence -- the doctrine's three-member constraint set.
+#
+# Reported honestly. This ticket exists BECAUSE these oracles produce no signal;
+# recording them as passing would recreate exactly the silence it was opened to
+# expose. effect_conformance was genuinely re-measured here and MOVED -- from 0
+# observed effects to 6 -- but lands on `unobservable`, which IS NOT `clean`.
+retention:
+  kill_rate:
+    status: "incomplete_catalog"
+    evidence: "specs/tickets/MF-028/results/spike-report.md#3.3 -- no kill rate is computable while case execution is blocked. Not re-measured by this ticket; the blocking cause is characterized instead."
+  effect_conformance:
+    status: "unobservable"
+    evidence: "specs/tickets/MF-028/results/effect-conformance.json -- MEASURED. 6 observed effects over 2 cases, 5 declared ports, 3 gaps, 5 dead ports, 1 unobservable target. Every adapter drives the CLI via subprocess.run and the sandbox observes only the in-process CPython runtime, so the target is structurally invisible. MF-027's refusal is correct. See spike-report.md#3.2b."
+  external_coverage:
+    status: "incomplete"
+    evidence: "specs/tickets/MF-028/results/corpus-structure.txt -- 72.5% of the corpus has a before-state this repository cannot materialize (UpdateTicketDesired / UpdateTicketCurrent have no adapter). Coverage cannot be asserted over a corpus that cannot be run."
+
+# Coverage audit -- MF-026. `not_run` is the CORRECT value at a ticket close.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+# Not required: complexity did not increase. Delta is zero.
+justification: "No representation added. MF-028 is an investigation ticket; its deliverable is a measured answer, not a model change. Zero delta is the expected and desired outcome."
+
+# The recursive refinement loop.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched for a refinement this ticket could justifiably apply, and found
+    none that belongs here. The analyzer's standing recommendation is to project
+    [lastCommand, result], which no configured invariant reads. This spike
+    produced NEW evidence bearing directly on that recommendation: those two
+    variables are also the only two that no filesystem projection can recover
+    (spike-report.md#2.2), so they are unobservable as well as un-read. That is
+    a strong second argument for the projection -- but applying it would remove
+    the `lastCommand` and `result.accepted` checks that are currently among the
+    nine fields the executed case genuinely verifies, and it would shrink the
+    model while three of four oracles cannot witness behavior retention. Under
+    the doctrine a DECREASE requires all three retention members retained; two
+    are unverified here (see above). Shrinking now would be exactly the
+    budget-gaming the kill-rate floor exists to prevent. Recorded as a finding
+    for the re-scope instead, with the evidence attached, for owner approval.
+  measured: false
+  applied: false
+  approved_by: ""
+
+# No generated-states drop: generated 5,619,356 -> 5,619,356 at constant
+# distinct 231,621 and depth 25. No self-loop-deletion signature.
+transition_diff: ""
+
+narrative: "specs/tickets/MF-028/results/spike-report.md"
