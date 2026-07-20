@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 10
+  schedule_revision: 11
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-023
-  active_ticket_title: "Decompose this repository by dogfooding the finished toolchain"
+  active_ticket: MF-028
+  active_ticket_title: "Spike -- make one adapter execute one generated case"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1383,16 +1383,59 @@ tickets:
         - if the worked example shows the agent skipping surface or producing impressionistic findings, that is REPORTED as a finding about the prompt rather than smoothed over, with a follow-up ticket for a mechanical inventory as the honest outcome.
       evidence: []
 
+  - id: MF-028
+    title: "Spike -- make one adapter execute one generated case"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-026]
+    blocks: [MF-023]
+    wave: 9
+    promotion_order: 83
+    promotion_predecessor: MF-026
+    conflict_keys:
+      production: [specs/program_model/production_adapters.py, scripts/run_generated_case_adapters.py]
+      tla: []
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "INVESTIGATION TICKET -- the deliverable is a measured answer, not a finished feature. MF-023 dogfooding found that no adapter can execute a generated case (FINDING 4). run_generated_case_adapters.py drives each case through an adapter run(case, ...); all 16 adapter classes implement apply(target_repo, ...) and not one implements run. The two paths never met -- the spec-unit suite calls apply() directly, so the adapters are thoroughly tested and simultaneously unreachable from the corpus, and case execution was deferred in every ticket of this epic so no run crossed the seam. THREE OF FOUR ORACLES THEREFORE PRODUCE NO SIGNAL AT ALL -- effect conformance reports 0 observed effects over 40 cases with all 5 ports dead, the kill test cannot compute a rate, and corpus distillation has nothing real to distil; output and projected-state conformance are blocked by the same root cause. A generated case carries a before-state, an action and an expected after-state, so run() must MATERIALIZE AN ARBITRARY BEFORE-STATE, execute, and project the result -- for a CLI whose state is a filesystem tree plus a manifest that means constructing a repository already in that state. Nobody knows what that costs per adapter, it is the largest remaining item, and everything else waits behind it, so it is measured ONCE before five or six tickets are scoped against a guess. Deliverable is one adapter executing one case end to end, a written account specific enough to scope the other fifteen, per-adapter difficulty bands with reasons, and a recommendation on shape (run() shim over apply(), shared before-state builder, per-adapter rewrite, or a design the adapters cannot support without change). A blocked spike reporting where it stops and why is a legitimate result. See tickets/028-case-execution-spike.md."
+    desired_actions: []
+    implementation_scope:
+      - one adapter in specs/program_model/production_adapters.py
+      - scripts/run_generated_case_adapters.py only as needed to run the single case
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - one adapter made case-executable as a proof of cost
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-028
+      assertions:
+        - one generated case executes end to end against one real adapter, with actual command output recorded as evidence -- not a unit test standing in for a run.
+        - the written account is specific enough to scope the remaining fifteen; what was straightforward and what would differ for an adapter mutating more state are both named.
+        - difficulty bands cover all fifteen remaining adapters with a reason for each.
+        - if the current adapter design cannot support case execution without redesign, that is stated plainly as the result.
+        - if the single case cannot be made to run at all, where it stops and why is reported with output, and no partial machinery is built to disguise a blocked spike.
+        - out of scope and untouched -- the other fifteen adapters, EXTENDS resolution, analyze corpus OOM, the component-metric design question, the silent default, the alphabetical model pick.
+      evidence: []
+
   - id: MF-023
     title: "Decompose this repository by dogfooding the finished toolchain"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/30"
-    schedule_revision: 2
-    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026]
+    schedule_revision: 3
+    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028]
     blocks: []
     wave: 9
     promotion_order: 85
-    promotion_predecessor: MF-026
+    promotion_predecessor: MF-028
     conflict_keys:
       production: []
       tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
