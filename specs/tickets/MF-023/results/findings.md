@@ -409,3 +409,93 @@ the manifest from the spec root (the CLI knows it -- `--spec-root` is a global
 argument) or refuse. `warn=False` should not be reachable from a gate at all: a
 budget the user did not declare is a budget the user did not agree to, and a
 gate that does not say which budgets it used has not reported its verdict.
+
+---
+
+## FINDING 10 — `close ticket` picks the model file alphabetically, so on a decomposed tree it measures `Core.tla` and computes a fictitious −100% complexity collapse
+
+The MF-019 complexity ledger **refused this ticket's close**. The refusal is
+correct in its conclusion and wrong in its arithmetic, and both halves matter.
+
+`scripts/spec_evolution.py:542-545`:
+
+```python
+tla_files = sorted(p for p in model_dir.glob("*.tla") if not p.name.startswith("MC"))
+tla_path = tla_files[0]
+```
+
+**Alphabetically first.** On a decomposed tree that is `Core.tla` — the module
+that by design carries constants and vocabulary and **no variables and no
+actions**. `MC.cfg` no longer exists either, so the cfg falls through to
+`sorted(glob("*.cfg"))[0]` = `External.cfg`. The ledger therefore measured
+`Core.tla` against `External.cfg` and reported (`close-ticket-REFUSED.txt`):
+
+```
+  measured: variables=0 actions=0 bound=1
+  delta:    direction=decrease (vs MF-026)
+            variables: 9 -> 0 = -9 (-100.0%)
+            actions: 14 -> 0 = -14 (-100.0%)
+            bound: 699,840 -> 1 = -699,839 (-100.0%)
+```
+
+A total complexity collapse that did not happen. The manifest declares
+`module: External`; the selector does not consult it.
+
+This compounds FINDING 1. Between them, **the ledger cannot measure a decomposed
+model at all**: the file selector picks the empty module, and even pointed at the
+right one the parser cannot resolve `EXTENDS`, so any view reports fewer
+variables than the model has. On a decomposed tree the ledger can only ever
+report a decrease.
+
+### The deadlock, stated plainly
+
+The gate's rule is: a complexity **decrease** is REJECTED while retention
+evidence is DEGRADED. Here:
+
+- The decrease it measured (−100%) is **fictitious**, an artifact of the file
+  selector.
+- The retention degradation is **real**: `effect_conformance=dead_surface`,
+  `kill_rate=incomplete_catalog`, `external_coverage=incomplete`. All three are
+  honestly recorded and all three trace to FINDING 4 — no adapter implements the
+  case-runner protocol, so no port can be observed and no kill rate computed.
+
+So the gate reaches the right verdict for partly the wrong reason. And it cannot
+be satisfied from inside this ticket:
+
+- **Restore the retention evidence** — blocked. It requires changing the adapter
+  protocol in `production_adapters.py`, and this ticket declares
+  `conflict_keys.production: []`.
+- **Withdraw the reduction** — not expressible. The ledger computes the delta
+  itself from `analyze complexity`; there is no input by which a ticket can
+  decline to claim a reduction it never claimed.
+- **Override** — does not exist, by design: *"There is no override flag."*
+
+**No override was attempted, `--accept-new` was not used, and no retention
+verdict was softened to get past the gate.** Turning `dead_surface` into `clean`
+by deleting the five correctly-declared ports, or recording the unmeasured kill
+rate as anything other than unmeasured, would have passed the gate and would
+have been precisely the degeneracy this epic exists to prevent.
+
+**The MF-023 spec ticket is therefore left OPEN**, and this ticket stops at
+PR-open rather than self-merging. The repository-owner deviation note authorizes
+self-merge *"after the spec ticket is closed and the full validation matrix is
+green"* — neither precondition holds, so the authorization does not apply.
+
+### Assessment
+
+This is the gate working. MF-019 recorded that its anti-gaming check had never
+fired on measured evidence; it has now, and it fired against the ticket that
+built the evidence. The correct response to a gate you cannot satisfy honestly is
+to stop and report, which is what this ticket does.
+
+The two defects that should be fixed before the close is retried, in order:
+
+1. **The file selector must honor the manifest's declared `module:`** rather than
+   taking `sorted(*.tla)[0]`. As written, every decomposed repository — the
+   architecture the skill mandates — gets its ledger measured against the empty
+   Core module.
+2. **FINDING 1** — resolve `EXTENDS` so a view's real bound is measurable.
+
+Then the genuine delta can be measured (Internal 231,621 → 42,861 distinct,
+an 81.5% real reduction; External unchanged at exact retention) and the gate can
+adjudicate the real numbers instead of an artifact.

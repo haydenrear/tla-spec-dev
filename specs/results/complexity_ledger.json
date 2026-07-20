@@ -220,6 +220,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-023",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-20T00:44:03.976373+00:00",
+      "metrics": {
+        "variables": 0,
+        "actions": 0,
+        "bound": 1,
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": true,
+        "gate_violations": [],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1,
+            "percent": 0.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-026",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 0,
+            "delta": -9,
+            "percent": -100.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 0,
+            "delta": -14,
+            "percent": -100.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 1,
+            "delta": -699839,
+            "percent": -100.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "decrease"
+      },
+      "justification": "no increase -- Internal decreased 81.5%, External unchanged (exact retention). Decrease NOT claimed as credited: retention set is degraded (effect_conformance dead_surface, kill_rate unmeasured), so MF-019's anti-gaming rule refuses to credit it.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "specs/tickets/MF-023/results/kill-test-internal.txt",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "dead_surface",
+          "classification": "degraded",
+          "evidence": "specs/tickets/MF-023/results/effect-conformance-internal.json",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "specs/tickets/MF-023/results/findings.md (FINDING 6, and 'What could not be checked')",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=dead_surface (DEGRADED)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "Full write-up: specs/tickets/MF-023/results/refinement.md. APPLIED (measured, exact retention): removal of the explicit Stutter disjunct. TLA+ `[][N]_v` already permits stuttering, so naming it as a disjunct of N is redundant, and case generation was emitting one uncoverable spec case per reachable state -- 42,861 cases, 4.3% of the Internal corpus. TLC measured identical 42,861 distinct states at identical depth 24 with and without it; only generated states change (999,636 -> 956,775, a difference of exactly 42,861). See transition_diff below. RECOMMENDED, NOT APPLIED (require owner approval): R1 promote setup_phase and spec_root to a contract environment -- the only move that would make the component heuristics measure the cut rather than the command count (FINDING 3); scope change, retention would need re-proving. R2 project the oracle verdict actions against a reduced state -- five actions produce 86.8% of the corpus while the bootstrap actions get 1-2 cases each; a generator change, not a model change. R3 model MF-019's own close-time refusal. Decomposition does now give Internal room for it, BUT per FINDING 1 the static bound gate reports Internal's bound as 3 (it cannot resolve Core-defined domains through EXTENDS), so the headroom that would justify the addition cannot currently be measured by the tool that owns the decision. R3 should follow the FINDING 1 fix rather than act on a bound known to be wrong.",
+        "measured": true,
+        "applied": true,
+        "approved_by": "MF-023 ticket agent -- applied only the reduction whose retention is PROVEN EXACT by TLC (identical distinct states and depth); every recommendation with a projected or unproven gain is left unapplied for owner approval"
+      },
+      "coverage_audit": {
+        "status": "fail",
+        "passing": false,
+        "report": "specs/tickets/MF-023/results/coverage-audit.md",
+        "in_scope_gaps": 20,
+        "scope_source": "specs/desired_program_model/ticket_plan.yaml:1386-1440 (MF-023 entry)"
+      },
+      "transition_diff": "Inspected and accepted. Internal 999,636 -> 956,775 generated at constant 42,861 distinct / depth 24; External 5,619,356 -> 5,387,735 generated at constant 231,621 distinct / depth 25. In both views the drop is exactly one transition per reachable state -- the explicit stuttering self-loops, which TLA+ `[][N]_v` admits regardless. Evidence: tlc-internal-desired.txt, tlc-external-desired.txt, tlc-baseline-presplit.txt.",
+      "narrative": "specs/tickets/MF-023/results/findings.md (8 findings), cut-decision.md (the proposed cut, the override and its justification, full action/invariant mapping), retention.md (exact-retention proof against the pre-split baseline), max-distinct-states-revisit.md (the budget revisit and why the expected drop is falsified), refinement.md (the MF-019 loop on the finished decomposition)",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (fail) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [
+        "REJECTED -- complexity decreased while retention evidence is DEGRADED: kill_rate=incomplete_catalog (DEGRADED); effect_conformance=dead_surface (DEGRADED); external_coverage=incomplete (DEGRADED). A reduction bought by dropping a boundary is not a reduction. Restore the retention evidence, or withdraw the reduction."
+      ],
+      "verdict": "rejected"
     }
   ]
 }

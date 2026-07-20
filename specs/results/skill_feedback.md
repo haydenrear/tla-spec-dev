@@ -653,3 +653,37 @@ real target. Six findings below, all reproduced from recorded commands in
   a known-present pattern matches before trusting a zero result. Fix Step 3's
   hardcoded path list. FILE AGAINST THE SKILL.
 - status: open
+
+### SF-015 — `close ticket` selects the model file alphabetically, measuring `Core.tla` on every decomposed tree
+
+- category: budget-and-metric
+- target: scripts/spec_evolution.py:542-545 — `tla_path = sorted(model_dir.glob("*.tla"))[0]`
+- observed_on: tla-spec-dev @ MF-023, close of the decomposed Core/Internal/External tree
+- evidence: specs/tickets/MF-023/results/close-ticket-REFUSED.txt
+- severity: blocks-migration
+- root_cause: tool
+- surface: `close ticket`, and therefore the MF-019 complexity ledger on every decomposed repository
+- data_loss: no
+- note: The selector takes the alphabetically first `*.tla`. On a decomposed tree
+  that is `Core.tla`, the module that by design holds constants and vocabulary
+  and NO variables and NO actions. `MC.cfg` is gone too, so the cfg falls through
+  to `sorted(*.cfg)[0]` = `External.cfg`. The ledger measured Core against
+  External.cfg and reported variables 9 -> 0, actions 14 -> 0, bound 699,840 -> 1
+  -- a fictitious -100% complexity collapse -- then REFUSED the close under the
+  anti-gaming rule that rejects a decrease while retention is degraded. The
+  manifest declares `module: External`; the selector never consults it.
+  COMPOUNDS SF-009: even pointed at the right file, the parser cannot resolve
+  EXTENDS, so any view reports fewer variables than the model has. Between them
+  the ledger CANNOT measure a decomposed model -- it can only ever report a
+  decrease, on the architecture the skill mandates.
+- workaround_applied: NONE. No override was attempted (there is none by design),
+  `--accept-new` was not used, and no retention verdict was softened. The MF-023
+  spec ticket is left OPEN and the ticket stops at PR-open rather than
+  self-merging, because the owner's self-merge authorization is conditional on
+  the ticket being closed and the matrix green.
+- recommendation: honor the manifest's declared `module:` (and
+  `internal_module:`/`core_module:`) when selecting the model to measure; refuse
+  rather than guess when no declaration resolves. A ledger that silently measures
+  a different module than the one the manifest names is reporting a number about
+  a file nobody asked about. FILE AGAINST THE SKILL.
+- status: open
