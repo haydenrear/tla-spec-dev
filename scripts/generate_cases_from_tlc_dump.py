@@ -840,20 +840,21 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def enforce_complexity_gate(
+def advise_complexity(
     tla_path: Path,
     cfg_path: Path,
     spec_dir: Path,
-    *,
-    allow_over_budget: bool,
 ) -> None:
-    """Refuse to generate cases for a model that exceeds its manifest budgets.
+    """Print the complexity scan as ADVICE before generating cases (MF-036).
 
-    Generation is the expensive step: TLC has to explore the whole reachable
-    state graph before a single case exists. Above budget that is not slow, it
-    is unbounded, so the useful behavior is to stop and name the dominant
-    dimensions rather than time out. ``--allow-over-budget`` is the explicit,
-    recorded override.
+    Complexity is a scanner, not a gate
+    (references/architecture_tractability.md, "Advisory, Not Blocking").
+    Generation ALWAYS proceeds: a dense model is a finding the agent should
+    read, not a blocked build. The scan runs first only so its warnings and
+    recommendations appear before the (potentially long) TLC exploration, never
+    to refuse it. A model the scan cannot analyze is surfaced the same way --
+    reported, not refused -- because TLC may handle a model the static scanner
+    cannot.
     """
     manifest_path = spec_dir / "spec_manifest.yaml"
     try:
@@ -862,29 +863,23 @@ def enforce_complexity_gate(
         from analyze_complexity import gate_report  # type: ignore[no-redef]
 
     try:
-        passed, message = gate_report(
+        clean, message = gate_report(
             tla_path, cfg_path, manifest_path if manifest_path.is_file() else None
         )
-    except Exception as exc:  # a gate that cannot parse must not block generation
-        print(f"warning: complexity gate could not analyze {tla_path}: {exc}", file=sys.stderr)
+    except Exception as exc:  # a scan that cannot parse must not block generation
+        print(f"warning: complexity scan could not analyze {tla_path}: {exc}", file=sys.stderr)
         return
 
-    if passed:
+    if clean:
         print(message)
         return
     print(message, file=sys.stderr)
-    if allow_over_budget:
-        print(
-            "\nPROCEEDING ANYWAY -- overridden by --allow-over-budget.",
-            file=sys.stderr,
-        )
-        return
     print(
-        "\nREFUSING to generate cases. Re-run with --allow-over-budget to override once "
-        "the cost is understood.",
+        "\nProceeding with case generation -- complexity is advisory and does not block. "
+        "Consider the recommendations above (references/architecture_tractability.md, "
+        "'Advisory, Not Blocking').",
         file=sys.stderr,
     )
-    raise SystemExit(2)
 
 
 def main() -> int:
@@ -927,14 +922,6 @@ def main() -> int:
             "model or spec change."
         ),
     )
-    parser.add_argument(
-        "--allow-over-budget",
-        action="store_true",
-        help=(
-            "Generate cases even when the complexity gate fails. Explicit override: "
-            "without it, generation refuses above budget instead of exhausting TLC."
-        ),
-    )
     args = parser.parse_args()
 
     tla_path = resolve_existing_from_cwd(args.tla)
@@ -953,10 +940,10 @@ def main() -> int:
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
 
-    # Complexity gate (MF-011). Runs BEFORE run_tlc_dump: the whole point is to
-    # refuse with the dominant dimensions rather than let TLC exhaust itself on
-    # a model that was never going to finish.
-    enforce_complexity_gate(tla_path, cfg_path, spec_dir, allow_over_budget=args.allow_over_budget)
+    # Complexity scan (MF-011, made advisory in MF-036). Runs BEFORE
+    # run_tlc_dump only so the warnings and recommendations print ahead of the
+    # TLC exploration. It never refuses generation -- complexity is advisory.
+    advise_complexity(tla_path, cfg_path, spec_dir)
 
     run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
     states, edges = load_dot(dot_path)

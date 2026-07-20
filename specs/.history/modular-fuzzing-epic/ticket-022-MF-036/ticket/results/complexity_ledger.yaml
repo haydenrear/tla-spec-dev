@@ -1,0 +1,133 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "TODO"
+    evidence: "TODO -- path to the kill-test report"
+  effect_conformance:
+    status: "TODO"
+    evidence: "TODO -- path to the effect-conformance report"
+  external_coverage:
+    status: "TODO"
+    evidence: "TODO -- path to the external coverage report"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Zero-delta ticket. No complexity reduction was sought or made: this is a
+    scripts-only change (analyze_complexity.py, generate_cases_from_tlc_dump.py,
+    references/modular_fuzzing.md) that converts the complexity check from a hard
+    gate into advisory warnings. The TLA+ model is byte-identical to MF-030 and
+    TLC reports the same 231,621 distinct states / depth 25 (bound 699,840
+    unchanged). The recursive-refinement search for a further architectural
+    reduction found none applicable, because the ticket's objective was to STOP
+    the tooling from blocking promotion on complexity, not to reduce complexity.
+    The one measurement-accuracy correction -- the v'=v frame-condition R/W fix
+    -- reduces over-reported coupling in the scanner but does not change this
+    model's own bound or reachable-state count (the model uses UNCHANGED tuples,
+    which were already stripped; the fix matters for models that write explicit
+    frame conditions, e.g. the recorded GodObjectCli probe).
+  measured: true       # TLC run produced the figure (231,621 distinct / depth 25)
+  applied: false       # no architectural change applied
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  MF-036 makes the complexity check ADVISORY. A probe built a plain 5-variable,
+  10-command god-object CLI (recorded under results/probe/GodObjectCli.tla) and
+  ran `analyze complexity`; it HARD-FAILED with "component C1 is touched by 10
+  actions, exceeding max_component_actions 8" (exit 1). Any program with more
+  than eight commands over shared state failed the same way -- i.e. most real
+  programs. Per owner direction 2026-07-20 and references/architecture_tractability.md
+  ("Advisory, Not Blocking"), complexity is a scanner, not a gate.
+
+  What changed (scripts only, zero TLA delta):
+  (1) Every complexity threshold breach -- state-space bound, component
+      variables, component actions, and the TLC distinct-states check -- is now
+      an advisory WARNING that names the component/variable/action and RECOMMENDS
+      a concrete move (e.g. "split the densest state <v> into its own
+      component"). `analyze complexity` exits 0 whenever it can analyze the
+      model; it exits nonzero ONLY when it CANNOT analyze it (the MF-030
+      fail-closed on an unresolved EXTENDS/INSTANCE hierarchy). "I could not
+      measure this" stays an error; "this is complex" is now a finding.
+  (2) Case generation no longer refuses above threshold. `enforce_complexity_gate`
+      became `advise_complexity`: it prints the warnings and proceeds. The
+      `--allow-over-budget` override was removed entirely -- there is no gate
+      left to override.
+  (3) Frame-condition accuracy fix: `v' = v` (the written-out form of UNCHANGED)
+      was counted as a read AND a write, so every variable an action leaves alone
+      showed as coupled to it. It is now stripped. On the GodObjectCli probe this
+      drops the over-reported god-state from all five variables at 10/10 to the
+      real coupling (only the shared `status` at 10/10; the four domain vars at
+      3/3/2/2), and the R/W interaction graph de-densifies from the complete
+      graph (10 edges) to a star (4 edges).
+
+  Evidence integrity is untouched: no case is dropped, no effect gap suppressed,
+  no finding silenced. The kill-test mutant inv-SpecUnitTestsRequireAnalyzedGate
+  was kept (its `find` pattern retargeted to the renamed variable) so that
+  bypassing the scan -- which would silence the warnings -- is still a killable
+  breach. The corpus case caps (corpus_diagnostics.py) and the faithfulness
+  oracles remain as they were; un-gating those is out of this ticket's scope
+  (MF-033 and later).
+
+  Acceptance proof (results/): the probe model now emits the exact "C1 touched by
+  10 actions" finding as a WARNING with a recommendation and exits 0
+  (probe/analyze-complexity-after.txt); this repository's own model, which
+  previously failed "C1 touched by 14 actions", now emits the same warning and
+  promotes cleanly (repo-model-analyze-complexity-after.txt). Delta vs MF-030 is
+  zero: bound 699,840, distinct 231,621, depth 25 (tlc.txt). Retention oracles
+  (kill_rate/effect_conformance/external_coverage) were not re-run because the
+  model is byte-identical to MF-030; behavior retention is witnessed by the
+  identical TLC run rather than by a fresh oracle pass, and no complexity
+  decrease is claimed that would require them.

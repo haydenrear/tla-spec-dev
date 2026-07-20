@@ -98,9 +98,9 @@ Default component-size heuristics (tunable per program, see "Budgets"):
 at most ~6 state variables, ~8 actions, and 2 instances of any symmetric
 actor per component model. A component above that gets cut again.
 
-When the gate still fails — abstraction would lose bug-catching power, or
-the R/W matrix is too dense for any narrow cut — read
-`references/architecture_tractability.md`. It defines the three moves
+When the scan still warns and no clean cut is available — abstraction would
+lose bug-catching power, or the R/W matrix is too dense for any narrow cut —
+read `references/architecture_tractability.md`. It defines the three moves
 (abstract, decompose, refactor), the diagnostics that choose among them,
 and the creative representations for pieces that score poorly but must
 exist in their current form. All three moves are recommendations the user
@@ -129,8 +129,9 @@ budgets:
 `max_distinct_states` and `max_state_space_bound` measure different things and
 are not interchangeable.
 
-`max_state_space_bound` gates the **static** state-space upper bound reported
-by `analyze complexity`: the product of the declared cardinality of every
+`max_state_space_bound` is the **advisory threshold** for the **static**
+state-space upper bound reported by `analyze complexity`: the product of the
+declared cardinality of every
 bounded dimension in `TypeInvariant`. That figure is a Cartesian
 over-approximation of the *declared representation* -- it ignores every action
 guard, so it counts combinations the program can never occupy, and it routinely
@@ -141,18 +142,30 @@ is derived from measured TLC throughput on a model of realistic expression cost
 (~16,000 distinct states/sec, so ~1.9M within the 120s budget), rounded down
 for slower hardware and more expensive models.
 
-`max_distinct_states` caps the **actual reachable** states TLC finds. It can
-only be checked after a run, so `analyze complexity` applies it when a TLC
-report is supplied via `--tlc-report`.
+`max_distinct_states` is the advisory threshold for the **actual reachable**
+states TLC finds. It can only be checked after a run, so `analyze complexity`
+compares against it when a TLC report is supplied via `--tlc-report`.
 
-Gating the static bound against `max_distinct_states` is a category error: it
-fails models that are comfortably within their real budget. This was MF-011's
-behavior and MF-022 corrected it.
+Comparing the static bound against `max_distinct_states` is a category error: it
+would warn about models that are comfortably within their real reachable budget.
+This was MF-011's behavior and MF-022 corrected it, so each threshold now
+measures the figure it was meant for.
 
-Budgets are hard gates, not aspirations. A component model over budget is
-decomposed or re-abstracted, never waited on. The 120-second TLC rule in
-`SKILL.md` is the `tlc_seconds` default, and everything it says about
-diagnosing state explosion before changing the model applies here.
+**Complexity thresholds are advisory, not gates (MF-036).** A component model
+over threshold produces a *warning and a recommendation* — decompose or
+re-abstract — that names the component, variable, or action and a concrete move.
+It **never blocks promotion, never refuses case generation, and never drives a
+nonzero exit.** Complexity is a scanner: it tells the agent where the model is
+dense so the owner can decide, with the user, whether to refactor. See
+`references/architecture_tractability.md`, "Advisory, Not Blocking", which is
+the governing doctrine and supersedes the older hard-gate framing. The 120-second
+TLC rule in `SKILL.md` is the `tlc_seconds` default, and everything it says about
+diagnosing state explosion before changing the model still applies as guidance.
+
+The single exception is not a complexity gate at all: `analyze complexity` exits
+nonzero only when it **cannot analyze** the model — an unresolved `EXTENDS`
+hierarchy (the MF-030 fail-closed). "I could not measure this" is a genuine
+error; "this model is complex" is a finding. Only the former is nonzero.
 
 This analysis is mechanized. Run it and attach the report to the ticket's
 `results/` evidence:
@@ -165,19 +178,22 @@ tla-spec-dev analyze complexity path/to/Model.tla path/to/MC.cfg \
 It prints the dimension table, the state-space upper bound with its dominant
 dimensions, the variables x actions read/write matrix, the graph-modularity
 score with near-decomposable clusters and candidate port-crossing actions,
-and any variables lacking a justification linkage. It exits nonzero when the
-model exceeds `max_state_space_bound`, `max_component_variables`, or
-`max_component_actions`, and case generation refuses above the gate unless
-given `--allow-over-budget`.
+and any variables lacking a justification linkage. When the model exceeds
+`max_state_space_bound`, `max_component_variables`, `max_component_actions`, or
+(with `--tlc-report`) `max_distinct_states`, it emits an advisory **warning**
+that names the component/variable/action and **recommends** a concrete move —
+but it still exits 0, and case generation still proceeds. The warnings are the
+product; the old exit-nonzero-to-block was an over-promise (MF-036).
 
-*Amended 2026-07-18 — `--allow-over-budget` is withdrawn.* An override flag
-on a complexity gate is degeneracy: it converts a hard limit into a
-suggestion, and it is reached for under exactly the budget pressure that
-makes exceeding the limit dangerous. Over the gate, the architecture
-changes. A program that genuinely needs more room gets its budget raised
-explicitly in `spec_manifest.yaml` with a recorded rationale, which is
-visible and reviewable in a way a command-line flag never is. Removing the
-flag from the shipped code is tracked as its own amendment ticket.
+*History.* The complexity check was originally a hard gate with an
+`--allow-over-budget` override. The override was withdrawn on 2026-07-18 as
+degeneracy (an override flag turns a hard limit into a suggestion), and then on
+2026-07-20 owner direction reframed the whole check as **advisory** after a
+probe showed the gate hard-failed an ordinary 5-variable / 10-command CLI —
+i.e. most real programs. There is no override flag now because there is nothing
+to override: nothing blocks. A program that wants to record a tighter or looser
+threshold still does so in `spec_manifest.yaml`, and that value tunes the
+advisory warning rather than a build-breaking gate.
 
 It also emits a **suggested move** — abstract, decompose, or refactor. That
 is a recommendation requiring user approval, never an automatic change; see
