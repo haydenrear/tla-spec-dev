@@ -312,12 +312,21 @@ inventory now matches the decomposed model.
 | `--allow-over-budget` | **No.** Without it generation refuses, exit 2, naming the failing components (`gen-internal-refusal.txt`) | Yes -- refusal text names the flag | Correct. Used once, deliberately, recorded in `gen-internal-override.txt` |
 | Case-cap override | **Does not exist.** Generation refused the over-cap corpus *even with* `--allow-over-budget` -- the flag covers only the complexity gate, exactly as modeled | Yes | Correct |
 | Kill-test floor waiver | **Does not exist.** No flag skips the control run | Yes | Correct |
-| Budgets fallback | Fires when the manifest is unreadable | **Yes -- always warns**, distinguishing "no readable spec manifest" from "budgets block is missing keys", and names the source | **Not silent**, contrary to the risk MF-013 flagged. But it still substitutes defaults and continues, and the VERDICT then reads as authoritative. Recommend refusing on *unparseable* while defaulting only on *absent* |
+| Budgets fallback, `analyze complexity --manifest <path>` | Fires when the named manifest is unreadable | **Yes -- warns**, distinguishing "no readable spec manifest" from "budgets block is missing keys", and names the source | Visible. Still substitutes defaults and continues, and the VERDICT reads as authoritative. Recommend refusing on *unparseable* while defaulting only on *absent* |
+| Budgets fallback, `analyze corpus` with **no** `--manifest` | **YES -- THIS IS THE DEFAULT PATH** | **NO. Completely silent.** | **FIRST-CLASS FINDING -- see FINDING 9** |
 
-**No override turned out to be a silent default.** The one silent degradation
-found is not an override at all -- it is FINDING 1, where the static bound gate
-disables itself on correct input with no warning whatsoever. That is worse than
-a silent default flag, because there is no flag to audit.
+**One override did turn out to be a silent default**, and it was found by the
+coverage audit rather than by the escape sweep in this section. The sweep's
+original conclusion -- "no override turned out to be a silent default" -- was
+**WRONG**, and is corrected in FINDING 9 rather than quietly amended. The error
+is instructive: the sweep tested `analyze complexity --manifest <bad path>`,
+which warns loudly, and generalized from it to "the budgets fallback is not
+silent". It never tested the path where the flag is simply **omitted**, which is
+both the silent one and the one an agent hits by default.
+
+A second silent degradation, not an override at all, is FINDING 1: the static
+bound gate disables itself on correct input with no warning whatsoever. That is
+worse than a silent default flag, because there is no flag to audit.
 
 ---
 
@@ -338,3 +347,65 @@ Absence of a result is not a result.
   complete. The example's External model is refused by the complexity gate
   (`C2 touched by 9 actions`), reproduced in this ticket. Pre-existing; the
   example runner remains unusable.
+
+
+---
+
+## FINDING 9 — `analyze corpus` gates against built-in defaults, silently, when `--manifest` is omitted
+
+**This is the silent default the ticket asked to be hunted for, and the escape
+sweep in this document initially missed it.** Found by the MF-026 coverage audit
+re-run (escalation E-7), then reproduced directly.
+
+`scripts/corpus_diagnostics.py:541`:
+
+```python
+budgets = load_budgets(manifest_path, warn=warn) if manifest_path else load_budgets(Path("__missing__"), warn=False)
+```
+
+When no manifest is supplied, the corpus cap gate loads `DEFAULT_BUDGETS` with
+warnings **explicitly suppressed** -- `warn=False`, unconditionally, not
+inherited from the caller's `warn`.
+
+Reproduced (`override-silent-default.txt`):
+
+```
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze corpus <package> --view internal
+corpus gate FAIL: 14304 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: <package path>
+[...]
+
+$ ... | grep -ci "warning\|default"
+0
+```
+
+Zero occurrences of "warning" or "default" anywhere in the output. The gate
+prints `cap max_internal_cases_per_component = 200` exactly as it would if that
+number came from the negotiated manifest, and the VERDICT reads as authoritative.
+
+Why this is the worst shape of escape, by this epic's own doctrine:
+
+- **It is the default path.** Every other override in the toolchain requires the
+  agent to type something (`--allow-over-budget`). This one is what happens when
+  the agent says **nothing**. `references/architecture_tractability.md` states
+  overrides "must not make degradation what happens when the agent says
+  nothing" -- this one does exactly that.
+- **It is invisible.** There is no line in the output to audit, so it cannot be
+  caught in review of the evidence. Compare `--allow-over-budget`, which is
+  explicit, loud, and recorded.
+- **It silently discards a negotiated budget.** `max_distinct_states` was
+  negotiated 50000 -> 500000 with a recorded derivation. A gate reading defaults
+  is not reading that negotiation, and says so nowhere.
+- **It is the same defect MF-013 already found once**, in the same helper. MF-013
+  found `analyze complexity` silently falling back because the manifest was
+  invalid YAML, called it "precisely the conditional check that silently
+  disables itself when its input is absent that rule 5 forbids", and fixed the
+  YAML. The `warn=False` call site was not found then and has been live
+  throughout.
+
+**Not fixed here** -- this ticket declares no production scope (`conflict_keys.production: []`).
+**Recommendation (owner approval):** make the absent-manifest path either resolve
+the manifest from the spec root (the CLI knows it -- `--spec-root` is a global
+argument) or refuse. `warn=False` should not be reachable from a gate at all: a
+budget the user did not declare is a budget the user did not agree to, and a
+gate that does not say which budgets it used has not reported its verdict.
