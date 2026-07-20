@@ -166,7 +166,55 @@ Refactor target shapes (for when the user approves):
 - explicit protocol state instead of implicit coordination — status fields
   and queues model tractably; shared mutable rows and polling do not.
 
+## Advisory, Not Blocking (governing reframe, 2026-07-20)
+
+**This reverses the hard-gate framing below, and outranks it.** Added by owner
+direction after a probe measured what the complexity gate does to ordinary
+programs: a 5-variable, 10-command model — an unremarkable CLI over shared
+state — hard-failed promotion, because `component C1 is touched by 10 actions`
+exceeds the cap of 8. Any program with more than eight commands over shared
+state fails. That is most real programs. As a hard gate, the complexity metric
+fails in nearly every user's project instead of helping them.
+
+The correction: **complexity is a scanner, not a gate.** It produces metrics,
+warnings, and recommendations, and tells the agent where to refactor. **It
+never blocks promotion.** The useful content — the dimension table, the
+state-space bound, the R/W matrix, the modularity score, dense-row / god-state
+detection, the suggested moves — was always the point; the exit-nonzero that
+sat on top of it was an over-promise.
+
+Rules, superseding the hard-gate rule (rule 5 below):
+
+- **Nothing blocks promotion.** Not the state-space bound, not the
+  component-size heuristics, not the kill rate, not effect conformance. Every
+  check emits warnings and recommendations. A gate is *earned*, per check, only
+  once real-app validation shows it is trustworthy enough to block on — and
+  until then it advises.
+- **A warning names what and where, and recommends.** "Component C1 is touched
+  by 10 actions; consider splitting X and Y to their own component" — not
+  "FAIL, exit 1". The agent decides, with the user, whether to act.
+- **Complexity minimization is still the objective** — the agent should
+  refactor complexity out when the scan says so. The difference is that the
+  scan *advises* the refactor rather than *forcing* it by refusing to ship.
+- **Faithfulness checks (effect conformance, kill test) advise too, for now.**
+  They test whether the model represents the program, which is a stronger claim
+  than "too complex" — but the owner has not yet seen them help on a real app,
+  so they report rather than block until MF-037 and real-app testing prove
+  them.
+
+**What does NOT change: evidence integrity.** A scanner fed doctored input is
+worthless, so the anti-degeneracy rules below still hold as *rules about not
+corrupting the measurement* — do not drop cases, suppress an effect gap, or
+silence a finding, because that lies to the scan. The distinction is now sharp:
+you may not falsify the measurement (evidence integrity, hard), but the
+measurement may not block you (advisory, not a gate). "Never game the metric by
+removing evidence" survives; "the metric fails your build" does not.
+
 ## No Degenerate Escapes
+
+*Historical framing, retained for the reasoning. The hard-gate conclusion is
+superseded by "Advisory, Not Blocking" above; the evidence-integrity reasoning
+still holds.*
 
 Added 2026-07-18 by owner direction, after an audit found the same defect in
 several places at once: **every hard rule had grown a documented bypass.**

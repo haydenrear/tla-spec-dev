@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 13
+  schedule_revision: 14
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-030
-  active_ticket_title: "Resolve EXTENDS in the complexity analyzer"
+  active_ticket: MF-036
+  active_ticket_title: "Make complexity advisory: warnings and recommendations, never blocks promotion"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1527,8 +1527,8 @@ tickets:
     depends_on: [MF-029]
     blocks: [MF-023]
     wave: 10
-    promotion_order: 87
-    promotion_predecessor: MF-030
+    promotion_order: 88
+    promotion_predecessor: MF-036
     conflict_keys:
       production: [specs/program_model/production_adapters.py]
       tla: []
@@ -1564,7 +1564,7 @@ tickets:
     depends_on: [MF-031]
     blocks: [MF-023]
     wave: 10
-    promotion_order: 88
+    promotion_order: 89
     promotion_predecessor: MF-031
     conflict_keys:
       production: [specs/program_model/production_adapters.py, scripts/run_generated_case_adapters.py]
@@ -1603,7 +1603,7 @@ tickets:
     depends_on: [MF-032]
     blocks: [MF-023]
     wave: 10
-    promotion_order: 89
+    promotion_order: 90
     promotion_predecessor: MF-032
     conflict_keys:
       production: [scripts/effect_conformance.py]
@@ -1640,7 +1640,7 @@ tickets:
     depends_on: [MF-029]
     blocks: []
     wave: 10
-    promotion_order: 90
+    promotion_order: 91
     promotion_predecessor: MF-033
     conflict_keys:
       production: [scripts/corpus_diagnostics.py, scripts/generate_cases_from_tlc_dump.py]
@@ -1677,7 +1677,7 @@ tickets:
     depends_on: [MF-029]
     blocks: []
     wave: 10
-    promotion_order: 91
+    promotion_order: 92
     promotion_predecessor: MF-034
     conflict_keys:
       production: [scripts/corpus_diagnostics.py, scripts/close_ticket.py]
@@ -1707,22 +1707,22 @@ tickets:
       evidence: []
 
   - id: MF-036
-    title: "Decide the component-size metric"
+    title: "Make complexity advisory: warnings and recommendations, never blocks promotion"
     status: pending
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/61"
     schedule_revision: 1
     depends_on: [MF-030]
     blocks: [MF-023]
     wave: 10
-    promotion_order: 92
-    promotion_predecessor: MF-035
+    promotion_order: 87
+    promotion_predecessor: MF-030
     conflict_keys:
       production: [references/modular_fuzzing.md, scripts/analyze_complexity.py]
       tla: []
       adapters: []
       test_graph: []
       workflow: []
-    objective: "DESIGN DECISION, not a bug fix. MF-023 proved max_component_actions: 8 is UNSATISFIABLE BY ANY PARTITION of this model -- the singleton {setup_phase} alone is touched by 12 of 14 actions. The metric counts commands, not coupling, so no cut can satisfy it and the gate can never pass. This is one of MF-012 documented budget defaults, so changing it ripples into the doctrine and every scaffolded project. Options include measuring coupling rather than command count, scoping the count to writes rather than reads, or making it advisory while the state bound stays hard. Requires owner approval before implementation; produce the analysis and the recommendation, do not unilaterally change the doctrine."
+    objective: "GOVERNING REFRAME (owner direction 2026-07-20), pulled to the front of the remaining work. A probe measured what the complexity gate does to ordinary programs: a 5-variable 10-command model, an unremarkable CLI over shared state, HARD-FAILED promotion because component C1 is touched by 10 actions exceeding the cap of 8. Any program with more than eight commands over shared state fails, which is most real programs, so as a hard gate the complexity metric fails in nearly every user project instead of helping. Complexity is a SCANNER, not a gate: it produces metrics, warnings and recommendations and tells the agent where to refactor, and it NEVER blocks promotion. Remove every complexity hard-fail -- analyze complexity exit-nonzero-to-block, case generation refusing above-gate, the component-size and bound checks that exit 1 -- and convert each to a warning that names what and where and recommends a move. Also fix the scanner-accuracy bug the probe found: v-prime-equals-v frame conditions are counted as touched, over-reporting coupling so every UNCHANGED variable shows as touched by every action. Keep the good scanner content that already exists: dimension table, state-space bound, R/W matrix, modularity score, dense-row god-state detection, suggested moves. What does NOT change is evidence integrity -- no dropping cases, no suppressing effect gaps, no silencing findings, because a scanner fed doctored input is worthless. See references/architecture_tractability.md Advisory Not Blocking. This resolves the everyone-fails-to-promote risk at its root."
     desired_actions: []
     implementation_scope: [references/modular_fuzzing.md, scripts/analyze_complexity.py]
     current_increment:
@@ -1738,10 +1738,12 @@ tickets:
       commands:
         - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-036
       assertions:
-        - the analysis states precisely why the current metric is unsatisfiable, with the per-variable action counts.
-        - at least two alternative formulations are evaluated against this repository and the shipped example.
-        - a recommendation is made and RECORDED FOR OWNER APPROVAL; the doctrine is not changed unilaterally.
-        - if the recommendation is to keep the metric and treat the failure as a true finding, that is stated with its consequence for MF-023.
+        - no complexity check exits nonzero to block promotion, refuses case generation, or fails a close; each emits a warning and a recommendation instead.
+        - a warning names the component/variable/action and recommends a concrete move, rather than only reporting a threshold breach.
+        - the frame-condition bug is fixed -- a variable left UNCHANGED by an action is NOT counted as touched by it; the probe 10-of-10 god-state over-report drops to the real coupling.
+        - the existing scanner content (dimension table, bound, R/W matrix, modularity, dense-row detection, suggested moves) is preserved and still produced.
+        - evidence integrity is untouched: no case dropped, no effect gap suppressed, no finding silenced -- those remain hard because they corrupt the measurement.
+        - the probe 5-variable 10-command model, and this repository own model, now produce a complexity REPORT rather than a promotion failure; the reports are recorded as evidence.
       evidence: []
 
   - id: MF-023
@@ -1753,14 +1755,14 @@ tickets:
     blocks: []
     wave: 9
     promotion_order: 95
-    promotion_predecessor: MF-036
+    promotion_predecessor: MF-035
     conflict_keys:
       production: []
       tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
       adapters: [specs/program_model/production_adapters.py]
       test_graph: [specWorkflow, cliWorkflow]
       workflow: []
-    objective: "Perform the Internal/External decomposition this repository has carried as a known gap since the epic began — but perform it BY RUNNING THE FINISHED TOOLCHAIN ON THIS REPOSITORY ITSELF, not by hand. Every mechanism the epic built is exercised end-to-end on a real target for the first time: analyze complexity proposes the cut from the R/W matrix and modularity score, corpus distillation produces the case corpus, effect conformance validates the side-effect contracts at the new ports, External channel enforcement checks the channel-authentic bindings, and the mutation kill test proves the decomposed models are not shrunk past usefulness. The decomposition is the deliverable; the dogfooding is the acceptance test of the epic. Where a tool proves inadequate to its own repository, that finding outranks completing the migration — record it rather than working around it by hand. Motivating trigger: MF-011's component-size heuristics fail on the undecomposed model (C1 touched by 11 actions vs max_component_actions 8), which is a true finding this ticket resolves at the root. See tickets/023-decompose-via-dogfooding.md and references/migration.md."
+    objective: "Dogfood the ADVISORY toolchain on this repository: run the complexity scanner and the fuzzing oracles, produce the report, and BLOCK ON NOTHING. Under the 2026-07-20 reframe (references/architecture_tractability.md Advisory Not Blocking) the Internal/External decomposition is a RECOMMENDATION the scanner may emit, not a migration forced by a gate. Take the refactors that are genuinely worth taking and record the ones you decline with the reason; the point is a real report from a real run, not a completed migration. Every deferred spec-case run still happens here -- case generation, corpus, effect conformance, kill test -- but their verdicts are advisory, so an unobservable or below-floor or incomplete result is a recorded finding rather than a failure. The open PR #50 holds the earlier gated attempt; do not treat its FAIL verdicts as blocking under the new regime. See tickets/023-decompose-via-dogfooding.md."
     desired_actions: []
     implementation_scope:
       - specs/program_model/ (Core.tla / Internal.tla / External.tla split)
@@ -1809,7 +1811,7 @@ tickets:
       adapters: []
       test_graph: []
       workflow: []
-    objective: "FINAL VALIDATION, and the only one that tests the toolchain on shapes other than this repository. MF-023 dogfoods against tla-spec-dev itself, which is ONE shape; real users arrive with others. Scaffold three example projects and then dispatch real agents at them doing real tickets, checking each performs AS EXPECTED, repeated until confident. (1) SCAFFOLD-ONLY -- instructions for scaffolding a spec workflow, testing the entry path a new user hits first. (2) TICKET WORKFLOW -- like examples/distributed_history, creating a ticket spec workflow end to end. Note run_distributed_history_validation.py --mode local currently CANNOT COMPLETE because the example External model is refused by the complexity gate (C2 touched by 9 actions, verified pre-existing), so that must be resolved first or the example is unusable. (3) DELIBERATELY OVER-COMPLEX PROJECT -- the agent must LOWER the complexity of the diagram. This is the sharpest and most falsifiable test in the plan: complexity must go DOWN while behavior is retained, and AN AGENT THAT RAISES A BUDGET OR WAIVES A GATE INSTEAD HAS FAILED THE VALIDATION, NOT THE EXAMPLE. Define expected behavior per example BEFORE dispatching, so as-expected is a prediction rather than a post-hoc reading. Owner rationale: correctness the first time is worth extra validation, and the epic gates value is entirely in whether agents actually behave correctly under them."
+    objective: "FINAL VALIDATION, and where advisory checks EARN the right to become gates. Now tests TWO questions on shapes other than this repository. (1) Is the complexity SCANNER useful -- does it correctly identify where complexity concentrates, and does the agent, ADVISED by it, choose to refactor? The over-complex example tests whether the scan INDUCES the refactor, a behavior we hope the advice produces, NOT whether a gate forces it; an agent that reads the warning and refactors is a success, an agent that ignores a correct warning is a finding about the advice. (2) Is the modular FUZZING helpful on real apps -- does effect conformance or the kill test catch anything real the owner did not already know? Scaffold three projects (scaffold-only, ticket-workflow, deliberately over-complex), define expected agent behavior BEFORE dispatching, dispatch real agents doing real tickets, run each more than once, and file toolchain findings rather than fixing them inline. Owner rationale: nothing blocks promotion until real-app validation shows a check is trustworthy enough to gate on, and this is that validation. See tickets/026 lineage and the epic handoff."
     desired_actions: []
     implementation_scope:
       - examples/ (three scaffolded projects)
