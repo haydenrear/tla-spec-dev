@@ -459,6 +459,26 @@ epic:
     case generation, which the miscalibrated gate currently refuses.
     Component-size heuristics are unaffected and working correctly.
 
+    2026-07-21: PIVOT -- the modular-fuzzing epic is concluded as SOLID
+    DISCOVERY. Validation project 1 (of MF-037) found the complexity scanner's
+    SUGGESTED MOVES are confidently wrong on standard TLA+ (F1: composed/aliased
+    invariants make it recommend projecting away all variables; the scaffold's
+    own External view triggers it). Combined with the earlier findings that
+    fuzzing catches 0/9 content bugs (MF-038) and complexity gates fail every
+    normal program (the MF-036 probe), the owner concluded: we went too far too
+    fast, suggestions are not ready and may never be automated. MF-037 projects
+    2 and 3 are NOT run -- they would validate a direction now abandoned;
+    project 1 was sufficient discovery. MF-037 marked done as discovery.
+    NEXT EPIC "complexity-descriptor" (branch epic/complexity-descriptor off
+    this tip to inherit the scanner): (1) remove suggested moves and ship a
+    factual complexity DESCRIPTOR, fixing the F1 invariant-aliasing and F3
+    bound-degeneracy accuracy bugs; (2) a complexity INTUITION doc on what good
+    and bad descriptors look like, framed as refactor input; (3) self-
+    configurable, composable FITNESS FUNCTIONS over the descriptor that notify
+    future agents, experimental. Issues #71 (CD-01 descriptor), #72 (CD-02 intuition), #73 (CD-03 fitness functions); starter COMPLEXITY-DESCRIPTOR-EPIC.md
+    at repo root. The advisory scanner and honest docs from this epic are the
+    foundation the next epic builds on.
+
 planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
@@ -472,8 +492,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-037
-  active_ticket_title: "Validate the complexity scanner on three real projects"
+  active_ticket: none-epic-concluded-as-discovery
+  active_ticket_title: "Epic concluded as discovery; next epic is complexity-descriptor"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1855,7 +1875,7 @@ tickets:
 
   - id: MF-037
     title: "Three validation projects run by real agents doing real tickets"
-    status: pending
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/62"
     schedule_revision: 1
     depends_on: [MF-023]
