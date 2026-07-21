@@ -516,3 +516,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-033
+
+- close_scope: ticket
+- close_id: MF-033
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-21T02:12:02+00:00
+- summary: Effect oracle observes out-of-process child effects via WorkingTreeObserver snapshot diff; MF-027 polarity preserved; cost report recommends running oracles advisorily.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

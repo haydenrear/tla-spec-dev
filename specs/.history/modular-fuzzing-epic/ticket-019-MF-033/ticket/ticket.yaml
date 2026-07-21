@@ -1,0 +1,108 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-033",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "effect conformance produces a clean or gap verdict -- not unobservable -- for this repository own corpus, or the residual unobservable surface is named precisely with the reason.",
+        {
+          "MF-027 polarity is preserved": "unrecognised runtimes still refuse rather than pass, and no flag downgrades an unobservable verdict."
+        },
+        "the five declared ports are either observed by a case or removed; dead_surface is resolved by evidence rather than by deleting correct declarations."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-033"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/effect_conformance.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-032"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/58",
+    "id": "MF-033",
+    "implementation_scope": [
+      "scripts/effect_conformance.py"
+    ],
+    "objective": "MF-028 moved observed effects 0 -> 6 and the verdict still refuses as unobservable, because every adapter shells out and the sandbox sees only in-process CPython. run() ALONE DOES NOT RESTORE ORACLE 3 -- this is a second axis of work that was absent from the plan. Either route adapter work in-process so the existing sandbox sees it, or add out-of-process observation (subprocess wrapper, syscall capture, or container-level recorder) behind the same port-declaration schema. MF-027 established the polarity that must be preserved: observability is granted only on positive evidence and anything unrecognised REFUSES rather than passing.",
+    "promotion_order": 90,
+    "promotion_predecessor": "MF-032",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Make the effect oracle observe out-of-process work",
+    "wave": 10
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/tickets/MF-033",
+  "ticket_id": "MF-033",
+  "ticket_index": 19,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/specs/tickets"
+}
