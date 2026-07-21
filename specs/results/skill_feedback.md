@@ -492,3 +492,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-031
+
+- close_scope: ticket
+- close_id: MF-031
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-21T00:38:02+00:00
+- summary: MF-031: UpdateTicketDesired/UpdateTicketCurrent adapters made case-executable via ticket-segment materialization; CloseTicket collision characterized as a binding-model limitation
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

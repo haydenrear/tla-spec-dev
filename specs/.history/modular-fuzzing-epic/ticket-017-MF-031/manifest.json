@@ -1,0 +1,613 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-031",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-017-MF-031 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-031'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-017-MF-031"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": 25,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 231621,
+        "before": 231621,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 5619356,
+        "before": 5619356,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-036"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": 25,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 231621,
+          "before": 231621,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 5619356,
+          "before": 5619356,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-036"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-031/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-56-mf031-missing-adapters/specs/tickets/MF-031/results/tlc.txt",
+      "variables": 9
+    },
+    "narrative": "MF-031 writes the two missing adapters (UpdateTicketDesired, UpdateTicketCurrent) and characterizes the CloseTicket label collision. MF-028 measured these two actions as having no adapter anywhere, blocking the ticket segment of the corpus by absence. Both are now case-executable: run() materializes the before-state INCLUDING the ticket lifecycle (open ticket + the two agent edits, replayed as a command prefix per MF-028), recovers the `ticket` argument by MF-029 except-index on ticket_state, performs the modelled agent edit, then projects ticket_state back from the filesystem (never from case.after) and compares field-by-field. Both execute real generated cases end to end (results/case-execution-*.txt), and each carries a negative control PROVEN to fail (results/case-execution-projection.txt): a corrupted after-state makes the ticket_state / lastCommand check disagree, so the check is not vacuous. Re-measured corpus coverage (reduced single-ticket config; the full MC.cfg corpus is 5,619,356 transitions / ~11 GB and intractable to load -- MF-034's surface): the ticket segment is 74.0% of cases (corroborating MF-028's 72.5%), and executability rises from 26.0% (setup-only) to 81.6% (setup + ticket stages 1..3); stages >=4 still refuse honestly, needing the spec-unit/close gate machinery. FINDING: the CloseTicket collision is a binding-model limitation, not an adapter defect -- four classes share action_name=\"CloseTicket\" but the runner binds one adapter per label; the three non-canonical ones are multi-close conformance batteries that cannot be single-case executors, correct as the spec-unit apply() tests they already are (results/closeticket-collision.txt). Zero TLA+ model delta; validation matrix green (TLC 231,621/depth 25, spec-unit, 508 repo units, specWorkflow + cliWorkflow).",
+    "notes": [
+      "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-21T00:38:02.113566+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Zero-delta ticket. No complexity reduction was sought or made: MF-031 touches only production_adapters.py (its spec-unit adapters) and a ticket-local spec-unit test. The TLA+ module and its configs are unchanged; TLC re-measured 231,621 distinct / depth 25, identical to the MF-036 baseline (direction=zero). There is nothing to refine because no representation was added.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the effect-conformance report",
+        "status": "",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the external coverage report",
+        "status": "",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the kill-test report",
+        "status": "",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=(absent) (UNVERIFIED)",
+      "effect_conformance=(absent) (UNVERIFIED)",
+      "external_coverage=(absent) (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-031",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-21T00:38:02.155245+00:00",
+  "entry_name": "ticket-017-MF-031",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/56-mf031-missing-adapters",
+    "commit": "5515210",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-031/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/MF-031/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-031/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-031/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-031/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-031/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-031/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-031/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/MF-031/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-031/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-031"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Zero-delta ticket. No complexity reduction was sought or made: MF-031 touches only production_adapters.py (its spec-unit adapters) and a ticket-local spec-unit test. The TLA+ module and its configs are unchanged; TLC re-measured 231,621 distinct / depth 25, identical to the MF-036 baseline (direction=zero). There is nothing to refine because no representation was added.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/results/case-execution-desired.txt",
+      "source": "specs/tickets/MF-031/results/case-execution-desired.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/results/case-execution-current.txt",
+      "source": "specs/tickets/MF-031/results/case-execution-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/results/case-execution-projection.txt",
+      "source": "specs/tickets/MF-031/results/case-execution-projection.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/results/corpus-coverage.txt",
+      "source": "specs/tickets/MF-031/results/corpus-coverage.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/results/closeticket-collision.txt",
+      "source": "specs/tickets/MF-031/results/closeticket-collision.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the effect-conformance report",
+      "status": "",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the external coverage report",
+      "status": "",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the kill-test report",
+      "status": "",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 14,
+    "close_out_entry": "Close-out ticket MF-031",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-56-mf031-missing-adapters/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket",
+      "source": "specs/tickets/MF-031"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "MF-031: UpdateTicketDesired/UpdateTicketCurrent adapters made case-executable via ticket-segment materialization; CloseTicket collision characterized as a binding-model limitation",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "UpdateTicketDesired and UpdateTicketCurrent adapters exist and execute a generated case end to end, with actual command output as evidence.",
+        "the CloseTicket label collision is resolved or reported as a binding-model limitation with evidence.",
+        "corpus coverage is measured before and after; the 72.5% blocked figure is re-measured rather than assumed."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-031"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-029"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/56",
+    "id": "MF-031",
+    "implementation_scope": [
+      "specs/program_model/production_adapters.py"
+    ],
+    "objective": "UpdateTicketDesired and UpdateTicketCurrent have NO adapter anywhere in production_adapters.py -- zero references, verified. MF-028 measured this as blocking 72.5% of the corpus by absence alone. Write both against the shape MF-028 established (before-state is a command prefix because setup_phase is an ordinal; ~145 shared lines, ~29 adapter-specific). Also resolve the three-way label collision on CloseTicket, where 16 classes cover 13 labels and only 11 bind under one-label-to-one-adapter.",
+    "promotion_order": 88,
+    "promotion_predecessor": "MF-036",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Write the two missing adapters",
+    "wave": 10
+  },
+  "ticket_id": "MF-031",
+  "ticket_index": 17,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket",
+    "source": "specs/tickets/MF-031"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}

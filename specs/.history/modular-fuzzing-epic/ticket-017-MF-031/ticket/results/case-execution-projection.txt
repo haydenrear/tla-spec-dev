@@ -1,0 +1,49 @@
+==============================================================================
+UpdateTicketDesiredAdapter
+==============================================================================
+case: case_0178_update_ticket_desired
+before.ticket_state : {'cli_entrypoint': 1}
+after.ticket_state  : {'cli_entrypoint': 2}
+input.params        : {'ticket': 'cli_entrypoint'}
+recovered ticket (except-index on ticket_state) : 'cli_entrypoint'
+
+POSITIVE RUN (real generated case):
+  CHECKED/agreements : ['complexity_gate', 'corpus_gate', 'effect_conformance', 'kill_test', 'lastCommand', 'result.accepted', 'result.reason', 'setup_phase', 'spec_root', 'ticket_state']
+  UNCHECKED          : ['result.next']
+  disagreements      : []
+  observed ticket_state (from filesystem): {'cli_entrypoint': 2}
+  => conformant: PASS
+
+NEGATIVE CONTROLS (deliberately wrong after-state must FAIL):
+  [FAILS as required] after claims ticket stayed OPENED(1) not DESIRED_READY(2)
+      -> BeforeStateUnreachable: case_0178_update_ticket_desired: ticket argument is not recoverable -- 0 ticket_state indices changed, expected exactly 1
+  [FAILS as required] after claims ticket jumped to CURRENT_READY(3)
+      -> AssertionError: case_0178_update_ticket_desired: projected after-state disagrees with the model -- ticket_state: expected {'cli_entrypoint': 3}, observed {'cli_entryp
+  [FAILS as required] after claims a different lastCommand
+      -> AssertionError: case_0178_update_ticket_desired: projected after-state disagrees with the model -- lastCommand: expected 'WrongCommand', observed 'UpdateTicketDesired
+
+==============================================================================
+UpdateTicketCurrentAdapter
+==============================================================================
+case: case_1621_update_ticket_current
+before.ticket_state : {'cli_entrypoint': 2}
+after.ticket_state  : {'cli_entrypoint': 3}
+input.params        : {'ticket': 'cli_entrypoint'}
+recovered ticket (except-index on ticket_state) : 'cli_entrypoint'
+
+POSITIVE RUN (real generated case):
+  CHECKED/agreements : ['complexity_gate', 'corpus_gate', 'effect_conformance', 'kill_test', 'lastCommand', 'result.accepted', 'result.reason', 'setup_phase', 'spec_root', 'ticket_state']
+  UNCHECKED          : ['result.next']
+  disagreements      : []
+  observed ticket_state (from filesystem): {'cli_entrypoint': 3}
+  => conformant: PASS
+
+NEGATIVE CONTROLS (deliberately wrong after-state must FAIL):
+  [FAILS as required] after claims ticket stayed DESIRED_READY(2) not CURRENT_READY(3)
+      -> BeforeStateUnreachable: case_1621_update_ticket_current: ticket argument is not recoverable -- 0 ticket_state indices changed, expected exactly 1
+  [FAILS as required] after claims a stale setup_phase(4)
+      -> AssertionError: case_1621_update_ticket_current: projected after-state disagrees with the model -- setup_phase: expected 4, observed 5
+  [FAILS as required] after claims a different lastCommand
+      -> AssertionError: case_1621_update_ticket_current: projected after-state disagrees with the model -- lastCommand: expected 'UpdateTicketDesired', observed 'UpdateTicket
+
+ALL POSITIVE RUNS CONFORMANT; ALL NEGATIVE CONTROLS FAILED AS REQUIRED.
