@@ -1,0 +1,93 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+# Zero-delta, docs-only ticket: no behavior was added or removed, so there is no
+# complexity DECREASE that needs the three retention members to witness. The
+# fidelity oracles (kill test, effect conformance) were DELIBERATELY NOT RUN as
+# product validation -- the scanner-only reframe (issue #30) drops the fuzzing
+# story, and MF-038 already measured the kill test does not catch content bugs
+# (0/9, 0.31). Left absent intentionally; see narrative.
+retention:
+  kill_rate:
+    status: "TODO"
+    evidence: "N/A -- zero behavior delta; kill test deliberately not run (experimental, not-validated-for-bug-catching per MF-038: 0/9, 0.31)"
+  effect_conformance:
+    status: "TODO"
+    evidence: "N/A -- zero behavior delta; effect conformance deliberately not run as product validation (scanner-only reframe)"
+  external_coverage:
+    status: "TODO"
+    evidence: "N/A -- zero behavior delta; specWorkflow + cliWorkflow green (see graph_*.txt) but not a fuzzing-coverage claim"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "found"
+  detail: >-
+    The scanner (analyze complexity on this repo's model) emitted suggested move
+    ABSTRACT -- project lastCommand and result, which no invariant reads -- plus
+    one advisory warning that component C1 is touched by 14 actions (> cap 8),
+    recommending a split of the densest state or moving the port-crossing actions
+    behind a contract. Both candidates were considered and NOT applied. ABSTRACT
+    yields zero state-space reduction (lastCommand/result are already unconstrained
+    and excluded from the 699,840 bound) and the tool asks it be validated by the
+    kill test, which MF-038 showed does not catch content bugs and which this
+    ticket forbids running as validation. The C1/C2 decomposition is not taken:
+    modularity Q=0.012 shows no clean cut, and cutting there routes 4 already-
+    crossing actions through a contract, raising coupling. C1's density is the
+    irreducible CLI shape (every command records its name + result). Recorded as a
+    finding for the owner rather than refactored. Full reasoning:
+    specs/tickets/MF-023/results/dogfood_decision.md
+  measured: true       # analyze complexity was run on the model; TLC also ran (tlc_current.txt)
+  applied: false       # advisory recommendation; deliberately not applied
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "specs/tickets/MF-023/results/dogfood_decision.md -- MF-023 dogfooded the complexity scanner on tla-spec-dev's own model (bound 699,840, modularity Q=0.012, suggested move ABSTRACT, one advisory C1 warning, exit 0). No refactor was taken; the reasoning (no clean cut; the one abstract move buys no bound reduction and can only be validated by the discredited kill test) is recorded there. Complexity delta is ZERO vs MF-038 -- this is a docs-plus-optional-refactor ticket and no model changed. The substance is Deliverable 2: SKILL.md, references/modular_fuzzing.md, and references/architecture_tractability.md were rewritten to present the scanner as the shipped ADVISORY feature and to demote the modular-fuzzing / oracle / kill-test machinery to EXPERIMENTAL, not-validated-for-bug-catching, citing kill rate 0.31 / 0-of-9 and the Hypothesis-arm stub, and reconciling the older hard-gate / bug-catching text with the advisory reframe. The fuzzing oracles were deliberately NOT run as product validation, per the scanner-only reframe."

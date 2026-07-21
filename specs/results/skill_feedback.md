@@ -540,3 +540,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-023
+
+- close_scope: ticket
+- close_id: MF-023
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-21T12:01:44+00:00
+- summary: MF-023: dogfooded the complexity scanner on this repo (advisory report recorded; suggested move ABSTRACT, modularity Q=0.012, one advisory C1 warning, exit 0); took no refactor with recorded reasoning; rewrote SKILL.md + references/modular_fuzzing.md + references/architecture_tractability.md to present the scanner as the shipped advisory feature and demote the fuzzing/oracle/kill-test machinery to EXPERIMENTAL not-validated-for-bug-catching, citing kill rate 0.31 / 0-of-9 and the Hypothesis-arm stub; zero TLA+ model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

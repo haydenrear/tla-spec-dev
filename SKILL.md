@@ -26,6 +26,40 @@ This skill does not compile arbitrary TLA+ into arbitrary Python. It
 supports a constrained, annotated TLA+ profile plus a
 `spec_manifest.yaml` that maps TLA+ concepts into Python concepts.
 
+## What Is Shipped And What Is Experimental
+
+Read this before trusting any claim below. The workflow has two layers, and they
+have very different maturity. Do not conflate them.
+
+**SHIPPED — the complexity scanner (`analyze complexity`).** This is the working,
+validated product. Point it at a spec + cfg and it reports, from the model alone:
+a per-variable dimension table, the static state-space upper bound and its
+dominant dimensions, the variables x actions read/write matrix, the
+graph-modularity score with near-decomposable clusters, dense-row / god-state
+detection, unjustified variables, and a **suggested move** (abstract / decompose /
+refactor). It is **advisory**: it warns and recommends, names *what* is dense and
+*where* a cut would help, and **never blocks promotion, never refuses case
+generation, and never changes its exit code** because a model is complex (it exits
+nonzero only when it genuinely cannot parse the model). A reader should expect this
+to help them see where architectural change buys the most complexity reduction.
+How to read its output is in "Complexity Budgets Are Advisory" below and in
+`references/architecture_tractability.md`, "Advisory, Not Blocking".
+
+**EXPERIMENTAL — the modular-fuzzing machinery (oracles, corpus, mutation kill
+test).** The differential-fuzzing framing (TLA+ as oracle, generated cases,
+effect conformance, the mutation kill test as a value floor) is real
+infrastructure and is retained as the honest record of what was built and learned.
+It is **not validated for catching bugs.** The MF-038 kill probe measured exactly
+that: with a green control run, generated cases caught **0 of 9 subtle
+content/value/field/count bugs — kill rate 4/13 = 0.31** — because the oracles read
+file *existence and process exit codes*, not file *content*. Separately, the design
+is two-armed (TLC exhaustive + Hypothesis random) but **only the exhaustive arm
+exists; the Hypothesis randomized-generation arm is a stub, not implemented.** So:
+do NOT expect the fuzzing to find bugs. Use it as a research surface and a
+representation-modelling aid, not as a bug detector. Every section below that
+describes oracles, effect conformance, corpus discipline, or the kill test is
+describing this experimental layer and is labeled accordingly.
+
 ## Mental Model
 
 Keep these layers distinct:
@@ -120,19 +154,26 @@ declared side effects:
   component. One component's effects are another component's inputs, or
   externally observable behavior.
 
-This workflow is spec-guided differential fuzzing with a generated reference
-implementation: TLC and Hypothesis generate inputs, the spec double is the
-reference, adapters are the harness, and invariants plus projected-state and
-effect conformance are the sanitizers. A representation is judged empirically
-— by the seeded bugs it kills and the coverage it achieves within budget —
-never by TLC passing, which only proves self-consistency.
+The **decomposition method** below — modeling components as pure transitions
+plus declared port effects, and cutting along the read/write matrix — is sound
+guidance that the shipped scanner directly supports: the R/W matrix and
+modularity score are exactly what tell you where a component boundary is.
 
-Read `references/modular_fuzzing.md` before authoring or reviewing any
-baseline. It defines the decomposition method (read/write matrix, port cuts,
-contract environments, interface model), the per-program budgets, the four
-oracles including effect conformance and the mutation kill test, and the
-strict External content rule. For moving an existing repository onto this
-shape, read `references/migration.md`.
+The **differential-fuzzing framing around it is EXPERIMENTAL** (see "What Is
+Shipped And What Is Experimental"). It casts TLC and Hypothesis as input
+generators, the spec double as reference, adapters as harness, and invariants
+plus projected-state and effect conformance as sanitizers, and it proposes to
+judge a representation "by the seeded bugs it kills." That value system is **not
+validated**: the MF-038 kill probe caught 0 of 9 content bugs (kill rate 0.31),
+and the Hypothesis arm is a stub. Do not rely on it to catch bugs, and do not
+treat a passing kill test as proof a baseline is validated.
+
+Read `references/modular_fuzzing.md` before authoring or reviewing any baseline.
+It defines the decomposition method (read/write matrix, port cuts, contract
+environments, interface model) — useful and shipped — and, clearly marked
+experimental, the per-program budgets, the four oracles including effect
+conformance and the mutation kill test, and the strict External content rule.
+For moving an existing repository onto this shape, read `references/migration.md`.
 
 ## Internal/External Test Graph Views
 
@@ -485,25 +526,37 @@ Read `references/tla_profile.md` before writing or reviewing a spec. Read
 generation and TLC state-graph case generation. Read
 `templates/tla/annotations.md` before designing the manifest.
 
-## Complexity And Case Budgets
+## Complexity Budgets Are Advisory
 
-The standing objective of this workflow is **minimizing program complexity
-while retaining every behavior**. TLA+ provides the complexity metric;
-programming becomes an optimization problem — minimize the measured
-complexity through design, verify with TLC, subject to the kill-rate floor,
-clean effect conformance, and full representation of the program. Look for
-complexity reductions on every ticket, not only when a gate fails, and never
-game the metric by under-representing the program: a complexity drop is only
-evidence when reported jointly with behavior-retention evidence. See "The
-Standing Objective" in `references/architecture_tractability.md`.
+The standing objective of this workflow is **reducing program complexity while
+retaining every behavior**. The shipped complexity scanner provides the metric;
+design becomes the place you spend it — look for complexity reductions on every
+ticket, not only when the scanner warns. Never game the metric by
+under-representing the program: a complexity drop is only evidence when reported
+jointly with behavior-retention evidence. See "The Standing Objective" in
+`references/architecture_tractability.md`.
 
-Budgets are per-program and set with the user during scaffolding: propose the
-defaults in `references/modular_fuzzing.md`, ask which to adjust for this
-program, and record the agreed values with a one-line rationale under
-`budgets:` in `spec_manifest.yaml`. Budgets cover TLC wall time, distinct
-states per component model, case caps per view, component-size heuristics,
-and the mutation kill-rate floor. They are hard gates — ceilings the model
-must stay under while the standing objective pushes it lower.
+**Budgets are advisory thresholds, not gates.** They are per-program and set with
+the user during scaffolding: propose the defaults in
+`references/modular_fuzzing.md`, ask which to adjust for this program, and record
+the agreed values with a one-line rationale under `budgets:` in
+`spec_manifest.yaml`. Budgets cover TLC wall time, distinct states per component
+model, case caps per view, component-size heuristics, and — in the experimental
+layer — the mutation kill-rate floor. When the scanner finds a model over one of
+these thresholds it emits a **warning that names the component/variable/action and
+recommends a concrete move**. It does **not** block promotion, refuse case
+generation, or change its exit code. Complexity is a scanner, not a gate
+(`references/architecture_tractability.md`, "Advisory, Not Blocking"). The owner
+decides, with the user, whether to act on each warning.
+
+**How to read a warning.** A warning is a pointer, not a verdict. "Component C1 is
+touched by 14 actions, exceeding max_component_actions 8" means the scanner found a
+dense cluster and is telling you *where* a cut or a moved action would reduce
+coupling — it is evidence for the owner, not a refusal. Some components score badly
+and still need to exist in that form (performance paths, protocol-mandated shapes,
+irreducible domain complexity); the scanner says so in its own output. The
+`tlc_seconds` timeout below is the one hard operational limit, and it is about wall
+time, not complexity.
 
 Apply a hard 120-second timeout (the `tlc_seconds` default) to every TLC
 model-check or diagram run that generates cases from a reachable state graph.
@@ -526,10 +579,12 @@ rigorous method is decomposition, not domain-shrinking: build the variables x
 actions read/write matrix, cut along minimum-interaction edges into component
 models with contract environments at the ports, and keep a thin interface
 model — see `references/modular_fuzzing.md`. Narrowing constants alone is the
-last resort, and the mutation kill-rate floor exists to catch models shrunk
-past usefulness.
+last resort. (The experimental mutation kill-rate floor was intended to catch
+models shrunk past usefulness; because it is not validated for bug-catching, do
+not rely on it to police shrinking — use human review of the R/W matrix and the
+retained behavior instead.)
 
-Tractability is an architectural fitness function: a gate failure is a
+Tractability is an architectural fitness function: a scanner warning is a
 review finding about the program, not a tooling inconvenience. When neither
 abstraction nor decomposition works, the program itself may need refactoring
 — but that diagnosis is a **recommendation the user approves, adjusts, or
@@ -829,10 +884,14 @@ back to centralized semantic state.
 2. Adapter conformance tests: real adapters produce the same results as
    the spec double for generated traces, preserve invariants, and expose
    observable state that validates.
-3. Effect conformance: the real component, run in a sandbox, produces only
-   declared side effects. Undeclared observed effects are representation
-   gaps; declared-but-never-observed effects are dead model surface. See
-   `references/modular_fuzzing.md`.
+3. Effect conformance **(EXPERIMENTAL — not validated for bug-catching)**: the
+   real component, run in a sandbox, produces only declared side effects.
+   Undeclared observed effects are representation gaps; declared-but-never-observed
+   effects are dead model surface. See `references/modular_fuzzing.md`. This and
+   layer 4 are the experimental fuzzing machinery; the MF-038 kill probe caught 0
+   of 9 content bugs (kill rate 0.31) because these oracles observe effect
+   *existence and shape*, not the *content* a bug corrupts. Run them to model and
+   study a program's boundaries, not to certify it bug-free.
 
    **Observable scope — read this before onboarding a non-Python project.**
    The effect sandbox observes the **in-process CPython runtime only**. It
@@ -858,10 +917,20 @@ back to centralized semantic state.
    this oracle does not cover it, and you must check that boundary another
    way. JVM-capable observation is tracked in
    [issue #44](https://github.com/haydenrear/tla-spec-dev/issues/44).
-4. Mutation kill tests: seeded production faults — at minimum one per port
-   and one per invariant — must be caught by the generated cases at the
-   `kill_rate_floor` from the budgets. A baseline without a passing kill
-   test is unvalidated.
+4. Mutation kill tests **(EXPERIMENTAL — not validated for bug-catching)**:
+   seeded production faults — at minimum one per port and one per invariant — are
+   run against the generated cases and a kill rate is reported against the
+   `kill_rate_floor` from the budgets. **This was intended to be the value floor
+   that certifies a baseline, and it does not work for that yet.** The MF-038
+   probe ran it on this repository with a green control and measured kill rate
+   4/13 = 0.31, with all 9 subtle content/value/field/count bugs surviving,
+   because the oracles read existence and exit codes, not content. So a passing
+   kill test does **not** mean a baseline catches bugs. The `run kill-test` command
+   still exits nonzero below the floor as built, but this does not gate promotion —
+   `close ticket` and `run spec-unit-tests` do not invoke it. Treat the number as a
+   research signal about where the representation is coarse, not as validation. (The design is two-armed — TLC
+   exhaustive plus Hypothesis random — but only the exhaustive arm exists; the
+   Hypothesis arm is a stub.)
 
    Run it with `tla-spec-dev run kill-test --corpus-command "<corpus>"`, and
    declare the faults in `<spec-dir>/kill_mutants.toml`. The required boundary
@@ -871,11 +940,15 @@ back to centralized semantic state.
    unmutated first as a control, because a corpus that already fails would kill
    every mutant and report a meaningless 1.0.
 
-   Below the floor FAILS. There is no `--allow-below-floor`, no
-   `--accept-survivors`, and no expected-to-survive annotation; suppression-
-   shaped keys are reported and never honored. This is the value floor that
-   keeps every cost cap in the toolchain honest, since a trivial model passes
-   every cap and kills no mutants.
+   As built, the command has no `--allow-below-floor`, no `--accept-survivors`,
+   and no expected-to-survive annotation; suppression-shaped keys are reported and
+   never honored. That anti-suppression discipline is worth keeping as evidence
+   integrity. The command still exits nonzero below the floor, but per doctrine the
+   floor **does not gate promotion** — it advises. MF-038 showed it does not yet
+   measure bug-catching (0 of 9 content bugs killed), so it cannot be the "value
+   floor that keeps every cost cap honest" it was designed to be; until real-app
+   validation earns it that role (MF-037), read it as a diagnostic, not a
+   certification.
 
    A surviving mutant names the model variable and action to refine — treat it
    as a pointer to the place the representation is too abstract, not as a score.

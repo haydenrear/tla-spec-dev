@@ -1,0 +1,141 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-023",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "the cut is PROPOSED BY analyze complexity from the R/W matrix and modularity score, not chosen by hand; record the command output that produced it.",
+        "Core/Internal/External replace the single module; every action and invariant maps to a view with the mapping enumerated.",
+        "the component-size heuristics PASS on the decomposed views without renegotiating max_component_actions -- if they do not, that is a finding about the budget or the cut, and must be reported rather than tuned away.",
+        "reachable behavior is retained across the split, proven against the pre-split baseline rather than asserted.",
+        {
+          "every epic mechanism is exercised on this repository and its output recorded as evidence": "analyze complexity, corpus distillation, effect conformance, External channel enforcement, mutation kill test, and the MF-019 complexity ledger."
+        },
+        "each mechanism that proves inadequate, awkward, or wrong on a real target is recorded as a first-class finding with the evidence; this is the point of the ticket and outranks a clean migration.",
+        "the MF-026 coverage audit is RE-RUN post-decomposition as this ticket promotion gate, reporting Internal and External separately now that both views exist; in-scope gaps are closed by modeling them or changing the program, never waived.",
+        "the MF-019 refinement loop runs on the finished decomposition and its recommendations are recorded for owner approval.",
+        "ABSORBED FROM THE WITHDRAWN MF-024 -- every override the toolchain offers (--allow-over-budget, the budgets fallback, the justification-table behavior) is exercised during the dogfooding run and confirmed to be explicit, visible in output, and recorded in evidence when used, and confirmed never to be the DEFAULT path. Overrides record an accepted cost; they must not normalize a bad state or make degradation what happens when the agent says nothing. If any override turns out to be the silent default, that is a first-class finding."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-023"
+      ],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [],
+      "test_graph": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "tla": [
+        "TlaSpecDevCli.tla",
+        "Core.tla",
+        "Internal.tla",
+        "External.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "per-view adapters for the decomposed Internal and External models"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-023/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-011",
+      "MF-013",
+      "MF-014",
+      "MF-015",
+      "MF-016",
+      "MF-017",
+      "MF-019",
+      "MF-022",
+      "MF-026",
+      "MF-028",
+      "MF-029",
+      "MF-030",
+      "MF-031",
+      "MF-032",
+      "MF-033",
+      "MF-036"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/30",
+    "id": "MF-023",
+    "implementation_scope": [
+      "specs/program_model/ (Core.tla / Internal.tla / External.tla split)",
+      "specs/program_model/production_adapters.py (per-view adapters)",
+      "specs/program_model/spec_manifest.yaml (reconcile the MF-020/MF-022 desync recorded in epic notes)",
+      "test_graph specWorkflow / cliWorkflow bindings"
+    ],
+    "objective": "SCANNER-ONLY REFRAME (owner decision 2026-07-21, after the MF-038 kill probe measured 0/9 content bugs caught and the owner chose to ship the complexity scanner and drop the fuzzing/case-advising story). Dogfood the COMPLEXITY SCANNER on this repository and write honest documentation. Run analyze complexity on this repo's model, produce the advisory report, and take the refactors genuinely worth taking (the Internal/External decomposition is a recommendation the scanner may emit, never forced, never a gate). Then make the docs honest: SKILL.md and references must present the complexity scanner as the SHIPPED feature (dimension table, bound, R/W matrix, modularity, dense-row detection, suggested moves, advisory warnings) and mark the modular-fuzzing / oracle / kill-test machinery as EXPERIMENTAL and NOT validated for bug-catching -- the kill probe caught 0 of 9 content bugs (kill rate 0.31, existence-and-exit-code oracles not content oracles). Do NOT run case generation, the corpus, effect conformance, or the kill test as product validation -- they are not the product. The point is a shippable, honestly-described scanner. See tickets/023-decompose-via-dogfooding.md and the ship-scanner decision in the epic notes.",
+    "promotion_order": 93,
+    "promotion_predecessor": "MF-038",
+    "schedule_revision": 5,
+    "status": "pending",
+    "title": "Decompose this repository by dogfooding the finished toolchain",
+    "wave": 9
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/tickets/MF-023",
+  "ticket_id": "MF-023",
+  "ticket_index": 24,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-30-mf023-scanner-dogfood-docs/specs/tickets"
+}
