@@ -12,7 +12,7 @@ epic:
   branch: epic/modular-fuzzing
   default_branch: main
   base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
-  schedule_revision: 14
+  schedule_revision: 15
   review_mode: epic-owner-post-merge
   notes: >
     Per repository-owner direction, ticket agents merge their reviewed-green
@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-034
-  active_ticket_title: "Stream corpus analysis instead of loading it"
+  active_ticket: MF-023
+  active_ticket_title: "Dogfood the complexity scanner and write honest docs"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1685,7 +1685,7 @@ tickets:
 
   - id: MF-034
     title: "Stream corpus analysis instead of loading it"
-    status: pending
+    status: dropped
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/59"
     schedule_revision: 1
     depends_on: [MF-029]
@@ -1722,7 +1722,7 @@ tickets:
 
   - id: MF-035
     title: "Close the silent default and the alphabetical model pick"
-    status: pending
+    status: dropped
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/60"
     schedule_revision: 1
     depends_on: [MF-029]
@@ -1805,15 +1805,15 @@ tickets:
     depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026, MF-028, MF-029, MF-030, MF-031, MF-032, MF-033, MF-036]
     blocks: []
     wave: 9
-    promotion_order: 95
-    promotion_predecessor: MF-035
+    promotion_order: 93
+    promotion_predecessor: MF-038
     conflict_keys:
       production: []
       tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
       adapters: [specs/program_model/production_adapters.py]
       test_graph: [specWorkflow, cliWorkflow]
       workflow: []
-    objective: "Dogfood the ADVISORY toolchain on this repository: run the complexity scanner and the fuzzing oracles, produce the report, and BLOCK ON NOTHING. Under the 2026-07-20 reframe (references/architecture_tractability.md Advisory Not Blocking) the Internal/External decomposition is a RECOMMENDATION the scanner may emit, not a migration forced by a gate. Take the refactors that are genuinely worth taking and record the ones you decline with the reason; the point is a real report from a real run, not a completed migration. Every deferred spec-case run still happens here -- case generation, corpus, effect conformance, kill test -- but their verdicts are advisory, so an unobservable or below-floor or incomplete result is a recorded finding rather than a failure. The open PR #50 holds the earlier gated attempt; do not treat its FAIL verdicts as blocking under the new regime. See tickets/023-decompose-via-dogfooding.md."
+    objective: "SCANNER-ONLY REFRAME (owner decision 2026-07-21, after the MF-038 kill probe measured 0/9 content bugs caught and the owner chose to ship the complexity scanner and drop the fuzzing/case-advising story). Dogfood the COMPLEXITY SCANNER on this repository and write honest documentation. Run analyze complexity on this repo's model, produce the advisory report, and take the refactors genuinely worth taking (the Internal/External decomposition is a recommendation the scanner may emit, never forced, never a gate). Then make the docs honest: SKILL.md and references must present the complexity scanner as the SHIPPED feature (dimension table, bound, R/W matrix, modularity, dense-row detection, suggested moves, advisory warnings) and mark the modular-fuzzing / oracle / kill-test machinery as EXPERIMENTAL and NOT validated for bug-catching -- the kill probe caught 0 of 9 content bugs (kill rate 0.31, existence-and-exit-code oracles not content oracles). Do NOT run case generation, the corpus, effect conformance, or the kill test as product validation -- they are not the product. The point is a shippable, honestly-described scanner. See tickets/023-decompose-via-dogfooding.md and the ship-scanner decision in the epic notes."
     desired_actions: []
     implementation_scope:
       - specs/program_model/ (Core.tla / Internal.tla / External.tla split)
@@ -1862,7 +1862,7 @@ tickets:
       adapters: []
       test_graph: []
       workflow: []
-    objective: "FINAL VALIDATION, and where advisory checks EARN the right to become gates. Now tests TWO questions on shapes other than this repository. (1) Is the complexity SCANNER useful -- does it correctly identify where complexity concentrates, and does the agent, ADVISED by it, choose to refactor? The over-complex example tests whether the scan INDUCES the refactor, a behavior we hope the advice produces, NOT whether a gate forces it; an agent that reads the warning and refactors is a success, an agent that ignores a correct warning is a finding about the advice. (2) Is the modular FUZZING helpful on real apps -- does effect conformance or the kill test catch anything real the owner did not already know? Scaffold three projects (scaffold-only, ticket-workflow, deliberately over-complex), define expected agent behavior BEFORE dispatching, dispatch real agents doing real tickets, run each more than once, and file toolchain findings rather than fixing them inline. Owner rationale: nothing blocks promotion until real-app validation shows a check is trustworthy enough to gate on, and this is that validation. See tickets/026 lineage and the epic handoff."
+    objective: "FINAL VALIDATION OF THE COMPLEXITY SCANNER (scanner-only after the 2026-07-21 decision to drop fuzzing). Tests one question on shapes other than this repository: is the complexity scanner useful -- does it correctly identify where complexity concentrates, and does an agent, ADVISED by it, choose to refactor? Scaffold three projects (scaffold-only, ticket-workflow, deliberately over-complex), define expected agent behavior BEFORE dispatching, dispatch real agents doing real tickets, run each more than once, and file findings rather than fixing them inline. The over-complex example is the sharpest and most falsifiable test: the scan must correctly locate the complexity and the agent, reading the advisory warning, should refactor it out -- an agent that ignores a correct warning is a finding about the ADVICE (wording, placement, actionability), not a gate that failed. The fuzzing oracles are NOT part of this validation. Owner rationale: the scanner is the shipped product and this is where it earns confidence on real shapes; correctness the first time is worth extra validation. See the epic handoff and the ship-scanner decision."
     desired_actions: []
     implementation_scope:
       - examples/ (three scaffolded projects)
