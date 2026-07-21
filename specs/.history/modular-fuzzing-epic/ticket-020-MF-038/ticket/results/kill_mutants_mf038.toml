@@ -1,0 +1,156 @@
+# MF-038 mutant catalog: realistic behavioral bugs seeded into the production
+# CLI command implementations that the RUNNABLE (~10%) corpus adapters exercise:
+#   scaffold project  -> scripts/onboard_program_model.py
+#   scaffold workflow -> scripts/new_ticket_workflow.py
+#   open ticket       -> scripts/new_ticket_workflow.py
+#   budgets defaults  -> scripts/budgets.py  (emitted into the scaffolded manifest)
+#
+# Each mutant is a literal, reviewable text substitution that changes BEHAVIOR
+# (not a syntax break). The catalog deliberately spans obvious structural bugs
+# and subtle content/value bugs. boundary_kind/ref and refine_variable/action
+# name the model element the bug perturbs, per the kill_test.Mutant contract.
+# This catalog is seeded transiently by the MF-038 measurement harness via
+# kill_test.seeded() and always restored; nothing is left in the tree.
+
+[[mutants]]
+id = "m01-scaffold-project-wrong-dir"
+boundary_kind = "invariant"
+boundary_ref = "WorkflowRequiresProject"
+path = "scripts/onboard_program_model.py"
+find = 'program_dir = resolved_spec_root / "program_model"'
+replace = 'program_dir = resolved_spec_root / "program_modelX"'
+description = "OBVIOUS: scaffold project writes the program model into program_modelX/, so specs/program_model never appears"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldProject"
+
+[[mutants]]
+id = "m02-scaffold-project-empty-internal-tla"
+boundary_kind = "invariant"
+boundary_ref = "WorkflowRequiresProject"
+path = "scripts/onboard_program_model.py"
+find = '        (program_dir / "Internal.tla", internal_tla()),'
+replace = '        (program_dir / "Internal.tla", ""),'
+description = "SUBTLE: scaffold project writes an EMPTY Internal.tla (the fine-grained internal view has no content); the file still exists"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldProject"
+
+[[mutants]]
+id = "m03-scaffold-project-model-role-enum"
+boundary_kind = "invariant"
+boundary_ref = "ProjectChoosesKnownSpecRoot"
+path = "scripts/onboard_program_model.py"
+find = "  model_role: accepted_program_model"
+replace = "  model_role: rejected_program_model"
+description = "SUBTLE: scaffolded manifest records a plausible-but-wrong model_role enum (accepted -> rejected)"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldProject"
+
+[[mutants]]
+id = "m04-scaffold-project-workflow-enum"
+boundary_kind = "invariant"
+boundary_ref = "ProjectChoosesKnownSpecRoot"
+path = "scripts/onboard_program_model.py"
+find = "  workflow: project_onboarding"
+replace = "  workflow: project_teardown"
+description = "SUBTLE: scaffolded manifest status.workflow set to a wrong-but-valid enum (project_onboarding -> project_teardown)"
+refine_variable = "lastCommand"
+refine_action = "ScaffoldProject"
+
+[[mutants]]
+id = "m05-budgets-max-distinct-states"
+boundary_kind = "invariant"
+boundary_ref = "KillTestVerdictRequiresBudgets"
+path = "scripts/budgets.py"
+find = '    "max_distinct_states": 50000,'
+replace = '    "max_distinct_states": 40000,'
+description = "SUBTLE: budget default max_distinct_states set to a neighbouring value (50000 -> 40000)"
+refine_variable = "complexity_gate"
+refine_action = "RecordBudgets"
+
+[[mutants]]
+id = "m06-budgets-internal-cases-offbyone"
+boundary_kind = "invariant"
+boundary_ref = "KillTestVerdictRequiresBudgets"
+path = "scripts/budgets.py"
+find = '    "max_internal_cases_per_component": 200,'
+replace = '    "max_internal_cases_per_component": 199,'
+description = "SUBTLE off-by-one: budget default max_internal_cases_per_component 200 -> 199"
+refine_variable = "corpus_gate"
+refine_action = "RecordBudgets"
+
+[[mutants]]
+id = "m07-budgets-external-cases"
+boundary_kind = "invariant"
+boundary_ref = "KillTestVerdictRequiresBudgets"
+path = "scripts/budgets.py"
+find = '    "max_external_cases_per_action": 50,'
+replace = '    "max_external_cases_per_action": 40,'
+description = "SUBTLE: budget default max_external_cases_per_action 50 -> 40"
+refine_variable = "corpus_gate"
+refine_action = "RecordBudgets"
+
+[[mutants]]
+id = "m08-scaffold-workflow-wrong-desired-dir"
+boundary_kind = "invariant"
+boundary_ref = "CurrentRequiresDesired"
+path = "scripts/new_ticket_workflow.py"
+find = '    desired_dir = baseline.spec_root / "desired_program_model"'
+replace = '    desired_dir = baseline.spec_root / "desired_program_modelX"'
+description = "OBVIOUS: scaffold workflow writes the desired tree into desired_program_modelX/, so desired_program_model never appears"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldWorkflow"
+
+[[mutants]]
+id = "m09-scaffold-workflow-manifest-wrong-field"
+boundary_kind = "invariant"
+boundary_ref = "CurrentRequiresDesired"
+path = "scripts/new_ticket_workflow.py"
+find = "  relation_to_program_model: starts_equivalent_then_advances_as_slices_land"
+replace = "  relation_to_program_model: diverges_immediately_from_program_model"
+description = "SUBTLE: current/spec_manifest.yaml records a wrong-but-valid status.relation_to_program_model value"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldWorkflow"
+
+[[mutants]]
+id = "m10-ticket-plan-phase-enum"
+boundary_kind = "invariant"
+boundary_ref = "WorkflowRequiresProject"
+path = "scripts/new_ticket_workflow.py"
+find = "  phase: planning"
+replace = "  phase: execution"
+description = "SUBTLE: scaffold workflow writes a wrong-but-valid ticket_plan phase (planning -> execution)"
+refine_variable = "setup_phase"
+refine_action = "ScaffoldWorkflow"
+
+[[mutants]]
+id = "m11-open-ticket-wrong-dir"
+boundary_kind = "invariant"
+boundary_ref = "NoOpenClosedOverlap"
+path = "scripts/new_ticket_workflow.py"
+find = "    ticket_dir = root_dir / _safe_segment(resolved_ticket_id)"
+replace = '    ticket_dir = root_dir / (_safe_segment(resolved_ticket_id) + "X")'
+description = "OBVIOUS: open ticket creates tickets/<id>X/ instead of tickets/<id>/, so the opened ticket is never found"
+refine_variable = "ticket_state"
+refine_action = "OpenTicket"
+
+[[mutants]]
+id = "m12-open-ticket-misplace-gitkeep"
+boundary_kind = "invariant"
+boundary_ref = "NoOpenClosedOverlap"
+path = "scripts/new_ticket_workflow.py"
+find = '        (ticket_dir / "results" / ".gitkeep", ""),'
+replace = '        (ticket_dir / "results" / ".gitkeepX", ""),'
+description = "SUBTLE: open ticket creates results/.gitkeepX instead of results/.gitkeep (the placeholder is misnamed)"
+refine_variable = "ticket_state"
+refine_action = "OpenTicket"
+
+[[mutants]]
+id = "m13-open-ticket-desired-eq-current"
+boundary_kind = "invariant"
+boundary_ref = "CurrentRequiresDesired"
+path = "scripts/new_ticket_workflow.py"
+find = '    desired_dir = ticket_dir / "desired"'
+replace = '    desired_dir = ticket_dir / "current"'
+description = "SUBTLE structural: open ticket points the ticket's desired/ tree at current/, so tickets/<id>/desired is never created"
+refine_variable = "ticket_state"
+refine_action = "UpdateTicketDesired"

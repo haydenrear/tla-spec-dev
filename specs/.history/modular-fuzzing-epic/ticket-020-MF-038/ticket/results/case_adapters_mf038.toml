@@ -1,0 +1,36 @@
+# MF-038 kill-rate-probe mapping (copied from MF-032's results-local mapping) (NOT the production case_adapters.toml;
+# binding the corpus into production is MF-023's surface). Binds every
+# reduced-corpus label so the whole-corpus coverage gate passes. This ticket's
+# deliverables are the run() adapters for InstallLocalCli, ScaffoldWorkflow,
+# RecordBudgets and OpenTicket; the rest were already case-executable (MF-028,
+# MF-031) or remain apply()-only batteries (see the MF-032 report).
+[adapters.BuildSkillCli]
+adapter = "production_adapters:BuildSkillCliAdapter"
+[adapters.InstallLocalCli]
+adapter = "production_adapters:InstallLocalCliAdapter"
+[adapters.ScaffoldProject]
+adapter = "production_adapters:ScaffoldProjectAdapter"
+[adapters.ScaffoldWorkflow]
+adapter = "production_adapters:ScaffoldWorkflowAdapter"
+[adapters.RecordBudgets]
+adapter = "production_adapters:RecordBudgetsAdapter"
+[adapters.OpenTicket]
+adapter = "production_adapters:OpenTicketAdapter"
+[adapters.UpdateTicketDesired]
+adapter = "production_adapters:UpdateTicketDesiredAdapter"
+[adapters.UpdateTicketCurrent]
+adapter = "production_adapters:UpdateTicketCurrentAdapter"
+[adapters.RunSpecUnitTests]
+adapter = "production_adapters:RunSpecUnitTestsAdapter"
+[adapters.CloseTicket]
+adapter = "production_adapters:CloseTicketAdapter"
+[adapters.AnalyzeComplexity]
+adapter = "production_adapters:AnalyzeComplexityAdapter"
+[adapters.AnalyzeCorpus]
+adapter = "production_adapters:AnalyzeCorpusAdapter"
+[adapters.RunEffectConformance]
+adapter = "production_adapters:RunEffectConformanceAdapter"
+[adapters.RunKillTest]
+adapter = "production_adapters:RunKillTestAdapter"
+[adapters.Stutter]
+adapter = "production_adapters:StutterAdapter"

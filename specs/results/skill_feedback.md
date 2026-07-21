@@ -528,3 +528,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-038
+
+- close_scope: ticket
+- close_id: MF-038
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-21T11:30:31+00:00
+- summary: MF-038 kill-rate probe: control GREEN on the reduced runnable corpus; kill rate 4/13=0.308; all 9 subtle content/value/field bugs SURVIVED, only 4 structural directory/tree bugs killed. Cases are existence-and-exit-code oracles, not content oracles. Zero model delta. Recommendation: not yet ship-worthy as case-advising until file/field content is projected into model variables.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
