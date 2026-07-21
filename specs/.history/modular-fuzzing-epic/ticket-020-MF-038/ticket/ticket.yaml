@@ -1,0 +1,113 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-038",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "a green control run on the runnable corpus, or an honest report that the control is not green and why.",
+        "at least ~10 seeded bugs across the runnable adapters, spanning obvious and subtle, each a real behavioral change not a syntax break.",
+        "a measured kill rate with the kill/survive status of every seeded bug.",
+        "for each survivor, the reason the cases missed it (wrong oracle, unchecked field, coverage gap, path never exercised).",
+        "a plain recommendation on whether model-derived conformance testing is worth shipping as case-advising, based on the number, and what would deepen shallow cases.",
+        {
+          "the kill rate is NOT tuned": "no threshold lowered, no survivor deleted, no seeding restricted to catchable bugs."
+        }
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-038"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/kill_test.py",
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-032"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/68",
+    "id": "MF-038",
+    "implementation_scope": [
+      "scripts/kill_test.py (point at the runnable corpus)",
+      "a probe driver and seeded-bug set under the ticket results"
+    ],
+    "objective": "INVESTIGATION TICKET, deliverable is a measured kill rate not a feature. Answers the one question the fuzzing value-proposition rests on and never answered against a runnable corpus: DO THE GENERATED CASES CATCH REAL BUGS? The kill test (MF-016) is the only instrument that measures bug-catching power and has never produced a real number here -- its worked example was synthetic (4/7 on a toy), and against the real corpus it control_failed because no case ran. MF-031/MF-032 made ~10% of the corpus (the filesystem-mutating commands) executable, so the experiment is finally possible. Establish a GREEN CONTROL first (unmutated runnable corpus must pass, or the rate is meaningless -- report and stop). Seed >=10 realistic bugs across the runnable adapters (ScaffoldProject, ScaffoldWorkflow, RecordBudgets, OpenTicket, InstallLocalCli, UpdateTicketDesired/Current), spanning obvious (wrong file, wrong output) and SUBTLE (off-by-one count, plausible-but-wrong phase, neighbouring budget default, dropped field) -- the subtle ones are the real test and trivial-only seeding inflates the rate. Run cases against each mutant; a mutant is killed if some oracle (output/projected-state/effect conformance) catches the divergence. Report the kill rate, per-bug kill/survive, and for each survivor WHY the cases missed it. HONEST-OUTCOME RULE: a low kill rate is a valid valuable result -- do not tune it, do not seed only catchable bugs, do not delete a survivor; MF-016 nearly shipped a spurious perfect rate and caught itself. Recommend whether model-derived conformance testing is worth shipping as case-advising based on the number. See tickets/038-kill-rate-probe.md.",
+    "promotion_order": 91,
+    "promotion_predecessor": "MF-033",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Probe -- do the generated cases catch real bugs (kill rate on the runnable corpus)",
+    "wave": 10
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/tickets/MF-038",
+  "ticket_id": "MF-038",
+  "ticket_index": 20,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/tickets"
+}
