@@ -472,8 +472,8 @@ planning_rules:
 
 status:
   workflow: modular-fuzzing-epic
-  active_ticket: MF-034
-  active_ticket_title: "Stream corpus analysis instead of loading it"
+  active_ticket: MF-038
+  active_ticket_title: "Probe -- do the generated cases catch real bugs"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -1641,6 +1641,48 @@ tickets:
         - specs/tickets/MF-033/results/graph-specWorkflow.txt
         - specs/tickets/MF-033/results/graph-cliWorkflow.txt
 
+  - id: MF-038
+    title: "Probe -- do the generated cases catch real bugs (kill rate on the runnable corpus)"
+    status: pending
+    github_issue: ""
+    schedule_revision: 1
+    depends_on: [MF-032]
+    blocks: [MF-023]
+    wave: 10
+    promotion_order: 91
+    promotion_predecessor: MF-033
+    conflict_keys:
+      production: [scripts/kill_test.py, scripts/run_generated_case_adapters.py]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "INVESTIGATION TICKET, deliverable is a measured kill rate not a feature. Answers the one question the fuzzing value-proposition rests on and never answered against a runnable corpus: DO THE GENERATED CASES CATCH REAL BUGS? The kill test (MF-016) is the only instrument that measures bug-catching power and has never produced a real number here -- its worked example was synthetic (4/7 on a toy), and against the real corpus it control_failed because no case ran. MF-031/MF-032 made ~10% of the corpus (the filesystem-mutating commands) executable, so the experiment is finally possible. Establish a GREEN CONTROL first (unmutated runnable corpus must pass, or the rate is meaningless -- report and stop). Seed >=10 realistic bugs across the runnable adapters (ScaffoldProject, ScaffoldWorkflow, RecordBudgets, OpenTicket, InstallLocalCli, UpdateTicketDesired/Current), spanning obvious (wrong file, wrong output) and SUBTLE (off-by-one count, plausible-but-wrong phase, neighbouring budget default, dropped field) -- the subtle ones are the real test and trivial-only seeding inflates the rate. Run cases against each mutant; a mutant is killed if some oracle (output/projected-state/effect conformance) catches the divergence. Report the kill rate, per-bug kill/survive, and for each survivor WHY the cases missed it. HONEST-OUTCOME RULE: a low kill rate is a valid valuable result -- do not tune it, do not seed only catchable bugs, do not delete a survivor; MF-016 nearly shipped a spurious perfect rate and caught itself. Recommend whether model-derived conformance testing is worth shipping as case-advising based on the number. See tickets/038-kill-rate-probe.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/kill_test.py (point at the runnable corpus)
+      - a probe driver and seeded-bug set under the ticket results
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-038
+      assertions:
+        - a green control run on the runnable corpus, or an honest report that the control is not green and why.
+        - at least ~10 seeded bugs across the runnable adapters, spanning obvious and subtle, each a real behavioral change not a syntax break.
+        - a measured kill rate with the kill/survive status of every seeded bug.
+        - for each survivor, the reason the cases missed it (wrong oracle, unchecked field, coverage gap, path never exercised).
+        - a plain recommendation on whether model-derived conformance testing is worth shipping as case-advising, based on the number, and what would deepen shallow cases.
+        - the kill rate is NOT tuned: no threshold lowered, no survivor deleted, no seeding restricted to catchable bugs.
+      evidence: []
+
   - id: MF-034
     title: "Stream corpus analysis instead of loading it"
     status: pending
@@ -1649,8 +1691,8 @@ tickets:
     depends_on: [MF-029]
     blocks: []
     wave: 10
-    promotion_order: 91
-    promotion_predecessor: MF-033
+    promotion_order: 92
+    promotion_predecessor: MF-038
     conflict_keys:
       production: [scripts/corpus_diagnostics.py, scripts/generate_cases_from_tlc_dump.py, scripts/tla_spec_dev.py]
       tla: []
@@ -1686,7 +1728,7 @@ tickets:
     depends_on: [MF-029]
     blocks: []
     wave: 10
-    promotion_order: 92
+    promotion_order: 93
     promotion_predecessor: MF-034
     conflict_keys:
       production: [scripts/corpus_diagnostics.py, scripts/close_ticket.py]
