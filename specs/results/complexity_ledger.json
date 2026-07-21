@@ -1509,6 +1509,138 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "MF-032",
+      "workflow": "modular-fuzzing-epic",
+      "recorded_at_utc": "2026-07-21T01:35:18.195215+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-57-mf032-case-execution-remaining/specs/tickets/MF-032/results/tlc.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-031",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": 231621,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": 5619356,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 25,
+            "after": 25,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the kill-test report",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the effect-conformance report",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the external coverage report",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=(absent) (UNVERIFIED)",
+        "effect_conformance=(absent) (UNVERIFIED)",
+        "external_coverage=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Zero-delta ticket. No complexity reduction was sought or made: MF-032 touches only production_adapters.py (adds run()/can_run to four adapters), a new shared module adapter_case_runtime.py (the before-state builder/projector/comparator promoted out of production_adapters, not a base class), the runner's per-field comparison in scripts/run_generated_case_adapters.py, and tests. The TLA+ module and its configs are unchanged; TLC re-measured 231,621 distinct / depth 25, identical to the MF-036 baseline (direction=zero). There is nothing to refine because no representation was added.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "MF-032 gives run() to the remaining adapters MF-028 banded runnable and fixes the runner's all-or-nothing comparison. FOUR adapters now execute generated cases end to end: InstallLocalCli (trivial), ScaffoldWorkflow, RecordBudgets and OpenTicket (moderate). Each run() composes the shared before-state builder + projector + field comparator -- promoted from production_adapters.py into the dedicated MODULE adapter_case_runtime.py (a module, NOT a base class: the adapters' apply() signatures are incompatible, so inheritance would fight them). apply() is retained untouched as the spec-unit surface; run() is additive. All four execute REAL reduced-corpus cases through the real runner (results/case-execution-run.txt) with 10 checked / 1 unchecked (result.next) / 0 mismatch, and each carries a NEGATIVE CONTROL proven to fail on the real case (results/case-execution-projection.txt): the corrupted after-state disagrees because the value is derived from the transition and observed from the filesystem, never read out of the field checked. The runner's whole-dict `==` (runtime.assert_case_result / assert_projected_state) is replaced by per-field comparison honoring UNCHECKED in run_generated_case_adapters.py (compare_fields_honoring_unchecked, assert_case_result_per_field), with new repo tests. HONEST executability re-measurement (reduced single-ticket corpus; full MC.cfg is intractable to load -- MF-034's surface): before-state materializability is unchanged at 81.6% (MF-031's axis, which this ticket does not touch); TRUE end-to-end executability, which additionally requires the case's action to HAVE a run(), is 7.8% -> 9.8% (+1221 cases: OpenTicket 699 + ScaffoldWorkflow 520 + RecordBudgets 1 + InstallLocalCli 1). The remaining 89.2% is dominated by the HARD/BLOCKED bands: RunEffectConformance, RunKillTest, RunSpecUnitTests, AnalyzeCorpus, AnalyzeComplexity and CloseTicket -- gate/oracle actions whose after-state changes nondeterministic gate variables not recoverable from the filesystem, plus the three CloseTicket-collision multi-close batteries. These stay apply()-only for structural reasons, reported not skipped (results/mf032-report.md). Zero TLA+ model delta; validation matrix green (TLC 231,621/depth 25, spec-unit 60, 512 repo units, specWorkflow 8/8 + cliWorkflow 2/2).",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

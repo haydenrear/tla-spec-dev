@@ -504,3 +504,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket MF-032
+
+- close_scope: ticket
+- close_id: MF-032
+- workflow: modular-fuzzing-epic
+- closed_at: 2026-07-21T01:35:18+00:00
+- summary: Give run() to InstallLocalCli, ScaffoldWorkflow, RecordBudgets, OpenTicket (4 adapters now execute cases); promote the shared before-state builder/projector as module adapter_case_runtime.py (not a base class); fix the runner all-or-nothing == to per-field honoring UNCHECKED. Remaining adapters stay apply()-only for structural reasons (reported). Executability 7.8%->9.8% (both axes), re-measured. Zero TLA+ delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
