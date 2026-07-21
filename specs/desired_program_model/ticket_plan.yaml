@@ -1,13 +1,47 @@
-# Canonical plan for the modular-fuzzing epic. GitHub issues mirror this file
-# for handoff; this file remains the source of truth. Dispatched ticket IDs,
-# dependency edges, waves, and promotion order are immutable after issue
+# Canonical plan for the complexity-descriptor epic. GitHub issues mirror this
+# file for handoff; this file remains the source of truth. Dispatched ticket
+# IDs, dependency edges, waves, and promotion order are immutable after issue
 # assignment — add amendment tickets instead of editing dispatched identities.
+#
+# This file continues the shared specs/ tree inherited from the concluded
+# modular-fuzzing epic (kept below as previous_epic_modular_fuzzing and as the
+# MF-* ticket entries — an immutable record; the promotion lane continues from
+# MF-037 at promotion_order 96). See COMPLEXITY-DESCRIPTOR-EPIC.md at repo root.
 version: 1
-name: modular-fuzzing-epic
-updated: "2026-07-18"
-purpose: "Mechanize the modular pure-function/side-effect fuzzing doctrine (references/modular_fuzzing.md) in the tla-spec-dev CLI: per-program budgets, complexity analysis gates, corpus distillation, effect conformance, External channel enforcement, mutation kill tests, and the skill feedback loop."
+name: complexity-descriptor-epic
+updated: "2026-07-21"
+purpose: "Ship the honest product the modular-fuzzing discovery earned: (1) a factual complexity DESCRIPTOR (suggested moves removed; F1 invariant-aliasing and F3 bound-degeneracy accuracy bugs fixed), (2) a complexity INTUITION doc teaching an agent to read a descriptor as refactor input — including how complex a program should be and that validated architectural refactors lowering complexity are encouraged, (3) self-configurable composable FITNESS FUNCTIONS over the descriptor that persist per-project and notify future agents. Advisory throughout; never blocking."
 
 epic:
+  id: complexity-descriptor
+  branch: epic/complexity-descriptor
+  default_branch: main
+  base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >
+    Base is the epic/modular-fuzzing tip (dfd2a80), inheriting the working
+    advisory scanner — NOT main (da0a7ff, pre-everything). Per repository-owner
+    direction, ticket agents merge their reviewed-green feature branch into
+    epic/complexity-descriptor themselves after validation and ticket close;
+    the epic owner reviews post-merge and prepares the next ticket. The
+    repository owner closes GitHub issues; neither ticket agents nor the epic
+    owner do. Never merge to main and never run skill-manager sync without
+    explicit owner say-so. The three tickets are largely zero-model-delta
+    (scripts/, references/, SKILL.md); each ticket still opens and closes its
+    spec ticket with evidence and carries max_distinct_states 500000 with its
+    rationale through desired/ (the SF-003 blind spot, #32). Run order is
+    CD-01 -> CD-02 -> CD-03; CD-02 and CD-03 both build on the descriptor
+    CD-01 produces. Suggestions do NOT return in this epic — they may be
+    earned later from real-app descriptor observations, possibly as an agent.
+
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
+
+previous_epic_modular_fuzzing:
   id: modular-fuzzing
   branch: epic/modular-fuzzing
   default_branch: main
@@ -487,13 +521,13 @@ planning_rules:
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
-  case_execution_rule: Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale -- runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
-  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (this epic's base_sha), so it runs pre-epic behavior and contains none of the epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
+  case_execution_rule: HISTORICAL (modular-fuzzing epic; retained for the record). For the complexity-descriptor epic the fuzzing machinery is EXPERIMENTAL and not product validation — do not run case generation, the corpus, effect conformance, or the kill test as ticket validation. Original rule -- Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale -- runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
+  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (the pre-everything default-branch tip), so it runs pre-epic behavior and contains none of either epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
 
 status:
-  workflow: modular-fuzzing-epic
-  active_ticket: none-epic-concluded-as-discovery
-  active_ticket_title: "Epic concluded as discovery; next epic is complexity-descriptor"
+  workflow: complexity-descriptor-epic
+  active_ticket: none-dispatch-pending
+  active_ticket_title: "Complexity-descriptor epic planned; CD-01 is next to dispatch"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -514,7 +548,10 @@ service_catalog:
   known_gaps:
     - "This repository's baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Originally recorded as out of scope for this epic. Owner direction 2026-07-18: it is now IN scope but scheduled LAST, as MF-023 at promotion_order 85, after every mechanism ticket has landed. The decomposition is to be performed by running the finished toolchain on this repository itself — analyze complexity for the cut, corpus distillation, effect conformance, External channel enforcement, and the mutation kill test — making it the epic's first end-to-end dogfooding test rather than a hand migration. It is therefore both the migration and the acceptance test of everything the epic built. See references/migration.md and tickets/023-decompose-via-dogfooding.md."
 
-tickets:
+# Immutable record of the concluded modular-fuzzing epic's tickets. Kept
+# verbatim (including its historically-unrenumbered waves); not validated
+# against the current epic's schedule rules.
+previous_epic_tickets:
   - id: MF-012
     title: "Scaffold-time budget prompts"
     status: done
@@ -1914,3 +1951,208 @@ tickets:
         - each example is run more than once; divergence between runs is itself a finding about instruction determinism.
         - findings about the toolchain gathered from these runs are filed rather than fixed inline, so the validation stays a measurement.
       evidence: []
+
+tickets:
+  - id: CD-01
+    title: "Ship the complexity descriptor (remove suggested moves; fix aliasing and bound accuracy)"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/71"
+    schedule_revision: 1
+    depends_on: []
+    blocks: [CD-02, CD-03]
+    wave: 12
+    promotion_order: 100
+    promotion_predecessor: null
+    conflict_keys:
+      production:
+        - scripts/analyze_complexity.py
+        - tests/test_analyze_complexity.py
+        - SKILL.md
+        - references/architecture_tractability.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Remove the suggested-move machinery (abstract/decompose/refactor
+      recommendations) from the complexity scanner and ship a factual
+      complexity DESCRIPTOR: per-variable dimension table, state-space bound +
+      dominant dimensions, variables x actions R/W matrix, graph-modularity +
+      near-decomposable clusters, dense-row/god-state detection, per-variable
+      domains. Facts, not judgment. Fix F1: projectable_variables reads only
+      the immediate body of the cfg-named invariant, so INVARIANT Inv with
+      Inv == ExternalInvariant (a one-token alias) makes every variable
+      "read by no invariant" and the scanner recommends projecting away ALL
+      variables (analyze_complexity.py ~1038 / ~793) — resolve invariant
+      aliasing/composition transitively. Fix F3: the state-space bound
+      silently degenerates to 1 without a TypeInvariant/TypeOK — make it
+      meaningful (resolve domains from the cfg or scaffolded TypeOK) or
+      report it explicitly unknown, never a silent 1. Advisory, never
+      blocking (already true; keep it). Update SKILL.md and references so the
+      descriptor is the shipped surface and no suggested-move claims remain.
+      Suggestions may return in a later epic, earned from real-app
+      observations — not in this one.
+    desired_actions: []
+    implementation_scope:
+      - scripts/analyze_complexity.py (remove suggestion machinery; F1 alias resolution; F3 bound honesty)
+      - tests/test_analyze_complexity.py (F1 regression test failing pre-fix; F3 coverage)
+      - SKILL.md and references/architecture_tractability.md (descriptor is the surface)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-01
+      assertions:
+        - No suggested-move (abstract/decompose/refactor) output remains anywhere in the scanner, its report, SKILL.md, or references.
+        - "F1 regression test, failing pre-fix: with INVARIANT Inv and Inv == RealInv, RealInv's variables are read-by-invariant; aliased/composed invariants resolve transitively."
+        - "F3: the bound is meaningful on the scaffolded baseline (domains from cfg or scaffolded TypeOK) or explicitly reported unknown — never a silent 1."
+        - Exit 0 on any analyzable model; nonzero only when genuinely unanalyzable. Advisory, never blocking.
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+        - Docs describe the descriptor, not suggestions; a reviewer reading only the new docs would expect facts, not advice.
+      evidence:
+        - specs/tickets/CD-01/results/descriptor_report_baseline.txt
+        - specs/tickets/CD-01/results/f1_regression.txt
+        - specs/tickets/CD-01/results/f3_bound.txt
+        - specs/tickets/CD-01/results/tlc_current.txt
+        - specs/tickets/CD-01/results/spec_unit_tests.txt
+        - specs/tickets/CD-01/results/repo_unit_tests.txt
+        - specs/tickets/CD-01/results/graph_specWorkflow.txt
+        - specs/tickets/CD-01/results/graph_cliWorkflow.txt
+
+  - id: CD-02
+    title: "Complexity intuition — what good and bad descriptors look like"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/72"
+    schedule_revision: 1
+    depends_on: [CD-01]
+    blocks: [CD-03]
+    wave: 13
+    promotion_order: 110
+    promotion_predecessor: CD-01
+    conflict_keys:
+      production:
+        - references/complexity_intuition.md
+        - SKILL.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Write references/complexity_intuition.md: guidance an agent reads
+      ALONGSIDE a CD-01 descriptor to decide whether and how to refactor —
+      NOT automated suggestions (CD-01 removed those because they were
+      wrong). Teach what a GOOD descriptor looks like (bound proportional to
+      essential behavior, high modularity / clean clusters, balanced R/W
+      matrix, no god-state, domains sized to the real distinctions) and what
+      a BAD one looks like (god-state / dense rows, low modularity, bound
+      exploding past the behavior, domains wider than the behavior needs),
+      with concrete worked good/bad examples and reasoning. Wire the framing
+      "take this complexity descriptor to consider how to refactor
+      complexity out of the app" into the workflow/doctrine. OWNER ADDENDUM
+      (2026-07-21): include an explicit "how complex should a program be"
+      best-practices section — complexity should be proportional to the
+      essential behavior the program must exhibit, and a VALIDATED
+      architectural refactor that lowers complexity (model still green under
+      TLC/tests, behavior preserved, before/after descriptors compared) is
+      ENCOURAGED as normal practice, not an exceptional event. Intuitions
+      for the agent to judge with, never automated moves.
+    desired_actions: []
+    implementation_scope:
+      - references/complexity_intuition.md (new doc)
+      - SKILL.md (wire the refactor-input framing into the workflow)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-02
+      assertions:
+        - A doc an agent can read to interpret a descriptor and decide whether/how to refactor, with at least a few worked good/bad descriptor examples and reasoning for each.
+        - The refactor-input framing ("take this complexity descriptor to consider how to refactor complexity out of the app") is wired into the workflow/doctrine.
+        - The doc includes the "how complex should a program be" best-practices section and explicitly encourages validated architectural refactors that lower complexity.
+        - No automated-suggestion claims anywhere.
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-02/results/intuition_doc_review.md
+        - specs/tickets/CD-02/results/tlc_current.txt
+        - specs/tickets/CD-02/results/spec_unit_tests.txt
+        - specs/tickets/CD-02/results/repo_unit_tests.txt
+        - specs/tickets/CD-02/results/graph_specWorkflow.txt
+        - specs/tickets/CD-02/results/graph_cliWorkflow.txt
+
+  - id: CD-03
+    title: "Self-configurable composable fitness functions over the descriptor"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/73"
+    schedule_revision: 1
+    depends_on: [CD-01, CD-02]
+    blocks: []
+    wave: 14
+    promotion_order: 120
+    promotion_predecessor: CD-02
+    conflict_keys:
+      production:
+        - scripts/fitness_functions.py
+        - scripts/analyze_complexity.py
+        - tests/test_fitness_functions.py
+        - SKILL.md
+        - references/fitness_functions.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Self-configurable, composable fitness functions over the CD-01
+      descriptor. Composable predicates/thresholds over descriptor facts
+      (bound < X, component_actions <= N, modularity >= Q, no god-state,
+      variable_domain(v) <= D) composed with and/or/not. Per-project
+      configuration: the project's agent writes the rules (in the manifest or
+      a rules file) and they persist with the project. On scan, fired rules
+      are surfaced so future agents are notified. Advisory: report, never
+      block. Ship with NO built-in rules — the project's agent configures
+      them. Quick and dirty, experimental — composable primitives, not a
+      framework.
+    desired_actions: []
+    implementation_scope:
+      - scripts/fitness_functions.py (primitives + composition + evaluation; lean)
+      - scripts/analyze_complexity.py (load per-project rules; surface fired rules in the report)
+      - tests/test_fitness_functions.py
+      - SKILL.md and references/fitness_functions.md (how an agent adds rules; advisory semantics)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-03
+      assertions:
+        - An agent can define composable fitness functions (and/or/not over descriptor facts) for a project; the rules persist per-project and fire on scan, notifying the agent.
+        - Advisory — fired rules report, never block promotion; exit code unchanged by rule firings.
+        - Ships with no built-in rules; configured entirely by the project's agent.
+        - "Worked example recorded as evidence: an agent adds two composed rules to a project and a later scan surfaces one firing."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-03/results/fitness_worked_example.txt
+        - specs/tickets/CD-03/results/tlc_current.txt
+        - specs/tickets/CD-03/results/spec_unit_tests.txt
+        - specs/tickets/CD-03/results/repo_unit_tests.txt
+        - specs/tickets/CD-03/results/graph_specWorkflow.txt
+        - specs/tickets/CD-03/results/graph_cliWorkflow.txt
