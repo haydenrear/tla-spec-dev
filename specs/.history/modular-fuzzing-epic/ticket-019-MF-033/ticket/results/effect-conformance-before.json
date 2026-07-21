@@ -1,0 +1,80 @@
+{
+  "cases": [
+    "mf033-scaffold-project-demo"
+  ],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact",
+      "target": "**/.venv/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree",
+      "target": "**/specs/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.tlc_process",
+      "target": "*java*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.test_process",
+    "TlaSpecDevCliPort.tlc_process"
+  ],
+  "gaps": [
+    {
+      "action": "ScaffoldProject",
+      "case": "mf033-scaffold-project-demo",
+      "message": "UNDECLARED EFFECT: process.spawn -> /opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject during mf033-scaffold-project-demo (action ScaffoldProject) -- no declared port accepts it",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "observable_scope": "in-process CPython only: builtins.open, os/shutil/pathlib mutators, subprocess spawns and socket.connect patched in THIS interpreter. No patch crosses a process boundary; JVM, JBang/uv node, and child-process work is not observed (MF-027)",
+  "observed_effects": [
+    {
+      "action": "ScaffoldProject",
+      "case": "mf033-scaffold-project-demo",
+      "detail": "subprocess.run",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    },
+    {
+      "action": "ScaffoldProject",
+      "case": "mf033-scaffold-project-demo",
+      "detail": "subprocess.Popen",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject",
+      "type": "process.spawn"
+    }
+  ],
+  "ok": false,
+  "out_of_process_observations": [],
+  "summary": "effect conformance unobservable: 2 observed effect(s) over 1 case(s), 5 declared port(s), 1 gap(s), 5 dead port(s), 1 unobservable target(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report. MF-027: the same holds for an unobservable target -- no configuration downgrades that verdict to a pass",
+  "unobservable_targets": [
+    {
+      "detail": "case=mf033-scaffold-project-demo action=ScaffoldProject",
+      "kind": "process-boundary",
+      "message": "UNOBSERVABLE BOUNDARY: process '/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject' -- a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run [case=mf033-scaffold-project-demo action=ScaffoldProject]",
+      "reason": "a child process was spawned; the sandbox records the spawn but observes nothing the child does -- its writes, deletes and connections are invisible to this run",
+      "target": "/opt/homebrew/opt/python@3.14/bin/python3.14 /Users/hayde/IdeaProjects/wt-58-mf033-effect-oracle-out-of-process/scripts/tla_spec_dev.py --spec-root specs scaffold project --name CliProject"
+    }
+  ],
+  "verdict": "unobservable"
+}

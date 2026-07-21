@@ -35,6 +35,21 @@ Three surfaces:
    is a **failure**, not a clean report. See :class:`UnobservableTarget` and
    :func:`assess_target_observability`.
 
+   **MF-033 adds a SECOND observer that reaches across the boundary.** MF-028
+   measured that every adapter in this repository shells out, so the in-process
+   sandbox saw only the spawn and refused. :class:`WorkingTreeObserver` sees the
+   child a different way -- it snapshots the working-tree roots before the child
+   runs and diffs them after, so files the child created/changed/deleted become
+   real ``filesystem.write``/``filesystem.delete`` observations regardless of the
+   child's runtime. This is added observability, not a weakened refusal: the
+   observer covers only the axes it can positively prove (the filesystem), and
+   :func:`diff_effects` narrows a spawn's process-boundary finding to name only
+   the axes still unwatched (network, nested spawns) -- which keeps the verdict
+   ``unobservable`` until *every* axis has an observer. A spawn with no
+   out-of-process evidence is unchanged: still fully unobservable. Nothing here
+   downgrades a verdict; it only lets the run SEE more, and report what it still
+   cannot.
+
 3. **Diff.** Observed effects are matched against the ports declared for the
    case's action. Two findings, both hard failures:
 
@@ -223,6 +238,13 @@ class ObservedEffect:
 UNOBSERVABLE_RUNTIME = "runtime"
 UNOBSERVABLE_PROCESS_BOUNDARY = "process-boundary"
 
+#: MF-033: every effect type a child process could emit across a spawn boundary.
+#: The in-process sandbox observes NONE of them (its monkeypatches do not cross a
+#: process boundary). An out-of-process observer discharges the subset it can
+#: positively prove; whatever remains is the named unobservable residual. This is
+#: exactly ``EFFECT_TYPES``: a child can write, delete, spawn again, and connect.
+BOUNDARY_EFFECT_TYPES = frozenset(EFFECT_TYPES)
+
 
 @dataclass(frozen=True)
 class UnobservableTarget:
@@ -246,6 +268,36 @@ class UnobservableTarget:
             head = f"TARGET NOT OBSERVABLE: {self.target!r}"
         tail = f" [{self.detail}]" if self.detail else ""
         return f"{head} -- {self.reason}{tail}"
+
+
+@dataclass(frozen=True)
+class OutOfProcessObservation:
+    """Positive evidence gathered by an observer that reaches ACROSS a boundary.
+
+    MF-033. The in-process sandbox cannot see a child process's effects, so under
+    MF-027/MF-028 a declared ``process.spawn`` produced :data:`VERDICT_UNOBSERVABLE`
+    permanently: every adapter in this repository shells out, the sandbox saw the
+    spawn but nothing the child did, and refused. This record carries what an
+    *out-of-process* observer -- e.g. a working-tree snapshot diff -- actually
+    measured for one bracketed execution window: which effect TYPES it positively
+    covered, over which root, and how many effects it saw.
+
+    It is evidence, never a downgrade. Two properties keep MF-027 polarity intact:
+
+    * ``covered_types`` is a positive claim -- the observer watched those axes and
+      can point at the files that changed. It is not a permission to assume; an
+      observer that watched nothing carries an empty set and discharges nothing.
+    * whatever a child could emit but this observer did not watch stays in the
+      residual (see :func:`diff_effects`). Observing the filesystem does not
+      certify the network. So an unobserved axis still refuses.
+    """
+
+    case: str
+    action: str
+    observer: str
+    covered_types: frozenset[str]
+    root: str = ""
+    observed_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -519,11 +571,21 @@ class EffectRecorder:
     #: run actually saw -- and because a diff that ignored them would be a
     #: diff over an unknown population.
     unobservable: list[UnobservableTarget] = field(default_factory=list)
+    #: MF-033: positive evidence from out-of-process observers (working-tree
+    #: snapshot diffs). Each entry names the axes an observer covered for a
+    #: bracketed window. Like ``unobservable``, this is a fact the run gathered;
+    #: there is deliberately no method to withdraw one, because it is evidence,
+    #: not a flag.
+    out_of_process: list["OutOfProcessObservation"] = field(default_factory=list)
 
     def record_unobservable(self, finding: UnobservableTarget) -> None:
         """Record a refusal. There is no matching ``clear``/``waive`` method."""
         if finding not in self.unobservable:
             self.unobservable.append(finding)
+
+    def record_out_of_process(self, observation: "OutOfProcessObservation") -> None:
+        """Record what an out-of-process observer proved. No ``clear``/``waive``."""
+        self.out_of_process.append(observation)
 
     def record(self, effect: ObservedEffect) -> None:
         self.effects.append(
@@ -735,6 +797,122 @@ class EffectSandbox:
             self._originals.pop(key, None)
 
 
+class WorkingTreeObserver:
+    """Out-of-process filesystem observation via a working-tree snapshot diff.
+
+    MF-033. :class:`EffectSandbox` monkeypatches *this* interpreter, so a child
+    process's filesystem effects are invisible to it (MF-028: every adapter in
+    this repository shells out, so the sandbox saw the spawn and nothing else).
+    This observer sees them a different way, and one that does not depend on the
+    child's runtime at all: it snapshots one or more working-tree roots *before*
+    an execution window and diffs them *after*. A file that appeared or changed
+    is a ``filesystem.write``; a file that vanished is a ``filesystem.delete``.
+    That is positive evidence of what the child actually did to the filesystem,
+    gathered from OUTSIDE any process boundary -- it works the same whether the
+    child was Python, java (TLC), or pytest.
+
+    **It covers the filesystem axis, and says so.** A child's network
+    connections and its own nested spawns leave no working-tree trace, so this
+    observer does not claim them: :attr:`covered_types` is exactly
+    ``{filesystem.write, filesystem.delete}``. Everything else a child could do
+    stays the named unobservable residual (:func:`diff_effects`). Coverage is a
+    positive property of what the observer measured, never an assertion of
+    absence -- observing the filesystem does not certify the network, and this
+    class offers no way to pretend otherwise. That is how MF-027 polarity
+    survives the added observability: more is seen, but nothing unseen is waved
+    through.
+
+    Used as a context manager around the adapter call whose child you want to
+    observe. The recorded effects and the :class:`OutOfProcessObservation`
+    coverage record both land on the supplied recorder.
+    """
+
+    covered_types = frozenset({"filesystem.write", "filesystem.delete"})
+
+    def __init__(
+        self,
+        roots: Iterable[Path] | Path,
+        recorder: EffectRecorder,
+        *,
+        action: str = "",
+        case: str = "",
+        observer: str = "working-tree-diff",
+    ) -> None:
+        if isinstance(roots, (str, Path)):
+            roots = [roots]
+        self.roots = [Path(root) for root in roots]
+        self.recorder = recorder
+        self.action = action
+        self.case = case
+        self.observer = observer
+        self._before: dict[str, tuple[int, int]] = {}
+
+    def __enter__(self) -> "WorkingTreeObserver":
+        self._before = self._snapshot()
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        # Record even on error: a child that wrote and then failed still wrote,
+        # and hiding those effects would be exactly the blindness this removes.
+        self._diff_and_record()
+
+    def _snapshot(self) -> dict[str, tuple[int, int]]:
+        """Map every existing file under the roots to (size, mtime_ns).
+
+        Directories are not effects on their own -- a ``filesystem.write`` is a
+        file crossing the boundary -- so only files are tracked. mtime is kept
+        alongside size so that an in-place overwrite of identical length still
+        reads as a write.
+        """
+        snapshot: dict[str, tuple[int, int]] = {}
+        for root in self.roots:
+            if not root.exists():
+                continue
+            for path in root.rglob("*"):
+                try:
+                    if not path.is_file():
+                        continue
+                    stat = path.stat()
+                except OSError:
+                    continue
+                snapshot[str(_abspath(path))] = (stat.st_size, stat.st_mtime_ns)
+        return snapshot
+
+    def _diff_and_record(self) -> None:
+        after = self._snapshot()
+        writes = 0
+        deletes = 0
+        for target, meta in sorted(after.items()):
+            if target not in self._before or self._before[target] != meta:
+                self._record(target, "filesystem.write")
+                writes += 1
+        for target in sorted(self._before):
+            if target not in after:
+                self._record(target, "filesystem.delete")
+                deletes += 1
+        self.recorder.record_out_of_process(
+            OutOfProcessObservation(
+                case=self.case,
+                action=self.action,
+                observer=self.observer,
+                covered_types=self.covered_types,
+                root=", ".join(str(root) for root in self.roots),
+                observed_count=writes + deletes,
+            )
+        )
+
+    def _record(self, target: str, effect_type: str) -> None:
+        self.recorder.record(
+            ObservedEffect(
+                type=effect_type,
+                target=target,
+                action=self.action,
+                case=self.case,
+                detail=f"out-of-process:{self.observer}",
+            )
+        )
+
+
 class _ObservationScope:
     """Tags every effect recorded inside the ``with`` body with a case/action."""
 
@@ -813,6 +991,10 @@ class EffectConformanceReport:
     ignored_suppression_keys: list[str] = field(default_factory=list)
     #: MF-027: targets the run could not observe. Non-empty => the run FAILS.
     unobservable: list[UnobservableTarget] = field(default_factory=list)
+    #: MF-033: what out-of-process observers positively measured. This is
+    #: evidence, reported so the reader can see WHICH child effects were
+    #: recovered across a boundary and on which axes; it never enters ``ok``.
+    out_of_process: list[OutOfProcessObservation] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -855,6 +1037,16 @@ class EffectConformanceReport:
 
     def render(self) -> str:
         lines = [self.summary()]
+        if self.out_of_process:
+            observed = sum(obs.observed_count for obs in self.out_of_process)
+            axes = sorted({t for obs in self.out_of_process for t in obs.covered_types})
+            lines.append("")
+            lines.append(
+                f"OUT-OF-PROCESS OBSERVATION: {len(self.out_of_process)} window(s) reached "
+                f"across a process boundary and recovered {observed} child effect(s) on axes "
+                f"{', '.join(axes)}. These were diffed against the declared ports like any "
+                "other observation; the axes NOT listed here stayed unobservable (MF-027)."
+            )
         if self.ignored_suppression_keys:
             lines.append("")
             lines.append(
@@ -934,6 +1126,17 @@ class EffectConformanceReport:
                 }
                 for finding in self.unobservable
             ],
+            "out_of_process_observations": [
+                {
+                    "case": obs.case,
+                    "action": obs.action,
+                    "observer": obs.observer,
+                    "covered_types": sorted(obs.covered_types),
+                    "root": obs.root,
+                    "observed_count": obs.observed_count,
+                }
+                for obs in self.out_of_process
+            ],
             "observable_scope": (
                 "in-process CPython only: builtins.open, os/shutil/pathlib mutators, "
                 "subprocess spawns and socket.connect patched in THIS interpreter. No "
@@ -962,6 +1165,7 @@ def diff_effects(
     cases: Iterable[str] = (),
     case_actions: dict[str, str] | None = None,
     unobservable: Iterable[UnobservableTarget] = (),
+    out_of_process: Iterable[OutOfProcessObservation] = (),
 ) -> EffectConformanceReport:
     """Diff observed effects against declared ports.
 
@@ -975,29 +1179,68 @@ def diff_effects(
     spawn that MATCHES a declared port is still a boundary the sandbox cannot
     see through. Declaring ``tlc_process`` says "I spawn java"; it does not
     say what java then wrote. Treating a declared spawn as fully accounted for
-    is precisely the silence this ticket removes, so the finding is derived
-    from the observation itself and no declaration suppresses it.
+    is precisely the silence MF-027 removes, so the finding is derived from the
+    observation itself and no declaration suppresses it.
+
+    MF-033: ``out_of_process`` carries positive evidence from observers that
+    reach across the boundary the in-process sandbox cannot (e.g. a
+    :class:`WorkingTreeObserver` snapshot diff). For a spawn whose case an
+    out-of-process observer bracketed, the axes that observer PROVED it covered
+    are discharged -- their effects are already in ``observed`` and diffed like
+    any other -- and the process-boundary finding is narrowed to name only the
+    axes that still have no observer. This is not a suppression path: coverage is
+    a positive measurement, an unwatched axis (network, nested spawn) stays in
+    the residual, and a spawn with no out-of-process evidence at all is
+    unchanged -- still fully unobservable. Only a spawn every one of whose axes
+    was positively observed is fully accounted for, which a filesystem-only
+    observer never is. Polarity is preserved: more is seen, nothing unseen is
+    waved through.
     """
     observed_list = list(observed)
     case_actions = case_actions or {}
+    out_of_process_list = list(out_of_process)
     report = EffectConformanceReport(
         observed=observed_list,
         declared=declarations.all_qualified(),
         cases=list(cases),
         ignored_suppression_keys=list(declarations.ignored_suppression_keys),
         unobservable=list(unobservable),
+        out_of_process=out_of_process_list,
     )
+
+    # MF-033: per-case union of the axes an out-of-process observer positively
+    # covered. Empty for every existing caller, so their spawns keep the full
+    # (unnarrowed) finding below -- the MF-027 default.
+    coverage_by_case: dict[str, set[str]] = {}
+    for observation in out_of_process_list:
+        coverage_by_case.setdefault(observation.case, set()).update(observation.covered_types)
 
     for effect in observed_list:
         if effect.type != "process.spawn":
             continue
-        finding = UnobservableTarget(
-            target=effect.target,
-            reason=(
+        covered = coverage_by_case.get(effect.case, set())
+        residual = sorted(BOUNDARY_EFFECT_TYPES - covered)
+        if not residual:
+            # Every axis a child could emit on was positively observed by some
+            # out-of-process observer. There is nothing left the run cannot see,
+            # so the boundary is fully accounted for and no finding is raised.
+            continue
+        if covered:
+            reason = (
+                "a child process was spawned; its "
+                f"{', '.join(sorted(covered))} effects were observed out-of-process "
+                f"(working-tree diff), but its {', '.join(residual)} effects have no "
+                "observer and remain invisible to this run"
+            )
+        else:
+            reason = (
                 "a child process was spawned; the sandbox records the spawn but "
                 "observes nothing the child does -- its writes, deletes and "
                 "connections are invisible to this run"
-            ),
+            )
+        finding = UnobservableTarget(
+            target=effect.target,
+            reason=reason,
             kind=UNOBSERVABLE_PROCESS_BOUNDARY,
             detail=f"case={effect.case or '<none>'} action={effect.action or '<unmapped>'}",
         )

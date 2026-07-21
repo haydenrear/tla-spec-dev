@@ -1,0 +1,123 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "not_run_this_ticket"
+    evidence: "MF-033 touches only scripts/effect_conformance.py + tests; the kill test is a different oracle and was not re-run. No model behavior changed (zero TLA delta)."
+  effect_conformance:
+    status: "unobservable"
+    evidence: "specs/tickets/MF-033/results/effect-conformance-after.json -- HONEST verdict on this repo's own shelling-out surface. Out-of-process observation now recovers 15 child filesystem writes (spec_tree dead->exercised) and narrows the boundary finding, but the child's network axis has no cheap portable observer, so the verdict is unobservable with the residual named precisely. Per MF-027 (and the header above) unobservable IS NOT clean; recording it as clean would rebuild the silence. See cost-report.md."
+  external_coverage:
+    status: "not_run_this_ticket"
+    evidence: "Not this ticket's surface (MF-015). No external bindings changed."
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Zero-delta ticket. No complexity reduction was sought or made: MF-033 touches
+    only scripts/effect_conformance.py (adds the WorkingTreeObserver out-of-process
+    observer, the OutOfProcessObservation evidence record, and a coverage-aware
+    narrowing in diff_effects) plus its tests, and a results-local evidence driver.
+    The TLA+ module and its configs are unchanged; TLC re-measured 231,621 distinct
+    / depth 25, identical to the MF-032 baseline (direction=zero). No representation
+    was added to the model, so there is nothing to refine. The new code is a second
+    OBSERVER, not new modelled state.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  MF-033 gives the effect oracle a SECOND observer that reaches across the process
+  boundary the in-process EffectSandbox cannot cross. MF-028 measured that every
+  adapter in this repository shells out, so the sandbox saw only the spawn and the
+  verdict was `unobservable` forever. scripts/effect_conformance.py now carries
+  WorkingTreeObserver: a working-tree snapshot diff (pure stdlib, no privileges, no
+  dependency, runtime-agnostic) that snapshots roots before an execution window and
+  diffs them after, turning a child's created/changed files into filesystem.write
+  and vanished files into filesystem.delete. diff_effects grew an `out_of_process=`
+  parameter carrying OutOfProcessObservation records -- POSITIVE evidence of which
+  effect axes an observer covered -- and narrows a spawn's process-boundary finding
+  to name only the axes still unwatched.
+  MEASURED on this repo's own surface (results/observe_out_of_process.py drives the
+  real, shelling-out ScaffoldProjectAdapter through its real subprocess.run against
+  the real five declared ports): BEFORE = 2 observed effects, spec_tree DEAD, blanket
+  boundary, verdict unobservable (the MF-028 state). AFTER = 17 observed effects, 15
+  child writes recovered out-of-process (all matching **/specs/**), spec_tree
+  EXERCISED, a real GAP surfaced (ScaffoldProject's undeclared python spawn), and the
+  boundary finding narrowed to "filesystem observed; network.connect, network.http,
+  process.spawn unobserved". Verdict STILL unobservable -- honestly, because a
+  filesystem diff cannot see a child's network, and that residual is named precisely
+  (acceptance criterion branch 2). The four other ports read as honest dead_surface
+  from a reduced single-action demo; declarations preserved, not deleted.
+  MF-027 POLARITY SURVIVED, proven by tests
+  (TestPolaritySurvivesOutOfProcessObservation): a spawn with no out-of-process
+  evidence is still fully unobservable; filesystem-only coverage still leaves the
+  network unobservable; only positive coverage of EVERY axis discharges a boundary
+  (which a filesystem-only observer never reaches); a runtime refusal is untouched;
+  and `out_of_process` is an evidence parameter, never a suppression flag (empty
+  evidence downgrades nothing). report.ok still consults only the finding lists.
+  COST PROBE (results/cost-report.md, the owner-decision deliverable): the
+  OBSERVATION mechanism generalizes fully and cheaply to the filesystem axis of all
+  four other oracle actions (they all write into **/results/** or **/specs/** via a
+  child). But that does NOT make them case-executable: their signal is a VERDICT, not
+  a filesystem tree, and comparing a verdict is per-oracle projection work with no
+  shared shape (MF-028 banded them HARD/BLOCKED for exactly this). Recommendation:
+  RUN THE ORACLES ADVISORILY rather than chasing per-oracle verdict projection --
+  reaching a `clean` effect verdict on a shelling-out repo needs either network
+  syscall capture (privileged, non-portable) or in-process invocation of every
+  adapter (MF-028's "large" axis), and the payoff (a blocking gate) is what the
+  2026-07-20 advisory reframe already retired. Zero TLA+ delta; validation matrix
+  green (TLC 231,621/depth 25, spec-unit 60 over 2 targets, 526 repo units,
+  specWorkflow 8/8 + cliWorkflow 2/2).

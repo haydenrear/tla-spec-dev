@@ -29,6 +29,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from effect_conformance import (  # noqa: E402
+    BOUNDARY_EFFECT_TYPES,
     SUPPRESSION_KEYS,
     VERDICT_CLEAN,
     VERDICT_DEAD_SURFACE,
@@ -39,7 +40,9 @@ from effect_conformance import (  # noqa: E402
     EffectRecorder,
     EffectSandbox,
     ObservedEffect,
+    OutOfProcessObservation,
     UnobservableTarget,
+    WorkingTreeObserver,
     assess_target_observability,
     diff_effects,
     load_effect_declarations,
@@ -771,3 +774,295 @@ class TestNothingDowngradesAnUnobservableVerdict:
             "--ignore-unobservable",
         ):
             assert forbidden not in source, f"CLI must not offer {forbidden}"
+
+
+# ---------------------------------------------------------------------------
+# MF-033: make the effect oracle OBSERVE out-of-process work.
+#
+# MF-028 measured that every adapter in this repository shells out, so the
+# in-process sandbox saw only the spawn and the verdict was `unobservable`
+# forever. WorkingTreeObserver reaches across the boundary via a snapshot diff.
+# These tests pin two things at once: (a) the child's filesystem effects are now
+# genuinely observed and diffed against ports; (b) MF-027 polarity SURVIVES --
+# an unwatched axis, and a spawn with no out-of-process evidence at all, still
+# refuse. The observation is positive evidence, never a downgrade flag.
+# ---------------------------------------------------------------------------
+
+
+class TestWorkingTreeObserverSeesOutOfProcessWrites:
+    """The observer recovers a CHILD process's real filesystem effects."""
+
+    def test_child_subprocess_write_is_observed_out_of_process(self, tmp_path):
+        """The exact blindness MF-028 recorded, now seen.
+
+        `test_a_child_that_writes_is_proof_the_boundary_is_real` proves the
+        in-process sandbox cannot see this write. Here the WorkingTreeObserver,
+        watching the same root, does.
+        """
+        watched = tmp_path / "workspace"
+        watched.mkdir()
+        target = watched / "written-by-child.txt"
+        recorder = EffectRecorder()
+        with WorkingTreeObserver(watched, recorder, action="Act", case="c1"):
+            subprocess.run(
+                [sys.executable, "-c", f"open({str(target)!r}, 'w').write('x')"], check=True
+            )
+        assert target.exists(), "the child really wrote out-of-process"
+        writes = [e for e in recorder.effects if e.type == "filesystem.write"]
+        assert any(str(target) in e.target for e in writes), (
+            "the observer recovered the child's write across the process boundary"
+        )
+        assert all("out-of-process" in e.detail for e in writes)
+
+    def test_child_delete_is_observed_as_filesystem_delete(self, tmp_path):
+        watched = tmp_path / "workspace"
+        watched.mkdir()
+        victim = watched / "doomed.txt"
+        victim.write_text("here")
+        recorder = EffectRecorder()
+        with WorkingTreeObserver(watched, recorder, action="Act", case="c1"):
+            subprocess.run([sys.executable, "-c", f"import os; os.remove({str(victim)!r})"], check=True)
+        assert not victim.exists()
+        deletes = [e for e in recorder.effects if e.type == "filesystem.delete"]
+        assert any(str(victim) in e.target for e in deletes)
+
+    def test_observer_records_its_coverage_as_positive_evidence(self, tmp_path):
+        watched = tmp_path / "workspace"
+        watched.mkdir()
+        recorder = EffectRecorder()
+        with WorkingTreeObserver(watched, recorder, action="Act", case="c1"):
+            (watched / "a.txt").write_text("x")
+        assert len(recorder.out_of_process) == 1
+        obs = recorder.out_of_process[0]
+        assert obs.covered_types == frozenset({"filesystem.write", "filesystem.delete"})
+        assert obs.case == "c1" and obs.observed_count >= 1
+
+    def test_unchanged_tree_records_zero_effects_but_still_a_coverage_record(self, tmp_path):
+        watched = tmp_path / "workspace"
+        watched.mkdir()
+        (watched / "pre-existing.txt").write_text("untouched")
+        recorder = EffectRecorder()
+        with WorkingTreeObserver(watched, recorder, action="Act", case="c1"):
+            pass
+        assert recorder.effects == []
+        assert recorder.out_of_process[0].observed_count == 0
+
+
+class TestOutOfProcessObservationFeedsTheDiff:
+    """Observed child effects are diffed against ports like any other."""
+
+    def test_observed_child_write_can_match_a_declared_port(self):
+        """A child write inside a declared target exercises the port.
+
+        This is the mechanism by which a shelling-out adapter stops leaving all
+        its ports dead: the child's writes are now real observations.
+        """
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        report = diff_effects(
+            decls,
+            [
+                ObservedEffect(
+                    type="filesystem.write", target="/tmp/workspace/child-wrote.txt",
+                    action="Act", case="c1", detail="out-of-process:working-tree-diff",
+                ),
+            ],
+            cases=["c1"],
+        )
+        assert report.dead_surface == [], "the port was exercised by the observed child write"
+        assert report.gaps == []
+
+    def test_observed_child_write_outside_a_port_is_a_gap(self):
+        """The oracle's whole point: an undeclared child effect is a gap.
+
+        Out-of-process observation makes a real advisory SIGNAL possible -- here
+        a gap the sandbox alone could never have seen.
+        """
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        report = diff_effects(
+            decls,
+            [
+                ObservedEffect(
+                    type="filesystem.write", target="/etc/passwd",
+                    action="Act", case="c1", detail="out-of-process:working-tree-diff",
+                ),
+            ],
+            cases=["c1"],
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c1", action="Act", observer="working-tree-diff",
+                    covered_types=frozenset({"filesystem.write", "filesystem.delete"}),
+                ),
+            ],
+        )
+        assert len(report.gaps) == 1
+
+
+class TestPolaritySurvivesOutOfProcessObservation:
+    """MF-027 polarity must not weaken when we make more things observable.
+
+    The whole risk of this ticket: in teaching the oracle to see child writes,
+    do not let it start passing runtimes it still cannot see. Every test here
+    asserts a refusal SURVIVES.
+    """
+
+    def _spawn_report(self, out_of_process=()):
+        decls = load_effect_declarations(
+            declarations(proc={"type": "process.spawn", "target": "*"})
+        )
+        return diff_effects(
+            decls,
+            [ObservedEffect(type="process.spawn", target="java -jar x.jar", action="Act", case="c1")],
+            cases=["c1"],
+            out_of_process=list(out_of_process),
+        )
+
+    def test_spawn_with_no_out_of_process_evidence_is_still_unobservable(self):
+        """The MF-027 default is untouched: no evidence => full refusal."""
+        report = self._spawn_report()
+        assert report.verdict == VERDICT_UNOBSERVABLE and report.ok is False
+        assert report.unobservable[0].kind == "process-boundary"
+        assert "invisible to this run" in report.unobservable[0].reason
+
+    def test_filesystem_only_coverage_still_leaves_network_unobservable(self):
+        """The load-bearing test: observing the filesystem does NOT certify the network.
+
+        A working-tree diff covers filesystem.write/delete. The child could still
+        open a socket the diff cannot see, so the verdict STAYS unobservable and
+        the residual is named precisely.
+        """
+        report = self._spawn_report(
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c1", action="Act", observer="working-tree-diff",
+                    covered_types=frozenset({"filesystem.write", "filesystem.delete"}),
+                )
+            ]
+        )
+        assert report.verdict == VERDICT_UNOBSERVABLE and report.ok is False
+        reason = report.unobservable[0].reason
+        assert "filesystem.write" in reason, "names what WAS observed"
+        assert "network.connect" in reason and "network.http" in reason, "names the residual"
+
+    def test_only_total_coverage_of_every_axis_discharges_the_boundary(self):
+        """Symmetric control: a spawn is fully accounted for ONLY when every axis is proven.
+
+        This is the structural boundary of the rule -- and a filesystem-only
+        observer never reaches it, which is exactly why this repo stays
+        unobservable. The rule discharges on positive coverage of ALL axes, not
+        on a flag.
+        """
+        report = self._spawn_report(
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c1", action="Act", observer="omniscient",
+                    covered_types=frozenset(BOUNDARY_EFFECT_TYPES),
+                )
+            ]
+        )
+        assert report.unobservable == [], "every axis proven => nothing left to refuse"
+        assert report.verdict == VERDICT_CLEAN
+
+    def test_coverage_for_a_different_case_does_not_discharge_this_spawn(self):
+        """Evidence is scoped: a diff of case c2 says nothing about c1's child."""
+        report = self._spawn_report(
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c2", action="Other", observer="working-tree-diff",
+                    covered_types=frozenset(BOUNDARY_EFFECT_TYPES),
+                )
+            ]
+        )
+        assert report.verdict == VERDICT_UNOBSERVABLE and report.ok is False
+
+    def test_out_of_process_is_evidence_not_a_flag(self):
+        """diff_effects grows an evidence parameter, never a suppression one.
+
+        The forbidden names from TestNothingDowngrades stay forbidden; the new
+        parameter carries OBSERVATIONS, and empty observations discharge nothing.
+        """
+        import inspect
+
+        params = set(inspect.signature(diff_effects).parameters)
+        assert "out_of_process" in params
+        for forbidden in ("allow_unobservable", "ignore_unobservable", "assume_observable", "skip_observability"):
+            assert forbidden not in params
+        # Empty evidence is not a downgrade: the spawn is as unobservable as ever.
+        assert self._spawn_report(out_of_process=[]).verdict == VERDICT_UNOBSERVABLE
+
+    def test_a_runtime_refusal_is_not_touched_by_filesystem_coverage(self):
+        """A JVM adapter is refused at the RUNTIME edge; observing files nearby
+        does not make its own in-JVM work observable."""
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        sandbox = EffectSandbox(root=Path(tempfile.mkdtemp()) / "sb")
+        sandbox.require_observable("com.example:JvmAdapter", resolved=object(), runtime="jvm")
+        report = diff_effects(
+            decls,
+            [ObservedEffect(type="filesystem.write", target="/tmp/workspace/a", action="Act", case="c1")],
+            cases=["c1"],
+            unobservable=sandbox.recorder.unobservable,
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c1", action="Act", observer="working-tree-diff",
+                    covered_types=frozenset(BOUNDARY_EFFECT_TYPES),
+                )
+            ],
+        )
+        assert report.verdict == VERDICT_UNOBSERVABLE and report.ok is False
+
+    def test_end_to_end_real_spawn_with_observer_sees_the_write_but_still_refuses(self, tmp_path):
+        """The full MF-033 story in one test.
+
+        A real child writes a file; the WorkingTreeObserver recovers the write
+        out-of-process and it matches a declared port (so the port is no longer
+        dead). But the child could have opened a socket the diff cannot see, so
+        the run STILL refuses -- verdict unobservable, residual named. Observed
+        more; certified nothing unseen.
+        """
+        watched = tmp_path / "specs"
+        watched.mkdir()
+        child_file = watched / "program_model.tla"
+        decls = load_effect_declarations(
+            declarations(
+                spec_tree={"type": "filesystem.write", "target": "**/specs/**"},
+                proc={"type": "process.spawn", "target": "*"},
+            )
+        )
+        recorder = EffectRecorder()
+        with EffectSandbox(root=tmp_path / "sb", recorder=recorder) as sandbox:
+            with sandbox.observe(action="Act", case="c1"):
+                with WorkingTreeObserver(watched, recorder, action="Act", case="c1"):
+                    subprocess.run(
+                        [sys.executable, "-c", f"open({str(child_file)!r}, 'w').write('MODULE')"],
+                        check=True,
+                    )
+        report = diff_effects(
+            decls,
+            recorder.effects,
+            cases=["c1"],
+            unobservable=recorder.unobservable,
+            out_of_process=recorder.out_of_process,
+        )
+        # The child's write was observed out-of-process and matched spec_tree.
+        assert any(
+            e.type == "filesystem.write" and str(child_file) in e.target for e in report.observed
+        )
+        spec_tree_dead = any(d.port.port == "spec_tree" for d in report.dead_surface)
+        assert not spec_tree_dead, "the observed child write exercised the declared port"
+        # ...and yet the run still refuses, because the spawn's network axis is unseen.
+        assert report.verdict == VERDICT_UNOBSERVABLE and report.ok is False
+        assert any(f.kind == "process-boundary" for f in report.unobservable)
+
+    def test_evidence_json_surfaces_the_out_of_process_observation(self, tmp_path):
+        report = self._spawn_report(
+            out_of_process=[
+                OutOfProcessObservation(
+                    case="c1", action="Act", observer="working-tree-diff",
+                    covered_types=frozenset({"filesystem.write", "filesystem.delete"}),
+                    observed_count=3,
+                )
+            ]
+        )
+        payload = json.loads(report.write(tmp_path / "e.json").read_text(encoding="utf-8"))
+        assert payload["out_of_process_observations"][0]["observer"] == "working-tree-diff"
+        assert payload["out_of_process_observations"][0]["observed_count"] == 3
+        assert payload["verdict"] == VERDICT_UNOBSERVABLE
