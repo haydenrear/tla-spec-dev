@@ -463,12 +463,108 @@ def actual_state_from_cluster(assertion_context: Any, mapping: AdapterMapping, o
     )
 
 
+def compare_fields_honoring_unchecked(
+    expected: dict[str, Any],
+    actual: dict[str, Any],
+    unobservable: tuple[str, ...] = (),
+) -> dict[str, list[Any]]:
+    """Compare two state dicts field by field, honoring UNCHECKED fields.
+
+    MF-032: this is the per-field replacement for the runner's old
+    all-or-nothing ``==``. A field named in ``unobservable`` is reported as
+    UNCHECKED -- never as an agreement and never as a disagreement -- because
+    "this field cannot be observed" is a real and distinct outcome from "this
+    field agrees". Every other field is compared on its own, so a run reports
+    exactly which fields matched, which diverged, and which were not checked,
+    instead of collapsing all of that into a single boolean. Reporting UNCHECKED
+    honestly is the safeguard MF-028/MF-029 kept needing: an unobservable field
+    that is silently treated as agreement is the tautology that hides a defect.
+    """
+    unobs = set(unobservable)
+    agreements: list[str] = []
+    disagreements: list[dict[str, Any]] = []
+    unchecked: list[str] = []
+    for field in sorted(set(expected) | set(actual)):
+        if field in unobs:
+            unchecked.append(field)
+        elif expected.get(field) == actual.get(field):
+            agreements.append(field)
+        else:
+            disagreements.append({"field": field, "expected": expected.get(field), "actual": actual.get(field)})
+    return {"agreements": agreements, "disagreements": disagreements, "unchecked": unchecked}
+
+
+def _unobservable_from_result(result: Any) -> tuple[str, ...]:
+    """Fields an adapter declared unobservable, surfaced through semantic_output.
+
+    An adapter that returns a real ``after`` dict can declare which of its
+    fields could not be observed by listing them under
+    ``semantic_output["unobservable"]``. The runner honors that list rather than
+    forcing the adapter to either fail forever on an unobservable field or fake
+    agreement by copying it out of the case -- the exact bind MF-028 recorded.
+    """
+    semantic = getattr(result, "semantic_output", None)
+    if isinstance(semantic, dict):
+        declared = semantic.get("unobservable")
+        if isinstance(declared, (list, tuple)):
+            return tuple(str(field) for field in declared)
+    return ()
+
+
+def assert_case_result_per_field(*, case: Any, result: Any, projector: Any | None = None) -> None:
+    """Per-field replacement for ``runtime.assert_case_result``.
+
+    MF-032 (deferred here by MF-031): the runner used to compare ``result.after``
+    to ``case.after`` with ``==`` over the whole dict -- there was no way to say
+    "this field is not observable", so an adapter with one unprojectable field
+    had to return ``after=None`` and hand-roll its own comparison. This compares
+    field by field and honors UNCHECKED, so an adapter can return a real
+    ``after`` plus the fields it could not observe and get an honest verdict from
+    the runner. Output and projector-semantic checks keep runtime's behavior.
+    """
+    if result.output is not None and result.output != case.output:
+        raise AssertionError(f"adapter output mismatch for {case.name}: {result.output!r} != {case.output!r}")
+    if result.after is not None:
+        expected = dict(getattr(case, "after"))
+        actual = dict(result.after)
+        comparison = compare_fields_honoring_unchecked(expected, actual, _unobservable_from_result(result))
+        if comparison["disagreements"]:
+            detail = "; ".join(
+                f"{item['field']}: expected {item['expected']!r}, actual {item['actual']!r}"
+                for item in comparison["disagreements"]
+            )
+            raise AssertionError(f"adapter after-state mismatch for {case.name}: {detail}")
+    if projector is not None:
+        from spec_double_compiler.runtime import project_expected_output
+
+        expected_output = project_expected_output(projector, case)
+        if result.semantic_output != expected_output:
+            raise AssertionError(
+                f"adapter semantic output mismatch for {case.name}: {result.semantic_output!r} != {expected_output!r}"
+            )
+
+
 def assert_projected_state(assertion_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> None:
     if mapping.assertion is None:
-        if assertion_context.actual != assertion_context.expected:
+        expected = assertion_context.expected
+        actual = assertion_context.actual
+        unobservable = tuple(getattr(assertion_context, "unobservable", ()) or ())
+        # MF-032: per-field comparison honoring UNCHECKED. Dict projections are
+        # compared field by field so an unobservable field can be declared rather
+        # than faked; non-dict projections keep whole-value equality.
+        if isinstance(expected, dict) and isinstance(actual, dict):
+            comparison = compare_fields_honoring_unchecked(expected, actual, unobservable)
+            if comparison["disagreements"]:
+                detail = "; ".join(
+                    f"{item['field']}: expected {item['expected']!r}, actual {item['actual']!r}"
+                    for item in comparison["disagreements"]
+                )
+                raise AssertionError(f"projected state mismatch for {assertion_context.case.name}: {detail}")
+            return
+        if actual != expected:
             raise AssertionError(
                 f"projected state mismatch for {assertion_context.case.name}: "
-                f"{assertion_context.actual!r} != {assertion_context.expected!r}"
+                f"{actual!r} != {expected!r}"
             )
         return
     assertion = instantiate_cached(mapping.assertion, object_cache)
@@ -572,8 +668,8 @@ sys.path.insert(0, {str(cases_dir.resolve().parent)!r})
 
 from {cases_dir.name}.cases import CASES_BY_NAME
 from {cases_dir.name}.validators import assert_case_replays
-from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_projected_state_if_configured
-from spec_double_compiler.runtime import AdapterCaseContext, assert_case_result, call_adapter, instantiate, load_object
+from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_case_result_per_field, assert_projected_state_if_configured
+from spec_double_compiler.runtime import AdapterCaseContext, call_adapter, instantiate, load_object
 
 
 MAPPING = AdapterMapping(
@@ -601,7 +697,7 @@ def main() -> int:
         projector = load_object(MAPPING.output_projection)
     case_work_dir = Path({str(case_work_dir.resolve())!r})
     result = call_adapter(adapter, case, case_work_dir)
-    assert_case_result(
+    assert_case_result_per_field(
         case=case,
         result=result,
         projector=projector,
@@ -697,7 +793,7 @@ def execute_cases_in_batch(
     effect_report_path: Path | None = None,
 ) -> None:
     ensure_import_roots(import_roots)
-    from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, assert_case_result, call_adapter, instantiate, load_object
+    from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, call_adapter, instantiate, load_object
     from effect_conformance import EffectRecorder, EffectSandbox
 
     effects_active = declarations is not None and bool(declarations.ports)
@@ -812,7 +908,7 @@ def execute_cases_in_batch(
                             if adapter is not None:
                                 call_optional_hook(adapter, "setup", case_context)
                                 case_context.result = call_adapter(adapter, case, case_work_dir)
-                                assert_case_result(
+                                assert_case_result_per_field(
                                     case=case,
                                     result=case_context.result,
                                     projector=projector,
