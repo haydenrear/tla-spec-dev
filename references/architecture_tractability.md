@@ -18,13 +18,21 @@ distinct-state count, the action count, the R/W-matrix density. That turns
 programming into an optimization problem:
 
 ```text
-minimize   complexity(program), as measured through its TLA+ model
+minimize   complexity(program), as measured through its TLA+ model  # SHIPPED: the scanner measures this
 subject to all behaviors retained:
-           - kill rate >= kill_rate_floor
-           - effect conformance clean (no undeclared effects)
+           - kill rate >= kill_rate_floor            # EXPERIMENTAL: not validated (MF-038: 0/9 content bugs, 0.31)
+           - effect conformance clean                # EXPERIMENTAL: existence/exit-code oracle, not content
            - external surface fully covered by generated cases
            - the program represented in its ENTIRETY
 ```
+
+The complexity metric (the objective) is the shipped, working scanner. The
+behavior-retention constraints are the **experimental** faithfulness layer: the
+kill rate and effect conformance are not yet validated to catch bugs (MF-038
+measured 0 of 9 content bugs killed, kill rate 0.31), so treat them as advisory
+diagnostics, not as satisfied/violated gates. The objective is real and usable
+today; the constraints are a research aspiration under test (MF-037). See SKILL.md,
+"What Is Shipped And What Is Experimental".
 
 Rules that follow:
 
@@ -108,11 +116,15 @@ systematic failures, and they are symmetric:
 - **Over-abstraction:** merging multi-step operations into one atomic
   action, making states the system routinely passes through unreachable.
 
-Guidance therefore cannot be taste — it must be a procedure with empirical
-checks on both sides. The oracles in `references/modular_fuzzing.md` are
-those checks: effect conformance and the mutation kill test catch
-over-abstraction; the complexity gate catches over-detail. This reference is
-the doctrine for what to do when the gates squeeze from both sides.
+Guidance therefore cannot be taste — it must be a procedure with checks on both
+sides. The **shipped** side is the complexity scanner: it catches over-detail
+(state explosion, dense R/W matrix) and is validated for that. The other side —
+effect conformance and the mutation kill test in `references/modular_fuzzing.md`,
+meant to catch over-abstraction — is **experimental and not validated for
+bug-catching** (MF-038: 0 of 9 content bugs killed, kill rate 0.31). So today only
+the over-detail check is trustworthy; guard against over-abstraction with human
+review until the faithfulness oracles are proven (MF-037). This reference is the
+doctrine for what to do when complexity squeezes.
 
 ## The Three Moves
 
@@ -127,11 +139,13 @@ Project variables no invariant reads, quotient equivalent states,
 symmetry-reduce identical actors, coarsen domains, hide internal progress
 between commit points.
 
-Validity is empirical, not judgment: **an abstraction is legitimate iff the
-kill rate holds after it.** Abstract a dimension, rerun the kill test. Kill
-rate holds → the dimension was accidental detail. Kill rate drops → it was
-essential; put it back. This turns essential-vs-accidental complexity into
-a measurement.
+The intended validity test was empirical: **an abstraction is legitimate iff the
+kill rate holds after it** — abstract a dimension, rerun the kill test, kill rate
+holds means accidental detail, kill rate drops means essential. **This test relies
+on the experimental kill test, which MF-038 showed does not catch content bugs
+(0/9, kill rate 0.31), so it cannot be trusted for this yet.** Until the kill test
+is validated (MF-037), judge abstractions by human review of what behavior the
+removed dimension carried, not by the kill rate alone.
 
 ### Move 2 — Decompose (cut into components with ports)
 
@@ -246,12 +260,15 @@ conflicts with them, including elsewhere in these references:
    There is no third option. An observed effect with no declared port, a
    behavior that will not model, a shape that resists the views — each is a
    statement about the program, not a gap to be annotated and waived.
-5. **The diagram has strict complexity limits.** Case caps, the
-   state-space bound, and the component-size heuristics are hard gates.
-   Over the limit fails. Raising a limit is a per-program decision recorded
-   with its rationale and reviewed as such — an explicit, visible act, never
-   an override flag, a fallback default, or a conditional check that
-   silently disables itself when its input is absent.
+5. **The diagram has complexity thresholds.** *(Superseded by "Advisory, Not
+   Blocking": as originally written this rule made case caps, the state-space
+   bound, and the component-size heuristics hard gates that fail over the limit.
+   They are now advisory — they warn and recommend, and do not block.)* Raising a
+   threshold is still a per-program decision recorded with its rationale and
+   reviewed as such — an explicit, visible act, never an override flag, a fallback
+   default, or a conditional check that silently disables itself when its input is
+   absent. The evidence-integrity half of this rule is what endures: you tune the
+   threshold in the open, you do not doctor the input to it.
 
 **A rule with an escape hatch is not a rule.** When you find yourself
 writing "or record a justification", "unless overridden", "falls back to",
@@ -274,21 +291,26 @@ The corollary is that an auditing agent must never choose its own scope. An
 agent that picks the boundary can define every finding out of existence, and no
 amount of per-finding rigor recovers from that.
 
-**Hard gates and advisory diagnosis are different things**, and the next
-section is not a loophole in this one. Suggested moves, modularity scores,
-and refactor targets are advisory: they propose architecture and require
-user approval. Case caps, the state-space bound, component-size heuristics,
-the kill-rate floor, and effect conformance are gates: they fail. "Some
-pieces score badly and still need to exist in that form" licenses a
-representation, never a breach of a limit. A piece that genuinely must
-exceed a cap gets that cap raised explicitly, in the manifest, with a
-rationale — it does not get waved through.
+**Evidence integrity and advisory diagnosis are different things**, and the next
+section is not a loophole in this one. This paragraph originally drew the line
+between "advisory diagnosis" and "hard gates" and put case caps, the state-space
+bound, component-size heuristics, the kill-rate floor, and effect conformance on
+the *gate* side. **"Advisory, Not Blocking" above reverses that**: none of those
+block anymore — they warn and recommend. What survives is the *evidence-integrity*
+rule, which is orthogonal to blocking: you may not falsify the measurement (drop
+cases, suppress a gap, silence a finding) even though the measurement no longer
+fails your build. "Some pieces score badly and still need to exist in that form"
+licenses a representation. A piece that genuinely wants a looser threshold gets it
+raised explicitly, in the manifest, with a rationale — recorded as a reviewable
+decision, not to unblock a build (nothing was blocked) but to keep the advisory
+warning meaningful.
 
 ## Recommendations, Never Verdicts
 
 The diagnosis output is advisory everywhere it appears — CLI output, ticket
-evidence, migration notes. This governs **suggested moves and scores**, not
-the hard gates enumerated in the previous section. Rules:
+evidence, migration notes. Under "Advisory, Not Blocking" the thresholds are now
+advisory too, so this is no longer a contrast between advice and gates; it is the
+rule set for how the advice (suggested moves and scores) is presented. Rules:
 
 - Every suggested move is labeled a recommendation and carries its
   evidence. The user approves, adjusts, or vetoes.

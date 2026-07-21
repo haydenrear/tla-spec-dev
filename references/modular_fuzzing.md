@@ -6,24 +6,54 @@ complexity, and how generated cases relate to fuzzing. Read it together with
 authoring or reviewing any baseline. For moving an existing repository onto
 this shape, read `references/migration.md`.
 
-## The Reframe
+> ## Maturity: one shipped part, one experimental part
+>
+> This document covers two things at very different maturity, and the SKILL.md
+> section "What Is Shipped And What Is Experimental" is the authority.
+>
+> - **SHIPPED and advisory:** the complexity **scanner** — the dimension table,
+>   state-space bound, variables x actions read/write matrix, graph-modularity
+>   score with near-decomposable clusters, dense-row / god-state detection, and
+>   the suggested move. That is the "Budgets" section's `analyze complexity`
+>   command and the decomposition method it supports. It warns and recommends;
+>   it never blocks.
+> - **EXPERIMENTAL and NOT validated for bug-catching:** the differential-fuzzing
+>   framing itself — "The Reframe", the "Oracles" (output/projected-state/effect
+>   conformance), the mutation kill test, and the corpus discipline built on them.
+>   It is real, retained infrastructure and an honest record of what was built,
+>   but the **MF-038 kill probe measured that generated cases caught 0 of 9
+>   subtle content/value/field/count bugs — kill rate 4/13 = 0.31** — with a green
+>   control, because the oracles read effect *existence and process exit codes*,
+>   not *content*. **The randomized-generation arm (Hypothesis) is a stub: the
+>   design is two-armed (TLC exhaustive + Hypothesis random) and only the
+>   exhaustive arm exists.** Do not expect any of it to catch bugs. Where a
+>   passage below says a kill test "validates" a representation or that a baseline
+>   without one is "unvalidated", read it as the *original design intent*, now
+>   known not to hold — corrected inline.
 
-This workflow is spec-guided differential fuzzing with a generated reference
-implementation:
+## The Reframe (EXPERIMENTAL framing)
+
+The workflow was designed as spec-guided differential fuzzing with a generated
+reference implementation. This framing is a research aspiration, not a validated
+capability (see the maturity note above):
 
 - The TLA+ model is the input grammar and the oracle.
 - TLC bounded exploration is the exhaustive input generator. Hypothesis
-  strategies are the randomized generator. Both feed the same oracle.
+  strategies were meant to be the randomized generator — **but that arm is a
+  stub and is not implemented**, so only TLC bounded-exhaustive generation
+  exists today. Both were meant to feed the same oracle.
 - The generated spec double is the reference implementation.
 - Adapters are the fuzz harness.
 - Invariants, projected-state assertions, and effect conformance are the
   sanitizers.
 - The production program is the target.
 
-The value system is empirical, exactly like fuzzing: a representation is
-judged by the bugs it can catch and the coverage it achieves per unit budget,
-never by whether TLC passes. TLC passing only proves the model is
-self-consistent. It says nothing about fidelity to the program.
+The intended value system was empirical, like fuzzing: judge a representation by
+the bugs it can catch, never by whether TLC passes. **That intent is unmet.** The
+MF-038 probe showed the existing oracles do not catch content bugs (0 of 9, kill
+rate 0.31), so today generated cases exercise the program but do not reliably
+detect its faults. TLC passing still only proves the model is self-consistent, and
+a passing kill test — as currently built — does not prove fidelity either.
 
 Two failure modes follow from forgetting this:
 
@@ -209,11 +239,14 @@ cost real work:
   FLAG, not a win: the distinct-state count is structurally blind to a deleted
   self-loop, because removing one returns to an already-known state.
 
-## Oracles
+## Oracles (EXPERIMENTAL — not validated for bug-catching)
 
-Every fuzzed case is checked against up to four oracles. The first two
-exist today; the third and fourth are what make a representation's quality
-falsifiable.
+Every fuzzed case is checked against up to four oracles. This whole section is
+the experimental fuzzing layer. The oracles were designed to make a
+representation's quality falsifiable; the MF-038 probe measured that, as built,
+they do not catch content bugs (0 of 9; kill rate 0.31) because they check effect
+*existence and shape*, not *content*. Read them as a modelling aid and a research
+surface, not as a bug detector.
 
 **All four are bounded to what is already modeled**, and that bound is
 structural rather than incidental: output and projected-state conformance check
@@ -336,16 +369,24 @@ explicitly **out of scope** for MF-027.
      too abstract there, and points at the exact variable or action to
      refine.
 
-A baseline without a passing kill test is unvalidated, the same way a fuzz
-harness that reaches 2% coverage is rejected regardless of whether it
-builds. Note the difference from the negative projected-state check in
+The original doctrine here was "a baseline without a passing kill test is
+unvalidated." **MF-038 falsified that as a bug-catching claim**: the kill test
+passed its control and still let all 9 subtle content bugs survive (kill rate
+0.31), so a passing kill test does not establish that a baseline catches bugs.
+The kill test remains useful as a *coverage* signal — it tells you a seeded fault
+at a boundary was exercised — but not as validation. Note the difference from the
+negative projected-state check in
 `examples/distributed_history/`: that check swaps in a wrong expected
 projection, which validates the harness plumbing. The kill test seeds a
 wrong production behavior, which validates the representation.
 
-The kill test is also what makes budgets safe: constants cannot be shrunk to
-nothing, because a trivial model stops killing mutants. Cost cap plus value
-floor is a real optimization target; either alone invites gaming.
+The kill test was *intended* to make budgets safe — constants cannot be shrunk
+to nothing if a trivial model stops killing mutants, so cost cap plus value floor
+would be a real optimization target. **That safety is not yet real**: because the
+kill test does not catch content bugs (MF-038), it cannot currently be trusted to
+detect a model shrunk past usefulness. Until it earns that role on a real app
+(MF-037), guard against over-shrinking with human review of the R/W matrix and the
+retained behavior, not with the kill rate.
 
 **Mechanized by MF-016** as `tla-spec-dev run kill-test`
 (`scripts/kill_test.py`, `scripts/run_kill_test.py`). Five properties are
@@ -370,11 +411,15 @@ faked:
   `refine_variable` and `refine_action`; the loader rejects one that does not.
   A survivor reports "the representation is too abstract at variable X /
   action Y", which is actionable, rather than a decimal that dropped.
-- **No waiver.** There is no `--allow-below-floor`, no `--accept-survivors`, no
-  expected-to-survive annotation, and no manifest key that records a sub-floor
-  rate as acceptable. Suppression-shaped keys are scanned for, reported in
-  `ignored_suppression_keys`, and honored never. Weakening this gate weakens
-  every cost cap above it at once, which is the entire reason it exists.
+- **No waiver (evidence integrity, retained).** There is no `--allow-below-floor`,
+  no `--accept-survivors`, no expected-to-survive annotation, and no manifest key
+  that records a sub-floor rate as acceptable. Suppression-shaped keys are scanned
+  for, reported in `ignored_suppression_keys`, and honored never. This
+  anti-suppression discipline stays — you may not doctor the measurement. Note the
+  reframe, though: the below-floor result is now **advisory** (it reports, it does
+  not block), because the floor is not yet a validated bug-catching threshold
+  (MF-038). "Do not falsify the measurement" survives; "the measurement fails your
+  build" does not.
 - **Per-component scoping narrows the obligation, never the measurement.**
   `--cfg` selects which model's invariants must be covered, because a
   repository with Internal and External models has two kill tests rather than
@@ -458,10 +503,16 @@ only samples for damage at seeded faults, so a dropped case no mutant probes
 is invisible to it. Dropping is also the wrong response to the signal:
 
 - Cases are **never** dropped, filtered, sampled, or truncated to satisfy a
-  budget. Not silently, and not with a recorded drop rule either.
+  budget. Not silently, and not with a recorded drop rule either. This is the
+  evidence-integrity rule and it endures regardless of blocking.
 - Case caps (`max_internal_cases_per_component`,
-  `max_external_cases_per_action`) are **hard gates**, exactly like the
-  state-space bound. Over budget fails and reports; it does not trim.
+  `max_external_cases_per_action`) still fail the `analyze corpus` / export
+  **command** over budget (nonzero exit, report written, nothing trimmed) — that
+  command contract is unchanged in code. What changed is the doctrine around it:
+  per "Advisory, Not Blocking", a faithfulness/corpus finding **does not gate
+  promotion** (`close ticket` does not run it), so over-budget is a finding about
+  the diagram surfaced for the owner, not a promotion blocker. It is part of the
+  experimental corpus layer either way.
 - Caps are per-program and negotiable, like every other budget: raise one
   with a recorded one-line rationale when the program genuinely needs it.
   That is an explicit, reviewable decision. Silent trimming is not.
