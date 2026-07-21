@@ -1,0 +1,39 @@
+# MF-031 end-to-end evidence mapping.
+#
+# NOT the production case_adapters.toml. Binding the corpus labels into the
+# production mapping is MF-023's surface (the same reason MF-028 kept its
+# bindings in a spike-local file). This mapping exists so the real runner can be
+# driven over a generated corpus to execute the two new adapters end to end. It
+# binds every label the reduced corpus carries, because the runner's coverage
+# gate is whole-corpus; only the two UpdateTicket bindings are this ticket's
+# deliverable.
+[adapters.BuildSkillCli]
+adapter = "production_adapters:BuildSkillCliAdapter"
+[adapters.InstallLocalCli]
+adapter = "production_adapters:InstallLocalCliAdapter"
+[adapters.ScaffoldProject]
+adapter = "production_adapters:ScaffoldProjectAdapter"
+[adapters.ScaffoldWorkflow]
+adapter = "production_adapters:ScaffoldWorkflowAdapter"
+[adapters.RecordBudgets]
+adapter = "production_adapters:RecordBudgetsAdapter"
+[adapters.OpenTicket]
+adapter = "production_adapters:OpenTicketAdapter"
+[adapters.UpdateTicketDesired]
+adapter = "production_adapters:UpdateTicketDesiredAdapter"
+[adapters.UpdateTicketCurrent]
+adapter = "production_adapters:UpdateTicketCurrentAdapter"
+[adapters.RunSpecUnitTests]
+adapter = "production_adapters:RunSpecUnitTestsAdapter"
+[adapters.CloseTicket]
+adapter = "production_adapters:CloseTicketAdapter"
+[adapters.AnalyzeComplexity]
+adapter = "production_adapters:AnalyzeComplexityAdapter"
+[adapters.AnalyzeCorpus]
+adapter = "production_adapters:AnalyzeCorpusAdapter"
+[adapters.RunEffectConformance]
+adapter = "production_adapters:RunEffectConformanceAdapter"
+[adapters.RunKillTest]
+adapter = "production_adapters:RunKillTestAdapter"
+[adapters.Stutter]
+adapter = "production_adapters:StutterAdapter"

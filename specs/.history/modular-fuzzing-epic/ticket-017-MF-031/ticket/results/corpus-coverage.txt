@@ -1,0 +1,19 @@
+reduced corpus: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/corpus_reduced/spec-unit/tlc_state_graph_cases/cases.py
+total cases: 61081
+
+before-state segment breakdown:
+    15855   26.0%  setup-segment (ticket_state all 0)
+    33978   55.6%  ticket-segment stages 1..3 (UNBLOCKED by MF-031)
+    11248   18.4%  ticket-segment stages >=4 (still needs gate machinery)
+
+ticket-segment total (any ticket_state>0): 45226  (74.0%)
+  ^ MF-028 reported this axis as 72.5% blocked-by-absence on the full corpus.
+
+EXECUTABLE before MF-031: 15855  (26.0%)   [setup segment only]
+EXECUTABLE after  MF-031: 49833  (81.6%)   [setup + ticket stages 1..3]
+NET UNBLOCKED by MF-031 : 33978  (55.6%)
+STILL BLOCKED (stages>=4, gate machinery / MF-023 surface): 11248  (18.4%)
+
+UpdateTicketDesired/Current own cases (the two new adapters):
+      699  update_ticket_current runnable
+      699  update_ticket_desired runnable
