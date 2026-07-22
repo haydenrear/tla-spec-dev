@@ -431,3 +431,35 @@ findings:
     blast_radius: "Docs only."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-15
+    found_by: "epic-owner-comparing-ex3-run1-vs-run2"
+    found_at_commit: "f9e27a7"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["references/complexity_intuition.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The intuition doc's example-3 (bookkeeping smear, remove it) vs
+      example-5 (deliberate density, defend it) boundary is ambiguous for
+      write-only state: two agents with identical instructions, descriptor,
+      and doc classified the same mode/dirty variables on opposite sides
+      (run 1 deleted them from model and code, bound 624; run 2 kept them as
+      stated design, bound 6,240). Both outcomes were green, warning-free,
+      and grounded; WHETHER to refactor converged, WHICH moves did not.
+    reproduction: >-
+      Compare examples/validation/runs/ex3-run1/artifacts/complexity_decision.md
+      with runs/ex3-run2/artifacts/complexity_decision.md over the identical
+      baseline descriptor.
+    evidence: ["examples/validation/runs/ex3-run1/scoring.md", "examples/validation/runs/ex3-run2/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding about CD-02's doc; filed, not fixed."
+    suggested_fix: >-
+      Give the doc a sharper test for write-only stamped state, e.g. "if no
+      guard, invariant, test, or reader depends on it, it is bookkeeping
+      regardless of stated design intent" — or explicitly bless both
+      outcomes and say what evidence would separate them.
+    blast_radius: "references/complexity_intuition.md only; determinism of agent refactor choices."
+    disposition: pending
+    disposition_ticket: null
