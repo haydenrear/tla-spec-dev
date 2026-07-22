@@ -672,3 +672,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-06
+
+- close_scope: ticket
+- close_id: CD-06
+- workflow: complexity-descriptor-main-readiness
+- closed_at: 2026-07-22T21:00:22+00:00
+- summary: R/W matrix attributed to top-level Next disjuncts through called operators (VAL-07/VAL-12): wrapper actions priming only via helpers get columns, composed actions writing via called operators/UNCHANGED get columns, helpers are never columns; dense rows/columns, action counts, and fitness facts follow the corrected action set; fallback without a findable next-state relation is stated honestly; zero TLA+ model delta
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

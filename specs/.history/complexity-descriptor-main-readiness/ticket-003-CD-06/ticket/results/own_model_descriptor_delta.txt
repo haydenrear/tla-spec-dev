@@ -1,0 +1,67 @@
+CD-06: this repository's OWN descriptor, before vs after the attribution change
+Command: python3 scripts/analyze_complexity.py specs/current/TlaSpecDevCli.tla specs/current/MC.cfg --manifest specs/current/spec_manifest.yaml
+
+Full unified diff of the descriptor output (before = epic tip 5b7d09f, after = CD-06):
+
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/own_model_before.txt	2026-07-22 16:45:54
++++ /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/own_model_after.txt	2026-07-22 16:50:09
+@@ -32,17 +32,18 @@
+     effect_conformance: 5 (12.0% of the bound in log space)
+ 
+ [MEASURED] Variables x actions read/write matrix
+-variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket
+-------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------
+-setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r
+-spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r
+-ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw
+-lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+-result              w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+-complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            .                 .
+-corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .
+-effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .
+-kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .
++  (actions = top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions)
++variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket  Stutter
++------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------  -------
++setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r            .
++spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r            .
++ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw           .
++lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w            .
++result              w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w            .
++complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            .                 .            .
++corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .            .
++effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .            .
++kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .            .
+ 
+ [MEASURED] Near-decomposability
+   graph modularity Q = 0.000 over the variable interaction graph
+@@ -52,10 +53,10 @@
+ 
+ [MEASURED] Dense rows and columns of the R/W matrix
+   dense rows (god-state signature -- variable touched by more than half the actions):
+-    lastCommand touched by 14/14 actions
+-    result touched by 14/14 actions
+-    setup_phase touched by 12/14 actions
+-    spec_root touched by 10/14 actions
++    lastCommand touched by 14/15 actions
++    result touched by 14/15 actions
++    setup_phase touched by 12/15 actions
++    spec_root touched by 10/15 actions
+   dense columns (action touching more than half the variables):
+     AnalyzeComplexity
+     AnalyzeCorpus
+
+EXPLANATION OF THE DELTA, in terms of the model's actual Next disjuncts:
+- The ONLY action-set change is Stutter gaining a column: Stutter (== UNCHANGED vars)
+  IS a top-level Next disjunct of TlaSpecDevCli, a pure stutter step touching nothing,
+  so under 'actions = Next members' it earns an all-'.' column. action_count 14 -> 15.
+- Dense-row fractions follow the corrected denominator: lastCommand 14/14 -> 14/15,
+  result 14/14 -> 14/15, setup_phase 12/14 -> 12/15, spec_root 10/14 -> 10/15.
+  All four remain dense rows (> half of 15); no dense-row membership changed.
+- Every other cell is identical: all 14 substantive actions prime their variables
+  directly in this model (no helper indirection), so per-action reads/writes,
+  components, modularity, port crossings, bound, and warnings are unchanged.
+- (During development, an intermediate expansion bug briefly showed ScaffoldProject
+  spec_root w -> rw: the STRING literal "RecordBudgets" in its result' assignment
+  was expanded as an operator call. Fixed by stripping string literals before token
+  scanning; regression test test_cd06_string_literals_are_data_not_operator_calls.)

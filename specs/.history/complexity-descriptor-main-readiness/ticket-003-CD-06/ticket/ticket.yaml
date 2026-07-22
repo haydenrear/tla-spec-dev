@@ -1,0 +1,119 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Helper-primed wrapper actions appear as matrix columns; helpers do not (regression test failing pre-fix).",
+        "Actions writing only through called operators or UNCHANGED get columns (regression test failing pre-fix).",
+        "On examples/distributed_history External.tla the matrix lists the ExternalNext disjuncts (RunFulfillmentWorker present, MarkExternal absent) \u2014 recorded as evidence.",
+        "Dense rows/columns and action counts are computed over the corrected action set; fitness facts follow.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-06"
+      ],
+      "evidence": [
+        "specs/tickets/CD-06/results/rw_matrix_regressions.txt",
+        "specs/tickets/CD-06/results/distributed_history_matrix_after.txt",
+        "specs/tickets/CD-06/results/tlc_current.txt",
+        "specs/tickets/CD-06/results/spec_unit_tests.txt",
+        "specs/tickets/CD-06/results/repo_unit_tests.txt",
+        "specs/tickets/CD-06/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-06/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-07"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py",
+        "tests/test_analyze_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "CD-05"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/91",
+    "id": "CD-06",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py (action attribution / matrix construction)",
+      "tests/test_analyze_complexity.py (both-direction regression tests)"
+    ],
+    "objective": "Resolves VAL-07 and VAL-12 \u2014 the same attribution defect from both directions, hit independently in three validation runs. The R/W matrix attributes primed variables to the syntactic primer, so (a) wrapper actions that prime a variable only through a helper operator vanish from the matrix (9 CLI actions collapsed to 4 on taskq), and (b) helper operators are listed AS actions while composed actions whose writes happen entirely through called operators or UNCHANGED get no column (MarkExternal listed, RunFulfillmentWorker absent, on distributed_history). Dense-row fractions, dense columns, action_count, component action counts \u2014 and the fitness facts derived from them \u2014 are computed over a partially wrong action set. Fix: attribute primes to the top-level action disjuncts (Next/ExternalNext members), expanding called-operator bodies transitively (the CD-01/F1 resolution machinery, extended by CD-05); helpers are not actions. Regression tests covering both shapes, failing pre-fix; verify against the real distributed_history External view and record the corrected matrix as evidence.\n",
+    "promotion_order": 40,
+    "promotion_predecessor": "CD-08",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Descriptor accuracy: R/W matrix attributed to top-level actions through called operators",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/tickets/CD-06",
+  "ticket_id": "CD-06",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/tickets"
+}
