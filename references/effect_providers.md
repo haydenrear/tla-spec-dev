@@ -158,9 +158,9 @@ or traversal order.
 Each case/iteration point gets a fresh adapter cache, shared singleton-batch
 mapping, provider bindings, effect mapping and sandbox. Case and batch work
 paths are point-qualified; the batch path uses a stable derived key rather than
-embedding the raw case name. The original generated case is never copied or
-mutated. A reused explicit campaign root may still contain residue from an
-earlier invocation.
+embedding the raw case name, and case/kind components use stable opaque digest
+keys. The original generated case is never copied or mutated. A reused explicit
+campaign root may still contain residue from an earlier invocation.
 
 On failure the runner emits one `EFFECT_FUZZ_FAILURE` JSON record per retained
 failure. It includes the case, iteration, root seed, seed version, phase, active
