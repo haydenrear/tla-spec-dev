@@ -5,12 +5,15 @@
 #
 # This workflow branches the concluded modular-fuzzing discovery at dfd2a80.
 # Its MF-* tickets remain below as an immutable historical record. The only
-# completed priority lane is EP-01 -> EP-02 -> EP-03. The owner-level coverage
-# audit failed with 12 hard gaps; remediation remains the promotion gate.
+# completed original priority lane is EP-01 -> EP-02 -> EP-03. The owner-level
+# coverage audit failed with 12 hard gaps. The owner then chose a deliberate
+# product-contract reduction: ship only the generic agent-authored provider
+# interface, harden that interface, and retain the examples as repeatable
+# experimental evidence. EP-04 -> EP-05 -> EP-06 is that amendment lane.
 version: 1
 name: effect-provider-epic
 updated: "2026-07-22"
-purpose: "Test the smallest useful effectful-modeling architecture: generated TLA+ cases select typed semantic effect ports; project-owned providers bind those ports around each case; deterministic fuzz iterations explore concrete values inside the case's modeled semantic outcome; and three diverse example projects measure authoring cost, mutation kills, replay, cleanup, modularity, and abstraction limits."
+purpose: "Ship the smallest useful effectful-modeling architecture: generated TLA+ cases select repository-defined typed semantic ports; one generic project-owned provider interface binds agent-authored implementations around each case; deterministic fuzz iterations explore concrete values inside the case's modeled semantic outcome; and repeatable example projects measure authoring cost, mutation kills, replay, cleanup, modularity, and abstraction limits without becoming framework-owned domain libraries."
 
 epic:
   id: effect-providers
@@ -18,7 +21,7 @@ epic:
   default_branch: main
   base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
   base_tree: b9da49f29ef0bd8fd0441ee86252a1bad64d8651
-  schedule_revision: 2
+  schedule_revision: 3
   review_mode: epic-owner-pr-review
   notes: >
     This is a sibling of epic/complexity-descriptor, deliberately branched
@@ -37,7 +40,11 @@ epic:
     after all three dispatched tickets completed, revision 2 adds the exact
     validation scope required by the end-of-epic coverage audit. It changes no
     dispatched ticket identity, dependency, wave, promotion order, or conflict
-    key.
+    key. 2026-07-22 owner amendment revision 3 adds EP-04, EP-05, and EP-06
+    after the completed original lane. The amendment deliberately reduces the
+    shipped product contract to one generic agent-authored provider interface,
+    dispositions the three generic DEF findings into EP-05, and reruns the
+    examples as repeatable experimental consumers rather than domain libraries.
 
 deferment_policy:
   mode: batch
@@ -533,7 +540,7 @@ status:
   active_ticket: null
   active_ticket_title: null
   desired_module: TlaSpecDevCli
-  phase: coverage_audit_failed
+  phase: agent_provider_amendment_planned
 
 service_catalog:
   existing_boundaries:
@@ -547,7 +554,8 @@ service_catalog:
     - sandboxed effect observation in the adapter runner
     - channel-authentic Test Graph bindings with double|real port configurations
     - typed semantic effect ports selected per generated action
-    - project-owned providers bound around batch case lifecycle
+    - one generic project-owned provider interface bound around batch case lifecycle
+    - repository agents author every concrete effect implementation
     - deterministic seed/replay metadata for bounded fuzz iterations
   adapter_boundaries:
     - specs/program_model/production_adapters.py spec-unit adapters
@@ -555,6 +563,7 @@ service_catalog:
   known_gaps:
     - "The inherited host model does not model provider configuration or fuzz iteration as CLI state. EP-01 and EP-02 therefore record zero host-TLA deltas unless implementation exposes new modeled CLI behavior; EP-03 supplies independent TLA+ models in the example projects."
     - "A provider can install a monkeypatch or supply an explicitly injected port, but V0 does not prove that application code cannot bypass it. The existing passive effect observer remains the separate leak-detection mechanism."
+    - "The 12-gap audit remains valid for the three example applications' deliberately broader full-application scope. EP-04 does not rewrite that evidence; it narrows the shipped product to the generic provider SDK and labels the examples as experimental consumers."
 
 coverage_audit_scope:
   revision: 1
@@ -2236,7 +2245,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/79"
     schedule_revision: 1
     depends_on: [EP-02]
-    blocks: []
+    blocks: [EP-04]
     wave: 14
     promotion_order: 120
     promotion_predecessor: EP-02
@@ -2320,3 +2329,208 @@ tickets:
         - specs/tickets/EP-03/results/complexity_ledger.yaml
         - specs/tickets/EP-03/results/validation-summary.md
         - specs/results/ep03-post-close-validation.md
+
+  - id: EP-04
+    title: "Replace domain-flavored helpers with one agent-authored provider interface"
+    status: pending
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: [EP-03]
+    blocks: [EP-05]
+    wave: 15
+    promotion_order: 130
+    promotion_predecessor: EP-03
+    conflict_keys:
+      production:
+        - spec_double_compiler/runtime.py
+        - spec_double_compiler/effects.py
+        - scripts/run_generated_case_adapters.py
+        - scripts/scaffold_spec.py
+        - scripts/onboard_program_model.py
+        - SKILL.md
+        - references/effect_providers.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - agent-authored-provider-public-contract
+        - coverage-audit-contract-reduction
+    objective: >
+      Replace the domain-flavored EP-02 authoring surface with one generic
+      EffectProvider.bind(context) contract that repository agents implement
+      against repository-generated typed ports. Remove the callable-provider
+      alternative and stop advertising or scaffolding filesystem, HTTP, Kafka,
+      SMTP, patch, or temporary-root helpers as framework capabilities. Keep
+      provider lookup, lifecycle, cleanup, immutable case protection,
+      deterministic context, failure evidence, and replay framework-owned.
+      Retain the three EP-03 projects as explicitly experimental consumers and
+      preserve the failed full-application coverage audit as historical
+      evidence; record a deliberate product-contract reduction rather than
+      claiming those example diagrams are complete application models.
+    desired_actions: []
+    implementation_scope:
+      - make EffectProvider.bind(context) the sole accepted provider shape
+      - generate one domain-neutral project-owned provider skeleton
+      - remove domain helpers from the advertised and scaffolded public surface
+      - make providers.py conditional or neutral when a repository declares no effects
+      - document agent ownership of concrete values, state, assertions, installation, and cleanup
+      - add a machine-readable local provider-usage descriptor template for later pattern analysis
+      - label examples/effect_providers as experimental validation fixtures, not reusable adapters
+      - record an explicit disposition of the prior 12-gap example audit without editing it
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_runtime.py tests/test_effect_provider_fuzzing.py tests/test_onboard_program_model.py -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-04
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
+      assertions:
+        - The only custom provider protocol is EffectProvider.bind(context), returning a standard context manager whose entered value implements the selected generated port or is None for a self-installed integration.
+        - Callable-only providers fail closed before application execution.
+        - No generated provider scaffold, required checklist, or public authoring example privileges filesystem, HTTP, Kafka, SMTP, patching, or temporary roots.
+        - The framework continues to guarantee lookup, lifecycle, cleanup, deterministic context, immutable case oracles, diagnostics, and exact replay without owning concrete effect behavior.
+        - A neutral provider-usage descriptor records generated ports, binding style, fuzz dimensions, provider assertions, statefulness, cleanup, and declared bypass limits without telemetry or framework code changes.
+        - The prior coverage audit and its 12 gaps remain byte-for-byte historical evidence; a new disposition states that they qualify the examples, not the narrowed generic SDK contract.
+        - "Zero host TLA+ model delta because the amendment changes authoring/runtime contracts but adds no new modeled CLI transition; ticket current == desired and TLC/spec-unit evidence records the decision."
+      evidence: []
+
+  - id: EP-05
+    title: "Harden generated provider signatures, manifest parity, and replay provenance"
+    status: pending
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: [EP-04]
+    blocks: [EP-06]
+    wave: 16
+    promotion_order: 140
+    promotion_predecessor: EP-04
+    conflict_keys:
+      production:
+        - scripts/extract_spec_manifest.py
+        - scripts/generate_python.py
+        - scripts/run_generated_case_adapters.py
+        - spec_double_compiler/runtime.py
+        - tests/test_effect_provider_runtime.py
+        - tests/test_effect_provider_fuzzing.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - DEF-001
+        - DEF-002
+        - DEF-003
+        - generated-provider-conformance
+    objective: >
+      Close the three generic correctness defects discovered by EP-03 before
+      the agent-authored provider SDK is called shippable. Preserve the exact
+      originating Python environment in replay commands; make constrained
+      manifest parsing dependency-invariant; and validate generated provider
+      method signatures rather than treating runtime-checkable Protocol method
+      presence as complete typed conformance. Keep concrete response behavior
+      and domain assertions repository-owned.
+    desired_actions: []
+    implementation_scope:
+      - DEF-001 virtualenv-correct exact replay and dependency-bearing regression
+      - DEF-002 one fail-closed dependency-invariant manifest parsing contract and complete-tree parity regression
+      - DEF-003 generated signature/annotation conformance checks with negative provider fixtures
+      - honest documentation of runtime versus static/type conformance
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_runtime.py tests/test_effect_provider_fuzzing.py tests/test_generate_python.py tests/test_extract_spec_manifest.py -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-05
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
+      assertions:
+        - Replay preserves the exact dependency-bearing interpreter environment and reproduces one failing provider point from another working directory.
+        - Supported manifest syntax produces byte-identical complete generated trees regardless of optional parser availability, or unsupported syntax fails with the same actionable error in both paths.
+        - A provider with the correct method names but wrong arity, parameter annotation, or return annotation is rejected before application execution with a port/method-specific diagnostic.
+        - Generated valid providers and all legacy no-provider cases continue to pass.
+        - DEF-001, DEF-002, and DEF-003 are marked ticketed then resolved with committed regression evidence.
+        - "Zero host TLA+ model delta unless hardening adds an observable CLI transition; ticket current == desired and TLC/spec-unit evidence records the decision."
+      evidence: []
+
+  - id: EP-06
+    title: "Repeatable agent validation across the three effect-provider examples"
+    status: pending
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: [EP-05]
+    blocks: []
+    wave: 17
+    promotion_order: 150
+    promotion_predecessor: EP-05
+    conflict_keys:
+      production:
+        - examples/effect_providers/
+        - test_graph/sources/effect_provider_examples.py
+        - test_graph/build.gradle.kts
+        - references/effect_providers.md
+      tla: []
+      adapters: []
+      test_graph:
+        - effectProviderExamples
+      workflow:
+        - repeatable-example-validation
+        - agent-provider-usage-evidence
+    objective: >
+      Revalidate the three diverse example repositories as independent
+      consumers of the replacement agent-authored provider interface. Give
+      each example one canonical, idempotent validation entrypoint that
+      regenerates its contracts/cases as needed, runs TLC under the two-minute
+      limit, runs focused and mutation/control validation, proves exact replay
+      and cleanup, and writes structured evidence without mutating frozen prior
+      evidence. Run each example through a fresh agent review, aggregate them
+      in effectProviderExamples, and record how agents actually implement the
+      generic interface so recurring patterns can later earn library support.
+    desired_actions: []
+    implementation_scope:
+      - examples/effect_providers/atomic_publisher repeatable validation entrypoint and fresh evidence
+      - examples/effect_providers/legacy_payment_http repeatable validation entrypoint and fresh evidence
+      - examples/effect_providers/reminder_worker repeatable validation entrypoint and fresh evidence
+      - per-project provider-usage descriptors and agent findings
+      - one repository-level command and Test Graph node that reruns all examples
+      - aggregate post-replacement recommendation based on the new runs
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - each example's canonical validation entrypoint
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - effectProviderExamples
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-06
+        - python3 examples/effect_providers/run_validations.py --all --fresh-evidence
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py effectProviderExamples
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+        - python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow
+      assertions:
+        - One documented repository-level command reruns all three example validations repeatedly without overwriting preregistered EP-03 evidence.
+        - Each example can also run independently and writes a versioned structured result with command, commit, provider contract version, seed, cases, controls, mutants, replay, cleanup, duration, and usage descriptor.
+        - Fresh agents inspect and validate one example each against the replacement public contract without changing framework production files.
+        - The aggregate graph fails if any project depends on a removed domain helper, uses the callable-only provider shape, loses replay/cleanup determinism, or produces malformed evidence.
+        - Results distinguish TLA-owned, provider-owned, and passive/external oracle findings and preserve all surviving limitations.
+        - A post-replacement recommendation identifies recurring provider patterns but promotes none into the library without evidence from actual consumers.
+        - "Host workflow remains zero-model-delta; example TLA models and generated cases remain project-owned validation artifacts rather than claims of complete application coverage."
+      evidence: []
