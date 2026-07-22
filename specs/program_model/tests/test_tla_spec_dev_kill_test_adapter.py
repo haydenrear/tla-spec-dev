@@ -114,7 +114,7 @@ class TestASurvivorIsAPointer:
 
 
 class TestEvidenceLayout:
-    """`RunKillTest: [evidence_report, test_process]` in the manifest."""
+    """`RunKillTest: [evidence_report, mutation_write, corpus_process]` in the manifest (CD-11 R4-1)."""
 
     def test_the_kill_matrix_is_written_for_every_run(self, result: dict) -> None:
         """Including the failing ones -- a report that only appears when the

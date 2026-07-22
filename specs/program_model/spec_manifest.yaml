@@ -120,6 +120,16 @@ case_codegen:
   style: explicit_transition_cases
   generation_status: planned
 
+# CD-11 (audit run 4, ESC-R4-2): these three stanzas are GENERATED-CONTENT
+# PLACEHOLDERS owned by case codegen. They are scaffolded empty by
+# scripts/new_ticket_workflow.py and are filled only when
+# case_codegen.generation_status (above) reaches `generated`. Empty here
+# claims "no generated case index yet" -- generation_status is `planned` --
+# NOT "the model has no state, actions, or ports": the model's 9 variables
+# and 15 actions live in TlaSpecDevCli.tla, and its declared effect ports
+# live in effects.components below. An empty stanza and an inapplicable
+# stanza are different claims; this comment, and the matching one at the
+# schema source (scripts/new_ticket_workflow.py), record which one is made.
 state_fields: []
 actions: []
 ports: {}
@@ -206,6 +216,34 @@ effects:
         git_metadata:
           type: process.spawn
           target: "git rev-parse*"
+        # CD-11 (audit run 4, gap R4-1): RunKillTest's shipped path seeds
+        # each catalog mutant INTO the production source tree and restores it
+        # (kill_test.py:548 write of the mutated copy, :551 finally-branch
+        # restore, driven per mutant by run_kill_test.py:130). The targets
+        # are the catalog's `path` keys -- scripts/*.py and
+        # skill-scripts/install-tla-spec-dev.sh -- which no other declared
+        # write port covers (spec_tree is **/specs/**, evidence_report
+        # **/results/**, cli_artifact **/.venv/**). An interrupted run leaves
+        # a mutated working tree; the schema distinguishes exactly this write
+        # so it cannot hide. DECLARED rather than moved to a copied tree: the
+        # finally-branch restore is the shipped defense, and the port makes
+        # the danger visible instead of relocating it. The glob covers both
+        # catalog trees (fnmatch `*` crosses separators, so it matches
+        # scripts/ and skill-scripts/).
+        mutation_write:
+          type: filesystem.write
+          target: "*scripts/*"
+        # CD-11 (audit run 4, gap R4-1, spawn member): the per-mutant corpus
+        # run (kill_test.py:609 via run_kill_test.py:198) spawns the
+        # user-supplied --corpus-command once per mutant plus the control
+        # run. The command is unconstrained user input, so any glob narrower
+        # than `*` would assert a constraint the code does not enforce -- the
+        # documented pytest-shaped corpus command is one possible value, not
+        # a contract. This port replaces test_process on RunKillTest's row:
+        # the kill test's only spawn is the corpus command itself.
+        corpus_process:
+          type: process.spawn
+          target: "*"
   actions:
     BuildSkillCli: [cli_artifact]
     InstallLocalCli: [cli_artifact]
@@ -224,9 +262,34 @@ effects:
     UpdateTicketDesired: [spec_tree]
     UpdateTicketCurrent: [spec_tree]
     AnalyzeComplexity: [evidence_report]
-    AnalyzeCorpus: [evidence_report]
-    RunEffectConformance: [evidence_report]
-    RunKillTest: [evidence_report, test_process]
+    # CD-11 (audit run 4, gap R4-3): evidence_report REMOVED -- a dead
+    # declared port, the same class G4 removed for AnalyzeComplexity's
+    # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
+    # :835-852 registers cases_dir/--view/--manifest only) and no file write
+    # anywhere; run() (:902-935) prints the report and returns. Removal
+    # matches the shipped print-only behavior. Deliberately an EMPTY row, not
+    # an absent one (the RecordBudgets rule above): the command reads and
+    # prints, performing no distinct declared effect.
+    AnalyzeCorpus: []
+    # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
+    # behavior. `run effect-conformance --cases-dir` creates its work tree
+    # under the spec dir (effect_conformance_report.py:149, default
+    # spec_dir/.effect-conformance-work; :163 per-case dirs;
+    # effect_conformance.py:619/:656 sandbox roots) -- writes landing under
+    # **/specs/**. DECLARED rather than relocated under results/: the same
+    # physical sandbox writes on the spec-unit path are already declared as
+    # spec_tree on RunSpecUnitTests (manifest row below), the work tree is
+    # spec-scoped working state rather than evidence, and relocating would
+    # change a shipped default to fit a declaration -- the dishonesty lived
+    # in the manifest, so the manifest is what changed.
+    RunEffectConformance: [evidence_report, spec_tree]
+    # CD-11 (audit run 4, gap R4-1): mutation_write + corpus_process ADDED,
+    # test_process REMOVED from this row (it stays declared, and exercised,
+    # via RunSpecUnitTests). The kill test's spawn is the user-supplied
+    # corpus command (corpus_process), of which the pytest-shaped default is
+    # one value; its writes are the mutation seed/restore into production
+    # source (mutation_write) and the JSON evidence report (evidence_report).
+    RunKillTest: [evidence_report, mutation_write, corpus_process]
     RunSpecUnitTests: [test_process, runner_process, spec_tree]
     CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
 

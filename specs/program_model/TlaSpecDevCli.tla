@@ -208,10 +208,20 @@ Init ==
   /\ effect_conformance = "unknown"
   /\ kill_test = "unknown"
 
+\* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
+\* DECLARED EFFECT PORT -- an entry of
+\* effects.components.TlaSpecDevCliPort.ports in spec_manifest.yaml -- and
+\* each action's @port lines mirror its row in effects.actions. Before CD-11
+\* the tag carried a per-command vocabulary (build_skill_cli, ...) whose
+\* intersection with the declared port names was empty; the annotation layer
+\* and the effects layer now use one vocabulary. Actions whose effects row is
+\* deliberately empty (RecordBudgets, AnalyzeCorpus) carry no @port line and
+\* say so. Comments only: nothing parses @port, and the model's states,
+\* actions, guards, and invariants are unchanged.
 \* The skill ships one local command built from Python entrypoint code.
 \* @command BuildSkillCli
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.build_skill_cli
+\* @port TlaSpecDevCliPort.cli_artifact
 BuildSkillCli ==
   /\ setup_phase = 0
   /\ setup_phase' = 1
@@ -227,7 +237,7 @@ BuildSkillCli ==
 \* The local environment can invoke `tla-spec-dev ...` after install.
 \* @command InstallLocalCli
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.install_local_cli
+\* @port TlaSpecDevCliPort.cli_artifact
 InstallLocalCli ==
   /\ setup_phase = 1
   /\ setup_phase' = 2
@@ -244,7 +254,7 @@ InstallLocalCli ==
 \* Creates the accepted `program_model` baseline only.
 \* @command ScaffoldProject
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.scaffold_project
+\* @port TlaSpecDevCliPort.spec_tree
 ScaffoldProject(root) ==
   /\ setup_phase = 2
   /\ root \in SpecRoots
@@ -265,7 +275,8 @@ ScaffoldProject(root) ==
 \* every downstream gate reads them from the manifest.
 \* @command RecordBudgets
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.record_budgets
+\* No @port: the manifest row `RecordBudgets: []` is deliberately empty --
+\* the CLI performs no distinct budgets effect (CD-10 DF-2 ruling).
 RecordBudgets(root) ==
   /\ setup_phase = 3
   /\ root = spec_root
@@ -283,7 +294,7 @@ RecordBudgets(root) ==
 \* Creates project `current/`, `desired_program_model/`, and ticket plan.
 \* @command ScaffoldWorkflow
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.scaffold_workflow
+\* @port TlaSpecDevCliPort.spec_tree
 ScaffoldWorkflow(root) ==
   /\ setup_phase = 4
   /\ root = spec_root
@@ -301,7 +312,7 @@ ScaffoldWorkflow(root) ==
 \* Creates ticket-local current/desired/results/Test Graph workspace.
 \* @command OpenTicket
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.open_ticket
+\* @port TlaSpecDevCliPort.spec_tree
 OpenTicket(root, ticket) ==
   /\ setup_phase >= 5
   /\ root = spec_root
@@ -324,7 +335,7 @@ OpenTicket(root, ticket) ==
 \* This is intentionally modeled because the CLI must print this instruction.
 \* @command UpdateTicketDesired
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.update_ticket_desired
+\* @port TlaSpecDevCliPort.spec_tree
 UpdateTicketDesired(ticket) ==
   /\ ticket \in ActiveTickets
   /\ ticket_state[ticket] = TicketOpened
@@ -341,7 +352,7 @@ UpdateTicketDesired(ticket) ==
 \* Agent step: production implementation has landed and current matches desired.
 \* @command UpdateTicketCurrent
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.update_ticket_current
+\* @port TlaSpecDevCliPort.spec_tree
 UpdateTicketCurrent(ticket) ==
   /\ ticket \in ActiveTickets
   /\ ticket_state[ticket] = TicketDesiredReady
@@ -367,7 +378,7 @@ UpdateTicketCurrent(ticket) ==
 \* analyzed, which is outside this state machine.
 \* @command AnalyzeComplexity
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.analyze_complexity
+\* @port TlaSpecDevCliPort.evidence_report
 AnalyzeComplexity(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
@@ -399,7 +410,8 @@ AnalyzeComplexity(root) ==
 \* records a fresh verdict.
 \* @command AnalyzeCorpus
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.analyze_corpus
+\* No @port: `AnalyzeCorpus: []` -- evidence_report removed as a dead
+\* declared port (CD-11 R4-3; corpus_diagnostics.py prints only).
 AnalyzeCorpus(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
@@ -436,7 +448,8 @@ AnalyzeCorpus(root) ==
 \* nothing. "unobservable" is that case, and it is a failure.
 \* @command RunEffectConformance
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.run_effect_conformance
+\* @port TlaSpecDevCliPort.evidence_report
+\* @port TlaSpecDevCliPort.spec_tree
 RunEffectConformance(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
@@ -489,7 +502,9 @@ RunEffectConformance(root) ==
 \* caller supplies the verdict -- the same shape as the three gates above.
 \* @command RunKillTest
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.run_kill_test
+\* @port TlaSpecDevCliPort.evidence_report
+\* @port TlaSpecDevCliPort.mutation_write
+\* @port TlaSpecDevCliPort.corpus_process
 RunKillTest(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
@@ -525,7 +540,9 @@ RunKillTest(root) ==
 \* fact AnalyzeComplexity records, read by no transition.
 \* @command RunSpecUnitTests
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.run_spec_unit_tests
+\* @port TlaSpecDevCliPort.test_process
+\* @port TlaSpecDevCliPort.runner_process
+\* @port TlaSpecDevCliPort.spec_tree
 RunSpecUnitTests(root, ticket) ==
   /\ setup_phase >= 2
   /\ root = spec_root
@@ -580,7 +597,9 @@ RunSpecUnitTests(root, ticket) ==
 \* Closes ticket only after current == desired and spec-unit tests passed.
 \* @command CloseTicket
 \* @result CliWorkflowResult
-\* @port TlaSpecDevCliPort.close_ticket
+\* @port TlaSpecDevCliPort.spec_tree
+\* @port TlaSpecDevCliPort.spec_tree_delete
+\* @port TlaSpecDevCliPort.git_metadata
 CloseTicket(root, ticket) ==
   /\ setup_phase >= 2
   /\ root = spec_root

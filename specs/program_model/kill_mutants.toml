@@ -117,6 +117,35 @@ description = "history provenance spawns git --version instead of rev-parse, so 
 refine_variable = "ticket_state"
 refine_action = "CloseTicket"
 
+# CD-11 (R4-1): fault for the mutation-write port. seeded() writes the
+# ORIGINAL text back instead of the patched copy, so no fault ever lands in
+# the tree and every mutant is trivially reported unkilled -- the kill test
+# measures nothing while claiming it measured.
+[[mutants]]
+id = "port-mutation_write"
+boundary_kind = "port"
+boundary_ref = "mutation_write"
+path = "scripts/kill_test.py"
+find = '        target.write_text(patched, encoding="utf-8")'
+replace = '        target.write_text(original, encoding="utf-8")  # MUTANT: the mutation never lands in the tree'
+description = "seeding writes the original file back instead of the mutated copy, so no fault is ever planted"
+refine_variable = "kill_test"
+refine_action = "RunKillTest"
+
+# CD-11 (R4-1): fault for the corpus-spawn port. The per-mutant corpus spawn
+# drops the command's final argument, so the corpus that actually runs is not
+# the corpus the user supplied.
+[[mutants]]
+id = "port-corpus_process"
+boundary_kind = "port"
+boundary_ref = "corpus_process"
+path = "scripts/kill_test.py"
+find = '            list(command),'
+replace = '            list(command)[:-1],  # MUTANT: the corpus command loses its final argument'
+description = "the spawned corpus command silently loses its final argument"
+refine_variable = "kill_test"
+refine_action = "RunKillTest"
+
 # ---------------------------------------------------------------------------
 # One fault per model invariant
 # ---------------------------------------------------------------------------
