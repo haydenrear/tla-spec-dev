@@ -83,7 +83,9 @@ def main() -> int:
         "cleanup_isolation": cleanup_summary(repetitions),
         "cost": cost_metrics(framework_audit),
         "divergence": {
-            "duplicated_concretization_or_projection": "none; expected and actual projection share the point binding",
+            "duplicated_concretization_or_projection": [
+                "AtomicPublisherAdapter hard-codes expected_revision by scenario because the generated case fixes the semantic outcome but carries no normalized application command plan"
+            ],
             "leaked_patches": [],
             "leaked_paths": cleanup_summary(repetitions)["leaked_paths"],
             "outbound_socket_attempts": 0,
@@ -107,6 +109,7 @@ def main() -> int:
         ],
         "real_filesystem_conformance": conformance,
         "repetitions": repetitions,
+        "source_provenance": source_provenance(),
     }
     evidence["decision"] = decision(evidence)
     args.evidence.parent.mkdir(parents=True, exist_ok=True)
@@ -444,6 +447,19 @@ def sha256_json(value: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def source_provenance() -> dict[str, str]:
+    paths = (
+        PROJECT_ROOT / "application.py",
+        PROJECT_ROOT / "providers.py",
+        PROJECT_ROOT / "adapters.py",
+        PROJECT_ROOT / "run_experiment.py",
+    )
+    return {
+        str(path.relative_to(PROJECT_ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in paths
+    }
+
+
 def cost_metrics(framework_audit: dict[str, Any]) -> dict[str, Any]:
     retrieval_path = PROJECT_ROOT / "evidence" / "retrieval.json"
     retrieval = json.loads(retrieval_path.read_text(encoding="utf-8")) if retrieval_path.exists() else {}
@@ -475,7 +491,7 @@ def cost_metrics(framework_audit: dict[str, Any]) -> dict[str, Any]:
     ]
     authoring_started = min(path.stat().st_mtime for path in authoring_paths)
     result: dict[str, Any] = {
-        "authoring_edit_run_iterations": 9,
+        "authoring_edit_run_iterations": 10,
         "authoring_wall_measurement": "elapsed from earliest atomic source-file mtime to experiment evidence write",
         "authoring_wall_minutes": round((time.time() - authoring_started) / 60.0, 3),
         "framework_files_changed": len(framework_audit["changed_forbidden_paths"]),
@@ -575,6 +591,8 @@ def decision(evidence: dict[str, Any]) -> dict[str, Any]:
         failures.append("real filesystem conformance red")
     if evidence["framework_files_changed"] != 0:
         failures.append("framework source changed")
+    if evidence["source_provenance"] != source_provenance():
+        failures.append("source provenance does not match measured implementation")
     return {
         "failures": failures,
         "killed_per_repetition": killed_counts,

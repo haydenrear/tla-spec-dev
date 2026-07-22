@@ -63,6 +63,8 @@ class AtomicPublisherCliProjector:
         actual["record"] = payload["record"]
         actual["result"] = payload["output"]
         actual["trace"] = payload["trace"]
+        if payload["stage_exists"]:
+            raise AssertionError("atomic CLI left its staging file behind")
         return actual
 
 

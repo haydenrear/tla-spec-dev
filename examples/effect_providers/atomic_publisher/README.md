@@ -21,6 +21,11 @@ record token (`record`, `old`, `new`) to one deterministic concrete
 representative. Exact bytes are projected back to those tokens, so omitted or
 truncated content cannot pass by copying `case.after`.
 
+One measured duplication remains: the adapter maps the scenario to an expected
+revision because the case does not carry a normalized application command
+plan. The evidence reports that as an abstraction cost rather than treating it
+as provider-owned fuzz data.
+
 The application only knows the generated port. The provider owns its strict
 in-memory filesystem, protocol journal, fault class, bypass audit, and cleanup.
 The separate real-filesystem conformance run uses `TemporaryDirectory` and

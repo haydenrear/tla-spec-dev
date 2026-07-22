@@ -35,7 +35,7 @@ independent oracles around one generated case:
    bytes happen to be correct.
 
 Explicit injection stayed local: the application imports only the generated
-port, and the framework learned no filesystem semantics. Nine edit/run loops
+port, and the framework learned no filesystem semantics. Ten edit/run loops
 covered terminal-state TLC config, portable YAML, canonical generated imports,
 action-collapse proof, sampled detector attribution, replay evidence,
 replay-proof hardening, and the final audit gate. The first green evidence
@@ -48,6 +48,29 @@ selection and provider-relative paths made the proof reproducible without
 changing a mutant, detector, case, or threshold. The ordinary baseline cannot kill AP-05 or AP-07 because no
 hand-written scenario drives read or replace failure; generated outcome
 coverage makes those gaps structural.
+
+A second review found that cleanup evidence had been asserted after
+`shutil.rmtree(..., ignore_errors=True)` and then reported from a constant empty
+list. The accepted evidence removes silently only when removal succeeds,
+records any actual survivors, makes replay depend on that observation, and
+binds the raw result to digests of the measured application, provider, adapter,
+and scorer sources.
+
+Review also caught a production bug the original oracle omitted: replace
+failure left the staging file behind, while real-filesystem conformance passed
+only because `TemporaryDirectory` later erased the whole harness root. The
+follow-up models `delete_stage` in the TLA-derived trace, deletes the stage in
+production before returning, makes the strict provider reject a surviving
+stage, and observes stage absence before real-filesystem teardown. Cleanup
+semantics must live in generated effect plans/cases; harness teardown is not an
+application cleanup oracle.
+
+The adapter also duplicates one piece of semantics: it maps each scenario to
+an expected revision because the generated case fixes terminal state but does
+not carry a normalized application command plan. That is small here, but it is
+the same architectural pressure that becomes response/order logic in the
+multi-provider example. Generated effect-plan metadata should own this input
+semantics so adapters translate data instead of reimplementing the outcome.
 
 ## Findings that remain visible
 

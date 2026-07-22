@@ -21,6 +21,7 @@ def main() -> int:
             {
                 "output": output,
                 "record": filesystem.project_record(),
+                "stage_exists": Path(filesystem.stage_path).exists(),
                 "trace": filesystem.events,
             },
             ensure_ascii=False,

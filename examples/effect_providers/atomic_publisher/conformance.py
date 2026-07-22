@@ -83,7 +83,8 @@ class RealFilesystem:
         return ReplaceFileResult(True)
 
     def delete(self, command: DeleteFile) -> DeleteFileResult:
-        self.events.append("delete")
+        role = "stage" if command.path == self.stage_path else "final" if command.path == self.final_path else "other"
+        self.events.append(f"delete_{role}")
         path = Path(command.path)
         if not path.exists():
             raise FileNotFoundError(command.path)
@@ -161,7 +162,7 @@ def expected_trace(scenario: str) -> list[str]:
         "stale_revision": ["read_found"],
         "read_failure": ["read_error"],
         "staged_write_failure": ["read_found", "stage_write_error"],
-        "replace_failure": ["read_found", "stage_write", "replace_error"],
+        "replace_failure": ["read_found", "stage_write", "replace_error", "delete_stage"],
     }[scenario]
 
 
@@ -180,15 +181,18 @@ def run_real_filesystem_conformance() -> dict[str, Any]:
                     "actual_output": output,
                     "actual_record": actual_record,
                     "actual_trace": filesystem.events,
+                    "actual_stage_exists": Path(filesystem.stage_path).exists(),
                     "expected_output": expected_output(scenario),
                     "expected_record": expected_record(scenario),
                     "expected_trace": expected_trace(scenario),
+                    "expected_stage_exists": False,
                     "scenario": scenario,
                 }
                 row["matched"] = (
                     row["actual_output"] == row["expected_output"]
                     and row["actual_record"] == row["expected_record"]
                     and row["actual_trace"] == row["expected_trace"]
+                    and row["actual_stage_exists"] == row["expected_stage_exists"]
                 )
                 rows.append(row)
             if Path(temp_path).exists():
@@ -218,6 +222,8 @@ def run_hand_written_baseline(mutants: list[str]) -> dict[str, Any]:
                         detectors.add("tla_projected_state")
                     if filesystem.events != expected_trace(scenario):
                         detectors.add("hand_protocol_assertion")
+                    if Path(filesystem.stage_path).exists():
+                        detectors.add("hand_cleanup_assertion")
             results.append(
                 {
                     "mutant_id": mutant,

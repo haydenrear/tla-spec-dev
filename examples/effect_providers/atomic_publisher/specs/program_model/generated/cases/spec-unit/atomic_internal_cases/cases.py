@@ -166,11 +166,11 @@ CASES = [
         input=StateGraphInput(
             action='ReplaceFailure',
             source_node='7655413046986442043',
-            target_node='4569481648713935302',
+            target_node='-8571334759204141698',
             params={'scenario': 'replace_failure'},
         ),
         output={'idempotent': False, 'revision': 1, 'status': 'replace_error'},
-        after={'done': True, 'outcome': 'replace_failure', 'record': {'exists': True, 'id': 'record', 'payload': 'old', 'revision': 1}, 'result': {'idempotent': False, 'revision': 1, 'status': 'replace_error'}, 'scenario': 'replace_failure', 'trace': ['read_found', 'stage_write', 'replace_error']},
+        after={'done': True, 'outcome': 'replace_failure', 'record': {'exists': True, 'id': 'record', 'payload': 'old', 'revision': 1}, 'result': {'idempotent': False, 'revision': 1, 'status': 'replace_error'}, 'scenario': 'replace_failure', 'trace': ['read_found', 'stage_write', 'replace_error', 'delete_stage']},
         labels=frozenset(('ReplaceFailure', 'outcome:replace_failure', 'params:recovered')),
         schema_version=SCHEMA_VERSION,
         view=SOURCE_VIEW,

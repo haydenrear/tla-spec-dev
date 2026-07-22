@@ -95,7 +95,7 @@ class AtomicPublisher:
                 self._filesystem.write(WriteFile(request.stage_path, data))
         except OSError:
             if mutant == "AP-08":
-                self._delete_final(request.final_path)
+                self._delete_if_exists(request.final_path)
             if mutant == "AP-06":
                 return _result("success", next_revision)
             return _result("write_error", current_revision)
@@ -106,8 +106,9 @@ class AtomicPublisher:
             else:
                 self._filesystem.replace(ReplaceFile(request.stage_path, request.final_path))
         except OSError:
+            self._delete_if_exists(request.stage_path)
             if mutant == "AP-08":
-                self._delete_final(request.final_path)
+                self._delete_if_exists(request.final_path)
             if mutant == "AP-07":
                 return _result("success", next_revision)
             return _result("replace_error", current_revision)
@@ -115,9 +116,9 @@ class AtomicPublisher:
             return _result("stale_revision", current_revision)
         return _result("success", next_revision)
 
-    def _delete_final(self, final_path: str) -> None:
+    def _delete_if_exists(self, path: str) -> None:
         try:
-            self._filesystem.delete(DeleteFile(final_path))
+            self._filesystem.delete(DeleteFile(path))
         except FileNotFoundError:
             pass
 

@@ -47,6 +47,6 @@ ExpectedTrace(scenarioValue) ==
     [] scenarioValue = "stale_revision" -> <<"read_found">>
     [] scenarioValue = "read_failure" -> <<"read_error">>
     [] scenarioValue = "staged_write_failure" -> <<"read_found", "stage_write_error">>
-    [] OTHER -> <<"read_found", "stage_write", "replace_error">>
+    [] OTHER -> <<"read_found", "stage_write", "replace_error", "delete_stage">>
 
 =============================================================================

@@ -111,7 +111,7 @@ class AtomicFilesystemBinding:
         return ReplaceFileResult(True)
 
     def delete(self, command: DeleteFile) -> DeleteFileResult:
-        self._event("delete", command.path)
+        self._event(f"delete_{self._role(command.path)}", command.path)
         if command.path not in self.files:
             raise FileNotFoundError(command.path)
         del self.files[command.path]
@@ -161,13 +161,29 @@ class AtomicFilesystemBinding:
                 "physical filesystem bypass outside FilesystemPort: "
                 f"{relative_bypass_paths}"
             )
+        elif self.stage_path in self.files:
+            local_error = ProviderContractViolation(
+                "staging file remains after publisher returned"
+            )
         elif actual_trace != expected_trace:
             local_error = ProviderContractViolation(
                 f"filesystem protocol mismatch: expected {expected_trace!r}, actual {actual_trace!r}"
             )
 
         transcript_digest = self.transcript_digest()
-        shutil.rmtree(self.root.parent, ignore_errors=True)
+        lifecycle_root = self.root.parent
+        cleanup_error: BaseException | None = None
+        try:
+            if lifecycle_root.exists():
+                shutil.rmtree(lifecycle_root)
+        except BaseException as exc:
+            cleanup_error = exc
+        remaining_paths = []
+        if lifecycle_root.exists():
+            remaining_paths = [
+                str(path.relative_to(self.context.work_dir))
+                for path in (lifecycle_root, *sorted(lifecycle_root.rglob("*")))
+            ]
         ACTIVE_BINDINGS -= 1
         payload = {
             "action": self.context.action,
@@ -185,13 +201,38 @@ class AtomicFilesystemBinding:
             "duration_ms": round((time.perf_counter() - self.started) * 1000.0, 6),
             "events": self.events,
             "iteration": self.context.iteration,
-            "leaked_paths": [],
+            "leaked_paths": remaining_paths,
             "bypass_paths_detected": [self._relative_path(path) for path in bypass_paths],
-            "provider_state_after_run": "clean" if ACTIVE_BINDINGS == 0 else f"active:{ACTIVE_BINDINGS}",
+            "provider_state_after_run": (
+                "clean"
+                if ACTIVE_BINDINGS == 0 and not remaining_paths
+                else f"active:{ACTIVE_BINDINGS};remaining:{len(remaining_paths)}"
+            ),
             "root_seed": self.context.root_seed,
             "transcript_digest": transcript_digest,
         }
         print("ATOMIC_POINT " + json.dumps(payload, ensure_ascii=False, sort_keys=True), flush=True)
+        if cleanup_error is not None:
+            cleanup_failure = ProviderContractViolation(
+                f"provider cleanup failed with remaining paths {remaining_paths!r}: "
+                f"{type(cleanup_error).__name__}: {cleanup_error}"
+            )
+            if local_error is not None:
+                raise ExceptionGroup(
+                    "provider semantic and cleanup failures",
+                    [local_error, cleanup_failure],
+                ) from cleanup_error
+            raise cleanup_failure from cleanup_error
+        if remaining_paths:
+            cleanup_failure = ProviderContractViolation(
+                f"provider cleanup left paths behind: {remaining_paths!r}"
+            )
+            if local_error is not None:
+                raise ExceptionGroup(
+                    "provider semantic and cleanup failures",
+                    [local_error, cleanup_failure],
+                )
+            raise cleanup_failure
         if local_error is not None:
             raise local_error
         return False

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib
+import hashlib
 import json
 import os
 import subprocess
@@ -83,6 +84,18 @@ class AtomicPublisherExperimentTests(unittest.TestCase):
         self.assertEqual(evidence["verdict"], "green")
         self.assertEqual(len(evidence["outcomes"]), 7)
         self.assertTrue(all(row["matched"] for row in evidence["outcomes"]))
+        self.assertTrue(all(not row["actual_stage_exists"] for row in evidence["outcomes"]))
+
+    def test_replace_failure_removes_stage_before_harness_teardown(self) -> None:
+        from application import AtomicPublisher
+        from conformance import RealFilesystem
+
+        with tempfile.TemporaryDirectory(prefix="atomic-stage-cleanup-test-") as raw_root:
+            filesystem = RealFilesystem(Path(raw_root), "replace_failure")
+            output = AtomicPublisher(filesystem).publish(filesystem.request())
+            self.assertEqual(output["status"], "replace_error")
+            self.assertFalse(Path(filesystem.stage_path).exists())
+            self.assertEqual(filesystem.events[-1], "delete_stage")
 
     def test_external_cli_cases_match_output_and_projected_state(self) -> None:
         from atomic_external_cases.cases import CASES
@@ -138,6 +151,11 @@ class AtomicPublisherExperimentTests(unittest.TestCase):
             self.assertTrue(all(row["replay_provider_exit_clean"] for row in mutants))
             self.assertTrue(all(row["replay_transcript_exact"] for row in mutants))
             self.assertEqual(evidence["cleanup_isolation"]["verdict"], "green")
+            for relative, digest in evidence["source_provenance"].items():
+                self.assertEqual(
+                    hashlib.sha256((PROJECT_ROOT / relative).read_bytes()).hexdigest(),
+                    digest,
+                )
 
 
 if __name__ == "__main__":
