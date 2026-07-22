@@ -2950,6 +2950,161 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CD-10",
+      "workflow": "complexity-descriptor-epic",
+      "recorded_at_utc": "2026-07-22T18:44:39.943913+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CD-09",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 283805,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 6209780,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/tlc_current.txt",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/CD-10/results/tlc_current.txt",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/CD-10/results/repo_unit_tests.txt",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/CD-10/results/manifest_reconciliation.md",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "searched the declaration delta for refinement opportunities; found none -- zero model delta, and port consolidation (widening test_process over the runner spawn) was rejected as target dishonesty",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "fail",
+        "passing": false,
+        "report": "specs/results/epic-close/coverage_audit_report_run3.md",
+        "in_scope_gaps": 4,
+        "scope_source": "specs/desired_program_model/ticket_plan.yaml:524-563"
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/CD-10/results/manifest_reconciliation.md -- CD-10 declares what the close path and spec-unit dispatch actually do: a spec_tree_delete (filesystem.delete **/specs/**) port for CloseTicket's three destructive delete sites including the GitHub #22 rmtree; a runner_process (process.spawn *run_generated_case_adapters*) port for RunSpecUnitTests' case-runner spawn; a git_metadata (process.spawn git rev-parse*) port for CloseTicket's provenance spawn; a deliberate RecordBudgets: [] row (no distinct effect -- budget_prompt only prints); and removal of the three dangling Core/Internal/External source_model references per the amended known_gaps. Kill catalog re-seeded, one honest fault per new port; required_boundaries reports zero missing. All validation green: TLC 283,805 distinct states (budget 500,000 with rationale carried), spec-unit 2 targets, 578 repo tests, specWorkflow and cliWorkflow graphs all nodes passed.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (fail) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

@@ -600,3 +600,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-10
+
+- close_scope: ticket
+- close_id: CD-10
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T18:44:39+00:00
+- summary: CD-10 manifest honesty: declared CloseTicket's destructive deletes (spec_tree_delete, filesystem.delete **/specs/** -- spec_evolution.py:154/:385/:477 incl. the GitHub #22 rmtree) and the real spawns of modeled actions (runner_process for RunSpecUnitTests' case-runner spawn tla_spec_dev.py:313-339/:358; git_metadata for CloseTicket's git rev-parse provenance spawn spec_evolution.py:99 via :801/:903); added the deliberate RecordBudgets: [] effects row (DF-2, no distinct effect); removed the dangling Core/Internal/External source_model references (DF-3); seeded one honest kill-catalog fault per new port, zero missing boundaries. Zero TLA+ model delta; TLC 283805 distinct states within the 500000 negotiated budget.
+- feedback_status: none-found
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

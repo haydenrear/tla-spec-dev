@@ -47,3 +47,18 @@ findings:
       finalization's whole-workflow promotion must reconcile the baseline
       trees; a ticket agent must not run it.
     blocking: false
+  - id: CD10-DF-1
+    source: CD-10
+    date: "2026-07-22"
+    finding: >
+      After CD-10's ticket-scoped promotion, specs/current carries the honest
+      manifest (spec_tree_delete / runner_process / git_metadata ports, the
+      RecordBudgets: [] row, cleaned source_model) and the 20-boundary kill
+      catalog, but specs/program_model and specs/desired_program_model still
+      carry the pre-CD-10 shapes: the dangling Core/Internal/External
+      source_model references (their spec_manifest.yaml:111-113), the
+      13-of-14 effects.actions map, and 17-boundary kill catalogs. Same shape
+      as CD09-DF-4: epic finalization's whole-workflow reconciliation must
+      carry the CD-10 manifest deltas into the baseline trees; a ticket agent
+      must not run it.
+    blocking: false
