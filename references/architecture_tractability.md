@@ -419,6 +419,80 @@ boundaries with fixed command/event protocols make interaction cardinality
 the number of message types. Keep it in mind when designing diagnostics,
 effect declarations, and kill tests — do not foreclose it.
 
+## What The Domain Resolver Can And Cannot See
+
+*(CD-05; the section the scanner's dimension table and UNKNOWN-bound output
+cite.)* The state-space bound is only as good as the per-variable domain
+resolution behind it. This section is the exact contract: what the resolver
+reads, in what order, which expressions it can size, and where it stops and
+reports an explicit UNKNOWN instead (never a silent number — CD-01, F3).
+
+**Domain sources, merged per-variable in a documented order.** For each
+declared variable the resolver consults, in order:
+
+1. a `TypeInvariant` definition anywhere in the EXTENDS hierarchy (resolved
+   transitively — it may alias or compose);
+2. a `TypeOK` definition, likewise;
+3. the invariants named in the TLC `.cfg` (each resolved transitively;
+   `TypeInvariant`/`TypeOK` are not double-counted here).
+
+The **first source that resolves the variable's domain wins**; sources are
+merged per-variable, not chosen once globally. This is what makes the
+scaffold's own multi-view layout resolve without renaming tricks: TLA+ forbids
+redefining `TypeInvariant` in an extending view, so a view's own invariant
+(any name, configured in the cfg) bounds the view's variables while the core's
+`TypeInvariant` keeps bounding the core's (VAL-17). A variable constrained
+only in a form the resolver cannot size keeps its expression with cardinality
+`unknown`; a variable no source constrains is reported unknown. Either way it
+is excluded from the product, and when nothing resolves, the bound itself is
+UNKNOWN.
+
+**Constraint extraction is conjunct-wise, not line-wise.** Each source's body
+is split on the boolean connectives (`/\`, `\/`) — with aliased/composed
+definitions expanded transitively and split per definition — and the resolver
+looks for `v \in <set>` and `v \subseteq <set>` (powerset, `2^|set|`)
+conjuncts. A membership conjunct may wrap across as many lines as it likes
+(VAL-16). Constraints stated any other way (through an implication, inside a
+quantifier, via a defined predicate applied to the variable) are not
+extracted.
+
+**Set expressions the resolver can size** (applied recursively):
+
+- `BOOLEAN` (2);
+- set literals `{...}` — counted by top-level commas;
+- integer ranges `a..b` with **literal integer** endpoints;
+- function sets `[S -> T]` — `|T| ^ |S|` when both sides resolve;
+- unions `A \cup B` of resolvable parts;
+- a name assigned a set (or model value) in the TLC `.cfg` `CONSTANTS` block;
+- a name defined as a **zero-parameter operator** anywhere in the EXTENDS
+  hierarchy — the definition body is expanded transitively, with a cycle
+  guard, and sized by these same rules (VAL-06: `TaskStatus == {...}` in an
+  EXTENDS-ed module, used as `tasks \in [Names -> TaskStatus]`, resolves to
+  `|TaskStatus| ^ |Names|`).
+
+**What it cannot size — each an explicit UNKNOWN, never a guess:**
+
+- parameterized operators (`Statuses(k)`), and operator bodies that reduce to
+  any unsupported form below;
+- set comprehensions, filters, and maps (`{x \in S : P(x)}`,
+  `{f(x) : x \in S}`), `UNION`, `SUBSET S` *as a value* (`v \in SUBSET S`;
+  only the `v \subseteq S` conjunct form is recognized);
+- records `[a : S, b : T]`, tuples and Cartesian products (`S \X T`),
+  sequences (`Seq(S)`), and other unbounded standard domains (`Nat`, `Int`,
+  `STRING`);
+- ranges with computed endpoints (`0..N-1`) or any arithmetic over
+  cardinalities;
+- constants the cfg leaves unassigned or assigns a non-set expression;
+- anything behind `INSTANCE` or `LOCAL` — the module resolver FAILS CLOSED on
+  those constructs before domain resolution even starts (MF-030; "No
+  Degenerate Escapes" above).
+
+When the scan reports `bound = UNKNOWN` or a dimension as `unknown`, this
+list is why. The honest responses are to restate the domain in a form the
+resolver reads (usually a zero-parameter operator over literals, cfg
+constants, ranges, and function sets), or to accept the UNKNOWN — never to
+inline a convenient number.
+
 ## Where This Is Mechanized
 
 - `tla-spec-dev analyze complexity` (tickets/011; reshaped by CD-01): emits
