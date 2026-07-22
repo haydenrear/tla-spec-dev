@@ -34,14 +34,16 @@ patch experiment still has a real-HTTP conformance rung.
 
 ## Commands
 
-Run from this directory. A workspace-local cache avoids dependence on an agent's
-home-directory permissions.
+Run from this directory. The cache stays in the repository's ignored `.cache/`
+directory. `TLC2_BIN` defaults to the `tlc2` executable on `PATH`; set it to an
+absolute path when TLC is installed elsewhere.
 
 ```bash
-export UV_CACHE_DIR=/private/tmp/legacy-payment-http-uv-cache
+export UV_CACHE_DIR="$(git rev-parse --show-toplevel)/.cache/legacy-payment-http-uv"
+export TLC2_BIN="${TLC2_BIN:-tlc2}"
 
 uv run --project . python scripts/regenerate.py \
-  --tlc2 /Users/hayde/.skill-manager/bin/cli/tlc2
+  --tlc2 "$TLC2_BIN"
 
 uv run --project . python -m unittest discover -s tests -v
 
@@ -58,13 +60,13 @@ catalog and campaign gates:
 uv run --project . python scripts/run_experiment.py \
   --label my-local-repetition-1 \
   --output evidence/my-local-repetition-1.json \
-  --tlc2 /Users/hayde/.skill-manager/bin/cli/tlc2
+  --tlc2 "$TLC2_BIN"
 
 uv run --project . python scripts/run_experiment.py \
   --label my-local-repetition-2 \
   --output evidence/my-local-repetition-2.json \
   --compare-to evidence/my-local-repetition-1.json \
-  --tlc2 /Users/hayde/.skill-manager/bin/cli/tlc2
+  --tlc2 "$TLC2_BIN"
 ```
 
 Labels must be new because raw evidence directories are append-only.
