@@ -1,0 +1,39 @@
+[adapters.ProcessEmpty]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessNotDue]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessAccepted]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessRetryable]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessPermanent]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessDuplicate]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[adapters.ProcessPendingRetry]
+adapter = "adapter:ReminderAdapter"
+kind = "reminder-worker"
+
+[effect_providers.ClockPort]
+provider = "providers:clock_provider"
+
+[effect_providers.QueuePort]
+provider = "providers:queue_provider"
+
+[effect_providers.OutboxPort]
+provider = "providers:outbox_provider"
+
+[effect_providers.NotifierPort]
+provider = "providers:notifier_provider"
