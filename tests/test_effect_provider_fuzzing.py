@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import subprocess
 import sys
 from typing import Any
+import venv
 
 import pytest
 
@@ -174,10 +175,10 @@ ADAPTERS = []
 
 
 class Binding:
-    def write(self, value):
+    def write(self, value: str) -> None:
         pass
 
-    def request(self):
+    def request(self) -> str:
         return "ok"
 
 
@@ -597,7 +598,7 @@ class Binding:
     def __init__(self, root: Path):
         self.root = root
 
-    def write(self, value):
+    def write(self, value: str) -> None:
         (self.root / "payload.txt").write_text(value, encoding="utf-8")
 
 class Provider:
@@ -832,10 +833,10 @@ EVENTS = []
 
 
 class Binding:
-    def write(self, value):
+    def write(self, value: str) -> None:
         pass
 
-    def request(self):
+    def request(self) -> str:
         return "ok"
 
 
@@ -1094,6 +1095,24 @@ def test_cli_reexec_and_absolute_shell_safe_replay_run_exactly_one_point(
     failure_phase: str,
 ) -> None:
     project = tmp_path / "project with spaces [and] quotes"
+    environment = tmp_path / "dependency environment"
+    venv.EnvBuilder(with_pip=False).create(environment)
+    environment_python = environment / "bin" / "python"
+    site_packages_result = subprocess.run(
+        [
+            str(environment_python),
+            "-c",
+            "import site; print(site.getsitepackages()[0])",
+        ],
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    site_packages = Path(site_packages_result.stdout.strip())
+    (site_packages / "effect_replay_dependency.py").write_text(
+        'TOKEN = "dependency-bearing-environment"\n',
+        encoding="utf-8",
+    )
     spec_dir = project / "spec files"
     cases_dir = project / "case package"
     spec_dir.mkdir(parents=True)
@@ -1138,8 +1157,10 @@ import json
 import os
 from pathlib import Path
 import random
+import effect_replay_dependency
 from spec_double_compiler.runtime import CaseRunResult
 
+assert effect_replay_dependency.TOKEN == "dependency-bearing-environment"
 ACTIVE = None
 LOG = Path(os.environ["EFFECT_REPLAY_EVENT_LOG"])
 FAIL_PHASE = os.environ["EFFECT_REPLAY_FAILURE_PHASE"]
@@ -1172,7 +1193,7 @@ class Binding:
     def __init__(self, scope):
         self.scope = scope
 
-    def write(self, value):
+    def write(self, value: str) -> None:
         record("effect", self.scope)
 
 class Scope:
@@ -1270,7 +1291,7 @@ provider = "replay_provider:filesystem_provider"
     )
 
     command = [
-        sys.executable,
+        str(environment_python),
         str(ROOT / "scripts" / "run_generated_case_adapters.py"),
         str(cases_dir),
         "--mapping",
@@ -1285,9 +1306,12 @@ provider = "replay_provider:filesystem_provider"
         "--seed",
         "444",
         "--python",
-        sys.executable,
+        str(environment_python),
     ]
     env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(ROOT), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
     env["EFFECT_REPLAY_EVENT_LOG"] = str(event_log)
     env["EFFECT_REPLAY_FAILURE_PHASE"] = failure_phase
 
@@ -1320,6 +1344,7 @@ provider = "replay_provider:filesystem_provider"
     assert failure["root_seed"] == 444
     replay = failure["replay"]
     replay_argv = shlex.split(replay)
+    assert replay_argv[0] == str(environment_python)
     assert Path(replay_argv[0]).is_absolute()
     assert Path(replay_argv[1]).is_absolute()
     assert replay_argv[replay_argv.index("--case") + 1] == weird_case

@@ -135,7 +135,7 @@ SUPPRESS = False
 
 
 class FilesystemBinding:
-    def write(self, value):
+    def write(self, value: str) -> None:
         EVENTS.append((\"write\", value))
 
 
@@ -952,6 +952,82 @@ provider = "effect_provider_fixture:invalid_provider"
     ]
 
 
+@pytest.mark.parametrize(
+    ("method_source", "message"),
+    [
+        (
+            "def write(self, value: str, extra: str) -> None:\n        pass",
+            "FilesystemPort.write has incompatible parameters",
+        ),
+        (
+            "def write(self, value: bytes) -> None:\n        pass",
+            "FilesystemPort.write parameter 'value' annotation mismatch",
+        ),
+        (
+            "def write(self, value: str) -> str:\n        return value",
+            "FilesystemPort.write return annotation mismatch",
+        ),
+    ],
+)
+def test_generated_port_signature_mismatch_fails_before_application_execution(
+    tmp_path: Path,
+    method_source: str,
+    message: str,
+) -> None:
+    write_provider_fixture(tmp_path)
+    with (tmp_path / "effect_provider_fixture.py").open("a", encoding="utf-8") as fixture:
+        fixture.write(
+            f"""
+class WrongSignatureBinding:
+    {method_source}
+
+
+@contextmanager
+def wrong_signature_scope(context):
+    EVENTS.append(("enter-wrong-signature", context.port_name))
+    try:
+        yield WrongSignatureBinding()
+    finally:
+        EVENTS.append(("exit-wrong-signature", context.port_name))
+
+
+wrong_signature_provider = Provider(wrong_signature_scope)
+"""
+        )
+    providers = """[effect_providers.FilesystemPort]
+provider = "effect_provider_fixture:wrong_signature_provider"
+"""
+    spec_dir, mapping_path = write_effect_project(
+        tmp_path,
+        action_ports="[FilesystemPort]",
+        providers=providers,
+    )
+    case = make_case()
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[case],
+        import_roots=[tmp_path],
+    )
+
+    with pytest.raises(SystemExit, match=message):
+        execute_cases_in_batch(
+            cases=[case],
+            mappings={"Publish": AdapterMapping("Publish", "effect_provider_fixture:Adapter")},
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+        )
+
+    import effect_provider_fixture
+
+    assert not any(event[0] in {"setup", "run", "teardown"} for event in effect_provider_fixture.EVENTS)
+    assert effect_provider_fixture.EVENTS == [
+        ("enter-wrong-signature", "FilesystemPort"),
+        ("exit-wrong-signature", "FilesystemPort"),
+    ]
+
+
 def test_provider_enter_failure_cleans_already_entered_provider_without_running_adapter(tmp_path: Path) -> None:
     write_provider_fixture(tmp_path)
     with (tmp_path / "effect_provider_fixture.py").open("a", encoding="utf-8") as fixture:
@@ -1184,8 +1260,8 @@ def event(value):
         handle.write(value + "\\n")
 
 class FilesystemBinding:
-    def write(self, value):
-        event("write:" + value)
+    def write(self) -> None:
+        event("write")
 
 @contextmanager
 def filesystem_binding(context):
@@ -1204,7 +1280,7 @@ filesystem_provider = Provider()
 class Adapter:
     def setup(self, context):
         event("setup:" + ",".join(context.effects))
-        context.effects["FilesystemPort"].write("bound")
+        context.effects["FilesystemPort"].write()
 
     def run(self, case, work_dir=None):
         event("run:" + case.input.action)
@@ -1285,7 +1361,7 @@ provider = "provider_app:filesystem_provider"
     assert (spec_dir / "events.txt").read_text(encoding="utf-8").splitlines() == [
         "enter:FilesystemPort",
         "setup:FilesystemPort",
-        "write:bound",
+        "write",
         "run:Publish",
         "teardown:True",
         "exit:FilesystemPort",
