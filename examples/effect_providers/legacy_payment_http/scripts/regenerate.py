@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PROJECT_ROOT.parents[2]
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
 GENERATED = PROJECT_ROOT / "generated"
-EVIDENCE = PROJECT_ROOT / "evidence"
+DEFAULT_EVIDENCE = PROJECT_ROOT / "evidence"
 
 INTERNAL_ACTIONS = {
     "AuthorizeApproved",
@@ -37,8 +37,15 @@ EXTERNAL_ACTIONS = {action.replace("Authorize", "Submit", 1) for action in INTER
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tlc2", default="tlc2")
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        default=DEFAULT_EVIDENCE,
+        help="Directory for regeneration logs and provenance (default: historical evidence directory).",
+    )
     args = parser.parse_args()
-    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    evidence = args.evidence_dir.resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
     (GENERATED / "tlc").mkdir(parents=True, exist_ok=True)
 
     contract = SPEC_DIR / "generated" / "payment_http_contract"
@@ -92,7 +99,7 @@ def main() -> int:
         completed = _run(command, timeout=120, capture=True)
         wall_seconds = perf_counter() - started
         log = completed.stdout + completed.stderr
-        (EVIDENCE / f"tlc-{view}.log").write_text(log, encoding="utf-8")
+        (evidence / f"tlc-{view}.log").write_text(log, encoding="utf-8")
         module_cases = _load_cases(package_dir)
         cases = list(module_cases.CASES)
         actual_actions = {str(case.input.action) for case in cases}
@@ -142,7 +149,7 @@ def main() -> int:
         },
         "views": summaries,
     }
-    (EVIDENCE / "tlc-generation.json").write_text(
+    (evidence / "tlc-generation.json").write_text(
         json.dumps(provenance, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )

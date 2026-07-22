@@ -1,0 +1,24 @@
+version: 1
+providers:
+  - port: PaymentHttpPort
+    provider: payment_effects.provider:payment_http_provider
+    binding_style: self_installed
+    state_scope: one_generated_case_iteration_with_process_global_patch
+    fuzz_dimensions:
+      - transient_status_502_503_504
+      - connect_or_read_timeout
+      - response_json_layout
+      - response_header_casing
+      - malformed_response_bytes
+      - opaque_authorization_reference
+    assertions:
+      - exact_method_url_integer_amount_and_idempotency_key
+      - timeout_and_retry_attempt_count
+      - modeled_output_and_projected_state
+      - concrete_reference_refines_to_tla_reference_class
+      - no_outbound_socket_attempt
+    cleanup: exit_stack_restores_requests_send_and_socket_guards_per_execution_point
+    bypass_limits:
+      - urllib_and_raw_socket_bypass_requests_session_send
+      - socket_guard_detects_and_blocks_known_in_process_bypasses_only
+      - child_processes_require_the_separate_real_loopback_external_rung

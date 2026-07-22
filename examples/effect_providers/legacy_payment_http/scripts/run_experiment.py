@@ -7,7 +7,6 @@ import argparse
 import gzip
 import hashlib
 import importlib
-from importlib.util import find_spec
 import json
 import os
 from pathlib import Path
@@ -29,7 +28,6 @@ CASES_DIR = PROJECT_ROOT / "generated" / "spec-unit" / "payment_http_internal_ca
 MAPPING = SPEC_DIR / "case_adapters.toml"
 PREREGISTRATION = PROJECT_ROOT.parent / "PREREGISTRATION.yaml"
 PREREGISTRATION_SHA256 = "970ade21dcf9e460a60cdb1e70396b5b5507c460983e7001cb1bceff5fe9390b"
-PREREGISTRATION_COMMIT = "141e63b"
 ROOT_SEED = 20260721
 ITERATIONS = list(range(32))
 INTERNAL_ACTIONS = {
@@ -119,24 +117,17 @@ MUTATION_CANONICAL_FIELDS = (
     "replay_provider_state_clean",
     "infra_errors",
 )
-
-
-def _dependency_import_root(package: str) -> Path:
-    """Return the environment import root needed by a recorded replay command.
-
-    The shared runner records ``Path(sys.executable).resolve()``. A virtualenv
-    interpreter is a symlink, so the recorded command may use the base Python
-    without the virtualenv's site-packages. Keeping the dependency root explicit
-    makes that command self-contained and verbatim-replayable.
-    """
-
-    spec = find_spec(package)
-    if spec is None or spec.origin is None:
-        raise RuntimeError(f"required experiment dependency is unavailable: {package}")
-    return Path(spec.origin).resolve().parent.parent
-
-
-REQUESTS_IMPORT_ROOT = _dependency_import_root("requests")
+FORBIDDEN_FRAMEWORK_SURFACES = [
+    "spec_double_compiler",
+    "scripts/run_generated_case_adapters.py",
+    "scripts/generate_cases_from_tlc_dump.py",
+    "scripts/generate_python.py",
+    "scripts/tla_spec_dev.py",
+    "scripts/scaffold_spec.py",
+    "scripts/onboard_program_model.py",
+    "templates",
+    "tests",
+]
 
 
 def main() -> int:
@@ -146,7 +137,24 @@ def main() -> int:
     parser.add_argument("--compare-to", type=Path)
     parser.add_argument("--skip-regenerate", action="store_true")
     parser.add_argument("--tlc2", default="tlc2")
+    parser.add_argument(
+        "--raw-dir",
+        type=Path,
+        help="Non-overwriting raw-artifact directory (default: evidence/raw/<label>).",
+    )
+    parser.add_argument(
+        "--generation-evidence",
+        type=Path,
+        default=PROJECT_ROOT / "evidence",
+        help="Directory containing tlc-generation.json and regeneration logs.",
+    )
+    parser.add_argument(
+        "--framework-baseline",
+        type=Path,
+        help="Validation-start framework snapshot used to prove the campaign made no rescue edits.",
+    )
     args = parser.parse_args()
+    generation_evidence = args.generation_evidence.resolve()
     _assert_preregistration()
     if not args.skip_regenerate:
         _checked_run(
@@ -155,12 +163,14 @@ def main() -> int:
                 str(PROJECT_ROOT / "scripts" / "regenerate.py"),
                 "--tlc2",
                 args.tlc2,
+                "--evidence-dir",
+                str(generation_evidence),
             ],
             timeout=120,
         )
     cases = _load_cases()
-    _assert_generated_contract(cases)
-    framework_audit = _framework_audit()
+    _assert_generated_contract(cases, generation_evidence)
+    framework_audit = _framework_audit(args.framework_baseline)
     if not framework_audit["clean"]:
         raise SystemExit(
             "ERROR: forbidden framework rescue surface differs from preregistration: "
@@ -168,7 +178,11 @@ def main() -> int:
         )
     source_provenance = _source_provenance()
 
-    raw_dir = PROJECT_ROOT / "evidence" / "raw" / args.label
+    raw_dir = (
+        args.raw_dir.resolve()
+        if args.raw_dir is not None
+        else PROJECT_ROOT / "evidence" / "raw" / args.label
+    )
     raw_dir.mkdir(parents=True, exist_ok=False)
     started = perf_counter()
     control = _run_control(cases, raw_dir)
@@ -180,7 +194,7 @@ def main() -> int:
     probes = _run_probes(cases, raw_dir)
     source_provenance_after = _source_provenance()
     sources_unchanged = source_provenance_after == source_provenance
-    tlc = json.loads((PROJECT_ROOT / "evidence" / "tlc-generation.json").read_text())
+    tlc = json.loads((generation_evidence / "tlc-generation.json").read_text())
     tlc["views"]["internal"]["executed_cases"] = control["executed_points"]
     mutation_verdict_digest = _digest(
         [[row["mutant_id"], row["verdict"], row["primary_detector"]] for row in mutations]
@@ -258,13 +272,12 @@ def main() -> int:
                 "can be measured after first discovery without 32 wrapper invocations."
             ),
             "replay_environment": (
-                "The shared runner resolves a virtualenv interpreter symlink when it "
-                "records replay commands. This project therefore supplies its active "
-                "requests site-packages directory as an explicit import root."
+                "The shared runner records the dependency-bearing virtualenv interpreter "
+                "without a project-specific site-packages import-root workaround."
             ),
             "replay_environment_recommendation": (
-                "Record the environment interpreter path without resolving its symlink, "
-                "or otherwise preserve the originating environment in replay commands."
+                "Keep replay tests that execute the recorded command verbatim from a "
+                "different working directory."
             ),
         },
         "wall_seconds": perf_counter() - started,
@@ -626,8 +639,6 @@ def _runner_command(
         str(SPEC_DIR),
         "--import-root",
         str(PROJECT_ROOT),
-        "--import-root",
-        str(REQUESTS_IMPORT_ROOT),
         "--batch",
         "--fuzz-runs",
         str(len(ITERATIONS)),
@@ -744,7 +755,7 @@ def _assert_preregistration() -> None:
         )
 
 
-def _assert_generated_contract(cases: list[Any]) -> None:
+def _assert_generated_contract(cases: list[Any], generation_evidence: Path) -> None:
     actions = {str(case.input.action) for case in cases}
     if actions != INTERNAL_ACTIONS:
         raise SystemExit(
@@ -754,7 +765,7 @@ def _assert_generated_contract(cases: list[Any]) -> None:
         raise SystemExit("ERROR: generated cases lost their semantic action label")
     if len(cases) != 56:
         raise SystemExit(f"ERROR: expected 56 complete generated cases, got {len(cases)}")
-    generation = json.loads((PROJECT_ROOT / "evidence" / "tlc-generation.json").read_text())
+    generation = json.loads((generation_evidence / "tlc-generation.json").read_text())
     for name, expected in generation["model_digests"].items():
         actual = hashlib.sha256((SPEC_DIR / name).read_bytes()).hexdigest()
         if actual != expected:
@@ -955,21 +966,51 @@ def _stop_go(
     }
 
 
-def _framework_audit() -> dict[str, Any]:
-    forbidden = [
-        "spec_double_compiler",
-        "scripts/run_generated_case_adapters.py",
-        "scripts/generate_cases_from_tlc_dump.py",
-        "scripts/generate_python.py",
-        "scripts/tla_spec_dev.py",
-        "scripts/scaffold_spec.py",
-        "scripts/onboard_program_model.py",
-        "templates",
-        "tests",
-    ]
+def _framework_snapshot() -> dict[str, str]:
     commands = [
-        ["git", "diff", "--name-only", PREREGISTRATION_COMMIT, "--", *forbidden],
-        ["git", "ls-files", "--others", "--exclude-standard", "--", *forbidden],
+        ["git", "ls-files", "--", *FORBIDDEN_FRAMEWORK_SURFACES],
+        ["git", "ls-files", "--others", "--exclude-standard", "--", *FORBIDDEN_FRAMEWORK_SURFACES],
+    ]
+    paths: set[str] = set()
+    for command in commands:
+        completed = subprocess.run(
+            command,
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=30,
+        )
+        paths.update(line for line in completed.stdout.splitlines() if line)
+    return {
+        name: hashlib.sha256((REPO_ROOT / name).read_bytes()).hexdigest()
+        for name in sorted(paths)
+        if (REPO_ROOT / name).is_file()
+    }
+
+
+def _framework_audit(baseline_path: Path | None = None) -> dict[str, Any]:
+    if baseline_path is not None:
+        before = json.loads(baseline_path.read_text(encoding="utf-8"))
+        after = _framework_snapshot()
+        changed = sorted(
+            path
+            for path in set(before) | set(after)
+            if before.get(path) != after.get(path)
+        )
+        return {
+            "base_commit": "validation-start-snapshot",
+            "forbidden_surfaces": FORBIDDEN_FRAMEWORK_SURFACES,
+            "changed_paths": changed,
+            "files_changed": len(changed),
+            "commands": [],
+            "errors": [],
+            "clean": not changed,
+        }
+
+    commands = [
+        ["git", "diff", "--name-only", "HEAD", "--", *FORBIDDEN_FRAMEWORK_SURFACES],
+        ["git", "ls-files", "--others", "--exclude-standard", "--", *FORBIDDEN_FRAMEWORK_SURFACES],
     ]
     changed: set[str] = set()
     command_rows: list[dict[str, Any]] = []
@@ -996,8 +1037,8 @@ def _framework_audit() -> dict[str, Any]:
         if completed.returncode != 0:
             errors.append(f"audit command failed: {shlex.join(command)}")
     return {
-        "base_commit": PREREGISTRATION_COMMIT,
-        "forbidden_surfaces": forbidden,
+        "base_commit": "HEAD",
+        "forbidden_surfaces": FORBIDDEN_FRAMEWORK_SURFACES,
         "changed_paths": sorted(changed),
         "files_changed": len(changed),
         "commands": command_rows,

@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/scripts/run_generated_case_adapters.py",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases",
+    "--mapping",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/specs/program_model/case_adapters.toml",
+    "--batch",
+    "--seed",
+    "20260721",
+    "--fuzz-runs",
+    "1",
+    "--fuzz-iteration",
+    "0",
+    "--case",
+    "case_0001_authorize_approved",
+    "--spec-dir",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/specs/program_model",
+    "--import-root",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http"
+  ],
+  "cwd": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/evidence/validation-runs/agent-ep06-http-v2/cross-cwd-replay",
+  "duration_seconds": 0.127066,
+  "returncode": 1,
+  "stderr": "ERROR: 1 batched case executions failed\nEFFECT_FUZZ_FAILURE {\"case\": \"case_0001_authorize_approved\", \"error\": \"DETECTOR[provider_local_assertion] attempt 1 method 'GET' is not POST\", \"error_type\": \"ProviderLocalAssertion\", \"iteration\": 0, \"phase\": \"run\", \"providers\": [{\"derived_seed\": 84689491796784657692745461736978672960, \"port\": \"PaymentHttpPort\", \"provider\": \"payment_effects.provider:payment_http_provider\"}], \"replay\": \"/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3 /private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/scripts/run_generated_case_adapters.py /private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases --mapping /private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/specs/program_model/case_adapters.toml --batch --seed 20260721 --fuzz-runs 1 --fuzz-iteration 0 --case case_0001_authorize_approved --spec-dir /private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/specs/program_model --import-root /private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http\", \"root_seed\": 20260721, \"seed_version\": \"tla-spec-dev/effect-seed/v1\"}\n",
+  "stdout": "validated 7 adapter mappings for 8 labels\n",
+  "timeout_seconds": 120
+}

@@ -23,7 +23,10 @@ class ReminderProcessAdapter:
         result_path = work_dir / "process-result.json"
         environment = os.environ.copy()
         environment.pop("REMINDER_MUTANT", None)
-        python_path = os.pathsep.join((str(GENERATED_ROOT), str(PROJECT_ROOT)))
+        generated_root = Path(
+            environment.get("REMINDER_GENERATED_ROOT", str(GENERATED_ROOT))
+        ).resolve()
+        python_path = os.pathsep.join((str(generated_root), str(PROJECT_ROOT)))
         if environment.get("PYTHONPATH"):
             python_path += os.pathsep + environment["PYTHONPATH"]
         environment["PYTHONPATH"] = python_path

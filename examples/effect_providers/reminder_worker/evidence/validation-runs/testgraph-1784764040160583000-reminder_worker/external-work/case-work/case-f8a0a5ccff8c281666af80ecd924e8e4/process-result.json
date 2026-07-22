@@ -1,0 +1,21 @@
+{
+  "after": {
+    "notificationCount": 1,
+    "outboxState": "pending",
+    "queueState": "dead",
+    "receiptState": "none",
+    "result": "permanent",
+    "scenario": "permanent"
+  },
+  "journal": [
+    "queue.claim",
+    "clock.now",
+    "outbox.lookup",
+    "outbox.stage",
+    "notifier.send",
+    "queue.dead_letter"
+  ],
+  "output": {
+    "status": "permanent"
+  }
+}

@@ -1,0 +1,23 @@
+version: 1
+providers:
+  - port: FilesystemPort
+    provider: providers:filesystem_provider
+    binding_style: explicit_injection
+    state_scope: one_generated_case_and_fuzz_iteration
+    fuzz_dimensions:
+      - unicode_space_and_nested_path_component
+      - unicode_multiline_and_control_character_record_values
+      - unrelated_file_names_and_insertion_order
+      - modeled_oserror_subclass
+    assertions:
+      - generated_output_equality
+      - generated_projected_record_state
+      - tla_owned_ordered_filesystem_trace
+      - provider_owned_canonical_byte_projection
+      - provider_owned_stage_absence_and_protocol_journal
+      - deterministic_replay_transcript
+    cleanup: context_manager_removes_point_root_and_resets_active_binding_count
+    bypass_limits:
+      - passive_audit_is_bounded_to_physical_files_under_the_provider_root
+      - child_process_native_code_and_host_paths_outside_that_root_are_not_intercepted
+      - external_cli_real_filesystem_validation_is_a_separate_boundary_rung

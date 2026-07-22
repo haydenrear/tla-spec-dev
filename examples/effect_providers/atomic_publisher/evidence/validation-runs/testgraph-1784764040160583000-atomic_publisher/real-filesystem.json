@@ -1,0 +1,260 @@
+{
+  "cleanup": "green",
+  "outcomes": [
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "success"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 1
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_missing",
+        "stage_write",
+        "replace"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "success"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 1
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_missing",
+        "stage_write",
+        "replace"
+      ],
+      "matched": true,
+      "scenario": "create_success"
+    },
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 2,
+        "status": "success"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 2
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_found",
+        "stage_write",
+        "replace"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 2,
+        "status": "success"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 2
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_found",
+        "stage_write",
+        "replace"
+      ],
+      "matched": true,
+      "scenario": "valid_update"
+    },
+    {
+      "actual_output": {
+        "idempotent": true,
+        "revision": 1,
+        "status": "success"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 1
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_found"
+      ],
+      "expected_output": {
+        "idempotent": true,
+        "revision": 1,
+        "status": "success"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "new",
+        "revision": 1
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_found"
+      ],
+      "matched": true,
+      "scenario": "idempotent_retry"
+    },
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 2,
+        "status": "stale_revision"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 2
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_found"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 2,
+        "status": "stale_revision"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 2
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_found"
+      ],
+      "matched": true,
+      "scenario": "stale_revision"
+    },
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 0,
+        "status": "read_error"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_error"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 0,
+        "status": "read_error"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_error"
+      ],
+      "matched": true,
+      "scenario": "read_failure"
+    },
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "write_error"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_found",
+        "stage_write_error"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "write_error"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_found",
+        "stage_write_error"
+      ],
+      "matched": true,
+      "scenario": "staged_write_failure"
+    },
+    {
+      "actual_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "replace_error"
+      },
+      "actual_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "actual_stage_exists": false,
+      "actual_trace": [
+        "read_found",
+        "stage_write",
+        "replace_error",
+        "delete_stage"
+      ],
+      "expected_output": {
+        "idempotent": false,
+        "revision": 1,
+        "status": "replace_error"
+      },
+      "expected_record": {
+        "exists": true,
+        "id": "record",
+        "payload": "old",
+        "revision": 1
+      },
+      "expected_stage_exists": false,
+      "expected_trace": [
+        "read_found",
+        "stage_write",
+        "replace_error",
+        "delete_stage"
+      ],
+      "matched": true,
+      "scenario": "replace_failure"
+    }
+  ],
+  "verdict": "green"
+}

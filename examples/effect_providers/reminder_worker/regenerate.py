@@ -36,9 +36,16 @@ def run(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"))
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=GENERATED_ROOT,
+        help="Generated artifact root; defaults to the checked project tree.",
+    )
     args = parser.parse_args()
+    generated_root = args.out.resolve()
 
-    for path in (GENERATED_ROOT / "reminder_contract", GENERATED_ROOT / "cases"):
+    for path in (generated_root / "reminder_contract", generated_root / "cases"):
         if path.exists():
             shutil.rmtree(path)
 
@@ -48,7 +55,7 @@ def main() -> int:
             str(REPO_ROOT / "scripts" / "generate_python.py"),
             str(SPEC_ROOT / "spec_manifest.yaml"),
             "--out",
-            str(GENERATED_ROOT),
+            str(generated_root),
         ]
     )
 
@@ -77,7 +84,7 @@ def main() -> int:
                 str(SPEC_ROOT / "Internal.tla"),
                 str(SPEC_ROOT / "Internal.cfg"),
                 "--out",
-                str(GENERATED_ROOT / "cases"),
+                str(generated_root / "cases"),
                 "--package",
                 "reminder_internal_cases",
                 "--view",
@@ -97,7 +104,7 @@ def main() -> int:
                 str(SPEC_ROOT / "External.tla"),
                 str(SPEC_ROOT / "External.cfg"),
                 "--out",
-                str(GENERATED_ROOT / "cases"),
+                str(generated_root / "cases"),
                 "--package",
                 "reminder_external_cases",
                 "--view",
@@ -110,7 +117,7 @@ def main() -> int:
             timeout=120,
             metric_label="external",
         )
-    print(f"generated reminder artifacts under {GENERATED_ROOT}")
+    print(f"generated reminder artifacts under {generated_root}")
     return 0
 
 

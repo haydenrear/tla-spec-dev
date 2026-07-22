@@ -3049,6 +3049,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-06",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T23:53:35.446951+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-05",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "The added representation is essential replay infrastructure: three non-overwriting project validators, one shared schema/aggregate gate, usage descriptors, raw failure evidence, and an executable Test Graph node. It does not add host-model state or domain adapters. The deliberately rich research evidence measures authoring cost and product boundaries; POST_REPLACEMENT_RECOMMENDATIONS.md identifies what may later be factored.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "examples/effect_providers/evidence/validation-runs/ep06-central-20260722-v2/aggregate.json -- 36 unique fixed mutants, 48/48 scored executions killed",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "specs/tickets/EP-06/results/testgraph/effectProviderExamples-20260722-234720-abf456cf/report.md -- 37/37 exact replays, 3140/3140 cleanup checks, bounded bypass findings explicit",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/EP-06/results/testgraph/effectProviderExamples-20260722-234720-abf456cf/report.md -- all 70 generated real-boundary cases passed",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Compared all three independent implementations. Shared append-only result validation and orchestration were factored at the repository level; concrete providers stayed local. No further safe reduction is justified before another correlated-state consumer and data-dependent mutation catalog exist.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "See results/validation-summary.md, results/agent-validation-summary.md, results/defect-resolution.md, and examples/effect_providers/POST_REPLACEMENT_RECOMMENDATIONS.md. The host model remained at 5,619,356 generated / 231,621 distinct / depth 25. The aggregate validation took 59.92s; the HTTP external tier dominated at about 32.7s.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

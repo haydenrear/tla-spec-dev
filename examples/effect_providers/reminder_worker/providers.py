@@ -16,6 +16,15 @@ from app import (
     RetryableThrottleError,
     RetryableTransportError,
 )
+from reminder_contract.types import (
+    ClaimJob,
+    LookupOutbox,
+    MarkSent,
+    QueueMutation,
+    ReadClock,
+    SendMessage,
+    StageMessage,
+)
 from spec_double_compiler.effects import derive_effect_seed
 
 
@@ -219,7 +228,8 @@ class ClockBinding:
     def __init__(self, state: PointState) -> None:
         self.state = state
 
-    def now(self, _command: Any) -> int:
+    def now(self, command: ReadClock) -> int:
+        del command
         self.state.clock_reads += 1
         self.state.event("clock.now")
         if self.state.clock_reads > 1:
@@ -231,7 +241,8 @@ class QueueBinding:
     def __init__(self, state: PointState) -> None:
         self.state = state
 
-    def claim(self, _command: Any) -> Job | None:
+    def claim(self, command: ClaimJob) -> object:
+        del command
         self.state.event("queue.claim")
         if self.state.queue_state == "empty":
             return None
@@ -242,17 +253,17 @@ class QueueBinding:
         if command.job_id != self.state.bundle.job.job_id:
             raise DetectorFailure("provider_local_assertion", "queue job id mismatch")
 
-    def acknowledge(self, command: Any) -> None:
+    def acknowledge(self, command: QueueMutation) -> None:
         self._check(command)
         self.state.event("queue.ack")
         self.state.queue_state = "acked"
 
-    def release(self, command: Any) -> None:
+    def release(self, command: QueueMutation) -> None:
         self._check(command)
         self.state.event("queue.release")
         self.state.queue_state = "ready"
 
-    def dead_letter(self, command: Any) -> None:
+    def dead_letter(self, command: QueueMutation) -> None:
         self._check(command)
         self.state.event("queue.dead_letter")
         self.state.queue_state = "dead"
@@ -262,7 +273,7 @@ class OutboxBinding:
     def __init__(self, state: PointState) -> None:
         self.state = state
 
-    def lookup(self, command: Any) -> Entry | None:
+    def lookup(self, command: LookupOutbox) -> object:
         if command.job_id != self.state.bundle.job.job_id:
             raise DetectorFailure("provider_local_assertion", "outbox lookup id mismatch")
         self.state.event("outbox.lookup")
@@ -270,7 +281,7 @@ class OutboxBinding:
             return None
         return Entry(sent=self.state.outbox_state == "sent", receipt=self.state.receipt)
 
-    def stage(self, command: Any) -> None:
+    def stage(self, command: StageMessage) -> None:
         expected = self.state.bundle.job
         actual = (command.job_id, command.recipient, command.body, command.idempotency_key)
         wanted = (expected.job_id, expected.recipient, expected.body, expected.idempotency_key)
@@ -279,7 +290,7 @@ class OutboxBinding:
         self.state.event("outbox.stage")
         self.state.outbox_state = "pending"
 
-    def mark_sent(self, command: Any) -> None:
+    def mark_sent(self, command: MarkSent) -> None:
         if command.job_id != self.state.bundle.job.job_id:
             raise DetectorFailure("provider_local_assertion", "mark-sent job id mismatch")
         self.state.event("outbox.mark_sent")
@@ -291,7 +302,7 @@ class NotifierBinding:
     def __init__(self, state: PointState) -> None:
         self.state = state
 
-    def send(self, command: Any) -> str:
+    def send(self, command: SendMessage) -> str:
         expected = self.state.bundle.job
         if self.state.bundle.scenario == "duplicate":
             raise DetectorFailure("provider_local_assertion", "duplicate notification send")

@@ -77,6 +77,41 @@ class AtomicPublisherExperimentTests(unittest.TestCase):
                 self.assertEqual(output, case.output)
             self.assertFalse(list(Path(raw_root).rglob("provider-root")))
 
+    def test_provider_implements_generic_interface_and_exact_generated_port_signatures(self) -> None:
+        import inspect
+        from typing import get_type_hints
+
+        from atomic_publisher_contract.ports import FilesystemPort
+        from providers import AtomicFilesystemBinding, filesystem_provider
+        from spec_double_compiler.runtime import EffectProvider
+
+        self.assertIsInstance(filesystem_provider, EffectProvider)
+        for method_name in ("read", "write", "replace", "delete"):
+            expected = getattr(FilesystemPort, method_name)
+            actual = getattr(AtomicFilesystemBinding, method_name)
+            self.assertEqual(
+                list(inspect.signature(actual).parameters),
+                list(inspect.signature(expected).parameters),
+            )
+            self.assertEqual(get_type_hints(actual), get_type_hints(expected))
+
+    def test_validation_start_framework_snapshot_accepts_a_dirty_but_unchanged_tree(self) -> None:
+        import json
+
+        from run_experiment import framework_change_audit, framework_snapshot
+
+        with tempfile.TemporaryDirectory(prefix="atomic-framework-snapshot-") as raw_root:
+            baseline = Path(raw_root) / "baseline.json"
+            baseline.write_text(
+                json.dumps(framework_snapshot(), sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            audit = framework_change_audit(baseline)
+
+        self.assertEqual(audit["base_commit"], "validation-start-snapshot")
+        self.assertEqual(audit["changed_forbidden_paths"], [])
+        self.assertEqual(audit["verdict"], "green")
+
     def test_real_temporary_filesystem_conformance_covers_every_outcome(self) -> None:
         from conformance import run_real_filesystem_conformance
 
@@ -120,8 +155,15 @@ class AtomicPublisherExperimentTests(unittest.TestCase):
                 self.assertEqual(AtomicPublisherCliProjector().observe(context), case.after)
 
     def test_fixed_catalog_smoke_kills_all_mutants_and_replays_exactly(self) -> None:
+        from run_experiment import framework_snapshot
+
         with tempfile.TemporaryDirectory(prefix="atomic-evidence-test-") as raw_root:
             evidence_path = Path(raw_root) / "evidence.json"
+            baseline_path = Path(raw_root) / "framework-baseline.json"
+            baseline_path.write_text(
+                json.dumps(framework_snapshot(), sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
             completed = subprocess.run(
                 [
                     sys.executable,
@@ -133,6 +175,8 @@ class AtomicPublisherExperimentTests(unittest.TestCase):
                     "focused-test",
                     "--evidence",
                     str(evidence_path),
+                    "--framework-baseline",
+                    str(baseline_path),
                 ],
                 cwd=PROJECT_ROOT,
                 text=True,

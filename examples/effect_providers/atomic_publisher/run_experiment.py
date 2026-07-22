@@ -53,6 +53,11 @@ def main() -> int:
         type=Path,
         default=PROJECT_ROOT / "evidence" / "atomic-publisher-raw.json",
     )
+    parser.add_argument(
+        "--framework-baseline",
+        type=Path,
+        help="Validation-start snapshot used to prove the campaign made no framework rescue edits.",
+    )
     args = parser.parse_args()
     if args.repetitions < 1:
         raise SystemExit("--repetitions must be at least one")
@@ -65,7 +70,7 @@ def main() -> int:
 
     conformance = run_real_filesystem_conformance()
     baseline = run_hand_written_baseline(list(MUTANTS))
-    framework_audit = framework_change_audit()
+    framework_audit = framework_change_audit(args.framework_baseline)
     repetitions: list[dict[str, Any]] = []
     for repetition_index in range(args.repetitions):
         label = f"{args.run_label}-{repetition_index + 1}"
@@ -506,22 +511,83 @@ def cost_metrics(framework_audit: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def framework_change_audit() -> dict[str, Any]:
+FORBIDDEN_FRAMEWORK_SURFACES = [
+    "spec_double_compiler",
+    "scripts/run_generated_case_adapters.py",
+    "scripts/generate_cases_from_tlc_dump.py",
+    "scripts/generate_python.py",
+    "scripts/tla_spec_dev.py",
+    "scripts/scaffold_spec.py",
+    "scripts/onboard_program_model.py",
+    "templates",
+    "tests",
+]
+
+
+def framework_snapshot() -> dict[str, str]:
+    paths: set[str] = set()
+    for command in (
+        ["git", "ls-files", "--", *FORBIDDEN_FRAMEWORK_SURFACES],
+        [
+            "git",
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "--",
+            *FORBIDDEN_FRAMEWORK_SURFACES,
+        ],
+    ):
+        completed = subprocess.run(
+            command,
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=10,
+        )
+        paths.update(line for line in completed.stdout.splitlines() if line)
+    return {
+        name: hashlib.sha256((REPO_ROOT / name).read_bytes()).hexdigest()
+        for name in sorted(paths)
+        if (REPO_ROOT / name).is_file()
+    }
+
+
+def framework_change_audit(baseline_path: Path | None = None) -> dict[str, Any]:
     """Read-only proof that EP-03 did not rescue a score in framework source."""
 
-    forbidden = [
-        "spec_double_compiler",
-        "scripts/run_generated_case_adapters.py",
-        "scripts/generate_cases_from_tlc_dump.py",
-        "scripts/generate_python.py",
-        "scripts/tla_spec_dev.py",
-        "scripts/scaffold_spec.py",
-        "scripts/onboard_program_model.py",
-        "templates",
-        "tests",
+    if baseline_path is not None:
+        before = json.loads(baseline_path.read_text(encoding="utf-8"))
+        after = framework_snapshot()
+        changed = sorted(
+            path
+            for path in set(before) | set(after)
+            if before.get(path) != after.get(path)
+        )
+        return {
+            "base_commit": "validation-start-snapshot",
+            "changed_forbidden_paths": changed,
+            "forbidden_surfaces": FORBIDDEN_FRAMEWORK_SURFACES,
+            "verdict": "green" if not changed else "red",
+        }
+
+    base_commit = os.environ.get("EFFECT_EXAMPLE_FRAMEWORK_BASE", "141e63b")
+    diff_command = [
+        "git",
+        "diff",
+        "--name-only",
+        base_commit,
+        "--",
+        *FORBIDDEN_FRAMEWORK_SURFACES,
     ]
-    diff_command = ["git", "diff", "--name-only", "141e63b", "--", *forbidden]
-    untracked_command = ["git", "ls-files", "--others", "--exclude-standard", "--", *forbidden]
+    untracked_command = [
+        "git",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *FORBIDDEN_FRAMEWORK_SURFACES,
+    ]
     diff = subprocess.run(
         diff_command,
         cwd=REPO_ROOT,
@@ -551,7 +617,7 @@ def framework_change_audit() -> dict[str, Any]:
         }
     )
     return {
-        "base_commit": "141e63b",
+        "base_commit": base_commit,
         "changed_forbidden_paths": changed,
         "diff_command": diff_command,
         "untracked_command": untracked_command,
