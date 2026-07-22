@@ -422,9 +422,9 @@ def _load_provider(reference: str) -> Any:
         provider = loaded() if isinstance(loaded, type) else loaded
     except Exception as exc:
         raise EffectProviderConfigurationError(f"could not load provider {reference!r}: {exc}") from exc
-    if not callable(provider) and not callable(getattr(provider, "bind", None)):
+    if not callable(getattr(provider, "bind", None)):
         raise EffectProviderConfigurationError(
-            f"provider {reference!r} must be callable or define bind(context)"
+            f"provider {reference!r} must implement EffectProvider.bind(context)"
         )
     return provider
 
@@ -1121,12 +1121,10 @@ class _null_context:
 
 
 def _provider_context_manager(binding: ResolvedEffectProvider, context: Any) -> Any:
-    from spec_double_compiler.runtime import EffectProviderBinding
-
     binder = getattr(binding.provider, "bind", None)
     semantic_snapshot = _case_semantic_snapshot(context.case)
     try:
-        scope = binder(context) if callable(binder) else binding.provider(context)
+        scope = binder(context)
     except Exception as exc:
         raise EffectProviderConfigurationError(
             f"provider {binding.provider_reference!r} could not bind {binding.port_name} "
@@ -1140,9 +1138,12 @@ def _provider_context_manager(binding: ResolvedEffectProvider, context: Any) -> 
         )
     except RuntimeError as exc:
         raise EffectProviderConfigurationError(str(exc)) from exc
-    if not isinstance(scope, EffectProviderBinding):
+    if not callable(getattr(scope, "__enter__", None)) or not callable(
+        getattr(scope, "__exit__", None)
+    ):
         raise EffectProviderConfigurationError(
-            f"provider {binding.provider_reference!r} for {binding.port_name} must return a context manager"
+            f"provider {binding.provider_reference!r} for {binding.port_name} "
+            "must return a standard context manager"
         )
     return scope
 
@@ -1248,10 +1249,7 @@ def _structured_failure(
     replay_command_factory: Callable[[ExecutionPoint], str] | None,
     binding: ResolvedEffectProvider | None = None,
 ) -> str:
-    from spec_double_compiler.effects import (
-        EFFECT_SEED_VERSION,
-        EffectProviderEnterCleanupError,
-    )
+    from spec_double_compiler.effects import EFFECT_SEED_VERSION
 
     providers = _provider_seed_rows(plan, point, root_seed)
     payload: dict[str, Any] = {
@@ -1269,15 +1267,6 @@ def _structured_failure(
         payload["provider"] = next(
             row for row in providers if row["port"] == binding.port_name
         )
-    if isinstance(error, EffectProviderEnterCleanupError):
-        payload["primary_error"] = {
-            "error_type": type(error.primary).__name__,
-            "error": str(error.primary),
-        }
-        payload["cleanup_errors"] = [
-            {"error_type": type(cleanup).__name__, "error": str(cleanup)}
-            for cleanup in error.cleanup_errors
-        ]
     return "EFFECT_FUZZ_FAILURE " + json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 

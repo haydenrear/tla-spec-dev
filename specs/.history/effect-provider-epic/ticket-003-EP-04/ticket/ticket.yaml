@@ -1,0 +1,129 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket EP-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/current"
+  },
+  "source_current": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/current",
+  "source_project_desired": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The only custom provider protocol is EffectProvider.bind(context), returning a standard context manager whose entered value implements the selected generated port or is None for a self-installed integration.",
+        "Callable-only providers fail closed before application execution.",
+        "No generated provider scaffold, required checklist, or public authoring example privileges filesystem, HTTP, Kafka, SMTP, patching, or temporary roots.",
+        "The framework continues to guarantee lookup, lifecycle, cleanup, deterministic context, immutable case oracles, diagnostics, and exact replay without owning concrete effect behavior.",
+        "A neutral provider-usage descriptor records generated ports, binding style, fuzz dimensions, provider assertions, statefulness, cleanup, and declared bypass limits without telemetry or framework code changes.",
+        "The prior coverage audit and its 12 gaps remain byte-for-byte historical evidence; a new disposition states that they qualify the examples, not the narrowed generic SDK contract.",
+        "Zero host TLA+ model delta because the amendment changes authoring/runtime contracts but adds no new modeled CLI transition; ticket current == desired and TLC/spec-unit evidence records the decision."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-04",
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EP-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "spec_double_compiler/runtime.py",
+        "spec_double_compiler/effects.py",
+        "scripts/run_generated_case_adapters.py",
+        "scripts/scaffold_spec.py",
+        "scripts/onboard_program_model.py",
+        "SKILL.md",
+        "references/effect_providers.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "agent-authored-provider-public-contract",
+        "coverage-audit-contract-reduction"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_runtime.py tests/test_effect_provider_fuzzing.py tests/test_onboard_program_model.py -q"
+      ]
+    },
+    "depends_on": [
+      "EP-03"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/99",
+    "id": "EP-04",
+    "implementation_scope": [
+      "make EffectProvider.bind(context) the sole accepted provider shape",
+      "generate one domain-neutral project-owned provider skeleton",
+      "remove domain helpers from the advertised and scaffolded public surface",
+      "make providers.py conditional or neutral when a repository declares no effects",
+      "document agent ownership of concrete values, state, assertions, installation, and cleanup",
+      "add a machine-readable local provider-usage descriptor template for later pattern analysis",
+      "label examples/effect_providers as experimental validation fixtures, not reusable adapters",
+      "record an explicit disposition of the prior 12-gap example audit without editing it"
+    ],
+    "objective": "Replace the domain-flavored EP-02 authoring surface with one generic EffectProvider.bind(context) contract that repository agents implement against repository-generated typed ports. Remove the callable-provider alternative and stop advertising or scaffolding filesystem, HTTP, Kafka, SMTP, patch, or temporary-root helpers as framework capabilities. Keep provider lookup, lifecycle, cleanup, immutable case protection, deterministic context, failure evidence, and replay framework-owned. Retain the three EP-03 projects as explicitly experimental consumers and preserve the failed full-application coverage audit as historical evidence; record a deliberate product-contract reduction rather than claiming those example diagrams are complete application models.\n",
+    "promotion_order": 130,
+    "promotion_predecessor": "EP-03",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Replace domain-flavored helpers with one agent-authored provider interface",
+    "wave": 15
+  },
+  "ticket_dir": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/tickets/EP-04",
+  "ticket_id": "EP-04",
+  "ticket_index": 3,
+  "ticket_plan": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/tickets"
+}

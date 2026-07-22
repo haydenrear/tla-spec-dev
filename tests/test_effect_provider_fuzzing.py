@@ -588,8 +588,9 @@ provider = "temporary_root_effect_fixture:filesystem_provider"
         encoding="utf-8",
     )
     (tmp_path / "temporary_root_effect_fixture.py").write_text(
-        """from pathlib import Path
-from spec_double_compiler.effects import temporary_root_provider
+        """from contextlib import contextmanager
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from spec_double_compiler.runtime import CaseRunResult
 
 class Binding:
@@ -599,7 +600,13 @@ class Binding:
     def write(self, value):
         (self.root / "payload.txt").write_text(value, encoding="utf-8")
 
-filesystem_provider = temporary_root_provider(lambda root, context: Binding(root))
+class Provider:
+    @contextmanager
+    def bind(self, context):
+        with TemporaryDirectory(prefix="effect-root-", dir=context.work_dir) as root:
+            yield Binding(Path(root))
+
+filesystem_provider = Provider()
 
 class Adapter:
     def setup(self, context):
@@ -685,7 +692,6 @@ provider = "patch_effect_fixture:patch_provider"
     (tmp_path / "patch_effect_fixture.py").write_text(
         """from contextlib import contextmanager
 from pathlib import Path
-from spec_double_compiler.effects import context_provider
 from spec_double_compiler.runtime import CaseRunResult
 
 def request(target):
@@ -701,11 +707,13 @@ def installed_request_patch():
     finally:
         request = original
 
-def install_patch(context, stack):
-    stack.enter_context(installed_request_patch())
-    return None
+class Provider:
+    @contextmanager
+    def bind(self, context):
+        with installed_request_patch():
+            yield None
 
-patch_provider = context_provider(install_patch)
+patch_provider = Provider()
 
 class Adapter:
     def run(self, case, work_dir=None):
@@ -779,172 +787,38 @@ def effect_context(tmp_path: Path) -> EffectProviderContext:
     )
 
 
-def test_temporary_root_provider_is_lazy_fresh_and_cleans_builder_failures(tmp_path: Path) -> None:
-    from spec_double_compiler.effects import temporary_root_provider
-
-    built: list[Path] = []
-
-    class Value:
-        def __init__(self, root: Path):
-            self.root = root
-
-    def builder(root: Path, _context: EffectProviderContext) -> Value:
-        built.append(root)
-        return Value(root)
-
-    provider = temporary_root_provider(builder)
-    first_binding = provider.bind(effect_context(tmp_path))
-    second_binding = provider.bind(effect_context(tmp_path))
-    assert built == []
-
-    with first_binding as first:
-        assert first.root.is_dir()
-    assert not first.root.exists()
-
-    with second_binding as second:
-        assert second.root.is_dir()
-        assert second.root != first.root
-    assert not second.root.exists()
-
-    failed_roots: list[Path] = []
-
-    def failing_builder(root: Path, _context: EffectProviderContext) -> Any:
-        failed_roots.append(root)
-        raise RuntimeError("builder failed")
-
-    failing_binding = temporary_root_provider(failing_builder).bind(effect_context(tmp_path))
-    with pytest.raises(RuntimeError, match="builder failed"):
-        failing_binding.__enter__()
-    assert failed_roots and not failed_roots[0].exists()
-
-
-def test_context_provider_acquires_lazily_restores_partial_nesting_and_never_suppresses(tmp_path: Path) -> None:
-    from spec_double_compiler.effects import context_provider
-
-    active: list[str] = []
-    installs: list[int] = []
+def test_repository_provider_uses_only_the_standard_context_manager_contract(
+    tmp_path: Path,
+) -> None:
+    entered: list[int] = []
+    exited: list[int] = []
 
     @contextmanager
-    def marked(name: str, *, fail: bool = False):
-        active.append(name)
+    def binding(context: EffectProviderContext):
+        entered.append(context.derived_seed)
         try:
-            if fail:
-                raise RuntimeError(f"{name} enter failed")
-            yield name
+            yield {"representative": context.derived_seed}
         finally:
-            active.remove(name)
+            exited.append(context.derived_seed)
 
-    def partial_installer(_context: EffectProviderContext, stack: Any) -> None:
-        installs.append(1)
-        stack.enter_context(marked("outer"))
-        stack.enter_context(marked("inner", fail=True))
+    class Provider:
+        def bind(self, context: EffectProviderContext):
+            return binding(context)
 
-    provider = context_provider(partial_installer)
-    binding = provider.bind(effect_context(tmp_path))
-    assert installs == []
-    with pytest.raises(RuntimeError, match="inner enter failed"):
-        binding.__enter__()
-    assert installs == [1]
-    assert active == []
+    provider = Provider()
+    first = provider.bind(effect_context(tmp_path))
+    second = provider.bind(effect_context(tmp_path))
+    assert entered == []
 
-    class Suppressor:
-        def __enter__(self) -> None:
-            active.append("suppressor")
+    with first as value:
+        assert value == {"representative": 9}
+        assert entered == [9]
+        assert exited == []
 
-        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
-            active.remove("suppressor")
-            return True
-
-    def suppressing_installer(_context: EffectProviderContext, stack: Any) -> None:
-        installs.append(2)
-        stack.enter_context(Suppressor())
-
-    suppressing_provider = context_provider(suppressing_installer)
-    first = suppressing_provider.bind(effect_context(tmp_path))
-    second = suppressing_provider.bind(effect_context(tmp_path))
-    assert installs == [1]
-    with pytest.raises(ValueError, match="primary"):
-        with first:
-            raise ValueError("primary")
     with second:
-        assert active == ["suppressor"]
-    assert installs == [1, 2, 2]
-    assert active == []
+        assert entered == [9, 9]
 
-
-def test_context_provider_retains_enter_primary_and_all_partial_cleanup_failures(tmp_path: Path) -> None:
-    from spec_double_compiler.effects import EffectProviderEnterCleanupError, context_provider
-
-    active: list[str] = []
-
-    class CleanupFailure:
-        def __init__(self, name: str):
-            self.name = name
-
-        def __enter__(self) -> None:
-            active.append(self.name)
-
-        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
-            active.remove(self.name)
-            raise RuntimeError(f"cleanup failed: {self.name}")
-
-    def installer(_context: EffectProviderContext, stack: Any) -> None:
-        stack.enter_context(CleanupFailure("outer"))
-        stack.enter_context(CleanupFailure("inner"))
-        raise ValueError("installer primary")
-
-    binding = context_provider(installer).bind(effect_context(tmp_path))
-    with pytest.raises(EffectProviderEnterCleanupError) as raised:
-        binding.__enter__()
-
-    assert isinstance(raised.value.primary, ValueError)
-    assert str(raised.value.primary) == "installer primary"
-    assert [str(error) for error in raised.value.cleanup_errors] == [
-        "cleanup failed: inner",
-        "cleanup failed: outer",
-    ]
-    assert "installer primary" in str(raised.value)
-    assert "cleanup failed: inner" in str(raised.value)
-    assert "cleanup failed: outer" in str(raised.value)
-    assert active == []
-
-
-@pytest.mark.parametrize("control_flow", [KeyboardInterrupt("cancelled"), SystemExit(17)])
-def test_context_provider_preserves_control_flow_primary_when_partial_cleanup_fails(
-    tmp_path: Path,
-    control_flow: BaseException,
-) -> None:
-    from spec_double_compiler.effects import context_provider
-
-    class CleanupFailure:
-        def __enter__(self) -> None:
-            return None
-
-        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
-            raise RuntimeError("cleanup failed")
-
-    def installer(_context: EffectProviderContext, stack: Any) -> None:
-        stack.enter_context(CleanupFailure())
-        raise control_flow
-
-    binding = context_provider(installer).bind(effect_context(tmp_path))
-    with pytest.raises(type(control_flow)) as raised:
-        binding.__enter__()
-
-    assert raised.value is control_flow
-    assert isinstance(raised.value.__cause__, RuntimeError)
-    assert str(raised.value.__cause__) == "cleanup failed"
-
-
-@pytest.mark.parametrize(
-    "prefix",
-    ["", ".", "..", "../escape", "nested/root", "nested\\root", "/absolute/root"],
-)
-def test_temporary_root_provider_rejects_escaping_prefixes(prefix: str) -> None:
-    from spec_double_compiler.effects import temporary_root_provider
-
-    with pytest.raises(ValueError, match="path-free"):
-        temporary_root_provider(lambda root, context: (root, context), prefix=prefix)
+    assert exited == [9, 9]
 
 
 def write_phase_fixture(tmp_path: Path) -> None:
@@ -1553,9 +1427,12 @@ class Binding:
     def ping(self):
         return "pong"
 
-@contextmanager
-def custom_provider(context):
-    yield Binding()
+class Provider:
+    @contextmanager
+    def bind(self, context):
+        yield Binding()
+
+custom_provider = Provider()
 """,
         encoding="utf-8",
     )
@@ -1620,15 +1497,17 @@ def test_effect_provider_docs_state_the_unvalidated_boundary_honestly() -> None:
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
 
     for text in (
+        "The framework ships one effect extension point",
         "TLA+ selects the semantic outcome",
-        "provider owns the concrete representatives",
-        "MF-038",
-        "0/9",
+        "repository provider owns concrete representatives",
+        "Callable-only factories are not providers",
+        "effect_provider_usage.yaml",
+        "does not ship domain implementations",
+        "exact replay",
         "EP-03",
-        "not yet validated",
-        "universal interception",
-        "Hypothesis shrinking",
-        "provider-module globals",
+        "twelve concrete gaps",
+        "not a reusable provider library",
+        "Python-native",
     ):
         assert text in reference
     assert "references/effect_providers.md" in skill

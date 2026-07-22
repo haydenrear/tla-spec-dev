@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
@@ -29,24 +30,15 @@ class EffectProviderContext:
 
 
 @runtime_checkable
-class EffectProviderBinding(Protocol):
-    """Context-managed binding returned by an effect provider.
+class EffectProvider(Protocol):
+    """The single framework contract implemented by repository agents.
 
-    ``__enter__`` returns either an implementation of the selected generated
-    port (explicit dependency injection) or ``None`` when the binding installs
-    and later restores its own patch.
+    The returned standard context manager yields either an implementation of
+    the selected generated port (explicit injection) or ``None`` when the
+    provider installs and restores its own bounded integration.
     """
 
-    def __enter__(self) -> Any | None:
-        ...
-
-    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool | None:
-        ...
-
-
-@runtime_checkable
-class EffectProvider(Protocol):
-    def bind(self, context: EffectProviderContext) -> EffectProviderBinding:
+    def bind(self, context: EffectProviderContext) -> AbstractContextManager[Any | None]:
         ...
 
 

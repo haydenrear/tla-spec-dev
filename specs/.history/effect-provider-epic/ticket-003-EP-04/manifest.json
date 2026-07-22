@@ -1,0 +1,608 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/EP-04",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/effect-provider-epic/ticket-003-EP-04 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for EP-04'",
+    "message": "It is recommended to commit this history directory now: specs/.history/effect-provider-epic/ticket-003-EP-04"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "EP-03"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "EP-03"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/EP-04/results/complexity_ledger.yaml",
+    "justification": "Zero host TLA+ model delta. Ticket current and desired are byte-identical. TLC completed with no error at 5,619,356 generated states, 231,621 distinct states, and depth 25. See results/zero-model-delta.md.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.011742315426601493,
+      "variables": 9
+    },
+    "narrative": "results/zero-model-delta.md",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-22T23:00:46.065394+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "The authoring/runtime contract has no modeled CLI branch. Adding provider configuration state would invent a command rather than refine observed host behavior. Generic correctness findings remain scheduled as EP-05.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "retained",
+        "evidence": "Inherited example-local lifecycle and bypass evidence remains in examples/effect_providers/RESULTS.md. Focused EP-04 provider runtime tests passed 120/120 after the public helper reduction.",
+        "status": "clean",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "retained",
+        "evidence": "Inherited EP-03 evidence retains 70/70 generated External cases. EP-04 changes the provider authoring contract only and adds no external-model transition.",
+        "status": "pass",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "retained",
+        "evidence": "Inherited example-local EP-03 evidence remains 36/36 in examples/effect_providers/RESULTS.json. EP-04 changes no example model or oracle and does not reclassify this bounded measurement as universal.",
+        "status": "pass",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=pass (retained)",
+      "effect_conformance=clean (retained)",
+      "external_coverage=pass (retained)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "EP-04",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "effect-provider-epic"
+  },
+  "created_at_utc": "2026-07-22T23:00:46.100328+00:00",
+  "entry_name": "ticket-003-EP-04",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/99-ep04-agent-provider-interface",
+    "commit": "423ded4",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/EP-04/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/EP-04/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/EP-04/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/EP-04/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/EP-04/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/EP-04/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/EP-04/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/EP-04/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/EP-04/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/EP-04/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/EP-04/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/EP-04"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "The authoring/runtime contract has no modeled CLI branch. Adding provider configuration state would invent a command rather than refine observed host behavior. Generic correctness findings remain scheduled as EP-05.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "retained",
+      "evidence": "Inherited example-local lifecycle and bypass evidence remains in examples/effect_providers/RESULTS.md. Focused EP-04 provider runtime tests passed 120/120 after the public helper reduction.",
+      "status": "clean",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "retained",
+      "evidence": "Inherited EP-03 evidence retains 70/70 generated External cases. EP-04 changes the provider authoring contract only and adds no external-model transition.",
+      "status": "pass",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "retained",
+      "evidence": "Inherited example-local EP-03 evidence remains 36/36 in examples/effect_providers/RESULTS.json. EP-04 changes no example model or oracle and does not reclassify this bounded measurement as universal.",
+      "status": "pass",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 22,
+    "close_out_entry": "Close-out ticket EP-04",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/private/tmp/tla-spec-dev-99-ep04-agent-provider-interface/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/effect-provider-epic/ticket-003-EP-04/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/effect-provider-epic/ticket-003-EP-04/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/effect-provider-epic/ticket-003-EP-04/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/effect-provider-epic/ticket-003-EP-04/ticket",
+      "source": "specs/tickets/EP-04"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The only custom provider protocol is EffectProvider.bind(context), returning a standard context manager whose entered value implements the selected generated port or is None for a self-installed integration.",
+        "Callable-only providers fail closed before application execution.",
+        "No generated provider scaffold, required checklist, or public authoring example privileges filesystem, HTTP, Kafka, SMTP, patching, or temporary roots.",
+        "The framework continues to guarantee lookup, lifecycle, cleanup, deterministic context, immutable case oracles, diagnostics, and exact replay without owning concrete effect behavior.",
+        "A neutral provider-usage descriptor records generated ports, binding style, fuzz dimensions, provider assertions, statefulness, cleanup, and declared bypass limits without telemetry or framework code changes.",
+        "The prior coverage audit and its 12 gaps remain byte-for-byte historical evidence; a new disposition states that they qualify the examples, not the narrowed generic SDK contract.",
+        "Zero host TLA+ model delta because the amendment changes authoring/runtime contracts but adds no new modeled CLI transition; ticket current == desired and TLC/spec-unit evidence records the decision."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-04",
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow",
+        "python3 /Users/hayde/.skill-manager/skills/test-graph/scripts/run.py cliWorkflow"
+      ],
+      "evidence": [
+        "specs/tickets/EP-04/results/validation-summary.md",
+        "specs/tickets/EP-04/results/zero-model-delta.md",
+        "specs/tickets/EP-04/results/skill-validation.md",
+        "specs/tickets/EP-04/results/complexity_ledger.yaml",
+        "specs/results/effect_provider_contract_reduction.md"
+      ]
+    },
+    "blocks": [
+      "EP-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "spec_double_compiler/runtime.py",
+        "spec_double_compiler/effects.py",
+        "scripts/run_generated_case_adapters.py",
+        "scripts/scaffold_spec.py",
+        "scripts/onboard_program_model.py",
+        "SKILL.md",
+        "references/effect_providers.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "agent-authored-provider-public-contract",
+        "coverage-audit-contract-reduction"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_runtime.py tests/test_effect_provider_fuzzing.py tests/test_onboard_program_model.py -q"
+      ]
+    },
+    "depends_on": [
+      "EP-03"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/99",
+    "id": "EP-04",
+    "implementation_scope": [
+      "make EffectProvider.bind(context) the sole accepted provider shape",
+      "generate one domain-neutral project-owned provider skeleton",
+      "remove domain helpers from the advertised and scaffolded public surface",
+      "make providers.py conditional or neutral when a repository declares no effects",
+      "document agent ownership of concrete values, state, assertions, installation, and cleanup",
+      "add a machine-readable local provider-usage descriptor template for later pattern analysis",
+      "label examples/effect_providers as experimental validation fixtures, not reusable adapters",
+      "record an explicit disposition of the prior 12-gap example audit without editing it"
+    ],
+    "objective": "Replace the domain-flavored EP-02 authoring surface with one generic EffectProvider.bind(context) contract that repository agents implement against repository-generated typed ports. Remove the callable-provider alternative and stop advertising or scaffolding filesystem, HTTP, Kafka, SMTP, patch, or temporary-root helpers as framework capabilities. Keep provider lookup, lifecycle, cleanup, immutable case protection, deterministic context, failure evidence, and replay framework-owned. Retain the three EP-03 projects as explicitly experimental consumers and preserve the failed full-application coverage audit as historical evidence; record a deliberate product-contract reduction rather than claiming those example diagrams are complete application models.\n",
+    "promotion_order": 130,
+    "promotion_predecessor": "EP-03",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Replace domain-flavored helpers with one agent-authored provider interface",
+    "wave": 15
+  },
+  "ticket_id": "EP-04",
+  "ticket_index": 3,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/effect-provider-epic/ticket-003-EP-04/ticket",
+    "source": "specs/tickets/EP-04"
+  },
+  "workflow_name": "effect-provider-epic"
+}

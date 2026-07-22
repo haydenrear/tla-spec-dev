@@ -588,3 +588,12 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EP-04
+
+- close_scope: ticket
+- close_id: EP-04
+- workflow: effect-provider-epic
+- closed_at: 2026-07-22T23:00:46+00:00
+- summary: Replaced the public domain-flavored helper surface with one required agent-authored EffectProvider.bind(context) object contract; callable-only providers fail closed; scaffolds and authoring guidance are neutral; provider usage evidence is local; the historical twelve-gap example audit remains unchanged and explicitly scoped. Zero host-model delta.
+- feedback_status: none-found

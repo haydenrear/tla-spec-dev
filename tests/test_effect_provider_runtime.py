@@ -140,7 +140,7 @@ class FilesystemBinding:
 
 
 @contextmanager
-def filesystem_provider(context):
+def filesystem_binding(context):
     EVENTS.append((\"enter\", context.port_name, context.action, context.case.name))
     try:
         yield FilesystemBinding()
@@ -167,7 +167,19 @@ class PatchScope:
         return SUPPRESS
 
 
-def patch_provider(context):
+class Provider:
+    def __init__(self, factory):
+        self.factory = factory
+
+    def bind(self, context):
+        return self.factory(context)
+
+
+filesystem_provider = Provider(filesystem_binding)
+patch_provider = Provider(PatchScope)
+
+
+def callable_only_provider(context):
     return PatchScope(context)
 
 
@@ -229,17 +241,19 @@ class SuppressingFilesystemScope:
         return True
 
 
-def suppressing_filesystem_provider(context):
-    return SuppressingFilesystemScope(context)
+suppressing_filesystem_provider = Provider(SuppressingFilesystemScope)
 
 
 @contextmanager
-def invalid_patch_provider(context):
+def invalid_patch_binding(context):
     EVENTS.append(("enter-invalid-inner", context.port_name))
     try:
         yield object()
     finally:
         EVENTS.append(("exit-invalid-inner", context.port_name))
+
+
+invalid_patch_provider = Provider(invalid_patch_binding)
 
 
 class InnerEnterFailureScope:
@@ -251,8 +265,7 @@ class InnerEnterFailureScope:
         EVENTS.append(("unexpected-inner-exit",))
 
 
-def inner_enter_failure_provider(context):
-    return InnerEnterFailureScope()
+inner_enter_failure_provider = Provider(lambda context: InnerEnterFailureScope())
 
 
 class InnerExitFailureScope:
@@ -265,8 +278,7 @@ class InnerExitFailureScope:
         raise RuntimeError("inner provider exit failed")
 
 
-def inner_exit_failure_provider(context):
-    return InnerExitFailureScope()
+inner_exit_failure_provider = Provider(lambda context: InnerExitFailureScope())
 """,
         encoding="utf-8",
     )
@@ -384,9 +396,12 @@ def test_provider_bind_receives_an_existing_case_work_directory(tmp_path: Path) 
 from contextlib import contextmanager as _work_dir_contextmanager
 
 @_work_dir_contextmanager
-def work_dir_provider(context):
+def work_dir_binding(context):
     EVENTS.append(("bind-work-dir", context.work_dir.is_dir()))
     yield FilesystemBinding()
+
+
+work_dir_provider = Provider(work_dir_binding)
 """,
         encoding="utf-8",
     )
@@ -427,9 +442,12 @@ def test_provider_cannot_mutate_nested_generated_case_oracle_during_bind(tmp_pat
     fixture_path.write_text(
         fixture_path.read_text(encoding="utf-8")
         + """
-def mutating_provider(context):
+def mutating_binding(context):
     context.case.before["rewritten"] = True
-    return filesystem_provider(context)
+    return filesystem_provider.bind(context)
+
+
+mutating_provider = Provider(mutating_binding)
 """,
         encoding="utf-8",
     )
@@ -698,6 +716,11 @@ def test_assertion_failure_reaches_teardown_and_provider_cleanup(tmp_path: Path)
             "could not load provider",
         ),
         (
+            "[FilesystemPort]",
+            '[effect_providers.FilesystemPort]\nprovider = "effect_provider_fixture:callable_only_provider"\n',
+            "must implement EffectProvider.bind",
+        ),
+        (
             "FilesystemPort",
             '[effect_providers.FilesystemPort]\nprovider = "effect_provider_fixture:filesystem_provider"\n',
             "effect_ports must be a list",
@@ -888,12 +911,15 @@ def test_invalid_explicit_binding_fails_before_adapter_setup(tmp_path: Path) -> 
 from contextlib import contextmanager as _contextmanager
 
 @_contextmanager
-def invalid_provider(context):
+def invalid_binding(context):
     EVENTS.append(("enter-invalid", context.port_name))
     try:
         yield object()
     finally:
         EVENTS.append(("exit-invalid", context.port_name))
+
+
+invalid_provider = Provider(invalid_binding)
 """
         )
     providers = """[effect_providers.FilesystemPort]
@@ -940,8 +966,7 @@ class EnterFailure:
         EVENTS.append(("unexpected-exit",))
 
 
-def enter_failure_provider(context):
-    return EnterFailure()
+enter_failure_provider = Provider(lambda context: EnterFailure())
 """
         )
     providers = """[effect_providers.FilesystemPort]
@@ -1163,12 +1188,18 @@ class FilesystemBinding:
         event("write:" + value)
 
 @contextmanager
-def filesystem_provider(context):
+def filesystem_binding(context):
     event("enter:" + context.port_name)
     try:
         yield FilesystemBinding()
     finally:
         event("exit:" + context.port_name)
+
+class Provider:
+    def bind(self, context):
+        return filesystem_binding(context)
+
+filesystem_provider = Provider()
 
 class Adapter:
     def setup(self, context):

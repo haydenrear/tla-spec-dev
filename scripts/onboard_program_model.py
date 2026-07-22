@@ -44,6 +44,7 @@ REQUIRED_BASELINE_FILES = (
     "actions.yml",
     "adapters.py",
     "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -448,7 +449,7 @@ def case_adapters_toml() -> str:
 # uncomment and adapt this project-owned binding:
 #
 # [effect_providers.ExampleEffectPort]
-# provider = "specs.program_model.providers:temporary_filesystem_provider"
+# provider = "specs.program_model.providers:effect_provider"
 
 [adapters.RegisterActor]
 adapter = "specs.program_model.adapters:RegisterActorInternalAdapter"
@@ -465,54 +466,56 @@ kind = "program-internal"
 
 
 def providers_py() -> str:
-    return '''"""Project-owned semantic effect providers.
+    return '''"""Project-owned semantic effect provider.
 
 Generated cases select the abstract effect outcome. Providers choose concrete
-representatives and install explicit dependencies or bounded patches for one
-case and one deterministic fuzz iteration. Read references/effect_providers.md.
+representatives and bind repository-owned implementations for one case and one
+deterministic fuzz iteration. Read references/effect_providers.md.
 
-SCAFFOLD: replace the builders below with implementations of the generated
-runtime-checkable port protocols before enabling their mapping tables.
+SCAFFOLD: implement one provider against the generated port Protocols before
+enabling its mapping tables. The framework ships no domain implementations.
 """
 
 from __future__ import annotations
 
-from pathlib import Path
+from contextlib import contextmanager
+from collections.abc import Iterator
 from typing import Any
 
-from spec_double_compiler.effects import context_provider, temporary_root_provider
 from spec_double_compiler.runtime import EffectProviderContext
 
 
-def _temporary_filesystem_binding(
-    root: Path,
-    context: EffectProviderContext,
-) -> Any:
-    raise NotImplementedError(
-        "SCAFFOLD: return an object implementing the generated filesystem port "
-        f"for {context.action} under {root}"
-    )
+class ProjectEffectProvider:
+    @contextmanager
+    def bind(self, context: EffectProviderContext) -> Iterator[Any | None]:
+        # SCAFFOLD: acquire the repository-owned implementation selected by
+        # context.port_name and context.case. Use context.derived_seed for
+        # deterministic representatives. Yield the generated-port
+        # implementation, or None only when this scope installs and restores
+        # its own bounded integration.
+        raise NotImplementedError(
+            f"SCAFFOLD: bind generated port {context.port_name}"
+        )
+        yield None
 
 
-temporary_filesystem_provider = temporary_root_provider(
-    _temporary_filesystem_binding,
-    prefix="modeled-fs-",
-)
-
-
-def _install_project_patch(
-    context: EffectProviderContext,
-    stack: Any,
-) -> Any:
-    # SCAFFOLD: stack.enter_context(your_patch(...)) for each reversible patch,
-    # then return the generated port implementation (or None for patch-only).
-    raise NotImplementedError(
-        f"SCAFFOLD: install bounded patches for {context.port_name}"
-    )
-
-
-patch_provider = context_provider(_install_project_patch)
+effect_provider = ProjectEffectProvider()
 '''
+
+
+def effect_provider_usage_yml() -> str:
+    return """# Local, reviewable evidence about agent-authored providers.
+version: 1
+providers: []
+# - port: ExampleEffectPort
+#   provider: specs.program_model.providers:effect_provider
+#   binding_style: explicit_injection  # explicit_injection | self_installed | external_fixture | other
+#   state_scope: execution_point
+#   fuzz_dimensions: []
+#   assertions: []
+#   cleanup: context_manager
+#   bypass_limits: []
+"""
 
 
 def testgraph_bindings_yml() -> str:
@@ -1112,7 +1115,8 @@ split and the adapter contract are actually specified.
 | `External.tla` / `External.cfg` | external view: publicly observable behavior |
 | `actions.yml` | per-action layer, controllability, and what it generates |
 | `adapters.py` | spec-unit adapters AND Test Graph adapters/projector/assertion |
-| `providers.py` | project-owned semantic effect providers and bounded patches |
+| `providers.py` | agent-authored generated-port effect providers |
+| `effect_provider_usage.yaml` | provider state, fuzz, assertion, cleanup, and bypass evidence |
 | `case_adapters.toml` | internal action -> spec-unit adapter |
 | `testgraph_bindings.yml` | external action -> Test Graph adapter |
 | `tlc_projection.py` | TLC state -> generated-case shapes |
@@ -1175,6 +1179,7 @@ REQUIRED_BASELINE_FILES = [
     "actions.yml",
     "adapters.py",
     "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -1330,6 +1335,7 @@ def scaffold(
         (program_dir / "actions.yml", actions_yml()),
         (program_dir / "adapters.py", adapters_py(module)),
         (program_dir / "providers.py", providers_py()),
+        (program_dir / "effect_provider_usage.yaml", effect_provider_usage_yml()),
         (program_dir / "case_adapters.toml", case_adapters_toml()),
         (program_dir / "testgraph_bindings.yml", testgraph_bindings_yml()),
         (program_dir / "tlc_projection.py", tlc_projection_py(module)),
