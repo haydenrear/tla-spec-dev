@@ -44,7 +44,10 @@ from scripts.analyze_complexity import (  # noqa: E402
     gate_report,
     main,
     extract_actions,
+    extract_next_actions,
+    find_next_relation,
     interaction_graph,
+    split_top_level_disjuncts,
     parse_cfg_constants,
     parse_definitions,
     parse_tlc_report,
@@ -1240,8 +1243,14 @@ def test_extends_is_followed_and_the_bound_reflects_all_variables(tmp_path: Path
     # whole of the bound provably came from across the EXTENDS edge.
     assert "emitted" in result.unbounded
 
-    # The extended module's action is included in the dimension-bearing content.
-    assert "Bump" in {a.name for a in result.actions}
+    # The extended module's content is included: `Next == Emit`, and Emit calls
+    # the extended `Bump`, so Emit's write set carries `tick` from across the
+    # EXTENDS edge. (CD-06 updated this assertion: `Bump` itself is a called
+    # operator, not a Next disjunct, so it is attributed INTO `Emit` rather
+    # than listed as an action of its own.)
+    by_name = {a.name: a for a in result.actions}
+    assert list(by_name) == ["Emit"]
+    assert by_name["Emit"].writes == {"tick", "emitted"}
 
 
 def test_resolve_module_unions_a_three_level_hierarchy(tmp_path: Path) -> None:
@@ -1349,3 +1358,367 @@ def test_cli_fails_closed_nonzero_on_an_unresolvable_hierarchy(tmp_path: Path) -
     cfg = tmp_path / "MC.cfg"
     cfg.write_text("SPECIFICATION Spec\nINVARIANTS TypeInvariant\n", encoding="utf-8")
     assert main([str(tla), str(cfg)]) == EXIT_BUDGET_EXCEEDED
+
+
+# ---------------------------------------------------------------------------
+# CD-06 (VAL-07 / VAL-12): the R/W matrix is attributed to the top-level
+# actions -- the Next/ExternalNext disjuncts -- through called operators.
+# Helpers are not actions.
+# ---------------------------------------------------------------------------
+
+# The VAL-07 shape (taskq): wrapper CLI actions prime `lastCli` only through
+# the helper `MarkCli`, and `ListTasks` primes NOTHING directly. The primes
+# heuristic dropped every such wrapper (9 CLI actions collapsed to 4 columns)
+# and listed the helper as an action.
+VAL07_TLA = """---- MODULE Taskq ----
+EXTENDS Naturals, FiniteSets
+
+CONSTANTS Names
+
+VARIABLES tasks, lastCli
+
+vars == << tasks, lastCli >>
+
+Init ==
+  /\\ tasks = {}
+  /\\ lastCli = "none"
+
+MarkCli(cmd) ==
+  lastCli' = cmd
+
+AddTask(t) ==
+  /\\ t \\notin tasks
+  /\\ tasks' = tasks \\cup {t}
+  /\\ MarkCli("add")
+
+ListTasks ==
+  /\\ UNCHANGED tasks
+  /\\ MarkCli("list")
+
+DoneTask(t) ==
+  /\\ t \\in tasks
+  /\\ tasks' = tasks \\ {t}
+  /\\ MarkCli("done")
+
+Next ==
+  \\/ \\E t \\in Names : AddTask(t)
+  \\/ ListTasks
+  \\/ \\E t \\in Names : DoneTask(t)
+
+TypeInvariant ==
+  /\\ tasks \\subseteq Names
+
+Spec == Init /\\ [][Next]_vars
+====
+"""
+
+VAL07_CFG = """SPECIFICATION Spec
+
+CONSTANTS
+  Names = {n1, n2}
+
+INVARIANTS
+  TypeInvariant
+"""
+
+
+def _write_val07_model(tmp_path: Path) -> tuple[Path, Path]:
+    tla = tmp_path / "Taskq.tla"
+    cfg = tmp_path / "MC.cfg"
+    tla.write_text(VAL07_TLA, encoding="utf-8")
+    cfg.write_text(VAL07_CFG, encoding="utf-8")
+    return tla, cfg
+
+
+def test_val07_helper_primed_wrappers_are_columns_and_the_helper_is_not(
+    tmp_path: Path,
+) -> None:
+    """VAL-07: every Next disjunct gets a column; the helper gets none.
+
+    Pre-fix this fails twice over: `ListTasks` (which primes a variable ONLY
+    through `MarkCli`) vanished from the matrix, and `MarkCli` -- a helper, not
+    an action -- was listed as a column.
+    """
+    tla, cfg = _write_val07_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    names = [a.name for a in result.actions]
+    assert names == ["AddTask", "ListTasks", "DoneTask"]
+    assert "MarkCli" not in names
+    by_name = {a.name: a for a in result.actions}
+    # The wrapper's write through the helper is attributed to the wrapper.
+    assert by_name["ListTasks"].writes == {"lastCli"}
+    assert by_name["AddTask"].writes == {"tasks", "lastCli"}
+    assert by_name["DoneTask"].writes == {"tasks", "lastCli"}
+    # UNCHANGED tasks is not a touch for ListTasks.
+    assert "tasks" not in by_name["ListTasks"].touched
+
+
+def test_val07_dense_rows_action_count_and_fitness_facts_use_the_corrected_set(
+    tmp_path: Path,
+) -> None:
+    """Dense rows and action_count are computed over the Next disjuncts.
+
+    Pre-fix the action set was {MarkCli, AddTask, DoneTask}: `lastCli` showed
+    touched by 1/3 (not dense) and the published action facts named a helper.
+    Corrected: 3 actions (the disjuncts), `lastCli` touched by 3/3 and `tasks`
+    by 2/3 -- both dense rows -- and the JSON facts the fitness rules consume
+    list exactly the top-level actions.
+    """
+    from scripts.analyze_complexity import descriptor_payload
+
+    tla, cfg = _write_val07_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    assert len(result.actions) == 3
+    assert result.dense_rows == {"lastCli": 3, "tasks": 2}
+    payload = descriptor_payload(result)
+    fact_actions = [a["name"] for a in payload["measured"]["actions"]]
+    assert fact_actions == ["AddTask", "ListTasks", "DoneTask"]
+    assert "disjuncts of the next-state relation Next" in payload["measured"][
+        "action_attribution"
+    ]
+
+
+# The VAL-12 shape (distributed_history External): composed actions whose
+# writes happen ENTIRELY through called operators or UNCHANGED got no column,
+# while the helper doing the syntactic priming was listed as an action.
+VAL12_TLA = """---- MODULE Composed ----
+EXTENDS Naturals, Sequences
+
+CONSTANTS Workers
+
+VARIABLES queue, marker, log
+
+vars == << queue, marker, log >>
+
+InternalVars == << queue, log >>
+
+Init ==
+  /\\ queue = 0
+  /\\ marker = "none"
+  /\\ log = <<>>
+
+Mark(name) ==
+  marker' = name
+
+Drain ==
+  /\\ queue > 0
+  /\\ queue' = 0
+  /\\ log' = Append(log, queue)
+
+RunWorker(w) ==
+  /\\ w \\in Workers
+  /\\ Drain
+  /\\ Mark("run")
+
+RunWorkerNoop(w) ==
+  /\\ w \\in Workers
+  /\\ queue = 0
+  /\\ UNCHANGED InternalVars
+  /\\ Mark("noop")
+
+Next ==
+  \\/ \\E w \\in Workers : RunWorker(w)
+  \\/ \\E w \\in Workers : RunWorkerNoop(w)
+
+TypeInvariant ==
+  /\\ queue \\in 0..2
+
+Spec == Init /\\ [][Next]_vars
+====
+"""
+
+VAL12_CFG = """SPECIFICATION Spec
+
+CONSTANTS
+  Workers = {w1}
+
+INVARIANTS
+  TypeInvariant
+"""
+
+
+def test_val12_composed_actions_get_columns_and_helpers_do_not(tmp_path: Path) -> None:
+    """VAL-12: writes only through called operators / UNCHANGED still earn columns.
+
+    Pre-fix this fails in both directions: `RunWorker` and `RunWorkerNoop`
+    (whose writes happen entirely inside `Drain`/`Mark` or under UNCHANGED)
+    had NO column, while the helpers `Mark` and `Drain` were listed AS actions.
+    """
+    tla = tmp_path / "Composed.tla"
+    cfg = tmp_path / "MC.cfg"
+    tla.write_text(VAL12_TLA, encoding="utf-8")
+    cfg.write_text(VAL12_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    names = [a.name for a in result.actions]
+    assert names == ["RunWorker", "RunWorkerNoop"]
+    assert "Mark" not in names
+    assert "Drain" not in names
+    by_name = {a.name: a for a in result.actions}
+    assert by_name["RunWorker"].writes == {"queue", "log", "marker"}
+    # The noop writes only through the helper; UNCHANGED InternalVars neither
+    # counts as a touch nor drags the tuple definition in as phantom reads.
+    assert by_name["RunWorkerNoop"].writes == {"marker"}
+    assert "log" not in by_name["RunWorkerNoop"].touched
+    # `queue = 0` is a genuine guard read.
+    assert "queue" in by_name["RunWorkerNoop"].reads
+
+
+def test_cd06_real_distributed_history_external_matrix_lists_the_next_disjuncts() -> None:
+    """The acceptance surface: the shipped example's External view, corrected.
+
+    The matrix columns are exactly the twelve ExternalNext disjuncts --
+    RunFulfillmentWorker, RunFulfillmentWorkerNoop, and HiddenInternalProgress
+    present; the helper MarkExternal absent (VAL-12's recorded defect).
+    """
+    tla = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model" / "External.tla"
+    cfg = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model" / "External.cfg"
+    if not tla.is_file():
+        return
+    result = analyze(tla, cfg, None)
+    names = [a.name for a in result.actions]
+    assert names == [
+        "SubmitCreateAccount",
+        "SubmitDuplicateCreateAccount",
+        "SubmitAddCartItem",
+        "SubmitDuplicateAddCartItem",
+        "SubmitAddCartItemMissingAccount",
+        "SubmitCheckout",
+        "SubmitCheckoutMissingAccount",
+        "SubmitCheckoutEmptyCart",
+        "SubmitDuplicateCheckout",
+        "RunFulfillmentWorker",
+        "RunFulfillmentWorkerNoop",
+        "HiddenInternalProgress",
+    ]
+    assert "MarkExternal" not in names
+    by_name = {a.name: a for a in result.actions}
+    # RunFulfillmentWorker's writes arrive entirely through ProjectAllOutbox
+    # and MarkExternal; responses is UNCHANGED and stays untouched.
+    assert by_name["RunFulfillmentWorker"].writes == {
+        "outbox",
+        "projections",
+        "lastInternalAction",
+        "lastServiceRoute",
+        "lastExternalAction",
+    }
+    assert "responses" not in by_name["RunFulfillmentWorker"].touched
+    # HiddenInternalProgress steps InternalNext and leaves every external
+    # variable alone.
+    assert "responses" not in by_name["HiddenInternalProgress"].touched
+    assert "accounts" in by_name["HiddenInternalProgress"].writes
+
+
+def test_cd06_string_literals_are_data_not_operator_calls(tmp_path: Path) -> None:
+    """A string spelling an operator name must not expand that operator.
+
+    `result' = Mk("Other")` names the follow-up command as DATA; expanding the
+    `Other` definition into the caller would attribute Other's reads/writes to
+    it (found live on this repository's own model: "RecordBudgets" as a string
+    argument dragged RecordBudgets' spec_root read into ScaffoldProject).
+    """
+    tla = tmp_path / "Strings.tla"
+    cfg = tmp_path / "MC.cfg"
+    tla.write_text(
+        """---- MODULE Strings ----
+EXTENDS Naturals
+
+VARIABLES phase, note
+
+vars == << phase, note >>
+
+Init == phase = 0 /\\ note = "none"
+
+Mk(t) == note' = t
+
+Other ==
+  /\\ phase > 1
+  /\\ phase' = phase + 1
+  /\\ Mk("other")
+
+First ==
+  /\\ phase = 0
+  /\\ phase' = 1
+  /\\ Mk("Other")
+
+Next ==
+  \\/ First
+  \\/ Other
+
+TypeInvariant == phase \\in 0..3
+
+Spec == Init /\\ [][Next]_vars
+====
+""",
+        encoding="utf-8",
+    )
+    cfg.write_text("SPECIFICATION Spec\n\nINVARIANTS\n  TypeInvariant\n", encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    by_name = {a.name: a for a in result.actions}
+    # `First` writes phase directly and note through Mk. The "Other" STRING
+    # must not import Other's guard read of phase>1... phase is read anyway
+    # via its own guard; the discriminating fact is the write set.
+    assert by_name["First"].writes == {"phase", "note"}
+
+
+def test_cd06_next_found_through_specification_and_through_cfg_next(tmp_path: Path) -> None:
+    tla, cfg = _write_val07_model(tmp_path)
+    text = tla.read_text(encoding="utf-8")
+    from scripts.analyze_complexity import parse_definitions as _parse
+
+    from scripts.analyze_complexity import strip_comments
+
+    defs = {d.name: d for d in _parse(strip_comments(text))}
+    # SPECIFICATION Spec resolves through `[][Next]_vars`.
+    assert find_next_relation("SPECIFICATION Spec\n", defs) == "Next"
+    # An explicit NEXT entry wins directly.
+    assert find_next_relation("INIT Init\nNEXT Next\n", defs) == "Next"
+    # Nothing found -> None (caller falls back and says so).
+    assert find_next_relation("INVARIANTS\n  TypeInvariant\n", defs) is None
+
+
+def test_cd06_fallback_without_a_next_relation_is_stated_honestly(tmp_path: Path) -> None:
+    """No NEXT/SPECIFICATION in the cfg: the primes heuristic is used AND named."""
+    tla, cfg = _write_val07_model(tmp_path)
+    cfg.write_text("INVARIANTS\n  TypeInvariant\n", encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    assert "FALLBACK primes heuristic" in result.action_attribution
+    # The old (wrong) attribution is what the fallback produces -- stated, not
+    # hidden: the helper appears and the prime-less wrapper is missing.
+    names = [a.name for a in result.actions]
+    assert "MarkCli" in names
+    assert "ListTasks" not in names
+
+
+def test_cd06_split_top_level_disjuncts_respects_nesting() -> None:
+    body = (
+        "\n  \\/ \\E t \\in {a, b} : AddTask(t)"
+        "\n  \\/ ListTasks"
+        "\n  \\/ Choose(<<1, 2>>, {x \\in S : x > 0})"
+    )
+    parts = split_top_level_disjuncts(body)
+    assert len(parts) == 3
+    assert parts[1] == "ListTasks"
+    # A `\/` inside parentheses is not a top-level boundary.
+    nested = "A(x \\/ y) \\/ B"
+    assert split_top_level_disjuncts(nested) == ["A(x \\/ y)", "B"]
+
+
+def test_cd06_repeated_and_inline_disjuncts(tmp_path: Path) -> None:
+    """One column per action even when quantified twice; inline disjuncts kept."""
+    module = (
+        "---- MODULE Dup ----\n"
+        "VARIABLES x\n"
+        "Op(v) == x' = v\n"
+        "Next ==\n"
+        "  \\/ \\E v \\in {1} : Op(v)\n"
+        "  \\/ \\E v \\in {2} : Op(v)\n"
+        "  \\/ x' = 0 /\\ x > 1\n"
+        "====\n"
+    )
+    defs = {d.name: d for d in parse_definitions(module)}
+    actions = extract_next_actions("Next", defs, ["x"])
+    names = [a.name for a in actions]
+    assert names == ["Op", "Next[3]"]
+    inline = {a.name: a for a in actions}["Next[3]"]
+    assert inline.writes == {"x"}
+    assert inline.reads == {"x"}

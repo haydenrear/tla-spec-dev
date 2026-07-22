@@ -1,0 +1,36 @@
+CD-06 R/W-matrix attribution regressions (VAL-07 / VAL-12)
+==========================================================
+
+PART 1 -- PRE-FIX FAILURE PROOF (production change stashed via 'git stash push -- scripts/analyze_complexity.py')
+
+1a. pytest collection of the regression tests fails pre-fix (the attribution API does not exist):
+=== PRE-FIX RUN 1: pytest on the CD-06 regression tests with the production change stashed ===
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_analyze_complexity.py:37: in <module>
+    from scripts.analyze_complexity import (  # noqa: E402
+E   ImportError: cannot import name 'extract_next_actions' from 'scripts.analyze_complexity' (/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/scripts/analyze_complexity.py)
+=========================== short test summary info ============================
+ERROR tests/test_analyze_complexity.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.08s
+
+1b. Semantic replay of the two shape assertions against the stashed (old) production code:
+--- direct assertion replay ---
+VAL-07 shape: pre-fix action set = ['MarkCli', 'AddTask', 'DoneTask']
+VAL-07 shape: FAILS pre-fix -- expected ['AddTask', 'ListTasks', 'DoneTask']
+VAL-12 shape: pre-fix action set = ['Mark', 'Drain']
+VAL-12 shape: FAILS pre-fix -- expected ['RunWorker', 'RunWorkerNoop']
+
+  VAL-07 direction: the wrapper ListTasks (primes lastCli ONLY through MarkCli) vanished;
+  the helper MarkCli was listed as an action.
+  VAL-12 direction: BOTH composed actions (writes only through called operators/UNCHANGED)
+  were missing; BOTH helpers were listed as actions.
+
+PART 2 -- POST-FIX: the same tests, production change restored
+
+.........                                                                [100%]
+9 passed, 50 deselected in 0.28s
+
+PART 3 -- FULL ANALYZER SUITE POST-FIX
+...........................................................              [100%]
+59 passed in 1.13s

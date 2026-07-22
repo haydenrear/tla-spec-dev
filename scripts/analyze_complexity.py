@@ -22,7 +22,12 @@ What it emits:
 * the state-space upper bound (the product of those cardinalities) and the
   dominant dimensions -- or an EXPLICIT "unknown" when no variable domain
   could be resolved, never a silent 1;
-* the variables x actions read/write matrix;
+* the variables x actions read/write matrix -- ACTIONS ARE THE MEMBERS OF THE
+  NEXT-STATE RELATION (the ``Next``/``ExternalNext`` disjuncts named by the
+  cfg's ``NEXT`` or reached through ``SPECIFICATION``'s ``[][Next]_vars``),
+  with every called operator's body expanded transitively so a prime inside a
+  helper is attributed to the top-level action that calls it (CD-06, VAL-07 /
+  VAL-12). Helper operators are NOT actions and get no column;
 * a graph-modularity score over that matrix, the near-decomposable variable
   clusters, and the candidate port-crossing actions;
 * dense rows (god-state variables touched by most actions) and dense columns
@@ -478,7 +483,15 @@ class Action:
 
 
 def extract_actions(defs: Sequence[Definition], variables: Sequence[str]) -> list[Action]:
-    """An action is a top-level definition that primes at least one variable."""
+    """FALLBACK action heuristic: any top-level definition priming a variable.
+
+    This is the pre-CD-06 attribution and it is WRONG on composed actions --
+    it lists helper operators as actions and drops wrappers whose writes all
+    happen inside called operators (VAL-07 / VAL-12). :func:`analyze` uses it
+    only when no next-state relation can be found via the cfg's ``NEXT`` or
+    ``SPECIFICATION`` entries, and says so in the output. The correct
+    attribution is :func:`extract_next_actions`.
+    """
     actions: list[Action] = []
     for definition in defs:
         # MF-036: strip BOTH forms of "leaves it alone" -- the UNCHANGED clause
@@ -491,6 +504,223 @@ def extract_actions(defs: Sequence[Definition], variables: Sequence[str]) -> lis
             continue
         reads = {v for v in variables if references(body, v)}
         actions.append(Action(name=definition.name, reads=reads, writes=writes, body=body))
+    return actions
+
+
+# --------------------------------------------------------------------------
+# Action attribution to the next-state relation (CD-06: VAL-07 / VAL-12)
+# --------------------------------------------------------------------------
+#
+# The matrix used to call every definition that syntactically primes a
+# variable an "action". Both directions of that are wrong on standard TLA+
+# composition:
+#
+#   * VAL-07: a wrapper action that primes a variable only through a helper
+#     operator (taskq's ``MarkCli(cmd, task, exit)`` doing the ``lastCli'``
+#     assignment) VANISHED from the matrix -- 9 CLI actions collapsed to 4
+#     columns.
+#   * VAL-12: the inverse -- helper operators (``MarkExternal``) were listed
+#     AS actions, while composed actions whose writes happen entirely through
+#     called operators or UNCHANGED (``RunFulfillmentWorker``,
+#     ``RunFulfillmentWorkerNoop``, ``HiddenInternalProgress``) got NO column.
+#
+# Dense-row fractions, dense columns, action_count, per-component action
+# counts -- and every fitness fact derived from them -- were computed over
+# that partially wrong action set.
+#
+# The fix: the ACTION SET IS THE SET OF TOP-LEVEL DISJUNCTS of the next-state
+# relation (the definition the cfg names via ``NEXT``, or the ``[][Next]_vars``
+# box-action inside the definition ``SPECIFICATION`` names). Each disjunct's
+# reads/writes are computed over its TRANSITIVELY RESOLVED body -- the CD-01/F1
+# resolution machinery extended by CD-05 -- with ``UNCHANGED`` clauses and
+# exact frame conditions stripped per definition body BEFORE expansion, so an
+# ``UNCHANGED InternalVars`` never drags the variable-tuple definition in as a
+# phantom read. Helpers are reachable only through expansion and are never
+# columns of their own.
+#
+# Coverage contract (static, like the rest of this analyzer):
+#   * disjuncts are split at top-level ``\/`` -- nesting inside (), [], {},
+#     and << >> is respected; indentation-scoped bullet nesting is not parsed;
+#   * leading ``\E`` / ``\A`` quantifier prefixes are stripped (repeatedly);
+#   * a disjunct that reduces to ``Name`` or ``Name(args)`` where ``Name`` is
+#     a definition becomes the action ``Name``;
+#   * any other disjunct shape is kept as an INLINE action named
+#     ``<Next>[k]`` over the disjunct text itself -- never silently dropped.
+
+_BOX_ACTION_RE = re.compile(r"\[\]\s*\[\s*([A-Za-z_][A-Za-z0-9_]*)\s*\]_")
+_QUANTIFIER_PREFIX_RE = re.compile(r"^\\(?:EE|AA|E|A)\s+[^:]*:\s*", re.DOTALL)
+_STRING_LITERAL_RE = re.compile(r'"[^"\n]*"')
+
+
+def _parse_cfg_named_entry(cfg_text: str, keyword: str) -> str | None:
+    """The identifier a cfg assigns to ``keyword`` (``NEXT``/``SPECIFICATION``/``INIT``).
+
+    Handles both ``KEYWORD Name`` on one line and the name on the following
+    line.
+    """
+    text = strip_comments(cfg_text)
+    lines = text.splitlines()
+    for index, raw in enumerate(lines):
+        line = raw.strip()
+        match = re.match(rf"^{keyword}\b\s*(.*)$", line, flags=re.IGNORECASE)
+        if not match:
+            continue
+        rest = match.group(1).strip()
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", rest):
+            return rest
+        for follow in lines[index + 1 :]:
+            follow = follow.strip()
+            if not follow:
+                continue
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", follow):
+                return follow
+            break
+    return None
+
+
+def find_next_relation(cfg_text: str, defs_by_name: dict[str, Definition]) -> str | None:
+    """The definition name of the next-state relation, or None.
+
+    ``NEXT Name`` wins; otherwise ``SPECIFICATION Spec`` is followed to the
+    ``[][Next]_vars`` box-action -- first in ``Spec``'s immediate body, then in
+    its transitively resolved body (a ``Spec == RealSpec`` alias still
+    resolves). Returns None when neither names a definition that exists, and
+    the caller falls back to the primes heuristic AND SAYS SO -- attribution is
+    never silently degraded.
+    """
+    next_name = _parse_cfg_named_entry(cfg_text, "NEXT")
+    if next_name and next_name in defs_by_name:
+        return next_name
+    spec_name = _parse_cfg_named_entry(cfg_text, "SPECIFICATION")
+    if spec_name and spec_name in defs_by_name:
+        for text in (
+            defs_by_name[spec_name].body,
+            resolve_definition_body(spec_name, defs_by_name),
+        ):
+            for match in _BOX_ACTION_RE.finditer(text):
+                if match.group(1) in defs_by_name:
+                    return match.group(1)
+    return None
+
+
+def split_top_level_disjuncts(body: str) -> list[str]:
+    """Split a next-state relation body at top-level ``\\/`` boundaries.
+
+    Depth-aware for ``()``, ``[]``, ``{}``, and ``<< >>`` so a disjunction
+    inside an argument list or set is not torn apart.
+    """
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    index = 0
+    length = len(body)
+    while index < length:
+        pair = body[index : index + 2]
+        char = body[index]
+        if pair == "<<":
+            depth += 1
+            current.append(pair)
+            index += 2
+            continue
+        if pair == ">>":
+            depth -= 1
+            current.append(pair)
+            index += 2
+            continue
+        if pair == "\\/" and depth == 0:
+            parts.append("".join(current))
+            current = []
+            index += 2
+            continue
+        if char in "([{":
+            depth += 1
+        elif char in ")]}":
+            depth -= 1
+        current.append(char)
+        index += 1
+    parts.append("".join(current))
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _strip_quantifier_prefixes(chunk: str) -> str:
+    """Remove leading ``\\E x \\in S :`` / ``\\A ...`` prefixes, repeatedly."""
+    while True:
+        match = _QUANTIFIER_PREFIX_RE.match(chunk)
+        if not match:
+            return chunk.strip()
+        chunk = chunk[match.end() :].strip()
+
+
+def _resolved_reads_writes(
+    body: str,
+    defs_by_name: dict[str, Definition],
+    variables: Sequence[str],
+    *,
+    _seen: set[str] | None = None,
+) -> tuple[set[str], set[str], str]:
+    """Reads/writes of ``body`` with every called operator expanded transitively.
+
+    Each definition body is stripped of ``UNCHANGED`` clauses, exact frame
+    conditions, and STRING LITERALS before its tokens are scanned, so (a) a
+    variable-tuple name under ``UNCHANGED`` (``UNCHANGED InternalVars``) is
+    neither counted as a touch nor expanded into phantom reads of every
+    variable in the tuple, and (b) a string that happens to spell an operator
+    name (``result' = CommandResult(TRUE, NoReason, "RecordBudgets")``) is
+    data, not a call -- it must not expand that operator into the caller.
+    """
+    seen = _seen if _seen is not None else set()
+    reads: set[str] = set()
+    writes: set[str] = set()
+    resolved_parts: list[str] = []
+    stack = [body]
+    while stack:
+        text = strip_frame_conditions(strip_unchanged(stack.pop()), variables)
+        text = _STRING_LITERAL_RE.sub(" ", text)
+        resolved_parts.append(text)
+        for variable in variables:
+            if primed_references(text, variable):
+                writes.add(variable)
+            if references(text, variable):
+                reads.add(variable)
+        for token in sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text))):
+            if token in defs_by_name and token not in seen:
+                seen.add(token)
+                stack.append(defs_by_name[token].body)
+    return reads, writes, "\n".join(resolved_parts)
+
+
+def extract_next_actions(
+    next_name: str, defs_by_name: dict[str, Definition], variables: Sequence[str]
+) -> list[Action]:
+    """The action set: one Action per top-level disjunct of ``next_name``.
+
+    A disjunct that is a plain (possibly quantified) reference to a defined
+    operator becomes that operator, with reads/writes attributed through its
+    transitively resolved body. Any other disjunct shape becomes an inline
+    action named ``<next_name>[k]`` -- present in the matrix, never dropped.
+    An action appearing in several disjuncts gets one column.
+    """
+    actions: list[Action] = []
+    named: set[str] = set()
+    for index, chunk in enumerate(split_top_level_disjuncts(defs_by_name[next_name].body), 1):
+        stripped = _strip_quantifier_prefixes(chunk)
+        call = re.fullmatch(
+            r"([A-Za-z_][A-Za-z0-9_]*)\s*(?:\((.*)\))?", stripped, flags=re.DOTALL
+        )
+        if call and call.group(1) in defs_by_name:
+            name = call.group(1)
+            if name in named:
+                continue
+            named.add(name)
+            reads, writes, resolved = _resolved_reads_writes(
+                defs_by_name[name].body, defs_by_name, variables, _seen={name}
+            )
+        else:
+            name = f"{next_name}[{index}]"
+            reads, writes, resolved = _resolved_reads_writes(
+                chunk, defs_by_name, variables, _seen={next_name}
+            )
+        actions.append(Action(name=name, reads=reads, writes=writes, body=resolved))
     return actions
 
 
@@ -1052,6 +1282,9 @@ class Analysis:
     budgets: dict[str, Any]
     warnings: list[Advisory]
     tlc_findings: list[dict[str, str]]
+    # CD-06: how the action set was determined -- the next-state relation's
+    # disjuncts (correct) or the primes-heuristic fallback (stated honestly).
+    action_attribution: str = ""
     # CD-03: the project's self-configured fitness functions, evaluated over
     # this descriptor. None when the project configured nothing -- there are NO
     # built-in rules. Firings are advisory: they are surfaced in the report and
@@ -1135,7 +1368,25 @@ def analyze(
     defs = resolved.defs
     by_name = {d.name: d for d in defs}
 
-    actions = extract_actions(defs, variables)
+    # CD-06 (VAL-07 / VAL-12): the action set is the set of top-level disjuncts
+    # of the next-state relation, with called-operator bodies expanded
+    # transitively so primes inside helpers are attributed to the top-level
+    # action. Helpers are not actions. Only when no next-state relation can be
+    # found does the scan fall back to the primes heuristic -- and it says so.
+    next_name = find_next_relation(cfg_text, by_name)
+    if next_name is not None:
+        actions = extract_next_actions(next_name, by_name, variables)
+        action_attribution = (
+            f"top-level disjuncts of the next-state relation {next_name}, "
+            "called-operator bodies expanded transitively; helpers are not actions"
+        )
+    else:
+        actions = extract_actions(defs, variables)
+        action_attribution = (
+            "FALLBACK primes heuristic (every definition priming a variable) -- "
+            "no next-state relation found via cfg NEXT or SPECIFICATION; helper "
+            "operators may be listed as actions and composed actions may be missing"
+        )
 
     # CD-01 (F1): resolve invariant aliasing/composition transitively. The cfg
     # may configure `INVARIANT Inv` with `Inv == RealInv` -- reading only the
@@ -1336,6 +1587,7 @@ def analyze(
         budgets=budgets,
         warnings=warnings,
         tlc_findings=tlc_findings,
+        action_attribution=action_attribution,
     )
 
     # CD-03: evaluate the project's self-configured fitness functions over the
@@ -1451,6 +1703,8 @@ def render_text(analysis: Analysis) -> str:
     add("")
 
     add("[MEASURED] Variables x actions read/write matrix")
+    if analysis.action_attribution:
+        add(f"  (actions = {analysis.action_attribution})")
     header = ["variable"] + [a.name for a in analysis.actions]
     matrix_rows = []
     for variable in analysis.variables:
@@ -1615,6 +1869,7 @@ def descriptor_payload(analysis: Analysis) -> dict[str, Any]:
                 {"name": a.name, "reads": sorted(a.reads), "writes": sorted(a.writes)}
                 for a in analysis.actions
             ],
+            "action_attribution": analysis.action_attribution,
             "modularity": analysis.modularity_score,
             "components": [sorted(c) for c in analysis.communities],
             "port_crossing_actions": analysis.crossings,
