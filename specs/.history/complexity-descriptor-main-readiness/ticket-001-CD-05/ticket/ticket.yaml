@@ -1,0 +1,118 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "An operator-defined set in an EXTENDS-ed module resolves (regression test failing pre-fix); a membership conjunct wrapped across lines resolves (failing pre-fix); a multi-view scaffold layout resolves domains for both views without renaming tricks (failing pre-fix).",
+        "The explicit-UNKNOWN path (F3) is preserved for genuinely unresolvable domains \u2014 never a silent number.",
+        "The resolver's coverage is documented where agents look (the reference the scanner output cites).",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-05"
+      ],
+      "evidence": [
+        "specs/tickets/CD-05/results/domain_resolution_regressions.txt",
+        "specs/tickets/CD-05/results/tlc_current.txt",
+        "specs/tickets/CD-05/results/spec_unit_tests.txt",
+        "specs/tickets/CD-05/results/repo_unit_tests.txt",
+        "specs/tickets/CD-05/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-05/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-06",
+      "CD-07"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py",
+        "tests/test_analyze_complexity.py",
+        "references/architecture_tractability.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/90",
+    "id": "CD-05",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py (_set_size, infer_dimensions, domain-source precedence)",
+      "tests/test_analyze_complexity.py (three regression tests, failing pre-fix)",
+      "references/architecture_tractability.md (document the resolver's coverage)"
+    ],
+    "objective": "Resolves VAL-06, VAL-16, VAL-17 \u2014 three domain-resolution blind spots that real agents hit in three of six validation runs, each currently degrading the bound to UNKNOWN (or a partial product) on standard patterns. (1) VAL-06: _set_size resolves only literals, int ranges, BOOLEAN, unions, and cfg constants; an operator-defined set (TaskStatus == {...} in an EXTENDS-ed module, used as tasks \\in [Names -> TaskStatus]) resolves unknown even though resolve_definition_body has already expanded the operator \u2014 consult it (the same transitive resolution CD-01 built for F1). (2) VAL-16: the `variable \\in <domain>` regex captures to end-of-line, so a membership conjunct wrapped across lines silently resolves unknown \u2014 parse conjunct-wise, not line-wise. (3) VAL-17: domain-source precedence (any TypeInvariant in the EXTENDS hierarchy becomes the sole source, then TypeOK, then cfg invariants) interacts badly with the scaffold's own multi-view layout where TypeInvariant cannot be redefined per view \u2014 merge domain sources (per-variable, first resolvable wins with a documented order) instead of first-named-definition-wins, or document the per-view naming convention and make the resolver honor both names. Regression tests for each, failing pre-fix. Document exactly what the resolver can see.\n",
+    "promotion_order": 20,
+    "promotion_predecessor": "CD-04",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Descriptor accuracy: domain resolution sees operator-defined sets, wrapped conjuncts, and multi-view invariant naming",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/tickets/CD-05",
+  "ticket_id": "CD-05",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-90-cd05-domain-resolution/specs/tickets"
+}

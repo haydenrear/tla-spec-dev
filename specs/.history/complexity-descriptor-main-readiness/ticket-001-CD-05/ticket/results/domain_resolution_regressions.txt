@@ -1,0 +1,116 @@
+CD-05 domain-resolution regression evidence
+===========================================
+
+Each of the three regression tests FAILS pre-fix and PASSES post-fix.
+Pre-fix proof: 'git stash push -- scripts/analyze_complexity.py' (production
+fix removed, new tests kept), run, then 'git stash pop'.
+
+Command: uv run --with pytest --with pyyaml -m pytest tests/test_analyze_complexity.py -q -k 'val06 or val16 or val17 or cd05'
+
+--- PRE-FIX RUN (scripts/analyze_complexity.py stashed to epic tip 48f3ff6) ---
+
+FFF.                                                                     [100%]
+=================================== FAILURES ===================================
+_________ test_val06_operator_defined_set_in_extended_module_resolves __________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-557/test_val06_operator_defined_se0')
+
+    def test_val06_operator_defined_set_in_extended_module_resolves(tmp_path: Path) -> None:
+        """`tasks \\in [Names -> TaskStatus]` with TaskStatus an operator in an
+        EXTENDS-ed module resolves to |TaskStatus|^|Names| = 3^2.
+    
+        PRE-FIX: _set_size resolved only literals, int ranges, BOOLEAN, unions,
+        and cfg constants -- `TaskStatus` fell through every branch, `tasks`
+        resolved unknown, and the bound was UNKNOWN (None) despite the invariant
+        being found and the operator body being one resolve_definition_body call
+        away.
+        """
+        (tmp_path / "TaskCore.tla").write_text(VAL06_CORE_TLA, encoding="utf-8")
+        tla = tmp_path / "Tasks.tla"
+        tla.write_text(VAL06_TASKS_TLA, encoding="utf-8")
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text(VAL06_CFG, encoding="utf-8")
+        result = analyze(tla, cfg, None)
+        cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+>       assert cardinalities["tasks"] == 9  # 3^2 total functions
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       assert None == 9
+
+tests/test_analyze_complexity.py:711: AssertionError
+----------------------------- Captured stderr call -----------------------------
+warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+_________ test_val16_membership_conjunct_wrapped_across_lines_resolves _________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-557/test_val16_membership_conjunct0')
+
+    def test_val16_membership_conjunct_wrapped_across_lines_resolves(tmp_path: Path) -> None:
+        """A `\\in` conjunct wrapped across lines resolves like its one-line form.
+    
+        PRE-FIX: the `variable \\in <domain>` regex captured `[^\\n]+` -- to
+        end-of-line -- so the wrapped set literal arrived truncated at
+        `{"s1", "s2", "s3", "s4",`, failed to parse, and `status` silently
+        resolved unknown (bound 3 instead of 27). Post-fix the source is parsed
+        conjunct-wise, so the domain expression spans lines freely.
+        """
+        tla = tmp_path / "Wrapped.tla"
+        tla.write_text(VAL16_TLA, encoding="utf-8")
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text(VAL16_CFG, encoding="utf-8")
+        result = analyze(tla, cfg, None)
+        cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+>       assert cardinalities["status"] == 9
+E       assert None == 9
+
+tests/test_analyze_complexity.py:765: AssertionError
+----------------------------- Captured stderr call -----------------------------
+warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+_______ test_val17_multi_view_layout_merges_domain_sources_per_variable ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-557/test_val17_multi_view_layout_m0')
+
+    def test_val17_multi_view_layout_merges_domain_sources_per_variable(
+        tmp_path: Path,
+    ) -> None:
+        """Both views' variables resolve without renaming tricks.
+    
+        The core view owns TypeInvariant (bounding `mode`); the extending view
+        cannot redefine that name, so its own invariant (`InternalTypeOK`,
+        bounding `queue`) is configured in the cfg.
+    
+        PRE-FIX: TypeInvariant's presence in the hierarchy made it the SOLE
+        domain source -- `queue` resolved unknown and the bound was the partial
+        product 2. The run's workaround was naming one view's invariant exactly
+        `TypeOK` (the Internal=TypeOK / External=TypeInvariant trick). Post-fix,
+        sources merge per-variable in the documented order (TypeInvariant, then
+        TypeOK, then configured invariants) -- first source that resolves wins.
+        """
+        (tmp_path / "ViewCore.tla").write_text(VAL17_CORE_TLA, encoding="utf-8")
+        tla = tmp_path / "ViewInternal.tla"
+        tla.write_text(VAL17_INTERNAL_TLA, encoding="utf-8")
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text(VAL17_CFG, encoding="utf-8")
+        result = analyze(tla, cfg, None)
+        cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+        assert cardinalities["mode"] == 2
+>       assert cardinalities["queue"] == 5
+E       assert None == 5
+
+tests/test_analyze_complexity.py:839: AssertionError
+----------------------------- Captured stderr call -----------------------------
+warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+=========================== short test summary info ============================
+FAILED tests/test_analyze_complexity.py::test_val06_operator_defined_set_in_extended_module_resolves
+FAILED tests/test_analyze_complexity.py::test_val16_membership_conjunct_wrapped_across_lines_resolves
+FAILED tests/test_analyze_complexity.py::test_val17_multi_view_layout_merges_domain_sources_per_variable
+3 failed, 1 passed, 46 deselected in 0.07s
+
+--- POST-FIX RUN (CD-05 fix in place) ---
+
+....                                                                     [100%]
+4 passed, 46 deselected in 0.04s
+
+Summary:
+  VAL-06 test_val06_operator_defined_set_in_extended_module_resolves: pre-fix cardinality None (bound UNKNOWN) -> post-fix 3^2 = 9.
+  VAL-16 test_val16_membership_conjunct_wrapped_across_lines_resolves: pre-fix status None (bound 3) -> post-fix 9 (bound 27).
+  VAL-17 test_val17_multi_view_layout_merges_domain_sources_per_variable: pre-fix queue None (partial bound 2) -> post-fix 5 (bound 10, merged sources).
+  F3 guard test_cd05_genuinely_unresolvable_domain_stays_an_explicit_unknown: passes pre- AND post-fix -- explicit UNKNOWN preserved, never a silent number.
