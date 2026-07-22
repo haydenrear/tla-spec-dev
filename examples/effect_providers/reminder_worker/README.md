@@ -32,6 +32,14 @@ own command values and cardinality. The adapter returns real application output
 and a projection of provider state; the standard generated-case runner compares
 those with the TLA-derived oracle. Providers never mutate or replace a case.
 
+This experiment also exposes the current abstraction gap. The generated cases
+carry terminal state, but not a normalized effect plan, so `providers.py`
+hard-codes `stage < send < mark < acknowledge`, one clock read, duplicate-send
+rejection, and the notifier success/exception class for each scenario. Those
+are semantic oracle/response decisions, not mere concretization. They are kept
+visible in raw evidence and motivate generated outcome metadata for effect
+order, cardinality, and response class.
+
 The boundary is intentional. A materially different outcome belongs in TLA+.
 A concrete value within an already modeled outcome belongs in the providers.
 An implementation property absent from both the TLA state and provider checks
@@ -74,6 +82,13 @@ all 175 control points and cleanup records are green. Evidence is written under
 point emits the runner's replay command, and the experiment re-executes the
 first failure for every killed mutant to compare both failure text and journal
 digest.
+
+V0 stops after the first complete failing iteration. In the recorded catalog,
+every killed mutant therefore executed all seven cases at iteration 0, while
+only the green controls covered all 175 representatives. The 12/12 result is
+evidence for semantic-oracle coverage, not fuzz-breadth sensitivity. A future
+collect/continue mode plus data-dependent mutants is needed to measure whether
+later representatives find additional bugs.
 
 The separately reported hand-written baseline covers four ordinary scenarios
 with one concrete point each. Its mutation score is not combined with the

@@ -53,13 +53,26 @@ EXPECTED_ACTIONS = (
 )
 BASELINE_SCENARIOS = ("empty", "accepted", "retryable", "duplicate")
 PORTS = ("ClockPort", "QueuePort", "OutboxPort", "NotifierPort")
-AUTHORING_EDIT_RUN_ITERATIONS = 4
+AUTHORING_EDIT_RUN_ITERATIONS = 5
 
 
 def canonical_digest(value: Any) -> str:
     return hashlib.sha256(
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
+
+
+def source_provenance() -> dict[str, str]:
+    paths = (
+        PROJECT_ROOT / "app.py",
+        PROJECT_ROOT / "providers.py",
+        PROJECT_ROOT / "adapter.py",
+        PROJECT_ROOT / "run_experiment.py",
+    )
+    return {
+        str(path.relative_to(PROJECT_ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in paths
+    }
 
 
 def validate_preregistration() -> None:
@@ -527,6 +540,7 @@ def main() -> int:
     parser.add_argument("--skip-regenerate", action="store_true")
     args = parser.parse_args()
     validate_preregistration()
+    measured_sources = source_provenance()
 
     run_root = PROJECT_ROOT / "evidence" / "runs" / args.run_id
     if run_root.exists():
@@ -617,6 +631,7 @@ def main() -> int:
     probes = capability_probes()
     baseline = run_baseline(run_root)
     costs = cost_record()
+    sources_unchanged = measured_sources == source_provenance()
     infrastructure_clean = all(not row["infrastructure_failure"] for row in mutations)
     attribution_exact = all(row["attribution_matches_preregistration"] for row in mutations)
     replays_exact = all(row["replay_exact"] for row in mutations)
@@ -632,6 +647,7 @@ def main() -> int:
         and cleanup_exact
         and baseline["control_green"]
         and costs["framework_files_changed"] == 0
+        and sources_unchanged
     )
     if not integrity_valid:
         decision = "invalid_campaign"
@@ -675,15 +691,29 @@ def main() -> int:
             "cleanup_exact": cleanup_exact,
             "baseline_control_green": baseline["control_green"],
             "framework_audit_zero": costs["framework_files_changed"] == 0,
+            "sources_unchanged": sources_unchanged,
         },
         "hand_written_baseline": baseline,
+        "source_provenance": measured_sources,
         "capability_probes": probes,
         "cost": costs,
         "findings": {
             "action_helper_collapse_iterations": 1,
             "action_helper_collapse": "shared Finish helper initially erased seven outcome labels; direct top-level transitions fixed it before control",
-            "semantic_provider_decisions_not_in_case": ["concrete unicode identifier", "timestamp", "receipt", "exception instance"],
-            "duplicated_concretization_or_projection": ["provider snapshot manually projects concrete queue/outbox/receipt state into six TLA fields"],
+            "semantic_provider_decisions_not_in_case": [
+                "concrete unicode identifier, timestamp, receipt, and exception instance",
+                "provider hard-codes stage before send and send before mark/ack ordering",
+                "provider hard-codes one ClockPort read per point",
+                "provider hard-codes duplicate-send rejection",
+                "provider maps scenario/action to notifier success or retryable/permanent exception class",
+            ],
+            "duplicated_concretization_or_projection": [
+                "provider reimplements cross-effect order and cardinality that are absent from terminal-state cases",
+                "provider maps modeled scenario names to semantic response classes rather than receiving normalized generated effect-plan metadata",
+                "provider snapshot manually projects concrete queue/outbox/receipt state into six TLA fields",
+            ],
+            "mutant_execution": "V0 stops after the first complete failing iteration: each killed mutant executed seven cases at iteration 0; only green controls covered all 175 representatives",
+            "fuzz_breadth_claim": "12/12 demonstrates oracle coverage for the fixed catalog, not that later deterministic representatives discovered additional bugs",
             "survivors": [row["mutant_id"] for row in mutations if row["verdict"] == "survived"],
             "attribution_mismatches": [row["mutant_id"] for row in mutations if not row["attribution_matches_preregistration"]],
         },
