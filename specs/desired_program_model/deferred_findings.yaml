@@ -252,3 +252,182 @@ findings:
     blast_radius: "R/W matrix, dense columns, action_count, component actions; fitness facts derived from them."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-08
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["examples/distributed_history/specs/program_model/spec_manifest.yaml", "examples/distributed_history/README.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The pristine distributed_history example fails its own documented
+      regeneration path: manifest cap max_external_cases_per_action 50 vs the
+      732-case corpus its README advertises (worst action
+      SubmitDuplicateAddCartItem = 200). External case generation exits 2 on
+      the unmodified example.
+    reproduction: >-
+      In a copy of examples/distributed_history run the README's
+      regenerate_tlc_cases.py path. Observed: corpus gate FAIL, exit 2,
+      before any change. Expected: the shipped example passes its own gate.
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed (MF-037 discipline)."
+    suggested_fix: "Set the example's caps to fit its actual corpus with a rationale, or shrink the corpus."
+    blast_radius: "Example only; also VAL-09/VAL-10 sit on the same path."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-09
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/distributed_history/scripts/regenerate_tlc_cases.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      regenerate_tlc_cases.py calls export_testgraph_cases.py without the
+      now-required --bindings argument and exits 2 ("the following arguments
+      are required: --bindings"). Stale against the current exporter CLI.
+    reproduction: "Run the example's regenerate_tlc_cases.py; the exporter aborts on missing --bindings."
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Pass --bindings (and --manifest, see VAL-10) in the example script."
+    blast_radius: "Example script only."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-10
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/export_testgraph_cases.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      export_testgraph_cases.py re-runs the corpus gate but cannot locate
+      spec_manifest.yaml when the corpus lives in a build directory; it
+      silently falls back to the built-in cap 50 and exits 2 even after the
+      manifest cap was raised, unless --manifest is passed explicitly.
+    reproduction: >-
+      Export a corpus generated into test_graph/build/... without --manifest;
+      the gate uses cap 50 regardless of the manifest. Expected: resolve the
+      manifest from the spec root or fail loudly asking for --manifest.
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Resolve the manifest relative to the spec root, and warn (not silently default) when none is found."
+    blast_radius: "Exporter gate behavior; example scripts on the same path."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-11
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/distributed_history/scripts/regenerate_tlc_cases.py", "examples/run_distributed_history_validation.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Example tooling hardcodes the toolchain root as parents[1] of the
+      example dir (regenerate_tlc_cases.py, test_ecommerce_adapters.py,
+      run_external_cases.py), so a standalone checkout cannot find the
+      toolchain; run_distributed_history_validation.py hardcodes the
+      toolchain-internal example path and can never validate an external
+      checkout.
+    reproduction: >-
+      Copy the example outside the toolchain repo and run its scripts; root
+      resolution fails. Agent routed around with a TLA_SPEC_DEV_ROOT env
+      override (example-local edits).
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Adopt the TLA_SPEC_DEV_ROOT override upstream in the example scripts."
+    blast_radius: "Example scripts; onboarding docs."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-12
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Extends VAL-07 with the inverse case: actions whose primed-variable
+      writes happen entirely through called operators or UNCHANGED
+      (RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress
+      in the distributed_history External view) get NO R/W matrix column,
+      while the helper operator MarkExternal is listed as an action.
+      Dense-row fractions (e.g. "9/15 actions") are computed over a partially
+      wrong action set on a standard real model.
+    reproduction: >-
+      Scan examples/distributed_history External.tla/External.cfg and compare
+      matrix columns against the module's ExternalNext disjuncts.
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Same direction as VAL-07: expand called-operator bodies when attributing primes (CD-01/F1-style transitive resolution)."
+    blast_radius: "R/W matrix, dense rows/columns, action counts, fitness facts; same fix as VAL-07."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-13
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/corpus_diagnostics.py", "scripts/tla_spec_dev.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Suggested-move output is still live in the documented ticket workflow:
+      the corpus gate prints "Suggested move: Abstract the before-state ...
+      RECOMMENDATION REQUIRING USER APPROVAL" (corpus_diagnostics.py:760;
+      also the analyze corpus help text in tla_spec_dev.py). CD-01 removed
+      suggestions from the scanner, but the corpus path retains them and a
+      real agent met one mid-ticket (it correctly declined to apply it).
+    reproduction: >-
+      Trip the corpus cap gate (e.g. the pristine distributed_history
+      example, VAL-08); the refusal output includes the suggested move.
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: >-
+      Post-epic validation finding; filed, not fixed. corpus_diagnostics was
+      outside CD-01's conflict keys as experimental fuzzing machinery, but
+      the example's documented regeneration path reaches it.
+    suggested_fix: >-
+      Owner decision: either strip suggestion language from the corpus gate
+      (align with the epic pivot) or clearly mark that output EXPERIMENTAL
+      where it appears.
+    blast_radius: "Corpus gate output and docs; consistency of the no-suggestions pivot."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-14
+    found_by: "validation-ex2-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/distributed_history/README.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Doc drift: both READMEs claim the ecommerce.external_cases envelope
+      records expectedCaseCount/executedCaseCount; the node publishes
+      caseNames/expectedCaseNames and no counts.
+    reproduction: "Run the ecommerceExternal graph and compare the envelope keys with the README."
+    evidence: ["examples/validation/runs/ex2-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Correct the README key names."
+    blast_radius: "Docs only."
+    disposition: pending
+    disposition_ticket: null
