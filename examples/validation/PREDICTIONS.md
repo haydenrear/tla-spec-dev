@@ -107,3 +107,34 @@ actions), one monolithic 6-variable cluster, and the advisory
 - **X-P3** Agent-facing docs (SKILL.md + references) are sufficient to
   complete each task without the agent reading toolchain source as a manual;
   needing to read source to proceed is a docs finding.
+
+## Run 3 addendum — after the main-readiness batch (written before dispatch, 2026-07-22)
+
+Same three examples, same tasks, same protocol. Run 3 measures whether the
+CD-04..08 batch removed the friction runs 1-2 catalogued. In addition to the
+original E1/E2/E3 predictions (which must still hold), predictions specific
+to this run:
+
+- **R3-E1** (ex1): no route-arounds needed — operator-defined sets resolve
+  (VAL-06 fixed), wrapped conjuncts resolve (VAL-16), multi-view invariant
+  naming resolves (VAL-17), manifest-embedded fitness rules under bare
+  python3 produce the documented CONFIG ERROR pointing at .json (VAL-01),
+  and no scaffold output claims budgets are hard gates (VAL-04). The agent
+  should NOT need to read toolchain source to complete any step (X-P3
+  finally passes).
+- **R3-E2** (ex2): the pristine example's documented regeneration path
+  passes out of the box — no cap refusal (VAL-08), no missing-argument exit
+  (VAL-09), no silent cap fallback (VAL-10), standalone checkout works via
+  TLA_SPEC_DEV_ROOT (VAL-11). If any corpus gate fires on the agent's model
+  change, its output asks the REDESIGN QUESTION and prescribes nothing
+  (CD-04). The R/W matrix lists the true ExternalNext disjuncts
+  (RunFulfillmentWorker present, MarkExternal absent — VAL-12/CD-06).
+- **R3-E3** (ex3): unchanged predictions E3-P1..P4 — and with the new
+  write-only-state test in the intuition doc, both the delete-mode/dirty
+  call and the keep-them call should CONVERGE toward deletion (run-1's
+  classification is now canonical unless a concrete dependent is named);
+  divergence here after the doc sharpening is a stronger finding than
+  VAL-15 was.
+- **R3-X1**: no scan prints the does-not-exist sentinel or warns about
+  retired budget keys (CD-02-DF-01, VAL-02); run_tlc.sh leaves no states/
+  dir in any spec dir (VAL-03).
