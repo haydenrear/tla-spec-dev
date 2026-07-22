@@ -564,3 +564,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-02
+
+- close_scope: ticket
+- close_id: CD-02
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T00:45:24+00:00
+- summary: CD-02: complexity intuition — references/complexity_intuition.md teaches reading a descriptor as refactoring input (good/bad shapes, five real-run worked examples, how-complex-should-a-program-be best practices, validated refactors encouraged as normal practice, intuitions never automated moves); SKILL.md wires the take-this-descriptor-to-refactor framing; zero TLA model delta, TLC green 231,621 distinct
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
