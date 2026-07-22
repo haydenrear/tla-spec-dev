@@ -1,13 +1,46 @@
-# Canonical plan for the modular-fuzzing epic. GitHub issues mirror this file
+# Canonical plan for the effect-provider epic. GitHub issues mirror this file
 # for handoff; this file remains the source of truth. Dispatched ticket IDs,
 # dependency edges, waves, and promotion order are immutable after issue
 # assignment — add amendment tickets instead of editing dispatched identities.
+#
+# This workflow branches the concluded modular-fuzzing discovery at dfd2a80.
+# Its MF-* tickets remain below as an immutable historical record. The only
+# active priority lane is EP-01 -> EP-02 -> EP-03.
 version: 1
-name: modular-fuzzing-epic
-updated: "2026-07-18"
-purpose: "Mechanize the modular pure-function/side-effect fuzzing doctrine (references/modular_fuzzing.md) in the tla-spec-dev CLI: per-program budgets, complexity analysis gates, corpus distillation, effect conformance, External channel enforcement, mutation kill tests, and the skill feedback loop."
+name: effect-provider-epic
+updated: "2026-07-21"
+purpose: "Test the smallest useful effectful-modeling architecture: generated TLA+ cases select typed semantic effect ports; project-owned providers bind those ports around each case; deterministic fuzz iterations explore concrete values inside the case's modeled semantic outcome; and three diverse example projects measure authoring cost, mutation kills, replay, cleanup, modularity, and abstraction limits."
 
 epic:
+  id: effect-providers
+  branch: epic/effect-providers
+  default_branch: main
+  base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
+  base_tree: b9da49f29ef0bd8fd0441ee86252a1bad64d8651
+  schedule_revision: 1
+  review_mode: epic-owner-pr-review
+  notes: >
+    This is a sibling of epic/complexity-descriptor, deliberately branched
+    from the user-selected modular-fuzzing tip rather than main. Ticket agents
+    work in isolated worktrees, open PRs to epic/effect-providers, and stop;
+    the epic owner reviews, validates, merges, and closes the matching GitHub
+    issue. Run strictly EP-01 -> EP-02 -> EP-03. Use the repository-local
+    `python3 scripts/tla_spec_dev.py` throughout; do not run skill-manager sync
+    or merge this epic to main. The runtime contract is deliberately narrow:
+    typed semantic ports and provider lifecycle/replay are framework-owned;
+    concrete response behavior and fuzz strength are provider-owned. Passive
+    effect observation remains a separate surface. V0 is Python batch mode;
+    Java, streaming providers, universal monkeypatching, generated per-call
+    response scripts, exhaustive cross-products, shrinking, and production
+    Kafka/SMTP libraries are explicit non-goals.
+
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
+
+previous_epic_modular_fuzzing:
   id: modular-fuzzing
   branch: epic/modular-fuzzing
   default_branch: main
@@ -487,13 +520,13 @@ planning_rules:
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
-  case_execution_rule: Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale -- runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
-  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (this epic's base_sha), so it runs pre-epic behavior and contains none of the epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
+  effect_provider_rule: Generated cases choose the modeled semantic outcome; providers may fuzz concrete representatives inside that outcome but may not rewrite case before/input/output/after expectations. A different semantic outcome requires another TLA+ case or an independent provider oracle. The framework guarantees lookup, lifecycle, cleanup, deterministic replay metadata, and fail-closed configuration — never that arbitrary application effects cannot bypass a provider.
+  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main at da0a7ff rather than this epic's dfd2a80 base, so it runs pre-epic behavior and contains none of this branch's work. `skill-manager sync` does NOT fix this while the installed clone tracks main. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit only after an eventual default-branch merge.
 
 status:
-  workflow: modular-fuzzing-epic
-  active_ticket: none-epic-concluded-as-discovery
-  active_ticket_title: "Epic concluded as discovery; next epic is complexity-descriptor"
+  workflow: effect-provider-epic
+  active_ticket: EP-01
+  active_ticket_title: "Typed effect-provider lookup and lifecycle"
   desired_module: TlaSpecDevCli
   phase: implementation
 
@@ -508,13 +541,17 @@ service_catalog:
     - analyze complexity pre-TLC gate
     - sandboxed effect observation in the adapter runner
     - channel-authentic Test Graph bindings with double|real port configurations
+    - typed semantic effect ports selected per generated action
+    - project-owned providers bound around batch case lifecycle
+    - deterministic seed/replay metadata for bounded fuzz iterations
   adapter_boundaries:
     - specs/program_model/production_adapters.py spec-unit adapters
     - test_graph specWorkflow / cliWorkflow graphs
   known_gaps:
-    - "This repository's baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Originally recorded as out of scope for this epic. Owner direction 2026-07-18: it is now IN scope but scheduled LAST, as MF-023 at promotion_order 85, after every mechanism ticket has landed. The decomposition is to be performed by running the finished toolchain on this repository itself — analyze complexity for the cut, corpus distillation, effect conformance, External channel enforcement, and the mutation kill test — making it the epic's first end-to-end dogfooding test rather than a hand migration. It is therefore both the migration and the acceptance test of everything the epic built. See references/migration.md and tickets/023-decompose-via-dogfooding.md."
+    - "The inherited host model does not model provider configuration or fuzz iteration as CLI state. EP-01 and EP-02 therefore record zero host-TLA deltas unless implementation exposes new modeled CLI behavior; EP-03 supplies independent TLA+ models in the example projects."
+    - "A provider can install a monkeypatch or supply an explicitly injected port, but V0 does not prove that application code cannot bypass it. The existing passive effect observer remains the separate leak-detection mechanism."
 
-tickets:
+previous_epic_tickets:
   - id: MF-012
     title: "Scaffold-time budget prompts"
     status: done
@@ -1705,7 +1742,7 @@ tickets:
 
   - id: MF-034
     title: "Stream corpus analysis instead of loading it"
-    status: dropped
+    status: deferred
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/59"
     schedule_revision: 1
     depends_on: [MF-029]
@@ -1742,7 +1779,7 @@ tickets:
 
   - id: MF-035
     title: "Close the silent default and the alphabetical model pick"
-    status: dropped
+    status: deferred
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/60"
     schedule_revision: 1
     depends_on: [MF-029]
@@ -1913,4 +1950,214 @@ tickets:
         - for the over-complex project, measured complexity goes DOWN with behavior retained; an agent that instead raises a budget, waives a gate or reaches for an override is recorded as a FAILED VALIDATION of the toolchain, not a failed example.
         - each example is run more than once; divergence between runs is itself a finding about instruction determinism.
         - findings about the toolchain gathered from these runs are filed rather than fixed inline, so the validation stays a measurement.
+      evidence: []
+
+tickets:
+  - id: EP-01
+    title: "Typed effect-provider lookup and case lifecycle"
+    status: planned
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: []
+    blocks: [EP-02]
+    wave: 12
+    promotion_order: 100
+    promotion_predecessor: null
+    conflict_keys:
+      production:
+        - spec_double_compiler/runtime.py
+        - scripts/run_generated_case_adapters.py
+        - scripts/generate_python.py
+        - scripts/scaffold_spec.py
+        - templates/case_adapters.toml
+      tla: []
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-ports, actions.yml-effect_ports, case_adapters.toml-effect_providers]
+    objective: >
+      Add the smallest fail-closed runtime that maps a generated case's action
+      to typed semantic effect ports and binds project-owned providers around
+      that case. Reuse manifest `ports` as generated Protocol contracts, mark
+      semantic effect ports explicitly, declare action requirements in
+      actions.yml (`effect_ports`), and map each required port in
+      case_adapters.toml (`[effect_providers.<Port>] provider =
+      "module:object"`). Keep the inherited passive `effects:` observation
+      schema separate: it detects escaped writes/process/network activity and
+      is not a provider-response API. Introduce a provider context/binding
+      contract and expose bound values through AdapterCaseContext.effects.
+      Enter providers in declaration order before adapter setup; run
+      setup/run/assert/teardown while bindings are live; exit providers in
+      reverse order even on failure. Unknown ports, missing providers,
+      duplicate bindings, invalid types, and provider-bearing unsupported
+      execution modes fail before application execution. No-effect legacy
+      batches remain compatible. V0 supports Python batch execution only.
+    desired_actions: []
+    implementation_scope:
+      - spec_double_compiler/runtime.py (provider context, binding, case effect map)
+      - scripts/run_generated_case_adapters.py (schema loading, lookup, lifecycle, fail-closed preflight)
+      - scripts/generate_python.py and scripts/scaffold_spec.py (typed port/provider scaffolding)
+      - focused runtime, generator, scaffold, and CLI tests
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - host production adapter updated only if needed for zero-model-delta conformance
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-01
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      assertions:
+        - A case action deterministically resolves exactly its declared semantic effect ports and provider bindings; configuration errors fail before application code runs.
+        - Generated typed Protocols remain the structural contract; the provider binding is checked against the selected port and is available by stable port name in AdapterCaseContext.effects.
+        - Provider enter/setup/run/assert/teardown/exit ordering and reverse-order, failure-safe cleanup are covered, including teardown while providers remain active.
+        - Explicit dependency injection and self-installed monkeypatch bindings are both possible without framework-specific application entrypoints beyond the existing case adapter.
+        - Legacy batches with no semantic effect ports behave exactly as before; provider-bearing legacy non-batch/export paths are rejected rather than silently ignored.
+        - Passive effect observation is unchanged and no generic per-call response-plan schema is introduced.
+        - "Zero host TLA+ model delta unless a new observable CLI transition is actually added; current == desired and TLC/spec-unit evidence records the decision."
+      evidence: []
+
+  - id: EP-02
+    title: "Provider authoring kit and deterministic fuzz/replay loop"
+    status: planned
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: [EP-01]
+    blocks: [EP-03]
+    wave: 13
+    promotion_order: 110
+    promotion_predecessor: EP-01
+    conflict_keys:
+      production:
+        - scripts/run_generated_case_adapters.py
+        - scripts/scaffold_spec.py
+        - scripts/tla_spec_dev.py
+        - spec_double_compiler/effects.py
+        - tests/test_case_adapter_runtime.py
+        - SKILL.md
+        - references/effect_providers.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [effect-provider-scaffold, fuzz-seed-replay]
+    objective: >
+      Make EP-01 usable by a project author without expanding it into a
+      framework-owned simulator. Add a small provider kit: an explicit
+      temporary-root filesystem helper and a generic context-manager/patch
+      provider factory, plus generated provider stubs. Add bounded CLI fuzz
+      iteration (`--fuzz-runs N --seed S`) with a stable derived seed for each
+      case, iteration, and port, deterministic ordering, and copy-paste replay
+      diagnostics on every failure. The provider receives the immutable
+      generated case plus run metadata and owns concrete response generation,
+      state, and assertions. It may fuzz concrete representatives inside the
+      modeled semantic outcome; it must not rewrite the case's expected
+      output/after state. Document how users implement filesystem, HTTP,
+      Kafka, SMTP, or domain-specific providers, and be explicit that fuzzing
+      depth is bounded by provider capability. Do not add a central Hypothesis
+      campaign, exhaustive cross-product, shrinking claim, real Kafka/SMTP
+      libraries, or generated per-call response scripts in this ticket.
+    desired_actions: []
+    implementation_scope:
+      - reusable effect-provider helper module with narrow public API
+      - runner/CLI fuzz-runs, seed derivation, replay diagnostics, and tests
+      - scaffolded provider stub and example mapping
+      - SKILL.md and references/effect_providers.md authoring/fuzzing workflow
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-02
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      assertions:
+        - Same seed, cases, and providers produce the same iteration order, derived seeds, responses, and failure; the emitted replay command reproduces the failing case/iteration.
+        - A custom project provider can be written and selected without changing framework code; generated scaffolding exposes the full required contract without hidden imports.
+        - Library helpers cover one explicit-injection filesystem shape and one generic self-installed patch/context-manager shape, with cleanup on success and every failure phase.
+        - Docs explain the semantic boundary between TLA+ cases and provider-owned concrete responses/state, including when a new TLA+ case or independent oracle is required.
+        - Docs do not claim universal interception, exhaustive fuzzing, shrinking, or correctness stronger than the provider and case oracle provide.
+        - SKILL.md edits are validated from this branch; no global skill-manager sync occurs before the epic reaches the default branch.
+        - "Zero host TLA+ model delta unless implementation adds observable CLI state; current == desired and TLC/spec-unit evidence records the decision."
+      evidence: []
+
+  - id: EP-03
+    title: "Three effectful-modeling projects, mutation evidence, and recommendation"
+    status: planned
+    github_issue: pending
+    schedule_revision: 1
+    depends_on: [EP-02]
+    blocks: []
+    wave: 14
+    promotion_order: 120
+    promotion_predecessor: EP-02
+    conflict_keys:
+      production:
+        - examples/effect_providers/
+        - test_graph/build.gradle.kts
+        - references/effect_providers.md
+      tla: []
+      adapters: []
+      test_graph: [effectProviderExamples]
+      workflow: [effect-provider-evidence]
+    objective: >
+      Validate the architecture as a measurement, not a showcase, with three
+      independently onboarded projects and predeclared predictions: (A) an
+      explicitly injected atomic document publisher — predicted high
+      mutation yield at low integration cost; (B) a legacy HTTP client with
+      retries/timeouts and a self-installed patch provider — predicted useful
+      protocol bugs but higher monkeypatch/bypass friction; (C) a stateful
+      multi-provider outbox workflow (store/queue plus clock/notification) —
+      predicted highest semantic value and highest composition/modeling cost.
+      Each project owns its TLA+ model, generated cases, application, adapter,
+      providers, predeclared mutants, and validation record. Run green controls
+      and every mutant with multiple deterministic seeds, prove replay and
+      cleanup, and add a Test Graph node that validates all three. Measure
+      authoring footprint, retrieval surface, generated states/cases, runtime,
+      provider/adapter code, mutation kills by semantic bug class, bypasses,
+      unsupported effects, run-to-run divergence, and whether an agent can
+      onboard using the shipped docs without framework changes. Record
+      findings before fixing them. Produce a go/no-go recommendation and a
+      prioritized backlog for effectful modeling, including whether a standard
+      response-plan schema, stronger bypass detection, or Java belongs next.
+    desired_actions: []
+    implementation_scope:
+      - examples/effect_providers/atomic_publisher/ (explicit DI, stateful filesystem)
+      - examples/effect_providers/legacy_payment_http/ (legacy/self-installed HTTP patch)
+      - examples/effect_providers/reminder_worker/ (multiple ordered stateful providers)
+      - predeclared hypotheses/mutants, raw run evidence, comparison report, and recommendations
+      - test_graph effectProviderExamples node
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+        - each example's documented local unit/control/mutant commands
+      graph_after_unit_pass:
+        - effectProviderExamples
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-03
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+        - python skills/test_graph/scripts/run.py effectProviderExamples
+      assertions:
+        - The three named projects exercise explicit DI, legacy monkeypatching, and ordered multi-provider state respectively; none requires a framework code change to add its provider.
+        - Expected behavior, cost hypotheses, semantic bug classes, and mutant matrix are committed before validation runs, so success is not defined post hoc.
+        - Every project has a green control, content/value assertions, more than one deterministic seed, a recorded replay proof for at least one failure, and cleanup/isolation proof.
+        - The report distinguishes bugs killed by TLA-derived case semantics from bugs killed only by provider-owned assertions and from survivors/bypasses.
+        - Results include exact counts/timings/footprints and an honest cost-benefit verdict per project plus one overall go/no-go recommendation.
+        - Surviving mutants, bypasses, nondeterminism, or documentation failures remain visible as findings and become prioritized follow-up recommendations rather than being deleted or tuned away.
+        - The examples and effectProviderExamples graph run green from a fresh checkout of the epic branch.
+        - "Host workflow remains zero-model-delta unless new observable CLI behavior landed; each example's own TLA+ model is checked with TLC and its generated cases are the cases actually fuzzed."
       evidence: []
