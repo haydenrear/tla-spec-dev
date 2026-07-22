@@ -684,3 +684,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-07
+
+- close_scope: ticket
+- close_id: CD-07
+- workflow: complexity-descriptor-main-readiness
+- closed_at: 2026-07-22T21:25:34+00:00
+- summary: Advisory-doctrine language and UX polish: scaffold epilog and generated manifests speak the advisory doctrine (VAL-04); manifest fitness rules under bare python3 emit the documented PyYAML CONFIG ERROR (VAL-01); retired fuzzing-era budget keys no longer warn (VAL-02); no-manifest warning names no sentinel path (CD-02-DF-01); justification-table schema documented (VAL-05); run_tlc.sh leaves no states/ scratch dir (VAL-03); write-only-state test added to the intuition doc from the recorded ex3 divergence (VAL-15); action_count fact description corrected (CD-06-DF-01). Zero TLA+ model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
