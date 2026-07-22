@@ -8,7 +8,7 @@
 # active priority lane is EP-01 -> EP-02 -> EP-03.
 version: 1
 name: effect-provider-epic
-updated: "2026-07-21"
+updated: "2026-07-22"
 purpose: "Test the smallest useful effectful-modeling architecture: generated TLA+ cases select typed semantic effect ports; project-owned providers bind those ports around each case; deterministic fuzz iterations explore concrete values inside the case's modeled semantic outcome; and three diverse example projects measure authoring cost, mutation kills, replay, cleanup, modularity, and abstraction limits."
 
 epic:
@@ -2113,7 +2113,7 @@ tickets:
 
   - id: EP-03
     title: "Three effectful-modeling projects, mutation evidence, and recommendation"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/79"
     schedule_revision: 1
     depends_on: [EP-02]
@@ -2182,4 +2182,22 @@ tickets:
         - Surviving mutants, bypasses, nondeterminism, or documentation failures remain visible as findings and become prioritized follow-up recommendations rather than being deleted or tuned away.
         - The examples and effectProviderExamples graph run green from a fresh checkout of the epic branch.
         - "Host workflow remains zero-model-delta unless new observable CLI behavior landed; each example's own TLA+ model is checked with TLC and its generated cases are the cases actually fuzzed."
-      evidence: []
+      evidence:
+        - examples/effect_providers/PREREGISTRATION.yaml
+        - examples/effect_providers/RESULTS.md
+        - examples/effect_providers/RESULTS.json
+        - examples/effect_providers/atomic_publisher/evidence/atomic-publisher-raw.json
+        - examples/effect_providers/legacy_payment_http/evidence/reviewed-local-repetition-2.json
+        - examples/effect_providers/reminder_worker/evidence/runs/reviewed-parser-parity-2/results.json
+        - specs/tickets/EP-03/results/fresh-checkout-validation.md
+        - specs/tickets/EP-03/results/effect-provider-graph-final.md
+        - specs/tickets/EP-03/results/host-graphs.md
+        - specs/tickets/EP-03/results/repository-unit-tests.md
+        - specs/tickets/EP-03/results/spec-unit-tests.md
+        - specs/tickets/EP-03/results/tlc-current.md
+        - specs/tickets/EP-03/results/skill-validation.md
+        - specs/tickets/EP-03/results/zero-model-delta.md
+        - specs/tickets/EP-03/results/analyze-complexity.json
+        - specs/tickets/EP-03/results/complexity_ledger.yaml
+        - specs/tickets/EP-03/results/validation-summary.md
+        - specs/results/ep03-post-close-validation.md

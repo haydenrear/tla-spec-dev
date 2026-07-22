@@ -1,0 +1,72 @@
+actions:
+  AuthorizeApproved:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeDeclined:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeBadRequest:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeTransientThenApproved:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeTimeoutThenDuplicateApproved:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeExhaustedUnavailable:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  AuthorizeMalformedResponse:
+    layer: internal
+    controllability: unit_direct
+    generates: [spec_unit]
+    effect_ports: [PaymentHttpPort]
+  SubmitApproved:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitDeclined:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitBadRequest:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitTransientThenApproved:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitTimeoutThenDuplicateApproved:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitExhaustedUnavailable:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+  SubmitMalformedResponse:
+    layer: external
+    controllability: e2e_direct
+    generates: [testgraph]
+    effect_ports: []
+

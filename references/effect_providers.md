@@ -237,11 +237,52 @@ responses from arbitrary TLA+, and does not prove service equivalence. Java and
 other runtimes need their own entrypoint/provider bridge; Python patches do not
 cross a process boundary.
 
-Most importantly, effectful bug-finding remains **not yet validated**. MF-038
-caught **0/9** subtle content/value/field/count mutations because the available
-oracles checked existence and exit status rather than content. The provider kit
-fixes lifecycle, reproducibility, replay, and pluggability; it does not erase
-that evidence. EP-03 must run diverse example-project validations and mutation
-probes before the architecture can claim that effectful modeling earns its
-cost. Until then, use this as a disciplined experimental harness and report
-what its oracles actually distinguish.
+## EP-03 evidence
+
+Effectful bug-finding is now validated for three fixed, preregistered Python
+catalogs—not universally. EP-03 deliberately followed MF-038's **0/9** result,
+where existence/exit-only oracles missed content, value, field, and count bugs.
+The new examples use content/value assertions, projected state, provider-local
+protocol checks, passive bypass detection, green controls, exact replay, and
+cleanup gates:
+
+| Project shape | Generated/effectful | Separate hand baseline | Expected detector ownership |
+|---|---:|---:|---|
+| Injected atomic filesystem | 12/12 | 10/12 | 8 TLA, 3 provider, 1 passive |
+| Legacy HTTP monkey patch | 12/12 | 12/12 | 2 TLA, 10 provider |
+| Four-provider reminder workflow | 12/12 | 8/12 | 5 TLA, 7 provider/journal |
+
+The 36/36 and 30/36 totals are descriptive reconciliation across different
+catalogs and baseline scenario sets, not a pooled effect size. Every killed
+mutant was found in iteration zero; only controls exercised all deterministic
+representatives. The result therefore validates fixed-catalog oracle coverage;
+discovery from later fuzz representatives is not yet validated, nor is broad
+generalization. Exact counts, costs, attribution, bypasses, raw
+evidence, and the conditional go decision are in
+[`examples/effect_providers/RESULTS.md`](../examples/effect_providers/RESULTS.md).
+
+The response boundary survived the experiments: keep semantic outcomes in
+TLA+ and concrete representations in providers. The important missing layer is
+a normalized effect plan generated from modeled transition annotations. It
+should carry response class, order/cardinality, semantic command fields, and
+projection obligations, plus generic point-scoped correlated-bundle, monotonic-
+journal, and snapshot-composition utilities. Domain assertions remain project-
+owned. Do not turn TLA+ into a byte-level per-call response script.
+
+Two fresh-checkout findings qualify the word **typed**. First, optional PyYAML
+made valid inline-map manifests generate different contracts than the built-in
+fallback; the reminder example now uses dependency-invariant nested mappings
+and compares complete generated trees both normally and under `python -S`, but
+the shared parser remains `DEF-002`. Second, Python `runtime_checkable`
+Protocols check method presence, not command arity, annotations, or result
+types. Treat `isinstance(binding, Port)` as a structural preflight until
+generated signature/static-type conformance closes `DEF-003`.
+
+Use explicit injection by default. Treat monkey patches as declared legacy
+compatibility surfaces with bypass probes and a stronger external/real-service
+rung. Add collect/continue mode before claiming that later representatives add
+discovery power. Preserve the originating virtualenv in replay commands. A
+Java bridge should follow parser parity, signature conformance, semantic-plan,
+and replay fixes and should use
+JVM-native typed providers plus an external entrypoint, not Python patches as a
+universal cross-language effect service.
