@@ -1,0 +1,13 @@
+Command:
+uv run --with pytest --with pyyaml -m pytest tests -q
+
+Result:
+615 passed in 11.30s
+
+Focused correction matrix:
+uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_fuzzing.py -q -k 'opaque_collision or temporary_root_provider_lifecycle or self_installed_patch_remains or preserves_control_flow_primary'
+5 passed, 38 deselected in 0.47s
+
+EP-01/EP-02 coexistence regression:
+uv run --with pytest --with pyyaml -m pytest tests/test_effect_provider_fuzzing.py tests/test_effect_provider_runtime.py -q
+85 passed in 2.04s

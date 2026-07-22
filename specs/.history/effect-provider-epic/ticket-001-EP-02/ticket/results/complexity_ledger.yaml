@@ -19,14 +19,24 @@
 # targets it cannot see; treating that as passing here would rebuild the silence.
 retention:
   kill_rate:
-    status: "TODO"
-    evidence: "TODO -- path to the kill-test report"
+    status: "incomplete_catalog"
+    evidence: >-
+      CARRIED FORWARD from EP-01/MF-030. EP-02 adds deterministic provider-owned
+      representative campaigns but does not add or claim a repository-wide
+      mutant catalog. The inherited non-passing verdict remains explicit.
   effect_conformance:
-    status: "TODO"
-    evidence: "TODO -- path to the effect-conformance report"
+    status: "unobservable"
+    evidence: >-
+      CARRIED FORWARD from EP-01 for the subprocess-driven host CLI. EP-02 does
+      prove clean in-process coexistence between semantic providers and passive
+      observation, including temporary-root explicit DI and a self-installed
+      patch, in tests/test_effect_provider_fuzzing.py. It does not claim those
+      patches observe a child process, JVM, native client, or remote service.
   external_coverage:
-    status: "TODO"
-    evidence: "TODO -- path to the external coverage report"
+    status: "incomplete"
+    evidence: >-
+      CARRIED FORWARD from EP-01/MF-030. EP-02 adds no external-view adapter or
+      corpus coverage and therefore asserts no improvement on this axis.
 
 # Coverage audit -- MF-026. The completeness gate, distinct from the three
 # retention members above, which are all FIDELITY measures bounded to what is
@@ -50,16 +60,28 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
-justification: ""
+justification: >-
+  No TLA+ representation was added. EP-02 is host-side Python provider
+  orchestration, scaffolding, and author guidance; ticket current and desired
+  are byte-identical. The unchanged model was measured again: 5,619,356 states
+  generated, 231,621 distinct, depth 25, no error. The added host behavior is
+  essential for deterministic representative campaigns and exact replay.
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched for a smaller authoring/runtime representation and retained two
+    narrow helpers plus project-owned provider implementations. The TLA case
+    continues to own semantic outcome; the provider owns concrete responses,
+    state, and assertions. A central response language, universal interception,
+    Hypothesis/exhaustive orchestration, Java, and service libraries were
+    rejected for EP-02 rather than inflating the mechanism before EP-03 measures
+    three real projects.
+  measured: true       # results/tlc-current.txt
   applied: false       # if true, approved_by is required
   approved_by: ""
 
@@ -70,4 +92,18 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: >-
+  EP-02 adds a versioned stable seed protocol, bounded campaign iteration,
+  exact single-point replay, structured lifecycle diagnostics, project-owned
+  provider scaffolds, and small context-stack/temporary-root helpers. Provider
+  configuration and lazy binding are prepared across the corpus before any
+  application hook; each runtime point then gets isolated singleton batch
+  hooks, adapter/shared caches, provider resources, and opaque work paths.
+  Provider allocation and cleanup sit outside passive application observation,
+  while adapter setup/run/assertion/teardown remains within both provider and
+  observation scopes. This prevents harness filesystem churn from becoming a
+  false effect without hiding application calls through injected bindings or
+  installed patches. Review corrections, exact validation, explicit limits,
+  and the zero-model-delta rationale are recorded in
+  results/validation-summary.md, results/review-correction.txt, and
+  results/zero-model-delta.md.

@@ -564,3 +564,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EP-02
+
+- close_scope: ticket
+- close_id: EP-02
+- workflow: effect-provider-epic
+- closed_at: 2026-07-22T04:19:37+00:00
+- summary: Add deterministic provider campaigns, exact replay, project-owned helper scaffolds, and effect-safe lifecycle isolation with zero host-model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
