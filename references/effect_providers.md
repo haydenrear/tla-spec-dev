@@ -256,8 +256,8 @@ The 36/36 and 30/36 totals are descriptive reconciliation across different
 catalogs and baseline scenario sets, not a pooled effect size. Every killed
 mutant was found in iteration zero; only controls exercised all deterministic
 representatives. The result therefore validates fixed-catalog oracle coverage;
-discovery from later fuzz representatives and broad generalization are not yet
-validated. Exact counts, costs, attribution, bypasses, raw
+discovery from later fuzz representatives is not yet validated, nor is broad
+generalization. Exact counts, costs, attribution, bypasses, raw
 evidence, and the conditional go decision are in
 [`examples/effect_providers/RESULTS.md`](../examples/effect_providers/RESULTS.md).
 
