@@ -23,15 +23,17 @@ MF-011 gave the state-space bound: over budget prints a report and exits
 nonzero. It does not trim. There are two legitimate responses, and neither
 one deletes anything:
 
-1. **Fix the diagram.** A lopsided corpus is evidence about the
-   representation, not noise to clean up. A model emitting two hundred
-   near-identical cases for one action and two for another is enumerating
-   redundancy: interchangeable values that want symmetry reduction,
-   unconstrained orderings that want a state constraint, or an action enabled
-   across many equivalent states that wants abstraction. The corpus is the
-   symptom; the diagram is the defect. This module's job is to name which of
-   those three it is, from what actually varies across the redundant group,
-   so the fix can be made at the source.
+1. **Redesign.** A lopsided corpus is evidence about the representation,
+   not noise to clean up. A model emitting two hundred near-identical cases
+   for one action and two for another is enumerating redundancy:
+   interchangeable values, an unconstrained ordering, or an action enabled
+   across many equivalent states. The corpus is the symptom; the diagram is
+   the defect. This module's job is to measure which of those three it is,
+   from what actually varies across the redundant group, and then ask the
+   question: can the architecture be redesigned to make the program simpler,
+   so the redundancy is never generated? That judgment belongs to the
+   reader, made with the complexity descriptor (``analyze complexity``) and
+   ``references/complexity_intuition.md``.
 2. **Raise the cap**, with a recorded one-line rationale. Caps are
    per-program and negotiable like every other budget. That is an explicit,
    reviewable decision, and :func:`accept_path_snippet` prints the exact
@@ -44,8 +46,11 @@ chooses which cases live. Named regression traces are likewise always
 retained -- trivially so, because nothing is ever dropped -- and are reported
 separately so that fact is visible rather than merely true.
 
-Remediation output is a RECOMMENDATION REQUIRING USER APPROVAL, never
-auto-applied, under the same rule as ``analyze complexity``'s suggested move.
+The failure output states findings and asks a REDESIGN QUESTION; it never
+prescribes a move and nothing is ever auto-applied. The judgment inputs are
+the complexity descriptor (``analyze complexity``) and
+``references/complexity_intuition.md``: take this complexity descriptor to
+consider how to refactor complexity out of the app.
 """
 
 from __future__ import annotations
@@ -89,8 +94,17 @@ STARVED_FRACTION = 0.05
 # How many varying fields the report names before it stops listing.
 MAX_VARYING_FIELDS = 8
 
-RECOMMENDATION_BANNER = (
-    "RECOMMENDATION REQUIRING USER APPROVAL -- not applied automatically."
+# The over-cap failure output ends with this question, never a prescribed
+# move. The gate measures; the reader judges, with the complexity descriptor
+# and the intuition doc as the judgment inputs (CD-04, resolving VAL-13).
+REDESIGN_QUESTION = (
+    "REDESIGN QUESTION: can the architecture be redesigned to make the\n"
+    "program simpler, so these cases are never generated? That judgment is\n"
+    "yours, not this tool's: take the complexity descriptor\n"
+    "(`tla-spec-dev analyze complexity`) together with\n"
+    "references/complexity_intuition.md and consider how to refactor\n"
+    "complexity out of the app. Nothing is prescribed here, and nothing is\n"
+    "applied automatically."
 )
 
 
@@ -240,7 +254,6 @@ class RedundantGroup:
     distinct_source_states: int
     cause: str
     cause_evidence: tuple[str, ...]
-    recommendation: str
 
     @property
     def overage(self) -> int:
@@ -427,13 +440,14 @@ def classify_cause(
     varying: Sequence[VaryingField],
     distinct_change_shapes: int,
     distinct_source_states: int = 0,
-) -> tuple[str, tuple[str, ...], str]:
-    """Name the representation defect behind a redundant group.
+) -> tuple[str, tuple[str, ...]]:
+    """Name the representation pattern behind a redundant group.
 
-    Returns ``(cause, evidence, recommendation)``. The three causes are the
-    three moves in ``references/architecture_tractability.md``, and the
-    recommendation is always a recommendation -- the caller prints it for the
-    user to approve, and nothing applies it.
+    Returns ``(cause, evidence)``. Both are measurements: the cause names the
+    redundancy fingerprint the group matched, and the evidence lists the
+    observations that matched it. Nothing here prescribes a fix -- what to do
+    about the pattern, if anything, is the reader's redesign judgment, made
+    with the complexity descriptor and ``references/complexity_intuition.md``.
     """
     total = len(cases)
     params_vary = [v for v in varying if v.field.startswith("params.")]
@@ -459,9 +473,6 @@ def classify_cause(
                 f"every value is a permutation of the same multiset across {total} cases",
                 "TLC enumerated each interleaving because nothing declares the order irrelevant",
             ),
-            "Add a state constraint (or a canonical order) fixing the sequence "
-            "where the ordering carries no meaning, so the interleavings are "
-            "never generated.",
         )
 
     # 2. Interchangeable values. Parameters sweep a domain while the
@@ -476,9 +487,6 @@ def classify_cause(
                 f"{distinct_change_shapes} distinct change shape(s) across {total} cases",
                 "the cases differ in which value was chosen, not in what the action does",
             ),
-            "Declare the interchangeable values a symmetry set (TLC "
-            "`SYMMETRY`/`Permutations`), or shrink the constant to the "
-            "smallest set that still distinguishes the behavior.",
         )
 
     # 3. Action enabled across many equivalent states. One structural
@@ -493,9 +501,6 @@ def classify_cause(
                 f"{distinct_source_states} distinct source states in the reachable graph",
                 "the action does one thing, generated once per reachable state that enables it",
             ),
-            "Abstract the before-state: replace the concrete carrier with the "
-            "predicate the action actually reads, so equivalent states collapse "
-            "into one.",
         )
 
     fields = ", ".join(v.field for v in varying[:3]) or "nothing"
@@ -506,9 +511,6 @@ def classify_cause(
             f"most-varying field(s): {fields}",
             "the group does not match the ordering, symmetry, or abstraction fingerprint",
         ),
-        "Inspect the varying fields below and decide which of symmetry "
-        "reduction, a state constraint, or abstraction removes the redundancy "
-        "at the source.",
     )
 
 
@@ -555,7 +557,7 @@ def analyze_corpus(
         varying, constant = varying_fields(members)
         shapes = len({change_shape(c) for c in members})
         sources = len({case_source_node(c) for c in members})
-        cause, evidence, recommendation = classify_cause(members, varying, shapes, sources)
+        cause, evidence = classify_cause(members, varying, shapes, sources)
         over.append(
             RedundantGroup(
                 scope=scope,
@@ -571,7 +573,6 @@ def analyze_corpus(
                 distinct_source_states=sources,
                 cause=cause,
                 cause_evidence=evidence,
-                recommendation=recommendation,
             )
         )
 
@@ -757,14 +758,20 @@ def render_report(report: CorpusReport) -> str:
         for item in group.cause_evidence:
             lines.append(f"    - {item}")
         lines.append("")
-        lines.append(f"  Suggested move: {group.recommendation}")
-        lines.append(f"  {RECOMMENDATION_BANNER}")
-        lines.append("")
 
+    lines.append(
+        "The measurements above are the finding. This gate prescribes nothing"
+    )
+    lines.append("and applies nothing; it refuses, and leaves the judgment to you.")
+    lines.append("")
+    lines.append(REDESIGN_QUESTION)
+    lines.append("")
     lines.append("Two ways forward, and neither deletes a case:")
     lines.append("")
-    lines.append("  1. FIX THE DIAGRAM so the redundant cases are never generated.")
-    lines.append("     Apply the suggested move above, once the user approves it.")
+    lines.append("  1. REDESIGN so the redundant cases are never generated -- if,")
+    lines.append("     taking the descriptor and references/complexity_intuition.md")
+    lines.append("     as the judgment inputs, you conclude the architecture can be")
+    lines.append("     made simpler.")
     lines.append("")
     lines.append("  2. " + accept_path_snippet(report).replace("\n", "\n     "))
     return "\n".join(lines)

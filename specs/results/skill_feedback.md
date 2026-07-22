@@ -636,3 +636,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-04
+
+- close_scope: ticket
+- close_id: CD-04
+- workflow: complexity-descriptor-main-readiness
+- closed_at: 2026-07-22T20:23:48+00:00
+- summary: CD-04: corpus gate speaks a factual finding plus a redesign question (descriptor + complexity_intuition.md as judgment inputs), never a prescribed move; repo-wide suggestion sweep recorded with per-occurrence dispositions; refusal/accept semantics unchanged; zero TLA+ model delta
+- feedback_status: none-found
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
