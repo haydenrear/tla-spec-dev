@@ -24,7 +24,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, get_type_hints
 
 try:
     from .effect_conformance import (
@@ -427,6 +427,82 @@ def _load_provider(reference: str) -> Any:
             f"provider {reference!r} must implement EffectProvider.bind(context)"
         )
     return provider
+
+
+def _display_annotation(annotation: Any) -> str:
+    if annotation is type(None):
+        return "None"
+    return getattr(annotation, "__name__", str(annotation).replace("typing.", ""))
+
+
+def _resolved_annotations(method: Any, *, port_name: str, method_name: str, side: str) -> dict[str, Any]:
+    try:
+        return get_type_hints(method)
+    except Exception as exc:
+        raise TypeError(
+            f"generated port {port_name}.{method_name} {side} annotations could not be resolved: {exc}"
+        ) from exc
+
+
+def _validate_generated_port_signature(value: Any, binding: ResolvedEffectProvider) -> None:
+    """Enforce the generated Protocol's callable shape before application hooks."""
+
+    for method_name, expected_method in binding.protocol.__dict__.items():
+        if method_name.startswith("_") or not inspect.isfunction(expected_method):
+            continue
+        actual_method = getattr(value, method_name, None)
+        if not callable(actual_method):
+            # Runtime Protocol membership reports this case before this helper.
+            continue
+
+        expected_parameters = list(inspect.signature(expected_method).parameters.values())
+        if expected_parameters and expected_parameters[0].name in {"self", "cls"}:
+            expected_parameters = expected_parameters[1:]
+        actual_parameters = list(inspect.signature(actual_method).parameters.values())
+
+        expected_shape = [(parameter.name, parameter.kind) for parameter in expected_parameters]
+        actual_shape = [(parameter.name, parameter.kind) for parameter in actual_parameters]
+        if actual_shape != expected_shape:
+            expected_text = ", ".join(name for name, _kind in expected_shape) or "no arguments"
+            actual_text = ", ".join(name for name, _kind in actual_shape) or "no arguments"
+            raise TypeError(
+                f"provider {binding.provider_reference!r} binding for generated port "
+                f"{binding.port_name}.{method_name} has incompatible parameters: "
+                f"expected {expected_text}; got {actual_text}"
+            )
+
+        expected_annotations = _resolved_annotations(
+            expected_method,
+            port_name=binding.port_name,
+            method_name=method_name,
+            side="expected",
+        )
+        actual_annotations = _resolved_annotations(
+            actual_method,
+            port_name=binding.port_name,
+            method_name=method_name,
+            side="provider",
+        )
+        for parameter in expected_parameters:
+            expected_annotation = expected_annotations.get(parameter.name, inspect.Signature.empty)
+            actual_annotation = actual_annotations.get(parameter.name, inspect.Signature.empty)
+            if actual_annotation != expected_annotation:
+                raise TypeError(
+                    f"provider {binding.provider_reference!r} binding for generated port "
+                    f"{binding.port_name}.{method_name} parameter {parameter.name!r} "
+                    f"annotation mismatch: expected {_display_annotation(expected_annotation)}; "
+                    f"got {_display_annotation(actual_annotation)}"
+                )
+
+        expected_return = expected_annotations.get("return", inspect.Signature.empty)
+        actual_return = actual_annotations.get("return", inspect.Signature.empty)
+        if actual_return != expected_return:
+            raise TypeError(
+                f"provider {binding.provider_reference!r} binding for generated port "
+                f"{binding.port_name}.{method_name} return annotation mismatch: "
+                f"expected {_display_annotation(expected_return)}; "
+                f"got {_display_annotation(actual_return)}"
+            )
 
 
 def load_effect_provider_plan(
@@ -1634,6 +1710,8 @@ def _execute_points_in_batch(
                                         f"provider {binding.provider_reference!r} binding for {binding.port_name} "
                                         f"does not implement generated port {binding.port_name}"
                                     )
+                                if value is not None:
+                                    _validate_generated_port_signature(value, binding)
                                 bound_effects[binding.port_name] = value
                             case_context.effects = MappingProxyType(bound_effects)
 
@@ -1973,7 +2051,7 @@ def build_replay_command(
     """Return an absolute, shell-safe command for exactly one failed point."""
 
     command = [
-        str(Path(sys.executable).resolve()),
+        str(Path(sys.executable).absolute()),
         str(Path(__file__).resolve()),
         str(args.cases_dir.resolve()),
         "--mapping",

@@ -597,3 +597,12 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - closed_at: 2026-07-22T23:00:46+00:00
 - summary: Replaced the public domain-flavored helper surface with one required agent-authored EffectProvider.bind(context) object contract; callable-only providers fail closed; scaffolds and authoring guidance are neutral; provider usage evidence is local; the historical twelve-gap example audit remains unchanged and explicitly scoped. Zero host-model delta.
 - feedback_status: none-found
+
+## Close-out ticket EP-05
+
+- close_scope: ticket
+- close_id: EP-05
+- workflow: effect-provider-epic
+- closed_at: 2026-07-22T23:13:47+00:00
+- summary: Resolved DEF-001 through DEF-003: replay retains a dependency-bearing virtualenv, one constrained parser makes generated trees dependency-invariant and rejects inline maps, and binding methods must match generated arity plus parameter/return annotations before application execution. Zero host-model delta.
+- feedback_status: none-found

@@ -21,13 +21,17 @@ evidence about the interface, not a reusable provider library.
 Declare the repository's own abstraction in `spec_manifest.yaml`:
 
 ```yaml
+commands:
+  ApplyRepositoryEffect:
+    fields:
+      value:
+        type: str
 ports:
   RepositoryEffectPort:
     role: effect
     methods:
       apply:
-        params:
-          value: str
+        command: ApplyRepositoryEffect
         result: str
 ```
 
@@ -124,7 +128,9 @@ class AdvanceAdapter:
 
 The runner preflights all selected actions, ports, generated Protocols, and
 provider references before an application hook runs. A non-`None` entered
-value must implement the selected generated Protocol.
+value must implement the selected generated Protocol. Every provider method
+must also match the generated parameter names/kinds, parameter annotations, and
+return annotation. A method-name-only object fails before adapter setup.
 
 Record each provider's local contract in `effect_provider_usage.yaml`:
 
@@ -228,10 +234,17 @@ The interface is currently Python-native. Another runtime needs a native typed
 provider and an explicit application entrypoint; a Python scope is not a
 universal cross-process interception mechanism.
 
-Runtime-checkable Protocols establish structural presence. Generated signature
-metadata and stricter arity/annotation validation are tracked separately.
-Replay must preserve the originating interpreter, and manifest parsing must be
-dependency-invariant; those hardening items are also tracked separately.
+Runtime validation checks structural presence plus generated callable shapes
+and annotations. It does not execute methods to prove that returned values
+match annotations, and it does not prove behavioral substitutability; use the
+generated contract tests and a repository static type-check rung for those
+claims.
+
+Manifest loading uses one constrained parser whether or not optional YAML
+packages are installed. Inline mappings are outside that supported syntax and
+fail with an instruction to use indented mappings. Replay commands retain the
+originating interpreter path, including a dependency-bearing virtualenv, and
+remain absolute so they work from another directory.
 
 This is deterministic representative enumeration, not exhaustive value search.
 It does not provide automatic shrinking, infer service semantics, or prove

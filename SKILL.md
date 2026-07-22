@@ -191,7 +191,12 @@ returns a standard context manager. Record its binding style, state scope, fuzz
 dimensions, assertions, cleanup, and bypass limits in
 `effect_provider_usage.yaml`. The provider decides which deterministic
 representatives to enumerate from `context.derived_seed`; the harness schedules
-and replays them.
+and replays them. Implement every entered binding method with the exact
+generated parameter shape and parameter/return annotations; runtime preflight
+rejects method-name-only lookalikes before adapter setup. Keep manifests within
+the dependency-invariant constrained YAML profile (use indented mappings, not
+inline mappings), and run recorded replay commands without replacing their
+originating virtualenv interpreter.
 For moving an existing repository onto this shape, read `references/migration.md`.
 
 ## Internal/External Test Graph Views
