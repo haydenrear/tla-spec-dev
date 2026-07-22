@@ -552,3 +552,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EP-01
+
+- close_scope: ticket
+- close_id: EP-01
+- workflow: effect-provider-epic
+- closed_at: 2026-07-22T02:32:06+00:00
+- summary: Added typed project-owned effect-provider lookup and failure-safe Python batch lifecycle with zero host TLA+ model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

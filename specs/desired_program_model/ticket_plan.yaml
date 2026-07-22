@@ -1955,7 +1955,7 @@ previous_epic_tickets:
 tickets:
   - id: EP-01
     title: "Typed effect-provider lookup and case lifecycle"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/77"
     schedule_revision: 1
     depends_on: []
@@ -2019,7 +2019,19 @@ tickets:
         - Legacy batches with no semantic effect ports behave exactly as before; provider-bearing legacy non-batch/export paths are rejected rather than silently ignored.
         - Passive effect observation is unchanged and no generic per-call response-plan schema is introduced.
         - "Zero host TLA+ model delta unless a new observable CLI transition is actually added; current == desired and TLC/spec-unit evidence records the decision."
-      evidence: []
+      evidence:
+        - specs/tickets/EP-01/results/repository-unit-tests.txt
+        - specs/tickets/EP-01/results/spec-unit-tests.txt
+        - specs/tickets/EP-01/results/tlc-current.txt
+        - specs/tickets/EP-01/results/graph-reports/specWorkflow-20260722-022801-d6bb9143/summary.json
+        - specs/tickets/EP-01/results/graph-reports/cliWorkflow-20260722-022830-2e10191c/summary.json
+        - specs/tickets/EP-01/results/validation-summary.md
+        - specs/tickets/EP-01/results/zero-model-delta.md
+        - specs/results/ep01-post-review-regression.md
+        - specs/results/ep01-post-review-focused.txt
+        - specs/results/ep01-post-review-full.txt
+        - specs/results/ep01-post-review-graphs/specWorkflow-20260722-025000-233a069f/summary.json
+        - specs/results/ep01-post-review-graphs/cliWorkflow-20260722-025027-fd4e26ca/summary.json
 
   - id: EP-02
     title: "Provider authoring kit and deterministic fuzz/replay loop"
