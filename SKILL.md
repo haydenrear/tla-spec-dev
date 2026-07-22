@@ -49,8 +49,13 @@ suggestions may return later, earned from real-app observations.) It is
 promotion, never refuses case generation, and never changes its exit code**
 because a model is complex (it exits nonzero only when it genuinely cannot
 parse the model). A reader should expect it to show where the complexity
-lives; deciding what to do about it is the owner's design work. How to read
-its output is in "Complexity Budgets Are Advisory" below and in
+lives; deciding what to do about it is the owner's design work. The working
+framing is: **take this complexity descriptor to consider how to refactor
+complexity out of the app** — the descriptor is refactoring *input* the agent
+reads and judges, never automated moves. How to read a descriptor — what good
+and bad shapes look like, with worked examples — is
+`references/complexity_intuition.md`; the advisory stance is in "Complexity
+Budgets Are Advisory" below and in
 `references/architecture_tractability.md`, "Advisory, Not Blocking".
 
 **EXPERIMENTAL — the modular-fuzzing machinery (oracles, corpus, mutation kill
@@ -539,10 +544,17 @@ generation and TLC state-graph case generation. Read
 The standing objective of this workflow is **reducing program complexity while
 retaining every behavior**. The shipped complexity scanner provides the metric;
 design becomes the place you spend it — look for complexity reductions on every
-ticket, not only when the scanner warns. Never game the metric by
-under-representing the program: a complexity drop is only evidence when reported
-jointly with behavior-retention evidence. See "The Standing Objective" in
-`references/architecture_tractability.md`.
+ticket, not only when the scanner warns. Whenever a descriptor is produced,
+take it to consider how to refactor complexity out of the app: read it with
+`references/complexity_intuition.md` (what good and bad descriptor shapes look
+like, how complex a program should be, and the reading order for deciding
+whether/how to refactor — intuitions the agent judges with, not automated
+moves). A **validated** refactor that lowers complexity — model green under
+TLC and tests, behavior preserved, before/after descriptors compared — is
+encouraged as normal practice, not an exceptional event. Never game the metric
+by under-representing the program: a complexity drop is only evidence when
+reported jointly with behavior-retention evidence. See "The Standing
+Objective" in `references/architecture_tractability.md`.
 
 **Budgets are advisory thresholds, not gates.** They are per-program and set with
 the user during scaffolding: propose the defaults in
@@ -1073,6 +1085,12 @@ current change.
   when the descriptor shows a squeeze (the descriptor itself suggests
   nothing), user-approval rules, creative representations for irreducible
   pieces, and the grow-by-evidence modeling loop.
+- `references/complexity_intuition.md`: how to read a complexity descriptor
+  as refactoring input — good vs bad descriptor shapes with worked real-run
+  examples, how complex a program should be (proportional to essential
+  behavior), the validated-refactor practice, and the reading order for
+  deciding whether/how to refactor. Intuitions to judge with, never
+  automated suggestions.
 - `references/migration.md`: migrating an existing repository onto modular
   representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases

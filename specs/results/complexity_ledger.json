@@ -2544,6 +2544,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CD-02",
+      "workflow": "complexity-descriptor-epic",
+      "recorded_at_utc": "2026-07-22T00:45:24.733206+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CD-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the kill-test report",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the effect-conformance report",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the external coverage report",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=(absent) (UNVERIFIED)",
+        "effect_conformance=(absent) (UNVERIFIED)",
+        "external_coverage=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Zero-delta ticket. CD-02 is a docs-only change (new references/complexity_intuition.md plus SKILL.md wiring of the \"take this complexity descriptor to consider how to refactor complexity out of the app\" framing). The TLA+ model, configs, manifest, adapters and tests are byte-identical to the epic baseline merged by CD-01 (ticket current/ == desired/, verified by diff -r), and TLC reports the same figures as CD-01: 5,619,356 states generated / 231,621 distinct / depth 25 (results/tlc_current.txt), 46.3% of the negotiated max_distinct_states 500000 carried through desired/spec_manifest.yaml with its rationale. The refinement search for an architectural reduction found none applicable: the ticket's objective is to teach descriptor reading, not to change the model. The doc's before/after worked example was produced on external scratch models, not on this program's model.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CD-02 writes the complexity intuition: references/complexity_intuition.md, a doc an agent reads ALONGSIDE an `analyze complexity` descriptor to decide whether and how to refactor. It covers: the \"how complex should a program be\" best practice (complexity proportional to essential behavior; a validated refactor that lowers complexity -- TLC/tests green, behavior preserved, before/after descriptors compared -- is encouraged as normal practice, not an exceptional event); what good and bad descriptor shapes look like, section by section of the real output; five worked examples, every excerpt verbatim scanner output from real runs (a modular two-subsystem model with Q=0.314 and one port-crossing action; a pipeline showing Q=0.000 on a clean single-writer design; a god-state model with oversized domains, unconstrained variables and a TLC run that did not finish in 120s; the validated before/after refactor of that model, bound 1,654,784 -> 576 with TLC going from timeout to green 36 distinct states; and this repository's own program_model descriptor as the mixed real-world case, including the deliberate lastCommand/result observability unknowns and the max_distinct_states 500000 budget rationale); and a reading order for forming a refactor recommendation. Everywhere explicit: intuitions for the agent to judge with, never automated moves -- CD-01 removed the suggested-move output because it was confidently wrong, and this doc makes no automated-suggestion claims on the scanner's behalf. SKILL.md wires the refactor-input framing into the shipped-descriptor paragraph, the \"Complexity Budgets Are Advisory\" doctrine, and the References index. Retention oracles (kill_rate/effect_conformance/external_coverage) were not re-run: the model is byte-identical to the CD-01 baseline, behavior retention is witnessed by the identical TLC run, and no complexity decrease is claimed that would require them. Per the epic's case_execution_rule the fuzzing machinery is experimental and not ticket validation. One out-of-scope defect deferred (batch mode): CD-02-DF-01, the misleading \"no readable spec manifest at does-not-exist\" warning path emitted from scripts/analyze_complexity.py:1044 when no --manifest is supplied.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
