@@ -133,8 +133,12 @@ def generated_cases() -> list[Any]:
     return list(CASES)
 
 
-def runner_command(*, fuzz_runs: int = FUZZ_RUNS) -> list[str]:
-    return [
+def runner_command(
+    *,
+    fuzz_runs: int = FUZZ_RUNS,
+    work_dir: Path | None = None,
+) -> list[str]:
+    command = [
         sys.executable,
         str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
         str(CASES_ROOT),
@@ -152,6 +156,9 @@ def runner_command(*, fuzz_runs: int = FUZZ_RUNS) -> list[str]:
         "--import-root",
         str(GENERATED_ROOT),
     ]
+    if work_dir is not None:
+        command.extend(["--work-dir", str(work_dir)])
+    return command
 
 
 def parse_failures(output: str) -> list[dict[str, Any]]:
@@ -194,7 +201,7 @@ def run_variant(run_root: Path, mutant: str | None) -> dict[str, Any]:
 
     started = time.perf_counter()
     completed = subprocess.run(
-        runner_command(),
+        runner_command(work_dir=variant_root / "runner-work"),
         cwd=PROJECT_ROOT,
         env=environment,
         text=True,

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from typing import get_type_hints
 
 
 ROOT = Path(__file__).resolve().parent
@@ -21,6 +22,29 @@ import run_experiment
 
 
 class ReminderWorkerExperimentTests(unittest.TestCase):
+    def test_provider_bindings_match_every_generated_protocol_signature(self) -> None:
+        from reminder_contract.ports import ClockPort, NotifierPort, OutboxPort, QueuePort
+        from providers import ClockBinding, NotifierBinding, OutboxBinding, QueueBinding
+
+        for protocol, binding in (
+            (ClockPort, ClockBinding),
+            (QueuePort, QueueBinding),
+            (OutboxPort, OutboxBinding),
+            (NotifierPort, NotifierBinding),
+        ):
+            for method_name, expected in protocol.__dict__.items():
+                if method_name.startswith("_") or not inspect.isfunction(expected):
+                    continue
+                with self.subTest(port=protocol.__name__, method=method_name):
+                    actual = getattr(binding, method_name)
+                    expected_parameters = list(inspect.signature(expected).parameters.values())[1:]
+                    actual_parameters = list(inspect.signature(actual).parameters.values())[1:]
+                    self.assertEqual(
+                        [(parameter.name, parameter.kind) for parameter in actual_parameters],
+                        [(parameter.name, parameter.kind) for parameter in expected_parameters],
+                    )
+                    self.assertEqual(get_type_hints(actual), get_type_hints(expected))
+
     def test_generated_contract_is_typed_and_fallback_reproducible(self) -> None:
         from reminder_contract.ports import ClockPort, NotifierPort, QueuePort
         from reminder_contract.types import QueueMutation, ReadClock, SendMessage

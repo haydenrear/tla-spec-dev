@@ -1,0 +1,67 @@
+{
+  "nodeId": "spec.workflow.failure_cleanup_probe",
+  "status": "passed",
+  "startedAt": "2026-07-22T23:48:44.431202Z",
+  "endedAt": "2026-07-22T23:48:53.980610Z",
+  "assertions": [
+    {
+      "name": "probe graph failed as expected",
+      "status": "passed"
+    },
+    {
+      "name": "probe report was written",
+      "status": "passed"
+    },
+    {
+      "name": "repo allocation node passed",
+      "status": "passed"
+    },
+    {
+      "name": "forced downstream failure was captured",
+      "status": "passed"
+    },
+    {
+      "name": "cleanup finalizer ran after failure",
+      "status": "passed"
+    },
+    {
+      "name": "allocated fixture repo removed after failure",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "cleanup-failure-probe-report",
+      "path": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/test_graph/build/validation-reports/specWorkflow-20260722-234842-c4973810/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-234852-af8fb7da/report.md"
+    },
+    {
+      "type": "cleanup-failure-probe-summary",
+      "path": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/test_graph/build/validation-reports/specWorkflow-20260722-234842-c4973810/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-234852-af8fb7da/summary.json"
+    },
+    {
+      "type": "cleanup-failure-probe-root",
+      "path": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/test_graph/build/validation-reports/specWorkflow-20260722-234842-c4973810/cleanup-failure-probe-test-graph"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cleanup-failure-probe",
+      "command": [
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/test_graph/build/validation-reports/specWorkflow-20260722-234842-c4973810/cleanup-failure-probe-test-graph/gradlew",
+        "--console=plain",
+        "cleanupFailureProbe"
+      ],
+      "exitCode": 1,
+      "pid": 96727,
+      "log": "node-logs/spec.workflow.failure_cleanup_probe.cleanup-failure-probe.log",
+      "error": null,
+      "startedAt": "2026-07-22T23:48:44.453040Z",
+      "endedAt": "2026-07-22T23:48:53.979896Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 9549
+  },
+  "logs": [],
+  "published": {}
+}

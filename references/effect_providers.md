@@ -264,3 +264,17 @@ model completeness, not whether the generic provider interface could be
 implemented by an agent. The contract reduction does not waive any gap or
 reclassify a failing example as framework success; repeated example validation
 must continue to report both SDK behavior and application-specific costs.
+
+Run all three projects against the current contract with fresh,
+non-overwriting evidence:
+
+```bash
+python3 examples/effect_providers/run_validations.py --all --fresh-evidence
+```
+
+Use `--project <name>` for an independent project and `--run-id <id>` when a
+stable external run identifier is useful. Each project owns the same
+`validate.py --run-id <id>` entrypoint and writes a versioned common result;
+the projects keep their own models, mutation catalogs, provider assertions,
+and real-boundary rungs. The shared schema and preservation rules live in
+`examples/effect_providers/VALIDATION_CONTRACT.md`.

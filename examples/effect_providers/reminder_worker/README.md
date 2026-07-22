@@ -69,6 +69,18 @@ needs an independent oracle; merely adding more fuzz values cannot create it.
 From the repository root, with the repository's `tlc2` command available:
 
 ```sh
+python3 examples/effect_providers/reminder_worker/validate.py --run-id <unique-run-id>
+```
+
+This repeatable entrypoint regenerates into the run directory, bounds each TLC
+invocation to 120 seconds, runs the green controls, fixed mutant catalog, exact
+replays, cleanup checks, focused tests, and the real CLI/external rung. It writes
+the common result schema and all persistent artifacts beneath
+`evidence/validation-runs/<run-id>/` and refuses to overwrite an existing run.
+
+The experiment's lower-level development commands remain available:
+
+```sh
 python3 examples/effect_providers/reminder_worker/regenerate.py
 python3 examples/effect_providers/reminder_worker/test_reminder_worker.py
 python3 examples/effect_providers/reminder_worker/run_experiment.py --run-id local-1

@@ -1,0 +1,81 @@
+{
+  "artifacts": [
+    "regeneration/tlc-generation.json",
+    "framework-baseline.json",
+    "processes/regenerate.json",
+    "experiment.json",
+    "experiment-raw/",
+    "processes/experiment.json",
+    "processes/focused-tests.json",
+    "processes/external-56-cases.json",
+    "processes/cross-cwd-replay.json",
+    "cross-cwd-replay/transcript.jsonl"
+  ],
+  "cases": {
+    "control_points": 1792,
+    "external": 56,
+    "generated": 112
+  },
+  "cleanup": {
+    "checked": 2477,
+    "clean": 2477
+  },
+  "command": [
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/validate.py",
+    "--run-id",
+    "agent-ep06-http-v3"
+  ],
+  "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+  "controls": {
+    "passed": 4,
+    "total": 4
+  },
+  "duration_seconds": 41.044327,
+  "limitations": [
+    "The provider is compatibility-only because it patches requests.Session.send.",
+    "Unrecognized clients, subprocesses, native networking, and already-captured callables can bypass an in-process patch.",
+    "The strong hand-written four-scenario baseline kills the same fixed mutants; this catalog demonstrates systematic coverage and replay, not incremental mutation score.",
+    "Killed mutants stop after the first complete killing iteration; only the green control and survivors execute all 32 iterations."
+  ],
+  "mutants": {
+    "killed": 12,
+    "total": 12
+  },
+  "oracle_findings": {
+    "passive_external": [
+      "urllib and raw-socket bypass probes",
+      "56 generated child-process cases against a real loopback HTTP server"
+    ],
+    "provider_owned": [
+      "concrete status timeout response bytes headers and opaque reference",
+      "requests.Session.send installation and request-shape assertions",
+      "per-point transcript state socket guard and cleanup"
+    ],
+    "tla_owned": [
+      "seven semantic response classes",
+      "decision reason reference class and retry count",
+      "expected output and projected post-state"
+    ]
+  },
+  "project": "legacy_payment_http",
+  "provider_contract": {
+    "name": "EffectProvider.bind",
+    "version": 1
+  },
+  "replay": {
+    "attempted": 13,
+    "exact": 13,
+    "from_different_working_directory": true,
+    "interpreter": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3",
+    "site_packages_import_root_workaround": false
+  },
+  "run_id": "agent-ep06-http-v3",
+  "schema_version": 1,
+  "seed": 20260721,
+  "status": "pass",
+  "usage_descriptor": {
+    "path": "effect_provider_usage.yaml",
+    "sha256": "b40e4ba434ff41f46b8f20159c2a8f6987db05be3d5fa5d53775f1e12e4a252a"
+  }
+}

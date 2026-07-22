@@ -26,6 +26,12 @@ CASE_ROOT = GENERATED_DIR / "cases"
 def main() -> int:
     parser = argparse.ArgumentParser(description="Regenerate typed port and TLC-derived atomic publisher cases.")
     parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"))
+    parser.add_argument(
+        "--provenance-out",
+        type=Path,
+        default=GENERATED_DIR / "provenance.json",
+        help="Write measured generation provenance here (defaults to the checked generated tree).",
+    )
     args = parser.parse_args()
 
     targets = [
@@ -125,7 +131,8 @@ def main() -> int:
         "typed_port_generator": "scripts/generate_python.py",
         "views": records,
     }
-    (GENERATED_DIR / "provenance.json").write_text(
+    args.provenance_out.parent.mkdir(parents=True, exist_ok=True)
+    args.provenance_out.write_text(
         json.dumps(provenance, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )

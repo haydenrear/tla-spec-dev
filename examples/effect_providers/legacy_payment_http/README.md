@@ -53,6 +53,17 @@ uv run --project . python ../../../scripts/run_generated_case_adapters.py \
   --spec-dir specs/program_model --import-root . --view external --batch
 ```
 
+The canonical repeatable validation runs from the repository root and writes
+only a new versioned evidence directory:
+
+```bash
+uv run --project examples/effect_providers/legacy_payment_http python \
+  examples/effect_providers/legacy_payment_http/validate.py \
+  --run-id my-unique-review-id
+```
+
+It refuses an existing run id and preserves all historical EP-03 evidence.
+
 Run the two preregistered local repetitions only after reviewing the immutable
 catalog and campaign gates:
 
@@ -73,10 +84,11 @@ Labels must be new because raw evidence directories are append-only.
 
 Use the same command with a new `--label fresh-checkout` in a clean checkout.
 The runner regenerates cases first, audits every forbidden framework surface
-against preregistration commit `141e63b`, refuses a red/incomplete control before
-mutants, and executes all 56 × 32 control points. A killed mutant stops after
-the first complete failing iteration (56 points at iteration zero in the
-accepted runs); only a survivor executes all 32 mutation iterations. Each first
+against its validation-start byte snapshot, refuses a red/incomplete control before
+mutants, and executes all 56 × 32 control points. A surviving mutant also
+executes all 56 × 32 mutation points. A killed mutant stops after the first
+complete failing iteration (56 points at iteration zero in the accepted runs),
+then replays that point exactly. Each first
 failure must replay with a nonzero exit, the same structured failure, and the
 same one-point transcript. Compressed raw transcripts and diagnostics are
 preserved under `evidence/raw/<label>/`.
@@ -142,9 +154,9 @@ process/network isolation is the stronger boundary for new code.
 3. Add collect/continue support to the effect runner. V0 stops after the first
    killing iteration, so a killed mutant proves one complete 56-case iteration
    plus exact replay; only survivors execute all 32 mutation iterations.
-4. Preserve the virtualenv interpreter in recorded replay commands. The current
-   shared runner resolves its symlink, so this project must pass the active
-   dependency site-packages as an explicit import root.
+4. Keep the regression that preserves the virtualenv interpreter in recorded
+   replay commands. The current runner needs no project-specific dependency
+   `site-packages` import root and replays verbatim from another directory.
 5. Treat method-level monkey patches as declared compatibility surfaces and add
    a standard bypass probe/process-isolation option. That makes interception
    limits visible instead of silently presenting a partial override as complete.

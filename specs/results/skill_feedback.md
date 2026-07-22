@@ -606,3 +606,12 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - closed_at: 2026-07-22T23:13:47+00:00
 - summary: Resolved DEF-001 through DEF-003: replay retains a dependency-bearing virtualenv, one constrained parser makes generated trees dependency-invariant and rejects inline maps, and binding methods must match generated arity plus parameter/return annotations before application execution. Zero host-model delta.
 - feedback_status: none-found
+
+## Close-out ticket EP-06
+
+- close_scope: ticket
+- close_id: EP-06
+- workflow: effect-provider-epic
+- closed_at: 2026-07-22T23:53:35+00:00
+- summary: Revalidated three independent agent-authored provider consumers with repeatable non-overwriting evidence: 140 generated cases, 36 unique fixed mutants, 37 exact replays, 3140 clean lifecycle checks, and 70 real-boundary cases. Recorded the Python-first generic-interface recommendation with zero host-model delta.
+- feedback_status: none-found

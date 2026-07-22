@@ -6,6 +6,7 @@ import json
 import random
 import shutil
 import time
+from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ from atomic_publisher_contract.types import (
     WriteFile,
     WriteFileResult,
 )
+from spec_double_compiler.runtime import EffectProviderContext
 
 
 ACTIVE_BINDINGS = 0
@@ -34,7 +36,7 @@ class PassiveBypassDetected(ProviderContractViolation):
 
 
 class AtomicFilesystemBinding:
-    def __init__(self, context: Any) -> None:
+    def __init__(self, context: EffectProviderContext) -> None:
         self.context = context
         self.started = time.perf_counter()
         self.rng = random.Random(context.derived_seed)
@@ -325,7 +327,9 @@ class AtomicFilesystemScope:
 
 
 class AtomicFilesystemProvider:
-    def bind(self, context: Any) -> AtomicFilesystemScope:
+    def bind(
+        self, context: EffectProviderContext
+    ) -> AbstractContextManager[Any | None]:
         return AtomicFilesystemScope(context)
 
 

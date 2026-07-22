@@ -1,0 +1,301 @@
+{
+  "duration_seconds": 58.981118,
+  "processes": {
+    "atomic_publisher": {
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-atomic_publisher"
+      ],
+      "duration_seconds": 8.334557,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"result\": \"/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/result.json\", \"run_id\": \"testgraph-1784764040160583000-atomic_publisher\", \"status\": \"pass\"}\n"
+    },
+    "legacy_payment_http": {
+      "command": [
+        "uv",
+        "run",
+        "--project",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http",
+        "python",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-legacy_payment_http"
+      ],
+      "duration_seconds": 40.490324,
+      "returncode": 0,
+      "stderr": "warning: `VIRTUAL_ENV=/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18` does not match the project environment path `examples/effect_providers/legacy_payment_http/.venv` and will be ignored; use `--active` to target the active environment instead\n",
+      "stdout": "{\"error\": null, \"result\": \"/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/evidence/validation-runs/testgraph-1784764040160583000-legacy_payment_http/result.json\", \"status\": \"pass\"}\n"
+    },
+    "reminder_worker": {
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-reminder_worker"
+      ],
+      "duration_seconds": 5.782139,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"result\": \"/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/result.json\", \"run_id\": \"testgraph-1784764040160583000-reminder_worker\", \"status\": \"pass\"}\n"
+    }
+  },
+  "projects": {
+    "atomic_publisher": {
+      "artifacts": [
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/regeneration.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/generated-provenance.json",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/framework-baseline.json",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/experiment.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/experiment.json",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/real-filesystem.json",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/focused-tests.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/steps.json"
+      ],
+      "cases": {
+        "control_points": 224,
+        "external": 7,
+        "generated": 14
+      },
+      "cleanup": {
+        "checked": 392,
+        "clean": 392
+      },
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-atomic_publisher"
+      ],
+      "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+      "controls": {
+        "passed": 2,
+        "total": 2
+      },
+      "duration_seconds": 8.296547,
+      "limitations": [
+        "the passive bypass audit sees only in-process files under the provider-owned root",
+        "the adapter duplicates scenario-to-expected-revision input semantics absent from the generated case",
+        "representative enumeration is deterministic but not exhaustive and does not shrink failures",
+        "the real filesystem rung injects bounded OS failures; it does not induce every host failure mode"
+      ],
+      "mutants": {
+        "killed": 24,
+        "total": 24
+      },
+      "oracle_findings": {
+        "passive_external": [
+          "bounded physical-file bypass audit under the provider root",
+          "real TemporaryDirectory filesystem outcomes matched 7/7",
+          "external subprocess CLI projects result and filesystem artifacts independently"
+        ],
+        "provider_owned": [
+          "deterministic concrete paths, record values, unrelated files, and OSError subclasses",
+          "canonical byte projection and strict per-point protocol journal",
+          "point-local state acquisition, active-binding accounting, and cleanup"
+        ],
+        "tla_owned": [
+          "seven distinct semantic outcome classes",
+          "result status, revision, and idempotence",
+          "projected symbolic record state",
+          "ordered filesystem protocol trace including delete_stage"
+        ]
+      },
+      "project": "atomic_publisher",
+      "provider_contract": {
+        "name": "EffectProvider.bind",
+        "version": 1
+      },
+      "replay": {
+        "attempted": 12,
+        "exact": 12,
+        "interpreter": "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3"
+      },
+      "run_id": "testgraph-1784764040160583000-atomic_publisher",
+      "schema_version": 1,
+      "seed": 20260721,
+      "status": "pass",
+      "usage_descriptor": {
+        "path": "effect_provider_usage.yaml",
+        "sha256": "b50138f57d42a60a02abdd497a523c5820afb490e4932d89d42ccd3d87d4012e"
+      }
+    },
+    "legacy_payment_http": {
+      "artifacts": [
+        "regeneration/tlc-generation.json",
+        "framework-baseline.json",
+        "processes/regenerate.json",
+        "experiment.json",
+        "experiment-raw/",
+        "processes/experiment.json",
+        "processes/focused-tests.json",
+        "processes/external-56-cases.json",
+        "processes/cross-cwd-replay.json",
+        "cross-cwd-replay/transcript.jsonl"
+      ],
+      "cases": {
+        "control_points": 1792,
+        "external": 56,
+        "generated": 112
+      },
+      "cleanup": {
+        "checked": 2477,
+        "clean": 2477
+      },
+      "command": [
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-legacy_payment_http"
+      ],
+      "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+      "controls": {
+        "passed": 4,
+        "total": 4
+      },
+      "duration_seconds": 40.404506,
+      "limitations": [
+        "The provider is compatibility-only because it patches requests.Session.send.",
+        "Unrecognized clients, subprocesses, native networking, and already-captured callables can bypass an in-process patch.",
+        "The strong hand-written four-scenario baseline kills the same fixed mutants; this catalog demonstrates systematic coverage and replay, not incremental mutation score.",
+        "Killed mutants stop after the first complete killing iteration; only the green control and survivors execute all 32 iterations."
+      ],
+      "mutants": {
+        "killed": 12,
+        "total": 12
+      },
+      "oracle_findings": {
+        "passive_external": [
+          "urllib and raw-socket bypass probes",
+          "56 generated child-process cases against a real loopback HTTP server"
+        ],
+        "provider_owned": [
+          "concrete status timeout response bytes headers and opaque reference",
+          "requests.Session.send installation and request-shape assertions",
+          "per-point transcript state socket guard and cleanup"
+        ],
+        "tla_owned": [
+          "seven semantic response classes",
+          "decision reason reference class and retry count",
+          "expected output and projected post-state"
+        ]
+      },
+      "project": "legacy_payment_http",
+      "provider_contract": {
+        "name": "EffectProvider.bind",
+        "version": 1
+      },
+      "replay": {
+        "attempted": 13,
+        "exact": 13,
+        "from_different_working_directory": true,
+        "interpreter": "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/legacy_payment_http/.venv/bin/python3",
+        "site_packages_import_root_workaround": false
+      },
+      "run_id": "testgraph-1784764040160583000-legacy_payment_http",
+      "schema_version": 1,
+      "seed": 20260721,
+      "status": "pass",
+      "usage_descriptor": {
+        "path": "effect_provider_usage.yaml",
+        "sha256": "b40e4ba434ff41f46b8f20159c2a8f6987db05be3d5fa5d53775f1e12e4a252a"
+      }
+    },
+    "reminder_worker": {
+      "artifacts": [
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/regeneration.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/campaign.json",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/campaign",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/external.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/external-work",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/focused-tests.log",
+        "evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/steps.json"
+      ],
+      "cases": {
+        "control_points": 175,
+        "external": 7,
+        "generated": 14
+      },
+      "cleanup": {
+        "checked": 271,
+        "clean": 271
+      },
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3",
+        "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/validate.py",
+        "--run-id",
+        "testgraph-1784764040160583000-reminder_worker"
+      ],
+      "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+      "controls": {
+        "passed": 6,
+        "total": 6
+      },
+      "duration_seconds": 5.738888,
+      "limitations": [
+        "terminal TLA cases do not encode the cross-port journal, so the provider duplicates ordering and cardinality rules",
+        "scenario names are manually mapped to notifier success, retryable subclasses, or permanent subclasses",
+        "the provider manually projects concrete shared state back into six TLA fields",
+        "direct datetime, direct network, external broker, database, filesystem, thread, and child-process effects bypass explicit in-process bindings",
+        "the CLI rung uses separate repository adapters and validates terminal semantics, not identity with the in-process provider implementation",
+        "all fixed mutants are discovered in iteration zero; later representatives measure control breadth, not incremental discovery",
+        "the runner stops a mutant after its first complete failing iteration rather than collecting every failing representative"
+      ],
+      "mutants": {
+        "killed": 12,
+        "total": 12
+      },
+      "oracle_findings": {
+        "passive_external": [
+          "direct datetime access is confirmed to bypass ClockPort",
+          "a passive socket guard detects and blocks the direct-network bypass probe",
+          "seven generated External cases pass through a real CLI child process and file-persisted queue/outbox"
+        ],
+        "provider_owned": [
+          "one correlated bundle of unicode job/message values, time, receipt, and exception subclass",
+          "stage-before-send and send-before-mark-before-ack ordering in a shared journal",
+          "one clock read, duplicate-send rejection, payload identity, and effect cardinality",
+          "point-local four-provider registry acquisition and reverse-order cleanup"
+        ],
+        "tla_owned": [
+          "seven scenario-specific terminal outcomes",
+          "queue, outbox, notification-count, receipt, result, and output projections",
+          "delivery invariant connecting sent outbox entries to stored receipts"
+        ]
+      },
+      "project": "reminder_worker",
+      "provider_contract": {
+        "name": "EffectProvider.bind",
+        "version": 1
+      },
+      "replay": {
+        "attempted": 12,
+        "exact": 12,
+        "interpreter": "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3"
+      },
+      "run_id": "testgraph-1784764040160583000-reminder_worker",
+      "schema_version": 1,
+      "seed": 20260721,
+      "source_digests": {
+        "adapter.py": "84671f89331d38441c4f05d736690d781af8d945030effb18360a7c4ddbb427e",
+        "app.py": "7783bc2e8b317a889d9aeb0670a5f8c8fb5e4eb626135bafb1dd7b843c114eb2",
+        "effect_provider_usage.yaml": "33f71e531762149bef57d71506a5d22ed903791d1611e3eae40ab1ba32f7fdeb",
+        "external_adapter.py": "8da7e86867384af9ea6ebcef00f2ae3c349337af2471c207c6a0a6c9779190a0",
+        "providers.py": "5b8a417f99d03fc7dc21b6ff1b5fda237d6ce240330ea70ae6d36959e6edebd7",
+        "regenerate.py": "d4a2a9889c5aac37fa44c72639e38e0026bef41452e790c350341f0ece0f98fb",
+        "run_experiment.py": "5c7170beb7c676c3df393b598885cf6065d4e86ed82e34fff407c1eee597779e",
+        "validate.py": "0e5b8599cb83ff00e3ab76762c3f6e133230bcaa86aaa071fcb3e6a7f5c345a6"
+      },
+      "status": "pass",
+      "usage_descriptor": {
+        "path": "effect_provider_usage.yaml",
+        "sha256": "33f71e531762149bef57d71506a5d22ed903791d1611e3eae40ab1ba32f7fdeb"
+      }
+    }
+  },
+  "run_id": "testgraph-1784764040160583000",
+  "schema_version": 1,
+  "status": "pass"
+}

@@ -1,0 +1,21 @@
+{
+  "after": {
+    "notificationCount": 1,
+    "outboxState": "sent",
+    "queueState": "acked",
+    "receiptState": "stored",
+    "result": "accepted",
+    "scenario": "pending"
+  },
+  "journal": [
+    "queue.claim",
+    "clock.now",
+    "outbox.lookup",
+    "notifier.send",
+    "outbox.mark_sent",
+    "queue.ack"
+  ],
+  "output": {
+    "status": "accepted"
+  }
+}

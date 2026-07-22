@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/regenerate.py",
+      "--tlc2",
+      "/Users/hayde/.skill-manager/bin/cli/tlc2",
+      "--out",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated"
+    ],
+    "duration_seconds": 1.854544,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/regeneration.log",
+    "name": "regeneration_and_tlc",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/scripts/run_generated_case_adapters.py",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases",
+      "--mapping",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/specs/program_model/testgraph_bindings.yml",
+      "--spec-dir",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/specs/program_model",
+      "--view",
+      "external",
+      "--batch",
+      "--validate-capabilities",
+      "--import-root",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker",
+      "--import-root",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated",
+      "--work-dir",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/external-work"
+    ],
+    "duration_seconds": 0.522127,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/external.log",
+    "name": "real_cli_external_rung",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/test_reminder_worker.py"
+    ],
+    "duration_seconds": 0.775162,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/focused-tests.log",
+    "name": "focused_tests",
+    "returncode": 0,
+    "timeout_seconds": 120
+  }
+]
