@@ -463,3 +463,59 @@ findings:
     blast_radius: "references/complexity_intuition.md only; determinism of agent refactor choices."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-16
+    found_by: "validation-ex1-run2"
+    found_at_commit: "8f6c9c2"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      infer_dimensions' `variable \in <domain>` regex captures to
+      end-of-line only, so a membership conjunct wrapped across lines
+      (ordinary TLA+ style for larger sets) silently resolves the variable
+      to unknown. The single-line requirement is documented nowhere.
+    reproduction: >-
+      Wrap a TypeInvariant membership conjunct across two lines and scan:
+      the variable becomes (unconstrained)/unknown; joining it to one line
+      resolves it.
+    evidence: ["examples/validation/runs/ex1-run2/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: "Parse conjunct-wise instead of line-wise, or document the single-line rule in the profile doc."
+    blast_radius: "Domain resolution accuracy (same surface as VAL-06)."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-17
+    found_by: "validation-ex1-run2"
+    found_at_commit: "8f6c9c2"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Domain-source precedence (any TypeInvariant in the EXTENDS hierarchy
+      becomes the sole source, then TypeOK, then cfg invariants) interacts
+      badly with the scaffold's own Core/Internal/External layout: TLA+
+      forbids redefining TypeInvariant across views, so one view's variables
+      always come back unresolved unless the views deliberately use
+      different invariant names. Undocumented interaction between the
+      scaffold layout and the analyzer.
+    reproduction: >-
+      Scaffold the standard multi-view layout, name both views' type
+      invariants per the docs, scan each view: one view's variables resolve
+      unknown. Renaming one to TypeOK resolves it.
+    evidence: ["examples/validation/runs/ex1-run2/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: >-
+      Merge domain sources across TypeInvariant/TypeOK/cfg invariants
+      instead of first-match-wins, or document the per-view naming
+      convention in the scaffold and profile docs.
+    blast_radius: "Domain resolution on every multi-view scaffolded project."
+    disposition: pending
+    disposition_ticket: null
