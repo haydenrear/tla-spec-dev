@@ -1,0 +1,678 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/CD-06",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for CD-06'",
+    "message": "It is recommended to commit this history directory now: specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 15,
+        "before": 14,
+        "delta": 1,
+        "percent": 7.1
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "CD-08"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 15,
+          "before": 14,
+          "delta": 1,
+          "percent": 7.1
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "CD-08"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/CD-06/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 15,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.0,
+      "variables": 9
+    },
+    "narrative": "CD-06 fixes both directions of the R/W-matrix attribution defect (VAL-07 / VAL-12): the action set is now the set of top-level disjuncts of the next-state relation (cfg NEXT, or SPECIFICATION followed to the [][Next]_vars box-action), with called-operator bodies expanded transitively using the CD-01/F1 + CD-05 resolution machinery. Wrapper actions priming a variable only through a helper get their columns (VAL-07: taskq shape, ListTasks-style wrappers no longer vanish); composed actions writing entirely through called operators or UNCHANGED get columns and helpers are never columns (VAL-12: on the real distributed_history External view the corrected matrix lists exactly the twelve ExternalNext disjuncts -- RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress present; MarkExternal absent; evidence specs/tickets/CD-06/results/distributed_history_matrix_after.txt). UNCHANGED clauses, exact frame conditions, and string literals are stripped per definition body before expansion so tuple names under UNCHANGED and operator names inside strings never become phantom touches (the string case was found live on this repository and is regression-tested). Dense rows/columns, action_count, component action counts, and the fitness facts all follow the corrected action set; attribution is stated in text and JSON output, and a model with no findable next-state relation falls back to the primes heuristic and says so. Both regression shapes proven failing pre-fix by stashing the production change (specs/tickets/CD-06/results/rw_matrix_regressions.txt). Repository model untouched: zero TLA+ delta, ticket current == desired, TLC 283,805 distinct within max_distinct_states 500,000 (rationale carried through desired/); spec-unit 2 targets green; 596 repo tests; specWorkflow and cliWorkflow all nodes passed. Own-descriptor delta recorded and explained in specs/tickets/CD-06/results/own_model_descriptor_delta.txt.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-22T21:00:22.387357+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "zero semantic model delta -- CD-06 changes only the analyzer's R/W-matrix attribution (scripts/analyze_complexity.py) and its tests; the repository model is byte-identical before and after (identical TLC counts: 283,805 distinct, depth 25). Searched the corrected descriptor for refinement opportunities anyway: the corrected matrix adds only the Stutter column (a genuine Next disjunct, pure UNCHANGED vars) and confirms the known dense rows (lastCommand/result 14/15, setup_phase 12/15, spec_root 10/15) over the corrected denominator; no new collapse candidate appeared, and the previously recorded component-actions warning (C1 touched by 14 actions) is unchanged because Stutter touches nothing.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "CD-06",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-06/results/repo_unit_tests.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-06/results/own_model_descriptor_delta.txt",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-06/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/ticket/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "complexity-descriptor-main-readiness"
+  },
+  "created_at_utc": "2026-07-22T21:00:22.455104+00:00",
+  "entry_name": "ticket-003-CD-06",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/91-cd06-rw-attribution",
+    "commit": "9544fa1",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CD-06/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/CD-06/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CD-06/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CD-06/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/CD-06/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CD-06/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/CD-06/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CD-06/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CD-06/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/CD-06/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/CD-06/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CD-06"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "zero semantic model delta -- CD-06 changes only the analyzer's R/W-matrix attribution (scripts/analyze_complexity.py) and its tests; the repository model is byte-identical before and after (identical TLC counts: 283,805 distinct, depth 25). Searched the corrected descriptor for refinement opportunities anyway: the corrected matrix adds only the Stutter column (a genuine Next disjunct, pure UNCHANGED vars) and confirms the known dense rows (lastCommand/result 14/15, setup_phase 12/15, spec_root 10/15) over the corrected denominator; no new collapse candidate appeared, and the previously recorded component-actions warning (C1 touched by 14 actions) is unchanged because Stutter touches nothing.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/rw_matrix_regressions.txt",
+      "source": "specs/tickets/CD-06/results/rw_matrix_regressions.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/distributed_history_matrix_after.txt",
+      "source": "specs/tickets/CD-06/results/distributed_history_matrix_after.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/own_model_descriptor_delta.txt",
+      "source": "specs/tickets/CD-06/results/own_model_descriptor_delta.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/tlc_current.txt",
+      "source": "specs/tickets/CD-06/results/tlc_current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/spec_unit_tests.txt",
+      "source": "specs/tickets/CD-06/results/spec_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/repo_unit_tests.txt",
+      "source": "specs/tickets/CD-06/results/repo_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/graph_specWorkflow.txt",
+      "source": "specs/tickets/CD-06/results/graph_specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/results/graph_cliWorkflow.txt",
+      "source": "specs/tickets/CD-06/results/graph_cliWorkflow.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 29,
+    "close_out_entry": "Close-out ticket CD-06",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/ticket",
+      "source": "specs/tickets/CD-06"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "R/W matrix attributed to top-level Next disjuncts through called operators (VAL-07/VAL-12): wrapper actions priming only via helpers get columns, composed actions writing via called operators/UNCHANGED get columns, helpers are never columns; dense rows/columns, action counts, and fitness facts follow the corrected action set; fallback without a findable next-state relation is stated honestly; zero TLA+ model delta",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Helper-primed wrapper actions appear as matrix columns; helpers do not (regression test failing pre-fix).",
+        "Actions writing only through called operators or UNCHANGED get columns (regression test failing pre-fix).",
+        "On examples/distributed_history External.tla the matrix lists the ExternalNext disjuncts (RunFulfillmentWorker present, MarkExternal absent) \u2014 recorded as evidence.",
+        "Dense rows/columns and action counts are computed over the corrected action set; fitness facts follow.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-06"
+      ],
+      "evidence": [
+        "specs/tickets/CD-06/results/rw_matrix_regressions.txt",
+        "specs/tickets/CD-06/results/distributed_history_matrix_after.txt",
+        "specs/tickets/CD-06/results/tlc_current.txt",
+        "specs/tickets/CD-06/results/spec_unit_tests.txt",
+        "specs/tickets/CD-06/results/repo_unit_tests.txt",
+        "specs/tickets/CD-06/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-06/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-07"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py",
+        "tests/test_analyze_complexity.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "CD-05"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/91",
+    "id": "CD-06",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py (action attribution / matrix construction)",
+      "tests/test_analyze_complexity.py (both-direction regression tests)"
+    ],
+    "objective": "Resolves VAL-07 and VAL-12 \u2014 the same attribution defect from both directions, hit independently in three validation runs. The R/W matrix attributes primed variables to the syntactic primer, so (a) wrapper actions that prime a variable only through a helper operator vanish from the matrix (9 CLI actions collapsed to 4 on taskq), and (b) helper operators are listed AS actions while composed actions whose writes happen entirely through called operators or UNCHANGED get no column (MarkExternal listed, RunFulfillmentWorker absent, on distributed_history). Dense-row fractions, dense columns, action_count, component action counts \u2014 and the fitness facts derived from them \u2014 are computed over a partially wrong action set. Fix: attribute primes to the top-level action disjuncts (Next/ExternalNext members), expanding called-operator bodies transitively (the CD-01/F1 resolution machinery, extended by CD-05); helpers are not actions. Regression tests covering both shapes, failing pre-fix; verify against the real distributed_history External view and record the corrected matrix as evidence.\n",
+    "promotion_order": 40,
+    "promotion_predecessor": "CD-08",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Descriptor accuracy: R/W matrix attributed to top-level actions through called operators",
+    "wave": 2
+  },
+  "ticket_id": "CD-06",
+  "ticket_index": 3,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/ticket",
+    "source": "specs/tickets/CD-06"
+  },
+  "workflow_name": "complexity-descriptor-main-readiness"
+}

@@ -21,17 +21,17 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "green"
+    evidence: "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/ticket/results/tlc_current.txt"
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "green"
+    evidence: "specs/tickets/CD-06/results/tlc_current.txt"
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "pass"
+    evidence: "specs/tickets/CD-06/results/repo_unit_tests.txt"
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "recorded"
+    evidence: "specs/tickets/CD-06/results/own_model_descriptor_delta.txt"
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -84,9 +84,9 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: "zero semantic model delta -- CD-06 changes only the analyzer's R/W-matrix attribution (scripts/analyze_complexity.py) and its tests; the repository model is byte-identical before and after (identical TLC counts: 283,805 distinct, depth 25). Searched the corrected descriptor for refinement opportunities anyway: the corrected matrix adds only the Stutter column (a genuine Next disjunct, pure UNCHANGED vars) and confirms the known dense rows (lastCommand/result 14/15, setup_phase 12/15, spec_root 10/15) over the corrected denominator; no new collapse candidate appeared, and the previously recorded component-actions warning (C1 touched by 14 actions) is unchanged because Stutter touches nothing."
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -98,4 +98,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "CD-06 fixes both directions of the R/W-matrix attribution defect (VAL-07 / VAL-12): the action set is now the set of top-level disjuncts of the next-state relation (cfg NEXT, or SPECIFICATION followed to the [][Next]_vars box-action), with called-operator bodies expanded transitively using the CD-01/F1 + CD-05 resolution machinery. Wrapper actions priming a variable only through a helper get their columns (VAL-07: taskq shape, ListTasks-style wrappers no longer vanish); composed actions writing entirely through called operators or UNCHANGED get columns and helpers are never columns (VAL-12: on the real distributed_history External view the corrected matrix lists exactly the twelve ExternalNext disjuncts -- RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress present; MarkExternal absent; evidence specs/tickets/CD-06/results/distributed_history_matrix_after.txt). UNCHANGED clauses, exact frame conditions, and string literals are stripped per definition body before expansion so tuple names under UNCHANGED and operator names inside strings never become phantom touches (the string case was found live on this repository and is regression-tested). Dense rows/columns, action_count, component action counts, and the fitness facts all follow the corrected action set; attribution is stated in text and JSON output, and a model with no findable next-state relation falls back to the primes heuristic and says so. Both regression shapes proven failing pre-fix by stashing the production change (specs/tickets/CD-06/results/rw_matrix_regressions.txt). Repository model untouched: zero TLA+ delta, ticket current == desired, TLC 283,805 distinct within max_distinct_states 500,000 (rationale carried through desired/); spec-unit 2 targets green; 596 repo tests; specWorkflow and cliWorkflow all nodes passed. Own-descriptor delta recorded and explained in specs/tickets/CD-06/results/own_model_descriptor_delta.txt."

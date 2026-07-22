@@ -1,6 +1,8 @@
 CD-06: corrected complexity descriptor for the REAL examples/distributed_history External view
 Command: python3 scripts/analyze_complexity.py examples/distributed_history/specs/program_model/External.tla examples/distributed_history/specs/program_model/External.cfg
-(example spec READ-ONLY -- owned by CD-08; scanned in place, not modified)
+(example spec READ-ONLY -- owned by CD-08; scanned in place, not modified.
+ Rerun after reconciling the epic tip b3d1fe2 with CD-08's PR #96 merged;
+ CD-08 did not touch External.tla/External.cfg, and the output is unchanged.)
 
 Acceptance check: the matrix columns are exactly the twelve ExternalNext disjuncts;
 RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress PRESENT;
@@ -25,7 +27,7 @@ lastExternalAction  .              .            .         .             w       
    RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress -- real ExternalNext disjuncts -- MISSING;
    dense rows computed over the wrong denominator: accounts 9/15, responses 9/15)
 
-================= AFTER (CD-06) -- full scan output =================
+================= AFTER (CD-06, at reconciled tip) -- full scan output =================
 analyze complexity -- External (complexity descriptor)
   spec:     /Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/examples/distributed_history/specs/program_model/External.tla
   config:   /Users/hayde/IdeaProjects/wt-91-cd06-rw-attribution/examples/distributed_history/specs/program_model/External.cfg
