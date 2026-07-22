@@ -1722,3 +1722,20 @@ def test_cd06_repeated_and_inline_disjuncts(tmp_path: Path) -> None:
     inline = {a.name: a for a in actions}["Next[3]"]
     assert inline.writes == {"x"}
     assert inline.reads == {"x"}
+
+
+# ---------------------------------------------------------------------------
+# CD-07 (CD-02-DF-01): the no-manifest warning says what happened -- it never
+# leaks the internal Path("does-not-exist") sentinel into user-facing output.
+# ---------------------------------------------------------------------------
+
+
+def test_no_manifest_warning_names_no_sentinel_path(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    tla, cfg, _ = write_small_model(tmp_path)
+    analyze(tla, cfg, None)
+    err = capsys.readouterr().err
+    assert "does-not-exist" not in err
+    assert "no manifest supplied" in err
+    assert "documented default budgets" in err

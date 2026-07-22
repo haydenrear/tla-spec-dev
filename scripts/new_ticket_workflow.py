@@ -612,10 +612,23 @@ status:
     - Run TLC and adapter/unit tests before adding graph execution coverage.
     - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
-# Per-program complexity and case budgets -- hard gates read by analyze
-# complexity, case generation, the adapter runner, and the mutation kill test.
-# Defaults come from references/modular_fuzzing.md.
+# Per-program complexity and case budgets -- advisory thresholds read by
+# analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# doctrine: SKILL.md "Complexity Budgets Are Advisory".
 {budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
+
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
   program_model_core: ../program_model/Core.tla
@@ -668,10 +681,23 @@ status:
     - Promote converged desired/current model back into {spec_root_text}/program_model.
     - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
-# Per-program complexity and case budgets -- hard gates read by analyze
-# complexity, case generation, the adapter runner, and the mutation kill test.
-# Defaults come from references/modular_fuzzing.md.
+# Per-program complexity and case budgets -- advisory thresholds read by
+# analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# doctrine: SKILL.md "Complexity Budgets Are Advisory".
 {budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
+
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
   program_model_core: ../program_model/Core.tla

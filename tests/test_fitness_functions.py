@@ -335,6 +335,41 @@ def test_manifest_carried_rules_reach_the_scan(tmp_path: Path) -> None:
     assert [r.name for r in analysis.fitness.fired] == ["bound-small"]
 
 
+def test_manifest_rules_without_pyyaml_surface_config_error_not_invalid(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """VAL-01: manifest-embedded rules under a bare python3 (no PyYAML).
+
+    The fallback manifest parser mangles flow-style rule leaves into garbage
+    keys, so validating them surfaced a misleading
+    "INVALID: ... got keys ['{fact']". The documented behavior is an advisory
+    CONFIG ERROR naming the missing PyYAML dependency and the
+    fitness_functions.json (standard-library) alternative -- with the exit
+    code unchanged.
+    """
+    manifest_text = (
+        "module: Small\n"
+        "fitness_functions:\n"
+        "  - name: bound-small\n"
+        "    rule: {fact: bound, op: '<=', value: 2000}\n"
+    )
+    tla, cfg, manifest = write_small_model(tmp_path, manifest_text)
+    assert manifest is not None
+    # Simulate PyYAML absence: None in sys.modules makes `import yaml` raise
+    # ImportError, which routes the manifest through the fallback parser.
+    monkeypatch.setitem(sys.modules, "yaml", None)
+
+    assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
+    out = capsys.readouterr().out
+    assert "CONFIG ERROR" in out
+    assert "PyYAML" in out
+    assert "fitness_functions.json" in out
+    assert "INVALID" not in out
+    assert "'{fact'" not in out
+
+
 def test_firings_are_advisory_exit_code_unchanged(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

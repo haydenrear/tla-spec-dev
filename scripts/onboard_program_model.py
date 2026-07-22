@@ -889,11 +889,24 @@ status:
       - Generate cases and validate adapter coverage for both views.
       - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
-# Per-program complexity and case budgets. These are hard gates read by
-# analyze complexity, case generation, the adapter runner, and the mutation
-# kill test. Defaults come from references/modular_fuzzing.md; negotiate them
-# with the user and record a one-line rationale for each changed value.
+# Per-program complexity and case budgets. These are advisory thresholds read
+# by analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# negotiate them with the user and record a one-line rationale for each
+# changed value. Doctrine: SKILL.md "Complexity Budgets Are Advisory".
 {budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
+
 views:
   internal:
     module: Internal.tla

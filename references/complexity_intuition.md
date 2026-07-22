@@ -450,7 +450,12 @@ Reading it with the intuitions above:
   9/9 actions, read by no invariant, excluded from the bound. Here the
   owner's judgment is that they are a *deliberate observability channel*
   (every action records what ran and what came back, for the spec-double
-  layer). The descriptor correctly refuses to distinguish "deliberate" from
+  layer). What makes that judgment defensible is not the stated intent but a
+  **named consumer**: the spec-double conformance layer reads these fields
+  back — the generated cases and production adapters carry and compare
+  `last_command` in every snapshot. That is the evidence that separates this
+  pair from example 3's `audit_log` (see "The write-only-state test" below).
+  The descriptor correctly refuses to distinguish "deliberate" from
   "accidental" — it prints the same facts either way; example 3's
   `audit_log` and this `lastCommand` look alike on the page. Knowing which
   one you have is exactly the judgment this document exists for. And when
@@ -473,6 +478,57 @@ which density is deliberate, which dimension justifies the bound, what the
 budget rationale is — and whether any of it has drifted since the last
 ledger entry.
 
+### The write-only-state test (the example-3 / example-5 boundary)
+
+Dense, write-only state — a variable every action stamps and nothing reads —
+sits exactly on the line between example 3 (bookkeeping smear: remove it) and
+example 5 (deliberate density: defend it). The test that decides which side it
+is on:
+
+> **A write-only stamped variable is bookkeeping — regardless of stated
+> design intent — unless you can name a concrete dependent: a guard that
+> branches on it, an invariant beyond its type conjunct, a test that asserts
+> its value, or a reader that consumes it (in production code or in the
+> verification/observability toolchain).**
+
+The test is about *readers*, and stated intent is not a reader. "The app
+deliberately stamps this on every operation" is a sentence about the writer;
+a README can say it about any variable, including pure bookkeeping. Example
+5's `lastCommand`/`result` pass the test because the spec-double conformance
+layer reads them back (snapshots carry and compare `last_command`); example
+3's `audit_log`-style stamps fail it because nothing — no guard, no property,
+no test, no consumer — ever looks.
+
+This test exists because the boundary was *measured* to be ambiguous. In the
+recorded validation divergence
+(`examples/validation/runs/ex3-run1/artifacts/complexity_decision.md` vs
+`ex3-run2/artifacts/complexity_decision.md`), two agents with identical
+instructions read the identical descriptor of the same model, whose `mode`
+and `dirty` variables were stamped by every action and read by nothing.
+Run 1 applied exactly this test — "no guard, no invariant beyond type, no
+test, no code reader" — classified them as bookkeeping, and removed them
+(bound 624). Run 2 read the README's "the hub deliberately stamps the shared
+mode … and dirty flag" as example-5 deliberate density and kept them (bound
+6,240). Both runs were green, warning-free, and grounded — *whether* the
+representation was over-wide converged; *which* variables to keep did not.
+Under this test, run 1's classification is the canonical one: no dependent
+existed, so the stamps were bookkeeping and the stated design intent did not
+upgrade them.
+
+Two boundaries of the test itself:
+
+- **Classification and authorization are separate.** The test decides what
+  the variable *is*; it does not authorize touching production code. Run 1's
+  code deletion was separately authorized by its ticket — without that, the
+  right move is to record the classification, take the model change, and
+  bring the production refactor to the user for approval.
+- **A dependent must be nameable, not hypothetical.** "Something might read
+  it someday" fails the test; a named consumer (a test, an adapter field, a
+  downstream tool) passes it. If a variable genuinely is a planned
+  observability channel, give it a consumer — or a `justification:` entry
+  linking it to the effect it carries — and the classification changes with
+  the evidence.
+
 ## Deciding Whether And How To Refactor
 
 A reading order that works, given a fresh descriptor:
@@ -488,7 +544,10 @@ A reading order that works, given a fresh descriptor:
 3. **Dense rows, then columns.** For each: what role does this variable
    play? Lifecycle hub in a small model (example 2), deliberate
    observability (example 5), or bookkeeping smeared everywhere (example
-   3)? Only the last is a finding.
+   3)? Only the last is a finding — and for write-only stamped state,
+   decide with the write-only-state test above: name a concrete dependent
+   (guard, invariant beyond type, test, or reader) or classify it as
+   bookkeeping; stated design intent alone does not upgrade it.
 4. **Clusters.** Can you name them? Do the port-crossing actions look like
    real transactions between subsystems? Nameable clusters with narrow
    crossings mean a decomposition cut exists if you ever need it; a single

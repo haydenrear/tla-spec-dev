@@ -1,0 +1,691 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/CD-07",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for CD-07'",
+    "message": "It is recommended to commit this history directory now: specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 15,
+        "before": 15,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "CD-06"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 15,
+          "before": 15,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "CD-06"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/CD-07/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 15,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.0,
+      "variables": 9
+    },
+    "narrative": "CD-07 aligns every remaining user-facing surface with the advisory doctrine and fixes the UX defects the six validation runs catalogued, with zero TLA+ model delta. VAL-04: the scaffold epilog (budgets.budget_prompt) and every generated-manifest budgets comment (new_ticket_workflow.py both manifests, onboard_program_model.py -- the latter found by this ticket's sweep beyond the finding's named sites) now state that budgets are advisory thresholds that warn and never block, with tlc_seconds named as the one hard operational limit; a grep-evidenced sweep (advisory_language_sweep.md) shows zero gate-era budget language in scaffold output and classifies every remaining 'hard gate' occurrence as by-design non-budget (corpus caps, MF-015 channels, experimental kill floor), superseded historical narrative, or immutable record. VAL-01: fitness_functions.load_rules detects PyYAML absence before validating a manifest-embedded rules block and emits the documented advisory CONFIG ERROR naming PyYAML and the fitness_functions.json alternative (verified against the real CLI under this machine's yaml-less python3, exit 0; regression test simulates absence via sys.modules). VAL-02: kill_rate_floor and max_symmetric_instances are excluded from the missing-budgets warning (EXPERIMENTAL_BUDGET_KEYS) while keeping documented defaults so kill_test stays functional; a per-docs manifest scans with empty stderr. CD-02-DF-01: analyze() no longer feeds a Path('does-not-exist') sentinel to load_budgets -- the no-manifest warning states what happened. VAL-05: the justification-table schema (mapping per variable, non-empty invariants/effects/kill_tests lists, prose is not linkage) is documented in architecture_tractability.md and as a comment in every scaffolded manifest. VAL-03: run_tlc.sh points TLC -metadir at a mktemp dir removed by an EXIT trap; the ticket TLC run leaves no states/ residue. VAL-15: complexity_intuition.md gains 'The write-only-state test' -- a write-only stamped variable is bookkeeping unless a nameable dependent (guard, invariant beyond type, test, or reader) exists; stated design intent is not a reader -- worked from the recorded ex3-run1 vs ex3-run2 divergence, blessing run 1's classification as canonical while separating classification from production-refactor authorization. CD-06-DF-01 (inherited): action_count fact description corrected in FACT_DOCS and the reference catalog. Validation: TLC green (283,805 distinct within max_distinct_states 500,000, rationale carried through desired/), spec-unit 2 targets green, 601 repo tests, specWorkflow and cliWorkflow green.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-22T21:25:34.202246+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Zero semantic model delta -- CD-07 changes only advisory wording, warning routing, a scratch-dir location, tests, and docs (scripts/budgets.py, new_ticket_workflow.py, onboard_program_model.py, fitness_functions.py, analyze_complexity.py warning path, run_tlc.sh, three references, SKILL.md). The repository model is byte-identical before and after: identical TLC counts (283,805 distinct, depth 25) and a byte-identical descriptor modulo absolute input paths (own_model_descriptor_delta.txt). Searched the unchanged descriptor for refinement opportunities anyway: the known dense rows (lastCommand/result 14/15, setup_phase 12/15, spec_root 10/15) and the C1 component-actions warning are unchanged from CD-06's close; lastCommand/result now pass the write-only-state test this ticket added to the intuition doc (the spec-double layer consumes them), so no new collapse candidate appears.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "CD-07",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-07/results/repo_unit_tests.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-07/results/own_model_descriptor_delta.txt",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-07/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/.history/complexity-descriptor-main-readiness/ticket-003-CD-06/ticket/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "complexity-descriptor-main-readiness"
+  },
+  "created_at_utc": "2026-07-22T21:25:34.255862+00:00",
+  "entry_name": "ticket-004-CD-07",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/92-cd07-advisory-polish",
+    "commit": "7013b98",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CD-07/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/CD-07/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CD-07/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CD-07/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/CD-07/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CD-07/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/CD-07/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CD-07/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CD-07/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/CD-07/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/CD-07/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CD-07"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Zero semantic model delta -- CD-07 changes only advisory wording, warning routing, a scratch-dir location, tests, and docs (scripts/budgets.py, new_ticket_workflow.py, onboard_program_model.py, fitness_functions.py, analyze_complexity.py warning path, run_tlc.sh, three references, SKILL.md). The repository model is byte-identical before and after: identical TLC counts (283,805 distinct, depth 25) and a byte-identical descriptor modulo absolute input paths (own_model_descriptor_delta.txt). Searched the unchanged descriptor for refinement opportunities anyway: the known dense rows (lastCommand/result 14/15, setup_phase 12/15, spec_root 10/15) and the C1 component-actions warning are unchanged from CD-06's close; lastCommand/result now pass the write-only-state test this ticket added to the intuition doc (the spec-double layer consumes them), so no new collapse candidate appears.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/advisory_language_sweep.md",
+      "source": "specs/tickets/CD-07/results/advisory_language_sweep.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/fitness_manifest_config_error.txt",
+      "source": "specs/tickets/CD-07/results/fitness_manifest_config_error.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/own_model_descriptor_delta.txt",
+      "source": "specs/tickets/CD-07/results/own_model_descriptor_delta.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/tlc_current.txt",
+      "source": "specs/tickets/CD-07/results/tlc_current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/spec_unit_tests.txt",
+      "source": "specs/tickets/CD-07/results/spec_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/repo_unit_tests.txt",
+      "source": "specs/tickets/CD-07/results/repo_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/graph_specWorkflow.txt",
+      "source": "specs/tickets/CD-07/results/graph_specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/results/graph_cliWorkflow.txt",
+      "source": "specs/tickets/CD-07/results/graph_cliWorkflow.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 30,
+    "close_out_entry": "Close-out ticket CD-07",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/ticket",
+      "source": "specs/tickets/CD-07"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Advisory-doctrine language and UX polish: scaffold epilog and generated manifests speak the advisory doctrine (VAL-04); manifest fitness rules under bare python3 emit the documented PyYAML CONFIG ERROR (VAL-01); retired fuzzing-era budget keys no longer warn (VAL-02); no-manifest warning names no sentinel path (CD-02-DF-01); justification-table schema documented (VAL-05); run_tlc.sh leaves no states/ scratch dir (VAL-03); write-only-state test added to the intuition doc from the recorded ex3 divergence (VAL-15); action_count fact description corrected (CD-06-DF-01). Zero TLA+ model delta.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "No scaffold output or generated file calls budgets hard gates; wording matches the advisory doctrine (grep evidence).",
+        "Manifest fitness rules under bare python3 produce the documented CONFIG ERROR naming PyYAML and the .json alternative \u2014 never the mangled INVALID (regression test without PyYAML).",
+        "A per-docs budgets block scans with no missing-keys warning; the no-manifest warning names no sentinel path.",
+        "run_tlc.sh leaves no states/ directory in the target spec dir.",
+        "The justification-table schema is documented with an example; the intuition doc's write-only-state boundary is sharpened citing the recorded divergence.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-07"
+      ],
+      "evidence": [
+        "specs/tickets/CD-07/results/advisory_language_sweep.md",
+        "specs/tickets/CD-07/results/fitness_manifest_config_error.txt",
+        "specs/tickets/CD-07/results/tlc_current.txt",
+        "specs/tickets/CD-07/results/spec_unit_tests.txt",
+        "specs/tickets/CD-07/results/repo_unit_tests.txt",
+        "specs/tickets/CD-07/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-07/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/new_ticket_workflow.py",
+        "scripts/tla_spec_dev.py",
+        "scripts/fitness_functions.py",
+        "scripts/budgets.py",
+        "scripts/analyze_complexity.py",
+        "scripts/run_tlc.sh",
+        "references/fitness_functions.md",
+        "references/complexity_intuition.md",
+        "references/architecture_tractability.md",
+        "SKILL.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "CD-04",
+      "CD-05",
+      "CD-06"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/92",
+    "id": "CD-07",
+    "implementation_scope": [
+      "scripts/new_ticket_workflow.py (scaffold wording)",
+      "scripts/fitness_functions.py + scripts/tla_spec_dev.py (manifest-rules CONFIG ERROR path)",
+      "scripts/budgets.py (retired keys)",
+      "scripts/analyze_complexity.py (sentinel warning wording)",
+      "scripts/run_tlc.sh (states/ scratch dir)",
+      "references/fitness_functions.md, references/complexity_intuition.md, references/architecture_tractability.md, SKILL.md (schema docs + boundary sharpening)"
+    ],
+    "objective": "Resolves VAL-04, VAL-01, VAL-02, VAL-03, VAL-05, CD-02-DF-01, VAL-15. (1) VAL-04: the scaffold-project epilog and generated manifest comment still say \"Budgets are hard gates\" (new_ticket_workflow.py ~615/~666) \u2014 reword to the advisory doctrine every other surface states. (2) VAL-01: manifest-embedded fitness rules under bare python3 go through the fallback manifest parser and surface as a misleading INVALID (flow-style leaves mangled to '{fact'); emit the documented advisory CONFIG ERROR naming missing PyYAML and the fitness_functions.json alternative instead. (3) VAL-02: drop the retired fuzzing-era keys (kill_rate_floor, max_symmetric_instances) from the required-budgets warning set or gate them behind the experimental surface. (4) CD-02-DF-01: the no-manifest warning prints a literal does-not-exist sentinel path \u2014 say what happened instead. (5) VAL-05: document the justification-table schema (dict with non-empty invariants/effects/kill_tests lists) where agents look. (6) VAL-03: run_tlc.sh leaves a TLC states/ scratch dir inside the target spec dir \u2014 point the metadir at a temp location or clean up. (7) VAL-15: sharpen complexity_intuition.md's example-3 vs example-5 boundary for write-only stamped state, using the recorded ex3 run-1 vs run-2 divergence as the worked case (a test such as: if no guard, invariant, test, or reader depends on it, it is bookkeeping regardless of stated design intent \u2014 or explicitly bless both outcomes and name the evidence that separates them).\n",
+    "promotion_order": 50,
+    "promotion_predecessor": "CD-06",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Advisory-doctrine language and UX polish across scaffold, fitness loader, budgets, and docs",
+    "wave": 3
+  },
+  "ticket_id": "CD-07",
+  "ticket_index": 4,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-004-CD-07/ticket",
+    "source": "specs/tickets/CD-07"
+  },
+  "workflow_name": "complexity-descriptor-main-readiness"
+}

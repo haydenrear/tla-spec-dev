@@ -1351,7 +1351,7 @@ def analyze(
     current_tlc: Path | None = None,
     warn_stream: Any = None,
 ) -> Analysis:
-    from scripts.budgets import load_budgets
+    from scripts.budgets import DEFAULT_BUDGETS, load_budgets
 
     cfg_text = cfg_path.read_text(encoding="utf-8")
 
@@ -1450,11 +1450,20 @@ def analyze(
             manifest = None
     unjustified = unjustified_variables(variables, load_justification(manifest))
 
-    budgets = load_budgets(
-        manifest_path if manifest_path else Path("does-not-exist"),
-        warn=True,
-        stream=warn_stream if warn_stream is not None else sys.stderr,
-    )
+    budget_stream = warn_stream if warn_stream is not None else sys.stderr
+    if manifest_path is None:
+        # CD-02-DF-01: no --manifest was given and no spec_manifest.yaml sits
+        # next to the spec. Say what happened -- never leak a sentinel path
+        # into the warning.
+        print(
+            "warning: no manifest supplied (no --manifest and no "
+            "spec_manifest.yaml next to the spec); using documented default "
+            "budgets (references/modular_fuzzing.md)",
+            file=budget_stream,
+        )
+        budgets = dict(DEFAULT_BUDGETS)
+    else:
+        budgets = load_budgets(manifest_path, warn=True, stream=budget_stream)
 
     # MF-036: each threshold breach is an ADVISORY warning that names the
     # component/variable/action and states the measured fact. None of these
