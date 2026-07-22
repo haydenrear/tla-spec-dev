@@ -10,7 +10,6 @@ from contextlib import ExitStack
 import hashlib
 import json
 from pathlib import Path
-import sys
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Generic, TypeVar
 
@@ -38,6 +37,42 @@ def derive_effect_seed(root_seed: int, case_name: str, iteration: int, port_name
     return int.from_bytes(hashlib.sha256(payload).digest()[:16], "big")
 
 
+class EffectProviderEnterCleanupError(RuntimeError):
+    """An installer failed and its already-entered resources also failed cleanup."""
+
+    def __init__(
+        self,
+        primary: Exception,
+        cleanup_errors: tuple[Exception, ...],
+    ) -> None:
+        self.primary = primary
+        self.cleanup_errors = cleanup_errors
+        cleanup_summary = "; ".join(
+            f"{type(error).__name__}: {error}" for error in cleanup_errors
+        )
+        super().__init__(
+            f"provider enter failed with {type(primary).__name__}: {primary}; "
+            f"partial cleanup also failed: {cleanup_summary}"
+        )
+
+
+def _ordered_cleanup_errors(
+    cleanup_error: Exception,
+    primary: Exception,
+) -> tuple[Exception, ...]:
+    """Recover ExitStack cleanup failures in the order cleanup attempted them."""
+
+    newest_first: list[Exception] = []
+    seen: set[int] = set()
+    current: BaseException | None = cleanup_error
+    while isinstance(current, Exception) and current is not primary and id(current) not in seen:
+        seen.add(id(current))
+        newest_first.append(current)
+        current = current.__context__
+    newest_first.reverse()
+    return tuple(newest_first)
+
+
 class _StackBinding(Generic[T]):
     """One-shot binding whose resources are acquired only during ``__enter__``."""
 
@@ -60,11 +95,19 @@ class _StackBinding(Generic[T]):
         self._stack = stack
         try:
             return self._installer(self._context, stack)
-        except BaseException:
+        except BaseException as primary:
             # Close every context successfully entered before a later installer
             # step failed. Ignore a truthy return; helpers never suppress.
-            stack.__exit__(*sys.exc_info())
             self._stack = None
+            try:
+                stack.__exit__(type(primary), primary, primary.__traceback__)
+            except BaseException as cleanup_error:
+                if isinstance(primary, Exception) and isinstance(cleanup_error, Exception):
+                    raise EffectProviderEnterCleanupError(
+                        primary,
+                        _ordered_cleanup_errors(cleanup_error, primary),
+                    ) from cleanup_error
+                raise
             raise
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
@@ -107,6 +150,17 @@ def temporary_root_provider(
     passed to ``builder(root, context)``, and removed after every success or
     failure path. This is a root lifecycle helper, not a fake operating system.
     """
+
+    if (
+        not isinstance(prefix, str)
+        or not prefix
+        or prefix in {".", ".."}
+        or Path(prefix).is_absolute()
+        or "/" in prefix
+        or "\\" in prefix
+        or "\x00" in prefix
+    ):
+        raise ValueError("temporary-root prefix must be a non-empty path-free filename prefix")
 
     def install(context: EffectProviderContext, stack: ExitStack) -> T:
         context.work_dir.mkdir(parents=True, exist_ok=True)

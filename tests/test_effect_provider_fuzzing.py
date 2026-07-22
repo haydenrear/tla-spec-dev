@@ -165,6 +165,9 @@ CONTEXTS = []
 SCOPES = []
 EFFECT_MAPS = []
 SHARED_MAPS = []
+BATCH_CASE_NAMES = []
+BATCH_WORK_DIRS = []
+BATCH_SAW_SENTINEL = []
 WORK_DIRS = []
 CASE_OBJECT_IDS = []
 ADAPTERS = []
@@ -206,6 +209,11 @@ class Adapter:
 
     def setup_all(self, context):
         SHARED_MAPS.append(context.shared)
+        BATCH_CASE_NAMES.append(tuple(case.name for case in context.cases))
+        BATCH_WORK_DIRS.append(context.work_dir)
+        sentinel = context.work_dir / "setup-all-sentinel"
+        BATCH_SAW_SENTINEL.append(sentinel.exists())
+        sentinel.write_text(context.cases[0].name, encoding="utf-8")
 
     def setup(self, context):
         EFFECT_MAPS.append(context.effects)
@@ -274,11 +282,19 @@ provider = "fuzz_campaign_fixture:patch_provider"
             context.port_name,
         )
 
-    # One adapter/shared cache per iteration; provider scopes, effect maps and
-    # case work directories are fresh for every point.
-    assert len(fixture.ADAPTERS) == 2
-    assert len(fixture.SHARED_MAPS) == 2
-    assert fixture.SHARED_MAPS[0] is not fixture.SHARED_MAPS[1]
+    # Provider-bearing hooks/caches are point-isolated so the replay command
+    # recreates the exact setup_all/teardown_all input as well as the case.
+    assert len(fixture.ADAPTERS) == 4
+    assert len(fixture.SHARED_MAPS) == 4
+    assert len({id(shared) for shared in fixture.SHARED_MAPS}) == 4
+    assert fixture.BATCH_CASE_NAMES == [
+        ("case one",),
+        ("case-δ",),
+        ("case one",),
+        ("case-δ",),
+    ]
+    assert len(set(fixture.BATCH_WORK_DIRS)) == 4
+    assert fixture.BATCH_SAW_SENTINEL == [False, False, False, False]
     assert len(fixture.SCOPES) == 8
     assert len({id(scope) for scope in fixture.SCOPES}) == 8
     assert len(fixture.EFFECT_MAPS) == 4
@@ -329,6 +345,120 @@ provider = "fuzz_campaign_fixture:patch_provider"
     assert fixture.WORK_DIRS == [
         tmp_path / "work" / "case-work" / "seed-only" / "iteration-000000"
     ]
+
+
+def test_point_isolated_providers_preserve_corpus_level_passive_effect_diff(
+    tmp_path: Path,
+) -> None:
+    from scripts.effect_conformance import load_effect_declarations
+
+    write_campaign_fixture(tmp_path)
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="passive_provider_fixture",
+        provider_tables="",
+    )
+    (tmp_path / "actions.yml").write_text(
+        """actions:
+  PublishA:
+    layer: internal
+    effect_ports: [FilesystemPort, PatchPort]
+  PublishB:
+    layer: internal
+    effect_ports: [FilesystemPort, PatchPort]
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "passive_provider_fixture.py").write_text(
+        """from pathlib import Path
+from spec_double_compiler.runtime import CaseRunResult
+
+class Adapter:
+    def run(self, case, work_dir=None):
+        target = Path(work_dir) / "sandbox" / (case.input.action + ".txt")
+        target.write_text(case.name, encoding="utf-8")
+        return CaseRunResult(output=case.output, after=case.after)
+""",
+        encoding="utf-8",
+    )
+    mapping_path.write_text(
+        """[adapters.PublishA]
+adapter = "passive_provider_fixture:Adapter"
+kind = "publisher"
+
+[adapters.PublishB]
+adapter = "passive_provider_fixture:Adapter"
+kind = "publisher"
+
+[effect_providers.FilesystemPort]
+provider = "fuzz_campaign_fixture:filesystem_provider"
+
+[effect_providers.PatchPort]
+provider = "fuzz_campaign_fixture:patch_provider"
+""",
+        encoding="utf-8",
+    )
+    cases = [
+        make_case("case-a", action="PublishA"),
+        make_case("case-b", action="PublishB"),
+    ]
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=cases,
+        import_roots=[tmp_path],
+    )
+    declarations = load_effect_declarations(
+        {
+            "effects": {
+                "components": {
+                    "Fixture": {
+                        "ports": {
+                            "publish_a_file": {
+                                "type": "filesystem.write",
+                                "target": "**/sandbox/PublishA.txt",
+                            },
+                            "publish_b_file": {
+                                "type": "filesystem.write",
+                                "target": "**/sandbox/PublishB.txt",
+                            },
+                        }
+                    }
+                },
+                "actions": {
+                    "PublishA": ["publish_a_file"],
+                    "PublishB": ["publish_b_file"],
+                },
+            }
+        }
+    )
+    report_path = tmp_path / "effect-report.json"
+
+    execute_cases_in_batch(
+        cases=cases,
+        mappings={
+            action: AdapterMapping(
+                action,
+                "passive_provider_fixture:Adapter",
+                kind="publisher",
+            )
+            for action in ("PublishA", "PublishB")
+        },
+        work_dir=tmp_path / "work",
+        import_roots=[tmp_path],
+        declarations=declarations,
+        effect_report_path=report_path,
+        effect_provider_plan=plan,
+    )
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["ok"] is True
+    assert report["verdict"] == "clean"
+    assert report["cases"] == ["case-a", "case-b"]
+    assert set(report["declared_ports"]) == {
+        "Fixture.publish_a_file",
+        "Fixture.publish_b_file",
+    }
 
 
 def effect_context(tmp_path: Path) -> EffectProviderContext:
@@ -437,12 +567,62 @@ def test_context_provider_acquires_lazily_restores_partial_nesting_and_never_sup
     assert active == []
 
 
+def test_context_provider_retains_enter_primary_and_all_partial_cleanup_failures(tmp_path: Path) -> None:
+    from spec_double_compiler.effects import EffectProviderEnterCleanupError, context_provider
+
+    active: list[str] = []
+
+    class CleanupFailure:
+        def __init__(self, name: str):
+            self.name = name
+
+        def __enter__(self) -> None:
+            active.append(self.name)
+
+        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+            active.remove(self.name)
+            raise RuntimeError(f"cleanup failed: {self.name}")
+
+    def installer(_context: EffectProviderContext, stack: Any) -> None:
+        stack.enter_context(CleanupFailure("outer"))
+        stack.enter_context(CleanupFailure("inner"))
+        raise ValueError("installer primary")
+
+    binding = context_provider(installer).bind(effect_context(tmp_path))
+    with pytest.raises(EffectProviderEnterCleanupError) as raised:
+        binding.__enter__()
+
+    assert isinstance(raised.value.primary, ValueError)
+    assert str(raised.value.primary) == "installer primary"
+    assert [str(error) for error in raised.value.cleanup_errors] == [
+        "cleanup failed: inner",
+        "cleanup failed: outer",
+    ]
+    assert "installer primary" in str(raised.value)
+    assert "cleanup failed: inner" in str(raised.value)
+    assert "cleanup failed: outer" in str(raised.value)
+    assert active == []
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    ["", ".", "..", "../escape", "nested/root", "nested\\root", "/absolute/root"],
+)
+def test_temporary_root_provider_rejects_escaping_prefixes(prefix: str) -> None:
+    from spec_double_compiler.effects import temporary_root_provider
+
+    with pytest.raises(ValueError, match="path-free"):
+        temporary_root_provider(lambda root, context: (root, context), prefix=prefix)
+
+
 def write_phase_fixture(tmp_path: Path) -> None:
     sys.modules.pop("fuzz_phase_fixture", None)
     (tmp_path / "fuzz_phase_fixture.py").write_text(
         """from spec_double_compiler.runtime import CaseRunResult
 
 FAIL_PHASE = None
+FAIL_CASE = None
+EVENTS = []
 
 
 class Binding:
@@ -472,7 +652,12 @@ class Scope:
 
 class Provider:
     def bind(self, context):
-        if FAIL_PHASE == "bind" and context.port_name == "FilesystemPort":
+        EVENTS.append(("bind", context.case.name, context.port_name))
+        if (
+            FAIL_PHASE == "bind"
+            and context.port_name == "FilesystemPort"
+            and (FAIL_CASE is None or context.case.name == FAIL_CASE)
+        ):
             raise RuntimeError("bind failed")
         return Scope(context)
 
@@ -482,11 +667,22 @@ patch_provider = Provider()
 
 
 class Adapter:
+    def __init__(self):
+        if FAIL_PHASE == "adapter_instantiate":
+            raise RuntimeError("adapter instantiate failed")
+
+    def setup_all(self, context):
+        EVENTS.append(("setup_all", tuple(case.name for case in context.cases)))
+        if FAIL_PHASE == "setup_all":
+            raise RuntimeError("setup_all failed")
+
     def setup(self, context):
+        EVENTS.append(("setup", context.case.name))
         if FAIL_PHASE == "setup":
             raise RuntimeError("setup failed")
 
     def run(self, case, work_dir=None):
+        EVENTS.append(("run", case.name))
         if FAIL_PHASE == "run":
             raise RuntimeError("run failed")
         output = {"ok": False} if FAIL_PHASE == "output_assert" else case.output
@@ -495,6 +691,11 @@ class Adapter:
     def teardown(self, context):
         if FAIL_PHASE == "teardown":
             raise RuntimeError("teardown failed")
+
+    def teardown_all(self, context):
+        EVENTS.append(("teardown_all", tuple(case.name for case in context.cases)))
+        if FAIL_PHASE == "teardown_all":
+            raise RuntimeError("teardown_all failed")
 
 
 class Projector:
@@ -510,10 +711,58 @@ def structured_failures(message: str) -> list[dict[str, Any]]:
     return [json.loads(line[len(prefix) :]) for line in message.splitlines() if line.startswith(prefix)]
 
 
+def test_later_point_bind_failure_prevents_every_application_hook(tmp_path: Path) -> None:
+    write_phase_fixture(tmp_path)
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="fuzz_phase_fixture",
+        provider_tables="""[effect_providers.FilesystemPort]
+provider = "fuzz_phase_fixture:filesystem_provider"
+
+[effect_providers.PatchPort]
+provider = "fuzz_phase_fixture:patch_provider"
+""",
+    )
+    cases = [make_case("first"), make_case("later")]
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=cases,
+        import_roots=[tmp_path],
+    )
+    import fuzz_phase_fixture as fixture
+
+    fixture.FAIL_PHASE = "bind"
+    fixture.FAIL_CASE = "later"
+    with pytest.raises(SystemExit) as raised:
+        execute_cases_in_batch(
+            cases=cases,
+            mappings={
+                "Publish": AdapterMapping(
+                    "Publish",
+                    "fuzz_phase_fixture:Adapter",
+                    kind="publisher",
+                )
+            },
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+            replay_command_factory=lambda point: f"runner --case {point.case.name}",
+        )
+
+    diagnostic = next(item for item in structured_failures(str(raised.value)) if item["phase"] == "bind")
+    assert diagnostic["case"] == "later"
+    assert all(event[0] == "bind" for event in fixture.EVENTS)
+
+
 @pytest.mark.parametrize(
     ("failure", "expected_phase", "specific_port"),
     [
         ("bind", "bind", "FilesystemPort"),
+        ("adapter_load", "adapter_load", None),
+        ("adapter_instantiate", "adapter_instantiate", None),
+        ("output_projection_load", "output_projection_load", None),
+        ("setup_all", "setup_all", None),
         ("enter", "enter", "FilesystemPort"),
         ("invalid_binding", "invalid_binding", "FilesystemPort"),
         ("setup", "setup", None),
@@ -521,6 +770,7 @@ def structured_failures(message: str) -> list[dict[str, Any]]:
         ("output_assert", "output_assert", None),
         ("projected_assert", "projected_assert", None),
         ("teardown", "teardown", None),
+        ("teardown_all", "teardown_all", None),
         ("exit:PatchPort", "exit", "PatchPort"),
         ("exit:FilesystemPort", "exit", "FilesystemPort"),
     ],
@@ -552,9 +802,19 @@ provider = "fuzz_phase_fixture:patch_provider"
     import fuzz_phase_fixture as fixture
 
     fixture.FAIL_PHASE = failure
+    adapter_reference = (
+        "missing_effect_adapter:Adapter"
+        if failure == "adapter_load"
+        else "fuzz_phase_fixture:Adapter"
+    )
     mapping = AdapterMapping(
         "Publish",
-        "fuzz_phase_fixture:Adapter",
+        adapter_reference,
+        output_projection=(
+            "missing_effect_projection:project"
+            if failure == "output_projection_load"
+            else None
+        ),
         kind="publisher",
         projector="fuzz_phase_fixture:Projector" if failure == "projected_assert" else None,
     )
@@ -622,7 +882,11 @@ CASES = [
     )
 
 
-def test_cli_reexec_and_absolute_shell_safe_replay_run_exactly_one_point(tmp_path: Path) -> None:
+@pytest.mark.parametrize("failure_phase", ["run", "setup_all", "teardown_all"])
+def test_cli_reexec_and_absolute_shell_safe_replay_run_exactly_one_point(
+    tmp_path: Path,
+    failure_phase: str,
+) -> None:
     project = tmp_path / "project with spaces [and] quotes"
     spec_dir = project / "spec files"
     cases_dir = project / "case package"
@@ -663,57 +927,128 @@ ports:
     )
     event_log = project / "events with spaces.jsonl"
     (project / "replay_provider.py").write_text(
-        f"""import json
+        f"""import hashlib
+import json
 import os
 from pathlib import Path
+import random
 from spec_double_compiler.runtime import CaseRunResult
 
 ACTIVE = None
 LOG = Path(os.environ["EFFECT_REPLAY_EVENT_LOG"])
+FAIL_PHASE = os.environ["EFFECT_REPLAY_FAILURE_PHASE"]
 
-def record(event, context):
+def record(event, scope, batch_cases=None):
+    payload = {{
+        "event": event,
+        "case": scope.context.case.name,
+        "iteration": scope.context.iteration,
+        "choice": scope.choice,
+        "response": scope.response,
+        "transcript_digest": scope.transcript_digest,
+    }}
+    if batch_cases is not None:
+        payload["batch_cases"] = list(batch_cases)
     with LOG.open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps({{"event": event, "case": context.case.name, "iteration": context.iteration}}) + "\\n")
+        stream.write(json.dumps(payload, sort_keys=True) + "\\n")
+
+def record_hook(event, context):
+    payload = {{
+        "event": event,
+        "case": context.cases[0].name,
+        "iteration": context.iteration,
+        "batch_cases": [case.name for case in context.cases],
+    }}
+    with LOG.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(payload, sort_keys=True) + "\\n")
 
 class Binding:
+    def __init__(self, scope):
+        self.scope = scope
+
     def write(self, value):
-        pass
+        record("effect", self.scope)
 
 class Scope:
     def __init__(self, context):
         self.context = context
+        rng = random.Random(context.derived_seed)
+        self.choice = f"artifact-{{rng.randrange(1_000_000)}}.json"
+        self.response = {{
+            "status": rng.choice(["accepted", "stored", "committed"]),
+            "token": rng.getrandbits(48),
+        }}
+        transcript = json.dumps(
+            {{
+                "case": context.case.name,
+                "iteration": context.iteration,
+                "derived_seed": context.derived_seed,
+                "choice": self.choice,
+                "response": self.response,
+            }},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        self.transcript_digest = hashlib.sha256(transcript).hexdigest()
 
     def __enter__(self):
         global ACTIVE
-        ACTIVE = self.context
-        record("enter", self.context)
-        return Binding()
+        ACTIVE = self
+        record("enter", self)
+        return Binding(self)
 
     def __exit__(self, exc_type, exc, traceback):
         global ACTIVE
-        record("exit", self.context)
+        record("exit", self)
         ACTIVE = None
         return False
 
 class Provider:
     def bind(self, context):
-        record("bind", context)
-        return Scope(context)
+        scope = Scope(context)
+        record("bind", scope)
+        return scope
 
 filesystem_provider = Provider()
 
+def should_fail(scope, phase):
+    return (
+        FAIL_PHASE == phase
+        and scope.context.iteration == 2
+        and scope.context.case.name == {weird_case!r}
+    )
+
+def hook_should_fail(context, phase):
+    return (
+        FAIL_PHASE == phase
+        and context.iteration == 2
+        and context.cases[0].name == {weird_case!r}
+    )
+
 class Adapter:
+    def setup_all(self, context):
+        record_hook("setup_all", context)
+        if hook_should_fail(context, "setup_all"):
+            raise RuntimeError("deterministic setup_all replay failure")
+
     def setup(self, context):
+        self.binding = context.effects["FilesystemPort"]
         record("setup", ACTIVE)
 
     def run(self, case, work_dir=None):
         record("run", ACTIVE)
-        if ACTIVE.iteration == 2 and case.name == {weird_case!r}:
-            raise RuntimeError("deterministic replay failure")
+        self.binding.write(case.name)
+        if should_fail(ACTIVE, "run"):
+            raise RuntimeError("deterministic run replay failure")
         return CaseRunResult(output=case.output, after=case.after)
 
     def teardown(self, context):
         record("teardown", ACTIVE)
+
+    def teardown_all(self, context):
+        record_hook("teardown_all", context)
+        if hook_should_fail(context, "teardown_all"):
+            raise RuntimeError("deterministic teardown_all replay failure")
 """,
         encoding="utf-8",
     )
@@ -748,11 +1083,32 @@ provider = "replay_provider:filesystem_provider"
     ]
     env = os.environ.copy()
     env["EFFECT_REPLAY_EVENT_LOG"] = str(event_log)
-    campaign = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True, check=False)
+    env["EFFECT_REPLAY_FAILURE_PHASE"] = failure_phase
+
+    def run_campaign() -> tuple[subprocess.CompletedProcess[str], list[dict[str, Any]], list[dict[str, Any]]]:
+        if event_log.exists():
+            event_log.unlink()
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        events = [json.loads(line) for line in event_log.read_text(encoding="utf-8").splitlines()]
+        diagnostics = structured_failures(completed.stdout + completed.stderr)
+        return completed, events, diagnostics
+
+    campaign, first_events, first_diagnostics = run_campaign()
+    repeated, repeated_events, repeated_diagnostics = run_campaign()
 
     assert campaign.returncode != 0
-    diagnostics = structured_failures(campaign.stdout + campaign.stderr)
-    failure = next(item for item in diagnostics if item["phase"] == "run")
+    assert repeated.returncode != 0
+    failure = next(item for item in first_diagnostics if item["phase"] == failure_phase)
+    repeated_failure = next(item for item in repeated_diagnostics if item["phase"] == failure_phase)
+    assert repeated_failure == failure
+    assert repeated_events == first_events
     assert failure["case"] == weird_case
     assert failure["iteration"] == 2
     assert failure["root_seed"] == 444
@@ -763,18 +1119,27 @@ provider = "replay_provider:filesystem_provider"
     assert replay_argv[replay_argv.index("--case") + 1] == weird_case
     assert replay_argv[replay_argv.index("--fuzz-iteration") + 1] == "2"
 
+    failing_events = [
+        event
+        for event in first_events
+        if event["case"] == weird_case and event["iteration"] == 2
+    ]
+    concrete_transcript = {
+        (
+            event["choice"],
+            json.dumps(event["response"], sort_keys=True),
+            event["transcript_digest"],
+        )
+        for event in failing_events
+        if "choice" in event
+    }
+    assert len(concrete_transcript) == 1
+
     event_log.unlink()
     replayed = subprocess.run(replay_argv, cwd=tmp_path, env=env, text=True, capture_output=True, check=False)
     assert replayed.returncode != 0
     replay_events = [json.loads(line) for line in event_log.read_text(encoding="utf-8").splitlines()]
-    assert [event["event"] for event in replay_events] == [
-        "bind",
-        "enter",
-        "setup",
-        "run",
-        "teardown",
-        "exit",
-    ]
+    assert replay_events == failing_events
     assert {event["case"] for event in replay_events} == {weird_case}
     assert {event["iteration"] for event in replay_events} == {2}
 

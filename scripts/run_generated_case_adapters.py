@@ -1232,7 +1232,10 @@ def _structured_failure(
     replay_command_factory: Callable[[ExecutionPoint], str] | None,
     binding: ResolvedEffectProvider | None = None,
 ) -> str:
-    from spec_double_compiler.effects import EFFECT_SEED_VERSION
+    from spec_double_compiler.effects import (
+        EFFECT_SEED_VERSION,
+        EffectProviderEnterCleanupError,
+    )
 
     providers = _provider_seed_rows(plan, point, root_seed)
     payload: dict[str, Any] = {
@@ -1250,6 +1253,15 @@ def _structured_failure(
         payload["provider"] = next(
             row for row in providers if row["port"] == binding.port_name
         )
+    if isinstance(error, EffectProviderEnterCleanupError):
+        payload["primary_error"] = {
+            "error_type": type(error.primary).__name__,
+            "error": str(error.primary),
+        }
+        payload["cleanup_errors"] = [
+            {"error_type": type(cleanup).__name__, "error": str(cleanup)}
+            for cleanup in error.cleanup_errors
+        ]
     return "EFFECT_FUZZ_FAILURE " + json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
@@ -1380,7 +1392,7 @@ def _execute_points_in_batch(
     projector_cache: dict[str, Any] = {}
     object_cache: dict[str, Any] = {}
 
-    runnable_by_kind: dict[str, list[tuple[ExecutionPoint, AdapterMapping]]] = {}
+    runnable_entries: list[tuple[ExecutionPoint, AdapterMapping]] = []
     for point in points:
         case = point.case
         mapping = adapter_for_case(case, mappings)
@@ -1394,26 +1406,89 @@ def _execute_points_in_batch(
             if requires_action_adapter(case):
                 failures.append(f"{case.name} via {mapping.label}: no executable adapter")
                 continue
-        runnable_by_kind.setdefault(adapter_kind(mapping), []).append((point, mapping))
+        runnable_entries.append((point, mapping))
 
-    for kind, entries in runnable_by_kind.items():
+    if provider_plan.configured:
+        runnable_groups = [
+            (adapter_kind(mapping), [(point, mapping)])
+            for point, mapping in runnable_entries
+        ]
+    else:
+        runnable_by_kind: dict[str, list[tuple[ExecutionPoint, AdapterMapping]]] = {}
+        for point, mapping in runnable_entries:
+            runnable_by_kind.setdefault(adapter_kind(mapping), []).append((point, mapping))
+        runnable_groups = list(runnable_by_kind.items())
+
+    for kind, entries in runnable_groups:
+        if provider_plan.configured:
+            adapter_cache.clear()
+            projector_cache.clear()
+            object_cache.clear()
         shared: dict[str, Any] = {}
         group_root = work_dir / "kind-work"
-        if iteration_paths:
+        if provider_plan.configured:
+            from spec_double_compiler.effects import derive_effect_seed
+
+            point = entries[0][0]
+            point_key = derive_effect_seed(
+                root_seed,
+                str(point.case.name),
+                point.iteration,
+                "__adapter_batch__",
+            )
+            group_root = group_root / f"point-{point_key:032x}"
+        elif iteration_paths:
             group_root = group_root / f"iteration-{entries[0][0].iteration:06d}"
         group_work_dir = group_root / kind.replace("/", "_").replace(":", "_")
         group_work_dir.mkdir(parents=True, exist_ok=True)
         group_cases = [point.case for point, _mapping in entries]
         group_adapters: list[tuple[Any, AdapterMapping]] = []
-        for _point, mapping in entries:
+        initialization_failed = False
+        for point, mapping in entries:
             if mapping.adapter is None:
                 continue
             adapter = adapter_cache.get(mapping.adapter)
             if adapter is None:
-                adapter = instantiate(load_object(mapping.adapter))
+                try:
+                    adapter_object = load_object(mapping.adapter)
+                except Exception as exc:
+                    if not provider_plan.configured:
+                        raise
+                    failures.append(
+                        _structured_failure(
+                            point=point,
+                            phase="adapter_load",
+                            error=exc,
+                            plan=provider_plan,
+                            root_seed=root_seed,
+                            replay_command_factory=replay_command_factory,
+                        )
+                    )
+                    initialization_failed = True
+                    continue
+                try:
+                    adapter = instantiate(adapter_object)
+                except Exception as exc:
+                    if not provider_plan.configured:
+                        raise
+                    failures.append(
+                        _structured_failure(
+                            point=point,
+                            phase="adapter_instantiate",
+                            error=exc,
+                            plan=provider_plan,
+                            root_seed=root_seed,
+                            replay_command_factory=replay_command_factory,
+                        )
+                    )
+                    initialization_failed = True
+                    continue
                 adapter_cache[mapping.adapter] = adapter
             if not any(existing_mapping.adapter == mapping.adapter for _adapter, existing_mapping in group_adapters):
                 group_adapters.append((adapter, mapping))
+
+        if initialization_failed:
+            continue
 
         setup_all_failed = False
         for adapter, mapping in group_adapters:
@@ -1427,11 +1502,24 @@ def _execute_points_in_batch(
                         work_dir=group_work_dir,
                         mapping=mapping,
                         shared=shared,
+                        iteration=entries[0][0].iteration,
+                        root_seed=root_seed,
                     ),
                 )
             except Exception as exc:
                 setup_all_failed = True
-                failures.append(f"{kind} setup_all via {mapping.label}: {type(exc).__name__}: {exc}")
+                failures.append(
+                    _structured_failure(
+                        point=entries[0][0],
+                        phase="setup_all",
+                        error=exc,
+                        plan=provider_plan,
+                        root_seed=root_seed,
+                        replay_command_factory=replay_command_factory,
+                    )
+                    if provider_plan.configured
+                    else f"{kind} setup_all via {mapping.label}: {type(exc).__name__}: {exc}"
+                )
         try:
             if not setup_all_failed:
                 for point, mapping in entries:
@@ -1441,7 +1529,22 @@ def _execute_points_in_batch(
                     if adapter is not None and mapping.output_projection:
                         projector = projector_cache.get(mapping.output_projection)
                         if projector is None:
-                            projector = load_object(mapping.output_projection)
+                            try:
+                                projector = load_object(mapping.output_projection)
+                            except Exception as exc:
+                                if not provider_plan.configured:
+                                    raise
+                                failures.append(
+                                    _structured_failure(
+                                        point=point,
+                                        phase="output_projection_load",
+                                        error=exc,
+                                        plan=provider_plan,
+                                        root_seed=root_seed,
+                                        replay_command_factory=replay_command_factory,
+                                    )
+                                )
+                                continue
                             projector_cache[mapping.output_projection] = projector
                     case_work_dir = _point_work_dir(work_dir, point, iteration_paths=iteration_paths)
                     case_work_dir.mkdir(parents=True, exist_ok=True)
@@ -1716,10 +1819,23 @@ def _execute_points_in_batch(
                             work_dir=group_work_dir,
                             mapping=mapping,
                             shared=shared,
+                            iteration=entries[0][0].iteration,
+                            root_seed=root_seed,
                         ),
                     )
                 except Exception as exc:
-                    failures.append(f"{kind} teardown_all via {mapping.label}: {type(exc).__name__}: {exc}")
+                    failures.append(
+                        _structured_failure(
+                            point=entries[0][0],
+                            phase="teardown_all",
+                            error=exc,
+                            plan=provider_plan,
+                            root_seed=root_seed,
+                            replay_command_factory=replay_command_factory,
+                        )
+                        if provider_plan.configured
+                        else f"{kind} teardown_all via {mapping.label}: {type(exc).__name__}: {exc}"
+                    )
 
     # MF-013: effect conformance. The report is written unconditionally -- it is
     # ticket evidence whether the verdict is clean or not -- and every finding
@@ -1762,12 +1878,14 @@ def execute_cases_in_batch(
     fuzz_iteration: int | None = None,
     replay_command_factory: Callable[[ExecutionPoint], str] | None = None,
 ) -> int:
-    """Run a deterministic provider campaign, one fresh batch per iteration.
+    """Run a deterministic provider campaign with replayable point isolation.
 
-    The single-run defaults intentionally retain the legacy batch lifecycle and
-    work-directory layout.  Selecting more runs, or an exact replay iteration,
-    creates a fresh adapter cache, shared mapping, provider binding, sandbox and
-    iteration-qualified work directory for every execution point.
+    Provider-free defaults retain the legacy grouped batch lifecycle and work
+    layout. Provider-bearing runs isolate every case/iteration point in its own
+    batch so ``setup_all`` and ``teardown_all`` receive exactly the context an
+    emitted replay command reconstructs. Each such point gets fresh adapter and
+    shared caches, provider bindings, effect mappings, and sandboxes. Any
+    nondefault fuzz control also selects an iteration-qualified work path.
     """
 
     if fuzz_runs < 1:

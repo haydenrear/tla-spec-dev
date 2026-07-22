@@ -75,7 +75,17 @@ return `None` after installing a bounded patch. The adapter's `setup` hook can
 read `context.effects["FilesystemPort"]`, store it on the adapter, and pass it
 to production code. Cleanup runs in strict reverse provider order after adapter
 teardown. A provider cannot suppress application failures with a truthy
-`__exit__`, and cleanup failures are reported separately.
+`__exit__`, and cleanup failures are reported separately. If a helper installer
+and partial cleanup both fail, the raised aggregate retains the installer
+primary plus every nested cleanup error.
+
+Configuration and lazy bindings for the whole selected corpus are prepared
+before the first application hook, so a later bind failure prevents every
+adapter hook. Runtime resources remain point-local. For provider-bearing runs,
+the complete hook order for each singleton point batch is `setup_all`, provider
+enter, adapter setup/run/assert/teardown, provider exit, then `teardown_all`.
+Batch hooks receive the singleton case plus `iteration` and `root_seed`; they do
+not run inside active provider scopes and must not read per-case bound effects.
 
 The shipped helpers make the two common forms small:
 
@@ -141,17 +151,20 @@ iteration, and port name using SHA-256. It is stable across Python processes,
 RNG from `context.derived_seed`; do not use `hash()`, module-global randomness,
 or traversal order.
 
-Each campaign iteration gets a fresh adapter cache and shared batch mapping.
-Each case/iteration point gets fresh provider bindings, effect mapping and
-sandbox, plus an iteration-qualified work-directory path. The original
-generated case is never copied or mutated. A reused explicit campaign root may
-still contain residue from an earlier invocation.
+Each case/iteration point gets a fresh adapter cache, shared singleton-batch
+mapping, provider bindings, effect mapping and sandbox. Case and batch work
+paths are point-qualified; the batch path uses a stable derived key rather than
+embedding the raw case name. The original generated case is never copied or
+mutated. A reused explicit campaign root may still contain residue from an
+earlier invocation.
 
 On failure the runner emits one `EFFECT_FUZZ_FAILURE` JSON record per retained
 failure. It includes the case, iteration, root seed, seed version, phase, active
 provider/seed table, error, and an absolute shell-safe replay command. Phases
 distinguish provider bind, enter, invalid binding, adapter setup/run/output
-assertion/projected assertion/teardown, and every provider exit failure.
+assertion/projected assertion/teardown, adapter/projection loading and
+instantiation, singleton `setup_all`/`teardown_all`, and every provider exit
+failure.
 
 Run the recorded command from any directory to execute exactly that point. The
 runner may still preflight mapping coverage for the generated corpus, but the
