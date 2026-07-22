@@ -5,7 +5,8 @@
 #
 # This workflow branches the concluded modular-fuzzing discovery at dfd2a80.
 # Its MF-* tickets remain below as an immutable historical record. The only
-# active priority lane is EP-01 -> EP-02 -> EP-03.
+# completed priority lane is EP-01 -> EP-02 -> EP-03. The owner-level
+# coverage audit is the remaining completeness gate.
 version: 1
 name: effect-provider-epic
 updated: "2026-07-22"
@@ -17,7 +18,7 @@ epic:
   default_branch: main
   base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
   base_tree: b9da49f29ef0bd8fd0441ee86252a1bad64d8651
-  schedule_revision: 1
+  schedule_revision: 2
   review_mode: epic-owner-pr-review
   notes: >
     This is a sibling of epic/complexity-descriptor, deliberately branched
@@ -32,7 +33,11 @@ epic:
     effect observation remains a separate surface. V0 is Python batch mode;
     Java, streaming providers, universal monkeypatching, generated per-call
     response scripts, exhaustive cross-products, shrinking, and production
-    Kafka/SMTP libraries are explicit non-goals.
+    Kafka/SMTP libraries are explicit non-goals. 2026-07-22 owner amendment:
+    after all three dispatched tickets completed, revision 2 adds the exact
+    validation scope required by the end-of-epic coverage audit. It changes no
+    dispatched ticket identity, dependency, wave, promotion order, or conflict
+    key.
 
 deferment_policy:
   mode: batch
@@ -525,10 +530,10 @@ planning_rules:
 
 status:
   workflow: effect-provider-epic
-  active_ticket: EP-03
-  active_ticket_title: "Three effectful-modeling projects, mutation evidence, and recommendation"
+  active_ticket: null
+  active_ticket_title: null
   desired_module: TlaSpecDevCli
-  phase: validation
+  phase: coverage_audit
 
 service_catalog:
   existing_boundaries:
@@ -550,6 +555,112 @@ service_catalog:
   known_gaps:
     - "The inherited host model does not model provider configuration or fuzz iteration as CLI state. EP-01 and EP-02 therefore record zero host-TLA deltas unless implementation exposes new modeled CLI behavior; EP-03 supplies independent TLA+ models in the example projects."
     - "A provider can install a monkeypatch or supply an explicitly injected port, but V0 does not prove that application code cannot bypass it. The existing passive effect observer remains the separate leak-detection mechanism."
+
+coverage_audit_scope:
+  revision: 1
+  declaration: >-
+    Audit the complete non-mutant runtime behavior of exactly the seven Python
+    application and entrypoint files below against each project's own Internal
+    and External TLA+ views. Exact-path matching applies: a listed file does not
+    imply directory closure.
+  in_scope_application_files:
+    - examples/effect_providers/atomic_publisher/application.py
+    - examples/effect_providers/atomic_publisher/atomic_cli.py
+    - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__init__.py
+    - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__main__.py
+    - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py
+    - examples/effect_providers/reminder_worker/app.py
+    - examples/effect_providers/reminder_worker/reminder_cli.py
+  model_indexes:
+    atomic_publisher:
+      application_files:
+        - examples/effect_providers/atomic_publisher/application.py
+        - examples/effect_providers/atomic_publisher/atomic_cli.py
+      model_and_binding_files:
+        - examples/effect_providers/atomic_publisher/specs/program_model/Core.tla
+        - examples/effect_providers/atomic_publisher/specs/program_model/Internal.tla
+        - examples/effect_providers/atomic_publisher/specs/program_model/Internal.cfg
+        - examples/effect_providers/atomic_publisher/specs/program_model/External.tla
+        - examples/effect_providers/atomic_publisher/specs/program_model/External.cfg
+        - examples/effect_providers/atomic_publisher/specs/program_model/spec_manifest.yaml
+        - examples/effect_providers/atomic_publisher/specs/program_model/actions.yml
+        - examples/effect_providers/atomic_publisher/specs/program_model/case_adapters.toml
+        - examples/effect_providers/atomic_publisher/specs/program_model/testgraph_bindings.yml
+        - examples/effect_providers/atomic_publisher/specs/program_model/tlc_projection.py
+    legacy_payment_http:
+      application_files:
+        - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__init__.py
+        - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__main__.py
+        - examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py
+      model_and_binding_files:
+        - examples/effect_providers/legacy_payment_http/specs/program_model/Core.tla
+        - examples/effect_providers/legacy_payment_http/specs/program_model/Internal.tla
+        - examples/effect_providers/legacy_payment_http/specs/program_model/Internal.cfg
+        - examples/effect_providers/legacy_payment_http/specs/program_model/External.tla
+        - examples/effect_providers/legacy_payment_http/specs/program_model/External.cfg
+        - examples/effect_providers/legacy_payment_http/specs/program_model/spec_manifest.yaml
+        - examples/effect_providers/legacy_payment_http/specs/program_model/actions.yml
+        - examples/effect_providers/legacy_payment_http/specs/program_model/case_adapters.toml
+        - examples/effect_providers/legacy_payment_http/specs/program_model/testgraph_bindings.yml
+        - examples/effect_providers/legacy_payment_http/specs/program_model/tlc_projection.py
+    reminder_worker:
+      application_files:
+        - examples/effect_providers/reminder_worker/app.py
+        - examples/effect_providers/reminder_worker/reminder_cli.py
+      model_and_binding_files:
+        - examples/effect_providers/reminder_worker/specs/program_model/Core.tla
+        - examples/effect_providers/reminder_worker/specs/program_model/Internal.tla
+        - examples/effect_providers/reminder_worker/specs/program_model/Internal.cfg
+        - examples/effect_providers/reminder_worker/specs/program_model/External.tla
+        - examples/effect_providers/reminder_worker/specs/program_model/External.cfg
+        - examples/effect_providers/reminder_worker/specs/program_model/spec_manifest.yaml
+        - examples/effect_providers/reminder_worker/specs/program_model/actions.yml
+        - examples/effect_providers/reminder_worker/specs/program_model/case_adapters.toml
+        - examples/effect_providers/reminder_worker/specs/program_model/testgraph_bindings.yml
+        - examples/effect_providers/reminder_worker/specs/program_model/tlc_projection.py
+  included_behavior:
+    - >-
+      Every control-path success, modeled failure, exception normalization,
+      retry, order, cardinality, serialization, persistence, CLI ingress, CLI
+      egress, and effect attempt implemented by an in-scope file is included.
+    - >-
+      A behavior is not excluded merely because the fixed generated corpus does
+      not exercise it or because a provider, adapter, shared journal, baseline,
+      passive guard, or hand-written assertion detects it.
+    - >-
+      Representation requires positive evidence in a named TLA+ action, state,
+      invariant, or explicit refinement across both views. Provider-owned or
+      test-owned checks are validation evidence, not model coverage.
+  explicit_behavior_exclusions:
+    - >-
+      Atomic-publisher fault-injection selection (`MUTANTS`,
+      `ATOMIC_PUBLISHER_MUTANT`, `_selected_mutant`) and branch arms reachable
+      only when a non-null AP-* mutant is selected are test mutations, not
+      production control behavior.
+    - >-
+      Legacy-payment fault-injection selection (`LEGACY_PAYMENT_MUTANT`,
+      `_mutant`) and branch arms reachable only when the value is not CONTROL
+      are test mutations, not production control behavior.
+    - >-
+      Reminder-worker branch arms reachable only when `run_once(mutant=...)`
+      receives an RW-* identifier are test mutations, not production control
+      behavior; the default `mutant=None` path remains fully in scope.
+  out_of_scope_rule: >-
+    Every tracked application or implementation source path not listed in
+    in_scope_application_files is out of this application coverage audit. This
+    is an exact-path exclusion, not an instruction to omit those rows from the
+    mechanical repository inventory. The model_and_binding_files are the
+    mandatory representation index, not application-surface rows.
+  out_of_scope_categories:
+    - project providers, adapters, conformance helpers, baselines, probes, tests, regeneration, experiment runners, and mutation scorers
+    - generated contracts and cases, raw evidence, reports, documentation, and Test Graph control-plane code
+    - host EP-01/EP-02 framework runtime and CLI code, whose zero host-model delta has separate unit, spec, TLC, and graph evidence
+    - all Java, Kotlin, shell, and other tracked program source because Python V0 is the declared experiment boundary
+  requirements:
+    - mechanically inventory every tracked program-source file before applying the exact-path classification
+    - build a separate non-empty representation index for each project's Internal and External views
+    - audit both views and all effect categories; do not pool one project's representation into another
+    - report every in-scope partial or unrepresented behavior as a hard gap; do not repair it during the audit
 
 previous_epic_tickets:
   - id: MF-012
