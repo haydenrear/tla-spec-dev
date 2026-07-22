@@ -129,6 +129,45 @@ def default_manifest_for(cases_dir: Path) -> Path | None:
     return None
 
 
+def resolve_manifest(explicit: Path | None, cases_dir: Path, bindings_path: Path) -> Path:
+    """Resolve the spec_manifest.yaml that supplies the case caps.
+
+    VAL-10: the case-cap gate is a budget gate, and a budget gate that runs on
+    built-in default caps without saying which manifest it read is a silent
+    fallback -- the defect this function removes. Resolution order:
+
+      1. an explicit ``--manifest`` (which must exist -- a typo'd path
+         silently defaulting is the same defect);
+      2. the nearest manifest at or above the case package, for packages
+         generated inside the spec tree;
+      3. the spec root, i.e. the directory holding the ``--bindings`` file,
+         for packages generated into a build directory.
+
+    When none of those yields a manifest, the export FAILS LOUDLY naming
+    ``--manifest``. There is no path on which the gate quietly uses the
+    built-in default caps.
+    """
+    if explicit is not None:
+        resolved = resolve_existing_from_cwd(explicit)
+        if not resolved.is_file():
+            raise SystemExit(f"ERROR: --manifest {resolved} does not exist")
+        return resolved
+    discovered = default_manifest_for(cases_dir)
+    if discovered is None:
+        candidate = bindings_path.parent / "spec_manifest.yaml"
+        if candidate.is_file():
+            discovered = candidate
+    if discovered is None:
+        raise SystemExit(
+            "ERROR: no spec_manifest.yaml found at or above the case package "
+            f"({cases_dir}) or beside the bindings file ({bindings_path.parent}). "
+            "The case-cap gate refuses to run on built-in default caps without a "
+            "manifest: pass --manifest <spec-root>/spec_manifest.yaml."
+        )
+    print(f"case caps read from {discovered}")
+    return discovered
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("cases_dir", type=Path, help="Generated external case package directory")
@@ -149,7 +188,13 @@ def main() -> int:
     parser.add_argument(
         "--manifest",
         type=Path,
-        help="spec_manifest.yaml supplying the case caps. Defaults to the spec dir beside the case package.",
+        help=(
+            "spec_manifest.yaml supplying the case caps. When omitted, the "
+            "manifest is resolved from the case package's spec tree or from "
+            "the spec root holding --bindings; when neither holds one, the "
+            "export fails asking for this flag rather than silently using "
+            "built-in default caps."
+        ),
     )
     parser.add_argument(
         "--bindings",
@@ -167,6 +212,8 @@ def main() -> int:
     args = parser.parse_args()
 
     cases_dir = resolve_existing_from_cwd(args.cases_dir)
+    bindings_path = resolve_existing_from_cwd(args.bindings)
+    manifest_path = resolve_manifest(args.manifest, cases_dir, bindings_path)
     sys.path.insert(0, str(cases_dir.parent))
     cases_module = load_cases(cases_dir)
 
@@ -178,7 +225,7 @@ def main() -> int:
     enforce_case_cap(
         all_external,
         view="external",
-        manifest_path=args.manifest or default_manifest_for(cases_dir),
+        manifest_path=manifest_path,
         source=str(cases_dir),
     )
 
@@ -188,7 +235,7 @@ def main() -> int:
     # narrow flag hide an unchecked binding.
     try:
         contract = enforce_external_bindings(
-            resolve_existing_from_cwd(args.bindings),
+            bindings_path,
             actions={case.input.action for case in all_external},
         )
     except ChannelEnforcementError as exc:

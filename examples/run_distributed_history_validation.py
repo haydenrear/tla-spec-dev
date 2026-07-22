@@ -17,22 +17,49 @@ from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
+DEFAULT_EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
+# VAL-11: these are set from the target example path in main(); the defaults
+# keep module-level readers working when the embedded copy is the target.
+EXAMPLE_ROOT = DEFAULT_EXAMPLE_ROOT
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
 GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 CLUSTER_NAME = "ecommerce-history"
 
 
 def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None) -> None:
-    print("$ " + " ".join(command))
+    # flush=True: the child writes straight to the shared stdout, so an
+    # unflushed echo would appear after the output of the command it announces.
+    print("$ " + " ".join(command), flush=True)
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "example_root",
+        nargs="?",
+        type=Path,
+        default=DEFAULT_EXAMPLE_ROOT,
+        help=(
+            "Path to the distributed_history example to validate. Defaults to "
+            "the copy embedded in this repository; pass a standalone checkout "
+            "to validate it instead (VAL-11). Pair with TLA_SPEC_DEV_ROOT when "
+            "the example does not live inside the toolchain repository."
+        ),
+    )
     parser.add_argument("--mode", choices=["local", "k3d"], default="k3d")
     parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
     args = parser.parse_args()
+
+    global EXAMPLE_ROOT, TEST_GRAPH_ROOT, GENERATED_ROOT
+    EXAMPLE_ROOT = args.example_root.resolve()
+    if not (EXAMPLE_ROOT / "specs" / "program_model").is_dir():
+        raise SystemExit(
+            f"ERROR: {EXAMPLE_ROOT} does not look like a distributed_history "
+            "example (missing specs/program_model)"
+        )
+    TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
+    GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
@@ -384,7 +411,7 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
         raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
 
 
-def expected_external_trace_names(manifest: Path = GENERATED_ROOT / "testgraph" / "traces" / "manifest.json") -> list[str]:
+def expected_external_trace_names(manifest: Path) -> list[str]:
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     return sorted(Path(name).stem for name in payload["traces"])
 
