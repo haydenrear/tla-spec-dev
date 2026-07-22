@@ -17,9 +17,6 @@ from typing import Any
 import yaml
 from testgraphsdk import NodeResult, NodeSpec, node, procs
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
-from extract_spec_manifest import parse_simple_yaml  # noqa: E402
-
 
 SPEC = (
     NodeSpec("effect.providers.examples")
@@ -81,6 +78,12 @@ def log_text(ctx: Any, record: Any) -> str:
 
 @node(SPEC)
 def main(ctx):
+    # Test Graph describes every source in a copied probe project even when a
+    # graph does not select this node. Keep repository-only imports in the
+    # execution path so description stays portable.
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from extract_spec_manifest import parse_simple_yaml
+
     aggregate = load(AGGREGATE)
     atomic = load(ATOMIC / "evidence" / "atomic-publisher-raw.json")
     reminder_1 = load(
