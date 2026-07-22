@@ -126,3 +126,129 @@ findings:
     blast_radius: "scripts/run_tlc.sh only."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-04
+    found_by: "validation-ex1-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/tla_spec_dev.py", "scripts/new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Scaffold output contradicts the advisory doctrine: the scaffold-project
+      epilog and the generated spec_manifest.yaml budget comment
+      (scripts/new_ticket_workflow.py:615,666) say "hard gates read by
+      analyze complexity ...", while SKILL.md, the references, and the
+      scanner's own output all say advisory-never-blocking. Every newly
+      onboarded project starts with gate-era language.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs scaffold project
+      --name X` in a fresh directory; read the epilog and the generated
+      manifest's budgets comment. Observed: "hard gates". Expected: advisory
+      wording matching SKILL.md "Complexity Budgets Are Advisory".
+      Confirmed in source by the epic owner 2026-07-21.
+    evidence: ["examples/validation/runs/ex1-run1/scoring.md"]
+    why_out_of_scope: >-
+      Found during post-epic validation; filed, not fixed (MF-037
+      discipline). Outside CD-01's acceptance surface (SKILL.md/references).
+    suggested_fix: >-
+      Reword the scaffold epilog and generated-manifest comments to the
+      advisory framing.
+    blast_radius: "Scaffold text only; no behavior change."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-05
+    found_by: "validation-ex1-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["references/architecture_tractability.md", "scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The manifest justification-table schema required by
+      unjustified_variables (dict per variable with a non-empty
+      invariants/effects/kill_tests list; prose strings silently flagged
+      DEAD WEIGHT) is documented nowhere; agents must read
+      analyze_complexity.py (~line 952) to learn it.
+    reproduction: >-
+      Write justification entries as prose strings and scan: every variable
+      is flagged DEAD WEIGHT despite justifications being present. Expected:
+      a documented schema (or prose accepted).
+    evidence: ["examples/validation/runs/ex1-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: >-
+      Document the schema with an example in
+      references/architecture_tractability.md and the scaffolded manifest
+      comment.
+    blast_radius: "Docs plus possibly a friendlier parse in analyze_complexity.py."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-06
+    found_by: "validation-ex1-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Domain resolution (_set_size) handles only set literals, int ranges,
+      BOOLEAN, unions thereof, and cfg-constant names. A standard shape like
+      `tasks \in [Names -> TaskStatus]` with TaskStatus defined in an
+      EXTENDS-ed module resolves to bound UNKNOWN even though the invariant
+      is found. The honest-unknown path works (no silent 1), but the
+      resolver is narrower than the standard patterns real users write, and
+      the limitation is undocumented.
+    reproduction: >-
+      Model with TypeInvariant using a function set over a module-defined
+      status set; scan: bound = UNKNOWN. Inlining the status-set literal in
+      the invariant resolves it. Expected: module-defined set operators
+      resolved (profile permitting) or the limitation documented.
+    evidence: ["examples/validation/runs/ex1-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: >-
+      Resolve zero-arity set-operator definitions transitively (the same
+      machinery as CD-01's invariant alias resolution) before giving up, and
+      document what the resolver can see.
+    blast_radius: "scripts/analyze_complexity.py domain resolution; F3 accuracy on real models."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-07
+    found_by: "validation-ex1-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The R/W matrix attributes variable writes to the syntactic primer, so
+      wrapper actions that prime a variable only through a helper operator
+      (e.g. MarkCli(cmd, task, exit) doing the lastCli' assignment) vanish
+      from the matrix, dense-column list, and action count: 9 CLI actions
+      collapsed to 4 rows until the assignments were inlined. Understates
+      action counts, which also feeds fitness-function facts.
+    reproduction: >-
+      External view whose actions call a shared helper for the primed
+      variable; scan and compare the action columns with the module's
+      disjuncts. Observed: helper listed as the action, wrappers absent.
+      Expected: attribution to the top-level actions (or a documented
+      limitation).
+    evidence: ["examples/validation/runs/ex1-run1/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: >-
+      Expand helper-operator bodies when attributing primed variables (same
+      transitive-resolution direction as CD-01/F1), or document the
+      inline-your-primes convention.
+    blast_radius: "R/W matrix, dense columns, action_count, component actions; fitness facts derived from them."
+    disposition: pending
+    disposition_ticket: null
