@@ -1,0 +1,14 @@
+== F3 PRE-FIX: no TypeInvariant/TypeOK, only a safety invariant ==
+command: analyze(NoType.tla, NoTypeMC.cfg)
+bound (pre-fix): 1  -- silent degeneration; unbounded: ['count']
+
+== F3 POST-FIX ==
+1. No TypeInvariant/TypeOK and no membership conjuncts: bound = UNKNOWN (None), explicit warning
+   'state-space upper bound UNKNOWN: no variable domain could be resolved...' -- never a silent 1.
+2. TypeOK accepted as domain source (bound_source == 'TypeOK').
+3. Domains resolve from cfg-named invariants transitively (RangeInv behind an alias bounds count at 3).
+4. Scaffolded repository baseline: bound = 699,840 from TypeInvariant (descriptor_report_baseline.txt).
+
+command: uv run --with pytest --with pyyaml -m pytest tests/test_analyze_complexity.py -q -k f3
+...                                                                      [100%]
+3 passed, 43 deselected in 0.03s

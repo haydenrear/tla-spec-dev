@@ -1,27 +1,36 @@
 #!/usr/bin/env python3
-"""Static complexity analysis for a constrained-profile TLA+ spec + cfg.
+"""The complexity DESCRIPTOR for a constrained-profile TLA+ spec + cfg.
 
-Mechanizes the decomposition method in ``references/modular_fuzzing.md`` and
-the diagnostics in ``references/architecture_tractability.md`` so an agent has
-a number to engineer against **before** TLC ever runs.
+A factual pass-through for TLA+ complexity: it measures the model and reports
+what is there, so an agent has numbers to reason from **before** TLC ever
+runs. Facts, not judgment -- it never suggests an architectural move (CD-01;
+the earlier suggested-move machinery was confidently wrong on standard TLA+
+and was removed; suggestions may return later, earned from real-app
+observations).
 
 What it emits:
 
-* the per-variable domain cardinality table (parsed from ``TypeInvariant`` and
-  the ``.cfg`` constants);
+* the per-variable domain cardinality table (parsed from
+  ``TypeInvariant``/``TypeOK`` or, when neither exists, the transitively
+  resolved bodies of the cfg-configured invariants) plus the ``.cfg``
+  constants;
 * the state-space upper bound (the product of those cardinalities) and the
-  dominant dimensions;
+  dominant dimensions -- or an EXPLICIT "unknown" when no variable domain
+  could be resolved, never a silent 1;
 * the variables x actions read/write matrix;
 * a graph-modularity score over that matrix, the near-decomposable variable
   clusters, and the candidate port-crossing actions;
+* dense rows (god-state variables touched by most actions) and dense columns
+  (actions touching most variables);
+* variables no configured invariant reads -- with invariant aliasing and
+  composition (``INVARIANT Inv`` with ``Inv == RealInv``) resolved
+  transitively;
 * variables with no justification linkage, flagged as dead weight, when the
-  manifest carries a ``justification:`` table;
-* a **suggested move** -- abstract, decompose, or refactor -- which is a
-  RECOMMENDATION REQUIRING USER APPROVAL and is never auto-applied; and
+  manifest carries a ``justification:`` table; and
 * **advisory complexity warnings** read against the thresholds in
   :mod:`scripts.budgets` (the MF-012 helper). Each threshold breach becomes a
-  WARNING that names the component/variable/action and RECOMMENDS a concrete
-  move. It NEVER drives a nonzero exit and NEVER blocks promotion (MF-036;
+  WARNING that names the component/variable/action and states the measured
+  fact. It NEVER drives a nonzero exit and NEVER blocks promotion (MF-036;
   references/architecture_tractability.md, "Advisory, Not Blocking"). The scan
   exits nonzero only when it *cannot analyze* the model at all -- an unresolved
   module hierarchy (MF-030 fail-closed) or a usage error -- which is a
@@ -54,9 +63,6 @@ from typing import Any, Iterable, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-
-# Modularity at or above this is treated as "a cut plausibly exists".
-MODULARITY_CUT_THRESHOLD = 0.30
 
 # Exit codes.
 EXIT_PASS = 0
@@ -531,12 +537,15 @@ def infer_dimensions(
     type_invariant: str | None,
     variables: Sequence[str],
     constants: dict[str, Any],
+    source_label: str = "TypeInvariant",
 ) -> list[Dimension]:
-    """Derive a per-variable domain cardinality from ``TypeInvariant``.
+    """Derive a per-variable domain cardinality from the domain source text.
 
-    Variables the type invariant does not constrain are reported with an
-    unknown cardinality and excluded from the product, rather than silently
-    assigned a convenient number.
+    The source is ``TypeInvariant``/``TypeOK`` when the module defines one, or
+    the transitively resolved cfg-invariant bodies otherwise (CD-01, F3).
+    Variables the source does not constrain are reported with an unknown
+    cardinality and excluded from the product, rather than silently assigned a
+    convenient number.
     """
     dimensions: list[Dimension] = []
     body = type_invariant or ""
@@ -570,7 +579,7 @@ def infer_dimensions(
             else:
                 cardinality = _set_size(raw, constants)
         if cardinality is None and not note:
-            note = "unconstrained by TypeInvariant -- excluded from the bound"
+            note = f"unconstrained by {source_label} -- excluded from the bound"
         dimensions.append(
             Dimension(
                 variable=variable,
@@ -582,11 +591,19 @@ def infer_dimensions(
     return dimensions
 
 
-def state_space_bound(dimensions: Iterable[Dimension]) -> int:
+def state_space_bound(dimensions: Iterable[Dimension]) -> int | None:
+    """Product of the bounded dimensions, or ``None`` when there are none.
+
+    CD-01 (F3): with no resolvable domain the old code returned a silent 1 --
+    a meaningless headline number. ``None`` means UNKNOWN and is rendered as
+    such, never as 1.
+    """
+    bounded = [d for d in dimensions if d.bounded]
+    if not bounded:
+        return None
     bound = 1
-    for dimension in dimensions:
-        if dimension.bounded:
-            bound *= int(dimension.cardinality or 1)
+    for dimension in bounded:
+        bound *= int(dimension.cardinality or 1)
     return bound
 
 
@@ -688,118 +705,75 @@ def crossing_actions(
 
 
 # --------------------------------------------------------------------------
-# Abstraction candidates
+# Invariant resolution and invariant-read analysis
 # --------------------------------------------------------------------------
 
 
-@dataclass
-class OrdinalChain:
-    """A set of latching booleans pinned into a total order.
+def resolve_definition_body(
+    name: str, defs_by_name: dict[str, "Definition"], _seen: set[str] | None = None
+) -> str:
+    """The body of ``name`` with every referenced definition expanded, transitively.
 
-    ``k`` such booleans admit only ``k + 1`` reachable combinations out of
-    ``2**k``, so they represent one ordinal phase variable. This is exactly the
-    shape MF-020 collapsed for the ticket lifecycle.
+    CD-01 (F1): ``INVARIANT Inv`` with ``Inv == RealInv`` is standard TLA+ --
+    invariant aliasing and composition. Reading only the immediate body of the
+    cfg-named invariant sees a one-token alias with no variable names in it, so
+    every variable was judged "read by no invariant". This helper follows every
+    definition reference in the body (and onward, with a cycle guard) so the
+    resolved text contains the variables the invariant actually reads.
     """
+    seen = _seen if _seen is not None else set()
+    if name in seen or name not in defs_by_name:
+        return ""
+    seen.add(name)
+    body = defs_by_name[name].body
+    parts = [body]
+    for token in sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", body))):
+        if token not in seen and token in defs_by_name:
+            parts.append(resolve_definition_body(token, defs_by_name, seen))
+    return "\n".join(parts)
 
-    members: list[str]
 
-    @property
-    def combinations_declared(self) -> int:
-        return 2 ** len(self.members)
-
-    @property
-    def combinations_reachable(self) -> int:
-        return len(self.members) + 1
-
-
-def latching_booleans(
-    dimensions: Sequence[Dimension], actions: Sequence[Action], init_body: str
+def invariant_unread_variables(
+    variables: Sequence[str], invariant_bodies: dict[str, str]
 ) -> list[str]:
-    """Booleans initialized FALSE and only ever assigned TRUE."""
-    booleans = {
-        d.variable
-        for d in dimensions
-        if d.cardinality == 2 and (d.expression or "").strip() == "BOOLEAN"
-    }
-    latching: list[str] = []
-    for name in sorted(booleans):
-        if not re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}\s*=\s*FALSE", init_body):
-            continue
-        assignments = []
-        for action in actions:
-            if name not in action.writes:
-                continue
-            assignments.extend(
-                re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}'\s*=\s*(TRUE|FALSE)", action.body)
-            )
-        if assignments and all(value == "TRUE" for value in assignments):
-            latching.append(name)
-    return latching
+    """Variables no configured invariant reads -- a fact, not a recommendation.
 
-
-def implication_chains(
-    latching: Sequence[str], action_bodies: dict[str, str], actions: Sequence[Action]
-) -> list[OrdinalChain]:
-    """Derive ``X => Y`` from guards, then extract maximal total orders.
-
-    If every action that sets ``X`` to TRUE requires ``Y`` positively in its
-    guard, and ``Y`` latches, then ``X => Y`` holds in every reachable state.
-    A set of latching booleans whose implication order is total collapses to
-    one ordinal.
+    ``invariant_bodies`` must be TRANSITIVELY RESOLVED bodies (see
+    :func:`resolve_definition_body`) or aliased/composed invariants will make
+    every variable appear unread (the F1 defect).
     """
-    latching_set = set(latching)
-    implies: dict[str, set[str]] = {name: set() for name in latching}
-    for name in latching:
-        writers = [a for a in actions if name in a.writes]
-        if not writers:
-            continue
-        per_writer: list[set[str]] = []
-        for action in writers:
-            body = action_bodies.get(action.name, "")
-            guard = body.split(f"{name}'")[0]
-            positives = {
-                other
-                for other in latching_set
-                if other != name
-                and re.search(rf"/\\\s*{re.escape(other)}(?![A-Za-z0-9_'])", guard)
-                and not re.search(rf"~\s*{re.escape(other)}(?![A-Za-z0-9_'])", guard)
-            }
-            per_writer.append(positives)
-        common = set.intersection(*per_writer) if per_writer else set()
-        implies[name] = common
-
-    # Transitive closure.
-    for _ in range(len(latching)):
-        for name in latching:
-            for other in list(implies[name]):
-                implies[name] |= implies.get(other, set())
-
-    remaining = set(latching)
-    chains: list[OrdinalChain] = []
-    while remaining:
-        ordered = sorted(remaining, key=lambda n: (len(implies[n] & remaining), n))
-        chain = [ordered[0]]
-        for candidate in ordered[1:]:
-            if all(member in implies[candidate] for member in chain):
-                chain.append(candidate)
-        if len(chain) >= 2:
-            chains.append(OrdinalChain(members=chain))
-        remaining -= set(chain)
-        if len(chain) == 1:
-            continue
-    return chains
-
-
-def projectable_variables(
-    variables: Sequence[str], invariant_bodies: dict[str, str], dimensions: Sequence[Dimension]
-) -> list[str]:
-    """Variables no invariant reads -- Move 1 projection candidates."""
     read_by_invariant: set[str] = set()
     for body in invariant_bodies.values():
         for variable in variables:
             if references(body, variable):
                 read_by_invariant.add(variable)
     return [v for v in variables if v not in read_by_invariant]
+
+
+def dense_rows_and_columns(
+    variables: Sequence[str], actions: Sequence[Action]
+) -> tuple[dict[str, int], list[str]]:
+    """Dense rows (god-state variables) and dense columns of the R/W matrix.
+
+    A dense row is a variable touched by more than half the actions -- the
+    god-state signature. A dense column is an action touching more than half
+    the variables. Both are measured facts of the matrix, reported as part of
+    the descriptor.
+    """
+    action_count = {v: 0 for v in variables}
+    for action in actions:
+        for variable in action.touched:
+            if variable in action_count:
+                action_count[variable] += 1
+    dense_rows = {
+        v: action_count[v]
+        for v in sorted(variables, key=lambda v: (-action_count[v], v))
+        if actions and action_count[v] > len(actions) / 2
+    }
+    dense_cols = sorted(
+        a.name for a in actions if variables and len(a.touched) > len(variables) / 2
+    )
+    return dense_rows, dense_cols
 
 
 # --------------------------------------------------------------------------
@@ -896,19 +870,19 @@ def compare_tlc_reports(baseline: TlcReport, current: TlcReport) -> list[dict[st
 
 @dataclass
 class Advisory:
-    """One advisory complexity finding: what/where it is, and a concrete move.
+    """One advisory complexity finding: what and where it is.
 
     MF-036: complexity is a scanner, not a gate
     (references/architecture_tractability.md, "Advisory, Not Blocking"). Each
     Advisory is a WARNING that NEVER blocks promotion. ``finding`` names the
-    component / variable / action and the measured threshold breach;
-    ``recommendation`` names a concrete move the owner may take. Both are
-    reported; neither is enforced.
+    component / variable / action and the measured threshold breach -- a fact.
+    CD-01 removed the ``recommendation`` field with the rest of the
+    suggested-move machinery: the descriptor states facts and the owner
+    decides what, if anything, to do about them.
     """
 
     kind: str
     finding: str
-    recommendation: str
 
 
 @dataclass
@@ -921,25 +895,19 @@ class Analysis:
     variables: list[str]
     dimensions: list[Dimension]
     actions: list[Action]
-    bound: int
+    bound: int | None
+    bound_source: str | None
     unbounded: list[str]
     communities: list[set[str]]
     modularity_score: float
     crossings: dict[str, list[str]]
-    chains: list[OrdinalChain]
-    projectable: list[str]
+    dense_rows: dict[str, int]
+    dense_columns: list[str]
+    unread_by_invariant: list[str]
     unjustified: list[str] | None
     budgets: dict[str, Any]
     warnings: list[Advisory]
     tlc_findings: list[dict[str, str]]
-
-    @property
-    def projected_bound(self) -> int:
-        """Bound after the projected abstractions -- PROJECTED, not measured."""
-        bound = self.bound
-        for chain in self.chains:
-            bound = bound // chain.combinations_declared * chain.combinations_reachable
-        return bound
 
     @property
     def violations(self) -> list[str]:
@@ -1019,26 +987,48 @@ def analyze(
     by_name = {d.name: d for d in defs}
 
     actions = extract_actions(defs, variables)
-    action_bodies = {a.name: a.body for a in actions}
 
-    type_invariant = by_name["TypeInvariant"].body if "TypeInvariant" in by_name else None
-    dimensions = infer_dimensions(type_invariant, variables, constants)
+    # CD-01 (F1): resolve invariant aliasing/composition transitively. The cfg
+    # may configure `INVARIANT Inv` with `Inv == RealInv` -- reading only the
+    # immediate alias body sees no variable names at all.
+    invariant_names = parse_cfg_invariants(cfg_text)
+    invariant_bodies = {
+        name: resolve_definition_body(name, by_name)
+        for name in invariant_names
+        if name in by_name
+    }
+
+    # CD-01 (F3): the per-variable domain source. Prefer a TypeInvariant/TypeOK
+    # definition (resolved transitively -- it may itself compose); with neither,
+    # fall back to the resolved cfg-invariant bodies, whose membership conjuncts
+    # may still bound variables. When nothing resolves a domain, the bound is
+    # reported UNKNOWN -- never a silent 1.
+    if "TypeInvariant" in by_name:
+        domain_source_label = "TypeInvariant"
+        domain_source: str | None = resolve_definition_body("TypeInvariant", by_name)
+    elif "TypeOK" in by_name:
+        domain_source_label = "TypeOK"
+        domain_source = resolve_definition_body("TypeOK", by_name)
+    elif invariant_bodies:
+        domain_source_label = "the configured invariants (resolved transitively)"
+        domain_source = "\n".join(invariant_bodies.values())
+    else:
+        domain_source_label = "any type invariant or configured invariant"
+        domain_source = None
+
+    dimensions = infer_dimensions(
+        domain_source, variables, constants, source_label=domain_source_label
+    )
     bound = state_space_bound(dimensions)
+    bound_source = domain_source_label if bound is not None else None
     unbounded = [d.variable for d in dimensions if not d.bounded]
 
     weights = interaction_graph(actions, variables)
     communities, score = greedy_communities(variables, weights)
     crossings = crossing_actions(communities, actions)
+    dense_rows, dense_columns = dense_rows_and_columns(variables, actions)
 
-    init_body = by_name["Init"].body if "Init" in by_name else ""
-    latching = latching_booleans(dimensions, actions, init_body)
-    chains = implication_chains(latching, action_bodies, actions)
-
-    invariant_names = parse_cfg_invariants(cfg_text)
-    invariant_bodies = {
-        name: by_name[name].body for name in invariant_names if name in by_name
-    }
-    projectable = projectable_variables(variables, invariant_bodies, dimensions)
+    unread = invariant_unread_variables(variables, invariant_bodies)
 
     manifest: dict[str, Any] | None = None
     if manifest_path and manifest_path.is_file():
@@ -1057,15 +1047,12 @@ def analyze(
     )
 
     # MF-036: each threshold breach is an ADVISORY warning that names the
-    # component/variable/action and recommends a concrete move. None of these
+    # component/variable/action and states the measured fact. None of these
     # block promotion, refuse case generation, or drive a nonzero exit -- they
     # are findings for the owner, per references/architecture_tractability.md,
     # "Advisory, Not Blocking". The only nonzero exit is for a model the scan
     # CANNOT analyze (ModuleResolutionError / usage), handled in the CLI.
     warnings: list[Advisory] = []
-    dominant = sorted(
-        (d for d in dimensions if d.bounded), key=lambda d: -(d.cardinality or 0)
-    )
     # MF-022: the static bound is a Cartesian over-approximation of the
     # DECLARED representation -- it ignores every action guard, so it counts
     # combinations the program can never occupy. It is therefore compared
@@ -1074,20 +1061,7 @@ def analyze(
     # after the fact. Comparing the two is a category error: on this
     # repository the bound over-approximated reachable states by ~400x, on a
     # model that was 17x under its own reachable-state budget.
-    if bound > budgets["max_state_space_bound"]:
-        if dominant:
-            top = dominant[0]
-            rec = (
-                f"consider abstracting the dominant dimension {top.variable} "
-                f"({top.cardinality:,}) -- collapse latching booleans into one ordinal, "
-                "or project a variable no invariant reads (see the SUGGESTED MOVE above) "
-                f"-- to bring the declared bound under {budgets['max_state_space_bound']:,}"
-            )
-        else:
-            rec = (
-                "consider abstracting the representation (see the SUGGESTED MOVE above) "
-                f"to bring the declared bound under {budgets['max_state_space_bound']:,}"
-            )
+    if bound is not None and bound > budgets["max_state_space_bound"]:
         warnings.append(
             Advisory(
                 kind="state_space_bound",
@@ -1095,24 +1069,23 @@ def analyze(
                     f"state-space upper bound {bound:,} exceeds max_state_space_bound "
                     f"{budgets['max_state_space_bound']:,}"
                 ),
-                recommendation=rec,
+            )
+        )
+    if bound is None:
+        warnings.append(
+            Advisory(
+                kind="state_space_bound_unknown",
+                finding=(
+                    "state-space upper bound UNKNOWN: no variable domain could be "
+                    "resolved from a TypeInvariant/TypeOK or from the configured "
+                    "invariants, so the bound cannot be compared against "
+                    "max_state_space_bound"
+                ),
             )
         )
     for index, community in enumerate(communities, start=1):
         if len(community) > budgets["max_component_variables"]:
             members = ", ".join(sorted(community))
-            port_here = sorted(
-                name for name, where in crossings.items() if f"C{index}" in where
-            )
-            rec = (
-                f"consider decomposing component C{index} along the modularity cut "
-                f"(Q={score:.3f})"
-            )
-            if port_here:
-                rec += (
-                    f"; {', '.join(port_here)} already cross into other components and are "
-                    "candidate port boundaries to place behind a contract"
-                )
             warnings.append(
                 Advisory(
                     kind="component_variables",
@@ -1121,33 +1094,11 @@ def analyze(
                         f"({members}), exceeding max_component_variables "
                         f"{budgets['max_component_variables']}"
                     ),
-                    recommendation=rec,
                 )
             )
     for index, community in enumerate(communities, start=1):
         touching = [a.name for a in actions if a.touched & community]
         if len(touching) > budgets["max_component_actions"]:
-            # Name the densest state in the component -- the variable the most
-            # of these actions touch -- so the recommendation points at a
-            # concrete split target rather than just reporting the count.
-            per_var = {
-                v: sum(1 for a in actions if v in a.touched) for v in community
-            }
-            densest = sorted(per_var, key=lambda v: (-per_var[v], v))[0]
-            port_here = sorted(
-                name for name, where in crossings.items() if f"C{index}" in where
-            )
-            rec = (
-                f"consider splitting the densest state {densest} (touched by "
-                f"{per_var[densest]} of these {len(touching)} actions) into its own "
-                f"component so no component is touched by more than "
-                f"{budgets['max_component_actions']} actions"
-            )
-            if port_here:
-                rec += (
-                    f", and/or move the port-crossing action(s) {', '.join(port_here)} "
-                    "behind a contract"
-                )
             warnings.append(
                 Advisory(
                     kind="component_actions",
@@ -1156,7 +1107,6 @@ def analyze(
                         f"({', '.join(touching)}), exceeding max_component_actions "
                         f"{budgets['max_component_actions']}"
                     ),
-                    recommendation=rec,
                 )
             )
 
@@ -1191,12 +1141,6 @@ def analyze(
                             f"states exceeds max_distinct_states "
                             f"{budgets['max_distinct_states']:,}"
                         ),
-                        recommendation=(
-                            "consider abstracting the dominant dimension to shrink the "
-                            "reachable space (see the SUGGESTED MOVE above), or raise "
-                            "max_distinct_states in the manifest with a recorded rationale "
-                            "if these states are genuinely needed"
-                        ),
                     )
                 )
             else:
@@ -1221,12 +1165,14 @@ def analyze(
         dimensions=dimensions,
         actions=actions,
         bound=bound,
+        bound_source=bound_source,
         unbounded=unbounded,
         communities=communities,
         modularity_score=score,
         crossings=crossings,
-        chains=chains,
-        projectable=projectable,
+        dense_rows=dense_rows,
+        dense_columns=dense_columns,
+        unread_by_invariant=unread,
         unjustified=unjustified,
         budgets=budgets,
         warnings=warnings,
@@ -1260,107 +1206,6 @@ def parse_cfg_invariants(cfg_text: str) -> list[str]:
 
 
 # --------------------------------------------------------------------------
-# Suggested move (RECOMMENDATION -- requires user approval)
-# --------------------------------------------------------------------------
-
-
-def suggest_move(analysis: Analysis) -> dict[str, Any]:
-    """Choose among the three moves and return evidence, never a verdict.
-
-    Order follows ``references/architecture_tractability.md``: try to change
-    the representation (abstract) before cutting (decompose) before asking for
-    a production change (refactor).
-    """
-    evidence: list[str] = []
-    projected: list[str] = []
-
-    if analysis.chains or analysis.projectable:
-        move = "ABSTRACT"
-        rationale = (
-            "The representation carries dimensions the reachable state space does not use."
-        )
-        for chain in analysis.chains:
-            members = ", ".join(chain.members)
-            evidence.append(
-                f"latching booleans [{members}] are pinned into a total order by their own "
-                f"action guards, so only {chain.combinations_reachable} of "
-                f"{chain.combinations_declared} combinations are reachable"
-            )
-            projected.append(
-                f"collapsing [{members}] into one ordinal 0..{len(chain.members)} would take "
-                f"the model from {len(analysis.variables)} to "
-                f"{len(analysis.variables) - len(chain.members) + 1} variables and the declared "
-                f"bound from {analysis.bound:,} to "
-                f"{analysis.bound // chain.combinations_declared * chain.combinations_reachable:,}; "
-                "reachable states should be UNCHANGED -- verify with TLC, and treat a "
-                "generated-states drop at constant distinct states as a red flag"
-            )
-        if analysis.projectable:
-            names = ", ".join(analysis.projectable)
-            evidence.append(
-                f"no configured invariant reads [{names}]; Move 1 permits projecting "
-                "variables no invariant reads"
-            )
-            projected.append(
-                f"projecting [{names}] removes them from the model; legitimate IFF the "
-                "mutation kill rate holds afterwards (tickets/016)"
-            )
-    elif analysis.modularity_score >= MODULARITY_CUT_THRESHOLD and len(analysis.communities) > 1:
-        move = "DECOMPOSE"
-        rationale = (
-            f"The R/W matrix has modular structure (Q={analysis.modularity_score:.3f} >= "
-            f"{MODULARITY_CUT_THRESHOLD}); a narrow cut exists and can be named."
-        )
-        for index, community in enumerate(analysis.communities, start=1):
-            evidence.append(f"candidate component C{index}: {', '.join(sorted(community))}")
-        if analysis.crossings:
-            evidence.append(
-                "candidate port-crossing actions: "
-                + ", ".join(f"{name} ({'/'.join(where)})" for name, where in sorted(analysis.crossings.items()))
-            )
-        projected.append(
-            "replacing each port's far side with a contract environment makes component "
-            "state spaces add instead of multiply"
-        )
-    else:
-        move = "REFACTOR"
-        rationale = (
-            f"No projectable dimension and no narrow cut (Q={analysis.modularity_score:.3f} < "
-            f"{MODULARITY_CUT_THRESHOLD}). The failed search is itself the architecture finding."
-        )
-        action_count = {v: 0 for v in analysis.variables}
-        for action in analysis.actions:
-            for variable in action.touched:
-                action_count[variable] += 1
-        dense_rows = sorted(
-            (v for v in analysis.variables if action_count[v] > len(analysis.actions) / 2),
-            key=lambda v: (-action_count[v], v),
-        )
-        dense_cols = sorted(
-            (a.name for a in analysis.actions if len(a.touched) > len(analysis.variables) / 2),
-        )
-        if dense_rows:
-            evidence.append(
-                "dense rows (god-state): "
-                + ", ".join(f"{v} touched by {action_count[v]}/{len(analysis.actions)} actions" for v in dense_rows)
-            )
-        if dense_cols:
-            evidence.append("dense columns (actions touching almost everything): " + ", ".join(dense_cols))
-        projected.append(
-            "target shapes: functional core / imperative shell, single-writer state, "
-            "explicit commit points, explicit protocol state"
-        )
-
-    return {
-        "move": move,
-        "status": "RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED",
-        "rationale": rationale,
-        "evidence_measured": evidence,
-        "gain_projected": projected,
-    }
-
-
-# --------------------------------------------------------------------------
 # Rendering
 # --------------------------------------------------------------------------
 
@@ -1381,13 +1226,13 @@ def render_text(analysis: Analysis) -> str:
     out: list[str] = []
     add = out.append
 
-    add(f"analyze complexity -- {analysis.module}")
+    add(f"analyze complexity -- {analysis.module} (complexity descriptor)")
     add(f"  spec:     {analysis.tla_path}")
     add(f"  config:   {analysis.cfg_path}")
     add(f"  manifest: {analysis.manifest_path or '(none)'}")
     add("")
-    add("LEGEND: [MEASURED] parsed from this spec + cfg. [PROJECTED] an estimate that is")
-    add("        UNVERIFIED until the transition-level diff is read and TLC is rerun.")
+    add("This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this")
+    add("spec + cfg. It states facts about the model and makes no suggestions.")
     add("")
 
     add("[MEASURED] Dimension table")
@@ -1404,14 +1249,23 @@ def render_text(analysis: Analysis) -> str:
     add("")
 
     add("[MEASURED] State-space upper bound")
-    add(f"  bound = {analysis.bound:,}  (product of {len(analysis.variables) - len(analysis.unbounded)} bounded dimensions)")
+    if analysis.bound is None:
+        add("  bound = UNKNOWN -- no variable domain could be resolved from a")
+        add("  TypeInvariant/TypeOK or from the configured invariants. This is an")
+        add("  explicit unknown, not a small model.")
+    else:
+        add(
+            f"  bound = {analysis.bound:,}  (product of "
+            f"{len(analysis.variables) - len(analysis.unbounded)} bounded dimensions; "
+            f"domains from {analysis.bound_source})"
+        )
     if analysis.unbounded:
-        add(f"  excluded (unconstrained by TypeInvariant): {', '.join(analysis.unbounded)}")
+        add(f"  excluded (no resolvable domain): {', '.join(analysis.unbounded)}")
     dominant = sorted(
         (d for d in analysis.dimensions if d.bounded),
         key=lambda d: -(d.cardinality or 0),
     )[:3]
-    if dominant and analysis.bound > 1:
+    if dominant and analysis.bound is not None and analysis.bound > 1:
         add("  dominant dimensions:")
         for d in dominant:
             share = math.log(d.cardinality or 1) / math.log(analysis.bound) * 100
@@ -1445,6 +1299,30 @@ def render_text(analysis: Analysis) -> str:
         add("  no port-crossing actions (single component, or fully independent components)")
     add("")
 
+    add("[MEASURED] Dense rows and columns of the R/W matrix")
+    if analysis.dense_rows:
+        add("  dense rows (god-state signature -- variable touched by more than half the actions):")
+        for variable, count in analysis.dense_rows.items():
+            add(f"    {variable} touched by {count}/{len(analysis.actions)} actions")
+    else:
+        add("  no dense rows (no variable is touched by more than half the actions)")
+    if analysis.dense_columns:
+        add("  dense columns (action touching more than half the variables):")
+        for name in analysis.dense_columns:
+            add(f"    {name}")
+    else:
+        add("  no dense columns (no action touches more than half the variables)")
+    add("")
+
+    add("[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)")
+    if analysis.unread_by_invariant:
+        add("  variables no configured invariant reads:")
+        for variable in analysis.unread_by_invariant:
+            add(f"    {variable}")
+    else:
+        add("  every variable is read by at least one configured invariant.")
+    add("")
+
     add("[MEASURED] Justification linkage")
     if analysis.unjustified is None:
         add("  no justification: table in the manifest -- dead-weight analysis skipped.")
@@ -1464,25 +1342,10 @@ def render_text(analysis: Analysis) -> str:
             add(f"  {finding['level']}: {finding['message']}")
         add("")
 
-    suggestion = suggest_move(analysis)
-    add("=" * 78)
-    add(f"SUGGESTED MOVE: {suggestion['move']}")
-    add(suggestion["status"])
-    add("=" * 78)
-    add(f"  {suggestion['rationale']}")
-    if suggestion["evidence_measured"]:
-        add("  [MEASURED] evidence:")
-        for item in suggestion["evidence_measured"]:
-            add(f"    - {item}")
-    if suggestion["gain_projected"]:
-        add("  [PROJECTED] gain -- UNVERIFIED, requires the transition diff and a TLC rerun:")
-        for item in suggestion["gain_projected"]:
-            add(f"    - {item}")
-    add("")
     add("  A poor score is not a verdict. Some components score badly and still need to")
     add("  exist in that form -- performance paths, protocol-mandated shapes, irreducible")
     add("  domain complexity. This output is evidence for the owner, not a decision.")
-    add("  Before recording ANY projected reduction as a result: read the transition-level")
+    add("  Before recording ANY complexity reduction as a result: read the transition-level")
     add("  diff. A generated-states drop at constant distinct states is a RED FLAG (a")
     add("  deleted self-loop), not a win -- the distinct-state gate cannot see it.")
     add("")
@@ -1503,14 +1366,13 @@ def render_text(analysis: Analysis) -> str:
     if not analysis.warnings:
         add("  No complexity warnings -- every metric is within its advisory threshold.")
     else:
-        add("  COMPLEXITY WARNINGS -- these are RECOMMENDATIONS. They do NOT block promotion,")
+        add("  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,")
         add("  do NOT refuse case generation, and do NOT change the exit code. Complexity is a")
         add("  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not")
         add("  Blocking'). The owner decides, with the user, whether to act on each one.")
         for warning in analysis.warnings:
             add("")
             add(f"  WARNING: {warning.finding}")
-            add(f"    recommendation: {warning.recommendation}")
     add("")
     add("  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model")
     add("  is a finding, not a failure. It exits nonzero ONLY when the model cannot be")
@@ -1536,6 +1398,8 @@ def render_json(analysis: Analysis) -> str:
                 for d in analysis.dimensions
             ],
             "state_space_upper_bound": analysis.bound,
+            "state_space_bound_known": analysis.bound is not None,
+            "state_space_bound_source": analysis.bound_source,
             "unbounded_variables": analysis.unbounded,
             "actions": [
                 {"name": a.name, "reads": sorted(a.reads), "writes": sorted(a.writes)}
@@ -1544,19 +1408,12 @@ def render_json(analysis: Analysis) -> str:
             "modularity": analysis.modularity_score,
             "components": [sorted(c) for c in analysis.communities],
             "port_crossing_actions": analysis.crossings,
+            "dense_rows": analysis.dense_rows,
+            "dense_columns": analysis.dense_columns,
+            "unread_by_invariant": analysis.unread_by_invariant,
             "unjustified_variables": analysis.unjustified,
             "tlc_findings": analysis.tlc_findings,
         },
-        "projected": {
-            "bound_after_suggested_abstractions": analysis.projected_bound,
-            "verified": False,
-            "caveat": (
-                "PROJECTED figures are unverified until the transition-level diff is read "
-                "and TLC is rerun. A generated-states drop at constant distinct states is a "
-                "RED FLAG (deleted self-loop), not a reduction."
-            ),
-        },
-        "suggested_move": suggest_move(analysis),
         "budgets": {
             key: analysis.budgets[key]
             for key in (
@@ -1573,7 +1430,6 @@ def render_json(analysis: Analysis) -> str:
                 {
                     "kind": warning.kind,
                     "finding": warning.finding,
-                    "recommendation": warning.recommendation,
                 }
                 for warning in analysis.warnings
             ],
@@ -1622,7 +1478,6 @@ def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> t
     ]
     for warning in analysis.warnings:
         lines.append(f"  WARNING: {warning.finding}")
-        lines.append(f"    recommendation: {warning.recommendation}")
     lines.append("")
     lines.append("Dominant dimensions:")
     dominant = sorted(
@@ -1630,13 +1485,8 @@ def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> t
     )[:5]
     for d in dominant:
         lines.append(f"  {d.variable}: {d.cardinality:,}  ({d.expression})")
-    suggestion = suggest_move(analysis)
     lines.append("")
-    lines.append(f"Suggested move: {suggestion['move']} ({suggestion['status']})")
-    for item in suggestion["evidence_measured"]:
-        lines.append(f"  - {item}")
-    lines.append("")
-    lines.append("Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full report.")
+    lines.append("Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full descriptor.")
     return False, "\n".join(lines)
 
 

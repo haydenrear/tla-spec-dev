@@ -575,14 +575,15 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_sub = analyze_parser.add_subparsers(dest="analyze_target", metavar="target")
     analyze_complexity_parser = analyze_sub.add_parser(
         "complexity",
-        help="Print the dimension table, R/W matrix, modularity, and budget verdict.",
+        help="Print the complexity descriptor: dimension table, bound, R/W matrix, modularity.",
         description=(
-            "Print the per-variable domain cardinality table, the state-space upper bound, "
-            "the variables x actions read/write matrix, the graph-modularity score with "
-            "near-decomposable clusters and candidate port-crossing actions, unjustified "
-            "variables, and a suggested move (abstract/decompose/refactor) that is a "
-            "RECOMMENDATION REQUIRING USER APPROVAL. Exits nonzero when the manifest budgets "
-            "are exceeded."
+            "Print the complexity DESCRIPTOR: the per-variable domain cardinality table, the "
+            "state-space upper bound (or an explicit unknown), the variables x actions "
+            "read/write matrix, the graph-modularity score with near-decomposable clusters and "
+            "candidate port-crossing actions, dense rows/columns (god-state detection), "
+            "variables no configured invariant reads, and unjustified variables. Facts, not "
+            "judgment: it makes no suggestions, is advisory, and exits nonzero only when the "
+            "model cannot be analyzed at all."
         ),
         allow_abbrev=False,
     )

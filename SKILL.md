@@ -31,18 +31,26 @@ supports a constrained, annotated TLA+ profile plus a
 Read this before trusting any claim below. The workflow has two layers, and they
 have very different maturity. Do not conflate them.
 
-**SHIPPED — the complexity scanner (`analyze complexity`).** This is the working,
-validated product. Point it at a spec + cfg and it reports, from the model alone:
-a per-variable dimension table, the static state-space upper bound and its
-dominant dimensions, the variables x actions read/write matrix, the
-graph-modularity score with near-decomposable clusters, dense-row / god-state
-detection, unjustified variables, and a **suggested move** (abstract / decompose /
-refactor). It is **advisory**: it warns and recommends, names *what* is dense and
-*where* a cut would help, and **never blocks promotion, never refuses case
-generation, and never changes its exit code** because a model is complex (it exits
-nonzero only when it genuinely cannot parse the model). A reader should expect this
-to help them see where architectural change buys the most complexity reduction.
-How to read its output is in "Complexity Budgets Are Advisory" below and in
+**SHIPPED — the complexity descriptor (`analyze complexity`).** This is the
+working, validated product. Point it at a spec + cfg and it reports, from the
+model alone: a per-variable dimension table with each variable's domain, the
+static state-space upper bound and its dominant dimensions (or an **explicit
+"unknown"** when no domain can be resolved from a TypeInvariant/TypeOK or the
+configured invariants — never a silent 1), the variables x actions read/write
+matrix, the graph-modularity score with near-decomposable clusters and
+candidate port-crossing actions, dense-row / god-state and dense-column
+detection, variables no configured invariant reads (with invariant
+aliasing/composition — `INVARIANT Inv`, `Inv == RealInv` — resolved
+transitively), and unjustified variables. It is a **descriptor: facts, not
+judgment** — it makes no suggestions. (An earlier suggested-move output was
+removed after validation showed it confidently wrong on standard TLA+;
+suggestions may return later, earned from real-app observations.) It is
+**advisory**: it names *what* is dense and *where*, and **never blocks
+promotion, never refuses case generation, and never changes its exit code**
+because a model is complex (it exits nonzero only when it genuinely cannot
+parse the model). A reader should expect it to show where the complexity
+lives; deciding what to do about it is the owner's design work. How to read
+its output is in "Complexity Budgets Are Advisory" below and in
 `references/architecture_tractability.md`, "Advisory, Not Blocking".
 
 **EXPERIMENTAL — the modular-fuzzing machinery (oracles, corpus, mutation kill
@@ -543,16 +551,16 @@ the agreed values with a one-line rationale under `budgets:` in
 `spec_manifest.yaml`. Budgets cover TLC wall time, distinct states per component
 model, case caps per view, component-size heuristics, and — in the experimental
 layer — the mutation kill-rate floor. When the scanner finds a model over one of
-these thresholds it emits a **warning that names the component/variable/action and
-recommends a concrete move**. It does **not** block promotion, refuse case
-generation, or change its exit code. Complexity is a scanner, not a gate
-(`references/architecture_tractability.md`, "Advisory, Not Blocking"). The owner
-decides, with the user, whether to act on each warning.
+these thresholds it emits a **warning that names the component/variable/action
+and states the measured fact**. It does **not** recommend a move, block
+promotion, refuse case generation, or change its exit code. Complexity is a
+scanner, not a gate (`references/architecture_tractability.md`, "Advisory, Not
+Blocking"). The owner decides, with the user, whether to act on each warning.
 
 **How to read a warning.** A warning is a pointer, not a verdict. "Component C1 is
 touched by 14 actions, exceeding max_component_actions 8" means the scanner found a
-dense cluster and is telling you *where* a cut or a moved action would reduce
-coupling — it is evidence for the owner, not a refusal. Some components score badly
+dense cluster and is showing you *where* the coupling is — it is evidence for the
+owner, not a refusal and not advice. Some components score badly
 and still need to exist in that form (performance paths, protocol-mandated shapes,
 irreducible domain complexity); the scanner says so in its own output. The
 `tlc_seconds` timeout below is the one hard operational limit, and it is about wall
@@ -1061,10 +1069,10 @@ current change.
   (after mechanisms land, before final integration), and the gate semantics.
   Procedure: `prompts/coverage_audit.md`; report shape:
   `templates/coverage_audit_report.md`.
-- `references/architecture_tractability.md`: the three moves when the
-  complexity gate fails (abstract/decompose/refactor), user-approval rules,
-  creative representations for irreducible pieces, and the
-  grow-by-evidence modeling loop.
+- `references/architecture_tractability.md`: the owner's three design moves
+  when the descriptor shows a squeeze (the descriptor itself suggests
+  nothing), user-approval rules, creative representations for irreducible
+  pieces, and the grow-by-evidence modeling loop.
 - `references/migration.md`: migrating an existing repository onto modular
   representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases

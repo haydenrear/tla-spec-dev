@@ -1,0 +1,35 @@
+== F1 PRE-FIX: INVARIANT Inv with Inv == RealInv (alias body) ==
+command: python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity Aliased.tla MC.cfg
+==============================================================================
+SUGGESTED MOVE: ABSTRACT
+RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED
+==============================================================================
+  The representation carries dimensions the reachable state space does not use.
+  [MEASURED] evidence:
+    - latching booleans [started, finished] are pinned into a total order by their own action guards, so only 3 of 4 combinations are reachable
+    - no configured invariant reads [started, finished, count]; Move 1 permits projecting variables no invariant reads
+  [PROJECTED] gain -- UNVERIFIED, requires the transition diff and a TLC rerun:
+    - collapsing [started, finished] into one ordinal 0..2 would take the model from 3 to 2 variables and the declared bound from 12 to 9; reachable states should be UNCHANGED -- verify with TLC, and treat a generated-states drop at constant distinct states as a red flag
+
+projectable (pre-fix): ['started', 'finished', 'count']  -- every variable judged read-by-no-invariant
+
+== F1 POST-FIX: same model, same command ==
+command: python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity Aliased.tla MC.cfg
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    started
+    finished
+
+[MEASURED] Justification linkage
+
+unread_by_invariant (post-fix): ['started', 'finished'] -- count IS read via Inv == RealInv, resolved transitively
+No SUGGESTED MOVE output exists anywhere post-CD-01.
+
+== Regression tests (fail pre-fix, pass post-fix) ==
+command: uv run --with pytest --with pyyaml -m pytest tests/test_analyze_complexity.py -q -k 'f1 or aliased or composed'
+..                                                                       [100%]
+2 passed, 44 deselected in 0.15s
+
+Pre-fix demonstration: with scripts/analyze_complexity.py reverted to the epic tip,
+the F1 tests fail (the pre-fix module judges every variable read-by-no-invariant:
+projectable == ['started', 'finished', 'count'], captured above).

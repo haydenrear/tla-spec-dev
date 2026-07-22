@@ -11,12 +11,13 @@ this shape, read `references/migration.md`.
 > This document covers two things at very different maturity, and the SKILL.md
 > section "What Is Shipped And What Is Experimental" is the authority.
 >
-> - **SHIPPED and advisory:** the complexity **scanner** — the dimension table,
->   state-space bound, variables x actions read/write matrix, graph-modularity
->   score with near-decomposable clusters, dense-row / god-state detection, and
->   the suggested move. That is the "Budgets" section's `analyze complexity`
->   command and the decomposition method it supports. It warns and recommends;
->   it never blocks.
+> - **SHIPPED and advisory:** the complexity **descriptor** — the dimension
+>   table, state-space bound (or an explicit unknown), variables x actions
+>   read/write matrix, graph-modularity score with near-decomposable clusters,
+>   and dense-row / god-state detection. That is the "Budgets" section's
+>   `analyze complexity` command and the decomposition method it supports. It
+>   states facts and makes no suggestions (CD-01 removed the suggested-move
+>   output); it never blocks.
 > - **EXPERIMENTAL and NOT validated for bug-catching:** the differential-fuzzing
 >   framing itself — "The Reframe", the "Oracles" (output/projected-state/effect
 >   conformance), the mutation kill test, and the corpus discipline built on them.
@@ -225,15 +226,18 @@ to override: nothing blocks. A program that wants to record a tighter or looser
 threshold still does so in `spec_manifest.yaml`, and that value tunes the
 advisory warning rather than a build-breaking gate.
 
-It also emits a **suggested move** — abstract, decompose, or refactor. That
-is a recommendation requiring user approval, never an automatic change; see
-`references/architecture_tractability.md`.
+It emits **no suggested move**: CD-01 removed the abstract/decompose/refactor
+chooser after validation showed it confidently wrong on standard TLA+. The
+three moves remain the owner's design vocabulary in
+`references/architecture_tractability.md`, applied by a person to the
+descriptor's facts.
 
 Two cautions the report carries in its own output, because both have already
 cost real work:
 
-- Every figure is labeled `[MEASURED]` or `[PROJECTED]`. A projected
-  reduction is **unverified** until the transition-level diff is read.
+- Every figure is labeled `[MEASURED]` — parsed from the spec + cfg. Any
+  projected reduction an owner derives from it is **unverified** until the
+  transition-level diff is read.
 - Pass `--tlc-report` and `--baseline-tlc` to compare two TLC runs. A drop in
   generated states at constant distinct states and depth is reported as a RED
   FLAG, not a win: the distinct-state count is structurally blind to a deleted
@@ -530,9 +534,9 @@ redundant cases are never generated in the first place.**
 Corpus diagnostics therefore report, on a cap failure: the distribution per
 `(action, label class)`, which strata dominate, which are starved, and what
 varies across the redundant group — so the agent can act on the cause. This
-is the corpus analogue of `analyze complexity`'s suggested move, and it is
-subject to the same rule: recommendations require user approval and are
-never auto-applied.
+is the corpus analogue of `analyze complexity`'s descriptor facts, and it is
+subject to the same rule: any move derived from it is a recommendation
+requiring user approval and is never auto-applied.
 
 The command is `tla-spec-dev analyze corpus <cases-dir>`, and the same gate
 runs automatically at the end of case generation and before Test Graph
