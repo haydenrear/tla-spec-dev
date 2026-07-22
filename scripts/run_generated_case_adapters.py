@@ -1786,7 +1786,7 @@ def execute_cases_in_batch(
         )
 
     iterations = [fuzz_iteration] if fuzz_iteration is not None else list(range(fuzz_runs))
-    iteration_paths = fuzz_iteration is not None or fuzz_runs != 1
+    iteration_paths = fuzz_requested
     for iteration in iterations:
         assert iteration is not None
         points = [ExecutionPoint(case=case, iteration=iteration) for case in cases]

@@ -289,6 +289,48 @@ provider = "fuzz_campaign_fixture:patch_provider"
     assert fixture.CASE_OBJECT_IDS == [id(cases[0]), id(cases[1]), id(cases[0]), id(cases[1])]
 
 
+def test_seed_only_campaign_uses_an_iteration_qualified_work_path(tmp_path: Path) -> None:
+    write_campaign_fixture(tmp_path)
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="fuzz_campaign_fixture",
+        provider_tables="""[effect_providers.FilesystemPort]
+provider = "fuzz_campaign_fixture:filesystem_provider"
+
+[effect_providers.PatchPort]
+provider = "fuzz_campaign_fixture:patch_provider"
+""",
+    )
+    case = make_case("seed-only")
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[case],
+        import_roots=[tmp_path],
+    )
+
+    execute_cases_in_batch(
+        cases=[case],
+        mappings={
+            "Publish": AdapterMapping(
+                "Publish",
+                "fuzz_campaign_fixture:Adapter",
+                kind="publisher",
+            )
+        },
+        work_dir=tmp_path / "work",
+        import_roots=[tmp_path],
+        effect_provider_plan=plan,
+        root_seed=73,
+    )
+
+    import fuzz_campaign_fixture as fixture
+
+    assert fixture.WORK_DIRS == [
+        tmp_path / "work" / "case-work" / "seed-only" / "iteration-000000"
+    ]
+
+
 def effect_context(tmp_path: Path) -> EffectProviderContext:
     return EffectProviderContext(
         port_name="FilesystemPort",
