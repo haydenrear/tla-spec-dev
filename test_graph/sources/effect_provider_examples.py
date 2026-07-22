@@ -105,6 +105,25 @@ def main(ctx):
     ).read_text(encoding="utf-8")
     fallback_manifest = parse_simple_yaml(reminder_manifest_text)
     pyyaml_manifest = yaml.safe_load(reminder_manifest_text)
+    contract_keys = (
+        "module",
+        "package",
+        "types",
+        "state",
+        "commands",
+        "results",
+        "events",
+        "ports",
+        "fake",
+        "invariant_templates",
+        "example_traces",
+        "adapters",
+        "invariants",
+        "finite_model",
+        "generators",
+    )
+    fallback_contract = {key: fallback_manifest.get(key) for key in contract_keys}
+    pyyaml_contract = {key: pyyaml_manifest.get(key) for key in contract_keys}
     reminder_methods = fallback_manifest["ports"]
     none_result_methods = (
         reminder_methods["QueuePort"]["methods"]["acknowledge"],
@@ -114,8 +133,8 @@ def main(ctx):
         reminder_methods["OutboxPort"]["methods"]["mark_sent"],
     )
     result.assertion(
-        "reminder manifest has exact PyYAML/fallback semantic parity",
-        fallback_manifest == pyyaml_manifest
+        "reminder contract sections have exact PyYAML/fallback semantic parity",
+        fallback_contract == pyyaml_contract
         and all(method["result"] is None for method in none_result_methods),
     )
 

@@ -10,8 +10,9 @@ the shared dependency-sensitive manifest parser fixed (`DEF-002`); the reminder
 project neutralizes that syntax locally and proves typed forced-fallback
 reproducibility. A separate manual diagnostic established the PyYAML/fallback
 split; the unit test does not assume PyYAML is installed.
-The aggregate graph separately compares the complete normalized parse trees
-through PyYAML and the fallback, including null result semantics.
+The aggregate graph separately compares every contract-generation section
+through PyYAML and the fallback, including null result semantics. It does not
+claim raw whole-manifest equality: decimal budgets use a separate coercion path.
 
 Across the three fixed catalogs, generated cases plus providers killed 36/36
 mutants. The separate hand-written baselines killed 30/36: atomic publishing

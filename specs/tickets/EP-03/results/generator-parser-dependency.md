@@ -18,10 +18,14 @@ parser's supported nested form. Its unit suite generates the whole contract
 both in the active environment and under `python -S`, compares both trees
 byte-for-byte with the committed tree, and inspects representative typed
 signatures. The aggregate Test Graph additionally loads the normalized manifest
-through both PyYAML and the fallback parser, compares the complete semantic
-trees, and explicitly checks all five no-result methods parse as null. This
-second assertion catches parser differences that happen to stringify into the
-same generated source.
+through both PyYAML and the fallback parser, compares every contract-generation
+section, and explicitly checks all five no-result methods parse as null. Budgets
+are excluded from this raw-tree equality because the constrained parser
+represents `kill_rate_floor: 0.8` as a string while PyYAML uses a float; the
+budget loader has a separate coercion path and the Python contract generator
+does not consume budgets. This assertion catches generation differences that
+happen to stringify into the same source without making a false whole-file
+parser-equivalence claim.
 
 The shared defect remains open as `DEF-002`: valid manifests outside this
 project can still degrade silently depending on optional PyYAML availability.
