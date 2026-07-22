@@ -552,3 +552,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-01
+
+- close_scope: ticket
+- close_id: CD-01
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T00:16:40+00:00
+- summary: CD-01: shipped the complexity descriptor -- removed all suggested-move machinery (abstract/decompose/refactor), fixed F1 (transitive invariant alias/composition resolution) and F3 (explicit-unknown bound, never a silent 1); docs present the descriptor as the shipped surface; zero TLA model delta, TLC green at 231,621 distinct / depth 25
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

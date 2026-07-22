@@ -850,8 +850,8 @@ def advise_complexity(
     Complexity is a scanner, not a gate
     (references/architecture_tractability.md, "Advisory, Not Blocking").
     Generation ALWAYS proceeds: a dense model is a finding the agent should
-    read, not a blocked build. The scan runs first only so its warnings and
-    recommendations appear before the (potentially long) TLC exploration, never
+    read, not a blocked build. The scan runs first only so its findings
+    appear before the (potentially long) TLC exploration, never
     to refuse it. A model the scan cannot analyze is surfaced the same way --
     reported, not refused -- because TLC may handle a model the static scanner
     cannot.
@@ -876,7 +876,7 @@ def advise_complexity(
     print(message, file=sys.stderr)
     print(
         "\nProceeding with case generation -- complexity is advisory and does not block. "
-        "Consider the recommendations above (references/architecture_tractability.md, "
+        "Read the findings above (references/architecture_tractability.md, "
         "'Advisory, Not Blocking').",
         file=sys.stderr,
     )

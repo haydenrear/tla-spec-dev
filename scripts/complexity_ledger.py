@@ -754,8 +754,16 @@ def render_report(verdict: LedgerVerdict) -> str:
     lines.append("complexity ledger -- standing objective (MF-019)")
     lines.append(f"  scope:    {entry['scope']} {entry['scope_id']}")
     metrics = entry["metrics"]
+    # CD-01 (F3): the bound is None when no variable domain could be resolved --
+    # an explicit unknown, rendered as such, never a silent 1.
+    bound = metrics.get("bound")
+    bound_text = f"{bound:,}" if isinstance(bound, int) else "unknown"
     lines.append(
-        "  measured: variables={variables} actions={actions} bound={bound:,}".format(**metrics)
+        "  measured: variables={variables} actions={actions} bound={bound}".format(
+            variables=metrics.get("variables"),
+            actions=metrics.get("actions"),
+            bound=bound_text,
+        )
     )
     if isinstance(metrics.get("distinct_states"), int):
         lines.append(

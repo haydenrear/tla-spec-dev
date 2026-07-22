@@ -1,19 +1,25 @@
-"""`analyze complexity` measures the model and ADVISES against the thresholds.
+"""`analyze complexity` is a DESCRIPTOR: it measures the model and states facts.
 
 The load-bearing properties, in order of how much damage their absence has
 already caused this repository:
 
-1. The suggested move is a RECOMMENDATION and is never auto-applied.
-2. Projected reductions are labeled projected, never presented as findings.
-3. A generated-states drop at constant distinct states is reported as a RED
+1. CD-01: the descriptor makes NO suggestions. The suggested-move machinery
+   (abstract/decompose/refactor recommendations) was confidently wrong on
+   standard TLA+ (an aliased invariant made it recommend projecting away every
+   variable) and was removed entirely.
+2. CD-01 (F1): invariant aliasing/composition (`INVARIANT Inv` with
+   `Inv == RealInv`) resolves transitively, so the read-by-invariant analysis
+   reads the invariant's real body, not a one-token alias.
+3. CD-01 (F3): with no resolvable variable domain the bound is reported as an
+   explicit UNKNOWN, never a silent 1.
+4. A generated-states drop at constant distinct states is reported as a RED
    FLAG, because the distinct-state gate is structurally blind to a deleted
    self-loop (MF-020).
-4. MF-036: complexity is advisory, not a gate. A model over a threshold gets a
-   WARNING that names the component/variable/action and RECOMMENDS a concrete
-   move -- it exits 0 and case generation still proceeds. The command exits
-   nonzero ONLY when it cannot analyze the model at all (an unresolved
-   hierarchy); "I could not measure this" is an error, "this is complex" is a
-   finding.
+5. MF-036: complexity is advisory, not a gate. A model over a threshold gets a
+   WARNING that names the component/variable/action -- it exits 0 and case
+   generation still proceeds. The command exits nonzero ONLY when it cannot
+   analyze the model at all (an unresolved hierarchy); "I could not measure
+   this" is an error, "this is complex" is a finding.
 """
 
 from __future__ import annotations
@@ -42,9 +48,9 @@ from scripts.analyze_complexity import (  # noqa: E402
     parse_cfg_constants,
     parse_definitions,
     parse_tlc_report,
+    resolve_definition_body,
     resolve_module,
     strip_frame_conditions,
-    suggest_move,
 )
 
 # A deliberately small, tractable model: two latching booleans in a chain and
@@ -374,20 +380,8 @@ def test_modularity_is_deterministic_for_the_same_model(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Abstraction candidates -- the ordinal collapse
+# Landed collapses on the repository's own model
 # ---------------------------------------------------------------------------
-
-
-def test_latching_booleans_in_a_guard_chain_are_surfaced_as_an_ordinal_collapse(
-    tmp_path: Path,
-) -> None:
-    """`Finish` requires `started`, so the two booleans admit 3 of 4 combinations."""
-    tla, cfg, _ = write_small_model(tmp_path)
-    result = analyze(tla, cfg, None)
-    assert len(result.chains) == 1
-    assert set(result.chains[0].members) == {"started", "finished"}
-    assert result.chains[0].combinations_declared == 4
-    assert result.chains[0].combinations_reachable == 3
 
 
 def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
@@ -424,8 +418,6 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
     assert "ticket_state" in result.variables
     for removed in ("active_tickets", "closed_tickets", "ticket_phase"):
         assert removed not in result.variables
-    # The collapse consumed the chain it was derived from.
-    assert not [c for c in result.chains if len(c.members) == 5]
     # MF-013 later multiplied the bound by 4 (effect_conformance), MF-027 took
     # that factor to 5 by adding the "unobservable" verdict, MF-016 multiplied
     # by a further 4 (kill_test), and MF-025 divided the bound by 4096/216 (the
@@ -440,42 +432,217 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Suggested move -- recommendation, never verdict
+# CD-01: the descriptor makes no suggestions
 # ---------------------------------------------------------------------------
 
 
-def test_suggested_move_is_labeled_a_recommendation_requiring_approval(
-    tmp_path: Path,
-) -> None:
-    tla, cfg, _ = write_small_model(tmp_path)
-    suggestion = suggest_move(analyze(tla, cfg, None))
-    assert suggestion["move"] in {"ABSTRACT", "DECOMPOSE", "REFACTOR"}
-    assert "RECOMMENDATION" in suggestion["status"]
-    assert "USER APPROVAL" in suggestion["status"]
-    assert "NOT AUTO-APPLIED" in suggestion["status"]
+def test_no_suggested_move_output_remains_anywhere(tmp_path: Path, capsys) -> None:
+    """CD-01: facts, not judgment -- no abstract/decompose/refactor advice.
+
+    Validation project 1 proved the suggested moves confidently wrong on
+    standard TLA+ (an aliased invariant made the scanner recommend projecting
+    away EVERY variable), so the machinery was removed entirely.
+    """
+    import json
+
+    tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
+    assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
+    out = capsys.readouterr().out
+    for banned in (
+        "SUGGESTED MOVE",
+        "RECOMMENDATION",
+        "recommendation:",
+        "ABSTRACT",
+        "DECOMPOSE",
+        "REFACTOR",
+        "[PROJECTED]",
+    ):
+        assert banned not in out, f"suggested-move remnant in text output: {banned!r}"
+
+    main([str(tla), str(cfg), "--manifest", str(manifest), "--format", "json"])
+    payload = json.loads(capsys.readouterr().out)
+    assert "suggested_move" not in payload
+    assert "projected" not in payload
+    for warning in payload["advisory"]["warnings"]:
+        assert "recommendation" not in warning
 
 
-def test_suggested_move_separates_measured_evidence_from_projected_gain(
-    tmp_path: Path,
-) -> None:
-    """MF-020: a projected figure presented as a finding propagated a bad number."""
-    tla, cfg, _ = write_small_model(tmp_path)
-    suggestion = suggest_move(analyze(tla, cfg, None))
-    assert "evidence_measured" in suggestion
-    assert "gain_projected" in suggestion
-    assert suggestion["evidence_measured"]
+def test_import_surface_has_no_suggestion_machinery() -> None:
+    import scripts.analyze_complexity as mod
+
+    for name in ("suggest_move", "OrdinalChain", "latching_booleans", "implication_chains"):
+        assert not hasattr(mod, name)
 
 
-def test_text_output_carries_the_measured_projected_legend_and_the_self_loop_warning(
+def test_text_output_is_a_measured_descriptor_with_the_self_loop_warning(
     tmp_path: Path, capsys
 ) -> None:
     tla, cfg, _ = write_small_model(tmp_path, GENEROUS_BUDGETS)
     main([str(tla), str(cfg), "--manifest", str(tmp_path / "spec_manifest.yaml")])
     out = capsys.readouterr().out
     assert "[MEASURED]" in out
-    assert "[PROJECTED]" in out
+    assert "DESCRIPTOR" in out
+    assert "Dense rows and columns" in out
+    assert "Invariant coverage" in out
     assert "RED FLAG" in out
     assert "not a verdict" in out
+
+
+# ---------------------------------------------------------------------------
+# CD-01 (F1): invariant aliasing/composition resolves transitively
+# ---------------------------------------------------------------------------
+
+# Standard TLA+: the cfg names `Inv`, whose body is the one-token alias
+# `RealInv`. Pre-fix, the analyzer read only the immediate alias body, saw no
+# variable names, judged every variable "read by no invariant", and recommended
+# projecting away the entire model.
+ALIASED_TLA = SMALL_TLA.replace(
+    "Spec == Init /\\ [][Next]_vars",
+    "RealInv == count <= 2\n\nInv == RealInv\n\nSpec == Init /\\ [][Next]_vars",
+)
+
+ALIASED_CFG = """SPECIFICATION Spec
+
+CONSTANTS
+  Items = {a, b}
+
+INVARIANTS
+  Inv
+"""
+
+
+def write_aliased_model(tmp_path: Path) -> tuple[Path, Path]:
+    tla = tmp_path / "Small.tla"
+    cfg = tmp_path / "MC.cfg"
+    tla.write_text(ALIASED_TLA, encoding="utf-8")
+    cfg.write_text(ALIASED_CFG, encoding="utf-8")
+    return tla, cfg
+
+
+def test_f1_aliased_invariant_variables_are_read_by_invariant(tmp_path: Path) -> None:
+    """The F1 regression (fails pre-fix).
+
+    PRE-FIX: `Inv == RealInv` has no variable tokens in its immediate body, so
+    unread-by-invariant == ALL variables ([started, finished, count]).
+    POST-FIX: the alias resolves to RealInv's body, which reads `count`, so
+    `count` is read-by-invariant and only the genuinely unread variables remain.
+    """
+    tla, cfg = write_aliased_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    assert "count" not in result.unread_by_invariant
+    # The two booleans really are unread by the configured invariant -- the
+    # descriptor reports that fact honestly.
+    assert set(result.unread_by_invariant) == {"started", "finished"}
+
+
+def test_f1_composed_invariants_resolve_through_every_level(tmp_path: Path) -> None:
+    """Composition `Inv == A /\\ B` with `B == C` resolves transitively."""
+    tla = tmp_path / "Small.tla"
+    composed = SMALL_TLA.replace(
+        "Spec == Init /\\ [][Next]_vars",
+        "CountInv == count <= 2\n"
+        "BoolInv == started \\in BOOLEAN\n"
+        "Middle == BoolInv\n"
+        "Inv == CountInv /\\ Middle\n\n"
+        "Spec == Init /\\ [][Next]_vars",
+    )
+    tla.write_text(composed, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(ALIASED_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    # count via CountInv, started via Inv -> Middle -> BoolInv, two levels deep.
+    assert "count" not in result.unread_by_invariant
+    assert "started" not in result.unread_by_invariant
+    assert result.unread_by_invariant == ["finished"]
+
+
+def test_resolve_definition_body_guards_against_cycles() -> None:
+    defs = {
+        d.name: d
+        for d in parse_definitions(
+            "---- MODULE Cyc ----\nA == B\nB == A /\\ x\n====\n"
+        )
+    }
+    resolved = resolve_definition_body("A", defs)
+    assert "x" in resolved  # the cycle terminated and still reached B's body
+
+
+# ---------------------------------------------------------------------------
+# CD-01 (F3): the bound is meaningful or explicitly unknown -- never a silent 1
+# ---------------------------------------------------------------------------
+
+NO_TYPE_TLA = """---------------------------- MODULE NoType ----------------------------
+EXTENDS Naturals
+
+VARIABLES count
+
+Init == count = 0
+
+Bump ==
+  /\\ count < 2
+  /\\ count' = count + 1
+
+Next == Bump
+
+SafetyInv == count <= 2
+
+Spec == Init /\\ [][Next]_<< count >>
+=============================================================================
+"""
+
+NO_TYPE_CFG = "SPECIFICATION Spec\n\nINVARIANTS\n  SafetyInv\n"
+
+
+def test_f3_bound_is_explicitly_unknown_without_any_resolvable_domain(
+    tmp_path: Path, capsys
+) -> None:
+    """Pre-fix: no TypeInvariant meant bound == 1, silently. Now it is None."""
+    tla = tmp_path / "NoType.tla"
+    tla.write_text(NO_TYPE_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(NO_TYPE_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    assert result.bound is None
+    assert result.bound_source is None
+    # The unknown is loud: an advisory warning names it.
+    assert any(w.kind == "state_space_bound_unknown" for w in result.warnings)
+
+    # And the rendered report says UNKNOWN, never 1.
+    assert main([str(tla), str(cfg)]) == EXIT_PASS
+    out = capsys.readouterr().out
+    assert "UNKNOWN" in out
+    assert "bound = 1" not in out
+
+
+def test_f3_type_ok_is_accepted_as_the_domain_source(tmp_path: Path) -> None:
+    """A scaffolded TypeOK bounds the model even when not named TypeInvariant."""
+    tla = tmp_path / "Small.tla"
+    tla.write_text(SMALL_TLA.replace("TypeInvariant ==", "TypeOK =="), encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(SMALL_CFG.replace("TypeInvariant", "TypeOK"), encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    assert result.bound == 12
+    assert result.bound_source == "TypeOK"
+
+
+def test_f3_domains_resolve_from_cfg_invariants_when_no_type_invariant_exists(
+    tmp_path: Path,
+) -> None:
+    """Membership conjuncts in configured invariants bound the model (via F1's
+    transitive resolution, even behind an alias)."""
+    tla = tmp_path / "NoType.tla"
+    tla.write_text(
+        NO_TYPE_TLA.replace(
+            "SafetyInv == count <= 2",
+            "RangeInv == count \\in 0..2\n\nSafetyInv == RangeInv",
+        ),
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(NO_TYPE_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    assert result.bound == 3
+    assert result.bound_source == "the configured invariants (resolved transitively)"
 
 
 # ---------------------------------------------------------------------------
@@ -554,16 +721,16 @@ def test_over_threshold_warns_but_still_exits_zero(tmp_path: Path) -> None:
     assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
 
 
-def test_every_warning_names_a_target_and_recommends_a_move(tmp_path: Path) -> None:
-    """A warning must name the component/variable/action AND recommend a move."""
+def test_every_warning_names_a_target_and_states_only_the_fact(tmp_path: Path) -> None:
+    """A warning names the component/variable/action. CD-01: it recommends
+    nothing -- the descriptor states facts and the owner decides."""
     tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
     result = analyze(tla, cfg, manifest)
     assert result.warnings
     for warning in result.warnings:
         assert warning.finding.strip()
-        assert warning.recommendation.strip()
-        # A concrete move, not just a threshold restatement.
-        assert "consider" in warning.recommendation.lower()
+        assert not hasattr(warning, "recommendation")
+        assert "consider" not in warning.finding.lower()
 
 
 def test_component_size_thresholds_are_reported_independently(tmp_path: Path) -> None:
@@ -572,14 +739,15 @@ def test_component_size_thresholds_are_reported_independently(tmp_path: Path) ->
     assert "max_component_variables" in findings or "max_component_actions" in findings
 
 
-def test_gate_report_names_the_dominant_dimensions_and_recommends(tmp_path: Path) -> None:
+def test_gate_report_names_the_dominant_dimensions_without_suggesting(tmp_path: Path) -> None:
     tla, cfg, manifest = write_small_model(tmp_path, TIGHT_BUDGETS)
     clean, message = gate_report(tla, cfg, manifest)
     assert clean is False
     assert "ADVISORY WARNINGS" in message
-    assert "recommendation:" in message
     assert "Dominant dimensions" in message
-    # It must NOT tell the caller to refuse -- generation always proceeds now.
+    # CD-01: no suggestions anywhere, and it must NOT tell the caller to refuse.
+    assert "recommendation" not in message
+    assert "Suggested move" not in message
     assert "REFUSING" not in message
 
 
@@ -591,15 +759,20 @@ def test_evidence_can_be_written_into_a_results_directory(tmp_path: Path) -> Non
     assert "Dimension table" in out.read_text(encoding="utf-8")
 
 
-def test_json_output_marks_projections_unverified(tmp_path: Path, capsys) -> None:
+def test_json_output_is_a_measured_descriptor(tmp_path: Path, capsys) -> None:
     import json
 
     tla, cfg, manifest = write_small_model(tmp_path, GENEROUS_BUDGETS)
     main([str(tla), str(cfg), "--manifest", str(manifest), "--format", "json"])
     payload = json.loads(capsys.readouterr().out)
-    assert payload["projected"]["verified"] is False
-    assert "RED FLAG" in payload["projected"]["caveat"]
-    assert payload["suggested_move"]["status"].startswith("RECOMMENDATION")
+    measured = payload["measured"]
+    assert measured["state_space_upper_bound"] == 12
+    assert measured["state_space_bound_known"] is True
+    assert measured["state_space_bound_source"] == "TypeInvariant"
+    assert "dense_rows" in measured
+    assert "dense_columns" in measured
+    assert "unread_by_invariant" in measured
+    assert payload["advisory"]["blocks_promotion"] is False
 
 
 # ---------------------------------------------------------------------------
@@ -686,7 +859,6 @@ def test_case_generation_advises_above_the_threshold_but_does_not_refuse(tmp_pat
     """
     result = run_generation(tmp_path)
     assert "ADVISORY WARNINGS" in result.stderr
-    assert "recommendation:" in result.stderr
     assert "Proceeding with case generation" in result.stderr
     # The old refusal and its override flag are gone entirely.
     assert "REFUSING to generate cases" not in result.stderr
@@ -721,7 +893,7 @@ def test_analyze_complexity_is_reachable_through_the_cli(tmp_path: Path) -> None
     result = run_cli("analyze", "complexity", str(tla), str(cfg), "--manifest", str(manifest))
     assert result.returncode == EXIT_PASS, result.stderr
     assert "Dimension table" in result.stdout
-    assert "SUGGESTED MOVE" in result.stdout
+    assert "SUGGESTED MOVE" not in result.stdout
 
 
 def test_analyze_parent_command_reports_the_next_step() -> None:

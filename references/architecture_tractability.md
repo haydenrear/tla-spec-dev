@@ -128,10 +128,15 @@ doctrine for what to do when complexity squeezes.
 
 ## The Three Moves
 
-When the complexity gate fails, there are exactly three moves. Diagnostics
-from the dimension table and the variables x actions read/write matrix
-choose among them. The output of the diagnosis is a **recommendation with
-evidence**; the user approves the move before it is taken.
+When the descriptor shows a squeeze, there are exactly three moves. They are
+the **owner's design vocabulary**, applied to the facts in the dimension
+table and the variables x actions read/write matrix. Since CD-01 the scanner
+does not choose among them and emits no suggested move: validation project 1
+showed the automated chooser confidently wrong on standard TLA+ (an aliased
+invariant made it recommend projecting away every variable). The diagnosis is
+made by a person (or a future, better-earned agent) from the descriptor's
+facts, and any resulting move is a **recommendation with evidence** the user
+approves before it is taken.
 
 ### Move 1 — Abstract (change the representation, not the code)
 
@@ -190,26 +195,28 @@ exceeds the cap of 8. Any program with more than eight commands over shared
 state fails. That is most real programs. As a hard gate, the complexity metric
 fails in nearly every user's project instead of helping them.
 
-The correction: **complexity is a scanner, not a gate.** It produces metrics,
-warnings, and recommendations, and tells the agent where to refactor. **It
-never blocks promotion.** The useful content — the dimension table, the
-state-space bound, the R/W matrix, the modularity score, dense-row / god-state
-detection, the suggested moves — was always the point; the exit-nonzero that
-sat on top of it was an over-promise.
+The correction: **complexity is a scanner, not a gate.** It produces metrics
+and warnings — facts about the model. **It never blocks promotion.** The
+useful content — the dimension table, the state-space bound, the R/W matrix,
+the modularity score, dense-row / god-state detection — was always the point;
+the exit-nonzero that sat on top of it was an over-promise. (A second
+over-promise, the suggested-move chooser, was removed by CD-01 — see "The
+Three Moves" above.)
 
 Rules, superseding the hard-gate rule (rule 5 below):
 
 - **Nothing blocks promotion.** Not the state-space bound, not the
   component-size heuristics, not the kill rate, not effect conformance. Every
-  check emits warnings and recommendations. A gate is *earned*, per check, only
+  check emits warnings that state facts. A gate is *earned*, per check, only
   once real-app validation shows it is trustworthy enough to block on — and
   until then it advises.
-- **A warning names what and where, and recommends.** "Component C1 is touched
-  by 10 actions; consider splitting X and Y to their own component" — not
-  "FAIL, exit 1". The agent decides, with the user, whether to act.
-- **Complexity minimization is still the objective** — the agent should
-  refactor complexity out when the scan says so. The difference is that the
-  scan *advises* the refactor rather than *forcing* it by refusing to ship.
+- **A warning names what and where.** "Component C1 is touched by 10 actions,
+  exceeding max_component_actions 8" — not "FAIL, exit 1". The agent decides,
+  with the user, whether and how to act on the fact.
+- **Complexity minimization is still the objective** — the agent should look
+  for designs that lower the measured complexity while retaining behavior. The
+  difference is that the scan *describes* the density rather than forcing a
+  change by refusing to ship.
 - **Faithfulness checks (effect conformance, kill test) advise too, for now.**
   They test whether the model represents the program, which is a stronger claim
   than "too complex" — but the owner has not yet seen them help on a real app,
@@ -263,7 +270,7 @@ conflicts with them, including elsewhere in these references:
 5. **The diagram has complexity thresholds.** *(Superseded by "Advisory, Not
    Blocking": as originally written this rule made case caps, the state-space
    bound, and the component-size heuristics hard gates that fail over the limit.
-   They are now advisory — they warn and recommend, and do not block.)* Raising a
+   They are now advisory — they warn with facts, and do not block.)* Raising a
    threshold is still a per-program decision recorded with its rationale and
    reviewed as such — an explicit, visible act, never an override flag, a fallback
    default, or a conditional check that silently disables itself when its input is
@@ -296,7 +303,7 @@ section is not a loophole in this one. This paragraph originally drew the line
 between "advisory diagnosis" and "hard gates" and put case caps, the state-space
 bound, component-size heuristics, the kill-rate floor, and effect conformance on
 the *gate* side. **"Advisory, Not Blocking" above reverses that**: none of those
-block anymore — they warn and recommend. What survives is the *evidence-integrity*
+block anymore — they warn with facts. What survives is the *evidence-integrity*
 rule, which is orthogonal to blocking: you may not falsify the measurement (drop
 cases, suppress a gap, silence a finding) even though the measurement no longer
 fails your build. "Some pieces score badly and still need to exist in that form"
@@ -307,13 +314,14 @@ warning meaningful.
 
 ## Recommendations, Never Verdicts
 
-The diagnosis output is advisory everywhere it appears — CLI output, ticket
-evidence, migration notes. Under "Advisory, Not Blocking" the thresholds are now
-advisory too, so this is no longer a contrast between advice and gates; it is the
-rule set for how the advice (suggested moves and scores) is presented. Rules:
+The descriptor's output is factual and advisory everywhere it appears — CLI
+output, ticket evidence, migration notes. The scanner itself emits no
+recommendations (CD-01); this section governs how an agent presents any
+architectural advice it *derives* from the descriptor's facts. Rules:
 
-- Every suggested move is labeled a recommendation and carries its
-  evidence. The user approves, adjusts, or vetoes.
+- Every architectural move an agent proposes is labeled a recommendation and
+  carries its evidence from the descriptor. The user approves, adjusts, or
+  vetoes. It is never presented as tool output.
 - A poor score is not a verdict on the code. **Some pieces of a program
   score badly and still need to exist in that form** — performance-critical
   paths, protocol-mandated shapes, third-party constraints, domain
@@ -399,9 +407,13 @@ effect declarations, and kill tests — do not foreclose it.
 
 ## Where This Is Mechanized
 
-- `tla-spec-dev analyze complexity` (tickets/011): emits the dimension
-  table, R/W matrix, modularity score, unjustified-variable flags, and a
-  suggested move **labeled as a recommendation requiring user approval**.
+- `tla-spec-dev analyze complexity` (tickets/011; reshaped by CD-01): emits
+  the complexity DESCRIPTOR — dimension table, state-space bound (or an
+  explicit unknown), R/W matrix, modularity score, dense rows/columns,
+  invariant-coverage facts (aliasing resolved transitively), and
+  unjustified-variable flags. **It emits no suggested move**; the earlier
+  chooser was removed after validation project 1 showed it confidently wrong
+  on standard TLA+.
 - Mutation kill test (tickets/016): doubles as the abstraction validator —
   kill-rate-preserving abstraction is legitimate abstraction.
 - `references/migration.md` Phase 3: refactors are invited from effect-diff
