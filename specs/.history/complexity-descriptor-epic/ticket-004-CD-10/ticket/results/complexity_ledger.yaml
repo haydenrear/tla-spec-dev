@@ -1,0 +1,72 @@
+# Complexity ledger input -- CD-10 (GitHub #85), manifest honesty.
+#
+# Zero TLA+ model delta: TlaSpecDevCli.tla / MC.cfg / MCsmall.cfg are
+# byte-identical to the CD-09 baseline. The ticket changes only the effect
+# declarations (spec_manifest.yaml) and the kill catalog (kill_mutants.toml).
+
+# Validated-refactor basis. No complexity decrease is claimed (the model is
+# unchanged); the evidence set is recorded anyway because it exists from this
+# run and the CD-09 baseline.
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/tlc_current.txt"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/CD-10/results/tlc_current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/CD-10/results/repo_unit_tests.txt"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/CD-10/results/manifest_reconciliation.md"
+
+# Fuzzing-era retention members -- recorded, non-gating since CD-09.
+# `not_run` is the honest value: no kill run, corpus conformance run, or
+# external-coverage run was performed for this manifest-only ticket. The kill
+# CATALOG was re-seeded for the three new ports and verified complete against
+# kill_test.required_boundaries (7 ports + 14 invariants, zero missing), but
+# a verified catalog is not a measured kill rate.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- honest record: run 3's epic-scope verdict stands until a
+# re-audit. This ticket fixes its R3-2 and R3-3 (and the DF-2/DF-3 manifest
+# desyncs); R3-1/R3-4 and the ESC-* rows are resolved by the owner's
+# 2026-07-22 granularity/scope amendment (schedule_revision 3), not by this
+# ticket.
+coverage_audit:
+  status: "fail"
+  report: "specs/results/epic-close/coverage_audit_report_run3.md"
+  in_scope_gaps: 4
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:524-563"
+
+# No complexity increase: distinct states, variables, actions all unchanged.
+justification: ""
+
+# Refinement loop: searched, found none. The delta surface is declarative
+# (three ports, one effects row, two manifest hygiene removals, three seeded
+# mutants); there is no state or action to refine, and folding the new ports
+# into existing ones (e.g. widening test_process to `*`) was considered and
+# rejected as a dishonest target. Not measured: no model change to measure.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: "searched the declaration delta for refinement opportunities; found none -- zero model delta, and port consolidation (widening test_process over the runner spawn) was rejected as target dishonesty"
+  measured: false
+  applied: false
+  approved_by: ""
+
+# No generated-states drop: the model and TLC output are unchanged
+# (283,805 distinct states before and after, budget 500,000).
+transition_diff: ""
+
+narrative: "specs/tickets/CD-10/results/manifest_reconciliation.md -- CD-10 declares what the close path and spec-unit dispatch actually do: a spec_tree_delete (filesystem.delete **/specs/**) port for CloseTicket's three destructive delete sites including the GitHub #22 rmtree; a runner_process (process.spawn *run_generated_case_adapters*) port for RunSpecUnitTests' case-runner spawn; a git_metadata (process.spawn git rev-parse*) port for CloseTicket's provenance spawn; a deliberate RecordBudgets: [] row (no distinct effect -- budget_prompt only prints); and removal of the three dangling Core/Internal/External source_model references per the amended known_gaps. Kill catalog re-seeded, one honest fault per new port; required_boundaries reports zero missing. All validation green: TLC 283,805 distinct states (budget 500,000 with rationale carried), spec-unit 2 targets, 578 repo tests, specWorkflow and cliWorkflow graphs all nodes passed."

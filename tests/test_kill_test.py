@@ -712,7 +712,10 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
         required = required_boundaries(self.spec_dir)
         # CD-09: tlc_process (dead port, G4) and SpecUnitTestsRequireAnalyzedGate
         # (withdrawn blocking gate's invariant, G2) left the declared surface.
-        assert len(required) == 17, "4 declared ports + 13 invariants"
+        # CD-10 (R3-2/R3-3): spec_tree_delete, runner_process, and git_metadata
+        # joined it -- the close path's destructive deletes and the real spawns
+        # of modeled actions are now declared, each with a seeded fault.
+        assert len(required) == 20, "7 declared ports + 13 invariants"
         assert len(catalog) >= len(required)
 
     def test_the_real_catalog_declares_no_suppressions(self) -> None:
@@ -791,7 +794,7 @@ class TestCliSurface:
         result = self.run_cli("--target", "specs/current", "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
-        assert "17/17 declared boundaries carry a seeded fault." in result.stdout
+        assert "20/20 declared boundaries carry a seeded fault." in result.stdout
 
     def test_a_missing_corpus_command_is_refused_not_defaulted(self) -> None:
         """Without a corpus there is nothing to kill mutants with, so
