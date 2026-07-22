@@ -1,4 +1,44 @@
 findings:
+  - id: CD-05-DF-01
+    found_by: "ticket-agent-CD-05"
+    found_at_commit: "42134f4"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      _set_size counts set-literal elements by splitting on EVERY comma and
+      checks the `{...}` literal regex before the `\cup` union split, so two
+      shapes produce silently WRONG cardinalities (not explicit UNKNOWNs):
+      (a) a union of set literals `{"a"} \cup {"b", "c"}` fullmatches the
+      greedy literal regex and comma-counts to 2 instead of 3; (b) tuple or
+      record elements inside a literal, e.g. `{<<1,2>>, <<3,4>>}`, count the
+      inner commas and yield 4 instead of 2. Pre-existing (not introduced by
+      CD-05); operator expansion now reaches _set_size on more inputs, so the
+      shapes are easier to hit.
+    reproduction: >-
+      python3 -c "from scripts.analyze_complexity import _set_size;
+      print(_set_size('{\"a\"} \\cup {\"b\", \"c\"}', {}),
+      _set_size('{<<1,2>>, <<3,4>>}', {}))"  -> 2 4 (expected 3 2).
+    evidence: []
+    why_out_of_scope: >-
+      CD-05's assigned scope is VAL-06/VAL-16/VAL-17 (operator-defined sets,
+      wrapped conjuncts, multi-view invariant naming). This is a distinct
+      literal-parsing defect requiring a bracket/brace-aware tokenizer; fixing
+      it here would silently broaden the ticket.
+    suggested_fix: >-
+      Check the union split before the literal fullmatch (or make the literal
+      regex non-greedy across `\cup`), and count literal elements with a
+      depth-aware comma split that ignores commas inside <<>>, [], (), {}.
+    blast_radius: >-
+      Dimension cardinalities and the state-space bound on models whose
+      domains use literal unions or tuple/record literal elements -- a wrong
+      bound, not an UNKNOWN, so it evades the F3 honesty path.
+    disposition: pending
+    disposition_ticket: null
   - id: MR-DF-01
     found_by: "epic-owner-scaffold-verification"
     found_at_commit: "2880756"
