@@ -18,6 +18,7 @@ BASELINE_FILES = [
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -89,6 +90,11 @@ def test_scaffold_spec_exposes_semantic_effect_schema_without_declaring_fake_eff
     mapping = (target / "case_adapters.toml").read_text(encoding="utf-8")
     assert "[effect_providers.FilesystemPort]" in mapping
     assert 'provider = "providers:filesystem_provider"' in mapping
+
+    providers = (target / "providers.py").read_text(encoding="utf-8")
+    assert "temporary_root_provider" in providers
+    assert "context_provider" in providers
+    assert "SCAFFOLD:" in providers
 
     manifest = (target / "spec_manifest.yaml").read_text(encoding="utf-8")
     assert "role: application" in manifest
