@@ -519,3 +519,35 @@ findings:
     blast_radius: "Domain resolution on every multi-view scaffolded project."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-18
+    found_by: "validation-ex2-run2"
+    found_at_commit: "0806272"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/distributed_history/README.md", "examples/distributed_history/scripts/regenerate_tlc_cases.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Example polish, three small sharp edges: (a) external case counts are
+      hardcoded in both READMEs and churn with any model change; (b)
+      regenerate_tlc_cases.py prints its "$ command" echo lines unflushed so
+      captured logs show them out of order, making failure logs confusing;
+      (c) a manual tlc2 run without -deadlock reports "Deadlock reached"
+      (the model has legitimate terminal states; only the generator's
+      -deadlock invocation is documented), a trap for anyone reproducing by
+      hand.
+    reproduction: >-
+      (a) diff README counts against generated docs.md after any model
+      change; (b) capture regenerate_tlc_cases.py output to a file on a
+      failure and observe echo ordering; (c) run tlc2 on External.tla
+      without -deadlock.
+    evidence: ["examples/validation/runs/ex2-run2/scoring.md"]
+    why_out_of_scope: "Post-epic validation finding; filed, not fixed."
+    suggested_fix: >-
+      Point READMEs at generated docs.md for counts; flush the echo lines;
+      note the -deadlock requirement in the README's manual-TLC section.
+    blast_radius: "Example docs/scripts only."
+    disposition: pending
+    disposition_ticket: null
