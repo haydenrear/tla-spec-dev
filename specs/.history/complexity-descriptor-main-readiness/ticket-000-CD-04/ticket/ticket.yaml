@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The corpus gate's over-cap output states the measurement and asks the redesign question; it names the descriptor and references/complexity_intuition.md; no prescriptive move (abstract/decompose/refactor/apply) appears in any reachable output or help text.",
+        "A repo-wide grep inventory (recorded as evidence) shows zero remaining prescriptive suggestion language outside specs/.history and immutable ticket records, with a per-occurrence disposition for everything found.",
+        "Tests assert the question form and fail if prescriptive-move wording returns.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-04"
+      ],
+      "evidence": [
+        "specs/tickets/CD-04/results/suggestion_sweep_inventory.md",
+        "specs/tickets/CD-04/results/corpus_gate_output_after.txt",
+        "specs/tickets/CD-04/results/tlc_current.txt",
+        "specs/tickets/CD-04/results/spec_unit_tests.txt",
+        "specs/tickets/CD-04/results/repo_unit_tests.txt",
+        "specs/tickets/CD-04/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-04/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-07"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/corpus_diagnostics.py",
+        "scripts/tla_spec_dev.py",
+        "tests/test_corpus_diagnostics.py",
+        "references/modular_fuzzing.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/89",
+    "id": "CD-04",
+    "implementation_scope": [
+      "scripts/corpus_diagnostics.py (finding + redesign question output)",
+      "scripts/tla_spec_dev.py (analyze corpus help text)",
+      "tests/test_corpus_diagnostics.py (assert question form, no prescriptive move)",
+      "references/modular_fuzzing.md (corpus gate description)"
+    ],
+    "objective": "Resolves VAL-13. The corpus gate still prints \"Suggested move: ... RECOMMENDATION REQUIRING USER APPROVAL\" (corpus_diagnostics.py ~760, with supporting text ~48/~767 and the analyze corpus help in tla_spec_dev.py ~612) \u2014 prescriptive-move language the epic pivot removed from the scanner but not from this path, and a real validation agent met it mid-ticket. Replace it with a factual finding plus a REDESIGN QUESTION: state what the corpus concentration measures, then prompt the reader to consider whether the architecture can be redesigned to make the program simpler \u2014 pointing at the complexity descriptor and references/complexity_intuition.md as the judgment inputs (the CD-02 framing: \"take this complexity descriptor to consider how to refactor complexity out of the app\"). Nothing is prescribed and nothing is auto-applied. Then SWEEP the whole repository for every remaining case of prescriptive suggestion language the pivot missed (grep-driven inventory: \"suggested move\", \"suggest_move\", \"recommendation requiring\", \"apply the suggested\", case-insensitive): every occurrence in reachable output, help text, docs, or tests is removed or reworded to the finding+question form; immutable history (specs/.history) is left untouched and listed as exempt. The inventory with per-occurrence disposition is recorded as evidence \u2014 the owner's stated concern is that earlier passes did not capture all the cases.\n",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Corpus gate: replace suggestion language with a redesign question; sweep all remaining prescriptive-move output",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets/CD-04",
+  "ticket_id": "CD-04",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets"
+}

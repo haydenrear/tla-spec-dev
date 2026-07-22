@@ -602,14 +602,16 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Print the generated corpus distribution per (action, label class), which "
             "strata dominate, which are starved, and what varies across any redundant "
-            "group -- the actionable part, since it points at symmetry reduction, a "
-            "state constraint, or abstraction as the cause. Exits nonzero when a "
+            "group -- the measured cause of the redundancy. Exits nonzero when a "
             "component or action exceeds its manifest case cap "
             "(max_internal_cases_per_component / max_external_cases_per_action). "
             "NOTHING IS EVER DROPPED, FILTERED, SAMPLED, OR TRUNCATED to fit a cap: "
-            "over budget the gate reports and refuses, and the two ways forward are "
-            "fixing the diagram or raising the cap with a recorded rationale. The "
-            "suggested move is a RECOMMENDATION REQUIRING USER APPROVAL."
+            "over budget the gate reports and refuses. It prescribes no move; the "
+            "failure output states the finding and ends with a REDESIGN QUESTION -- "
+            "can the architecture be redesigned to make the program simpler, judged "
+            "with the complexity descriptor (analyze complexity) and "
+            "references/complexity_intuition.md -- and the two ways forward are that "
+            "redesign or raising the cap with a recorded rationale."
         ),
         allow_abbrev=False,
     )
@@ -619,7 +621,7 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_corpus_parser.set_defaults(
         func=run_analyze_corpus,
         command_path="tla-spec-dev analyze corpus",
-        next_step="Fix the diagram so the redundant cases are never generated, or raise the cap with a rationale.",
+        next_step="Consider whether the architecture can be redesigned to make the program simpler (analyze complexity + references/complexity_intuition.md), or raise the cap with a recorded rationale.",
     )
 
     close_parser = subparsers.add_parser(
