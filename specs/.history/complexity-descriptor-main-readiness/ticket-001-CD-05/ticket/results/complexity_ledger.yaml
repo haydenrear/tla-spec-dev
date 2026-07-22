@@ -21,17 +21,17 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "green"
+    evidence: "specs/.history/complexity-descriptor-main-readiness/ticket-000-CD-04/ticket/results/tlc_current.txt"
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "green"
+    evidence: "specs/tickets/CD-05/results/tlc_current.txt"
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "pass"
+    evidence: "specs/tickets/CD-05/results/repo_unit_tests.txt"
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "recorded"
+    evidence: "specs/tickets/CD-05/results/descriptor_comparison.md"
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -71,9 +71,9 @@ retention:
 # Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
 coverage_audit:
   status: "not_run"
-  report: ""          # path to the filled templates/coverage_audit_report.md
-  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
-  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+  report: ""          # end-of-epic step; correct value at a ticket close
+  in_scope_gaps: null
+  scope_source: "specs/desired_program_model/ticket_plan.yaml (CD-05 entry)"
 
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
@@ -84,11 +84,11 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
-  applied: false       # if true, approved_by is required
+  searched: true
+  outcome: "none"
+  detail: "searched the delta for refinement opportunities; found none -- CD-05 changes only the MEASUREMENT machinery (scripts/analyze_complexity.py domain resolution), its tests, and the resolver-coverage doc. Zero semantic model delta: ticket model identical to the promoted epic-tip model, TLC distinct-state count unchanged at 283,805. On this repository's own model every previously resolved figure is unchanged (bound 699,840 over the same 7 dimensions); the resolver now additionally resolves the VAL-06/16/17 shapes on models that exhibit them. One adjacent literal-parsing defect was found and DEFERRED (CD-05-DF-01, deferred_findings.yaml) rather than fixed, to keep the ticket at its assigned scope."
+  measured: false
+  applied: false
   approved_by: ""
 
 # Required only if a generated-states drop at constant distinct states is
@@ -98,4 +98,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "CD-05 (resolves VAL-06, VAL-16, VAL-17) removes three domain-resolution blind spots the validation agents hit in three of six runs. (1) _set_size now expands zero-parameter operator definitions transitively through the EXTENDS hierarchy with a cycle guard -- the same definition map CD-01/F1 resolve_definition_body walks -- and sizes function sets [S -> T] as |T|^|S| consistently with the dimension inference, so tasks \\in [Names -> TaskStatus] with TaskStatus defined in an EXTENDS-ed module resolves (was UNKNOWN). (2) Constraints are extracted conjunct-wise via resolve_constraint_chunks (split on /\\ and \\/, per definition, transitively; chunks never bleed across definition boundaries), so membership conjuncts wrapped across lines resolve (was silent unknown from an end-of-line regex capture). (3) Domain sources merge PER-VARIABLE in the documented order TypeInvariant > TypeOK > configured cfg invariants, first resolvable wins, replacing first-named-definition-wins -- the scaffold multi-view layout resolves both views without renaming tricks; bound_source names every contributing source and each dimension records its source in text and JSON output. F3 preserved: genuinely unresolvable domains stay explicit UNKNOWN (guard test); the resolver coverage contract is documented in references/architecture_tractability.md (What The Domain Resolver Can And Cannot See), which the scanner output now cites. Three regression tests each proven failing pre-fix by stashing the production change (domain_resolution_regressions.txt). Zero TLA+ model delta; all validation green post-reconcile with epic tip 8df525f (CD-04 merged): TLC 283,805 distinct (budget 500,000 with negotiated rationale carried), spec-unit 2 targets (67+64), 583 repo tests, specWorkflow 8/8 and cliWorkflow 2/2 graphs. Deferred: CD-05-DF-01 (pre-existing _set_size literal/union miscount -- silent wrong number shapes needing a depth-aware tokenizer)."

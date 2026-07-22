@@ -1,0 +1,451 @@
+# Canonical plan for the complexity-descriptor-main-readiness workflow.
+# GitHub issues mirror this file for handoff; this file remains the source of
+# truth. Dispatched ticket IDs, dependency edges, waves, and promotion order
+# are immutable after issue assignment — add amendment tickets instead of
+# editing dispatched identities.
+#
+# Successor to the closed complexity-descriptor-epic workflow (snapshot in
+# specs/.history/). Owner direction 2026-07-22: this batch makes the epic
+# branch safe to merge to main — every negative side effect the six validation
+# runs surfaced is fixed here. All 19 triaged findings
+# (specs/results/epic-close/deferred_findings_final.yaml) map onto CD-04..08.
+# After the batch merges, the validation agents are re-run; main merge and
+# skill-manager sync happen only on explicit owner say-so after that.
+version: 1
+name: complexity-descriptor-main-readiness
+updated: "2026-07-22"
+purpose: "Main-readiness batch: replace every remaining prescriptive suggestion with a factual finding plus a redesign question (take the descriptor + intuition doc to consider making the architecture simpler); fix the descriptor-accuracy blind spots validation found (domain resolution, R/W attribution); align all scaffold/UX language with the advisory doctrine; repair the shipped example so it passes its own workflow. Zero TLA+ model delta throughout."
+
+epic:
+  id: complexity-descriptor
+  branch: epic/complexity-descriptor
+  default_branch: main
+  base_sha: fe0491cd630f518ef839582dfb9f926c1b49e983
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >
+    Same epic branch, successor spec workflow. Per repository-owner direction,
+    ticket agents merge their reviewed-green feature branch into
+    epic/complexity-descriptor themselves after validation and ticket close;
+    the epic owner reviews post-merge. The repository owner closes GitHub
+    issues. Never merge to main and never run skill-manager sync without
+    explicit owner say-so. All five tickets are zero-TLA+-model-delta; each
+    still opens/closes its spec ticket with evidence and carries
+    max_distinct_states 500000 with its rationale through desired/. Wave 1
+    (CD-04, CD-05, CD-08) runs in parallel on disjoint conflict keys;
+    promotion is strictly serialized 10..50. After CD-07 merges, the three
+    validation examples are re-run before any main-merge decision.
+
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands ARE program behavior for this repository.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
+  promotion_rule: Only workflow finalization promotes the whole model; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
+  case_execution_rule: The fuzzing machinery is EXPERIMENTAL and not product validation — do not run case generation, the corpus, effect conformance, or the kill test as ticket validation (CD-08 exercises the example's documented generation path as its ACCEPTANCE surface, which is different from product validation).
+  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper. It execs ~/.skill-manager/skills/spec-double-compiler, a clone tracking main at da0a7ff (pre-everything), so it runs none of the epic lineage's work. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root. Revisit after the main merge + sync this batch prepares.
+
+status:
+  workflow: complexity-descriptor-main-readiness
+  active_ticket: none-dispatch-pending
+  active_ticket_title: "Main-readiness batch planned; wave 1 (CD-04, CD-05, CD-08) ready to dispatch"
+  desired_module: TlaSpecDevCli
+  phase: implementation
+
+service_catalog:
+  existing_boundaries:
+    - tla-spec-dev CLI (scaffold/open/run/analyze/close)
+    - scripts/analyze_complexity.py complexity descriptor
+    - scripts/fitness_functions.py advisory fitness rules
+    - scripts/corpus_diagnostics.py corpus gate (EXPERIMENTAL fuzzing surface)
+    - examples/distributed_history ticket-workflow example
+  desired_boundaries:
+    - corpus gate speaks findings + a redesign question, never a prescriptive move
+    - descriptor domain resolution covers operator-defined sets, wrapped conjuncts, and multi-view invariant naming
+    - R/W matrix attributed to top-level actions through called operators
+    - scaffold/UX language consistent with the advisory doctrine
+    - the shipped example passes its own documented workflow out of the box
+  adapter_boundaries:
+    - specs/program_model/production_adapters.py spec-unit adapters
+    - test_graph specWorkflow / cliWorkflow graphs
+  known_gaps:
+    - "Suggestions removed by CD-01 may return in a later epic, earned from real-app descriptor observations, possibly as an agent. Not in this batch."
+
+tickets:
+  - id: CD-04
+    title: "Corpus gate: replace suggestion language with a redesign question; sweep all remaining prescriptive-move output"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/89"
+    schedule_revision: 1
+    depends_on: []
+    blocks: [CD-07]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production:
+        - scripts/corpus_diagnostics.py
+        - scripts/tla_spec_dev.py
+        - tests/test_corpus_diagnostics.py
+        - references/modular_fuzzing.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Resolves VAL-13. The corpus gate still prints "Suggested move: ...
+      RECOMMENDATION REQUIRING USER APPROVAL" (corpus_diagnostics.py ~760,
+      with supporting text ~48/~767 and the analyze corpus help in
+      tla_spec_dev.py ~612) — prescriptive-move language the epic pivot
+      removed from the scanner but not from this path, and a real validation
+      agent met it mid-ticket. Replace it with a factual finding plus a
+      REDESIGN QUESTION: state what the corpus concentration measures, then
+      prompt the reader to consider whether the architecture can be
+      redesigned to make the program simpler — pointing at the complexity
+      descriptor and references/complexity_intuition.md as the judgment
+      inputs (the CD-02 framing: "take this complexity descriptor to
+      consider how to refactor complexity out of the app"). Nothing is
+      prescribed and nothing is auto-applied. Then SWEEP the whole
+      repository for every remaining case of prescriptive suggestion
+      language the pivot missed (grep-driven inventory: "suggested move",
+      "suggest_move", "recommendation requiring", "apply the suggested",
+      case-insensitive): every occurrence in reachable output, help text,
+      docs, or tests is removed or reworded to the finding+question form;
+      immutable history (specs/.history) is left untouched and listed as
+      exempt. The inventory with per-occurrence disposition is recorded as
+      evidence — the owner's stated concern is that earlier passes did not
+      capture all the cases.
+    desired_actions: []
+    implementation_scope:
+      - scripts/corpus_diagnostics.py (finding + redesign question output)
+      - scripts/tla_spec_dev.py (analyze corpus help text)
+      - tests/test_corpus_diagnostics.py (assert question form, no prescriptive move)
+      - references/modular_fuzzing.md (corpus gate description)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-04
+      assertions:
+        - "The corpus gate's over-cap output states the measurement and asks the redesign question; it names the descriptor and references/complexity_intuition.md; no prescriptive move (abstract/decompose/refactor/apply) appears in any reachable output or help text."
+        - "A repo-wide grep inventory (recorded as evidence) shows zero remaining prescriptive suggestion language outside specs/.history and immutable ticket records, with a per-occurrence disposition for everything found."
+        - "Tests assert the question form and fail if prescriptive-move wording returns."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-04/results/suggestion_sweep_inventory.md
+        - specs/tickets/CD-04/results/corpus_gate_output_after.txt
+        - specs/tickets/CD-04/results/tlc_current.txt
+        - specs/tickets/CD-04/results/spec_unit_tests.txt
+        - specs/tickets/CD-04/results/repo_unit_tests.txt
+        - specs/tickets/CD-04/results/graph_specWorkflow.txt
+        - specs/tickets/CD-04/results/graph_cliWorkflow.txt
+
+  - id: CD-05
+    title: "Descriptor accuracy: domain resolution sees operator-defined sets, wrapped conjuncts, and multi-view invariant naming"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/90"
+    schedule_revision: 1
+    depends_on: []
+    blocks: [CD-06, CD-07]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: CD-04
+    conflict_keys:
+      production:
+        - scripts/analyze_complexity.py
+        - tests/test_analyze_complexity.py
+        - references/architecture_tractability.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Resolves VAL-06, VAL-16, VAL-17 — three domain-resolution blind spots
+      that real agents hit in three of six validation runs, each currently
+      degrading the bound to UNKNOWN (or a partial product) on standard
+      patterns. (1) VAL-06: _set_size resolves only literals, int ranges,
+      BOOLEAN, unions, and cfg constants; an operator-defined set (TaskStatus
+      == {...} in an EXTENDS-ed module, used as tasks \in [Names ->
+      TaskStatus]) resolves unknown even though resolve_definition_body has
+      already expanded the operator — consult it (the same transitive
+      resolution CD-01 built for F1). (2) VAL-16: the `variable \in <domain>`
+      regex captures to end-of-line, so a membership conjunct wrapped across
+      lines silently resolves unknown — parse conjunct-wise, not line-wise.
+      (3) VAL-17: domain-source precedence (any TypeInvariant in the EXTENDS
+      hierarchy becomes the sole source, then TypeOK, then cfg invariants)
+      interacts badly with the scaffold's own multi-view layout where
+      TypeInvariant cannot be redefined per view — merge domain sources
+      (per-variable, first resolvable wins with a documented order) instead
+      of first-named-definition-wins, or document the per-view naming
+      convention and make the resolver honor both names. Regression tests for
+      each, failing pre-fix. Document exactly what the resolver can see.
+    desired_actions: []
+    implementation_scope:
+      - scripts/analyze_complexity.py (_set_size, infer_dimensions, domain-source precedence)
+      - tests/test_analyze_complexity.py (three regression tests, failing pre-fix)
+      - references/architecture_tractability.md (document the resolver's coverage)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-05
+      assertions:
+        - "An operator-defined set in an EXTENDS-ed module resolves (regression test failing pre-fix); a membership conjunct wrapped across lines resolves (failing pre-fix); a multi-view scaffold layout resolves domains for both views without renaming tricks (failing pre-fix)."
+        - "The explicit-UNKNOWN path (F3) is preserved for genuinely unresolvable domains — never a silent number."
+        - "The resolver's coverage is documented where agents look (the reference the scanner output cites)."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-05/results/domain_resolution_regressions.txt
+        - specs/tickets/CD-05/results/tlc_current.txt
+        - specs/tickets/CD-05/results/spec_unit_tests.txt
+        - specs/tickets/CD-05/results/repo_unit_tests.txt
+        - specs/tickets/CD-05/results/graph_specWorkflow.txt
+        - specs/tickets/CD-05/results/graph_cliWorkflow.txt
+
+  - id: CD-08
+    title: "distributed_history example passes its own documented workflow out of the box"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/93"
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 1
+    promotion_order: 30
+    promotion_predecessor: CD-05
+    conflict_keys:
+      production:
+        - examples/distributed_history/
+        - examples/run_distributed_history_validation.py
+        - scripts/export_testgraph_cases.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Resolves VAL-08, VAL-09, VAL-10, VAL-11, VAL-14, VAL-18. The shipped
+      example fails its own documented regeneration path out of the box, and
+      both validation agents had to route around the same defects. (1)
+      VAL-08: the manifest cap max_external_cases_per_action 50 contradicts
+      the 732-case corpus the README advertises — set caps that fit the
+      actual corpus with a recorded rationale (or shrink the corpus; do not
+      trim silently). (2) VAL-09: scripts/regenerate_tlc_cases.py must pass
+      --bindings (and --manifest) to the exporter. (3) VAL-10 (toolchain):
+      export_testgraph_cases.py silently falls back to the built-in cap 50
+      when the corpus lives in a build dir — resolve the manifest from the
+      spec root or fail loudly asking for --manifest; a silent default cap
+      next to an explicit-budget doctrine is a defect. (4) VAL-11: derive
+      the toolchain root via a TLA_SPEC_DEV_ROOT env override (falling back
+      to parents[1]) in the example's three scripts, and make
+      examples/run_distributed_history_validation.py accept a target example
+      path instead of hardcoding the embedded copy. (5) VAL-14: fix the
+      envelope key names in both READMEs (caseNames/expectedCaseNames, not
+      counts). (6) VAL-18: point README case counts at generated docs.md,
+      flush the regenerate script's command echoes, and document that manual
+      tlc2 runs need -deadlock. Acceptance is the pristine example
+      completing its own documented local (non-k3d) path end to end.
+    desired_actions: []
+    implementation_scope:
+      - examples/distributed_history/ (manifest caps + scripts + READMEs)
+      - examples/run_distributed_history_validation.py (target-path parameter)
+      - scripts/export_testgraph_cases.py (manifest resolution / loud failure)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-08
+      assertions:
+        - "A pristine copy of the example completes its documented local regeneration + adapter-run path end to end with no cap refusal, no missing-argument exit, and no silent cap fallback (recorded as evidence)."
+        - "export_testgraph_cases.py either resolves the correct manifest or fails loudly naming --manifest; the silent built-in-cap fallback is gone (regression test)."
+        - "The example runs from a standalone checkout via TLA_SPEC_DEV_ROOT; run_distributed_history_validation.py accepts a target path."
+        - "README case counts and envelope key names match generated reality."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-08/results/example_end_to_end.txt
+        - specs/tickets/CD-08/results/exporter_manifest_regression.txt
+        - specs/tickets/CD-08/results/tlc_current.txt
+        - specs/tickets/CD-08/results/spec_unit_tests.txt
+        - specs/tickets/CD-08/results/repo_unit_tests.txt
+        - specs/tickets/CD-08/results/graph_specWorkflow.txt
+        - specs/tickets/CD-08/results/graph_cliWorkflow.txt
+
+  - id: CD-06
+    title: "Descriptor accuracy: R/W matrix attributed to top-level actions through called operators"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/91"
+    schedule_revision: 1
+    depends_on: [CD-05]
+    blocks: [CD-07]
+    wave: 2
+    promotion_order: 40
+    promotion_predecessor: CD-08
+    conflict_keys:
+      production:
+        - scripts/analyze_complexity.py
+        - tests/test_analyze_complexity.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Resolves VAL-07 and VAL-12 — the same attribution defect from both
+      directions, hit independently in three validation runs. The R/W matrix
+      attributes primed variables to the syntactic primer, so (a) wrapper
+      actions that prime a variable only through a helper operator vanish
+      from the matrix (9 CLI actions collapsed to 4 on taskq), and (b)
+      helper operators are listed AS actions while composed actions whose
+      writes happen entirely through called operators or UNCHANGED get no
+      column (MarkExternal listed, RunFulfillmentWorker absent, on
+      distributed_history). Dense-row fractions, dense columns,
+      action_count, component action counts — and the fitness facts derived
+      from them — are computed over a partially wrong action set. Fix:
+      attribute primes to the top-level action disjuncts (Next/ExternalNext
+      members), expanding called-operator bodies transitively (the CD-01/F1
+      resolution machinery, extended by CD-05); helpers are not actions.
+      Regression tests covering both shapes, failing pre-fix; verify against
+      the real distributed_history External view and record the corrected
+      matrix as evidence.
+    desired_actions: []
+    implementation_scope:
+      - scripts/analyze_complexity.py (action attribution / matrix construction)
+      - tests/test_analyze_complexity.py (both-direction regression tests)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-06
+      assertions:
+        - "Helper-primed wrapper actions appear as matrix columns; helpers do not (regression test failing pre-fix)."
+        - "Actions writing only through called operators or UNCHANGED get columns (regression test failing pre-fix)."
+        - "On examples/distributed_history External.tla the matrix lists the ExternalNext disjuncts (RunFulfillmentWorker present, MarkExternal absent) — recorded as evidence."
+        - "Dense rows/columns and action counts are computed over the corrected action set; fitness facts follow."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-06/results/rw_matrix_regressions.txt
+        - specs/tickets/CD-06/results/distributed_history_matrix_after.txt
+        - specs/tickets/CD-06/results/tlc_current.txt
+        - specs/tickets/CD-06/results/spec_unit_tests.txt
+        - specs/tickets/CD-06/results/repo_unit_tests.txt
+        - specs/tickets/CD-06/results/graph_specWorkflow.txt
+        - specs/tickets/CD-06/results/graph_cliWorkflow.txt
+
+  - id: CD-07
+    title: "Advisory-doctrine language and UX polish across scaffold, fitness loader, budgets, and docs"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/92"
+    schedule_revision: 1
+    depends_on: [CD-04, CD-05, CD-06]
+    blocks: []
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: CD-06
+    conflict_keys:
+      production:
+        - scripts/new_ticket_workflow.py
+        - scripts/tla_spec_dev.py
+        - scripts/fitness_functions.py
+        - scripts/budgets.py
+        - scripts/analyze_complexity.py
+        - scripts/run_tlc.sh
+        - references/fitness_functions.md
+        - references/complexity_intuition.md
+        - references/architecture_tractability.md
+        - SKILL.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Resolves VAL-04, VAL-01, VAL-02, VAL-03, VAL-05, CD-02-DF-01, VAL-15.
+      (1) VAL-04: the scaffold-project epilog and generated manifest comment
+      still say "Budgets are hard gates" (new_ticket_workflow.py ~615/~666)
+      — reword to the advisory doctrine every other surface states. (2)
+      VAL-01: manifest-embedded fitness rules under bare python3 go through
+      the fallback manifest parser and surface as a misleading INVALID
+      (flow-style leaves mangled to '{fact'); emit the documented advisory
+      CONFIG ERROR naming missing PyYAML and the fitness_functions.json
+      alternative instead. (3) VAL-02: drop the retired fuzzing-era keys
+      (kill_rate_floor, max_symmetric_instances) from the required-budgets
+      warning set or gate them behind the experimental surface. (4)
+      CD-02-DF-01: the no-manifest warning prints a literal does-not-exist
+      sentinel path — say what happened instead. (5) VAL-05: document the
+      justification-table schema (dict with non-empty
+      invariants/effects/kill_tests lists) where agents look. (6) VAL-03:
+      run_tlc.sh leaves a TLC states/ scratch dir inside the target spec dir
+      — point the metadir at a temp location or clean up. (7) VAL-15:
+      sharpen complexity_intuition.md's example-3 vs example-5 boundary for
+      write-only stamped state, using the recorded ex3 run-1 vs run-2
+      divergence as the worked case (a test such as: if no guard, invariant,
+      test, or reader depends on it, it is bookkeeping regardless of stated
+      design intent — or explicitly bless both outcomes and name the
+      evidence that separates them).
+    desired_actions: []
+    implementation_scope:
+      - scripts/new_ticket_workflow.py (scaffold wording)
+      - scripts/fitness_functions.py + scripts/tla_spec_dev.py (manifest-rules CONFIG ERROR path)
+      - scripts/budgets.py (retired keys)
+      - scripts/analyze_complexity.py (sentinel warning wording)
+      - scripts/run_tlc.sh (states/ scratch dir)
+      - references/fitness_functions.md, references/complexity_intuition.md, references/architecture_tractability.md, SKILL.md (schema docs + boundary sharpening)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-07
+      assertions:
+        - "No scaffold output or generated file calls budgets hard gates; wording matches the advisory doctrine (grep evidence)."
+        - "Manifest fitness rules under bare python3 produce the documented CONFIG ERROR naming PyYAML and the .json alternative — never the mangled INVALID (regression test without PyYAML)."
+        - "A per-docs budgets block scans with no missing-keys warning; the no-manifest warning names no sentinel path."
+        - "run_tlc.sh leaves no states/ directory in the target spec dir."
+        - "The justification-table schema is documented with an example; the intuition doc's write-only-state boundary is sharpened citing the recorded divergence."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-07/results/advisory_language_sweep.md
+        - specs/tickets/CD-07/results/fitness_manifest_config_error.txt
+        - specs/tickets/CD-07/results/tlc_current.txt
+        - specs/tickets/CD-07/results/spec_unit_tests.txt
+        - specs/tickets/CD-07/results/repo_unit_tests.txt
+        - specs/tickets/CD-07/results/graph_specWorkflow.txt
+        - specs/tickets/CD-07/results/graph_cliWorkflow.txt

@@ -648,3 +648,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-05
+
+- close_scope: ticket
+- close_id: CD-05
+- workflow: complexity-descriptor-main-readiness
+- closed_at: 2026-07-22T20:36:11+00:00
+- summary: Domain resolution sees operator-defined sets (VAL-06: _set_size expands zero-parameter operators transitively through EXTENDS, sizes [S -> T] as |T|^|S|), wrapped conjuncts (VAL-16: conjunct-wise constraint parsing via resolve_constraint_chunks), and multi-view invariant naming (VAL-17: per-variable domain-source merge in documented order TypeInvariant > TypeOK > cfg invariants). F3 explicit-UNKNOWN preserved; resolver coverage contract documented in references/architecture_tractability.md 'What The Domain Resolver Can And Cannot See', cited by scanner output. Three regression tests each proven failing pre-fix. Zero TLA+ model delta.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
