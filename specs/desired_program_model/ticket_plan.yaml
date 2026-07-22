@@ -17,7 +17,7 @@ epic:
   branch: epic/complexity-descriptor
   default_branch: main
   base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
-  schedule_revision: 3
+  schedule_revision: 4
   review_mode: epic-owner-post-merge
   notes: >
     Base is the epic/modular-fuzzing tip (dfd2a80), inheriting the working
@@ -582,7 +582,7 @@ service_catalog:
   existing_boundaries:
     - tla-spec-dev CLI shipped lifecycle (scaffold/open/run spec-unit-tests/analyze/close) — THE MODELED SURFACE
     - scripts/analyze_complexity.py complexity descriptor + scripts/fitness_functions.py advisory rules (advisory internals out-of-model as transcription)
-    - "EXPERIMENTAL, deliberately unmodeled: scripts/generate_cases_from_tlc_dump.py, corpus gate, effect conformance, kill test (the 2026-07-21 pivot)"
+    - "EXPERIMENTAL surface (the 2026-07-21 pivot): corpus gate, effect conformance, kill test — SHIPPED and MODELED as-is per the ESC-6 correction in semantic_model_rule; only scripts/generate_cases_from_tlc_dump.py (generate) is unmodeled, a recorded limitation (ESC-R4-1 wording fix, 2026-07-22)"
     - spec_manifest.yaml / case_adapters.toml schemas
   desired_boundaries:
     - model faithful to the advisory program (no blocking-gate or override representation — CD-09)
@@ -2392,3 +2392,87 @@ tickets:
         - specs/tickets/CD-10/results/repo_unit_tests.txt
         - specs/tickets/CD-10/results/graph_specWorkflow.txt
         - specs/tickets/CD-10/results/graph_cliWorkflow.txt
+
+  - id: CD-11
+    title: "Experimental-surface port honesty and the two four-run manifest desyncs"
+    status: planned
+    github_issue: "PLACEHOLDER"
+    schedule_revision: 4
+    depends_on: []
+    blocks: []
+    wave: 17
+    promotion_order: 150
+    promotion_predecessor: CD-10
+    conflict_keys:
+      production:
+        - tests/test_kill_test.py
+      tla: []
+      adapters:
+        - specs/current/spec_manifest.yaml
+        - specs/current/kill_mutants.toml
+        - specs/current/TlaSpecDevCli.tla
+      test_graph: []
+      workflow: []
+    objective: >
+      Fix audit run 4's three gaps (report:
+      specs/results/epic-close/coverage_audit_report_run4.md) and the two
+      MF-026-era manifest desyncs that have survived four audit runs
+      (ESC-R4-2/3, owner-ruled real 2026-07-22). (R4-1) RunKillTest
+      overwrites production source with mutated code on the shipped path
+      (kill_test.py:548/:551 via run_kill_test.py:130->198; targets
+      scripts/*.py) with no declared port — declare an honest mutation-write
+      port (filesystem.write targeting the catalog surface) on RunKillTest,
+      or move seeding to a copied tree; declaring is the smaller honest fix.
+      Also make the per-mutant corpus spawn declaration honest for
+      non-pytest user commands. (R4-2) RunEffectConformance writes its
+      sandbox work tree under **/specs/**
+      (effect_conformance_report.py:149/:163, effect_conformance.py:619/:656)
+      but declares [evidence_report] only — declare spec_tree on the action
+      or relocate the work dir under results/; pick one and record why.
+      (R4-3) AnalyzeCorpus declares evidence_report but corpus_diagnostics.py
+      has no writer and no --out — remove the dead port row with a
+      G4-style rationale, or add a writer; removal matches the shipped
+      print-only behavior. (ESC-R4-2) spec_manifest.yaml:123-125 declares
+      state_fields: [] / actions: [] / ports: {} against a model with 9
+      variables / 15 actions / 7 ports — populate the stanzas from the model
+      (or, if the schema intends them only for generated-case projects,
+      record that meaning in a comment and in the schema doc — an empty
+      stanza and an inapplicable stanza are different claims). (ESC-R4-3)
+      the @port annotation vocabulary in TlaSpecDevCli.tla
+      (TlaSpecDevCliPort.*) has empty intersection with the manifest's
+      declared port names — align one to the other so the annotation layer
+      and the effects layer name the same ports. Update the kill catalog for
+      any port changes. Zero TLA+ model delta beyond annotation-comment
+      alignment (no state/action/guard changes).
+    desired_actions: []
+    implementation_scope:
+      - specs/current/spec_manifest.yaml (R4-1/2/3 port rows; ESC-R4-2 stanzas)
+      - specs/current/TlaSpecDevCli.tla (@port annotation vocabulary only — no semantic delta)
+      - specs/current/kill_mutants.toml (catalog for changed ports)
+      - tests/test_kill_test.py (boundary counts if they change)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - manifest effects/ports + annotation alignment
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-11
+      assertions:
+        - "RunKillTest's production-source mutation writes match a declared port (or seeding moved to a copied tree); the per-mutant spawn declaration is honest for user-supplied commands (R4-1)."
+        - "RunEffectConformance's sandbox writes match declared ports, by declaration or relocation, with the choice recorded (R4-2)."
+        - "AnalyzeCorpus declares no dead port (R4-3, G4-style rationale if removed)."
+        - "state_fields/actions/ports stanzas are either populated from the model or their inapplicability recorded where the schema is documented (ESC-R4-2); the @port annotation vocabulary and declared port names intersect exactly (ESC-R4-3)."
+        - "Kill catalog honest for the final port set; zero TLA+ semantic delta (annotation comments only); TLC green; max_distinct_states 500000 carried and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-11/results/port_honesty_reconciliation.md
+        - specs/tickets/CD-11/results/tlc_current.txt
+        - specs/tickets/CD-11/results/spec_unit_tests.txt
+        - specs/tickets/CD-11/results/repo_unit_tests.txt
+        - specs/tickets/CD-11/results/graph_specWorkflow.txt
+        - specs/tickets/CD-11/results/graph_cliWorkflow.txt

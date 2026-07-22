@@ -1,0 +1,278 @@
+examples/distributed_history/ecommerce_backend/service.py:5:import time
+examples/distributed_history/ecommerce_backend/service.py:58:    deadline = time.time() + 10
+examples/distributed_history/ecommerce_backend/service.py:66:            if time.time() >= deadline:
+examples/distributed_history/ecommerce_backend/service.py:68:            time.sleep(0.2)
+examples/distributed_history/scripts/k8s-deploy.sh:38:  sleep 1
+examples/distributed_history/specs/program_model/adapters.py:5:import time
+examples/distributed_history/specs/program_model/adapters.py:95:        deadline = time.time() + 20
+examples/distributed_history/specs/program_model/adapters.py:97:        while time.time() < deadline:
+examples/distributed_history/specs/program_model/adapters.py:103:                time.sleep(0.2)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:8:import time
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:87:    deadline = time.time() + 10
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:88:    while time.time() < deadline:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:94:            time.sleep(0.1)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:14:import time
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:69:    deadline = time.time() + 45
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:71:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:75:        time.sleep(1)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:16:import time
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:159:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:160:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:166:            time.sleep(0.2)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:171:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:172:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:178:            time.sleep(0.5)
+examples/run_distributed_history_validation.py:14:import time
+examples/run_distributed_history_validation.py:125:    this step today anyway, because case generation for the External model is
+examples/run_distributed_history_validation.py:417:    deadline = time.time() + 10
+examples/run_distributed_history_validation.py:418:    while time.time() < deadline:
+examples/run_distributed_history_validation.py:424:            time.sleep(0.1)
+scripts/analyze_complexity.py:77:# complex". A complex model now exits EXIT_PASS with advisory warnings; only an
+scripts/analyze_complexity.py:1612:        # from "this model is complex", which is now advisory and exits 0.
+scripts/complexity_ledger.py:80:from datetime import datetime, timezone
+scripts/complexity_ledger.py:775:        "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/effect_conformance.py:158:#: spirit: code running in-process, here, now.
+scripts/generate_cases_from_tlc_dump.py:633:    # Every prepared case has now been written. The caller gates the corpus
+scripts/kill_test.py:1028:            f"but these previously-killed mutants now survive: {', '.join(lost)}. The rate is "
+scripts/new_ticket_workflow.py:391:   landed. At close time, ticket `current/` and `desired/` must match.
+scripts/new_ticket_workflow.py:405:scaffold intentionally records only the spec-side state for now.
+scripts/new_ticket_workflow.py:526:implements right now for the active ticket workflow.
+scripts/skill_feedback.py:6:that had to move, and profile/schema/CLI workarounds. Until now that retro was a
+scripts/skill_feedback.py:34:from datetime import datetime, timezone
+scripts/skill_feedback.py:86:    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+scripts/spec_evolution.py:14:from datetime import datetime, timezone
+scripts/spec_evolution.py:244:        recommendation=f"It is recommended to commit this history directory now: {rel(entry_dir)}",
+scripts/spec_evolution.py:770:        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/spec_evolution.py:883:        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/spec_evolution.py:938:    gate time, before anything is mutated. This is the pointer to the durable
+specs/current/adapter_case_runtime.py:328:    remaining adapters, and it is now fixed centrally.
+specs/current/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/current/production_adapters.py:1906:    throwaway repository, four times, and asserts the close-time behavior that
+specs/desired_program_model/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/desired_program_model/production_adapters.py:1906:    throwaway repository, four times, and asserts the close-time behavior that
+specs/program_model/adapter_case_runtime.py:328:    remaining adapters, and it is now fixed centrally.
+specs/program_model/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/program_model/production_adapters.py:1906:    throwaway repository, four times, and asserts the close-time behavior that
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+test_graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+test_graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+test_graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+test_graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+test_graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+test_graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+test_graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+test_graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+test_graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+test_graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+test_graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+test_graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+test_graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+test_graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+test_graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+test_graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+tests/corpus_fixtures.py:7:4 and 2 cases. That corpus is regenerated under a validation report at run time
+tests/corpus_fixtures.py:123:    differs each time. That is the abstraction fingerprint.
+tests/test_analyze_complexity.py:394:    now guards the landed state: the ordinal is present, no five-member
+tests/test_analyze_complexity.py:417:    # MF-025: the per-ticket lifecycle is one ordinal now.
+tests/test_complexity_ledger.py:437:        now is the absent validated-refactor basis, not the kill rate; a
+tests/test_effect_conformance.py:785:# These tests pin two things at once: (a) the child's filesystem effects are now
+tests/test_effect_conformance.py:796:        """The exact blindness MF-028 recorded, now seen.
+tests/test_effect_conformance.py:858:        its ports dead: the child's writes are now real observations.
+tests/test_infer_action_params.py:214:    # blocking gate -- RunSpecUnitTests is (root, ticket) now.
+tests/test_kill_test.py:717:        # of modeled actions are now declared, each with a seeded fault.
+tests/test_spec_yaml_valid.py:21:is append-only, records what was actually committed at the time, and therefore
