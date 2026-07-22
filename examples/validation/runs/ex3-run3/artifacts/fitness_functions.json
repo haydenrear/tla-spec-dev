@@ -1,0 +1,38 @@
+{
+  "_comment": "Remembered design decisions from the 2026-07-22 complexity refactor (validation_artifacts/complexity_decision.md). Advisory notifications for future agents; a FIRING blocks nothing (references/fitness_functions.md). JSON, not a manifest block, because this CLI runs under a python without PyYAML.",
+  "fitness_functions": [
+    {
+      "name": "bound-stays-essential",
+      "description": "The state-space bound stays at the essential-behavior size (624 = 4 orders x 4 shipped x 3 retries x 13 audit). If a new essential behavior grows it, raise this value and name the behavior.",
+      "rule": {
+        "all": [
+          {"fact": "bound_known", "op": "==", "value": true},
+          {"fact": "bound", "op": "<=", "value": 624}
+        ]
+      }
+    },
+    {
+      "name": "domains-stay-behavior-width",
+      "description": "Domains stay sized to the distinctions guards/invariants make; no return of production-width counters (orders/shipped cap at 3, retries at 2, auditLog at 12).",
+      "rule": {
+        "all": [
+          {"fact": "variable_domain", "var": "orders", "op": "<=", "value": 4},
+          {"fact": "variable_domain", "var": "shipped", "op": "<=", "value": 4},
+          {"fact": "variable_domain", "var": "retries", "op": "<=", "value": 3},
+          {"fact": "variable_domain", "var": "auditLog", "op": "<=", "value": 13}
+        ]
+      }
+    },
+    {
+      "name": "no-new-bookkeeping-state",
+      "description": "auditLog is the one accepted dense row (a real global cap that guards and tests read). No second god-state variable, and every variable stays invariant-visible and justified.",
+      "rule": {
+        "all": [
+          {"fact": "god_state_count", "op": "<=", "value": 1},
+          {"fact": "unread_by_invariant_count", "op": "==", "value": 0},
+          {"fact": "unjustified_count", "op": "==", "value": 0}
+        ]
+      }
+    }
+  ]
+}
