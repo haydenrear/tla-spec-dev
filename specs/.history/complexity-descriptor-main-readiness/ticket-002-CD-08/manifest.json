@@ -1,0 +1,676 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/CD-08",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for CD-08'",
+    "message": "It is recommended to commit this history directory now: specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "CD-05"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "CD-05"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/CD-08/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.0,
+      "variables": 9
+    },
+    "narrative": "specs/tickets/CD-08/results/zero_model_delta.md -- CD-08 makes the shipped distributed_history example pass its own documented workflow out of the box (VAL-08/09/10/11/14/18): the example manifest's external case cap is raised 50->200 to the measured worst action of its own pristine corpus with a recorded rationale (never trimmed); regenerate_tlc_cases.py passes --bindings/--manifest to the exporter; export_testgraph_cases.py resolves the cap manifest from the spec root holding --bindings when the corpus lives in a build dir and otherwise fails loudly naming --manifest (regression-tested; the silent built-in-cap fallback is gone); TLA_SPEC_DEV_ROOT overrides the toolchain root in the example's three root-deriving scripts and the wrapper accepts a target example path; both READMEs document the real envelope keys (caseNames/expectedCaseNames) and point case counts at generated docs.md; manual tlc2 runs documented as needing -deadlock. Acceptance: a pristine scratch copy completed its documented local non-k3d path end to end (backend tests, adapter tests, regeneration with cap gate PASS at largest action 200, 93 internal + 732 external cases against a live monolith, channel enforcement 11 bindings), rerun again after reconciling epic tip 5b7d09f. Repository model untouched: TLC 283,805 distinct states on a byte-identical model, budget 500,000 with rationale carried; spec-unit 2 targets green; 587 repo tests; specWorkflow and cliWorkflow all nodes passed.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-22T20:47:17.362996+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "zero semantic model delta -- CD-08 touches only the shipped example, the validation wrapper, and exporter manifest resolution; the repository model is byte-identical before and after (identical TLC counts: 283,805 distinct). Searched the ticket surface for model-refinement opportunities anyway: the example's own External model corpus concentration (worst action 200 duplicate-command cases, starved strata at 2-4 cases) is a real refinement pointer for the EXAMPLE's diagram, recorded in its manifest rationale rather than applied, because reshaping the example's model is out of this ticket's assigned scope.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "CD-08",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-08/results/repo_unit_tests.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-08/results/zero_model_delta.md",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-08/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/.history/complexity-descriptor-main-readiness/ticket-001-CD-05/ticket/results/tlc_current.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "complexity-descriptor-main-readiness"
+  },
+  "created_at_utc": "2026-07-22T20:47:17.408440+00:00",
+  "entry_name": "ticket-002-CD-08",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/93-cd08-example-repair",
+    "commit": "a3ec09c",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CD-08/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/CD-08/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CD-08/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CD-08/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/CD-08/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CD-08/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/CD-08/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CD-08/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CD-08/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/CD-08/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/CD-08/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CD-08"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "zero semantic model delta -- CD-08 touches only the shipped example, the validation wrapper, and exporter manifest resolution; the repository model is byte-identical before and after (identical TLC counts: 283,805 distinct). Searched the ticket surface for model-refinement opportunities anyway: the example's own External model corpus concentration (worst action 200 duplicate-command cases, starved strata at 2-4 cases) is a real refinement pointer for the EXAMPLE's diagram, recorded in its manifest rationale rather than applied, because reshaping the example's model is out of this ticket's assigned scope.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/example_end_to_end.txt",
+      "source": "specs/tickets/CD-08/results/example_end_to_end.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/exporter_manifest_regression.txt",
+      "source": "specs/tickets/CD-08/results/exporter_manifest_regression.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/tlc_current.txt",
+      "source": "specs/tickets/CD-08/results/tlc_current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/spec_unit_tests.txt",
+      "source": "specs/tickets/CD-08/results/spec_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/repo_unit_tests.txt",
+      "source": "specs/tickets/CD-08/results/repo_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/graph_specWorkflow.txt",
+      "source": "specs/tickets/CD-08/results/graph_specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/graph_cliWorkflow.txt",
+      "source": "specs/tickets/CD-08/results/graph_cliWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/results/zero_model_delta.md",
+      "source": "specs/tickets/CD-08/results/zero_model_delta.md"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 28,
+    "close_out_entry": "Close-out ticket CD-08",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/ticket",
+      "source": "specs/tickets/CD-08"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "distributed_history example passes its own documented workflow out of the box: example manifest cap 50->200 set to measured worst action with recorded rationale (VAL-08, nothing trimmed); regenerate_tlc_cases.py passes --bindings/--manifest to the exporter (VAL-09); export_testgraph_cases.py resolves the cap manifest from the spec root holding --bindings or fails loudly naming --manifest, regression-tested (VAL-10); TLA_SPEC_DEV_ROOT override in the example's three root-deriving scripts and a target-example-path argument on the validation wrapper (VAL-11); READMEs document the real envelope keys caseNames/expectedCaseNames (VAL-14); README counts point at generated docs.md, command echoes flushed, manual tlc2 -deadlock documented (VAL-18). Pristine scratch copy completed the documented local non-k3d path end to end before and after reconciling epic tip 5b7d09f: 93 internal + 732 external cases, cap gate and channel enforcement green. Zero TLA model delta; deferred CD-08-DF-01 (local-mode wrapper kill-test step).",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A pristine copy of the example completes its documented local regeneration + adapter-run path end to end with no cap refusal, no missing-argument exit, and no silent cap fallback (recorded as evidence).",
+        "export_testgraph_cases.py either resolves the correct manifest or fails loudly naming --manifest; the silent built-in-cap fallback is gone (regression test).",
+        "The example runs from a standalone checkout via TLA_SPEC_DEV_ROOT; run_distributed_history_validation.py accepts a target path.",
+        "README case counts and envelope key names match generated reality.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-08"
+      ],
+      "evidence": [
+        "specs/tickets/CD-08/results/example_end_to_end.txt",
+        "specs/tickets/CD-08/results/exporter_manifest_regression.txt",
+        "specs/tickets/CD-08/results/tlc_current.txt",
+        "specs/tickets/CD-08/results/spec_unit_tests.txt",
+        "specs/tickets/CD-08/results/repo_unit_tests.txt",
+        "specs/tickets/CD-08/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-08/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/distributed_history/",
+        "examples/run_distributed_history_validation.py",
+        "scripts/export_testgraph_cases.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/93",
+    "id": "CD-08",
+    "implementation_scope": [
+      "examples/distributed_history/ (manifest caps + scripts + READMEs)",
+      "examples/run_distributed_history_validation.py (target-path parameter)",
+      "scripts/export_testgraph_cases.py (manifest resolution / loud failure)"
+    ],
+    "objective": "Resolves VAL-08, VAL-09, VAL-10, VAL-11, VAL-14, VAL-18. The shipped example fails its own documented regeneration path out of the box, and both validation agents had to route around the same defects. (1) VAL-08: the manifest cap max_external_cases_per_action 50 contradicts the 732-case corpus the README advertises \u2014 set caps that fit the actual corpus with a recorded rationale (or shrink the corpus; do not trim silently). (2) VAL-09: scripts/regenerate_tlc_cases.py must pass --bindings (and --manifest) to the exporter. (3) VAL-10 (toolchain): export_testgraph_cases.py silently falls back to the built-in cap 50 when the corpus lives in a build dir \u2014 resolve the manifest from the spec root or fail loudly asking for --manifest; a silent default cap next to an explicit-budget doctrine is a defect. (4) VAL-11: derive the toolchain root via a TLA_SPEC_DEV_ROOT env override (falling back to parents[1]) in the example's three scripts, and make examples/run_distributed_history_validation.py accept a target example path instead of hardcoding the embedded copy. (5) VAL-14: fix the envelope key names in both READMEs (caseNames/expectedCaseNames, not counts). (6) VAL-18: point README case counts at generated docs.md, flush the regenerate script's command echoes, and document that manual tlc2 runs need -deadlock. Acceptance is the pristine example completing its own documented local (non-k3d) path end to end.\n",
+    "promotion_order": 30,
+    "promotion_predecessor": "CD-05",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "distributed_history example passes its own documented workflow out of the box",
+    "wave": 1
+  },
+  "ticket_id": "CD-08",
+  "ticket_index": 2,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/complexity-descriptor-main-readiness/ticket-002-CD-08/ticket",
+    "source": "specs/tickets/CD-08"
+  },
+  "workflow_name": "complexity-descriptor-main-readiness"
+}

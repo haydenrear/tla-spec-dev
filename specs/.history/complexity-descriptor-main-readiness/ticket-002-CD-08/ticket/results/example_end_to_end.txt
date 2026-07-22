@@ -1,0 +1,437 @@
+CD-08 acceptance: pristine distributed_history copy runs its own documented local (non-k3d) path end to end.
+Scratch copy: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history  (copied from feature/93-cd08-example-repair examples/distributed_history; build outputs and __pycache__ removed)
+Toolchain: TLA_SPEC_DEV_ROOT=/Users/hayde/IdeaProjects/wt-93-cd08-example-repair
+Date: Wed Jul 22 16:16:09 EDT 2026
+
+=== STEP 1: uv run tests/test_ecommerce_backend.py ===
+Installed 5 packages in 175ms
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history
+collected 1 item
+
+tests/test_ecommerce_backend.py .                                        [100%]
+
+============================== 1 passed in 0.01s ===============================
+step1 exit: 0
+
+=== STEP 2: TLA_SPEC_DEV_ROOT=$TOOLCHAIN uv run specs/program_model/tests/test_ecommerce_adapters.py ===
+Installed 5 packages in 9ms
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history
+collected 2 items
+
+specs/program_model/tests/test_ecommerce_adapters.py ..                  [100%]
+
+======================== 2 passed in 163.53s (0:02:43) =========================
+step2 exit: 0
+
+=== STEP 3: uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual ===
+$ /Users/hayde/.cache/uv/builds-v0/.tmpAD75a9/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/generate_cases_from_tlc_dump.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.cfg --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual --package ecommerce_internal_cases --view internal --dot /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/distributed-history-tlc-lzmfxzm_/Internal.dot --actions-metadata /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/actions.yml --tlc2 tlc2 --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 6795991567586235492 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 42036] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Core.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Core
+Semantic processing of module Internal
+Starting... (2026-07-22 16:19:39)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-22 16:19:39.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.1E-16
+142 states generated, 106 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 8.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).
+Finished in 01s at (2026-07-22 16:19:40)
+complexity scan clean: state-space upper bound 4 within max_state_space_bound 1,000,000, and every component within its advisory thresholds
+spec directory: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model
+generated internal transition cases from 106 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases
+parameter recovery: 93/93 cases carry arguments, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases/param_recovery_audit.md
+corpus gate PASS: 93 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases
+
+Distribution per (action, label class) -- 4 stratum/strata:
+  ProjectOrder / params:recovered       46   49.5%
+  Checkout / params:recovered           26   28.0%
+  AddCartItem / params:recovered        20   21.5%
+  CreateAccount / params:recovered       1    1.1%
+
+Strata that DOMINATE the corpus:
+  ProjectOrder / params:recovered      46   49.5%
+  Checkout / params:recovered          26   28.0%
+
+Strata that are STARVED:
+  CreateAccount / params:recovered       1    1.1%
+
+  Skew: ProjectOrder / params:recovered holds 46x the cases of CreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every component is within cap. Largest: component=93
+
+No case was dropped, filtered, sampled, or truncated.
+$ /Users/hayde/.cache/uv/builds-v0/.tmpAD75a9/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/generate_cases_from_tlc_dump.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.tla /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.cfg --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual --package ecommerce_external_cases --view external --dot /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/distributed-history-tlc-lzmfxzm_/External.dot --actions-metadata /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/actions.yml --tlc2 tlc2 --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+complexity scan -- ADVISORY WARNINGS (these do NOT block case generation):
+
+  WARNING: component C1 is touched by 13 actions (CreateAccount, AddCartItem, Checkout, SubmitCreateAccount, SubmitDuplicateCreateAccount, SubmitAddCartItem, SubmitDuplicateAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutMissingAccount, SubmitCheckoutEmptyCart, SubmitDuplicateCheckout, ProjectAllOutbox), exceeding max_component_actions 8
+
+Dominant dimensions:
+  outbox: 4  (SUBSET Orders)
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full descriptor.
+
+Proceeding with case generation -- complexity is advisory and does not block. Read the findings above (references/architecture_tractability.md, 'Advisory, Not Blocking').
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed -6278654298407028830 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 42073] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Core.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Core
+Semantic processing of module Internal
+Semantic processing of module External
+Starting... (2026-07-22 16:19:41)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-22 16:19:41.
+Progress(7) at 2026-07-22 16:19:44: 39,075 states generated (39,075 s/min), 9,010 distinct states found (9,010 ds/min), 6,244 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-9
+  based on the actual fingerprints:  val = 3.1E-10
+632658 states generated, 49386 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 11.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 14 and the 95th percentile is 4).
+Finished in 25s at (2026-07-22 16:20:06)
+spec directory: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model
+generated external transition cases from 49386 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+parameter recovery: 732/732 cases carry arguments, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases/param_recovery_audit.md
+corpus gate PASS: 732 external case(s), cap max_external_cases_per_action = 200 per action
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  SubmitDuplicateAddCartItem / params:recovered          200   27.3%
+  SubmitDuplicateCheckout / params:recovered             184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered        120   16.4%
+  RunFulfillmentWorker / params:recovered                 74   10.1%
+  SubmitCheckout / params:recovered                       52    7.1%
+  RunFulfillmentWorkerNoop / params:recovered             48    6.6%
+  SubmitAddCartItem / params:recovered                    40    5.5%
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+Strata that DOMINATE the corpus:
+  SubmitDuplicateAddCartItem / params:recovered       200   27.3%
+  SubmitDuplicateCheckout / params:recovered          184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered     120   16.4%
+  RunFulfillmentWorker / params:recovered              74   10.1%
+
+Strata that are STARVED:
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+  Skew: SubmitDuplicateAddCartItem / params:recovered holds 100x the cases of SubmitCreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every action is within cap. Largest: SubmitDuplicateAddCartItem=200, SubmitDuplicateCheckout=184, SubmitDuplicateCreateAccount=120
+
+No case was dropped, filtered, sampled, or truncated.
+$ /Users/hayde/.cache/uv/builds-v0/.tmpAD75a9/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/export_testgraph_cases.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/traces --bindings /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/testgraph_bindings.yml --manifest /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/spec_manifest.yaml
+corpus gate PASS: 732 external case(s), cap max_external_cases_per_action = 200 per action
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  SubmitDuplicateAddCartItem / params:recovered          200   27.3%
+  SubmitDuplicateCheckout / params:recovered             184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered        120   16.4%
+  RunFulfillmentWorker / params:recovered                 74   10.1%
+  SubmitCheckout / params:recovered                       52    7.1%
+  RunFulfillmentWorkerNoop / params:recovered             48    6.6%
+  SubmitAddCartItem / params:recovered                    40    5.5%
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+Strata that DOMINATE the corpus:
+  SubmitDuplicateAddCartItem / params:recovered       200   27.3%
+  SubmitDuplicateCheckout / params:recovered          184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered     120   16.4%
+  RunFulfillmentWorker / params:recovered              74   10.1%
+
+Strata that are STARVED:
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+  Skew: SubmitDuplicateAddCartItem / params:recovered holds 100x the cases of SubmitCreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every action is within cap. Largest: SubmitDuplicateAddCartItem=200, SubmitDuplicateCheckout=184, SubmitDuplicateCreateAccount=120
+
+No case was dropped, filtered, sampled, or truncated.
+external channel enforcement passed; integration rung HistoryPort+OrderPort (real: HistoryPort, OrderPort; double: ClockPort)
+exported 732 Test Graph traces into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/traces
+generated TLC-derived cases under /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual
+step3 exit: 0
+
+=== STEP 4: documented internal adapter batch ===
+validated 4 adapter mappings for 5 labels
+executed 93 cases in batch
+step4 exit: 0
+
+=== STEP 5: documented external adapter batch against a local monolith (ECOMMERCE_BASE_URL) ===
+monolith healthy at http://127.0.0.1:18080 (pid 44712)
+external channel enforcement passed for 11 binding(s); integration rung HistoryPort+OrderPort (real: HistoryPort, OrderPort; double: ClockPort)
+validated 11 adapter mappings for 12 labels
+executed 732 cases in batch
+step5 exit: 0
+
+=== STEP 6: wrapper accepts a target example path (VAL-11) ===
+$ python3 examples/run_distributed_history_validation.py --help (excerpt)
+usage: run_distributed_history_validation.py [-h] [--mode {local,k3d}]
+                                             [--keep-k3d]
+                                             [example_root]
+
+Run the distributed_history example and validate projected-state evidence.
+
+positional arguments:
+  example_root        Path to the distributed_history example to validate.
+                      Defaults to the copy embedded in this repository; pass a
+                      standalone checkout to validate it instead (VAL-11).
+                      Pair with TLA_SPEC_DEV_ROOT when the example does not
+                      live inside the toolchain repository.
+
+options:
+
+$ python3 examples/run_distributed_history_validation.py /no/such/example --mode local  # expected loud refusal
+ERROR: /no/such/example does not look like a distributed_history example (missing specs/program_model)
+
+=== SUMMARY ===
+Pristine scratch copy of examples/distributed_history completed its documented local (non-k3d) path end to end:
+  step 1: uv run tests/test_ecommerce_backend.py                          -> 1 passed
+  step 2: uv run specs/program_model/tests/test_ecommerce_adapters.py    -> 2 passed (regenerate + internal batch; regenerate + external batch vs its own monolith), standalone via TLA_SPEC_DEV_ROOT
+  step 3: uv run scripts/regenerate_tlc_cases.py --out .../manual        -> Internal TLC 9,010 distinct / External TLC 49,386 distinct; internal 93 cases; external 732 cases; cap gate PASS (largest action SubmitDuplicateAddCartItem=200 within cap 200); channel enforcement PASS (rung HistoryPort+OrderPort); 732 traces exported
+  step 4: documented internal adapter batch                              -> executed 93 cases in batch
+  step 5: documented external adapter batch vs local monolith :18080     -> external channel enforcement passed for 11 binding(s); executed 732 cases in batch
+  step 6: wrapper target-path argument                                   -> help documents example_root; bogus path refused loudly
+No cap refusal, no missing-argument exit, no silent cap fallback anywhere in this run.
+=== POST-RECONCILIATION RERUN (epic tip 5b7d09f merged: CD-04 corpus-gate wording, CD-05 analyzer) ===
+Same scratch copy, documented steps 3-5 rerun against the reconciled toolchain.
+
+=== STEP 3 (rerun): uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual ===
+$ /Users/hayde/.cache/uv/builds-v0/.tmpLFjEoI/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/generate_cases_from_tlc_dump.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.cfg --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual --package ecommerce_internal_cases --view internal --dot /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/distributed-history-tlc-d1_j4r2c/Internal.dot --actions-metadata /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/actions.yml --tlc2 tlc2 --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 6910171822833069101 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 98945] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Core.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Core
+Semantic processing of module Internal
+Starting... (2026-07-22 16:44:21)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-22 16:44:21.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.1E-16
+142 states generated, 106 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 8.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).
+Finished in 01s at (2026-07-22 16:44:21)
+complexity scan clean: state-space upper bound 4 within max_state_space_bound 1,000,000, and every component within its advisory thresholds
+spec directory: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model
+generated internal transition cases from 106 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases
+parameter recovery: 93/93 cases carry arguments, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases/param_recovery_audit.md
+corpus gate PASS: 93 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases
+
+Distribution per (action, label class) -- 4 stratum/strata:
+  ProjectOrder / params:recovered       46   49.5%
+  Checkout / params:recovered           26   28.0%
+  AddCartItem / params:recovered        20   21.5%
+  CreateAccount / params:recovered       1    1.1%
+
+Strata that DOMINATE the corpus:
+  ProjectOrder / params:recovered      46   49.5%
+  Checkout / params:recovered          26   28.0%
+
+Strata that are STARVED:
+  CreateAccount / params:recovered       1    1.1%
+
+  Skew: ProjectOrder / params:recovered holds 46x the cases of CreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every component is within cap. Largest: component=93
+
+No case was dropped, filtered, sampled, or truncated.
+$ /Users/hayde/.cache/uv/builds-v0/.tmpLFjEoI/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/generate_cases_from_tlc_dump.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.tla /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.cfg --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual --package ecommerce_external_cases --view external --dot /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/distributed-history-tlc-d1_j4r2c/External.dot --actions-metadata /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/actions.yml --tlc2 tlc2 --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+complexity scan -- ADVISORY WARNINGS (these do NOT block case generation):
+
+  WARNING: component C1 is touched by 13 actions (CreateAccount, AddCartItem, Checkout, SubmitCreateAccount, SubmitDuplicateCreateAccount, SubmitAddCartItem, SubmitDuplicateAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutMissingAccount, SubmitCheckoutEmptyCart, SubmitDuplicateCheckout, ProjectAllOutbox), exceeding max_component_actions 8
+
+Dominant dimensions:
+  outbox: 4  (SUBSET Orders)
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full descriptor.
+
+Proceeding with case generation -- complexity is advisory and does not block. Read the findings above (references/architecture_tractability.md, 'Advisory, Not Blocking').
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 6536558020419036218 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 98950] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/External.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Internal.tla
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/Core.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Core
+Semantic processing of module Internal
+Semantic processing of module External
+Starting... (2026-07-22 16:44:23)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-22 16:44:23.
+Progress(6) at 2026-07-22 16:44:26: 17,276 states generated (17,276 s/min), 4,709 distinct states found (4,709 ds/min), 3,517 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.6E-9
+  based on the actual fingerprints:  val = 3.1E-10
+632658 states generated, 49386 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 11.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 14 and the 95th percentile is 4).
+Finished in 40s at (2026-07-22 16:45:03)
+spec directory: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model
+generated external transition cases from 49386 states into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+parameter recovery: 732/732 cases carry arguments, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases/param_recovery_audit.md
+corpus gate PASS: 732 external case(s), cap max_external_cases_per_action = 200 per action
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  SubmitDuplicateAddCartItem / params:recovered          200   27.3%
+  SubmitDuplicateCheckout / params:recovered             184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered        120   16.4%
+  RunFulfillmentWorker / params:recovered                 74   10.1%
+  SubmitCheckout / params:recovered                       52    7.1%
+  RunFulfillmentWorkerNoop / params:recovered             48    6.6%
+  SubmitAddCartItem / params:recovered                    40    5.5%
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+Strata that DOMINATE the corpus:
+  SubmitDuplicateAddCartItem / params:recovered       200   27.3%
+  SubmitDuplicateCheckout / params:recovered          184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered     120   16.4%
+  RunFulfillmentWorker / params:recovered              74   10.1%
+
+Strata that are STARVED:
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+  Skew: SubmitDuplicateAddCartItem / params:recovered holds 100x the cases of SubmitCreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every action is within cap. Largest: SubmitDuplicateAddCartItem=200, SubmitDuplicateCheckout=184, SubmitDuplicateCreateAccount=120
+
+No case was dropped, filtered, sampled, or truncated.
+$ /Users/hayde/.cache/uv/builds-v0/.tmpLFjEoI/bin/python /Users/hayde/IdeaProjects/wt-93-cd08-example-repair/scripts/export_testgraph_cases.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases --out /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/traces --bindings /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/testgraph_bindings.yml --manifest /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/specs/program_model/spec_manifest.yaml
+corpus gate PASS: 732 external case(s), cap max_external_cases_per_action = 200 per action
+source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  SubmitDuplicateAddCartItem / params:recovered          200   27.3%
+  SubmitDuplicateCheckout / params:recovered             184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered        120   16.4%
+  RunFulfillmentWorker / params:recovered                 74   10.1%
+  SubmitCheckout / params:recovered                       52    7.1%
+  RunFulfillmentWorkerNoop / params:recovered             48    6.6%
+  SubmitAddCartItem / params:recovered                    40    5.5%
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+Strata that DOMINATE the corpus:
+  SubmitDuplicateAddCartItem / params:recovered       200   27.3%
+  SubmitDuplicateCheckout / params:recovered          184   25.1%
+  SubmitDuplicateCreateAccount / params:recovered     120   16.4%
+  RunFulfillmentWorker / params:recovered              74   10.1%
+
+Strata that are STARVED:
+  SubmitAddCartItemMissingAccount / params:recovered       4    0.5%
+  SubmitCheckoutEmptyCart / params:recovered               4    0.5%
+  SubmitCheckoutMissingAccount / params:recovered          4    0.5%
+  SubmitCreateAccount / params:recovered                   2    0.3%
+
+  Skew: SubmitDuplicateAddCartItem / params:recovered holds 100x the cases of SubmitCreateAccount / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+Every action is within cap. Largest: SubmitDuplicateAddCartItem=200, SubmitDuplicateCheckout=184, SubmitDuplicateCreateAccount=120
+
+No case was dropped, filtered, sampled, or truncated.
+external channel enforcement passed; integration rung HistoryPort+OrderPort (real: HistoryPort, OrderPort; double: ClockPort)
+exported 732 Test Graph traces into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual/testgraph/traces
+generated TLC-derived cases under /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/cd08/distributed_history/test_graph/build/generated/manual
+step3 exit: 0
+
+=== STEP 4 (rerun): documented internal adapter batch ===
+validated 4 adapter mappings for 5 labels
+executed 93 cases in batch
+step4 exit: 0
+
+=== STEP 5 (rerun): documented external adapter batch against a local monolith ===
+monolith healthy at http://127.0.0.1:18080 (pid 3227)
+external channel enforcement passed for 11 binding(s); integration rung HistoryPort+OrderPort (real: HistoryPort, OrderPort; double: ClockPort)
+validated 11 adapter mappings for 12 labels
+executed 732 cases in batch
+step5 exit: 0
+
+=== POST-RECONCILIATION SUMMARY ===
+After merging epic tip 5b7d09f (CD-04 + CD-05) into feature/93-cd08-example-repair, the documented
+steps 3-5 were rerun in the same scratch copy against the reconciled toolchain: regeneration PASS
+(cap gate: every action within cap, largest 200; channel enforcement PASS; 732 traces exported),
+internal batch 93 cases PASS, external batch 732 cases vs live monolith PASS. Identical counts to
+the pre-reconciliation run.

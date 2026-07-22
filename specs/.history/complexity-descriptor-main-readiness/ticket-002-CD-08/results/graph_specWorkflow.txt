@@ -1,0 +1,359 @@
+# CD-08 graph run: specWorkflow (post-reconciliation, epic tip 5b7d09f)
+# Run: test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75 (BUILD SUCCESSFUL)
+
+# Validation report — specWorkflow-20260722-204426-bd876e75
+
+**Overall**: PASSED  
+**Nodes**: 8 (passed=8, failed=0, errored=0)
+
+| Node | Status | Duration | Input context | Captured stdout |
+|---|---|---|---|---|
+| `spec.cli.install` | **PASS** | 487ms | [context/spec.cli.install.input.json](context/spec.cli.install.input.json) | [node-logs/spec.cli.install.stdout.log](node-logs/spec.cli.install.stdout.log) |
+| `spec.workflow.cleanup` | **PASS** | 136ms | [context/spec.workflow.cleanup.input.json](context/spec.workflow.cleanup.input.json) | [node-logs/spec.workflow.cleanup.stdout.log](node-logs/spec.workflow.cleanup.stdout.log) |
+| `spec.workflow.close` | **PASS** | 752ms | [context/spec.workflow.close.input.json](context/spec.workflow.close.input.json) | [node-logs/spec.workflow.close.stdout.log](node-logs/spec.workflow.close.stdout.log) |
+| `spec.workflow.complete` | **PASS** | 291ms | [context/spec.workflow.complete.input.json](context/spec.workflow.complete.input.json) | [node-logs/spec.workflow.complete.stdout.log](node-logs/spec.workflow.complete.stdout.log) |
+| `spec.workflow.failure_cleanup_probe` | **PASS** | 23141ms | [context/spec.workflow.failure_cleanup_probe.input.json](context/spec.workflow.failure_cleanup_probe.input.json) | [node-logs/spec.workflow.failure_cleanup_probe.stdout.log](node-logs/spec.workflow.failure_cleanup_probe.stdout.log) |
+| `spec.workflow.repo` | **PASS** | 371ms | [context/spec.workflow.repo.input.json](context/spec.workflow.repo.input.json) | [node-logs/spec.workflow.repo.stdout.log](node-logs/spec.workflow.repo.stdout.log) |
+| `spec.workflow.spec_units` | **PASS** | 903ms | [context/spec.workflow.spec_units.input.json](context/spec.workflow.spec_units.input.json) | [node-logs/spec.workflow.spec_units.stdout.log](node-logs/spec.workflow.spec_units.stdout.log) |
+| `spec.workflow.start` | **PASS** | 679ms | [context/spec.workflow.start.input.json](context/spec.workflow.start.input.json) | [node-logs/spec.workflow.start.stdout.log](node-logs/spec.workflow.start.stdout.log) |
+
+## `spec.cli.install` — **PASS**
+
+executor start: `2026-07-22T20:44:26.218014Z`  
+executor end: `2026-07-22T20:44:26.705225Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.cli.install.input.json](context/spec.cli.install.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| install script succeeded | **PASS** |
+| tla-spec-dev wrapper exists | **PASS** |
+
+### Metrics
+
+- `durationMs`: 386
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| install-tla-spec-dev | 0 | 385ms | 99253 | [`node-logs/spec.cli.install.install-tla-spec-dev.log`](node-logs/spec.cli.install.install-tla-spec-dev.log) |  |
+
+### Artifacts
+
+- `tla-spec-dev` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/tla-spec-dev-bin/tla-spec-dev`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/tla-spec-dev-bin/tla-spec-dev)
+
+### Published context
+
+- `cliPath`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/tla-spec-dev-bin/tla-spec-dev`
+- `binDir`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/tla-spec-dev-bin`
+
+**Node-process stdout**: [node-logs/spec.cli.install.stdout.log](node-logs/spec.cli.install.stdout.log)
+
+---
+
+## `spec.workflow.cleanup` — **PASS**
+
+executor start: `2026-07-22T20:44:52.859790Z`  
+executor end: `2026-07-22T20:44:52.995224Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.cleanup.input.json](context/spec.workflow.cleanup.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| fixture repo path was published | **PASS** |
+| fixture repo removed | **PASS** |
+
+### Metrics
+
+- `removedRepos`: 1
+- `durationMs`: 44
+
+**Node-process stdout**: [node-logs/spec.workflow.cleanup.stdout.log](node-logs/spec.workflow.cleanup.stdout.log)
+
+---
+
+## `spec.workflow.close` — **PASS**
+
+executor start: `2026-07-22T20:44:28.962547Z`  
+executor end: `2026-07-22T20:44:29.714814Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.close.input.json](context/spec.workflow.close.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| open ticket scaffolded the complexity ledger input with TODO sentinels | **PASS** |
+| close-ticket succeeded | **PASS** |
+| close wrote a complexity ledger entry | **PASS** |
+| ledger entry records the delta jointly with retention evidence | **PASS** |
+| ledger entry carries the required refinement record | **PASS** |
+| ledger entry verdict is recorded | **PASS** |
+| active ticket directory removed | **PASS** |
+| history directory exists | **PASS** |
+| history contains ticket current | **PASS** |
+| history contains ticket external view | **PASS** |
+| project current promoted internal view | **PASS** |
+| project current promoted external view | **PASS** |
+| project current promoted Test Graph binding | **PASS** |
+| project current has spec adapter | **PASS** |
+| project current has adapter test | **PASS** |
+| project testgraph bindings merged | **PASS** |
+| project test_graph sources merged | **PASS** |
+| history captured result | **PASS** |
+| manifest records replace promotion | **PASS** |
+| git-add succeeded | **PASS** |
+| git-commit succeeded | **PASS** |
+| git-status succeeded | **PASS** |
+| git working tree clean after close commit | **PASS** |
+
+### Metrics
+
+- `durationMs`: 632
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| close-ticket | 0 | 366ms | 99387 | [`node-logs/spec.workflow.close.close-ticket.log`](node-logs/spec.workflow.close.close-ticket.log) |  |
+| git-add | 0 | 61ms | 99392 | [`node-logs/spec.workflow.close.git-add.log`](node-logs/spec.workflow.close.git-add.log) |  |
+| git-commit | 0 | 119ms | 99393 | [`node-logs/spec.workflow.close.git-commit.log`](node-logs/spec.workflow.close.git-commit.log) |  |
+| git-status | 0 | 46ms | 99396 | [`node-logs/spec.workflow.close.git-status.log`](node-logs/spec.workflow.close.git-status.log) |  |
+
+### Artifacts
+
+- `history-manifest` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/spec-workflow-history-manifest.json`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/spec-workflow-history-manifest.json)
+
+### Published context
+
+- `historyDir`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/.history/desired-ticket-workflow/ticket-000-FLOW-1`
+
+**Node-process stdout**: [node-logs/spec.workflow.close.stdout.log](node-logs/spec.workflow.close.stdout.log)
+
+---
+
+## `spec.workflow.complete` — **PASS**
+
+executor start: `2026-07-22T20:44:27.761325Z`  
+executor end: `2026-07-22T20:44:28.052753Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.complete.input.json](context/spec.workflow.complete.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| git-add succeeded | **PASS** |
+| git-commit succeeded | **PASS** |
+| ticket plan marked done | **PASS** |
+| desired internal view updated first-class | **PASS** |
+| desired external view updated first-class | **PASS** |
+| new external action mapped for Test Graph | **PASS** |
+| current matches desired across both views | **PASS** |
+| ticket spec adapter written | **PASS** |
+| ticket Test Graph binding written | **PASS** |
+
+### Metrics
+
+- `durationMs`: 183
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| git-add | 0 | 89ms | 99334 | [`node-logs/spec.workflow.complete.git-add.log`](node-logs/spec.workflow.complete.git-add.log) |  |
+| git-commit | 0 | 86ms | 99336 | [`node-logs/spec.workflow.complete.git-commit.log`](node-logs/spec.workflow.complete.git-commit.log) |  |
+
+### Artifacts
+
+- `ticket-plan` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/desired_program_model/ticket_plan.yaml`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/desired_program_model/ticket_plan.yaml)
+
+**Node-process stdout**: [node-logs/spec.workflow.complete.stdout.log](node-logs/spec.workflow.complete.stdout.log)
+
+---
+
+## `spec.workflow.failure_cleanup_probe` — **PASS**
+
+executor start: `2026-07-22T20:44:29.717589Z`  
+executor end: `2026-07-22T20:44:52.858455Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.failure_cleanup_probe.input.json](context/spec.workflow.failure_cleanup_probe.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| probe graph failed as expected | **PASS** |
+| probe report was written | **PASS** |
+| repo allocation node passed | **PASS** |
+| forced downstream failure was captured | **PASS** |
+| cleanup finalizer ran after failure | **PASS** |
+| allocated fixture repo removed after failure | **PASS** |
+
+### Metrics
+
+- `durationMs`: 23048
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| cleanup-failure-probe | 1 | 23009ms | 99400 | [`node-logs/spec.workflow.failure_cleanup_probe.cleanup-failure-probe.log`](node-logs/spec.workflow.failure_cleanup_probe.cleanup-failure-probe.log) |  |
+
+### Artifacts
+
+- `cleanup-failure-probe-report` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-204450-e908fd3c/report.md`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-204450-e908fd3c/report.md)
+- `cleanup-failure-probe-summary` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-204450-e908fd3c/summary.json`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph/build/validation-reports/cleanupFailureProbe-20260722-204450-e908fd3c/summary.json)
+- `cleanup-failure-probe-root` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/cleanup-failure-probe-test-graph)
+
+**Node-process stdout**: [node-logs/spec.workflow.failure_cleanup_probe.stdout.log](node-logs/spec.workflow.failure_cleanup_probe.stdout.log)
+
+---
+
+## `spec.workflow.repo` — **PASS**
+
+executor start: `2026-07-22T20:44:26.707519Z`  
+executor end: `2026-07-22T20:44:27.078930Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.repo.input.json](context/spec.workflow.repo.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| git-init succeeded | **PASS** |
+| git-branch succeeded | **PASS** |
+| git-email succeeded | **PASS** |
+| git-name succeeded | **PASS** |
+| git-add succeeded | **PASS** |
+| git-commit succeeded | **PASS** |
+| installed CLI path exists | **PASS** |
+| fixture repo starts without program model | **PASS** |
+
+### Metrics
+
+- `durationMs`: 274
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| git-init | 0 | 45ms | 99276 | [`node-logs/spec.workflow.repo.git-init.log`](node-logs/spec.workflow.repo.git-init.log) |  |
+| git-branch | 0 | 34ms | 99277 | [`node-logs/spec.workflow.repo.git-branch.log`](node-logs/spec.workflow.repo.git-branch.log) |  |
+| git-email | 0 | 54ms | 99278 | [`node-logs/spec.workflow.repo.git-email.log`](node-logs/spec.workflow.repo.git-email.log) |  |
+| git-name | 0 | 43ms | 99279 | [`node-logs/spec.workflow.repo.git-name.log`](node-logs/spec.workflow.repo.git-name.log) |  |
+| git-add | 0 | 36ms | 99280 | [`node-logs/spec.workflow.repo.git-add.log`](node-logs/spec.workflow.repo.git-add.log) |  |
+| git-commit | 0 | 59ms | 99281 | [`node-logs/spec.workflow.repo.git-commit.log`](node-logs/spec.workflow.repo.git-commit.log) |  |
+
+### Artifacts
+
+- `fixture-repo` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo)
+
+### Published context
+
+- `repoPath`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo`
+- `sourceRepo`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair`
+- `ticketId`: `FLOW-1`
+- `cliPath`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/tla-spec-dev-bin/tla-spec-dev`
+
+**Node-process stdout**: [node-logs/spec.workflow.repo.stdout.log](node-logs/spec.workflow.repo.stdout.log)
+
+---
+
+## `spec.workflow.spec_units` — **PASS**
+
+executor start: `2026-07-22T20:44:28.056325Z`  
+executor end: `2026-07-22T20:44:28.959906Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.spec_units.input.json](context/spec.workflow.spec_units.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| cli spec-unit tests succeeded | **PASS** |
+| spec-unit output names ticket current | **PASS** |
+| spec-unit output reports pass | **PASS** |
+
+### Metrics
+
+- `durationMs`: 814
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| cli-run-spec-unit-tests | 0 | 813ms | 99341 | [`node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log`](node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log) |  |
+
+### Artifacts
+
+- `spec-unit-log` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/node-logs/spec.workflow.spec_units.cli-run-spec-unit-tests.log)
+
+**Node-process stdout**: [node-logs/spec.workflow.spec_units.stdout.log](node-logs/spec.workflow.spec_units.stdout.log)
+
+---
+
+## `spec.workflow.start` — **PASS**
+
+executor start: `2026-07-22T20:44:27.080542Z`  
+executor end: `2026-07-22T20:44:27.759309Z`  
+spawn exit code: 0
+
+**Input context**: [context/spec.workflow.start.input.json](context/spec.workflow.start.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| cli-scaffold-project succeeded | **PASS** |
+| cli-scaffold-workflow succeeded | **PASS** |
+| cli-open-ticket succeeded | **PASS** |
+| git-add succeeded | **PASS** |
+| git-commit succeeded | **PASS** |
+| program model scaffolded by CLI with both views | **PASS** |
+| project workflow scaffolded by CLI | **PASS** |
+| ticket directory exists | **PASS** |
+| ticket current + desired carry the whole baseline | **PASS** |
+| no single-module stand-in left behind | **PASS** |
+| ticket metadata written | **PASS** |
+
+### Metrics
+
+- `baselineFilesMissing`: 0
+- `baselineFilesNotCopiedToTicket`: 0
+- `durationMs`: 586
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| cli-scaffold-project | 0 | 118ms | 99286 | [`node-logs/spec.workflow.start.cli-scaffold-project.log`](node-logs/spec.workflow.start.cli-scaffold-project.log) |  |
+| cli-scaffold-workflow | 0 | 160ms | 99287 | [`node-logs/spec.workflow.start.cli-scaffold-workflow.log`](node-logs/spec.workflow.start.cli-scaffold-workflow.log) |  |
+| cli-open-ticket | 0 | 140ms | 99299 | [`node-logs/spec.workflow.start.cli-open-ticket.log`](node-logs/spec.workflow.start.cli-open-ticket.log) |  |
+| git-add | 0 | 72ms | 99313 | [`node-logs/spec.workflow.start.git-add.log`](node-logs/spec.workflow.start.git-add.log) |  |
+| git-commit | 0 | 91ms | 99316 | [`node-logs/spec.workflow.start.git-commit.log`](node-logs/spec.workflow.start.git-commit.log) |  |
+
+### Artifacts
+
+- `ticket-dir` — [`/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1`](/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1)
+
+### Published context
+
+- `ticketDir`: `/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/test_graph/build/validation-reports/specWorkflow-20260722-204426-bd876e75/fixture-repos/spec-workflow-repo/specs/tickets/FLOW-1`
+
+**Node-process stdout**: [node-logs/spec.workflow.start.stdout.log](node-logs/spec.workflow.start.stdout.log)
+
+---
+
