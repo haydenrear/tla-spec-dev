@@ -31,7 +31,10 @@ SPEC = (
 @node(SPEC)
 def run(ctx):
     root = Path(__file__).resolve().parents[2]
-    repo = root.parents[1]
+    # VAL-11: TLA_SPEC_DEV_ROOT points a standalone checkout of this example
+    # at its toolchain; the fallback assumes the embedded-copy layout inside
+    # the tla-spec-dev repository.
+    repo = Path(os.environ.get("TLA_SPEC_DEV_ROOT", root.parents[1])).resolve()
     base_url = ctx.get("ecommerce.deploy", "baseUrl")
     if not base_url:
         return NodeResult.fail(SPEC.id, "missing baseUrl from ecommerce.deploy")

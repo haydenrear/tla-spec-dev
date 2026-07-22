@@ -1,0 +1,117 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-08",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A pristine copy of the example completes its documented local regeneration + adapter-run path end to end with no cap refusal, no missing-argument exit, and no silent cap fallback (recorded as evidence).",
+        "export_testgraph_cases.py either resolves the correct manifest or fails loudly naming --manifest; the silent built-in-cap fallback is gone (regression test).",
+        "The example runs from a standalone checkout via TLA_SPEC_DEV_ROOT; run_distributed_history_validation.py accepts a target path.",
+        "README case counts and envelope key names match generated reality.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-08"
+      ],
+      "evidence": [
+        "specs/tickets/CD-08/results/example_end_to_end.txt",
+        "specs/tickets/CD-08/results/exporter_manifest_regression.txt",
+        "specs/tickets/CD-08/results/tlc_current.txt",
+        "specs/tickets/CD-08/results/spec_unit_tests.txt",
+        "specs/tickets/CD-08/results/repo_unit_tests.txt",
+        "specs/tickets/CD-08/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-08/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "examples/distributed_history/",
+        "examples/run_distributed_history_validation.py",
+        "scripts/export_testgraph_cases.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/93",
+    "id": "CD-08",
+    "implementation_scope": [
+      "examples/distributed_history/ (manifest caps + scripts + READMEs)",
+      "examples/run_distributed_history_validation.py (target-path parameter)",
+      "scripts/export_testgraph_cases.py (manifest resolution / loud failure)"
+    ],
+    "objective": "Resolves VAL-08, VAL-09, VAL-10, VAL-11, VAL-14, VAL-18. The shipped example fails its own documented regeneration path out of the box, and both validation agents had to route around the same defects. (1) VAL-08: the manifest cap max_external_cases_per_action 50 contradicts the 732-case corpus the README advertises \u2014 set caps that fit the actual corpus with a recorded rationale (or shrink the corpus; do not trim silently). (2) VAL-09: scripts/regenerate_tlc_cases.py must pass --bindings (and --manifest) to the exporter. (3) VAL-10 (toolchain): export_testgraph_cases.py silently falls back to the built-in cap 50 when the corpus lives in a build dir \u2014 resolve the manifest from the spec root or fail loudly asking for --manifest; a silent default cap next to an explicit-budget doctrine is a defect. (4) VAL-11: derive the toolchain root via a TLA_SPEC_DEV_ROOT env override (falling back to parents[1]) in the example's three scripts, and make examples/run_distributed_history_validation.py accept a target example path instead of hardcoding the embedded copy. (5) VAL-14: fix the envelope key names in both READMEs (caseNames/expectedCaseNames, not counts). (6) VAL-18: point README case counts at generated docs.md, flush the regenerate script's command echoes, and document that manual tlc2 runs need -deadlock. Acceptance is the pristine example completing its own documented local (non-k3d) path end to end.\n",
+    "promotion_order": 30,
+    "promotion_predecessor": "CD-05",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "distributed_history example passes its own documented workflow out of the box",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/tickets/CD-08",
+  "ticket_id": "CD-08",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-93-cd08-example-repair/specs/tickets"
+}
