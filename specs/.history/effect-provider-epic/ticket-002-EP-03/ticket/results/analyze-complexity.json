@@ -1,0 +1,310 @@
+{
+  "module": "TlaSpecDevCli",
+  "spec": "/private/tmp/tla-spec-dev-79-ep03-effect-provider-examples/specs/tickets/EP-03/current/TlaSpecDevCli.tla",
+  "cfg": "/private/tmp/tla-spec-dev-79-ep03-effect-provider-examples/specs/tickets/EP-03/current/MC.cfg",
+  "manifest": "/private/tmp/tla-spec-dev-79-ep03-effect-provider-examples/specs/tickets/EP-03/current/spec_manifest.yaml",
+  "measured": {
+    "dimensions": [
+      {
+        "variable": "setup_phase",
+        "domain": "0..5",
+        "cardinality": 6,
+        "note": ""
+      },
+      {
+        "variable": "spec_root",
+        "domain": "SpecRoots \\cup {NoRoot}",
+        "cardinality": 3,
+        "note": ""
+      },
+      {
+        "variable": "ticket_state",
+        "domain": "[Tickets -> 0..5]",
+        "cardinality": 216,
+        "note": "6^3 total functions"
+      },
+      {
+        "variable": "lastCommand",
+        "domain": null,
+        "cardinality": null,
+        "note": "unconstrained by TypeInvariant -- excluded from the bound"
+      },
+      {
+        "variable": "result",
+        "domain": null,
+        "cardinality": null,
+        "note": "unconstrained by TypeInvariant -- excluded from the bound"
+      },
+      {
+        "variable": "complexity_gate",
+        "domain": "{\"unknown\", \"pass\", \"fail\"}",
+        "cardinality": 3,
+        "note": ""
+      },
+      {
+        "variable": "corpus_gate",
+        "domain": "{\"unknown\", \"pass\", \"fail\"}",
+        "cardinality": 3,
+        "note": ""
+      },
+      {
+        "variable": "effect_conformance",
+        "domain": "{\"unknown\", \"clean\", \"gaps\", \"dead_surface\", \"unobservable\"}",
+        "cardinality": 5,
+        "note": ""
+      },
+      {
+        "variable": "kill_test",
+        "domain": "{\"unknown\", \"pass\", \"below_floor\", \"incomplete_catalog\"}",
+        "cardinality": 4,
+        "note": ""
+      }
+    ],
+    "state_space_upper_bound": 699840,
+    "unbounded_variables": [
+      "lastCommand",
+      "result"
+    ],
+    "actions": [
+      {
+        "name": "BuildSkillCli",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "InstallLocalCli",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "ScaffoldProject",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase",
+          "spec_root"
+        ]
+      },
+      {
+        "name": "RecordBudgets",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "ScaffoldWorkflow",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "OpenTicket",
+        "reads": [
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "UpdateTicketDesired",
+        "reads": [
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "UpdateTicketCurrent",
+        "reads": [
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "AnalyzeComplexity",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "complexity_gate",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "AnalyzeCorpus",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "corpus_gate",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunEffectConformance",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "effect_conformance",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunKillTest",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "kill_test",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunSpecUnitTests",
+        "reads": [
+          "complexity_gate",
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "corpus_gate",
+          "effect_conformance",
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "CloseTicket",
+        "reads": [
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      }
+    ],
+    "modularity": 0.011742315426601493,
+    "components": [
+      [
+        "kill_test",
+        "lastCommand",
+        "result",
+        "setup_phase",
+        "spec_root",
+        "ticket_state"
+      ],
+      [
+        "complexity_gate",
+        "corpus_gate",
+        "effect_conformance"
+      ]
+    ],
+    "port_crossing_actions": {
+      "AnalyzeComplexity": [
+        "C1",
+        "C2"
+      ],
+      "AnalyzeCorpus": [
+        "C1",
+        "C2"
+      ],
+      "RunEffectConformance": [
+        "C1",
+        "C2"
+      ],
+      "RunSpecUnitTests": [
+        "C1",
+        "C2"
+      ]
+    },
+    "unjustified_variables": [],
+    "tlc_findings": []
+  },
+  "projected": {
+    "bound_after_suggested_abstractions": 699840,
+    "verified": false,
+    "caveat": "PROJECTED figures are unverified until the transition-level diff is read and TLC is rerun. A generated-states drop at constant distinct states is a RED FLAG (deleted self-loop), not a reduction."
+  },
+  "suggested_move": {
+    "move": "ABSTRACT",
+    "status": "RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED",
+    "rationale": "The representation carries dimensions the reachable state space does not use.",
+    "evidence_measured": [
+      "no configured invariant reads [lastCommand, result]; Move 1 permits projecting variables no invariant reads"
+    ],
+    "gain_projected": [
+      "projecting [lastCommand, result] removes them from the model; legitimate IFF the mutation kill rate holds afterwards (tickets/016)"
+    ]
+  },
+  "budgets": {
+    "max_state_space_bound": 1000000,
+    "max_distinct_states": 500000,
+    "max_component_variables": 6,
+    "max_component_actions": 8
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "clean": false,
+    "warnings": [
+      {
+        "kind": "component_actions",
+        "finding": "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8",
+        "recommendation": "consider splitting the densest state lastCommand (touched by 14 of these 14 actions) into its own component so no component is touched by more than 8 actions, and/or move the port-crossing action(s) AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunSpecUnitTests behind a contract"
+      }
+    ]
+  }
+}

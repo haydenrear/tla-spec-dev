@@ -19,14 +19,26 @@
 # targets it cannot see; treating that as passing here would rebuild the silence.
 retention:
   kill_rate:
-    status: "TODO"
-    evidence: "TODO -- path to the kill-test report"
+    status: "pass"
+    evidence: >-
+      EXAMPLE-LOCAL measurement: examples/effect_providers/RESULTS.json and
+      results/effect-provider-graph-final.md reconcile the complete
+      preregistered catalogs at 36/36 kills, with green controls run before
+      every accepted campaign and no surviving effectful mutant.
   effect_conformance:
-    status: "TODO"
-    evidence: "TODO -- path to the effect-conformance report"
+    status: "clean"
+    evidence: >-
+      EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md proves
+      every declared project provider path, lifecycle/cleanup assertion, and
+      preregistered passive bypass probe passed. This does not upgrade the
+      inherited host subprocess/JVM observability claim; the HTTP and clock
+      bypass limits remain explicit in examples/effect_providers/RESULTS.md.
   external_coverage:
-    status: "TODO"
-    evidence: "TODO -- path to the external coverage report"
+    status: "pass"
+    evidence: >-
+      EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md records
+      70/70 generated External cases executed against the three example
+      boundaries, including 56 real loopback/process HTTP cases.
 
 # Coverage audit -- MF-026. The completeness gate, distinct from the three
 # retention members above, which are all FIDELITY measures bounded to what is
@@ -50,16 +62,29 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
-justification: ""
+justification: >-
+  No host TLA+ representation changed. Ticket current and desired are
+  byte-identical after excluding no files, and TLC retained 5,619,356 generated
+  states, 231,621 distinct states, and depth 25 with no error. EP-03's behavior
+  is carried by three independent example TLA+ programs and host-side evidence;
+  see results/zero-model-delta.md and results/analyze-complexity.json.
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
-  measured: false      # true only if a real TLC run produced the figure
+  searched: true
+  outcome: "found"
+  detail: >-
+    The measured experiments found a smaller useful next layer: generate a
+    normalized semantic effect plan (response class, order/cardinality,
+    semantic command fields, projection obligations) and generic correlated
+    bundle/journal/snapshot utilities, while leaving concrete service values
+    project-owned. Parser parity, provider signature conformance, and replay
+    provenance must land first or alongside it. A universal wire-response DSL
+    and a Python-hosted Java effect service were rejected. Priorities and
+    measured project costs are in examples/effect_providers/RESULTS.md.
+  measured: false      # no alternative host-TLA representation was TLC-measured
   applied: false       # if true, approved_by is required
   approved_by: ""
 
@@ -70,4 +95,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "examples/effect_providers/RESULTS.md"

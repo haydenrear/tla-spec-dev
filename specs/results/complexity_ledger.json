@@ -2683,6 +2683,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-03",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T06:52:37.100305+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No host TLA+ representation changed. Ticket current and desired are byte-identical after excluding no files, and TLC retained 5,619,356 generated states, 231,621 distinct states, and depth 25 with no error. EP-03's behavior is carried by three independent example TLA+ programs and host-side evidence; see results/zero-model-delta.md and results/analyze-complexity.json.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: examples/effect_providers/RESULTS.json and results/effect-provider-graph-final.md reconcile the complete preregistered catalogs at 36/36 kills, with green controls run before every accepted campaign and no surviving effectful mutant.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md proves every declared project provider path, lifecycle/cleanup assertion, and preregistered passive bypass probe passed. This does not upgrade the inherited host subprocess/JVM observability claim; the HTTP and clock bypass limits remain explicit in examples/effect_providers/RESULTS.md.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md records 70/70 generated External cases executed against the three example boundaries, including 56 real loopback/process HTTP cases.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "The measured experiments found a smaller useful next layer: generate a normalized semantic effect plan (response class, order/cardinality, semantic command fields, projection obligations) and generic correlated bundle/journal/snapshot utilities, while leaving concrete service values project-owned. Parser parity, provider signature conformance, and replay provenance must land first or alongside it. A universal wire-response DSL and a Python-hosted Java effect service were rejected. Priorities and measured project costs are in examples/effect_providers/RESULTS.md.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "examples/effect_providers/RESULTS.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

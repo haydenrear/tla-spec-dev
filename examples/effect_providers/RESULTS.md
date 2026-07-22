@@ -161,5 +161,12 @@ volume.
 The retained superseded/failed runs remain visible and unscored. This work does
 not claim exhaustive values, Hypothesis shrinking, arbitrary TLA+ response
 synthesis, universal interception, or equivalence with production services.
-Fresh-checkout validation is recorded in the EP-03 ticket evidence after the
-final Test Graph run.
+
+Fresh-checkout validation passed for all three project shapes. Atomic reran two
+full repetitions at `985ef20c…`; reminder proved byte-clean fallback
+regeneration plus a full campaign at `258e169…`; and HTTP ran a full
+1,792-point campaign, 9 tests, and all 56 external cases at `43905c3…`. Each
+project subtree is byte-identical from that validated commit through final
+code/docs candidate `c46aef1…`. The aggregate graph rerun at that candidate,
+`effectProviderExamples-20260722-065116-d50c50d0`, passed 22/22 assertions.
+Exact artifact hashes and commands are in the EP-03 ticket evidence.
