@@ -108,9 +108,12 @@ budgets:
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
-  program_model_core: ../program_model/Core.tla
-  program_model_internal: ../program_model/Internal.tla
-  program_model_external: ../program_model/External.tla
+  # CD-10 (DF-3): Core.tla / Internal.tla / External.tla references REMOVED --
+  # the files do not exist. MF-023 (concluded epic) measured modularity
+  # Q=0.012, found no clean cut, and deliberately did NOT decompose; the
+  # baseline is a single TlaSpecDevCli.tla module and the view split is
+  # unscoped future work (ticket_plan.yaml known_gaps, amended 2026-07-22).
+  # A source_model reference must resolve to a file that exists.
   desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
 
 case_codegen:
@@ -173,10 +176,49 @@ effects:
         test_process:
           type: process.spawn
           target: "*pytest*"
+        # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
+        # spawns the generated-case runner (`python
+        # scripts/run_generated_case_adapters.py ...`, tla_spec_dev.py:313-339
+        # executed at :358) whenever a target carries a generated case package.
+        # That command line does not match test_process's `*pytest*` -- only
+        # the `uv run --with pytest -m pytest` child (:296-303) does -- so the
+        # runner spawn gets its own port rather than a widened, dishonest
+        # test_process target.
+        runner_process:
+          type: process.spawn
+          target: "*run_generated_case_adapters*"
+        # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
+        # performs destructive deletes, all under the spec tree: rmtree of TLC
+        # `states/` dirs (spec_evolution.py:154 via :707 ticket close / :851
+        # workflow close), rmtree of project `current/` before promotion
+        # (:385 via replace_tree, the GitHub #22 data-loss mechanism), and
+        # unlink of seeded paths the ticket dropped (:477). filesystem.write
+        # on spec_tree never covered these -- the schema distinguishes
+        # filesystem.delete precisely so a delete cannot hide under a write.
+        spec_tree_delete:
+          type: filesystem.delete
+          target: "**/specs/**"
+        # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
+        # ...` for history-entry provenance (spec_evolution.py:99 via
+        # git_metadata at :801 ticket close / :903 workflow close). The
+        # fail-open branch on git error is out-of-model; the spawn itself is
+        # not, so it is declared.
+        git_metadata:
+          type: process.spawn
+          target: "git rev-parse*"
   actions:
     BuildSkillCli: [cli_artifact]
     InstallLocalCli: [cli_artifact]
     ScaffoldProject: [spec_tree]
+    # CD-10 (DF-2/ESC-4): deliberately an EMPTY row, not an absent one -- an
+    # absent row claims "unmapped", an empty row claims "performs no distinct
+    # effect", and only the second is true. The CLI records no budgets:
+    # budget_prompt only prints negotiation instructions (budgets.py:74-94,
+    # printed at tla_spec_dev.py:91/:118); the budgets: block itself is
+    # emitted at scaffold time under ScaffoldProject/ScaffoldWorkflow's
+    # spec_tree, and recording user-negotiated values is an agent edit, not a
+    # program effect.
+    RecordBudgets: []
     ScaffoldWorkflow: [spec_tree]
     OpenTicket: [spec_tree]
     UpdateTicketDesired: [spec_tree]
@@ -185,8 +227,8 @@ effects:
     AnalyzeCorpus: [evidence_report]
     RunEffectConformance: [evidence_report]
     RunKillTest: [evidence_report, test_process]
-    RunSpecUnitTests: [test_process, spec_tree]
-    CloseTicket: [spec_tree]
+    RunSpecUnitTests: [test_process, runner_process, spec_tree]
+    CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
 
 adapters: case_adapters.toml
 notes:
