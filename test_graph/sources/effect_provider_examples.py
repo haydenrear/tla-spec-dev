@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["testgraphsdk"]
+# dependencies = ["pyyaml", "testgraphsdk"]
 #
 # [tool.uv.sources]
 # testgraphsdk = { path = "../sdk/python", editable = true }
@@ -14,7 +14,11 @@ from pathlib import Path
 import sys
 from typing import Any
 
+import yaml
 from testgraphsdk import NodeResult, NodeSpec, node, procs
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+from extract_spec_manifest import parse_simple_yaml  # noqa: E402
 
 
 SPEC = (
@@ -94,6 +98,25 @@ def main(ctx):
     result.assertion(
         "immutable preregistration digest matches aggregate",
         preregistration_digest == aggregate["preregistration"]["sha256"],
+    )
+
+    reminder_manifest_text = (
+        REMINDER / "specs" / "program_model" / "spec_manifest.yaml"
+    ).read_text(encoding="utf-8")
+    fallback_manifest = parse_simple_yaml(reminder_manifest_text)
+    pyyaml_manifest = yaml.safe_load(reminder_manifest_text)
+    reminder_methods = fallback_manifest["ports"]
+    none_result_methods = (
+        reminder_methods["QueuePort"]["methods"]["acknowledge"],
+        reminder_methods["QueuePort"]["methods"]["release"],
+        reminder_methods["QueuePort"]["methods"]["dead_letter"],
+        reminder_methods["OutboxPort"]["methods"]["stage"],
+        reminder_methods["OutboxPort"]["methods"]["mark_sent"],
+    )
+    result.assertion(
+        "reminder manifest has exact PyYAML/fallback semantic parity",
+        fallback_manifest == pyyaml_manifest
+        and all(method["result"] is None for method in none_result_methods),
     )
 
     atomic_repetitions = atomic["repetitions"]
