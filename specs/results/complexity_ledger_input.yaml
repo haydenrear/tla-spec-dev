@@ -21,21 +21,30 @@ retention:
     evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
 
 coverage_audit:
-  status: "FAIL"
-  report: "specs/results/epic-close/coverage_audit_report.md"
-  in_scope_gaps: 7
-  scope_source: "specs/desired_program_model/ticket_plan.yaml:534-549 (service_catalog, inherited unamended from the previous epic), :1996-1999/:2073-2075/:2143-2147 (CD-01/02/03 implementation_scope), :520 (semantic_model_rule, out-of-scope authority)"
-  # 2026-07-22 audit (run 2; run 1 was MF-026). Verdict FAIL: 7 in-scope gaps
-  # (G1 fitness subsystem unrepresented; G2 model still represents the removed
-  # blocking gate + override input while the program proceeds-on-fail; G3 case
-  # generation has no action yet performs the only real TLC spawn; G4 dead
-  # tlc_process port on AnalyzeComplexity; G5 case_adapters.toml binds 11 of 14
-  # actions plus one non-action; G6 silent-degrade guards; G7 runner
-  # env-branch/child-effect semantics). 6 scope escalations incl. E6: the
-  # zero-model-delta acceptance lines mandate exactly the non-representation
-  # this gate flags — owner amends the boundary once or the gaps stand.
-  # Sweep raws: specs/results/epic-close/sweep-raw/. 322/332 sweep-1 rows
-  # dispositioned from path+bindings, not read (report §8.3).
+  status: "fail"
+  report: "specs/results/epic-close/coverage_audit_report_run3.md"
+  in_scope_gaps: 4
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:520-536 (semantic_model_rule, AMENDED 2026-07-22) + :550-570 (service_catalog, AMENDED 2026-07-22), with :2017-2020/:2094-2096/:2164-2168/:2258-2262 (CD-01/02/03/09 implementation_scope)"
+  # 2026-07-22 audit run 3 (re-verdict at workflow close after the run-2 scope
+  # amendment and CD-09; run 2 report kept at coverage_audit_report.md, run 1
+  # was MF-026). Run-2 gaps all closed and verified fresh at 195b07d: G2/G4/G5
+  # fixed in the tree by CD-09 (override/blocking gate gone from
+  # TlaSpecDevCli.tla; tlc_process port removed; 14/14 bindings, non-action
+  # dropped); G1/G3/G6/G7 out by the amendment's quoted lines. Verdict still
+  # FAIL: pulling the shipped CLI lifecycle into scope (:524-525) made run-2's
+  # escalated-row findings classifiable, and 4 in-scope gaps stand, three on
+  # the amendment's own desired_boundaries: R3-1 lifecycle refusal branches
+  # unrepresented (sharpest: the complexity-ledger close refusal, :565); R3-2
+  # CloseTicket destructive deletes with no filesystem.delete port
+  # (spec_evolution.py:154/:385/:477); R3-3 undeclared spawns on modeled
+  # actions (:563 unmet — case-runner spawn not matched by test_process, git
+  # spawn on close); R3-4 flag-variant branches incl. guard-disabling
+  # --accept-new. 8 escalations (ESC-1..8) incl. the stale known_gaps
+  # view-split text (CD09-DF-3), the RecordBudgets effects-map omission
+  # (CD09-DF-2, not a coverage gap), and the amendment-vs-tree contradiction
+  # (fuzzing actions still modeled while declared unmodeled). Sweep raws:
+  # specs/results/epic-close/sweep-raw-run3/. Sweep-1 N=M=358; ~330/358 rows
+  # dispositioned from path+index, all 4 gaps rest on read rows (report §8.3).
 
 justification: ""
 

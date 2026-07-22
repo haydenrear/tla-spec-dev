@@ -17,7 +17,7 @@ epic:
   branch: epic/complexity-descriptor
   default_branch: main
   base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
-  schedule_revision: 2
+  schedule_revision: 3
   review_mode: epic-owner-post-merge
   notes: >
     Base is the epic/modular-fuzzing tip (dfd2a80), inheriting the working
@@ -534,6 +534,32 @@ planning_rules:
     them is transcription rather than evidence). Audit gaps G1/G6/G7 are
     reclassified by this amendment; G3 is resolved by the experimental
     demotion; G2/G4/G5 are REAL desyncs fixed by CD-09, not amended away.
+    AMENDED AGAIN 2026-07-22 (owner, resolving audit run 3's escalations):
+    (ESC-6 correction) the experimental fuzzing surface REMAINS MODELED where
+    it already is — AnalyzeCorpus, RunEffectConformance, RunKillTest, their
+    state and gates, stay in the model as faithful representation of shipped
+    (experimental) commands; the earlier "deliberately NOT modeled" wording
+    was wrong. What stays unmodeled is `generate` — a RECORDED LIMITATION,
+    to be modeled if/when the experimental surface is promoted, not an
+    amendment claim that it does not exist. (R3-1/R3-4 granularity ruling)
+    the model represents command-level lifecycle transitions and exactly the
+    refusal/gate verdicts it already names; per-command refusal branches
+    beyond those (e.g. the ledger close refusal) and per-flag variants
+    (--accept-new, --allow-open, --no-promote-current, --validate-only,
+    --force, --dry-run) are OUT-OF-MODEL as a recorded granularity
+    limitation — flags that weaken guards are governed by doctrine (agents
+    are forbidden --accept-new) rather than modeled. (ESC-1) the complexity
+    ledger close refusal falls under the same granularity ruling: its
+    verdict machinery is validation harness, out-of-model per this rule's
+    first sentence. (ESC-3) the close/start/scaffold wrapper scripts,
+    run_tlc.sh, and the desired-tree adapter copies are toolchain plumbing,
+    out-of-model; their destructive deletes must still be DECLARED as ports
+    where a modeled action performs them (CD-10). (ESC-5)
+    effect_conformance.py is experimental surface per the ESC-6 ruling.
+    (ESC-7) clock/provenance reads on the close path are out-of-model
+    transcription. R3-2/R3-3 (undeclared deletes and spawns of modeled
+    actions) and DF-2/DF-3 are REAL manifest desyncs fixed by CD-10, not
+    amended away.
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
@@ -560,14 +586,17 @@ service_catalog:
     - spec_manifest.yaml / case_adapters.toml schemas
   desired_boundaries:
     - model faithful to the advisory program (no blocking-gate or override representation — CD-09)
-    - declared ports match what modeled actions actually spawn (CD-09)
-    - case_adapters.toml binds exactly the model's action set (CD-09)
+    - declared ports match the effects modeled actions actually perform — writes, DELETES, and spawns (CD-09 for spawns of analyze; CD-10 for the close path's deletes, the case-runner and git spawns)
+    - case_adapters.toml binds exactly the model's @command action set (CD-09; ESC-8 wording)
     - complexity-ledger decreases licensed by the validated-refactor basis (CD-09, owner-approved 2026-07-22)
+    - manifest hygiene — effects.actions covers every modeled action; source_model references resolve (CD-10, DF-2/DF-3)
   adapter_boundaries:
     - specs/program_model/production_adapters.py spec-unit adapters
     - test_graph specWorkflow / cliWorkflow graphs
   known_gaps:
-    - "This repository's baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Originally recorded as out of scope for this epic. Owner direction 2026-07-18: it is now IN scope but scheduled LAST, as MF-023 at promotion_order 85, after every mechanism ticket has landed. The decomposition is to be performed by running the finished toolchain on this repository itself — analyze complexity for the cut, corpus distillation, effect conformance, External channel enforcement, and the mutation kill test — making it the epic's first end-to-end dogfooding test rather than a hand migration. It is therefore both the migration and the acceptance test of everything the epic built. See references/migration.md and tickets/023-decompose-via-dogfooding.md."
+    - "AMENDED 2026-07-22 (ESC-2): this repository's baseline remains a single TlaSpecDevCli.tla module without the Internal/External view split. The MF-023 dogfooding ticket (concluded epic) measured modularity Q=0.012 — no clean cut — and deliberately did NOT decompose; that decision stands. The view split is FUTURE WORK, unscoped to any current ticket; the dangling Core/Internal/External source_model references in spec_manifest.yaml are removed by CD-10 (DF-3) rather than left pointing at files that do not exist."
+    - "`generate` is unmodeled — recorded granularity limitation per the amended semantic_model_rule; modeled if/when the experimental surface is promoted."
+    - "Per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model — recorded granularity limitation per the amended semantic_model_rule."
 
 # Immutable record of the concluded modular-fuzzing epic's tickets. Kept
 # verbatim (including its historically-unrenumbered waves); not validated
@@ -2288,3 +2317,78 @@ tickets:
         - specs/tickets/CD-09/results/repo_unit_tests.txt
         - specs/tickets/CD-09/results/graph_specWorkflow.txt
         - specs/tickets/CD-09/results/graph_cliWorkflow.txt
+
+  - id: CD-10
+    title: "Manifest honesty: declare the close path's deletes and the real spawns; effects.actions and source_model hygiene"
+    status: planned
+    github_issue: "PLACEHOLDER"
+    schedule_revision: 3
+    depends_on: []
+    blocks: []
+    wave: 16
+    promotion_order: 140
+    promotion_predecessor: CD-09
+    conflict_keys:
+      production: []
+      tla: []
+      adapters:
+        - specs/current/spec_manifest.yaml
+        - specs/current/case_adapters.toml
+        - specs/current/production_adapters.py
+        - specs/current/kill_mutants.toml
+      test_graph: []
+      workflow: []
+    objective: >
+      Fix audit run 3's real manifest desyncs (report:
+      specs/results/epic-close/coverage_audit_report_run3.md); the
+      granularity/scope rulings are already recorded in the amended
+      semantic_model_rule (schedule_revision 3) — do not widen into them.
+      (R3-2) CloseTicket performs destructive deletes with no
+      filesystem.delete port: spec_evolution.py:154 (states rmtree), :385
+      (current/ rmtree before promotion — the GitHub #22 data-loss
+      mechanism), :477 (seeded unlink). Declare filesystem.delete port(s)
+      with honest targets and attach them to CloseTicket. (R3-3) declared
+      ports must match real spawns of modeled actions: RunSpecUnitTests'
+      case-runner spawn (tla_spec_dev.py:313-339,:358) matches no port
+      (test_process is *pytest*; only the -m pytest child matches) — declare
+      it; CloseTicket spawns git (spec_evolution.py:99 via :801) — declare
+      it. (DF-2) add RecordBudgets to effects.actions with its real effect
+      (its scaffold-time emission is under spec_tree; if it truly performs
+      no distinct effect, record it with an empty port list and a comment —
+      an absent row and an empty row are different claims). (DF-3) remove
+      the dangling Core/Internal/External source_model references
+      (spec_manifest.yaml:110-113) per the amended known_gaps. Update the
+      kill catalog for any new ports (seed the boundary honestly) and the
+      binding/adapter tests if the manifest schema surface changes.
+      Zero TLA+ model delta.
+    desired_actions: []
+    implementation_scope:
+      - specs/current/spec_manifest.yaml (delete/spawn ports; effects.actions; source_model)
+      - specs/current/kill_mutants.toml (boundary seeding for new ports)
+      - specs/current/production_adapters.py + case_adapters.toml (only if schema surface requires)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - manifest effects/ports reconciliation
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-10
+      assertions:
+        - "Every destructive delete performed by a modeled action is declared as a filesystem.delete port with an honest target (R3-2), including the #22 rmtree sites."
+        - "Every real spawn of a modeled action matches a declared port; no declared port is dead (R3-3)."
+        - "effects.actions covers every modeled action (DF-2, absent vs empty distinguished); source_model references resolve (DF-3)."
+        - "Kill catalog seeds the amended boundary honestly; spec-unit and binding tests green."
+        - "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      evidence:
+        - specs/tickets/CD-10/results/manifest_reconciliation.md
+        - specs/tickets/CD-10/results/tlc_current.txt
+        - specs/tickets/CD-10/results/spec_unit_tests.txt
+        - specs/tickets/CD-10/results/repo_unit_tests.txt
+        - specs/tickets/CD-10/results/graph_specWorkflow.txt
+        - specs/tickets/CD-10/results/graph_cliWorkflow.txt
