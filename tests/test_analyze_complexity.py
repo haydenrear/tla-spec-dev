@@ -646,6 +646,230 @@ def test_f3_domains_resolve_from_cfg_invariants_when_no_type_invariant_exists(
 
 
 # ---------------------------------------------------------------------------
+# CD-05: domain resolution -- operator-defined sets (VAL-06), wrapped
+# conjuncts (VAL-16), and multi-view invariant naming (VAL-17). Each test
+# below FAILED before the CD-05 fix (recorded in
+# specs/tickets/CD-05/results/domain_resolution_regressions.txt).
+# ---------------------------------------------------------------------------
+
+# VAL-06 shape (validation ex1-run1): TaskStatus defined as an operator in an
+# EXTENDS-ed module, used in a function-set membership. Pre-fix, _set_size
+# never consulted the definition map resolve_definition_body already walks, so
+# `tasks` resolved unknown and the bound was UNKNOWN.
+VAL06_CORE_TLA = """---- MODULE TaskCore ----
+TaskStatus == {"pending", "running", "done"}
+====
+"""
+
+VAL06_TASKS_TLA = """---------------------------- MODULE Tasks ----------------------------
+EXTENDS Naturals, TaskCore
+
+CONSTANTS Names
+
+VARIABLES tasks
+
+Init == tasks = [n \\in Names |-> "pending"]
+
+Advance ==
+  /\\ \\E n \\in Names: tasks' = [tasks EXCEPT ![n] = "done"]
+
+Next == Advance
+
+TypeInvariant == tasks \\in [Names -> TaskStatus]
+
+Spec == Init /\\ [][Next]_<< tasks >>
+=============================================================================
+"""
+
+VAL06_CFG = """SPECIFICATION Spec
+
+CONSTANTS
+  Names = {n1, n2}
+
+INVARIANTS
+  TypeInvariant
+"""
+
+
+def test_val06_operator_defined_set_in_extended_module_resolves(tmp_path: Path) -> None:
+    """`tasks \\in [Names -> TaskStatus]` with TaskStatus an operator in an
+    EXTENDS-ed module resolves to |TaskStatus|^|Names| = 3^2.
+
+    PRE-FIX: _set_size resolved only literals, int ranges, BOOLEAN, unions,
+    and cfg constants -- `TaskStatus` fell through every branch, `tasks`
+    resolved unknown, and the bound was UNKNOWN (None) despite the invariant
+    being found and the operator body being one resolve_definition_body call
+    away.
+    """
+    (tmp_path / "TaskCore.tla").write_text(VAL06_CORE_TLA, encoding="utf-8")
+    tla = tmp_path / "Tasks.tla"
+    tla.write_text(VAL06_TASKS_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(VAL06_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+    assert cardinalities["tasks"] == 9  # 3^2 total functions
+    assert result.bound == 9
+    assert result.bound_source == "TypeInvariant"
+    notes = {d.variable: d.note for d in result.dimensions}
+    assert "3^2 total functions" in notes["tasks"]
+
+
+# VAL-16 shape (validation ex1-run2): a membership conjunct wrapped across
+# lines -- ordinary TLA+ style for a 9-element set. Pre-fix, the membership
+# regex captured to end-of-line only, so `status` silently resolved unknown.
+VAL16_TLA = """---------------------------- MODULE Wrapped ----------------------------
+EXTENDS Naturals
+
+VARIABLES status, count
+
+Init ==
+  /\\ status = "s1"
+  /\\ count = 0
+
+Step ==
+  /\\ count < 2
+  /\\ count' = count + 1
+  /\\ UNCHANGED status
+
+Next == Step
+
+TypeInvariant ==
+  /\\ status \\in {"s1", "s2", "s3", "s4",
+                  "s5", "s6", "s7", "s8",
+                  "s9"}
+  /\\ count \\in 0..2
+
+Spec == Init /\\ [][Next]_<< status, count >>
+=============================================================================
+"""
+
+VAL16_CFG = "SPECIFICATION Spec\n\nINVARIANTS\n  TypeInvariant\n"
+
+
+def test_val16_membership_conjunct_wrapped_across_lines_resolves(tmp_path: Path) -> None:
+    """A `\\in` conjunct wrapped across lines resolves like its one-line form.
+
+    PRE-FIX: the `variable \\in <domain>` regex captured `[^\\n]+` -- to
+    end-of-line -- so the wrapped set literal arrived truncated at
+    `{"s1", "s2", "s3", "s4",`, failed to parse, and `status` silently
+    resolved unknown (bound 3 instead of 27). Post-fix the source is parsed
+    conjunct-wise, so the domain expression spans lines freely.
+    """
+    tla = tmp_path / "Wrapped.tla"
+    tla.write_text(VAL16_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(VAL16_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+    assert cardinalities["status"] == 9
+    assert cardinalities["count"] == 3
+    assert result.bound == 27
+    assert result.unbounded == []
+
+
+# VAL-17 shape (validation ex1-run2): the scaffold's own multi-view layout.
+# TLA+ forbids redefining TypeInvariant in an extending view, so the view
+# carries its own invariant name, configured in the cfg. Pre-fix, any
+# TypeInvariant in the hierarchy became the SOLE domain source and the view's
+# variables came back unresolved without renaming tricks.
+VAL17_CORE_TLA = """---- MODULE ViewCore ----
+VARIABLES mode
+
+CoreInit == mode = "idle"
+
+TypeInvariant == mode \\in {"idle", "busy"}
+====
+"""
+
+VAL17_INTERNAL_TLA = """---------------------------- MODULE ViewInternal ----------------------------
+EXTENDS Naturals, ViewCore
+
+VARIABLES queue
+
+Init ==
+  /\\ CoreInit
+  /\\ queue = 0
+
+Enqueue ==
+  /\\ queue < 4
+  /\\ queue' = queue + 1
+  /\\ UNCHANGED mode
+
+Next == Enqueue
+
+InternalTypeOK == queue \\in 0..4
+
+Spec == Init /\\ [][Next]_<< mode, queue >>
+=============================================================================
+"""
+
+VAL17_CFG = """SPECIFICATION Spec
+
+INVARIANTS
+  TypeInvariant
+  InternalTypeOK
+"""
+
+
+def test_val17_multi_view_layout_merges_domain_sources_per_variable(
+    tmp_path: Path,
+) -> None:
+    """Both views' variables resolve without renaming tricks.
+
+    The core view owns TypeInvariant (bounding `mode`); the extending view
+    cannot redefine that name, so its own invariant (`InternalTypeOK`,
+    bounding `queue`) is configured in the cfg.
+
+    PRE-FIX: TypeInvariant's presence in the hierarchy made it the SOLE
+    domain source -- `queue` resolved unknown and the bound was the partial
+    product 2. The run's workaround was naming one view's invariant exactly
+    `TypeOK` (the Internal=TypeOK / External=TypeInvariant trick). Post-fix,
+    sources merge per-variable in the documented order (TypeInvariant, then
+    TypeOK, then configured invariants) -- first source that resolves wins.
+    """
+    (tmp_path / "ViewCore.tla").write_text(VAL17_CORE_TLA, encoding="utf-8")
+    tla = tmp_path / "ViewInternal.tla"
+    tla.write_text(VAL17_INTERNAL_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(VAL17_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+    assert cardinalities["mode"] == 2
+    assert cardinalities["queue"] == 5
+    assert result.bound == 10
+    assert result.unbounded == []
+    # Both contributing sources are named, in precedence order.
+    assert result.bound_source == (
+        "TypeInvariant + the configured invariants (resolved transitively)"
+    )
+    sources = {d.variable: d.source for d in result.dimensions}
+    assert sources["mode"] == "TypeInvariant"
+    assert sources["queue"] == "the configured invariants (resolved transitively)"
+
+
+def test_cd05_genuinely_unresolvable_domain_stays_an_explicit_unknown(
+    tmp_path: Path,
+) -> None:
+    """F3 preserved: a domain the resolver genuinely cannot size is an explicit
+    UNKNOWN, never a silent number -- even now that operators are expanded."""
+    (tmp_path / "TaskCore.tla").write_text(
+        "---- MODULE TaskCore ----\nTaskStatus == UNION {SomeOp(x) : x \\in Vals}\n====\n",
+        encoding="utf-8",
+    )
+    tla = tmp_path / "Tasks.tla"
+    tla.write_text(VAL06_TASKS_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(VAL06_CFG, encoding="utf-8")
+    result = analyze(tla, cfg, None)
+    cardinalities = {d.variable: d.cardinality for d in result.dimensions}
+    assert cardinalities["tasks"] is None
+    assert result.bound is None
+    assert result.bound_source is None
+    assert any(w.kind == "state_space_bound_unknown" for w in result.warnings)
+
+
+# ---------------------------------------------------------------------------
 # Justification linkage / dead weight
 # ---------------------------------------------------------------------------
 

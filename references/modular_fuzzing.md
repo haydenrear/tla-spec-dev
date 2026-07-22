@@ -525,30 +525,35 @@ is invisible to it. Dropping is also the wrong response to the signal:
 
 A lopsided corpus is **evidence about the representation**. If one action
 emits two hundred near-identical cases while another emits two, the model is
-enumerating redundant interleavings — interchangeable values that want
-symmetry reduction, unconstrained orderings that want a state constraint, or
-an action enabled across many equivalent states that wants abstraction. The
-corpus is the symptom; the diagram is the defect. **Write the diagram so the
-redundant cases are never generated in the first place.**
+enumerating redundant interleavings — interchangeable values, an
+unconstrained ordering, or an action enabled across many equivalent states.
+The corpus is the symptom; the diagram is the defect.
 
 Corpus diagnostics therefore report, on a cap failure: the distribution per
 `(action, label class)`, which strata dominate, which are starved, and what
-varies across the redundant group — so the agent can act on the cause. This
-is the corpus analogue of `analyze complexity`'s descriptor facts, and it is
-subject to the same rule: any move derived from it is a recommendation
-requiring user approval and is never auto-applied.
+varies across the redundant group. This is the corpus analogue of
+`analyze complexity`'s descriptor facts, and it follows the same doctrine
+(CD-04, resolving VAL-13): the gate states the measurement and then asks a
+**redesign question** — can the architecture be redesigned to make the
+program simpler, so the redundant cases are never generated? — pointing at
+the complexity descriptor (`analyze complexity`) and
+`references/complexity_intuition.md` as the judgment inputs. It prescribes
+no move, and nothing is ever auto-applied; the judgment belongs to the
+reader, per the CD-02 framing: take this complexity descriptor to consider
+how to refactor complexity out of the app.
 
 The command is `tla-spec-dev analyze corpus <cases-dir>`, and the same gate
 runs automatically at the end of case generation and before Test Graph
 export. It reads the caps through `scripts/budgets.py`, exits nonzero over
 budget, and prints the exact `budgets:` edit — raised cap value, `source:
 negotiated`, and a `rationale:` slot — that constitutes the accept path.
-Three causes are named from what actually varies across the redundant group:
-values that are **permutations of one multiset** (unconstrained ordering →
-state constraint), **parameters sweeping a domain over a fixed transition
-shape** (interchangeable values → symmetry reduction), and **one change shape
-replayed from many distinct source states** (action enabled across equivalent
-states → abstraction).
+Three causes are measured from what actually varies across the redundant
+group: values that are **permutations of one multiset** (unconstrained
+ordering), **parameters sweeping a domain over a fixed transition shape**
+(interchangeable values), and **one change shape replayed from many distinct
+source states** (action enabled across equivalent states). The cause naming
+is diagnosis, not a to-do list — what to change, if anything, is the
+reader's redesign judgment.
 
 Two properties are structural rather than merely intended. The export gate
 measures the **complete** corpus before `--label`/`--case`/`--limit`

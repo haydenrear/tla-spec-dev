@@ -236,7 +236,6 @@ def test_diagnoses_action_enabled_across_equivalent_states(failing_report: cd.Co
     assert group.cause == "action enabled across equivalent states"
     assert group.distinct_change_shapes == 1
     assert group.distinct_source_states == 200
-    assert "Abstract the before-state" in group.recommendation
 
 
 def test_diagnoses_interchangeable_values(failing_report: cd.CorpusReport) -> None:
@@ -244,14 +243,12 @@ def test_diagnoses_interchangeable_values(failing_report: cd.CorpusReport) -> No
     assert group.cause == "interchangeable values"
     fields = {v.field for v in group.varying}
     assert "params.client" in fields and "params.sku" in fields
-    assert "symmetry" in group.recommendation.lower()
 
 
 def test_diagnoses_unconstrained_ordering(failing_report: cd.CorpusReport) -> None:
     group = _group(failing_report, "SubmitDuplicateCreateAccount")
     assert group.cause == "unconstrained ordering"
     assert any(v.permutation_family for v in group.varying)
-    assert "state constraint" in group.recommendation
 
 
 def test_reports_counts_dominant_and_starved_strata(failing_report: cd.CorpusReport) -> None:
@@ -270,12 +267,38 @@ def test_report_names_what_varies_and_what_is_held_constant(failing_report: cd.C
     assert "Skew:" in rendered and "100x" in rendered
 
 
-def test_remediation_is_a_recommendation_requiring_user_approval(failing_report: cd.CorpusReport) -> None:
-    """Same rule as analyze complexity's suggested move: never auto-applied."""
+# The exact wording family CD-04 removed (resolving VAL-13). If any of these
+# reappears in gate output or help text, the redesign-question doctrine has
+# regressed to prescribing moves.
+PRESCRIPTIVE_MOVE_WORDING = (
+    "Suggested move",
+    "SUGGESTED MOVE",
+    "RECOMMENDATION REQUIRING USER APPROVAL",
+    "Apply the suggested",
+    "Abstract the before-state",
+    "Add a state constraint",
+    "Declare the interchangeable values",
+    "FIX THE DIAGRAM",
+)
+
+
+def test_over_cap_output_asks_the_redesign_question_and_prescribes_nothing(
+    failing_report: cd.CorpusReport,
+) -> None:
+    """CD-04: the gate states the measurement, then asks a question.
+
+    It never prescribes a move and nothing is auto-applied; the judgment
+    inputs it names are the complexity descriptor (`analyze complexity`) and
+    references/complexity_intuition.md.
+    """
     rendered = cd.render_report(failing_report)
-    assert "RECOMMENDATION REQUIRING USER APPROVAL" in rendered
-    assert rendered.count("RECOMMENDATION REQUIRING USER APPROVAL") == len(failing_report.over_cap)
-    assert "not applied automatically" in rendered
+    assert "REDESIGN QUESTION" in rendered
+    assert "redesigned to make the" in rendered and "program simpler" in rendered
+    assert "analyze complexity" in rendered
+    assert "references/complexity_intuition.md" in rendered
+    assert "applied automatically" in rendered  # "nothing is applied automatically"
+    for banned in PRESCRIPTIVE_MOVE_WORDING:
+        assert banned not in rendered, f"prescriptive-move wording returned: {banned!r}"
 
 
 # --------------------------------------------------------------------------
@@ -434,13 +457,22 @@ def test_cli_exits_nonzero_over_cap(tmp_path: Path) -> None:
     assert result.returncode == 1, result.stdout + result.stderr
     assert "corpus gate FAIL" in result.stdout
     assert "ACCEPT PATH" in result.stdout
+    assert "REDESIGN QUESTION" in result.stdout
+    assert "references/complexity_intuition.md" in result.stdout
+    for banned in PRESCRIPTIVE_MOVE_WORDING:
+        assert banned not in result.stdout, f"prescriptive-move wording returned: {banned!r}"
 
 
-def test_cli_help_states_that_nothing_is_dropped() -> None:
+def test_cli_help_states_that_nothing_is_dropped_and_asks_not_prescribes() -> None:
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), "analyze", "corpus", "--help"],
         capture_output=True, text=True, cwd=ROOT,
     )
     assert result.returncode == 0
-    assert "NOTHING IS EVER DROPPED" in result.stdout
-    assert "RECOMMENDATION REQUIRING USER APPROVAL" in result.stdout
+    # argparse re-wraps the description, so compare against unwrapped text.
+    unwrapped = " ".join(result.stdout.split())
+    assert "NOTHING IS EVER DROPPED" in unwrapped
+    assert "REDESIGN QUESTION" in unwrapped
+    assert "complexity_intuition.md" in unwrapped
+    for banned in PRESCRIPTIVE_MOVE_WORDING:
+        assert banned not in unwrapped, f"prescriptive-move wording returned: {banned!r}"

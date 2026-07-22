@@ -10,10 +10,15 @@ observations).
 
 What it emits:
 
-* the per-variable domain cardinality table (parsed from
-  ``TypeInvariant``/``TypeOK`` or, when neither exists, the transitively
-  resolved bodies of the cfg-configured invariants) plus the ``.cfg``
-  constants;
+* the per-variable domain cardinality table -- domain sources merge
+  PER-VARIABLE in a documented order (``TypeInvariant``, then ``TypeOK``, then
+  the cfg-configured invariants, each resolved transitively; first source that
+  resolves wins -- CD-05, VAL-17), parsed conjunct-wise so membership
+  conjuncts may wrap across lines (CD-05, VAL-16), with operator-defined sets
+  expanded through the EXTENDS hierarchy (CD-05, VAL-06) and the ``.cfg``
+  constants applied. The exact coverage contract is
+  references/architecture_tractability.md, "What The Domain Resolver Can And
+  Cannot See";
 * the state-space upper bound (the product of those cardinalities) and the
   dominant dimensions -- or an EXPLICIT "unknown" when no variable domain
   could be resolved, never a silent 1;
@@ -500,14 +505,32 @@ class Dimension:
     expression: str | None
     cardinality: int | None
     note: str = ""
+    source: str | None = None
 
     @property
     def bounded(self) -> bool:
         return self.cardinality is not None and self.cardinality > 0
 
 
-def _set_size(expr: str, constants: dict[str, Any]) -> int | None:
-    """Resolve the cardinality of a set-valued expression."""
+_FUNCTION_SET_RE = re.compile(r"\[(.+?)\s*->\s*(.+)\]", flags=re.DOTALL)
+
+
+def _set_size(
+    expr: str,
+    constants: dict[str, Any],
+    defs: dict[str, "Definition"] | None = None,
+    _seen: set[str] | None = None,
+) -> int | None:
+    """Resolve the cardinality of a set-valued expression.
+
+    Resolves, in order: ``BOOLEAN``; set literals ``{...}``; integer ranges
+    ``a..b``; function sets ``[S -> T]`` (``|T| ^ |S|`` when both sides
+    resolve); unions of resolvable parts; names bound to a set in the TLC cfg;
+    and -- CD-05 (VAL-06) -- names defined as zero-parameter operators anywhere
+    in the EXTENDS hierarchy, expanded transitively (the same definition map
+    CD-01/F1's ``resolve_definition_body`` walks) with a cycle guard.
+    Anything else is an explicit ``None`` (UNKNOWN), never a guess.
+    """
     expr = expr.strip()
     if expr == "BOOLEAN":
         return 2
@@ -521,11 +544,21 @@ def _set_size(expr: str, constants: dict[str, Any]) -> int | None:
     if rng:
         low, high = int(rng.group(1)), int(rng.group(2))
         return max(0, high - low + 1)
+    # Function set [S -> T]: |T|^|S| -- same formula infer_dimensions applies
+    # at the top level of a membership conjunct; checked before the union split
+    # so a `\cup` inside S or T is not torn apart.
+    function = _FUNCTION_SET_RE.fullmatch(expr)
+    if function:
+        domain_size = _set_size(function.group(1), constants, defs, _seen)
+        range_size = _set_size(function.group(2), constants, defs, _seen)
+        if domain_size is not None and range_size is not None:
+            return range_size**domain_size
+        return None
     # Union of resolvable parts.
     if "\\cup" in expr:
         total = 0
         for part in expr.split("\\cup"):
-            size = _set_size(part, constants)
+            size = _set_size(part, constants, defs, _seen)
             if size is None:
                 return None
             total += size
@@ -536,63 +569,167 @@ def _set_size(expr: str, constants: dict[str, Any]) -> int | None:
             return len(value)
         if isinstance(value, str):
             return 1
+        # CD-05 (VAL-06): an operator-defined set (`TaskStatus == {...}`,
+        # possibly in an EXTENDS-ed module) -- expand the definition body and
+        # recurse, guarding against definition cycles.
+        if defs is not None and expr in defs and not defs[expr].params:
+            seen = _seen if _seen is not None else set()
+            if expr in seen:
+                return None
+            seen.add(expr)
+            return _set_size(defs[expr].body, constants, defs, seen)
         return None
     return None
 
 
+_BOOLEAN_CONNECTIVE_RE = re.compile(r"/\\|\\/")
+
+
+def _split_conjuncts(body: str) -> list[str]:
+    """Split one definition body into conjunct/disjunct chunks.
+
+    CD-05 (VAL-16): the old membership regex captured to end-of-line, so a
+    `x \\in {...}` conjunct wrapped across lines silently resolved unknown.
+    Splitting on the boolean connectives instead respects TLA+ conjunction
+    structure: each chunk is one conjunct with its continuation lines attached,
+    so a domain expression may span as many lines as it likes.
+    """
+    return [c.strip() for c in _BOOLEAN_CONNECTIVE_RE.split(body) if c.strip()]
+
+
+def resolve_constraint_chunks(
+    name: str, defs_by_name: dict[str, "Definition"], _seen: set[str] | None = None
+) -> list[str]:
+    """Conjunct chunks of ``name``'s body plus, transitively, of every
+    definition it references.
+
+    The companion to :func:`resolve_definition_body` for domain inference:
+    aliased/composed invariants (``Inv == RealInv``) still contribute their
+    real membership conjuncts, but each definition's body is split SEPARATELY,
+    so a chunk never bleeds across a definition boundary the way a capture
+    over the concatenated resolved text would.
+    """
+    seen = _seen if _seen is not None else set()
+    if name in seen or name not in defs_by_name:
+        return []
+    seen.add(name)
+    body = defs_by_name[name].body
+    chunks = _split_conjuncts(body)
+    for token in sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", body))):
+        if token not in seen and token in defs_by_name:
+            chunks.extend(resolve_constraint_chunks(token, defs_by_name, seen))
+    return chunks
+
+
+UNRESOLVED_SOURCE_LABEL = "any type invariant or configured invariant"
+
+
+def _constraint_for(
+    variable: str,
+    chunk: str,
+    constants: dict[str, Any],
+    defs: dict[str, "Definition"] | None,
+) -> tuple[str, int | None, str] | None:
+    """(expression, cardinality, note) if ``chunk`` constrains ``variable``."""
+    subset = re.search(
+        rf"(?<![A-Za-z0-9_]){re.escape(variable)}\s*\\subseteq\s*(.+)\Z",
+        chunk,
+        flags=re.DOTALL,
+    )
+    if subset:
+        raw = subset.group(1).strip()
+        base = _set_size(raw, constants, defs)
+        if base is not None:
+            return (f"SUBSET {raw}", 2**base, f"powerset of {base} elements")
+        return (f"SUBSET {raw}", None, "")
+    member = re.search(
+        rf"(?<![A-Za-z0-9_]){re.escape(variable)}\s*\\in\s*(.+)\Z",
+        chunk,
+        flags=re.DOTALL,
+    )
+    if member:
+        raw = member.group(1).strip()
+        function = _FUNCTION_SET_RE.fullmatch(raw)
+        if function:
+            domain_size = _set_size(function.group(1), constants, defs)
+            range_size = _set_size(function.group(2), constants, defs)
+            if domain_size is not None and range_size is not None:
+                return (
+                    raw,
+                    range_size**domain_size,
+                    f"{range_size}^{domain_size} total functions",
+                )
+            return (raw, None, "")
+        return (raw, _set_size(raw, constants, defs), "")
+    return None
+
+
 def infer_dimensions(
-    type_invariant: str | None,
+    domain_sources: Sequence[tuple[str, Sequence[str]]],
     variables: Sequence[str],
     constants: dict[str, Any],
-    source_label: str = "TypeInvariant",
+    defs: dict[str, "Definition"] | None = None,
 ) -> list[Dimension]:
-    """Derive a per-variable domain cardinality from the domain source text.
+    """Derive a per-variable domain cardinality from the ordered domain sources.
 
-    The source is ``TypeInvariant``/``TypeOK`` when the module defines one, or
-    the transitively resolved cfg-invariant bodies otherwise (CD-01, F3).
-    Variables the source does not constrain are reported with an unknown
-    cardinality and excluded from the product, rather than silently assigned a
-    convenient number.
+    ``domain_sources`` is an ordered list of ``(label, conjunct-chunks)`` pairs
+    -- ``TypeInvariant`` first, then ``TypeOK``, then the configured cfg
+    invariants (each resolved transitively). CD-05 (VAL-17): sources MERGE
+    per-variable -- for each variable the first source (in that order) whose
+    constraint resolves to a cardinality wins, so a multi-view layout whose
+    views necessarily use different invariant names still resolves every
+    variable. A variable constrained only in a form the resolver cannot size
+    keeps its expression with an unknown cardinality; a variable no source
+    constrains is reported unknown and excluded from the product, rather than
+    silently assigned a convenient number (CD-01, F3).
     """
     dimensions: list[Dimension] = []
-    body = type_invariant or ""
+    source_labels = [label for label, _ in domain_sources]
+    unresolved_label = (
+        " / ".join(source_labels) if source_labels else UNRESOLVED_SOURCE_LABEL
+    )
     for variable in variables:
         expression: str | None = None
         cardinality: int | None = None
         note = ""
-
-        subset = re.search(
-            rf"(?<![A-Za-z0-9_]){re.escape(variable)}\s*\\subseteq\s*([^\n]+)", body
-        )
-        member = re.search(
-            rf"(?<![A-Za-z0-9_]){re.escape(variable)}\s*\\in\s*([^\n]+)", body
-        )
-        if subset:
-            expression = f"SUBSET {subset.group(1).strip()}"
-            base = _set_size(subset.group(1), constants)
-            if base is not None:
-                cardinality = 2**base
-                note = f"powerset of {base} elements"
-        elif member:
-            raw = member.group(1).strip()
-            expression = raw
-            function = re.fullmatch(r"\[(.+?)\s*->\s*(.+)\]", raw, flags=re.DOTALL)
-            if function:
-                domain_size = _set_size(function.group(1), constants)
-                range_size = _set_size(function.group(2), constants)
-                if domain_size is not None and range_size is not None:
-                    cardinality = range_size**domain_size
-                    note = f"{range_size}^{domain_size} total functions"
-            else:
-                cardinality = _set_size(raw, constants)
-        if cardinality is None and not note:
-            note = f"unconstrained by {source_label} -- excluded from the bound"
+        source: str | None = None
+        for label, chunks in domain_sources:
+            found = None
+            for chunk in chunks:
+                candidate = _constraint_for(variable, chunk, constants, defs)
+                if candidate is None:
+                    continue
+                if found is None:
+                    found = candidate
+                if candidate[1] is not None:
+                    found = candidate
+                    break
+            if found is None:
+                continue
+            if found[1] is not None:
+                expression, cardinality, note = found
+                source = label
+                break
+            if expression is None:
+                # Remember the first constraining-but-unresolvable source in
+                # case no later source resolves the variable either.
+                expression, cardinality, note = found
+                source = label
+        if cardinality is None:
+            if expression is not None:
+                note = note or (
+                    "domain found but not resolvable -- excluded from the bound "
+                    "(explicit UNKNOWN)"
+                )
+            elif not note:
+                note = f"unconstrained by {unresolved_label} -- excluded from the bound"
         dimensions.append(
             Dimension(
                 variable=variable,
                 expression=expression,
                 cardinality=cardinality,
                 note=note,
+                source=source,
             )
         )
     return dimensions
@@ -1010,29 +1147,39 @@ def analyze(
         if name in by_name
     }
 
-    # CD-01 (F3): the per-variable domain source. Prefer a TypeInvariant/TypeOK
-    # definition (resolved transitively -- it may itself compose); with neither,
-    # fall back to the resolved cfg-invariant bodies, whose membership conjuncts
-    # may still bound variables. When nothing resolves a domain, the bound is
-    # reported UNKNOWN -- never a silent 1.
+    # CD-01 (F3) / CD-05 (VAL-17): the per-variable domain sources, in a
+    # documented precedence order -- TypeInvariant, then TypeOK, then the
+    # configured cfg invariants (each resolved transitively; it may itself
+    # compose). CD-05 replaced first-named-definition-wins with a per-variable
+    # MERGE: for each variable the first source in this order that resolves a
+    # domain wins, so a multi-view layout (where TLA+ forbids redefining
+    # TypeInvariant per view) still resolves every view's variables. When
+    # nothing resolves a domain, the bound is reported UNKNOWN -- never a
+    # silent 1.
+    domain_sources: list[tuple[str, list[str]]] = []
     if "TypeInvariant" in by_name:
-        domain_source_label = "TypeInvariant"
-        domain_source: str | None = resolve_definition_body("TypeInvariant", by_name)
-    elif "TypeOK" in by_name:
-        domain_source_label = "TypeOK"
-        domain_source = resolve_definition_body("TypeOK", by_name)
-    elif invariant_bodies:
-        domain_source_label = "the configured invariants (resolved transitively)"
-        domain_source = "\n".join(invariant_bodies.values())
-    else:
-        domain_source_label = "any type invariant or configured invariant"
-        domain_source = None
+        domain_sources.append(
+            ("TypeInvariant", resolve_constraint_chunks("TypeInvariant", by_name))
+        )
+    if "TypeOK" in by_name:
+        domain_sources.append(("TypeOK", resolve_constraint_chunks("TypeOK", by_name)))
+    cfg_invariant_chunks: list[str] = []
+    for name in invariant_names:
+        if name in ("TypeInvariant", "TypeOK") or name not in by_name:
+            continue
+        cfg_invariant_chunks.extend(resolve_constraint_chunks(name, by_name))
+    if cfg_invariant_chunks:
+        domain_sources.append(
+            ("the configured invariants (resolved transitively)", cfg_invariant_chunks)
+        )
 
-    dimensions = infer_dimensions(
-        domain_source, variables, constants, source_label=domain_source_label
-    )
+    dimensions = infer_dimensions(domain_sources, variables, constants, defs=by_name)
     bound = state_space_bound(dimensions)
-    bound_source = domain_source_label if bound is not None else None
+    contributing: list[str] = []
+    for label, _ in domain_sources:
+        if any(d.source == label and d.bounded for d in dimensions):
+            contributing.append(label)
+    bound_source = " + ".join(contributing) if bound is not None and contributing else None
     unbounded = [d.variable for d in dimensions if not d.bounded]
 
     weights = interaction_graph(actions, variables)
@@ -1265,18 +1412,25 @@ def render_text(analysis: Analysis) -> str:
             d.variable,
             d.expression or "(unconstrained)",
             f"{d.cardinality:,}" if d.bounded else "unknown",
+            d.source or "-",
             d.note,
         )
         for d in analysis.dimensions
     ]
-    add(_table(rows, ("variable", "domain", "cardinality", "note")))
+    add(_table(rows, ("variable", "domain", "cardinality", "source", "note")))
+    add("  (domain sources merge per-variable: TypeInvariant, then TypeOK, then the")
+    add("  configured invariants -- first source that resolves wins. What the resolver")
+    add("  can and cannot see: references/architecture_tractability.md,")
+    add("  'What The Domain Resolver Can And Cannot See'.)")
     add("")
 
     add("[MEASURED] State-space upper bound")
     if analysis.bound is None:
         add("  bound = UNKNOWN -- no variable domain could be resolved from a")
         add("  TypeInvariant/TypeOK or from the configured invariants. This is an")
-        add("  explicit unknown, not a small model.")
+        add("  explicit unknown, not a small model. (Resolver coverage:")
+        add("  references/architecture_tractability.md, 'What The Domain Resolver")
+        add("  Can And Cannot See'.)")
     else:
         add(
             f"  bound = {analysis.bound:,}  (product of "
@@ -1448,6 +1602,7 @@ def descriptor_payload(analysis: Analysis) -> dict[str, Any]:
                     "variable": d.variable,
                     "domain": d.expression,
                     "cardinality": d.cardinality,
+                    "source": d.source,
                     "note": d.note,
                 }
                 for d in analysis.dimensions
