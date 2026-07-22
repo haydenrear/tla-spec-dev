@@ -22,6 +22,10 @@ class EffectProviderContext:
     action: str
     case: Any
     work_dir: Path
+    iteration: int = 0
+    root_seed: int = 0
+    derived_seed: int = 0
+    seed_version: str = "tla-spec-dev/effect-seed/v1"
 
 
 @runtime_checkable

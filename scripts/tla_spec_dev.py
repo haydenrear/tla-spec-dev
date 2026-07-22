@@ -336,6 +336,17 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                 command.append("--validate-capabilities")
             if not args.no_batch:
                 command.append("--batch")
+            command.extend(
+                [
+                    "--fuzz-runs",
+                    str(getattr(args, "fuzz_runs", 1)),
+                    "--seed",
+                    str(getattr(args, "seed", 0)),
+                ]
+            )
+            fuzz_iteration = getattr(args, "fuzz_iteration", None)
+            if fuzz_iteration is not None:
+                command.extend(["--fuzz-iteration", str(fuzz_iteration)])
             commands.append((f"case-adapters:{target_dir}:{cases_dir.name}", command, command_env(target_dir)))
         if target_command_count == 0:
             empty_targets.append(target_dir)
@@ -492,6 +503,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec_units.add_argument("--validate-only", action="store_true", help="Validate adapter coverage without executing generated cases.")
     run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
     run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+    run_spec_units.add_argument(
+        "--fuzz-runs",
+        type=int,
+        default=1,
+        help="Run each selected provider-bearing case this many deterministic iterations.",
+    )
+    run_spec_units.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Root seed for deterministic per-effect representative generation.",
+    )
+    run_spec_units.add_argument(
+        "--fuzz-iteration",
+        type=int,
+        help="Replay exactly this deterministic effect-provider iteration.",
+    )
     run_spec_units.add_argument(
         "--pytest-arg",
         action="append",

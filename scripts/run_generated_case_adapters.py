@@ -14,18 +14,21 @@ import copy
 from contextlib import ExitStack
 import importlib
 import inspect
+import json
 import os
+import shlex
 import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 try:
     from .effect_conformance import (
         EffectDeclarationError,
+        EffectRecorder,
         EffectSandbox,
         diff_effects,
         load_effect_declarations,
@@ -36,6 +39,7 @@ try:
 except ImportError:  # pragma: no cover - direct script execution
     from effect_conformance import (
         EffectDeclarationError,
+        EffectRecorder,
         EffectSandbox,
         diff_effects,
         load_effect_declarations,
@@ -90,6 +94,30 @@ class EffectProviderPlan:
 
     def for_case(self, case: Any) -> tuple[ResolvedEffectProvider, ...]:
         return self.by_case.get(str(case.name), ())
+
+
+@dataclass(frozen=True, eq=False)
+class ExecutionPoint:
+    """One original generated case at one deterministic fuzz iteration."""
+
+    case: Any
+    iteration: int
+
+
+class _EffectProviderPhaseFailure(RuntimeError):
+    def __init__(
+        self,
+        *,
+        point: ExecutionPoint,
+        phase: str,
+        binding: ResolvedEffectProvider,
+        cause: BaseException,
+    ) -> None:
+        super().__init__(str(cause))
+        self.point = point
+        self.phase = phase
+        self.binding = binding
+        self.cause = cause
 
 
 def load_cases(cases_dir: Path):
@@ -1122,12 +1150,12 @@ class _ProviderExitTracker:
 
     def __init__(self) -> None:
         self.primary_error: Exception | None = None
-        self.cleanup_errors: list[Exception] = []
+        self.cleanup_errors: list[tuple[ResolvedEffectProvider, Exception]] = []
 
     def observe_incoming(self, error: Exception | None) -> None:
         if error is None or self.primary_error is not None:
             return
-        if any(error is cleanup_error for cleanup_error in self.cleanup_errors):
+        if any(error is cleanup_error for _binding, cleanup_error in self.cleanup_errors):
             return
         self.primary_error = error
 
@@ -1142,9 +1170,15 @@ class _NonSuppressingProviderScope:
     continues to the remaining providers in reverse order.
     """
 
-    def __init__(self, scope: Any, tracker: _ProviderExitTracker) -> None:
+    def __init__(
+        self,
+        scope: Any,
+        tracker: _ProviderExitTracker,
+        binding: ResolvedEffectProvider,
+    ) -> None:
         self.scope = scope
         self.tracker = tracker
+        self.binding = binding
 
     def __enter__(self) -> Any:
         return self.scope.__enter__()
@@ -1154,17 +1188,79 @@ class _NonSuppressingProviderScope:
         try:
             self.scope.__exit__(exc_type, exc, traceback)
         except Exception as cleanup_error:
-            self.tracker.cleanup_errors.append(cleanup_error)
+            self.tracker.cleanup_errors.append((self.binding, cleanup_error))
             raise
         return False
+
+
+def _point_work_dir(work_dir: Path, point: ExecutionPoint, *, iteration_paths: bool) -> Path:
+    case_root = work_dir / "case-work" / str(point.case.name)
+    if not iteration_paths:
+        return case_root
+    return case_root / f"iteration-{point.iteration:06d}"
+
+
+def _provider_seed_rows(
+    plan: EffectProviderPlan,
+    point: ExecutionPoint,
+    root_seed: int,
+) -> list[dict[str, Any]]:
+    from spec_double_compiler.effects import derive_effect_seed
+
+    return [
+        {
+            "port": binding.port_name,
+            "provider": binding.provider_reference,
+            "derived_seed": derive_effect_seed(
+                root_seed,
+                str(point.case.name),
+                point.iteration,
+                binding.port_name,
+            ),
+        }
+        for binding in plan.for_case(point.case)
+    ]
+
+
+def _structured_failure(
+    *,
+    point: ExecutionPoint,
+    phase: str,
+    error: BaseException,
+    plan: EffectProviderPlan,
+    root_seed: int,
+    replay_command_factory: Callable[[ExecutionPoint], str] | None,
+    binding: ResolvedEffectProvider | None = None,
+) -> str:
+    from spec_double_compiler.effects import EFFECT_SEED_VERSION
+
+    providers = _provider_seed_rows(plan, point, root_seed)
+    payload: dict[str, Any] = {
+        "case": str(point.case.name),
+        "iteration": point.iteration,
+        "root_seed": root_seed,
+        "seed_version": EFFECT_SEED_VERSION,
+        "phase": phase,
+        "providers": providers,
+        "error_type": type(error).__name__,
+        "error": str(error),
+        "replay": replay_command_factory(point) if replay_command_factory is not None else "",
+    }
+    if binding is not None:
+        payload["provider"] = next(
+            row for row in providers if row["port"] == binding.port_name
+        )
+    return "EFFECT_FUZZ_FAILURE " + json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
 def prepare_effect_provider_scopes(
     *,
     plan: EffectProviderPlan,
-    cases: list[Any],
+    points: list[ExecutionPoint],
     work_dir: Path,
-) -> Mapping[str, tuple[tuple[ResolvedEffectProvider, Any], ...]]:
+    root_seed: int = 0,
+    iteration_paths: bool = False,
+) -> Mapping[ExecutionPoint, tuple[tuple[ResolvedEffectProvider, Any], ...]]:
     """Construct every provider scope before any adapter/application hook runs."""
 
     # Preserve the pre-EP-01 execution path exactly when no semantic provider
@@ -1175,12 +1271,14 @@ def prepare_effect_provider_scopes(
     if not plan.configured:
         return MappingProxyType({})
 
+    from spec_double_compiler.effects import EFFECT_SEED_VERSION, derive_effect_seed
     from spec_double_compiler.runtime import EffectProviderContext
 
-    prepared: dict[str, tuple[tuple[ResolvedEffectProvider, Any], ...]] = {}
-    for case in cases:
+    prepared: dict[ExecutionPoint, tuple[tuple[ResolvedEffectProvider, Any], ...]] = {}
+    for point in points:
+        case = point.case
         action = _case_action(case)
-        context_work_dir = work_dir / "case-work" / str(case.name)
+        context_work_dir = _point_work_dir(work_dir, point, iteration_paths=iteration_paths)
         context_work_dir.mkdir(parents=True, exist_ok=True)
         entries: list[tuple[ResolvedEffectProvider, Any]] = []
         for binding in plan.for_case(case):
@@ -1189,9 +1287,27 @@ def prepare_effect_provider_scopes(
                 action=action,
                 case=case,
                 work_dir=context_work_dir,
+                iteration=point.iteration,
+                root_seed=root_seed,
+                derived_seed=derive_effect_seed(
+                    root_seed,
+                    str(case.name),
+                    point.iteration,
+                    binding.port_name,
+                ),
+                seed_version=EFFECT_SEED_VERSION,
             )
-            entries.append((binding, _provider_context_manager(binding, context)))
-        prepared[str(case.name)] = tuple(entries)
+            try:
+                scope = _provider_context_manager(binding, context)
+            except BaseException as exc:
+                raise _EffectProviderPhaseFailure(
+                    point=point,
+                    phase="bind",
+                    binding=binding,
+                    cause=exc,
+                ) from exc
+            entries.append((binding, scope))
+        prepared[point] = tuple(entries)
     return MappingProxyType(prepared)
 
 
@@ -1218,28 +1334,42 @@ def load_effect_declarations_for_spec(spec_dir: Path | None):
     return _load(None)
 
 
-def execute_cases_in_batch(
+def _execute_points_in_batch(
     *,
-    cases: list[Any],
+    points: list[ExecutionPoint],
     mappings: dict[str, AdapterMapping],
     work_dir: Path,
     import_roots: list[Path],
     declarations: Any = None,
     effect_report_path: Path | None = None,
     effect_provider_plan: EffectProviderPlan | None = None,
+    root_seed: int = 0,
+    iteration_paths: bool = False,
+    replay_command_factory: Callable[[ExecutionPoint], str] | None = None,
 ) -> None:
     ensure_import_roots(import_roots)
     from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, call_adapter, instantiate, load_object
-    from effect_conformance import EffectRecorder, EffectSandbox
-
     effects_active = declarations is not None and bool(declarations.ports)
     provider_plan = effect_provider_plan or EffectProviderPlan(MappingProxyType({}), configured=False)
     try:
         prepared_provider_scopes = prepare_effect_provider_scopes(
             plan=provider_plan,
-            cases=cases,
+            points=points,
             work_dir=work_dir,
+            root_seed=root_seed,
+            iteration_paths=iteration_paths,
         )
+    except _EffectProviderPhaseFailure as exc:
+        diagnostic = _structured_failure(
+            point=exc.point,
+            phase=exc.phase,
+            error=exc.cause,
+            plan=provider_plan,
+            root_seed=root_seed,
+            replay_command_factory=replay_command_factory,
+            binding=exc.binding,
+        )
+        raise SystemExit(f"ERROR: semantic effect provider bind failed\n{diagnostic}") from exc
     except EffectProviderConfigurationError as exc:
         raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
     recorder = EffectRecorder()
@@ -1250,8 +1380,9 @@ def execute_cases_in_batch(
     projector_cache: dict[str, Any] = {}
     object_cache: dict[str, Any] = {}
 
-    runnable_by_kind: dict[str, list[tuple[Any, AdapterMapping]]] = {}
-    for case in cases:
+    runnable_by_kind: dict[str, list[tuple[ExecutionPoint, AdapterMapping]]] = {}
+    for point in points:
+        case = point.case
         mapping = adapter_for_case(case, mappings)
         if mapping is None:
             if requires_action_adapter(case):
@@ -1263,15 +1394,18 @@ def execute_cases_in_batch(
             if requires_action_adapter(case):
                 failures.append(f"{case.name} via {mapping.label}: no executable adapter")
                 continue
-        runnable_by_kind.setdefault(adapter_kind(mapping), []).append((case, mapping))
+        runnable_by_kind.setdefault(adapter_kind(mapping), []).append((point, mapping))
 
     for kind, entries in runnable_by_kind.items():
         shared: dict[str, Any] = {}
-        group_work_dir = work_dir / "kind-work" / kind.replace("/", "_").replace(":", "_")
+        group_root = work_dir / "kind-work"
+        if iteration_paths:
+            group_root = group_root / f"iteration-{entries[0][0].iteration:06d}"
+        group_work_dir = group_root / kind.replace("/", "_").replace(":", "_")
         group_work_dir.mkdir(parents=True, exist_ok=True)
-        group_cases = [case for case, _mapping in entries]
+        group_cases = [point.case for point, _mapping in entries]
         group_adapters: list[tuple[Any, AdapterMapping]] = []
-        for _case, mapping in entries:
+        for _point, mapping in entries:
             if mapping.adapter is None:
                 continue
             adapter = adapter_cache.get(mapping.adapter)
@@ -1300,7 +1434,8 @@ def execute_cases_in_batch(
                 failures.append(f"{kind} setup_all via {mapping.label}: {type(exc).__name__}: {exc}")
         try:
             if not setup_all_failed:
-                for case, mapping in entries:
+                for point, mapping in entries:
+                    case = point.case
                     adapter = adapter_cache.get(mapping.adapter) if mapping.adapter is not None else None
                     projector = None
                     if adapter is not None and mapping.output_projection:
@@ -1308,7 +1443,7 @@ def execute_cases_in_batch(
                         if projector is None:
                             projector = load_object(mapping.output_projection)
                             projector_cache[mapping.output_projection] = projector
-                    case_work_dir = work_dir / "case-work" / case.name
+                    case_work_dir = _point_work_dir(work_dir, point, iteration_paths=iteration_paths)
                     case_work_dir.mkdir(parents=True, exist_ok=True)
                     sandbox = (
                         EffectSandbox(root=case_work_dir / "sandbox", recorder=recorder)
@@ -1349,8 +1484,11 @@ def execute_cases_in_batch(
                     )
                     sandbox_scope = sandbox if sandbox is not None else _null_context()
                     application_error: Exception | None = None
+                    application_phase: str | None = None
                     teardown_error: Exception | None = None
                     escaped_error: Exception | None = None
+                    escaped_phase: str | None = None
+                    escaped_binding: ResolvedEffectProvider | None = None
                     semantic_mutation_error: Exception | None = None
                     semantic_snapshot = _case_semantic_snapshot(case)
                     provider_exit_tracker = _ProviderExitTracker()
@@ -1361,16 +1499,27 @@ def execute_cases_in_batch(
                         # reverse-order cleanup on every failure path.
                         with sandbox_scope, effect_scope, ExitStack() as provider_stack:
                             bound_effects: dict[str, Any] = {}
-                            for binding, provider_scope in prepared_provider_scopes.get(str(case.name), ()):
-                                value = provider_stack.enter_context(
-                                    _NonSuppressingProviderScope(provider_scope, provider_exit_tracker)
-                                )
-                                _assert_case_semantics_unchanged(
-                                    case,
-                                    semantic_snapshot,
-                                    stage=f"provider {binding.provider_reference!r} enter",
-                                )
+                            for binding, provider_scope in prepared_provider_scopes.get(point, ()):
+                                try:
+                                    value = provider_stack.enter_context(
+                                        _NonSuppressingProviderScope(
+                                            provider_scope,
+                                            provider_exit_tracker,
+                                            binding,
+                                        )
+                                    )
+                                    _assert_case_semantics_unchanged(
+                                        case,
+                                        semantic_snapshot,
+                                        stage=f"provider {binding.provider_reference!r} enter",
+                                    )
+                                except Exception:
+                                    escaped_phase = "enter"
+                                    escaped_binding = binding
+                                    raise
                                 if value is not None and not isinstance(value, binding.protocol):
+                                    escaped_phase = "invalid_binding"
+                                    escaped_binding = binding
                                     raise TypeError(
                                         f"provider {binding.provider_reference!r} binding for {binding.port_name} "
                                         f"does not implement generated port {binding.port_name}"
@@ -1380,23 +1529,27 @@ def execute_cases_in_batch(
 
                             try:
                                 if adapter is not None:
+                                    active_phase = "setup"
                                     call_optional_hook(adapter, "setup", case_context)
                                     _assert_case_semantics_unchanged(
                                         case,
                                         semantic_snapshot,
                                         stage=f"adapter {mapping.label} setup",
                                     )
+                                    active_phase = "run"
                                     case_context.result = call_adapter(adapter, case, case_work_dir)
                                     _assert_case_semantics_unchanged(
                                         case,
                                         semantic_snapshot,
                                         stage=f"adapter {mapping.label} execution",
                                     )
+                                    active_phase = "output_assert"
                                     assert_case_result_per_field(
                                         case=case,
                                         result=case_context.result,
                                         projector=projector,
                                     )
+                                active_phase = "projected_assert"
                                 assert_projected_state_if_configured(case_context, mapping, object_cache)
                                 _assert_case_semantics_unchanged(
                                     case,
@@ -1405,6 +1558,7 @@ def execute_cases_in_batch(
                                 )
                             except Exception as exc:
                                 application_error = exc
+                                application_phase = active_phase
                                 case_context.error = exc
                             finally:
                                 # Teardown belongs to the active provider and
@@ -1428,6 +1582,8 @@ def execute_cases_in_batch(
                                 raise teardown_error
                     except Exception as exc:
                         escaped_error = exc
+                        if escaped_phase is None:
+                            escaped_phase = application_phase or ("teardown" if teardown_error is not None else None)
                     try:
                         _assert_case_semantics_unchanged(
                             case,
@@ -1445,23 +1601,47 @@ def execute_cases_in_batch(
                     # or hide another during reverse-order unwinding.
                     reported_errors: list[Exception] = []
                     if application_error is not None:
-                        failures.append(
-                            f"{case.name} via {mapping.label}: "
-                            f"{type(application_error).__name__}: {application_error}"
-                        )
+                        if provider_plan.configured:
+                            failures.append(
+                                _structured_failure(
+                                    point=point,
+                                    phase=application_phase or "run",
+                                    error=application_error,
+                                    plan=provider_plan,
+                                    root_seed=root_seed,
+                                    replay_command_factory=replay_command_factory,
+                                )
+                            )
+                        else:
+                            failures.append(
+                                f"{case.name} via {mapping.label}: "
+                                f"{type(application_error).__name__}: {application_error}"
+                            )
                         reported_errors.append(application_error)
                     if teardown_error is not None:
-                        failures.append(
-                            f"{case.name} teardown via {mapping.label}: "
-                            f"{type(teardown_error).__name__}: {teardown_error}"
-                        )
+                        if provider_plan.configured:
+                            failures.append(
+                                _structured_failure(
+                                    point=point,
+                                    phase="teardown",
+                                    error=teardown_error,
+                                    plan=provider_plan,
+                                    root_seed=root_seed,
+                                    replay_command_factory=replay_command_factory,
+                                )
+                            )
+                        else:
+                            failures.append(
+                                f"{case.name} teardown via {mapping.label}: "
+                                f"{type(teardown_error).__name__}: {teardown_error}"
+                            )
                         reported_errors.append(teardown_error)
 
                     lifecycle_error = provider_exit_tracker.primary_error
                     if lifecycle_error is None and escaped_error is not None:
                         escaped_is_cleanup = any(
                             escaped_error is cleanup_error
-                            for cleanup_error in provider_exit_tracker.cleanup_errors
+                            for _binding, cleanup_error in provider_exit_tracker.cleanup_errors
                         )
                         if not escaped_is_cleanup:
                             lifecycle_error = escaped_error
@@ -1469,24 +1649,60 @@ def execute_cases_in_batch(
                         lifecycle_error is reported_error for reported_error in reported_errors
                     ):
                         case_context.error = lifecycle_error
-                        failures.append(
-                            f"{case.name} provider lifecycle via {mapping.label}: "
-                            f"{type(lifecycle_error).__name__}: {lifecycle_error}"
-                        )
+                        if provider_plan.configured:
+                            failures.append(
+                                _structured_failure(
+                                    point=point,
+                                    phase=escaped_phase or "provider_lifecycle",
+                                    error=lifecycle_error,
+                                    plan=provider_plan,
+                                    root_seed=root_seed,
+                                    replay_command_factory=replay_command_factory,
+                                    binding=escaped_binding,
+                                )
+                            )
+                        else:
+                            failures.append(
+                                f"{case.name} provider lifecycle via {mapping.label}: "
+                                f"{type(lifecycle_error).__name__}: {lifecycle_error}"
+                            )
                         reported_errors.append(lifecycle_error)
 
-                    for cleanup_error in provider_exit_tracker.cleanup_errors:
+                    for cleanup_binding, cleanup_error in provider_exit_tracker.cleanup_errors:
                         failures.append(
-                            f"{case.name} provider cleanup via {mapping.label}: "
-                            f"{type(cleanup_error).__name__}: {cleanup_error}"
+                            _structured_failure(
+                                point=point,
+                                phase="exit",
+                                error=cleanup_error,
+                                plan=provider_plan,
+                                root_seed=root_seed,
+                                replay_command_factory=replay_command_factory,
+                                binding=cleanup_binding,
+                            )
+                            if provider_plan.configured
+                            else (
+                                f"{case.name} provider cleanup via {mapping.label}: "
+                                f"{type(cleanup_error).__name__}: {cleanup_error}"
+                            )
                         )
                         reported_errors.append(cleanup_error)
                     if semantic_mutation_error is not None and not any(
                         semantic_mutation_error is reported_error for reported_error in reported_errors
                     ):
                         failures.append(
-                            f"{case.name} semantic oracle integrity via {mapping.label}: "
-                            f"{type(semantic_mutation_error).__name__}: {semantic_mutation_error}"
+                            _structured_failure(
+                                point=point,
+                                phase="oracle_integrity",
+                                error=semantic_mutation_error,
+                                plan=provider_plan,
+                                root_seed=root_seed,
+                                replay_command_factory=replay_command_factory,
+                            )
+                            if provider_plan.configured
+                            else (
+                                f"{case.name} semantic oracle integrity via {mapping.label}: "
+                                f"{type(semantic_mutation_error).__name__}: {semantic_mutation_error}"
+                            )
                         )
         finally:
             for adapter, mapping in reversed(group_adapters):
@@ -1515,7 +1731,7 @@ def execute_cases_in_batch(
         report = diff_effects(
             declarations,
             recorder.effects,
-            cases=[case.name for case in cases],
+            cases=[point.case.name for point in points],
             case_actions=observed_case_actions,
             unobservable=recorder.unobservable,
         )
@@ -1530,6 +1746,63 @@ def execute_cases_in_batch(
         details = "\n".join(failures[:50])
         suffix = f"\n... and {len(failures) - 50} more" if len(failures) > 50 else ""
         raise SystemExit(f"ERROR: {len(failures)} batched case executions failed\n{details}{suffix}")
+
+
+def execute_cases_in_batch(
+    *,
+    cases: list[Any],
+    mappings: dict[str, AdapterMapping],
+    work_dir: Path,
+    import_roots: list[Path],
+    declarations: Any = None,
+    effect_report_path: Path | None = None,
+    effect_provider_plan: EffectProviderPlan | None = None,
+    fuzz_runs: int = 1,
+    root_seed: int = 0,
+    fuzz_iteration: int | None = None,
+    replay_command_factory: Callable[[ExecutionPoint], str] | None = None,
+) -> int:
+    """Run a deterministic provider campaign, one fresh batch per iteration.
+
+    The single-run defaults intentionally retain the legacy batch lifecycle and
+    work-directory layout.  Selecting more runs, or an exact replay iteration,
+    creates a fresh adapter cache, shared mapping, provider binding, sandbox and
+    iteration-qualified work directory for every execution point.
+    """
+
+    if fuzz_runs < 1:
+        raise SystemExit("ERROR: --fuzz-runs must be at least 1")
+    if fuzz_iteration is not None and fuzz_iteration < 0:
+        raise SystemExit("ERROR: --fuzz-iteration must be non-negative")
+
+    provider_plan = effect_provider_plan or EffectProviderPlan(
+        MappingProxyType({}),
+        configured=False,
+    )
+    fuzz_requested = fuzz_runs != 1 or root_seed != 0 or fuzz_iteration is not None
+    if fuzz_requested and not provider_plan.configured:
+        raise SystemExit(
+            "ERROR: effect fuzz controls require at least one [effect_providers.<Port>] mapping"
+        )
+
+    iterations = [fuzz_iteration] if fuzz_iteration is not None else list(range(fuzz_runs))
+    iteration_paths = fuzz_iteration is not None or fuzz_runs != 1
+    for iteration in iterations:
+        assert iteration is not None
+        points = [ExecutionPoint(case=case, iteration=iteration) for case in cases]
+        _execute_points_in_batch(
+            points=points,
+            mappings=mappings,
+            work_dir=work_dir,
+            import_roots=import_roots,
+            declarations=declarations,
+            effect_report_path=effect_report_path,
+            effect_provider_plan=provider_plan,
+            root_seed=root_seed,
+            iteration_paths=iteration_paths,
+            replay_command_factory=replay_command_factory,
+        )
+    return len(cases) * len(iterations)
 
 
 def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
@@ -1556,9 +1829,46 @@ def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
         command.append("--validate-capabilities")
     if args.effect_report is not None:
         command.extend(["--effect-report", str(args.effect_report)])
+    command.extend(["--fuzz-runs", str(args.fuzz_runs), "--seed", str(args.seed)])
+    if args.fuzz_iteration is not None:
+        command.extend(["--fuzz-iteration", str(args.fuzz_iteration)])
     env = os.environ.copy()
     env["SPEC_DOUBLE_BATCH_REEXEC"] = "1"
     return subprocess.run(command, env=env).returncode
+
+
+def build_replay_command(
+    *,
+    args: argparse.Namespace,
+    spec_dir: Path | None,
+    import_roots: list[Path],
+    point: ExecutionPoint,
+) -> str:
+    """Return an absolute, shell-safe command for exactly one failed point."""
+
+    command = [
+        str(Path(sys.executable).resolve()),
+        str(Path(__file__).resolve()),
+        str(args.cases_dir.resolve()),
+        "--mapping",
+        str(args.mapping.resolve()),
+        "--batch",
+        "--seed",
+        str(args.seed),
+        "--fuzz-runs",
+        "1",
+        "--fuzz-iteration",
+        str(point.iteration),
+        "--case",
+        str(point.case.name),
+    ]
+    if spec_dir is not None:
+        command.extend(["--spec-dir", str(spec_dir.resolve())])
+    if args.view is not None:
+        command.extend(["--view", args.view])
+    for root in import_roots:
+        command.extend(["--import-root", str(root.resolve())])
+    return shlex.join(command)
 
 
 def execute_programs(programs: list[Path], python: list[str]) -> None:
@@ -1591,6 +1901,23 @@ def main() -> int:
         "--effect-report",
         type=Path,
         help="Write the MF-013 effect conformance diff report (JSON) to this path.",
+    )
+    parser.add_argument(
+        "--fuzz-runs",
+        type=int,
+        default=1,
+        help="Run each selected case this many deterministic effect-provider iterations.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Root seed used to derive stable per-case, per-iteration, per-port seeds.",
+    )
+    parser.add_argument(
+        "--fuzz-iteration",
+        type=int,
+        help="Run exactly this iteration (the replay selector; --fuzz-runs is ignored).",
     )
     args = parser.parse_args()
 
@@ -1634,6 +1961,15 @@ def main() -> int:
         batch=args.batch,
         validate_only=args.validate_only,
     )
+    if args.fuzz_runs < 1:
+        raise SystemExit("ERROR: --fuzz-runs must be at least 1")
+    if args.fuzz_iteration is not None and args.fuzz_iteration < 0:
+        raise SystemExit("ERROR: --fuzz-iteration must be non-negative")
+    fuzz_requested = args.fuzz_runs != 1 or args.seed != 0 or args.fuzz_iteration is not None
+    if fuzz_requested and not effect_provider_plan.configured:
+        raise SystemExit(
+            "ERROR: effect fuzz controls require at least one [effect_providers.<Port>] mapping"
+        )
     if args.validate_capabilities:
         validate_adapter_capabilities(
             cases=runnable_cases,
@@ -1650,7 +1986,7 @@ def main() -> int:
                 declarations = load_effect_declarations_for_spec(spec_dir)
             except EffectDeclarationError as exc:
                 raise SystemExit(f"ERROR: malformed effect declarations: {exc}")
-            execute_cases_in_batch(
+            executed_points = execute_cases_in_batch(
                 cases=runnable_cases,
                 mappings=mappings,
                 work_dir=work_dir,
@@ -1658,8 +1994,20 @@ def main() -> int:
                 declarations=declarations,
                 effect_report_path=args.effect_report,
                 effect_provider_plan=effect_provider_plan,
+                fuzz_runs=args.fuzz_runs,
+                root_seed=args.seed,
+                fuzz_iteration=args.fuzz_iteration,
+                replay_command_factory=lambda point: build_replay_command(
+                    args=args,
+                    spec_dir=spec_dir,
+                    import_roots=default_import_roots,
+                    point=point,
+                ),
             )
-            print(f"executed {len(runnable_cases)} cases in batch")
+            if args.fuzz_runs == 1 and args.fuzz_iteration is None:
+                print(f"executed {len(runnable_cases)} cases in batch")
+            else:
+                print(f"executed {executed_points} effect-fuzz execution points")
     else:
         programs = generate_programs(
             cases=runnable_cases,
