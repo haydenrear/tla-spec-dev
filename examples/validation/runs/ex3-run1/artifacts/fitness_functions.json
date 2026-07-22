@@ -1,0 +1,35 @@
+{
+  "_comment": "Remembered design decisions from the 2026-07-21 complexity refactor (validation_artifacts/complexity_decision.md). JSON form because this environment runs the CLI under bare python3 without PyYAML (references/fitness_functions.md). Advisory: a FIRED rule notifies future agents, it never blocks.",
+  "fitness_functions": [
+    {
+      "name": "bound-stays-proportional",
+      "description": "domains stay sized to the behavior's distinctions (orders/shipped 0..3, retries 0..2, auditLog 0..12 gave bound 624); re-widened counters or reintroduced bookkeeping state should trip this",
+      "rule": {
+        "all": [
+          {"fact": "bound", "op": "<=", "value": 2000},
+          {"fact": "variable_domain", "var": "auditLog", "op": "<=", "value": 13}
+        ]
+      }
+    },
+    {
+      "name": "audit-cap-is-the-only-hub",
+      "description": "auditLog is the one accepted dense row (the cap really does stop every action); a second god-state variable (a mode/dirty-style stamp) or a second dense column beyond ShipOrder's guard read is a regression",
+      "rule": {
+        "all": [
+          {"fact": "god_state_count", "op": "<=", "value": 1},
+          {"fact": "dense_column_count", "op": "<=", "value": 1}
+        ]
+      }
+    },
+    {
+      "name": "all-state-load-bearing",
+      "description": "every variable is invariant-read and carries a justification",
+      "rule": {
+        "all": [
+          {"fact": "unread_by_invariant_count", "op": "==", "value": 0},
+          {"fact": "unjustified_count", "op": "==", "value": 0}
+        ]
+      }
+    }
+  ]
+}

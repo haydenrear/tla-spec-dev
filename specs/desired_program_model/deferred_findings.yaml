@@ -33,3 +33,96 @@ findings:
     blast_radius: "CD-03 also owns scripts/analyze_complexity.py in its conflict keys."
     disposition: pending
     disposition_ticket: null
+  - id: VAL-01
+    found_by: "validation-ex3-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/fitness_functions.py", "references/fitness_functions.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Manifest-embedded fitness rules mis-parse under a bare python3 (no
+      PyYAML): the fallback manifest parser turns flow-style rule leaves into
+      garbage keys and every rule surfaces as "INVALID: rule node needs one
+      of 'fact', 'all', 'any', 'not'; got keys ['{fact']" with no hint that
+      PyYAML is missing, while references/fitness_functions.md promises an
+      advisory CONFIG ERROR for that case. The documented
+      fitness_functions.json escape hatch works correctly.
+    reproduction: >-
+      Add a fitness_functions: block with flow-style leaves ({fact: bound,
+      op: "<=", value: 2000}) to a project spec_manifest.yaml, then run
+      `python3 scripts/tla_spec_dev.py --spec-root <specs> analyze complexity
+      <tla> <cfg>` with a python3 lacking PyYAML. Observed: INVALID with
+      keys ['{fact']. Expected: advisory CONFIG ERROR naming missing PyYAML.
+      Reproduced by the epic owner 2026-07-21.
+    evidence: ["examples/validation/runs/ex3-run1/scoring.md"]
+    why_out_of_scope: >-
+      Found during post-epic validation runs; validation is a measurement and
+      files findings rather than fixing them (MF-037 discipline).
+    suggested_fix: >-
+      Detect the PyYAML-absent case in the manifest fitness loader and emit
+      the documented CONFIG ERROR (naming PyYAML and the .json alternative)
+      instead of feeding the fallback parse into rule validation.
+    blast_radius: "scripts/fitness_functions.py loader; references/fitness_functions.md wording."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-02
+    found_by: "validation-ex3-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/budgets.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Every scan of a manifest whose budgets block follows the shipped docs
+      warns "budgets block ... is missing kill_rate_floor,
+      max_symmetric_instances; using documented defaults" — retired
+      fuzzing-era keys the descriptor-era docs no longer instruct projects
+      to set, so a per-docs manifest warns on every run.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root <specs> analyze complexity
+      <tla> <cfg>` against a manifest with the budgets keys the current README
+      documents. Observed: the missing-keys warning names kill_rate_floor and
+      max_symmetric_instances. Expected: no warning for a per-docs manifest.
+    evidence: ["examples/validation/runs/ex3-run1/scoring.md"]
+    why_out_of_scope: >-
+      Found during post-epic validation runs; filed, not fixed (MF-037
+      discipline).
+    suggested_fix: >-
+      Drop the retired keys from the required-budgets set (or gate them
+      behind the experimental fuzzing surface).
+    blast_radius: "scripts/budgets.py; any doc listing the budgets block keys."
+    disposition: pending
+    disposition_ticket: null
+  - id: VAL-03
+    found_by: "validation-ex3-run1"
+    found_at_commit: "9a80f7b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/run_tlc.sh"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      run_tlc.sh leaves a TLC states/ scratch directory inside the target
+      project's specs/program_model/ directory (harmless but pollutes the
+      spec dir; the repo's own examples/workspace shows the same residue).
+    reproduction: >-
+      `bash scripts/run_tlc.sh <project>/specs/program_model/<M>.tla <cfg>`;
+      observe <project>/specs/program_model/states/ afterwards. Expected:
+      scratch output under a build/tmp location or cleaned up.
+    evidence: ["examples/validation/runs/ex3-run1/scoring.md"]
+    why_out_of_scope: >-
+      Found during post-epic validation runs; filed, not fixed (MF-037
+      discipline).
+    suggested_fix: "Point TLC's metadir at a temp dir or delete states/ on exit."
+    blast_radius: "scripts/run_tlc.sh only."
+    disposition: pending
+    disposition_ticket: null
