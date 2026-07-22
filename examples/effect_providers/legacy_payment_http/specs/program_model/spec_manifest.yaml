@@ -1,0 +1,55 @@
+module: PaymentHttp
+package: payment_http_contract
+types: {}
+state:
+  PaymentHttpState:
+    fields:
+      attempts:
+        type: int
+commands:
+  PaymentHttpRequest:
+    fields:
+      method:
+        type: str
+      url:
+        type: str
+      amount:
+        type: int
+      idempotency_key:
+        type: str
+results:
+  PaymentHttpResponse:
+    fields:
+      status_code:
+        type: int
+      body:
+        type: bytes
+ports:
+  PaymentHttpPort:
+    role: effect
+    methods:
+      send:
+        command: PaymentHttpRequest
+        result: PaymentHttpResponse
+invariants:
+  - TypeInvariant
+  - ResultInvariant
+fake:
+  class: PaymentHttpSpecDouble
+  actions: {}
+budgets:
+  tlc_seconds: 120
+  max_distinct_states: 500
+  max_state_space_bound: 5000
+  max_internal_cases_per_component: 200
+  max_external_cases_per_action: 50
+  kill_rate_floor: 1
+  max_component_variables: 7
+  max_component_actions: 8
+  max_symmetric_instances: 2
+  source: preregistered-example
+  rationale:
+    max_component_variables: >-
+      Seven small semantic fields keep decision, reason, reference class, and
+      attempts explicit in the generated oracle.
+adapters: case_adapters.toml
