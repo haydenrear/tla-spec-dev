@@ -17,8 +17,8 @@ changes.
 | Effectful score | 12/12 in both repetitions; every expected detector fired |
 | Hand-written four-scenario baseline | 10/12; AP-05 and AP-07 survive because their failure outcomes are absent |
 | Generated points per control repetition | 112 (7 cases × 16 deterministic representatives) |
-| Provider point runtime p50 / p95 | 3.491 / 5.365 ms; 3.408 / 5.286 ms |
-| Deterministic repetition digests | transcript `8a5554b6…` and verdict `35b89899…` identical twice |
+| Provider point runtime p50 / p95 | 3.303 / 5.504 ms; 3.211 / 5.354 ms |
+| Deterministic repetition digests | transcript `784a96c0…` and verdict `35b89899…` identical twice |
 | First-discovery replay | 12/12 exact transcript digests |
 | Real `TemporaryDirectory` conformance | 7/7 outcomes green; directory removed after every scenario |
 | Cleanup/isolation | 392 points checked, 8 bypass files detected/removed, zero leaked paths, all provider state clean |
