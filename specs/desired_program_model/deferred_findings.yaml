@@ -158,3 +158,38 @@ findings:
     blast_radius: "Anyone following the README's local-mode wrapper instructions end to end; the documented adapter-path commands and the k3d graph path are unaffected."
     disposition: pending
     disposition_ticket: null
+  - id: CD-06-DF-01
+    found_by: "ticket-agent-CD-06"
+    found_at_commit: "1e147dc"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/fitness_functions.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The fitness fact-catalog description for action_count still reads
+      "number of actions (definitions priming a variable)"
+      (scripts/fitness_functions.py:54). After CD-06 the descriptor's action
+      set is the set of top-level next-state-relation disjuncts with
+      called-operator bodies expanded transitively; the computed VALUE is
+      correct (facts are derived from the corrected measured.actions
+      payload), but the human-readable description now states the retired
+      primes heuristic.
+    reproduction: >-
+      grep -n "definitions priming" scripts/fitness_functions.py -- the
+      description surfaces in references/fitness_functions.md-adjacent help
+      for rule authors.
+    evidence: []
+    why_out_of_scope: >-
+      scripts/fitness_functions.py is CD-07's conflict key
+      (production list in the canonical plan), not CD-06's; editing it here
+      would collide with the dispatched conflict-key contract. Wording-only:
+      no computed fact changes.
+    suggested_fix: >-
+      In CD-07's language sweep, reword to "number of actions (top-level
+      next-state-relation disjuncts; helpers attributed to their callers)".
+    blast_radius: "Rule authors reading the fact catalog; no numeric or behavioral effect."
+    disposition: pending
+    disposition_ticket: null
