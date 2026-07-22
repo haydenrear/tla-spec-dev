@@ -2805,6 +2805,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-04",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T23:00:46.065394+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-03",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "Zero host TLA+ model delta. Ticket current and desired are byte-identical. TLC completed with no error at 5,619,356 generated states, 231,621 distinct states, and depth 25. See results/zero-model-delta.md.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited example-local EP-03 evidence remains 36/36 in examples/effect_providers/RESULTS.json. EP-04 changes no example model or oracle and does not reclassify this bounded measurement as universal.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "Inherited example-local lifecycle and bypass evidence remains in examples/effect_providers/RESULTS.md. Focused EP-04 provider runtime tests passed 120/120 after the public helper reduction.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited EP-03 evidence retains 70/70 generated External cases. EP-04 changes the provider authoring contract only and adds no external-model transition.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "The authoring/runtime contract has no modeled CLI branch. Adding provider configuration state would invent a command rather than refine observed host behavior. Generic correctness findings remain scheduled as EP-05.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "results/zero-model-delta.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

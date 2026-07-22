@@ -52,15 +52,22 @@ def test_scaffold_emits_both_views_and_both_adapter_mappings(tmp_path: Path) -> 
     case_adapters = (program_model / "case_adapters.toml").read_text(encoding="utf-8")
     assert "InternalAdapter" in case_adapters
     assert "[effect_providers.ExampleEffectPort]" in case_adapters
-    assert "specs.program_model.providers:temporary_filesystem_provider" in case_adapters
+    assert "specs.program_model.providers:effect_provider" in case_adapters
 
     actions = (program_model / "actions.yml").read_text(encoding="utf-8")
     assert actions.count("effect_ports: []") == 11
 
     providers = (program_model / "providers.py").read_text(encoding="utf-8")
-    assert "temporary_root_provider" in providers
-    assert "context_provider" in providers
+    assert "class ProjectEffectProvider" in providers
+    assert "def bind(" in providers
+    assert "temporary_root_provider" not in providers
+    assert "context_provider" not in providers
     assert "SCAFFOLD:" in providers
+
+    usage = (program_model / "effect_provider_usage.yaml").read_text(encoding="utf-8")
+    assert "version: 1" in usage
+    assert "providers: []" in usage
+    assert "bypass_limits:" in usage
 
     bindings = (program_model / "testgraph_bindings.yml").read_text(encoding="utf-8")
     for hook in ("adapter:", "projector:", "expected_projection:", "assertion:"):
