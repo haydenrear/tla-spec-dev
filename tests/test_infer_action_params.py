@@ -210,10 +210,11 @@ EXPECTED = {
     "AnalyzeCorpus": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
     "RunKillTest": {"root": "default_specs"},
+    # CD-09 (G2): the `override` parameter left the model with the withdrawn
+    # blocking gate -- RunSpecUnitTests is (root, ticket) now.
     "RunSpecUnitTests": {
         "root": "custom_specs",
         "ticket": "cli_workflow",
-        "override": UNCHECKED,
     },
     "CloseTicket": {"root": "default_specs", "ticket": "cli_validation"},
 }
@@ -237,9 +238,9 @@ NEGATIVE_CONTROLS = {
     "UpdateTicketDesired": {"ticket": "cli_workflow"},
     "UpdateTicketCurrent": {"ticket": "cli_validation"},
     "CloseTicket": {"root": "default_specs", "ticket": "cli_entrypoint"},
-    # UNCHECKED must not compare equal to a concrete argument. This is the
-    # control that catches fabrication: if inference ever invented a value for
-    # `override`, or if UNCHECKED were made permissive, this stops failing.
+    # CD-09: `override` no longer exists on this action, so claiming it is
+    # claiming a phantom argument -- the check must fail rather than ignore
+    # the extra key.
     "RunSpecUnitTests": {
         "root": "custom_specs",
         "ticket": "cli_workflow",
@@ -429,9 +430,17 @@ def test_only_written_through_actions_block_a_check(recipes):
 # ---------------------------------------------------------------------------
 
 
-def test_override_is_unchecked_not_fabricated(recipes):
+def test_override_is_gone_from_the_model_not_inferred(recipes):
+    """CD-09 (G2): the withdrawn --allow-over-budget override left the model.
+
+    The parameter list is parsed from the module source, so this is a
+    regression against the blocking gate quietly returning: RunSpecUnitTests
+    must infer exactly (root, ticket) and nothing may fabricate an `override`.
+    """
     before, after = pair("RunSpecUnitTests")
-    assert infer_params("RunSpecUnitTests", before, after, recipes)["override"] is UNCHECKED
+    params = infer_params("RunSpecUnitTests", before, after, recipes)
+    assert "override" not in params
+    assert set(params) == {"root", "ticket"}
 
 
 @pytest.mark.parametrize("value", [True, False, None, 0, "", "TRUE", "override"])
@@ -497,7 +506,9 @@ def test_audit_covers_every_action(recipes):
     audit = render_audit(recipes)
     for action in ALL_ACTIONS:
         assert f"`{action}`" in audit, f"{action} missing from the audit"
-    assert "RunSpecUnitTests(override)" in audit
+    # CD-09: no parameter anywhere in the model is unrecoverable any more --
+    # `override`, the one UNCHECKED parameter, left with the withdrawn gate.
+    assert "override" not in audit
 
 
 def test_mechanism_classification_matches_the_model(recipes):
@@ -509,7 +520,6 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert mechanism("OpenTicket", "ticket") == EXCEPT_INDEX
     assert mechanism("CloseTicket", "root") == GUARD_PINNED
     assert mechanism("CloseTicket", "ticket") == EXCEPT_INDEX
-    assert mechanism("RunSpecUnitTests", "override") == UNRECOVERABLE
     assert recipes["BuildSkillCli"].params == ()
     assert recipes["InstallLocalCli"].params == ()
 

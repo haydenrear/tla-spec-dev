@@ -710,7 +710,9 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
     def test_the_real_catalog_has_one_mutant_per_port_and_per_invariant(self) -> None:
         catalog, _ = load_catalog(self.spec_dir / "kill_mutants.toml")
         required = required_boundaries(self.spec_dir)
-        assert len(required) == 19, "5 declared ports + 14 invariants"
+        # CD-09: tlc_process (dead port, G4) and SpecUnitTestsRequireAnalyzedGate
+        # (withdrawn blocking gate's invariant, G2) left the declared surface.
+        assert len(required) == 17, "4 declared ports + 13 invariants"
         assert len(catalog) >= len(required)
 
     def test_the_real_catalog_declares_no_suppressions(self) -> None:
@@ -789,7 +791,7 @@ class TestCliSurface:
         result = self.run_cli("--target", "specs/current", "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
-        assert "19/19 declared boundaries carry a seeded fault." in result.stdout
+        assert "17/17 declared boundaries carry a seeded fault." in result.stdout
 
     def test_a_missing_corpus_command_is_refused_not_defaulted(self) -> None:
         """Without a corpus there is nothing to kill mutants with, so

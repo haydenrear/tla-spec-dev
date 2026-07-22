@@ -34,6 +34,18 @@ diagnostics, not as satisfied/violated gates. The objective is real and usable
 today; the constraints are a research aspiration under test (MF-037). See SKILL.md,
 "What Is Shipped And What Is Experimental".
 
+**CD-09 retention-basis amendment (owner-approved 2026-07-22).** The
+mechanized ledger (`scripts/complexity_ledger.py`) licenses a complexity
+**decrease** by the **validated-refactor basis** — the CD-02 definition of a
+validated refactor: TLC green on the model before AND after the change,
+behavior tests green, the before/after descriptor comparison recorded, and the
+transition-level diff inspected whenever the MF-020 red flag fires (that gate
+is retained exactly as it was). The three fuzzing-era members above stay
+**recorded** in every ledger entry — `not_run` is the honest post-pivot value —
+but no longer reject a decrease: an oracle not validated to catch bugs cannot
+license or refuse anything. Non-gating is not unrecorded; every entry and
+report still shows them.
+
 Rules that follow:
 
 - **The objective is standing, not triggered.** Do not wait for a gate
@@ -71,9 +83,11 @@ which may expose the next refinement:
    measured complexity while retaining the behaviors? Use the three moves
    and their diagnostics. Emit any candidate as a recommendation with
    evidence for user approval.
-4. Verify: after an approved refinement, rerun the constraint set (kill
-   rate, effect conformance, external coverage) and the measurement. A
-   refinement that lowers complexity but degrades retention is reverted.
+4. Verify: after an approved refinement, rerun the validated-refactor basis
+   (TLC before/after, behavior tests, before/after descriptor comparison —
+   CD-09) and the measurement; record the fuzzing-era members honestly
+   (`not_run` unless actually run). A refinement that lowers complexity but
+   degrades the basis is reverted.
 5. Recurse: a landed refinement re-opens step 1 — decompositions expose
    projectable state, projections expose narrower cuts. Stop when a full
    pass yields no approvable candidate, and record that as the ticket's

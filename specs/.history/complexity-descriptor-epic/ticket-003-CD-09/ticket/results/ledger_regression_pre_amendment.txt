@@ -1,0 +1,17 @@
+# CD-09 retention-basis regression: pre-amendment run (scripts/complexity_ledger.py at baseline 5603546)
+# Command: uv run --with pytest --with pyyaml -m pytest tests/test_complexity_ledger.py::TestValidatedRefactorBasis -q
+
+E       assert 'validated_refactor:' in '# Complexity ledger input -- MF-019 standing objective.\n#\n# `close ticket` refuses until this is filled in. That re...natives, findings the\n# machine-checked core above cannot express. Path to a document, or prose.\nnarrative: "TODO"\n'
+E        +  where '# Complexity ledger input -- MF-019 standing objective.\n#\n# `close ticket` refuses until this is filled in. That re...natives, findings the\n# machine-checked core above cannot express. Path to a document, or prose.\nnarrative: "TODO"\n' = cl.TEMPLATE
+
+tests/test_complexity_ledger.py:888: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_cd09_regression_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_decrease_with_missing_descriptor_comparison_is_rejected
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_decrease_with_failed_tlc_after_is_rejected
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_decrease_with_failed_behavior_tests_is_rejected
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_unrecognized_validated_refactor_status_refuses
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_degraded_fuzzing_member_no_longer_blocks_a_validated_decrease
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_validated_refactor_block_is_recorded_in_the_entry
+FAILED tests/test_complexity_ledger.py::TestValidatedRefactorBasis::test_template_scaffolds_the_validated_refactor_block
+8 failed, 3 passed in 0.09s

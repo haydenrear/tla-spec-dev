@@ -1,0 +1,278 @@
+CD-09 -- before/after complexity descriptors and TLC counts
+===========================================================
+
+Model delta: coverage-audit run 2 gap G2 (advisory-faithful model), with G4
+(dead tlc_process port) and G5 (binding reconciliation) landing in the same
+tree. Before = epic tip 5603546 (specs/current baseline); after = the CD-09
+ticket model.
+
+Summary table (all figures MEASURED)
+------------------------------------
+
+  metric                      before        after         delta
+  --------------------------  ------------  ------------  ----------------
+  variables                   9             9             0
+  actions (@command set)      14            14            0
+  static bound                699,840       699,840       0
+  TLC distinct states         231,621       283,805       +52,184 (+22.5%)
+  TLC generated states        5,619,356     6,209,780     +590,424 (+10.5%)
+  TLC depth                   25            25            0
+  modularity Q                0.012         0.000         -0.012
+  max_distinct_states budget  500,000       500,000       utilization 46.3% -> 56.8%
+
+Reading
+-------
+
+The advisory-faithful delta is a distinct-state INCREASE at constant
+variables, bound, actions, and depth. That is the expected shape: the removed
+guard (`complexity_gate = "pass" \/ (fail /\ override)`) was a BLOCKING branch
+the shipped program does not perform, so removing it EXPANDS the represented
+behavior to what the program actually does -- spec-unit runs (and therefore
+ticket advancement) are reachable while complexity_gate is still "unknown",
+exactly as `tla-spec-dev run spec-unit-tests` behaves (it performs no
+complexity check; the descriptor is advisory, MF-036/CD-01). The ticket brief
+predicted a decrease; the measurement says otherwise, and the measurement
+wins. There is NO generated-states drop at constant distinct states, so the
+MF-020 red-flag pattern does not arise in this delta; the transition-level
+diff is still recorded (transition_diff.md) and every edge change is
+explained there.
+
+The carried budget matters now: max_distinct_states stays at the negotiated
+500,000 (rationale preserved verbatim in spec_manifest.yaml budgets block);
+the after-model reaches 283,805 distinct states, 56.8% of that cap -- the
+un-negotiated 50,000 default would false-fail this honest model.
+
+Descriptor-visible structural effects:
+- complexity_gate's row in the R/W matrix is now write-only (AnalyzeComplexity
+  records it; no action reads it) -- the descriptor now shows the advisory
+  verdict as an observable fact, not a control input.
+- The variable-interaction clustering collapses from two components
+  (C1: 6 vars / C2: complexity_gate, corpus_gate, effect_conformance) to one
+  9-variable component, adding an advisory WARNING (9 > max_component_variables
+  6) alongside the pre-existing 14 > max_component_actions 8. Q drops 0.012 ->
+  0.000. This is honest: the gate-read edge that made C2 look separable was
+  the withdrawn blocking coupling; without it the single-module baseline is
+  what it always was, one component (the Internal/External split remains the
+  recorded known_gap, MF-023 lineage).
+- Justification linkage: every variable still linked (complexity_gate via
+  TypeInvariant); invariant-coverage gaps unchanged (lastCommand, result).
+
+TLC invariant sets: SpecUnitTestsRequireAnalyzedGate removed from the model,
+MC.cfg, and MCsmall.cfg (it asserted the withdrawn blocking behavior and is
+false of the advisory program; tombstone comment in the module). All 13
+remaining invariants green in both runs (tlc_before.txt, tlc_current.txt).
+
+Full before/after descriptor outputs follow.
+
+============================================================
+DESCRIPTOR BEFORE (baseline 5603546)
+============================================================
+analyze complexity -- TlaSpecDevCli (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain                                                        cardinality  note
+------------------  ------------------------------------------------------------  -----------  ---------------------------------------------------------
+setup_phase         0..5                                                          6
+spec_root           SpecRoots \cup {NoRoot}                                       3
+ticket_state        [Tickets -> 0..5]                                             216          6^3 total functions
+lastCommand         (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+result              (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+complexity_gate     {"unknown", "pass", "fail"}                                   3
+corpus_gate         {"unknown", "pass", "fail"}                                   3
+effect_conformance  {"unknown", "clean", "gaps", "dead_surface", "unobservable"}  5
+kill_test           {"unknown", "pass", "below_floor", "incomplete_catalog"}      4
+
+[MEASURED] State-space upper bound
+  bound = 699,840  (product of 7 bounded dimensions; domains from TypeInvariant)
+  excluded (no resolvable domain): lastCommand, result
+  dominant dimensions:
+    ticket_state: 216 (39.9% of the bound in log space)
+    setup_phase: 6 (13.3% of the bound in log space)
+    effect_conformance: 5 (12.0% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw
+lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+result              w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            r                 .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .
+kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.012 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: kill_test, lastCommand, result, setup_phase, spec_root, ticket_state  (6 variables, 14 actions)
+  C2: complexity_gate, corpus_gate, effect_conformance  (3 variables, 4 actions)
+  candidate port-crossing actions:
+    AnalyzeComplexity crosses C1, C2
+    AnalyzeCorpus crosses C1, C2
+    RunEffectConformance crosses C1, C2
+    RunSpecUnitTests crosses C1, C2
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastCommand touched by 14/14 actions
+    result touched by 14/14 actions
+    setup_phase touched by 12/14 actions
+    spec_root touched by 10/14 actions
+  dense columns (action touching more than half the variables):
+    AnalyzeComplexity
+    AnalyzeCorpus
+    CloseTicket
+    OpenTicket
+    RunEffectConformance
+    RunKillTest
+    RunSpecUnitTests
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    lastCommand
+    result
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.
+
+============================================================
+DESCRIPTOR AFTER (CD-09 ticket model)
+============================================================
+analyze complexity -- TlaSpecDevCli (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain                                                        cardinality  note
+------------------  ------------------------------------------------------------  -----------  ---------------------------------------------------------
+setup_phase         0..5                                                          6
+spec_root           SpecRoots \cup {NoRoot}                                       3
+ticket_state        [Tickets -> 0..5]                                             216          6^3 total functions
+lastCommand         (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+result              (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+complexity_gate     {"unknown", "pass", "fail"}                                   3
+corpus_gate         {"unknown", "pass", "fail"}                                   3
+effect_conformance  {"unknown", "clean", "gaps", "dead_surface", "unobservable"}  5
+kill_test           {"unknown", "pass", "below_floor", "incomplete_catalog"}      4
+
+[MEASURED] State-space upper bound
+  bound = 699,840  (product of 7 bounded dimensions; domains from TypeInvariant)
+  excluded (no resolvable domain): lastCommand, result
+  dominant dimensions:
+    ticket_state: 216 (39.9% of the bound in log space)
+    setup_phase: 6 (13.3% of the bound in log space)
+    effect_conformance: 5 (12.0% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw
+lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+result              w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            .                 .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .
+kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.000 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state  (9 variables, 14 actions)
+  no port-crossing actions (single component, or fully independent components)
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastCommand touched by 14/14 actions
+    result touched by 14/14 actions
+    setup_phase touched by 12/14 actions
+    spec_root touched by 10/14 actions
+  dense columns (action touching more than half the variables):
+    AnalyzeComplexity
+    AnalyzeCorpus
+    CloseTicket
+    OpenTicket
+    RunEffectConformance
+    RunKillTest
+    RunSpecUnitTests
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    lastCommand
+    result
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/current/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6
+
+  WARNING: component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.

@@ -1,0 +1,43 @@
+CD-09 -- binding reconciliation (coverage-audit run 2, gap G5)
+==============================================================
+
+Audit finding: specs/current/case_adapters.toml bound 11 labels against a
+14-action model; UpdateTicketDesired, UpdateTicketCurrent,
+RunEffectConformance, RunKillTest had adapter classes but no binding;
+ValidateTestGraphCli was bound but is not a model action.
+
+Reconciliation landed:
+- ADDED bindings (adapter classes already existed in production_adapters.py):
+    UpdateTicketDesired  -> production_adapters:UpdateTicketDesiredAdapter
+    UpdateTicketCurrent  -> production_adapters:UpdateTicketCurrentAdapter
+    RunEffectConformance -> production_adapters:RunEffectConformanceAdapter
+    RunKillTest          -> production_adapters:RunKillTestAdapter
+- DROPPED binding: ValidateTestGraphCli (not a model action; the
+  TestGraphCliAdapter class remains for the test graph, unbound here).
+- Stutter deliberately unbound: no @command annotation (stuttering frame, not
+  an observable command); the descriptor's action count (14) excludes it too.
+
+The binding set now equals the model's @command action set exactly (14 = 14),
+proven both directions plus adapter resolvability/action_name agreement by
+specs tests (test_tla_spec_dev_binding_reconciliation.py), which run in the
+spec-unit suite for both specs/current and the ticket trees.
+
+Final label set (14):
+[adapters.BuildSkillCli]
+[adapters.InstallLocalCli]
+[adapters.ScaffoldProject]
+[adapters.RecordBudgets]
+[adapters.ScaffoldWorkflow]
+[adapters.OpenTicket]
+[adapters.UpdateTicketDesired]
+[adapters.UpdateTicketCurrent]
+[adapters.AnalyzeComplexity]
+[adapters.AnalyzeCorpus]
+[adapters.RunEffectConformance]
+[adapters.RunKillTest]
+[adapters.RunSpecUnitTests]
+[adapters.CloseTicket]
+
+Test run:
+....                                                                     [100%]
+4 passed in 0.01s
