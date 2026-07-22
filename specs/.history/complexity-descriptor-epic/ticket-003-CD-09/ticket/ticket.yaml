@@ -1,0 +1,126 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-09",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "No override input and no blocking-gate branch remains in the model; the model's gate surface matches the advisory program (grep + TLC evidence).",
+        "Declared ports match actual spawns of modeled actions; no dead port (G4).",
+        "case_adapters.toml binds exactly the model's action set; spec-unit tests prove it (G5).",
+        "The ledger licenses this ticket's decrease via the validated-refactor basis: TLC green before/after with before/after descriptor comparison recorded, behavior tests green, transition-level diff inspected for the red-flag pattern; fuzzing retention members recorded not_run without gating (regression tests updated, failing pre-amendment for a validated decrease).",
+        "This is a REAL model delta: record before/after TLC counts and the transition-level diff; a generated-states drop at constant distinct states without a recorded transition diff still REJECTS (the red-flag gate is retained)."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-09"
+      ],
+      "evidence": [
+        "specs/tickets/CD-09/results/model_before_after_descriptors.txt",
+        "specs/tickets/CD-09/results/transition_diff.md",
+        "specs/tickets/CD-09/results/binding_reconciliation.txt",
+        "specs/tickets/CD-09/results/tlc_current.txt",
+        "specs/tickets/CD-09/results/spec_unit_tests.txt",
+        "specs/tickets/CD-09/results/repo_unit_tests.txt",
+        "specs/tickets/CD-09/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-09/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/production_adapters.py",
+        "specs/current/case_adapters.toml",
+        "specs/current/spec_manifest.yaml"
+      ],
+      "production": [
+        "scripts/complexity_ledger.py",
+        "tests/test_complexity_ledger.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla",
+        "MC.cfg"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "reconciled case_adapters.toml binding set"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/83",
+    "id": "CD-09",
+    "implementation_scope": [
+      "specs/current/TlaSpecDevCli.tla + MC.cfg (override removal; advisory-faithful guards; invariants)",
+      "specs/current/spec_manifest.yaml (ports; justification table rows touched)",
+      "specs/current/case_adapters.toml + production_adapters.py (binding reconciliation)",
+      "scripts/complexity_ledger.py + tests/test_complexity_ledger.py (retention basis)"
+    ],
+    "objective": "Fix the three REAL desyncs coverage-audit run 2 found (report: specs/results/epic-close/coverage_audit_report.md), plus the owner-approved retention-basis amendment that licenses the resulting complexity decrease. (G2) The model still represents the withdrawn blocking complexity gate: TlaSpecDevCli.tla ~528 guards on complexity_gate = \"fail\" /\\ override, and the override input survives, while the program has been advisory since MF-036/CD-01 and proceeds-on-fail with no flag (generate_cases_from_tlc_dump.py 866-882). Make the model advisory-faithful: remove the override variable and every blocking branch; the recorded verdict state may remain as an observable fact. (G4) AnalyzeComplexity declares a tlc_process port (*java*) but the analyze path spawns nothing \u2014 remove the dead port declaration from the action (and the port if unused). (G5) case_adapters.toml binds 11 of 14 model actions plus ValidateTestGraphCli which is not an action \u2014 reconcile bindings to the exact action set (bind the missing, drop the non-action), with spec-unit tests proving the mapping. (RETENTION AMENDMENT, owner-approved 2026-07-22:) amend scripts/complexity_ledger.py so a complexity DECREASE is licensed by the CD-02 validated-refactor basis \u2014 TLC green before/after, behavior tests green, before/after descriptors compared, transition-level diff inspected (the existing red-flag gate) \u2014 with the fuzzing-era retention members (kill_rate, effect_conformance, external_coverage) still RECORDED (not_run / experimental) but no longer gating; they were demoted by the pivot after measuring kill 0.31 vs floor 0.8 and 0/9 content bugs. Update tests/test_complexity_ledger.py accordingly; record the doctrine change where the ledger doctrine is documented. This ticket's own close is the first exercise of the amended basis \u2014 record the full validated-refactor evidence set.\n",
+    "promotion_order": 130,
+    "promotion_predecessor": "CD-03",
+    "schedule_revision": 2,
+    "status": "planned",
+    "title": "Audit reconciliation: advisory-faithful model, honest ports and bindings, validated-refactor retention basis",
+    "wave": 15
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09",
+  "ticket_id": "CD-09",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets"
+}

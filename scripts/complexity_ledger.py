@@ -42,21 +42,35 @@ Escapes"). A rule with an escape hatch is not a rule.
   behavior. That is documentation of real behavior, NOT a bypass: it does not
   suppress the increase, silence a finding, or let a decrease through. It is
   recorded and reported either way.
-- A decrease accompanied by degraded retention evidence is REJECTED at close.
-  It is not recorded as an improvement and there is no flag to record it as one.
-- A decrease whose retention evidence is ABSENT or UNVERIFIED is also rejected.
-  A check that silently passes when its input is missing is not a check. This
-  is the specific degeneracy the 2026-07-18 audit found across this epic.
+- CD-09 RETENTION-BASIS AMENDMENT (owner-approved 2026-07-22). A complexity
+  DECREASE is licensed by the VALIDATED-REFACTOR basis (the CD-02 definition):
+  TLC green on the model BEFORE and AFTER the change, behavior tests green,
+  a recorded before/after descriptor comparison, and -- when the red flag
+  below fires -- an inspected transition-level diff. A decrease any of whose
+  validated-refactor members is DEGRADED, ABSENT, or UNVERIFIED is REJECTED
+  at close: a check that silently passes when its input is missing is not a
+  check (the 2026-07-18 audit's core finding), and there is no flag to record
+  a rejected decrease as an improvement.
+- The fuzzing-era retention members -- kill_rate (MF-016), effect_conformance
+  (MF-013/MF-027), external_coverage (MF-015) -- remain RECORDED at every
+  close but no longer gate a decrease. They were demoted to EXPERIMENTAL by
+  the 2026-07-21 ship-scanner/drop-fuzzing pivot after MF-038 measured kill
+  0.31 against floor 0.8 with 0 of 9 content bugs caught: an oracle not
+  validated to catch bugs cannot license or refuse anything. ``not_run`` is
+  the honest record for them, and it stays visible in every entry and report
+  -- non-gating is not unrecorded.
 - ``unobservable`` IS NOT ``clean``. MF-027 changed the effect oracle to refuse
-  targets it cannot see rather than reporting them clean. Treating an
-  unobservable result as passing retention here would rebuild exactly the
-  silence MF-027 removed, one layer up.
+  targets it cannot see rather than reporting them clean. The member keeps its
+  DEGRADED classification in the record for exactly that reason, even though
+  it no longer gates.
 - A generated-states drop at constant distinct states and constant depth is a
   RED FLAG, not a win. MF-020 withdrew a projected -13.1% reduction that turned
   out to require deleting a legitimate idempotent re-fire transition; the
   distinct-state gate was structurally blind to it because a deleted self-loop
   returns to an already-known state. Detection is delegated to MF-011's
-  ``compare_tlc_reports`` rather than reimplemented.
+  ``compare_tlc_reports`` rather than reimplemented. CD-09 keeps this gate
+  EXACTLY as it was: the transition-diff obligation is part of the
+  validated-refactor basis, not softened by it.
 """
 
 from __future__ import annotations
@@ -80,11 +94,25 @@ except ImportError:  # pragma: no cover
 
 LEDGER_SCHEMA_VERSION = 1
 
-# The doctrine's three-member retention constraint set. A complexity delta is
-# only meaningful under these constraints, so all three are always evaluated.
-# They are named for the tickets that built them: kill rate (MF-016), effect
-# conformance (MF-013/MF-027), external coverage (MF-015).
+# The fuzzing-era retention members, named for the tickets that built them:
+# kill rate (MF-016), effect conformance (MF-013/MF-027), external coverage
+# (MF-015). CD-09 (owner-approved 2026-07-22): all three are still RECORDED at
+# every close -- `not_run` is the honest post-pivot value -- but they no longer
+# gate a decrease; the validated-refactor basis below does.
 RETENTION_MEMBERS = ("kill_rate", "effect_conformance", "external_coverage")
+
+# CD-09 -- the validated-refactor basis (the CD-02 definition). This is what
+# licenses a complexity DECREASE: the model checks green before AND after the
+# change, the behavior tests are green, and the before/after descriptor
+# comparison is recorded. The fourth obligation of the basis -- the inspected
+# transition-level diff -- is enforced by the red-flag gate (MF-020), which
+# this amendment keeps exactly as it was.
+VALIDATED_REFACTOR_MEMBERS = (
+    "tlc_before",
+    "tlc_after",
+    "behavior_tests",
+    "descriptor_comparison",
+)
 
 # Verdict classification. Anything not explicitly listed as RETAINED is treated
 # as not-retained: an unrecognized verdict is never assumed to be good news.
@@ -94,6 +122,14 @@ RETAINED_VERDICTS = {
     "kill_rate": {"pass"},
     "effect_conformance": {"clean"},
     "external_coverage": {"pass", "complete"},
+    # CD-09 validated-refactor members. `recorded` (not `pass`) for the
+    # descriptor comparison on purpose: the comparison is a document, and what
+    # the gate requires is that it EXISTS from this run -- the delta judgment
+    # is the ledger's, not the input's.
+    "tlc_before": {"green", "pass"},
+    "tlc_after": {"green", "pass"},
+    "behavior_tests": {"green", "pass"},
+    "descriptor_comparison": {"recorded"},
 }
 
 # Verdicts that positively indicate degradation, as opposed to absence of
@@ -104,6 +140,14 @@ DEGRADED_VERDICTS = {
     # "unobservable" sits here deliberately. See the module docstring.
     "effect_conformance": {"gaps", "dead_surface", "unobservable", "fail"},
     "external_coverage": {"gaps", "incomplete", "fail"},
+    # CD-09 validated-refactor members: a red TLC run, red behavior tests, or a
+    # comparison recorded against the wrong models are positive evidence of a
+    # broken refactor, distinguished from mere absence only so the report can
+    # say which happened.
+    "tlc_before": {"fail", "error", "red"},
+    "tlc_after": {"fail", "error", "red"},
+    "behavior_tests": {"fail", "error", "red"},
+    "descriptor_comparison": {"stale", "mismatch", "fail"},
 }
 
 UNVERIFIED_VERDICTS = {"unknown", "deferred", "not_run", "n/a", "na", ""}
@@ -440,15 +484,15 @@ def _tlc_reports(previous: dict[str, Any] | None, current: dict[str, Any]) -> tu
 # --------------------------------------------------------------------------
 
 
-def parse_retention(raw: dict[str, Any] | None) -> dict[str, RetentionMember]:
-    """Every member of the constraint set is always present in the result.
+def _parse_members(raw: dict[str, Any] | None, names: tuple[str, ...]) -> dict[str, RetentionMember]:
+    """Every member of a constraint set is always present in the result.
 
     A member the input omits becomes an explicitly UNVERIFIED member rather
     than a missing key, so that no gate can be skipped by leaving a field out.
     """
     raw = raw if isinstance(raw, dict) else {}
     members: dict[str, RetentionMember] = {}
-    for name in RETENTION_MEMBERS:
+    for name in names:
         value = raw.get(name)
         if isinstance(value, dict):
             status = str(value.get("status", "") or "")
@@ -466,6 +510,16 @@ def parse_retention(raw: dict[str, Any] | None) -> dict[str, RetentionMember]:
         else:
             members[name] = RetentionMember(name=name, status="")
     return members
+
+
+def parse_retention(raw: dict[str, Any] | None) -> dict[str, RetentionMember]:
+    """The fuzzing-era members -- recorded at every close, non-gating (CD-09)."""
+    return _parse_members(raw, RETENTION_MEMBERS)
+
+
+def parse_validated_refactor(raw: dict[str, Any] | None) -> dict[str, RetentionMember]:
+    """CD-09 -- the validated-refactor basis that licenses a decrease."""
+    return _parse_members(raw, VALIDATED_REFACTOR_MEMBERS)
 
 
 def parse_refinement(raw: dict[str, Any] | None) -> RefinementRecord:
@@ -545,6 +599,7 @@ def evaluate(
     delta = compute_delta(previous, metrics)
     direction = delta["direction"]
     retention = parse_retention(ledger_input.get("retention"))
+    validated_refactor = parse_validated_refactor(ledger_input.get("validated_refactor"))
     refinement = parse_refinement(ledger_input.get("refinement"))
     coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
     justification = str(ledger_input.get("justification", "") or "").strip()
@@ -554,8 +609,9 @@ def evaluate(
     if TEMPLATE_SENTINEL in narrative:
         narrative = ""
 
-    degraded = [m for m in retention.values() if m.degraded]
-    unverified = [m for m in retention.values() if m.unverified]
+    fuzz_not_retained = [m for m in retention.values() if not m.retained]
+    vr_degraded = [m for m in validated_refactor.values() if m.degraded]
+    vr_unverified = [m for m in validated_refactor.values() if m.unverified]
 
     # ---- Gate 1: an increase requires a recorded justification --------------
     # Documentation of real behavior, not a bypass: the increase is recorded and
@@ -575,28 +631,42 @@ def evaluate(
             "flag that skips this."
         )
 
-    # ---- Gate 2: a decrease with degraded retention is REJECTED -------------
-    # Not downgraded to a warning, not recorded as an improvement with a note.
-    # This is the anti-gaming rule: complexity is trivially reducible by
-    # deleting behavior, so a reduction is only real if behavior was retained.
-    if direction in {"decrease", "mixed"} and degraded:
+    # ---- Gate 2 (CD-09): a decrease with a DEGRADED validated-refactor ------
+    # member is REJECTED. Not downgraded to a warning, not recorded as an
+    # improvement with a note. This is the anti-gaming rule: complexity is
+    # trivially reducible by deleting behavior, so a reduction is only real if
+    # the refactor was validated -- TLC green before/after, behavior tests
+    # green, before/after descriptors compared.
+    if direction in {"decrease", "mixed"} and vr_degraded:
         errors.append(
-            "REJECTED -- complexity decreased while retention evidence is DEGRADED: "
-            + "; ".join(m.describe() for m in degraded)
-            + ". A reduction bought by dropping a boundary is not a reduction. "
-            "Restore the retention evidence, or withdraw the reduction."
+            "REJECTED -- complexity decreased while validated-refactor evidence is DEGRADED: "
+            + "; ".join(m.describe() for m in vr_degraded)
+            + ". A reduction that breaks the model check, the behavior tests, or the "
+            "descriptor record is not a reduction. Restore the evidence, or withdraw "
+            "the reduction."
         )
 
-    # ---- Gate 3: a decrease with unverified retention is also REJECTED ------
+    # ---- Gate 3 (CD-09): a decrease with an unverified basis also REJECTS ---
     # The audit's core finding was checks that pass when their input is absent.
-    # An unmeasured constraint cannot witness retention, so it cannot license a
-    # claimed reduction either.
-    if direction in {"decrease", "mixed"} and unverified:
+    # An unmeasured member of the validated-refactor basis cannot witness
+    # retention, so it cannot license a claimed reduction either.
+    if direction in {"decrease", "mixed"} and vr_unverified:
         errors.append(
-            "REJECTED -- complexity decreased but retention evidence is UNVERIFIED: "
-            + "; ".join(m.describe() for m in unverified)
-            + ". A decrease is only reportable JOINTLY with retention evidence from "
-            "the same run. Absent evidence is not passing evidence."
+            "REJECTED -- complexity decreased but the validated-refactor basis is UNVERIFIED: "
+            + "; ".join(m.describe() for m in vr_unverified)
+            + ". A decrease is licensed only by the validated-refactor evidence set from "
+            "the same run (`validated_refactor:` -- tlc_before, tlc_after, behavior_tests, "
+            "descriptor_comparison). Absent evidence is not passing evidence."
+        )
+
+    # ---- The fuzzing-era members: recorded, visible, NON-GATING (CD-09) -----
+    # Demoted by the 2026-07-21 pivot (kill 0.31 vs floor 0.8; 0/9 content
+    # bugs). `not_run` is the honest record. Visibility without gating: a
+    # decrease that proceeds past them says so in the report.
+    if direction in {"decrease", "mixed"} and fuzz_not_retained:
+        notes.append(
+            "decrease proceeds past non-gating experimental retention members (CD-09): "
+            + "; ".join(m.describe() for m in fuzz_not_retained)
         )
 
     # ---- Gate 4: the self-loop red flag (MF-020) ---------------------------
@@ -718,6 +788,20 @@ def evaluate(
             for name, member in retention.items()
         },
         "retention_summary": [m.describe() for m in retention.values()],
+        # CD-09: the basis that licenses a decrease, recorded jointly with the
+        # delta exactly as the fuzzing members always were.
+        "validated_refactor": {
+            name: {
+                "status": member.status,
+                "classification": (
+                    "retained" if member.retained else "degraded" if member.degraded else "unverified"
+                ),
+                "evidence": member.evidence,
+                "value": member.value,
+            }
+            for name, member in validated_refactor.items()
+        },
+        "validated_refactor_summary": [m.describe() for m in validated_refactor.values()],
         "refinement": {
             "searched": refinement.searched,
             "outcome": refinement.outcome,
@@ -781,9 +865,14 @@ def render_report(verdict: LedgerVerdict) -> str:
             percent = f" ({change['percent']:+}%)" if "percent" in change else ""
             lines.append(f"            {key}: {change['before']:,} -> {change['after']:,} = {change['delta']:+,}{percent}")
 
-    # Retention is printed next to the delta, never separately. The adjacency is
-    # the point: a delta read without it is the number the doctrine forbids.
-    lines.append("  retention (joint requirement -- a delta is meaningless without it):")
+    # The licensing basis is printed next to the delta, never separately. The
+    # adjacency is the point: a delta read without it is the number the
+    # doctrine forbids. CD-09: the validated-refactor basis licenses a
+    # decrease; the fuzzing-era members are recorded below it, non-gating.
+    lines.append("  validated-refactor basis (joint requirement -- licenses a decrease, CD-09):")
+    for line in entry.get("validated_refactor_summary", []):
+        lines.append(f"            {line}")
+    lines.append("  retention (fuzzing-era, experimental -- recorded, non-gating since CD-09):")
     for line in entry["retention_summary"]:
         lines.append(f"            {line}")
 
@@ -829,26 +918,54 @@ TEMPLATE = """\
 # What you supply is the part a tool cannot know: whether behavior was retained,
 # what the refinement search found, and why any increase is essential.
 
-# Retention evidence -- the doctrine's three-member constraint set. A complexity
-# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
-# does NOT pass: an unmeasured constraint cannot witness retention.
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
 #
-#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
-#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
-#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
 #
 # NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
-# targets it cannot see; treating that as passing here would rebuild the silence.
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
 retention:
   kill_rate:
-    status: "TODO"
-    evidence: "TODO -- path to the kill-test report"
+    status: "not_run"
+    evidence: ""
   effect_conformance:
-    status: "TODO"
-    evidence: "TODO -- path to the effect-conformance report"
+    status: "not_run"
+    evidence: ""
   external_coverage:
-    status: "TODO"
-    evidence: "TODO -- path to the external coverage report"
+    status: "not_run"
+    evidence: ""
 
 # Coverage audit -- MF-026. The completeness gate, distinct from the three
 # retention members above, which are all FIDELITY measures bounded to what is

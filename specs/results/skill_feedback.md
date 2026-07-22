@@ -588,3 +588,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-09
+
+- close_scope: ticket
+- close_id: CD-09
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T17:53:01+00:00
+- summary: CD-09 audit reconciliation: advisory-faithful model (override + blocking gate + SpecUnitTestsRequireAnalyzedGate removed, TLC 231,621 -> 283,805 distinct at depth 25), dead tlc_process port removed (17/17 boundaries seeded), case_adapters.toml reconciled to the exact 14-action set, complexity ledger amended to the owner-approved validated-refactor retention basis with fuzzing members recorded non-gating
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

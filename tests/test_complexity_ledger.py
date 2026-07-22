@@ -20,12 +20,26 @@ from scripts import complexity_ledger as cl
 
 
 def make_input(**overrides):
-    """A ledger input that PASSES every gate, as the base for negative tests."""
+    """A ledger input that PASSES every gate, as the base for negative tests.
+
+    CD-09: the validated-refactor basis is part of the all-green base -- it is
+    what licenses a decrease. The fuzzing-era retention block stays present
+    (recorded, non-gating) with the measured verdicts the manual ledgers used.
+    """
     payload = {
         "retention": {
             "kill_rate": {"status": "pass", "evidence": "results/kill-test.json"},
             "effect_conformance": {"status": "clean", "evidence": "results/effects.txt"},
             "external_coverage": {"status": "pass", "evidence": "results/coverage.txt"},
+        },
+        "validated_refactor": {
+            "tlc_before": {"status": "green", "evidence": "results/tlc_before.txt"},
+            "tlc_after": {"status": "green", "evidence": "results/tlc_current.txt"},
+            "behavior_tests": {"status": "pass", "evidence": "results/repo_unit_tests.txt"},
+            "descriptor_comparison": {
+                "status": "recorded",
+                "evidence": "results/model_before_after_descriptors.txt",
+            },
         },
         "justification": "",
         "refinement": {"searched": True, "outcome": "none"},
@@ -80,13 +94,19 @@ class TestDelta:
         assert verdict.entry["delta"]["direction"] == "baseline"
 
     def test_delta_is_always_recorded_jointly_with_retention(self):
-        """The doctrine's core requirement: never one without the other."""
+        """The doctrine's core requirement: never one without the other.
+
+        CD-09: the joint requirement is the validated-refactor basis; the
+        fuzzing-era members are recorded right beneath it, non-gating.
+        """
         verdict = evaluate(metrics(), previous(), make_input())
         assert verdict.entry["delta"]
         assert set(verdict.entry["retention"]) == set(cl.RETENTION_MEMBERS)
+        assert set(verdict.entry["validated_refactor"]) == set(cl.VALIDATED_REFACTOR_MEMBERS)
         # And in the human-readable report, adjacently.
         report = cl.render_report(verdict)
-        assert "delta:" in report and "retention (joint requirement" in report
+        assert "delta:" in report and "validated-refactor basis (joint requirement" in report
+        assert "retention (fuzzing-era, experimental" in report
 
     def test_percentages_are_recorded(self):
         verdict = evaluate(metrics(distinct_states=171039), previous(), make_input())
@@ -141,61 +161,75 @@ class TestIncreaseJustification:
 
 
 class TestAntiGaming:
-    def test_decrease_with_degraded_kill_rate_is_rejected(self):
+    """CD-09: the anti-gaming gate reads the validated-refactor basis. A
+    reduction still cannot be bought with silence -- what changed is WHICH
+    evidence licenses it (TLC before/after, behavior tests, descriptor
+    comparison) rather than the demoted fuzzing-era members."""
+
+    def test_decrease_without_the_validated_refactor_basis_is_rejected(self):
+        """Leaving the block out entirely cannot skip the gate."""
         payload = make_input()
-        payload["retention"]["kill_rate"]["status"] = "below_floor"
+        del payload["validated_refactor"]
         verdict = evaluate(metrics(distinct_states=171039, bound=524880), previous(), payload)
         assert verdict.rejected
-        assert any("REJECTED" in e and "DEGRADED" in e for e in verdict.errors)
+        assert any("UNVERIFIED" in e and "validated-refactor" in e for e in verdict.errors)
 
-    def test_decrease_with_unverified_retention_is_rejected(self):
+    def test_decrease_with_unknown_basis_member_is_rejected(self):
         """Absent evidence is not passing evidence."""
         payload = make_input()
-        payload["retention"]["kill_rate"]["status"] = "unknown"
+        payload["validated_refactor"]["tlc_before"]["status"] = "unknown"
         verdict = evaluate(metrics(bound=524880), previous(), payload)
         assert verdict.rejected
         assert any("UNVERIFIED" in e for e in verdict.errors)
 
-    def test_decrease_with_missing_retention_member_is_rejected(self):
-        """A gate cannot be skipped by leaving the field out."""
+    def test_missing_fuzzing_member_no_longer_rejects_but_stays_visible(self):
+        """CD-09 flips the old missing-retention rejection: the fuzzing-era
+        members are recorded (unverified when absent), never gating."""
         verdict = evaluate(metrics(bound=524880), previous(), make_input(retention={}))
-        assert verdict.rejected
-        assert any("UNVERIFIED" in e for e in verdict.errors)
+        assert not verdict.rejected, verdict.errors
+        assert set(verdict.entry["retention"]) == set(cl.RETENTION_MEMBERS)
+        assert all(
+            member["classification"] == "unverified"
+            for member in verdict.entry["retention"].values()
+        )
+        assert any("non-gating" in n for n in verdict.notes)
 
-    def test_unobservable_is_not_clean(self):
-        """MF-027: the effect oracle refuses what it cannot see. So does this."""
+    def test_unobservable_is_still_not_clean_in_the_record(self):
+        """MF-027: the effect oracle refuses what it cannot see. The member no
+        longer gates a decrease, but its classification never softens."""
         payload = make_input()
         payload["retention"]["effect_conformance"]["status"] = "unobservable"
         verdict = evaluate(metrics(bound=524880), previous(), payload)
-        assert verdict.rejected
-        assert any("unobservable" in e for e in verdict.errors)
+        assert not verdict.rejected, verdict.errors
         member = cl.parse_retention(payload["retention"])["effect_conformance"]
         assert member.degraded and not member.retained
         assert "unobservable IS NOT clean" in member.describe()
+        assert verdict.entry["retention"]["effect_conformance"]["classification"] == "degraded"
 
-    def test_unrecognized_verdict_refuses_rather_than_passes(self):
+    def test_unrecognized_basis_verdict_refuses_rather_than_passes(self):
         """MF-027's polarity lesson: pass only on positive evidence."""
         payload = make_input()
-        payload["retention"]["kill_rate"]["status"] = "probably_fine"
+        payload["validated_refactor"]["behavior_tests"]["status"] = "probably_fine"
         verdict = evaluate(metrics(bound=524880), previous(), payload)
         assert verdict.rejected
-        member = cl.parse_retention(payload["retention"])["kill_rate"]
+        member = cl.parse_validated_refactor(payload["validated_refactor"])["behavior_tests"]
         assert member.unverified and not member.retained
 
-    def test_degraded_retention_alone_does_not_block_a_zero_delta(self):
+    def test_degraded_basis_alone_does_not_block_a_zero_delta(self):
         """The anti-gaming rule targets reductions bought with behavior.
 
-        Other tickets' gates own retention in its own right; this gate fires on
-        the CONJUNCTION, so it must not silently become a second kill-rate gate.
+        TLC and behavior-test verdicts are owned by their own validation steps;
+        this gate fires on the CONJUNCTION with a decrease, so it must not
+        silently become a second TLC gate.
         """
         payload = make_input()
-        payload["retention"]["kill_rate"]["status"] = "below_floor"
+        payload["validated_refactor"]["tlc_after"]["status"] = "fail"
         verdict = evaluate(metrics(), previous(), payload)
         assert not verdict.rejected
 
     def test_there_is_no_override_for_the_anti_gaming_gate(self):
         payload = make_input(override=True, allow_degraded=True, force=True)
-        payload["retention"]["kill_rate"]["status"] = "below_floor"
+        payload["validated_refactor"]["behavior_tests"]["status"] = "fail"
         verdict = evaluate(metrics(bound=524880), previous(), payload)
         assert verdict.rejected
 
@@ -324,10 +358,14 @@ class TestHistoricalCases:
         """MF-027 measured a 47% distinct-state reduction and REFUSED it.
 
         Collapsing the three failure verdicts deleted externally-visible
-        result.next distinctions. Retention was not evidenced -- kill test was
-        deferred -- so the ledger must refuse the reduction rather than book it.
+        result.next distinctions -- i.e. the refactor was NOT validated: the
+        reduction deleted behavior, so no honest validated-refactor evidence
+        set could exist for it. Replayed without one, the ledger must refuse
+        the reduction rather than book it (kill_rate stays recorded as the
+        deferred value it historically had).
         """
         payload = make_input()
+        del payload["validated_refactor"]
         payload["retention"]["kill_rate"]["status"] = "deferred"
         verdict = evaluate(
             metrics(distinct_states=26607, bound=139968),
@@ -393,12 +431,14 @@ class TestHistoricalCases:
 
         The corpus was already failing before any mutant was seeded, so every
         mutant was 'killed' by that pre-existing failure. A retention metric can
-        be maximally wrong exactly when it looks best. The ledger consumes the
-        CORRECTED verdict (below_floor, 4/7), and must refuse a reduction under
-        it -- a perfect-looking rate is not what licenses a decrease; a green
-        control is, and that is the kill test's own gate to enforce upstream.
+        be maximally wrong exactly when it looks best -- which is half of why
+        the 2026-07-21 pivot demoted it. CD-09: the corrected below_floor
+        verdict stays RECORDED with its value, but what refuses the reduction
+        now is the absent validated-refactor basis, not the kill rate; a
+        perfect-looking rate never licensed a decrease and still does not.
         """
         payload = make_input()
+        del payload["validated_refactor"]
         payload["retention"]["kill_rate"] = {
             "status": "below_floor",
             "value": 0.571,
@@ -406,8 +446,9 @@ class TestHistoricalCases:
         }
         verdict = evaluate(metrics(distinct_states=171039, bound=524880), previous(), payload)
         assert verdict.rejected
-        assert any("DEGRADED" in e for e in verdict.errors)
+        assert any("UNVERIFIED" in e and "validated-refactor" in e for e in verdict.errors)
         assert verdict.entry["retention"]["kill_rate"]["value"] == 0.571
+        assert verdict.entry["retention"]["kill_rate"]["classification"] == "degraded"
 
 
 # ---------------------------------------------------------------------------
@@ -594,19 +635,20 @@ class TestReproducesTheElevenManualLedgers:
                 refused.append(ticket)
         assert set(refused) == {"MF-012", "MF-011", "MF-014", "MF-013", "MF-027", "MF-016"}
 
-    def test_the_three_decreases_require_retention_evidence(self):
+    def test_the_three_decreases_require_the_validated_refactor_basis(self):
         """MF-020, MF-022 and MF-025 all reduced complexity.
 
-        Each recorded identical distinct states and depth as its retention
-        proof. Under degraded retention the mechanized gate refuses them, which
-        is the anti-gaming rule those tickets applied by hand.
+        Each proved its reduction with TLC before/after at identical distinct
+        states and depth -- which IS the validated-refactor basis, applied by
+        hand. Under a degraded basis the mechanized gate refuses them, which is
+        the anti-gaming rule those tickets applied.
         """
         for ticket in ("MF-020", "MF-022", "MF-025"):
             before, after, _, _ = MANUAL_LEDGERS[ticket]
             payload = make_input()
-            payload["retention"]["kill_rate"]["status"] = "below_floor"
+            payload["validated_refactor"]["tlc_after"]["status"] = "fail"
             verdict = evaluate(after, {"scope_id": "prev", "metrics": before}, payload)
-            assert verdict.rejected, f"{ticket} should be refused under degraded retention"
+            assert verdict.rejected, f"{ticket} should be refused under a degraded basis"
 
     def test_mf020_generated_states_correction_is_preserved(self):
         """MF-020's generated states were unchanged at 3,664, not -13.1%.
@@ -736,3 +778,156 @@ class TestCoverageAuditIsAlwaysVisible:
         assert "coverage_audit:" in cl.TEMPLATE
         parsed = cl._load_structured(cl.TEMPLATE)
         assert cl.parse_coverage_audit(parsed["coverage_audit"]).normalized == "not_run"
+
+
+# ---------------------------------------------------------------------------
+# CD-09 -- the validated-refactor retention basis (owner-approved 2026-07-22)
+# ---------------------------------------------------------------------------
+
+
+def make_validated_refactor(**overrides):
+    """A fully-verified validated-refactor evidence set (CD-02 basis)."""
+    payload = {
+        "tlc_before": {"status": "green", "evidence": "results/tlc_before.txt"},
+        "tlc_after": {"status": "green", "evidence": "results/tlc_current.txt"},
+        "behavior_tests": {"status": "pass", "evidence": "results/repo_unit_tests.txt"},
+        "descriptor_comparison": {
+            "status": "recorded",
+            "evidence": "results/model_before_after_descriptors.txt",
+        },
+    }
+    payload.update(overrides)
+    return payload
+
+
+def not_run_fuzzing_retention():
+    """The honest post-pivot record: experimental members recorded, not run."""
+    return {
+        name: {"status": "not_run", "evidence": "experimental since the 2026-07-21 pivot"}
+        for name in ("kill_rate", "effect_conformance", "external_coverage")
+    }
+
+
+class TestValidatedRefactorBasis:
+    """CD-09: a complexity DECREASE is licensed by the validated-refactor basis
+    (TLC green before/after, behavior tests green, before/after descriptor
+    comparison recorded, transition-level diff inspected when the red flag
+    fires). The fuzzing-era members stay RECORDED but no longer gate: they were
+    demoted by the 2026-07-21 pivot after measuring kill 0.31 vs floor 0.8 and
+    0/9 content bugs caught."""
+
+    def test_cd09_regression_validated_decrease_with_not_run_fuzzing_members_is_recorded(self):
+        """THE regression for the amendment: fails pre-amendment, passes after.
+
+        Pre-amendment the ledger rejected every decrease whose kill_rate /
+        effect_conformance / external_coverage were not green -- but post-pivot
+        `not_run` is the HONEST record for all three, so an honest validated
+        refactor could never close. Post-amendment the validated-refactor
+        basis licenses it.
+        """
+        payload = make_input(
+            validated_refactor=make_validated_refactor(),
+            retention=not_run_fuzzing_retention(),
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["delta"]["direction"] == "decrease"
+
+    def test_decrease_with_missing_descriptor_comparison_is_rejected(self):
+        """Degraded-evidence handling for the NEW basis: an absent member of the
+        validated-refactor set cannot witness retention, so it cannot license a
+        decrease. Fails pre-amendment (the old gate never read this block)."""
+        vr = make_validated_refactor()
+        del vr["descriptor_comparison"]
+        payload = make_input(validated_refactor=vr)
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert verdict.rejected
+        assert any("descriptor_comparison" in e for e in verdict.errors)
+
+    def test_decrease_with_failed_tlc_after_is_rejected(self):
+        payload = make_input(
+            validated_refactor=make_validated_refactor(tlc_after={"status": "fail"})
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert verdict.rejected
+        assert any("DEGRADED" in e for e in verdict.errors)
+
+    def test_decrease_with_failed_behavior_tests_is_rejected(self):
+        payload = make_input(
+            validated_refactor=make_validated_refactor(behavior_tests={"status": "fail"})
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert verdict.rejected
+        assert any("DEGRADED" in e for e in verdict.errors)
+
+    def test_unrecognized_validated_refactor_status_refuses(self):
+        """MF-027's polarity lesson applies to the new basis unchanged."""
+        payload = make_input(
+            validated_refactor=make_validated_refactor(tlc_before={"status": "probably_fine"})
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert verdict.rejected
+
+    def test_degraded_fuzzing_member_no_longer_blocks_a_validated_decrease(self):
+        """The demotion itself: a below-floor kill rate is RECORDED, visibly,
+        but does not reject a decrease that carries the validated-refactor
+        evidence. Fails pre-amendment (the old gate rejected it)."""
+        retention = not_run_fuzzing_retention()
+        retention["kill_rate"] = {"status": "below_floor", "value": 0.31}
+        payload = make_input(
+            validated_refactor=make_validated_refactor(), retention=retention
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["retention"]["kill_rate"]["classification"] == "degraded"
+
+    def test_fuzzing_members_remain_recorded_in_entry_and_report(self):
+        """Non-gating is not unrecorded: `not_run` stays visible everywhere."""
+        payload = make_input(
+            validated_refactor=make_validated_refactor(),
+            retention=not_run_fuzzing_retention(),
+        )
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert set(verdict.entry["retention"]) == set(cl.RETENTION_MEMBERS)
+        report = cl.render_report(verdict)
+        assert "kill_rate=not_run" in report
+
+    def test_red_flag_gate_is_retained_exactly_as_is(self):
+        """The transition-diff obligation survives the amendment untouched: a
+        generated-states drop at constant distinct states and depth REJECTS
+        without an inspected transition-level diff, even when the full
+        validated-refactor evidence set is green."""
+        payload = make_input(validated_refactor=make_validated_refactor())
+        verdict = evaluate(
+            metrics(generated_states=3184),
+            previous(generated_states=3664),
+            payload,
+        )
+        assert verdict.rejected
+        assert any("STRUCTURALLY BLIND" in e for e in verdict.errors)
+
+    def test_red_flag_still_accepted_only_with_the_transition_diff(self):
+        payload = make_input(
+            validated_refactor=make_validated_refactor(),
+            transition_diff="results/transition_diff.md: duplicate override bindings removed",
+        )
+        verdict = evaluate(
+            metrics(generated_states=3184),
+            previous(generated_states=3664),
+            payload,
+        )
+        assert not verdict.rejected
+        assert any("transition diff" in n for n in verdict.notes)
+
+    def test_validated_refactor_block_is_recorded_in_the_entry(self):
+        payload = make_input(validated_refactor=make_validated_refactor())
+        verdict = evaluate(metrics(bound=524880), previous(), payload)
+        assert set(verdict.entry["validated_refactor"]) == set(cl.VALIDATED_REFACTOR_MEMBERS)
+        for member in verdict.entry["validated_refactor"].values():
+            assert member["classification"] == "retained"
+
+    def test_template_scaffolds_the_validated_refactor_block(self):
+        assert "validated_refactor:" in cl.TEMPLATE
+        parsed = cl._load_structured(cl.TEMPLATE)
+        members = cl.parse_validated_refactor(parsed["validated_refactor"])
+        assert all(m.unverified for m in members.values())
