@@ -7,20 +7,35 @@
 module: EcommerceHistory
 
 budgets:
-  # Documented defaults from references/modular_fuzzing.md. The example is
-  # small enough that none needed negotiating; a real program records a
-  # one-line rationale per changed value.
+  # Documented defaults from references/modular_fuzzing.md, except where a
+  # value below carries an entry under rationale:. A changed value without a
+  # recorded rationale is the silent trimming this file exists to forbid.
   tlc_seconds: 120
   max_distinct_states: 50000
   max_state_space_bound: 1000000
   max_internal_cases_per_component: 200
-  max_external_cases_per_action: 50
+  max_external_cases_per_action: 200
   kill_rate_floor: 0.8                      # minimum mutation kill rate
   max_component_variables: 6
   max_component_actions: 8
   max_symmetric_instances: 2
-  source: defaults
-  rationale: {}
+  source: negotiated
+  rationale:
+    # CD-08 / VAL-08: the shipped model genuinely generates 732 external cases
+    # after projected-state dedupe (49,386 reachable External states), with the
+    # duplicate-command edge cases dominating: SubmitDuplicateAddCartItem 200,
+    # SubmitDuplicateCheckout 184, SubmitDuplicateCreateAccount 120. Shipping
+    # the default cap of 50 against that corpus made the example refuse its own
+    # documented regeneration path out of the box. The cap is set to the
+    # measured worst action (200) exactly -- no headroom -- so any model change
+    # that grows an action's projected-state fan-out re-triggers the gate and
+    # forces this rationale to be renegotiated rather than silently absorbed.
+    # Nothing was trimmed: the corpus IS the budget.
+    max_external_cases_per_action: >
+      Measured pristine corpus: 732 external cases, worst action
+      SubmitDuplicateAddCartItem at 200 (duplicate-command dedupe keeps one
+      case per distinct projected before-state, and cart contents dominate the
+      projection). Cap set to the measured worst action, exactly.
 
 # NO effects ports are declared for this component, and that absence is a
 # deliberate, evidence-backed decision rather than an omission.

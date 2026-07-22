@@ -13,9 +13,12 @@ Graph:
    bindings. The cases include happy-path actions plus edge cases for duplicate
    commands, rejected commands, and idle worker behavior. The node fails unless
    every generated trace writes a per-case `program-state.json`; its envelope
-   records `expectedCaseCount`, `executedCaseCount`, and the executed case
-   names. With the current TLA bounds, this node regenerates and executes 732
-   external cases from TLC output.
+   publishes the executed case names as `caseNames` and the generated trace
+   names as `expectedCaseNames` (case counts appear only as node metrics, not
+   as envelope keys). The node regenerates the external cases from TLC output
+   on every run; the exact case count for the current TLA bounds is recorded
+   in the generated package's `docs.md` under the report's `generated/`
+   directory rather than hardcoded here.
 3. `ecommerce.evidence` captures the final projected state from the target.
    It also validates that each external case wrote a `program-state.json`
    projected-state assertion artifact and, in k3d mode, that every deployed web

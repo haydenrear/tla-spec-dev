@@ -11,7 +11,10 @@ from urllib.request import urlopen
 
 
 ROOT = Path(__file__).resolve().parents[3]
-REPO = ROOT.parents[1]
+# VAL-11: TLA_SPEC_DEV_ROOT points a standalone checkout of this example at
+# its toolchain; the fallback assumes the embedded-copy layout inside the
+# tla-spec-dev repository.
+REPO = Path(os.environ.get("TLA_SPEC_DEV_ROOT", ROOT.parents[1])).resolve()
 
 
 def test_internal_adapters_run_in_batch(tmp_path):
