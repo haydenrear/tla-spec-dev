@@ -1,1 +1,32 @@
-findings: []
+findings:
+  - id: MR-DF-01
+    found_by: "epic-owner-scaffold-verification"
+    found_at_commit: "2880756"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `scaffold workflow` regenerates current/desired spec_manifest.yaml from
+      a bare template instead of carrying the accepted program_model
+      manifest: the effects/ports block, negotiated budgets rationale,
+      justification table, and schema comments are silently dropped. Four
+      repo tests fail immediately (kill-test boundary counts 22->13,
+      effect-declaration well-formedness).
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs scaffold workflow
+      <id> "<title>"` after a closed workflow; diff
+      specs/current/spec_manifest.yaml against
+      specs/program_model/spec_manifest.yaml; run pytest tests -q.
+    evidence: []
+    why_out_of_scope: "Owner-corrected by hand in the scaffold commit lineage to unblock the batch; the scaffolder fix itself is future work."
+    suggested_fix: >-
+      scaffold workflow should seed current/desired manifests from the
+      accepted program_model manifest (fresh status header only), not from
+      the bare template.
+    blast_radius: "Every future workflow scaffold on an onboarded project."
+    disposition: pending
+    disposition_ticket: null
