@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
 from scripts.run_generated_case_adapters import (
     AdapterMapping,
+    _opaque_path_component,
     adapter_for_case,
     assert_case_result_per_field,
     compare_fields_honoring_unchecked,
@@ -248,10 +249,10 @@ class SubmitAdapter:
     assert lifecycle_adapters.EVENTS == [
         ("setup_all", "request-http", ("case_1", "case_2")),
         ("setup", "request-http", "case_1", True),
-        ("run", "case_1", "case_1"),
+        ("run", "case_1", _opaque_path_component("case", "case_1")),
         ("teardown", "request-http", "case_1", True, True),
         ("setup", "request-http", "case_2", True),
-        ("run", "case_2", "case_2"),
+        ("run", "case_2", _opaque_path_component("case", "case_2")),
         ("teardown", "request-http", "case_2", True, True),
         ("teardown_all", "request-http", ("case_1", "case_2"), True),
     ]

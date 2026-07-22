@@ -79,11 +79,13 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
         f"  - {spec_root}/program_model/Internal.tla + Internal.cfg  -> spec-unit cases\n"
         f"  - {spec_root}/program_model/External.tla + External.cfg  -> Test Graph cases\n"
         f"  - {spec_root}/program_model/case_adapters.toml           -> spec-unit adapters\n"
+        f"  - {spec_root}/program_model/providers.py                 -> semantic effect providers\n"
         f"  - {spec_root}/program_model/testgraph_bindings.yml       -> Test Graph adapters\n"
         f"  - {spec_root}/program_model/adapters.py                  -> both, plus projector/assertion\n"
         "\nTest Graph adapters are foundational to every project, not an add-on for\n"
         "distributed systems. Without the External view the public surface is never validated.\n"
-        "\nRead references/testgraph_adapters.md, then diff your tree against\n"
+        "\nRead references/testgraph_adapters.md and references/effect_providers.md, "
+        "then diff your tree against\n"
         "examples/distributed_history/specs/program_model/ before calling onboarding done."
     )
     from scripts.budgets import budget_prompt
@@ -336,6 +338,17 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                 command.append("--validate-capabilities")
             if not args.no_batch:
                 command.append("--batch")
+            command.extend(
+                [
+                    "--fuzz-runs",
+                    str(getattr(args, "fuzz_runs", 1)),
+                    "--seed",
+                    str(getattr(args, "seed", 0)),
+                ]
+            )
+            fuzz_iteration = getattr(args, "fuzz_iteration", None)
+            if fuzz_iteration is not None:
+                command.extend(["--fuzz-iteration", str(fuzz_iteration)])
             commands.append((f"case-adapters:{target_dir}:{cases_dir.name}", command, command_env(target_dir)))
         if target_command_count == 0:
             empty_targets.append(target_dir)
@@ -492,6 +505,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec_units.add_argument("--validate-only", action="store_true", help="Validate adapter coverage without executing generated cases.")
     run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
     run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+    run_spec_units.add_argument(
+        "--fuzz-runs",
+        type=int,
+        default=1,
+        help="Run each selected provider-bearing case this many deterministic iterations.",
+    )
+    run_spec_units.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Root seed for deterministic per-effect representative generation.",
+    )
+    run_spec_units.add_argument(
+        "--fuzz-iteration",
+        type=int,
+        help="Replay exactly this deterministic effect-provider iteration.",
+    )
     run_spec_units.add_argument(
         "--pytest-arg",
         action="append",

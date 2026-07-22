@@ -2551,6 +2551,138 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-02",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T04:19:37.747885+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/private/tmp/tla-spec-dev-78-ep02-provider-fuzz-kit/specs/tickets/EP-02/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": 231621,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": 5619356,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 25,
+            "after": 25,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No TLA+ representation was added. EP-02 is host-side Python provider orchestration, scaffolding, and author guidance; ticket current and desired are byte-identical. The unchanged model was measured again: 5,619,356 states generated, 231,621 distinct, depth 25, no error. The added host behavior is essential for deterministic representative campaigns and exact replay.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01/MF-030. EP-02 adds deterministic provider-owned representative campaigns but does not add or claim a repository-wide mutant catalog. The inherited non-passing verdict remains explicit.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01 for the subprocess-driven host CLI. EP-02 does prove clean in-process coexistence between semantic providers and passive observation, including temporary-root explicit DI and a self-installed patch, in tests/test_effect_provider_fuzzing.py. It does not claim those patches observe a child process, JVM, native client, or remote service.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01/MF-030. EP-02 adds no external-view adapter or corpus coverage and therefore asserts no improvement on this axis.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a smaller authoring/runtime representation and retained two narrow helpers plus project-owned provider implementations. The TLA case continues to own semantic outcome; the provider owns concrete responses, state, and assertions. A central response language, universal interception, Hypothesis/exhaustive orchestration, Java, and service libraries were rejected for EP-02 rather than inflating the mechanism before EP-03 measures three real projects.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "EP-02 adds a versioned stable seed protocol, bounded campaign iteration, exact single-point replay, structured lifecycle diagnostics, project-owned provider scaffolds, and small context-stack/temporary-root helpers. Provider configuration and lazy binding are prepared across the corpus before any application hook; each runtime point then gets isolated singleton batch hooks, adapter/shared caches, provider resources, and opaque work paths. Provider allocation and cleanup sit outside passive application observation, while adapter setup/run/assertion/teardown remains within both provider and observation scopes. This prevents harness filesystem churn from becoming a false effect without hiding application calls through injected bindings or installed patches. Review corrections, exact validation, explicit limits, and the zero-model-delta rationale are recorded in results/validation-summary.md, results/review-correction.txt, and results/zero-model-delta.md.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

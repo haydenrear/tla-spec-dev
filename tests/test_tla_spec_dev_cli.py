@@ -98,7 +98,14 @@ def test_cli_scaffold_project_and_workflow_use_spec_root(tmp_path: Path) -> None
 
     assert result_project.returncode == 0, result_project.stderr
     assert result_workflow.returncode == 0, result_workflow.stderr
-    for view_file in ("Core.tla", "Internal.tla", "External.tla", "adapters.py", "testgraph_bindings.yml"):
+    for view_file in (
+        "Core.tla",
+        "Internal.tla",
+        "External.tla",
+        "adapters.py",
+        "providers.py",
+        "testgraph_bindings.yml",
+    ):
         assert (tmp_path / "project_specs/program_model" / view_file).exists()
         assert (tmp_path / "project_specs/current" / view_file).exists()
         assert (tmp_path / "project_specs/desired_program_model" / view_file).exists()

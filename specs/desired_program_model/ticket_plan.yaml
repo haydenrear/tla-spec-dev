@@ -2035,7 +2035,7 @@ tickets:
 
   - id: EP-02
     title: "Provider authoring kit and deterministic fuzz/replay loop"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/78"
     schedule_revision: 1
     depends_on: [EP-01]
@@ -2099,7 +2099,17 @@ tickets:
         - Docs do not claim universal interception, exhaustive fuzzing, shrinking, or correctness stronger than the provider and case oracle provide.
         - SKILL.md edits are validated from this branch; no global skill-manager sync occurs before the epic reaches the default branch.
         - "Zero host TLA+ model delta unless implementation adds observable CLI state; current == desired and TLC/spec-unit evidence records the decision."
-      evidence: []
+      evidence:
+        - specs/tickets/EP-02/results/repository-unit-tests.txt
+        - specs/tickets/EP-02/results/spec-unit-tests.txt
+        - specs/tickets/EP-02/results/tlc-current.txt
+        - specs/tickets/EP-02/results/graph-reports/specWorkflow-20260722-041253-08d64314/summary.json
+        - specs/tickets/EP-02/results/graph-reports/cliWorkflow-20260722-041256-1050cff0/summary.json
+        - specs/tickets/EP-02/results/skill-validation.txt
+        - specs/tickets/EP-02/results/review-correction.txt
+        - specs/tickets/EP-02/results/validation-summary.md
+        - specs/tickets/EP-02/results/zero-model-delta.md
+        - specs/results/ep02-post-close-full.txt
 
   - id: EP-03
     title: "Three effectful-modeling projects, mutation evidence, and recommendation"

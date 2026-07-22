@@ -379,7 +379,10 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
 
     work_dir = report_dir / "external-case-work" / "case-work"
     per_case_files = sorted(work_dir.glob("*/program-state.json"))
-    file_cases = sorted(path.parent.name for path in per_case_files)
+    file_cases = sorted(
+        json.loads(path.read_text(encoding="utf-8"))["case"]
+        for path in per_case_files
+    )
     if file_cases != expected_cases:
         raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
 

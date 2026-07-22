@@ -22,6 +22,10 @@ class EffectProviderContext:
     action: str
     case: Any
     work_dir: Path
+    iteration: int = 0
+    root_seed: int = 0
+    derived_seed: int = 0
+    seed_version: str = "tla-spec-dev/effect-seed/v1"
 
 
 @runtime_checkable
@@ -57,6 +61,8 @@ class AdapterBatchContext:
     work_dir: Path
     mapping: Any
     shared: dict[str, Any]
+    iteration: int = 0
+    root_seed: int = 0
     #: MF-013: the effect sandbox for this batch, when effect conformance is
     #: active. Adapters take temp dirs and fake transports from it. They do not
     #: report effects through it -- observation is passive, so that an adapter
