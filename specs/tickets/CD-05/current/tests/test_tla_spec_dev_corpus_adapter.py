@@ -61,11 +61,13 @@ def test_raising_the_cap_is_the_offered_accept_path(tmp_path: Path) -> None:
     assert result["cap_raise_accept_path_offered"] is True
 
 
-def test_remediation_is_a_recommendation_never_auto_applied(tmp_path: Path) -> None:
-    """Same rule as analyze complexity's suggested move."""
+def test_over_cap_output_asks_the_redesign_question_never_prescribes(tmp_path: Path) -> None:
+    """CD-04: the gate states the finding and asks the redesign question,
+    naming the complexity descriptor and references/complexity_intuition.md
+    as the judgment inputs; prescriptive-move wording must never return."""
     adapters = load_adapters()
     result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
-    assert result["remediation_labeled_recommendation"] is True
+    assert result["asks_redesign_question_never_prescribes"] is True
 
 
 def test_named_regression_traces_are_always_retained(tmp_path: Path) -> None:
