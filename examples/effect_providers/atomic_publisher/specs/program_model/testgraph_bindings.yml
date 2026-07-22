@@ -1,0 +1,76 @@
+external:
+  production_package: atomic_cli
+  port_bindings:
+    FilesystemPort: real
+
+actions:
+  InvokeCreateSuccess:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeValidUpdate:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeIdempotentRetry:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeStaleRevision:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeReadFailure:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeStagedWriteFailure:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
+  InvokeReplaceFailure:
+    view: external
+    channel: filesystem
+    layer: external
+    controllability: e2e_direct
+    kind: atomic-publisher-cli
+    adapter: external_adapter:AtomicPublisherCliAdapter
+    projector: external_adapter:AtomicPublisherCliProjector
+    expected_projection: external_adapter:ExpectedCliProjection
+    assertion: external_adapter:AtomicCliAssertion
