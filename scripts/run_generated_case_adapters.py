@@ -485,12 +485,19 @@ def load_effect_provider_plan(
 
     for case in cases:
         action = _case_action(case)
-        raw_action_spec = raw_actions.get(action, {})
-        if raw_action_spec is None:
-            raw_action_spec = {}
+        if action not in raw_actions:
+            raise EffectProviderConfigurationError(
+                f"case {case.name} action {action} is not declared in actions.yml; "
+                "declare it with effect_ports: [] when it requires no semantic providers"
+            )
+        raw_action_spec = raw_actions[action]
         if not isinstance(raw_action_spec, dict):
             raise EffectProviderConfigurationError(f"actions.yml action {action} must be a mapping")
-        raw_required = raw_action_spec.get("effect_ports", [])
+        if "effect_ports" not in raw_action_spec:
+            raise EffectProviderConfigurationError(
+                f"actions.yml action {action} must declare effect_ports; use effect_ports: [] for none"
+            )
+        raw_required = raw_action_spec["effect_ports"]
         if not isinstance(raw_required, list) or not all(
             isinstance(name, str) and bool(name) and name.strip() == name for name in raw_required
         ):
@@ -1110,6 +1117,48 @@ def _provider_context_manager(binding: ResolvedEffectProvider, context: Any) -> 
     return scope
 
 
+class _ProviderExitTracker:
+    """Retain primary and cleanup failures across context-manager unwinding."""
+
+    def __init__(self) -> None:
+        self.primary_error: Exception | None = None
+        self.cleanup_errors: list[Exception] = []
+
+    def observe_incoming(self, error: Exception | None) -> None:
+        if error is None or self.primary_error is not None:
+            return
+        if any(error is cleanup_error for cleanup_error in self.cleanup_errors):
+            return
+        self.primary_error = error
+
+
+class _NonSuppressingProviderScope:
+    """Delegate provider cleanup while making truthy ``__exit__`` inert.
+
+    Provider cleanup must receive the real exception so ordinary context
+    managers can restore patches correctly.  Its return value, however, is not
+    allowed to decide whether a framework/application failure survives.  Every
+    cleanup exception is retained separately before normal ExitStack unwinding
+    continues to the remaining providers in reverse order.
+    """
+
+    def __init__(self, scope: Any, tracker: _ProviderExitTracker) -> None:
+        self.scope = scope
+        self.tracker = tracker
+
+    def __enter__(self) -> Any:
+        return self.scope.__enter__()
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
+        self.tracker.observe_incoming(exc if isinstance(exc, Exception) else None)
+        try:
+            self.scope.__exit__(exc_type, exc, traceback)
+        except Exception as cleanup_error:
+            self.tracker.cleanup_errors.append(cleanup_error)
+            raise
+        return False
+
+
 def prepare_effect_provider_scopes(
     *,
     plan: EffectProviderPlan,
@@ -1304,6 +1353,7 @@ def execute_cases_in_batch(
                     escaped_error: Exception | None = None
                     semantic_mutation_error: Exception | None = None
                     semantic_snapshot = _case_semantic_snapshot(case)
+                    provider_exit_tracker = _ProviderExitTracker()
                     try:
                         # Semantic provider scopes are inside the passive
                         # sandbox so provider-installed patches and their
@@ -1312,7 +1362,9 @@ def execute_cases_in_batch(
                         with sandbox_scope, effect_scope, ExitStack() as provider_stack:
                             bound_effects: dict[str, Any] = {}
                             for binding, provider_scope in prepared_provider_scopes.get(str(case.name), ()):
-                                value = provider_stack.enter_context(provider_scope)
+                                value = provider_stack.enter_context(
+                                    _NonSuppressingProviderScope(provider_scope, provider_exit_tracker)
+                                )
                                 _assert_case_semantics_unchanged(
                                     case,
                                     semantic_snapshot,
@@ -1370,9 +1422,6 @@ def execute_cases_in_batch(
                                         teardown_error = exc
                                         if case_context.error is None:
                                             case_context.error = exc
-                                        failures.append(
-                                            f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}"
-                                        )
                             if application_error is not None:
                                 raise application_error
                             if teardown_error is not None:
@@ -1390,34 +1439,50 @@ def execute_cases_in_batch(
                         if escaped_error is None:
                             escaped_error = exc
 
-                    # A provider context manager is not allowed to suppress an
-                    # adapter/assertion failure. Record the original even when
-                    # __exit__ returned true, and record a distinct cleanup
-                    # failure when __exit__ replaced it.
+                    # Provider truthy __exit__ values are ignored by the
+                    # wrapper above. Classify the retained primary and every
+                    # cleanup exception independently so no failure can replace
+                    # or hide another during reverse-order unwinding.
+                    reported_errors: list[Exception] = []
                     if application_error is not None:
                         failures.append(
                             f"{case.name} via {mapping.label}: "
                             f"{type(application_error).__name__}: {application_error}"
                         )
-                    elif teardown_error is None and escaped_error is not None:
-                        case_context.error = escaped_error
+                        reported_errors.append(application_error)
+                    if teardown_error is not None:
+                        failures.append(
+                            f"{case.name} teardown via {mapping.label}: "
+                            f"{type(teardown_error).__name__}: {teardown_error}"
+                        )
+                        reported_errors.append(teardown_error)
+
+                    lifecycle_error = provider_exit_tracker.primary_error
+                    if lifecycle_error is None and escaped_error is not None:
+                        escaped_is_cleanup = any(
+                            escaped_error is cleanup_error
+                            for cleanup_error in provider_exit_tracker.cleanup_errors
+                        )
+                        if not escaped_is_cleanup:
+                            lifecycle_error = escaped_error
+                    if lifecycle_error is not None and not any(
+                        lifecycle_error is reported_error for reported_error in reported_errors
+                    ):
+                        case_context.error = lifecycle_error
                         failures.append(
                             f"{case.name} provider lifecycle via {mapping.label}: "
-                            f"{type(escaped_error).__name__}: {escaped_error}"
+                            f"{type(lifecycle_error).__name__}: {lifecycle_error}"
                         )
-                    if (
-                        escaped_error is not None
-                        and escaped_error is not application_error
-                        and escaped_error is not teardown_error
-                        and application_error is not None
-                    ):
+                        reported_errors.append(lifecycle_error)
+
+                    for cleanup_error in provider_exit_tracker.cleanup_errors:
                         failures.append(
                             f"{case.name} provider cleanup via {mapping.label}: "
-                            f"{type(escaped_error).__name__}: {escaped_error}"
+                            f"{type(cleanup_error).__name__}: {cleanup_error}"
                         )
-                    if (
-                        semantic_mutation_error is not None
-                        and semantic_mutation_error is not escaped_error
+                        reported_errors.append(cleanup_error)
+                    if semantic_mutation_error is not None and not any(
+                        semantic_mutation_error is reported_error for reported_error in reported_errors
                     ):
                         failures.append(
                             f"{case.name} semantic oracle integrity via {mapping.label}: "

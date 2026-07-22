@@ -210,6 +210,83 @@ def load_plan(tmp_path: Path, *, action_ports: str = "[FilesystemPort, PatchPort
     return case, mapping_path, plan
 
 
+def load_suppressing_outer_plan(tmp_path: Path, *, inner_provider: str):
+    write_provider_fixture(tmp_path)
+    fixture_path = tmp_path / "effect_provider_fixture.py"
+    fixture_path.write_text(
+        fixture_path.read_text(encoding="utf-8")
+        + """
+class SuppressingFilesystemScope:
+    def __init__(self, context):
+        self.context = context
+
+    def __enter__(self):
+        EVENTS.append(("enter-suppressor", self.context.port_name))
+        return FilesystemBinding()
+
+    def __exit__(self, exc_type, exc, tb):
+        EVENTS.append(("exit-suppressor", None if exc_type is None else exc_type.__name__))
+        return True
+
+
+def suppressing_filesystem_provider(context):
+    return SuppressingFilesystemScope(context)
+
+
+@contextmanager
+def invalid_patch_provider(context):
+    EVENTS.append(("enter-invalid-inner", context.port_name))
+    try:
+        yield object()
+    finally:
+        EVENTS.append(("exit-invalid-inner", context.port_name))
+
+
+class InnerEnterFailureScope:
+    def __enter__(self):
+        EVENTS.append(("enter-failure-inner",))
+        raise RuntimeError("inner provider enter failed")
+
+    def __exit__(self, exc_type, exc, tb):
+        EVENTS.append(("unexpected-inner-exit",))
+
+
+def inner_enter_failure_provider(context):
+    return InnerEnterFailureScope()
+
+
+class InnerExitFailureScope:
+    def __enter__(self):
+        EVENTS.append(("enter-exit-failure-inner",))
+        return None
+
+    def __exit__(self, exc_type, exc, tb):
+        EVENTS.append(("exit-failure-inner",))
+        raise RuntimeError("inner provider exit failed")
+
+
+def inner_exit_failure_provider(context):
+    return InnerExitFailureScope()
+""",
+        encoding="utf-8",
+    )
+    providers = f"""[effect_providers.FilesystemPort]
+provider = "effect_provider_fixture:suppressing_filesystem_provider"
+
+[effect_providers.PatchPort]
+provider = "effect_provider_fixture:{inner_provider}"
+"""
+    spec_dir, mapping_path = write_effect_project(tmp_path, providers=providers)
+    case = make_case()
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[case],
+        import_roots=[tmp_path],
+    )
+    return case, plan
+
+
 def test_generated_effect_ports_are_runtime_checkable() -> None:
     rendered = render_ports(
         {
@@ -480,6 +557,91 @@ def test_provider_exit_cannot_suppress_primary_adapter_failure(tmp_path: Path) -
     assert effect_provider_fixture.EVENTS[-2:] == [("exit", "PatchPort"), ("exit", "FilesystemPort")]
 
 
+def test_outer_provider_cannot_suppress_invalid_inner_binding(tmp_path: Path) -> None:
+    case, plan = load_suppressing_outer_plan(tmp_path, inner_provider="invalid_patch_provider")
+
+    with pytest.raises(SystemExit, match="does not implement generated port PatchPort"):
+        execute_cases_in_batch(
+            cases=[case],
+            mappings={"Publish": AdapterMapping("Publish", "effect_provider_fixture:Adapter")},
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+        )
+
+    import effect_provider_fixture
+
+    assert effect_provider_fixture.EVENTS == [
+        ("enter-suppressor", "FilesystemPort"),
+        ("enter-invalid-inner", "PatchPort"),
+        ("exit-invalid-inner", "PatchPort"),
+        ("exit-suppressor", "TypeError"),
+    ]
+
+
+def test_outer_provider_cannot_suppress_inner_enter_failure(tmp_path: Path) -> None:
+    case, plan = load_suppressing_outer_plan(tmp_path, inner_provider="inner_enter_failure_provider")
+
+    with pytest.raises(SystemExit, match="inner provider enter failed"):
+        execute_cases_in_batch(
+            cases=[case],
+            mappings={"Publish": AdapterMapping("Publish", "effect_provider_fixture:Adapter")},
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+        )
+
+    import effect_provider_fixture
+
+    assert effect_provider_fixture.EVENTS == [
+        ("enter-suppressor", "FilesystemPort"),
+        ("enter-failure-inner",),
+        ("exit-suppressor", "RuntimeError"),
+    ]
+
+
+def test_outer_provider_cannot_suppress_inner_exit_failure(tmp_path: Path) -> None:
+    case, plan = load_suppressing_outer_plan(tmp_path, inner_provider="inner_exit_failure_provider")
+
+    with pytest.raises(SystemExit, match="inner provider exit failed"):
+        execute_cases_in_batch(
+            cases=[case],
+            mappings={"Publish": AdapterMapping("Publish", "effect_provider_fixture:Adapter")},
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+        )
+
+    import effect_provider_fixture
+
+    assert effect_provider_fixture.EVENTS[-2:] == [
+        ("exit-failure-inner",),
+        ("exit-suppressor", "RuntimeError"),
+    ]
+
+
+def test_teardown_and_provider_cleanup_failures_are_both_reported(tmp_path: Path) -> None:
+    case, _mapping_path, plan = load_plan(tmp_path)
+    import effect_provider_fixture
+
+    effect_provider_fixture.FAIL_TEARDOWN = True
+    effect_provider_fixture.FAIL_EXIT = True
+    with pytest.raises(SystemExit) as excinfo:
+        execute_cases_in_batch(
+            cases=[case],
+            mappings={"Publish": AdapterMapping("Publish", "effect_provider_fixture:Adapter")},
+            work_dir=tmp_path / "work",
+            import_roots=[tmp_path],
+            effect_provider_plan=plan,
+        )
+
+    message = str(excinfo.value)
+    assert "adapter teardown failed" in message
+    assert "provider exit failed" in message
+    assert effect_provider_fixture.EVENTS[-2:] == [("exit", "PatchPort"), ("exit", "FilesystemPort")]
+    assert effect_provider_fixture.PATCHED is False
+
+
 def test_assertion_failure_reaches_teardown_and_provider_cleanup(tmp_path: Path) -> None:
     write_provider_fixture(tmp_path)
     fixture_path = tmp_path / "effect_provider_fixture.py"
@@ -655,6 +817,61 @@ def test_all_case_effect_declarations_preflight_before_any_adapter_hook(tmp_path
             spec_dir=spec_dir,
             mapping_path=mapping_path,
             cases=[make_case("good", "Publish"), make_case("bad", "Broken")],
+            import_roots=[tmp_path],
+        )
+
+    import effect_provider_fixture
+
+    assert effect_provider_fixture.EVENTS == []
+
+
+@pytest.mark.parametrize(
+    ("invalid_action", "action_document", "message"),
+    [
+        (
+            "Missing",
+            """actions:
+  Publish:
+    effect_ports: [FilesystemPort, PatchPort]
+""",
+            "case bad action Missing is not declared in actions.yml",
+        ),
+        (
+            "NullAction",
+            """actions:
+  Publish:
+    effect_ports: [FilesystemPort, PatchPort]
+  NullAction:
+""",
+            "actions.yml action NullAction must be a mapping",
+        ),
+        (
+            "NoPorts",
+            """actions:
+  Publish:
+    effect_ports: [FilesystemPort, PatchPort]
+  NoPorts:
+    layer: internal
+""",
+            "actions.yml action NoPorts must declare effect_ports",
+        ),
+    ],
+)
+def test_configured_semantic_schema_requires_every_case_action_mapping(
+    tmp_path: Path,
+    invalid_action: str,
+    action_document: str,
+    message: str,
+) -> None:
+    write_provider_fixture(tmp_path)
+    spec_dir, mapping_path = write_effect_project(tmp_path)
+    (spec_dir / "actions.yml").write_text(action_document, encoding="utf-8")
+
+    with pytest.raises(EffectProviderConfigurationError, match=message):
+        load_effect_provider_plan(
+            spec_dir=spec_dir,
+            mapping_path=mapping_path,
+            cases=[make_case("good", "Publish"), make_case("bad", invalid_action)],
             import_roots=[tmp_path],
         )
 
