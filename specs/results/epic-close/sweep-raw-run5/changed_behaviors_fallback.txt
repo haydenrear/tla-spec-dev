@@ -1,0 +1,14 @@
+scripts/new_ticket_workflow.py:210:def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:214:        action = f"copy {src}" if src else "write fallback"
+scripts/new_ticket_workflow.py:222:        dst.write_text(fallback, encoding="utf-8")
+scripts/new_ticket_workflow.py:340:def ticket_title(ticket: dict[str, Any], fallback: str) -> str:
+scripts/new_ticket_workflow.py:342:    return str(value) if value is not None and str(value).strip() else fallback
+scripts/new_ticket_workflow.py:1033:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/new_ticket_workflow.py:1034:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:101:                "generate/export surface; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:106:                "test-graph node/harness surface; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:108:        note = "pytest job; default polarity, not read"
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:115:        return ("out", ":521 (pytest jobs)", "-", "unrepresented", "pytest job; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:118:            return ("out", ":521-522 (validation scripts)", "-", "unrepresented", "validation entry script; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:121:                "unrepresented", "archived ticket-tree copy; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:123:            "unrepresented", "outside the shipped CLI lifecycle; default polarity, not read")

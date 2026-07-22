@@ -21,41 +21,45 @@ retention:
     evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
 
 coverage_audit:
-  status: "fail"
-  report: "specs/results/epic-close/coverage_audit_report_run4.md"
-  in_scope_gaps: 3
-  scope_source: "specs/desired_program_model/ticket_plan.yaml:520-562 (semantic_model_rule, AMENDED x2 2026-07-22, schedule_revision 3) + :576-599 (service_catalog + known_gaps, AMENDED 2026-07-22), with :2046-2049/:2123-2125/:2193-2197/:2287-2291/:2365-2368 (CD-01/02/03/09/10 implementation_scope)"
-  # 2026-07-22 audit run 4 (re-verdict at workflow close after the second owner
-  # amendment — rulings on all 8 run-3 escalations, R3-1/R3-4 reclassified as a
-  # recorded granularity limitation — and CD-10; run 3 report kept at
-  # coverage_audit_report_run3.md). Run-3 gaps closed and verified fresh at
-  # 400c51a: R3-2 fixed (spec_tree_delete filesystem.delete port on CloseTicket,
-  # manifest:198-200/:231, all three delete sites re-verified live); R3-3 fixed
-  # (runner_process manifest:187-189/:230 and git_metadata :206-208/:231, spawn
-  # sites re-verified); DF-2 fixed (RecordBudgets: [] deliberately-empty row
-  # :221, effects.actions 14/14); DF-3 fixed (dangling Core/Internal/External
-  # source_model refs removed :109-117); kill catalog 20/20 with honest seeds
-  # for the three new ports. Verdict still FAIL: the ESC-6 correction
-  # (:538-542) moved AnalyzeCorpus/RunEffectConformance/RunKillTest and their
-  # backing scripts back INTO the modeled boundary, and auditing that surface
-  # against :589 port honesty for the first time found 3 new gaps: R4-1
-  # RunKillTest overwrites production source with mutated code
-  # (kill_test.py:548/:551, matches no port; corpus spawn only pytest-covered);
-  # R4-2 RunEffectConformance sandbox work-tree writes under **/specs/**
-  # (effect_conformance_report.py:149/:163) with spec_tree not declared for
-  # the action; R4-3 AnalyzeCorpus declares evidence_report but
-  # corpus_diagnostics.py has no writer and no --out (dead port, the CD-09 G4
-  # class). 3 escalations, none blocking classification: ESC-R4-1 stale :585
-  # "deliberately unmodeled" wording contradicting :538-542; ESC-R4-2 manifest
-  # empty state_fields/actions/ports blocks (:123-125, MF-026 desync 3);
-  # ESC-R4-3 @port annotation vocabulary vs declared port names, empty
-  # intersection (MF-026 desync 2). Both views still unrepresented by
-  # construction — now out-of-scope inventory per the amended known_gaps :597
-  # (view split FUTURE WORK), not a countable gap. Sweep raws + recorded
-  # classifier: specs/results/epic-close/sweep-raw-run4/. Sweep-1 N=M=358
-  # (surface diff-identical to run 3), in 24 / out 334 / escalated rows 0;
-  # all 3 gaps and all 4 fix verifications rest on rows READ this run
-  # (report section 8.3).
+  status: "pass"
+  report: "specs/results/epic-close/coverage_audit_report_run5.md"
+  in_scope_gaps: 0
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:520-562 (semantic_model_rule, AMENDED x2 2026-07-22) + :576-599 (service_catalog + known_gaps; :585 restated per ESC-R4-1, schedule_revision 4), with :2046-2049/:2123-2125/:2193-2197/:2287-2291/:2365-2368/:2448-2452 (CD-01/02/03/09/10/11 implementation_scope)"
+  # 2026-07-22 audit run 5 (re-verdict at workflow close after the third owner
+  # amendment — :585 restated, retiring ESC-R4-1 — and CD-11; run 4 report kept
+  # at coverage_audit_report_run4.md). Verify-by-diff licensed by a fresh
+  # enumeration diff against run 4's recorded surface: exactly one added file
+  # (run 4's own archived classifier ca4_classify.py, out-of-scope) and five
+  # content-modified files, all CD-11 manifest/annotation/test edits; N=M=359,
+  # in 24 / out 335 / escalated rows 0. Run-4 gaps closed and verified fresh at
+  # 5f84937: R4-1 fixed (mutation_write filesystem.write *scripts/* port,
+  # manifest:233-235, covering every catalog path key incl. skill-scripts/;
+  # corpus_process process.spawn * port :244-246 with the recorded honest
+  # rationale that a narrower glob would assert an unenforced constraint;
+  # RunKillTest row [evidence_report, mutation_write, corpus_process] :292;
+  # seed/restore/spawn sites re-read live); R4-2 fixed (spec_tree added to
+  # RunEffectConformance :285 with declare-not-relocate rationale :274-284;
+  # work-tree mkdir sites re-verified); R4-3 fixed (AnalyzeCorpus: []
+  # deliberately-empty row :273 with G4-style rationale :265-272;
+  # corpus_diagnostics.py re-verified writer-free). ESC-R4-2 closed by CD-11's
+  # record-not-populate choice, judged sound on its recorded rationale
+  # (manifest:123-132 + both scaffolder templates state empty = "no generated
+  # case index yet", not "model has no state/actions/ports"; populating would
+  # recreate the desync class the ticket closes). ESC-R4-3 closed: @port
+  # annotation vocabulary renamed to the declared port names, exact 9=9
+  # intersection verified mechanically, comments only (non-comment .tla content
+  # byte-identical to 400c51a; TLC identical: 6,209,780 / 283,805 / depth 25).
+  # Kill catalog 22/22 (9 ports + 13 invariants), boundary tests updated 20->22,
+  # 578 repo unit tests pass, both graphs PASS, trees reconciled. Sweep 2/3
+  # verified by fixed-pattern old/new comparison over the changed surface: the
+  # only deltas are comment/prose lines and the archived classifier's own
+  # artifact writes — zero new effect or behavior sites in scope. Verdict PASS
+  # with the standing record: both views unrepresented by construction
+  # (known_gaps :597), generate unmodeled (:585/:598), granularity/out-of-model
+  # rulings inventory real unrepresented behavior — owner-declared boundaries,
+  # none waived per-finding. Raws: specs/results/epic-close/sweep-raw-run5/
+  # (surface diff, changed-file name-status, both enumeration scripts, 13
+  # per-category changed-surface raws).
 
 justification: ""
 
