@@ -306,6 +306,8 @@ provider = "fuzz_campaign_fixture:patch_provider"
 
 
 def test_seed_only_campaign_uses_an_iteration_qualified_work_path(tmp_path: Path) -> None:
+    from scripts.run_generated_case_adapters import _opaque_path_component
+
     write_campaign_fixture(tmp_path)
     spec_dir, mapping_path = write_contract(
         tmp_path,
@@ -343,8 +345,112 @@ provider = "fuzz_campaign_fixture:patch_provider"
     import fuzz_campaign_fixture as fixture
 
     assert fixture.WORK_DIRS == [
-        tmp_path / "work" / "case-work" / "seed-only" / "iteration-000000"
+        tmp_path
+        / "work"
+        / "case-work"
+        / _opaque_path_component("case", "seed-only")
+        / "iteration-000000"
     ]
+
+
+def test_case_and_kind_work_paths_use_opaque_collision_resistant_components(
+    tmp_path: Path,
+) -> None:
+    from scripts.run_generated_case_adapters import (
+        _opaque_path_component,
+        generate_programs,
+    )
+
+    write_campaign_fixture(tmp_path)
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="fuzz_campaign_fixture",
+        provider_tables="""[effect_providers.FilesystemPort]
+provider = "fuzz_campaign_fixture:filesystem_provider"
+
+[effect_providers.PatchPort]
+provider = "fuzz_campaign_fixture:patch_provider"
+""",
+    )
+    names = [
+        "../../escaped-point",
+        str(tmp_path / "absolute-point"),
+        "alias/point",
+        "alias:point",
+        r"alias\point",
+        "..",
+        "x" * 300,
+    ]
+    cases = [make_case(name) for name in names]
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=cases,
+        import_roots=[tmp_path],
+    )
+    dangerous_kind = "../../kind/../alias:kind\\portable"
+    work_root = tmp_path / "work"
+
+    execute_cases_in_batch(
+        cases=cases,
+        mappings={
+            "Publish": AdapterMapping(
+                "Publish",
+                "fuzz_campaign_fixture:Adapter",
+                kind=dangerous_kind,
+            )
+        },
+        work_dir=work_root,
+        import_roots=[tmp_path],
+        effect_provider_plan=plan,
+        root_seed=73,
+    )
+
+    import fuzz_campaign_fixture as fixture
+
+    expected_case_components = {
+        _opaque_path_component("case", name) for name in names
+    }
+    assert len(expected_case_components) == len(names)
+    assert {
+        path.parent.name for path in fixture.WORK_DIRS
+    } == expected_case_components
+    assert {
+        path.name for path in fixture.BATCH_WORK_DIRS
+    } == {_opaque_path_component("kind", dangerous_kind)}
+    for path in [*fixture.WORK_DIRS, *fixture.BATCH_WORK_DIRS]:
+        assert path.resolve().is_relative_to(work_root.resolve())
+    for role, values in {
+        "case": names,
+        "kind": ["a/b", "a:b", r"a\b", "..", "/absolute"],
+    }.items():
+        components = [_opaque_path_component(role, value) for value in values]
+        assert len(set(components)) == len(values)
+        assert all(component.startswith(f"{role}-") for component in components)
+        assert all(
+            set(component.removeprefix(f"{role}-")) <= set("0123456789abcdef")
+            for component in components
+        )
+
+    generated_work = tmp_path / "generated-work"
+    programs = generate_programs(
+        cases=cases,
+        mappings={
+            "Publish": AdapterMapping(
+                "Publish",
+                "fuzz_campaign_fixture:Adapter",
+                kind=dangerous_kind,
+            )
+        },
+        cases_dir=tmp_path / "generated_contract",
+        work_dir=generated_work,
+        import_roots=[tmp_path],
+    )
+    assert {program.stem for program in programs} == expected_case_components
+    assert {
+        path.name for path in (generated_work / "case-work").iterdir()
+    } == expected_case_components
+    assert all(program.resolve().is_relative_to(generated_work.resolve()) for program in programs)
 
 
 def test_point_isolated_providers_preserve_corpus_level_passive_effect_diff(
@@ -459,6 +565,205 @@ provider = "fuzz_campaign_fixture:patch_provider"
         "Fixture.publish_a_file",
         "Fixture.publish_b_file",
     }
+
+
+def test_temporary_root_provider_lifecycle_is_not_an_application_effect(
+    tmp_path: Path,
+) -> None:
+    from scripts.effect_conformance import load_effect_declarations
+
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="temporary_root_effect_fixture",
+        provider_tables="""[effect_providers.FilesystemPort]
+provider = "temporary_root_effect_fixture:filesystem_provider"
+""",
+    )
+    (tmp_path / "actions.yml").write_text(
+        """actions:
+  Publish:
+    layer: internal
+    effect_ports: [FilesystemPort]
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "temporary_root_effect_fixture.py").write_text(
+        """from pathlib import Path
+from spec_double_compiler.effects import temporary_root_provider
+from spec_double_compiler.runtime import CaseRunResult
+
+class Binding:
+    def __init__(self, root: Path):
+        self.root = root
+
+    def write(self, value):
+        (self.root / "payload.txt").write_text(value, encoding="utf-8")
+
+filesystem_provider = temporary_root_provider(lambda root, context: Binding(root))
+
+class Adapter:
+    def setup(self, context):
+        self.filesystem = context.effects["FilesystemPort"]
+
+    def run(self, case, work_dir=None):
+        self.filesystem.write(case.name)
+        return CaseRunResult(output=case.output, after=case.after)
+""",
+        encoding="utf-8",
+    )
+    case = make_case("temporary-root-case")
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[case],
+        import_roots=[tmp_path],
+    )
+    declarations = load_effect_declarations(
+        {
+            "effects": {
+                "components": {
+                    "Fixture": {
+                        "ports": {
+                            "payload": {
+                                "type": "filesystem.write",
+                                "target": "**/effect-root-*/payload.txt",
+                            }
+                        }
+                    }
+                },
+                "actions": {"Publish": ["payload"]},
+            }
+        }
+    )
+    report_path = tmp_path / "temporary-root-report.json"
+
+    execute_cases_in_batch(
+        cases=[case],
+        mappings={
+            "Publish": AdapterMapping(
+                "Publish",
+                "temporary_root_effect_fixture:Adapter",
+                kind="publisher",
+            )
+        },
+        work_dir=tmp_path / "work",
+        import_roots=[tmp_path],
+        declarations=declarations,
+        effect_report_path=report_path,
+        effect_provider_plan=plan,
+    )
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["ok"] is True
+    assert report["gaps"] == []
+    assert [effect["type"] for effect in report["observed_effects"]] == [
+        "filesystem.write"
+    ]
+    assert report["observed_effects"][0]["target"].endswith("/payload.txt")
+
+
+def test_self_installed_patch_remains_effective_inside_passive_observation(
+    tmp_path: Path,
+) -> None:
+    from scripts.effect_conformance import load_effect_declarations
+
+    spec_dir, mapping_path = write_contract(
+        tmp_path,
+        module="patch_effect_fixture",
+        provider_tables="""[effect_providers.PatchPort]
+provider = "patch_effect_fixture:patch_provider"
+""",
+    )
+    (tmp_path / "actions.yml").write_text(
+        """actions:
+  Publish:
+    layer: internal
+    effect_ports: [PatchPort]
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "patch_effect_fixture.py").write_text(
+        """from contextlib import contextmanager
+from pathlib import Path
+from spec_double_compiler.effects import context_provider
+from spec_double_compiler.runtime import CaseRunResult
+
+def request(target):
+    raise AssertionError("provider patch was not installed")
+
+@contextmanager
+def installed_request_patch():
+    global request
+    original = request
+    request = lambda target: Path(target).write_text("patched", encoding="utf-8")
+    try:
+        yield
+    finally:
+        request = original
+
+def install_patch(context, stack):
+    stack.enter_context(installed_request_patch())
+    return None
+
+patch_provider = context_provider(install_patch)
+
+class Adapter:
+    def run(self, case, work_dir=None):
+        request(Path(work_dir) / "sandbox" / "patched.txt")
+        return CaseRunResult(output=case.output, after=case.after)
+""",
+        encoding="utf-8",
+    )
+    case = make_case("patch-case")
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[case],
+        import_roots=[tmp_path],
+    )
+    declarations = load_effect_declarations(
+        {
+            "effects": {
+                "components": {
+                    "Fixture": {
+                        "ports": {
+                            "patched_request": {
+                                "type": "filesystem.write",
+                                "target": "**/sandbox/patched.txt",
+                            }
+                        }
+                    }
+                },
+                "actions": {"Publish": ["patched_request"]},
+            }
+        }
+    )
+    report_path = tmp_path / "patch-report.json"
+
+    execute_cases_in_batch(
+        cases=[case],
+        mappings={
+            "Publish": AdapterMapping(
+                "Publish",
+                "patch_effect_fixture:Adapter",
+                kind="publisher",
+            )
+        },
+        work_dir=tmp_path / "work",
+        import_roots=[tmp_path],
+        declarations=declarations,
+        effect_report_path=report_path,
+        effect_provider_plan=plan,
+    )
+
+    import patch_effect_fixture
+
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["ok"] is True
+    assert report["gaps"] == []
+    assert len(report["observed_effects"]) == 1
+    with pytest.raises(AssertionError, match="provider patch was not installed"):
+        patch_effect_fixture.request(tmp_path / "after-cleanup.txt")
 
 
 def effect_context(tmp_path: Path) -> EffectProviderContext:
@@ -602,6 +907,33 @@ def test_context_provider_retains_enter_primary_and_all_partial_cleanup_failures
     assert "cleanup failed: inner" in str(raised.value)
     assert "cleanup failed: outer" in str(raised.value)
     assert active == []
+
+
+@pytest.mark.parametrize("control_flow", [KeyboardInterrupt("cancelled"), SystemExit(17)])
+def test_context_provider_preserves_control_flow_primary_when_partial_cleanup_fails(
+    tmp_path: Path,
+    control_flow: BaseException,
+) -> None:
+    from spec_double_compiler.effects import context_provider
+
+    class CleanupFailure:
+        def __enter__(self) -> None:
+            return None
+
+        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+            raise RuntimeError("cleanup failed")
+
+    def installer(_context: EffectProviderContext, stack: Any) -> None:
+        stack.enter_context(CleanupFailure())
+        raise control_flow
+
+    binding = context_provider(installer).bind(effect_context(tmp_path))
+    with pytest.raises(type(control_flow)) as raised:
+        binding.__enter__()
+
+    assert raised.value is control_flow
+    assert isinstance(raised.value.__cause__, RuntimeError)
+    assert str(raised.value.__cause__) == "cleanup failed"
 
 
 @pytest.mark.parametrize(

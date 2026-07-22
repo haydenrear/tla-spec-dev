@@ -83,9 +83,13 @@ Configuration and lazy bindings for the whole selected corpus are prepared
 before the first application hook, so a later bind failure prevents every
 adapter hook. Runtime resources remain point-local. For provider-bearing runs,
 the complete hook order for each singleton point batch is `setup_all`, provider
-enter, adapter setup/run/assert/teardown, provider exit, then `teardown_all`.
-Batch hooks receive the singleton case plus `iteration` and `root_seed`; they do
-not run inside active provider scopes and must not read per-case bound effects.
+enter, passive observation around adapter setup/run/assert/teardown, provider
+exit, then `teardown_all`. Provider allocation and cleanup are harness
+lifecycle, so they are outside passive observation and cannot masquerade as
+application effects. Calls made through an injected binding or installed patch
+during the adapter lifecycle remain inside passive observation. Batch hooks
+receive the singleton case plus `iteration` and `root_seed`; they do not run
+inside active provider scopes and must not read per-case bound effects.
 
 The shipped helpers make the two common forms small:
 
@@ -215,8 +219,11 @@ dependency injection where possible; otherwise patch the exact project lookup
 site and restore it through the provided stack.
 
 The framework resets its adapter cache, shared mapping, bindings, and sandboxes,
-and allocates per-point work-directory paths. Helpers clean the temporary roots
-they own; the framework does not clear a user-reused explicit work directory.
+and allocates per-point work-directory paths. Case names and adapter kinds are
+retained in diagnostics but replaced by stable opaque digest components in
+filesystem paths, so generated text cannot traverse or alias a work root.
+Helpers clean the temporary roots they own; the framework does not clear a
+user-reused explicit work directory.
 Project code must remove residue it owns. The framework also cannot reset
 application singletons, provider-module globals, imported third-party caches,
 threads, child processes, or external services unless the project provider

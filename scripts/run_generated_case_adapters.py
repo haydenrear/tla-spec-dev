@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import copy
 from contextlib import ExitStack
+import hashlib
 import importlib
 import inspect
 import json
@@ -1094,8 +1095,9 @@ def generate_programs(
             raise AssertionError(f"no adapter mapping for case {case.name}: {sorted(case.labels)}")
         if mapping.adapter is None:
             raise SystemExit(f"ERROR: case {case.name} via {mapping.label} has no executable adapter")
-        program_path = work_dir / "programs" / f"{case.name}.py"
-        case_work_dir = work_dir / "case-work" / case.name
+        case_component = _opaque_path_component("case", case.name)
+        program_path = work_dir / "programs" / f"{case_component}.py"
+        case_work_dir = work_dir / "case-work" / case_component
         write_case_program(
             case=case,
             mapping=mapping,
@@ -1193,8 +1195,22 @@ class _NonSuppressingProviderScope:
         return False
 
 
+_WORK_PATH_KEY_VERSION = "tla-spec-dev/work-path/v1"
+
+
+def _opaque_path_component(role: str, value: Any) -> str:
+    """Return a stable, bounded filesystem identity without embedding input text."""
+
+    payload = json.dumps(
+        [_WORK_PATH_KEY_VERSION, str(role), str(value)],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return f"{role}-{hashlib.sha256(payload).hexdigest()[:32]}"
+
+
 def _point_work_dir(work_dir: Path, point: ExecutionPoint, *, iteration_paths: bool) -> Path:
-    case_root = work_dir / "case-work" / str(point.case.name)
+    case_root = work_dir / "case-work" / _opaque_path_component("case", point.case.name)
     if not iteration_paths:
         return case_root
     return case_root / f"iteration-{point.iteration:06d}"
@@ -1439,7 +1455,7 @@ def _execute_points_in_batch(
             group_root = group_root / f"point-{point_key:032x}"
         elif iteration_paths:
             group_root = group_root / f"iteration-{entries[0][0].iteration:06d}"
-        group_work_dir = group_root / kind.replace("/", "_").replace(":", "_")
+        group_work_dir = group_root / _opaque_path_component("kind", kind)
         group_work_dir.mkdir(parents=True, exist_ok=True)
         group_cases = [point.case for point, _mapping in entries]
         group_adapters: list[tuple[Any, AdapterMapping]] = []
@@ -1596,11 +1612,13 @@ def _execute_points_in_batch(
                     semantic_snapshot = _case_semantic_snapshot(case)
                     provider_exit_tracker = _ProviderExitTracker()
                     try:
-                        # Semantic provider scopes are inside the passive
-                        # sandbox so provider-installed patches and their
-                        # cleanup stay observable. ExitStack supplies strict
-                        # reverse-order cleanup on every failure path.
-                        with sandbox_scope, effect_scope, ExitStack() as provider_stack:
+                        # Providers are harness setup: acquire them before passive
+                        # observation and release them after it. The application
+                        # still runs through every installed patch/binding, while
+                        # provider allocation and cleanup cannot masquerade as an
+                        # application effect. ExitStack supplies strict reverse
+                        # cleanup on every failure path.
+                        with ExitStack() as provider_stack:
                             bound_effects: dict[str, Any] = {}
                             for binding, provider_scope in prepared_provider_scopes.get(point, ()):
                                 try:
@@ -1630,55 +1648,56 @@ def _execute_points_in_batch(
                                 bound_effects[binding.port_name] = value
                             case_context.effects = MappingProxyType(bound_effects)
 
-                            try:
-                                if adapter is not None:
-                                    active_phase = "setup"
-                                    call_optional_hook(adapter, "setup", case_context)
-                                    _assert_case_semantics_unchanged(
-                                        case,
-                                        semantic_snapshot,
-                                        stage=f"adapter {mapping.label} setup",
-                                    )
-                                    active_phase = "run"
-                                    case_context.result = call_adapter(adapter, case, case_work_dir)
-                                    _assert_case_semantics_unchanged(
-                                        case,
-                                        semantic_snapshot,
-                                        stage=f"adapter {mapping.label} execution",
-                                    )
-                                    active_phase = "output_assert"
-                                    assert_case_result_per_field(
-                                        case=case,
-                                        result=case_context.result,
-                                        projector=projector,
-                                    )
-                                active_phase = "projected_assert"
-                                assert_projected_state_if_configured(case_context, mapping, object_cache)
-                                _assert_case_semantics_unchanged(
-                                    case,
-                                    semantic_snapshot,
-                                    stage=f"adapter {mapping.label} assertion",
-                                )
-                            except Exception as exc:
-                                application_error = exc
-                                application_phase = active_phase
-                                case_context.error = exc
-                            finally:
-                                # Teardown belongs to the active provider and
-                                # passive-observation scopes. This ordering is
-                                # part of the public EP-01 lifecycle contract.
-                                if adapter is not None:
-                                    try:
-                                        call_optional_hook(adapter, "teardown", case_context)
+                            with sandbox_scope, effect_scope:
+                                try:
+                                    if adapter is not None:
+                                        active_phase = "setup"
+                                        call_optional_hook(adapter, "setup", case_context)
                                         _assert_case_semantics_unchanged(
                                             case,
                                             semantic_snapshot,
-                                            stage=f"adapter {mapping.label} teardown",
+                                            stage=f"adapter {mapping.label} setup",
                                         )
-                                    except Exception as exc:
-                                        teardown_error = exc
-                                        if case_context.error is None:
-                                            case_context.error = exc
+                                        active_phase = "run"
+                                        case_context.result = call_adapter(adapter, case, case_work_dir)
+                                        _assert_case_semantics_unchanged(
+                                            case,
+                                            semantic_snapshot,
+                                            stage=f"adapter {mapping.label} execution",
+                                        )
+                                        active_phase = "output_assert"
+                                        assert_case_result_per_field(
+                                            case=case,
+                                            result=case_context.result,
+                                            projector=projector,
+                                        )
+                                    active_phase = "projected_assert"
+                                    assert_projected_state_if_configured(case_context, mapping, object_cache)
+                                    _assert_case_semantics_unchanged(
+                                        case,
+                                        semantic_snapshot,
+                                        stage=f"adapter {mapping.label} assertion",
+                                    )
+                                except Exception as exc:
+                                    application_error = exc
+                                    application_phase = active_phase
+                                    case_context.error = exc
+                                finally:
+                                    # Teardown belongs to the active provider and
+                                    # passive-observation scopes. This ordering is
+                                    # part of the public EP-01 lifecycle contract.
+                                    if adapter is not None:
+                                        try:
+                                            call_optional_hook(adapter, "teardown", case_context)
+                                            _assert_case_semantics_unchanged(
+                                                case,
+                                                semantic_snapshot,
+                                                stage=f"adapter {mapping.label} teardown",
+                                            )
+                                        except Exception as exc:
+                                            teardown_error = exc
+                                            if case_context.error is None:
+                                                case_context.error = exc
                             if application_error is not None:
                                 raise application_error
                             if teardown_error is not None:

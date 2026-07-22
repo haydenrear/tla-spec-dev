@@ -107,7 +107,11 @@ class _StackBinding(Generic[T]):
                         primary,
                         _ordered_cleanup_errors(cleanup_error, primary),
                     ) from cleanup_error
-                raise
+                # Cancellation/control-flow exceptions must remain the primary
+                # signal even if partial cleanup also fails. Retain that cleanup
+                # failure explicitly as the cause instead of replacing the
+                # KeyboardInterrupt/SystemExit/GeneratorExit.
+                raise primary.with_traceback(primary.__traceback__) from cleanup_error
             raise
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
