@@ -1,0 +1,182 @@
+examples/distributed_history/scripts/regenerate_tlc_cases.py:33:    parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"), help="TLC executable. Defaults to $TLC2 or tlc2.")
+examples/distributed_history/scripts/regenerate_tlc_cases.py:37:        default=DEFAULT_GENERATED_DIR,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:15:synthesizing a fallback envelope when this script never gets to write
+examples/run_distributed_history_validation.py:33:    parser.add_argument("--mode", choices=["local", "k3d"], default="k3d")
+scripts/analyze_complexity.py:1637:    parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+scripts/budgets.py:107:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/budgets.py:117:    """Coerce a manifest budget to the numeric type of its default.
+scripts/budgets.py:120:    YAML fallback parser does not recognise floats, so ``kill_rate_floor: 0.8``
+scripts/budgets.py:122:    Coerce to the default's type and fall back on anything non-numeric.
+scripts/budgets.py:124:    default = DEFAULT_BUDGETS[key]
+scripts/budgets.py:125:    target = type(default)
+scripts/budgets.py:134:                f"using documented default {default}",
+scripts/budgets.py:137:        return default
+scripts/budgets.py:149:    key each fall back to the documented default and emit a warning, so a gate
+scripts/budgets.py:161:                "using documented default budgets (references/modular_fuzzing.md)",
+scripts/budgets.py:171:                "using documented default budgets (references/modular_fuzzing.md). "
+scripts/close_spec_workflow.py:12:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_spec_workflow.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_spec_workflow.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_spec_workflow.py:21:    parser.add_argument("--entry-name", default="closed-snapshot", help="History entry name under the workflow directory.")
+scripts/close_spec_workflow.py:22:    parser.add_argument("--summary", default="", help="Human-readable summary of the workflow close.")
+scripts/close_spec_workflow.py:23:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/close_ticket.py:11:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_ticket.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_ticket.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_ticket.py:21:    parser.add_argument("--entry-name", help="Override the default ticket-NNN-id history entry name.")
+scripts/close_ticket.py:22:    parser.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
+scripts/close_ticket.py:23:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/close_ticket.py:25:    parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/close_tickets.py:20:except ImportError:  # pragma: no cover - direct script execution
+scripts/close_tickets.py:239:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/close_tickets.py:240:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/close_tickets.py:243:    parser.add_argument("--history-entry", default="closed-snapshot", help="History entry name under the workflow directory.")
+scripts/close_tickets.py:244:    parser.add_argument("--summary", default="", help="Human-readable summary for the closed workflow snapshot.")
+scripts/close_tickets.py:245:    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/complexity_ledger.py:72:except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:77:except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:350:    The spec-unit runner invokes pytest without pyyaml, so a JSON-only fallback
+scripts/complexity_ledger.py:351:    would raise on a YAML ledger -- and a fallback that fails on the real input
+scripts/complexity_ledger.py:360:    except ImportError:  # pragma: no cover
+scripts/complexity_ledger.py:366:    return json.dumps(data, indent=2, default=str) + "\n"
+scripts/corpus_diagnostics.py:60:except ImportError:  # pragma: no cover - direct script execution
+scripts/corpus_diagnostics.py:606:    needed = max((g.count for g in report.over_cap), default=report.cap)
+scripts/corpus_diagnostics.py:856:# fallback signals. Getting this wrong would apply the wrong cap silently.
+scripts/corpus_diagnostics.py:888:        except ImportError:  # pragma: no cover - direct script execution
+scripts/effect_conformance_report.py:182:    parser.add_argument("--spec-root", default="specs")
+scripts/effect_conformance_report.py:189:    parser.add_argument("--format", choices=["text", "json"], default="text")
+scripts/effect_conformance.py:776:        except ImportError:  # pragma: no cover
+scripts/effect_conformance.py:1213:    # (unnarrowed) finding below -- the MF-027 default.
+scripts/export_testgraph_cases.py:24:except ImportError:  # pragma: no cover - direct script execution
+scripts/export_testgraph_cases.py:136:    parser.add_argument("--label", action="append", default=[], help="Only export cases with this label")
+scripts/export_testgraph_cases.py:137:    parser.add_argument("--case", action="append", default=[], help="Only export this case name")
+scripts/fitness_functions.py:103:        "max_component_variables": max((len(c) for c in components), default=0),
+scripts/fitness_functions.py:104:        "max_component_actions": max(component_actions, default=0),
+scripts/fitness_functions.py:306:    (the spec's directory -- where the default manifest also lives).
+scripts/generate_cases_from_tlc_dump.py:28:except ImportError:  # pragma: no cover - direct script execution
+scripts/generate_cases_from_tlc_dump.py:862:    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+scripts/generate_cases_from_tlc_dump.py:890:    parser.add_argument("--package", default="tlc_state_graph_cases")
+scripts/generate_cases_from_tlc_dump.py:893:    parser.add_argument("--tlc2", default="tlc2")
+scripts/generate_cases_from_tlc_dump.py:906:        default="none",
+scripts/generate_cases_from_tlc_dump.py:912:        default=[],
+scripts/generate_python.py:116:                if "default" in field:
+scripts/generate_python.py:117:                    suffix = f" = {py_default(field['default'])}"
+scripts/kill_test.py:314:            # Deliberately NOT the simple-parser fallback that
+scripts/kill_test.py:323:                f"not parsed with the simple fallback parser used for adapter mappings, "
+scripts/kill_test.py:455:    # default. A repository split into Internal.cfg/External.cfg would
+scripts/new_ticket_workflow.py:210:def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:214:        action = f"copy {src}" if src else "write fallback"
+scripts/new_ticket_workflow.py:222:        dst.write_text(fallback, encoding="utf-8")
+scripts/new_ticket_workflow.py:340:def ticket_title(ticket: dict[str, Any], fallback: str) -> str:
+scripts/new_ticket_workflow.py:342:    return str(value) if value is not None and str(value).strip() else fallback
+scripts/new_ticket_workflow.py:1023:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/new_ticket_workflow.py:1024:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/onboard_program_model.py:1282:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/onboard_program_model.py:1283:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/run_generated_case_adapters.py:33:except ImportError:  # pragma: no cover - direct script execution
+scripts/run_generated_case_adapters.py:767:    per-action surface lives; the manifest is the fallback home for
+scripts/run_generated_case_adapters.py:1013:    parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
+scripts/run_generated_case_adapters.py:1014:    parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
+scripts/run_generated_case_adapters.py:1016:    parser.add_argument("--import-root", action="append", type=Path, default=[])
+scripts/run_generated_case_adapters.py:1017:    parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
+scripts/run_kill_test.py:44:    parser.add_argument("--spec-root", default="specs", help="Spec root directory.")
+scripts/run_kill_test.py:60:        default=[],
+scripts/run_kill_test.py:103:    parser.add_argument("--format", choices=["text", "json"], default="text")
+scripts/run_kill_test.py:104:    parser.add_argument("--timeout", type=int, default=600, help="Per-mutant corpus timeout in seconds.")
+scripts/scaffold_spec_workflow.py:43:    parser.add_argument("--root", type=Path, default=Path.cwd())
+scripts/scaffold_spec_workflow.py:44:    parser.add_argument("--specs-dir", default="specs")
+scripts/scaffold_spec.py:614:        default: None
+scripts/scaffold_spec.py:791:    parser.add_argument("--root", type=Path, default=Path("examples"))
+scripts/spec_evolution.py:20:except ImportError:  # pragma: no cover - direct script execution
+scripts/spec_evolution.py:25:except ImportError:  # pragma: no cover - direct script execution
+scripts/spec_evolution.py:103:    return rendered or None
+scripts/spec_evolution.py:405:    """Paths the ticket workspace was seeded with, or None when unrecorded.
+scripts/spec_evolution.py:533:    """Locate (tla, cfg, manifest) inside a model tree, or None when absent.
+scripts/start_ticket.py:11:except ImportError:  # pragma: no cover - direct script execution
+scripts/start_ticket.py:18:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root.")
+scripts/start_ticket.py:19:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+scripts/start_ticket.py:20:    parser.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/testgraph_channels.py:12:   http/cli/fs/queue/k8s. Absence fails. There is no default channel and no
+scripts/testgraph_channels.py:30:fallback default anywhere in this module. A missing declaration is a failure,
+scripts/testgraph_channels.py:50:except ImportError:  # pragma: no cover - direct script execution
+scripts/testgraph_channels.py:145:        except ImportError:  # pragma: no cover - direct script execution
+scripts/tla_spec_dev.py:14:except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
+scripts/tla_spec_dev.py:377:        default="specs",
+scripts/tla_spec_dev.py:378:        help="Spec root under the repository. Defaults to %(default)s.",
+scripts/tla_spec_dev.py:382:        default=".",
+scripts/tla_spec_dev.py:450:    open_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+scripts/tla_spec_dev.py:481:        default="auto",
+scripts/tla_spec_dev.py:489:    run_spec_units.add_argument("--label", action="append", default=[], help="Only run generated cases with this label.")
+scripts/tla_spec_dev.py:490:    run_spec_units.add_argument("--case", action="append", default=[], help="Only run this generated case name.")
+scripts/tla_spec_dev.py:498:        default=["-q"],
+scripts/tla_spec_dev.py:527:    run_effects.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+scripts/tla_spec_dev.py:645:    close_ticket.add_argument("--entry-name", help="Override the default ticket-NNN-id history entry name.")
+scripts/tla_spec_dev.py:646:    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
+scripts/tla_spec_dev.py:647:    close_ticket.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+scripts/tla_spec_dev.py:649:    close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
+specs/current/adapter_case_runtime.py:211:        text = text.replace("source: default", "source: negotiated", 1)
+specs/current/production_adapters.py:1299:    10^6 * 10^6 * 2^6 * 2^6, far above the default threshold. It produces a
+specs/program_model/production_adapters.py:1299:    10^6 * 10^6 * 2^6 * 2^6, far above the default threshold. It produces a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:15:synthesizing a fallback envelope when this script never gets to write
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:65:    return max(candidates, key=lambda path: path.stat().st_mtime, default=None)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:15:synthesizing a fallback envelope when this script never gets to write
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:65:    return max(candidates, key=lambda path: path.stat().st_mtime, default=None)
+test_graph/sdk/python/src/testgraphsdk/runner.py:15:synthesizing a fallback envelope when this script never gets to write
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:65:    return max(candidates, key=lambda path: path.stat().st_mtime, default=None)
+tests/test_budgets.py:1:"""Budgets are per-program manifest state with documented-default fallback."""
+tests/test_budgets.py:80:    """The minimal YAML fallback parser yields strings for floats; gates compare numerically."""
+tests/test_effect_conformance.py:471:        """The default for something nobody enumerated must be refusal.
+tests/test_effect_conformance.py:473:        A default of "observable" is what made the original defect silent: any
+tests/test_effect_conformance.py:920:        """The MF-027 default is untouched: no evidence => full refusal."""
+tests/test_promotion_preserves_current.py:144:    """Tickets opened before the seed manifest existed get the safe default.
+tests/test_spec_yaml_valid.py:15:The failure mode is what makes it worth a test: the repository's own fallback
+tests/test_spec_yaml_valid.py:16:YAML parser is lenient, PyYAML is not installed by default, and the mismatch
+tests/test_spec_yaml_valid.py:18:silent default from a third. Nothing surfaces it.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:20: * shape, synthesizes a fallback for missing/malformed cases) before
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:24: * recording the captured-stdout-log path, and synthesizing a fallback
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:8: * forward-compat. Falls back to the SDK's documented 60s default on
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:11: * error, ImportError, segfault) still leaves a forensics trail.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:24: * `build/`, which is also where validation reports default to so a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:20: * shape, synthesizes a fallback for missing/malformed cases) before
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:24: * recording the captured-stdout-log path, and synthesizing a fallback
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:8: * forward-compat. Falls back to the SDK's documented 60s default on
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:11: * error, ImportError, segfault) still leaves a forensics trail.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:24: * `build/`, which is also where validation reports default to so a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:20: * shape, synthesizes a fallback for missing/malformed cases) before
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:24: * recording the captured-stdout-log path, and synthesizing a fallback
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:8: * forward-compat. Falls back to the SDK's documented 60s default on
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:11: * error, ImportError, segfault) still leaves a forensics trail.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:24: * `build/`, which is also where validation reports default to so a
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:20: * shape, synthesizes a fallback for missing/malformed cases) before
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:24: * recording the captured-stdout-log path, and synthesizing a fallback
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:8: * forward-compat. Falls back to the SDK's documented 60s default on
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:11: * error, ImportError, segfault) still leaves a forensics trail.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:30: *   4. If no override and not on PATH, download the default version.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:24: * `build/`, which is also where validation reports default to so a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:32:                default -> {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:80:                default -> readNumberOrRaw();
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:135:                        default -> b.append(n);
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:17: * <p>Null inclusion is left at Jackson's {@code ALWAYS} default —
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:23: * path, and synthesizing a fallback envelope when this script never
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:55:                default -> {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:32:                default -> {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:80:                default -> readNumberOrRaw();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:135:                        default -> b.append(n);
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:17: * <p>Null inclusion is left at Jackson's {@code ALWAYS} default —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:23: * path, and synthesizing a fallback envelope when this script never
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:55:                default -> {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:32:                default -> {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:80:                default -> readNumberOrRaw();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:135:                        default -> b.append(n);
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:17: * <p>Null inclusion is left at Jackson's {@code ALWAYS} default —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:23: * path, and synthesizing a fallback envelope when this script never
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:55:                default -> {
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:32:                default -> {
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:80:                default -> readNumberOrRaw();
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java:135:                        default -> b.append(n);
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:17: * <p>Null inclusion is left at Jackson's {@code ALWAYS} default —
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:23: * path, and synthesizing a fallback envelope when this script never
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:55:                default -> {

@@ -1,0 +1,55 @@
+# Complexity ledger input — workflow close of complexity-descriptor-epic
+# (owner-authored 2026-07-22). The epic was deliberately zero-TLA+-model-delta:
+# CD-01/02/03 changed scripts/, references/, and SKILL.md, not the modeled CLI
+# lifecycle. TLC on specs/current at close: 5,619,356 generated / 231,621
+# distinct / depth 25 — identical to the epic's base
+# (specs/results/epic-close/tlc_current.txt).
+
+retention:
+  # No complexity decrease is claimed by this close (direction: unchanged), so
+  # these members are recorded, not gating. The fuzzing machinery that measures
+  # them is EXPERIMENTAL and deliberately not run this epic (the 2026-07-21
+  # ship-scanner/drop-fuzzing pivot; MF-038 measured 0/9 content bugs caught).
+  kill_rate:
+    status: "not_run"
+    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+  effect_conformance:
+    status: "not_run"
+    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+  external_coverage:
+    status: "not_run"
+    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+
+coverage_audit:
+  status: "FAIL"
+  report: "specs/results/epic-close/coverage_audit_report.md"
+  in_scope_gaps: 7
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:534-549 (service_catalog, inherited unamended from the previous epic), :1996-1999/:2073-2075/:2143-2147 (CD-01/02/03 implementation_scope), :520 (semantic_model_rule, out-of-scope authority)"
+  # 2026-07-22 audit (run 2; run 1 was MF-026). Verdict FAIL: 7 in-scope gaps
+  # (G1 fitness subsystem unrepresented; G2 model still represents the removed
+  # blocking gate + override input while the program proceeds-on-fail; G3 case
+  # generation has no action yet performs the only real TLC spawn; G4 dead
+  # tlc_process port on AnalyzeComplexity; G5 case_adapters.toml binds 11 of 14
+  # actions plus one non-action; G6 silent-degrade guards; G7 runner
+  # env-branch/child-effect semantics). 6 scope escalations incl. E6: the
+  # zero-model-delta acceptance lines mandate exactly the non-representation
+  # this gate flags — owner amends the boundary once or the gaps stand.
+  # Sweep raws: specs/results/epic-close/sweep-raw/. 322/332 sweep-1 rows
+  # dispositioned from path+bindings, not read (report §8.3).
+
+justification: ""
+
+transition_diff: ""
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched at workflow scope: the model is unchanged this epic (before/after
+    TLC identical at 231,621 distinct / depth 25), and each ticket close
+    (CD-01/02/03) recorded its own searched/none refinement entry. The epic's
+    product — descriptor + intuition + fitness functions — was validated on
+    three example projects (6/6 scored agent runs, examples/validation/runs/),
+    where refactors were found and taken on the EXAMPLE models, not this one.
+  applied: false
+  approved_by: ""

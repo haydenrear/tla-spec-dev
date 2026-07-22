@@ -1,0 +1,60 @@
+examples/distributed_history/ecommerce_backend/domain.py:28:        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+examples/distributed_history/ecommerce_backend/service.py:8:import urllib.error
+examples/distributed_history/ecommerce_backend/service.py:9:import urllib.request
+examples/distributed_history/ecommerce_backend/service.py:10:from urllib.parse import urlparse
+examples/distributed_history/ecommerce_backend/service.py:57:    request = urllib.request.Request(base_url.rstrip("/") + path, data=data, headers=headers, method=method)
+examples/distributed_history/ecommerce_backend/service.py:61:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/ecommerce_backend/service.py:63:        except urllib.error.HTTPError as exc:
+examples/distributed_history/ecommerce_backend/service.py:65:        except (OSError, TimeoutError, urllib.error.URLError):
+examples/distributed_history/specs/program_model/adapters.py:6:import urllib.error
+examples/distributed_history/specs/program_model/adapters.py:7:import urllib.request
+examples/distributed_history/specs/program_model/adapters.py:107:        with urllib.request.urlopen(base_url + path, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:112:        request = urllib.request.Request(
+examples/distributed_history/specs/program_model/adapters.py:119:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:124:        except urllib.error.HTTPError as exc:
+examples/distributed_history/specs/program_model/adapters.py:159:        with urllib.request.urlopen(base_url.rstrip("/") + "/debug/state", timeout=5) as response:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:10:from urllib.request import urlopen
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:90:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/sources/collect_evidence.py:12:from urllib.request import urlopen
+examples/distributed_history/test_graph/sources/collect_evidence.py:64:    with urlopen(base_url + "/debug/state", timeout=5) as response:
+examples/distributed_history/test_graph/sources/collect_evidence.py:69:    with urlopen(base_url + "/debug/traffic", timeout=10) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:13:import socket
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:18:from urllib.request import urlopen
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:153:    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:162:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:174:            with urlopen(base_url + "/debug/state", timeout=3) as response:
+examples/run_distributed_history_validation.py:10:import socket
+examples/run_distributed_history_validation.py:16:from urllib.request import urlopen
+examples/run_distributed_history_validation.py:411:    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+examples/run_distributed_history_validation.py:420:            with urlopen(base_url + "/health", timeout=1) as response:
+scripts/effect_conformance.py:17:   filesystem writes/deletes, process spawns, socket connects, HTTP -- and
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:106:        "network.connect",
+scripts/effect_conformance.py:245:#: exactly ``EFFECT_TYPES``: a child can write, delete, spawn again, and connect.
+scripts/effect_conformance.py:556:    def connect(self, target: str) -> None:
+scripts/effect_conformance.py:558:            ObservedEffect(type="network.connect", target=str(target), detail=f"transport {self.name}")
+scripts/effect_conformance.py:775:            import socket
+scripts/effect_conformance.py:778:        original = socket.socket.connect
+scripts/effect_conformance.py:779:        self._originals["socket.connect"] = (socket.socket, "connect", original)
+scripts/effect_conformance.py:784:                ObservedEffect(type="network.connect", target=_address_target(address), detail="socket.connect")
+scripts/effect_conformance.py:788:        socket.socket.connect = patched  # type: ignore[assignment]
+scripts/effect_conformance.py:1142:                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+scripts/onboard_program_model.py:215:\\* External does NOT mean distributed. For an HTTP service it is requests. For
+scripts/onboard_program_model.py:1062:External does not mean distributed. For an HTTP service it is requests; for a
+tests/test_effect_conformance.py:930:        open a socket the diff cannot see, so the verdict STAYS unobservable and
+tests/test_effect_conformance.py:944:        assert "network.connect" in reason and "network.http" in reason, "names the residual"
+tests/test_effect_conformance.py:1017:        dead). But the child could have opened a socket the diff cannot see, so
+tests/test_testgraph_channels.py:68:        "import urllib.request\n"
+tests/test_testgraph_channels.py:72:        "        urllib.request.urlopen('http://localhost:8080/ship')\n"
+tests/test_testgraph_channels.py:410:    (spec / "adapters.py").write_text("import json\nimport urllib.request\n", encoding="utf-8")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+skill-scripts/install-tlc2.sh:12:if ! command -v curl >/dev/null 2>&1; then
+skill-scripts/install-tlc2.sh:13:  echo "curl is required to download tla2tools from the TLA+ GitHub releases." >&2
+skill-scripts/install-tlc2.sh:37:curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"

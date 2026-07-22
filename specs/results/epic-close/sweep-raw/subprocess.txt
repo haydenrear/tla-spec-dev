@@ -1,0 +1,976 @@
+examples/distributed_history/scripts/regenerate_tlc_cases.py:12:import subprocess
+examples/distributed_history/scripts/regenerate_tlc_cases.py:24:def run(command: list[str]) -> None:
+examples/distributed_history/scripts/regenerate_tlc_cases.py:28:    subprocess.run(command, cwd=EXAMPLE_ROOT, env=env, check=True)
+examples/distributed_history/scripts/regenerate_tlc_cases.py:67:        run(
+examples/distributed_history/scripts/regenerate_tlc_cases.py:84:        run(
+examples/distributed_history/scripts/regenerate_tlc_cases.py:101:    run(
+examples/distributed_history/specs/program_model/adapters.py:26:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/distributed_history/specs/program_model/adapters.py:86:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:6:import subprocess
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:33:    subprocess.run(command, check=True)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:41:    process = subprocess.Popen(
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:45:        stdout=subprocess.DEVNULL,
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:46:        stderr=subprocess.DEVNULL,
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:65:        subprocess.run(command, check=True, env=env)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:73:    subprocess.run(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:13:import subprocess
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:31:def run(ctx):
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:51:        result = subprocess.run(
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:54:            stderr=subprocess.STDOUT,
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:80:    result = subprocess.run(
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:91:    run()
+examples/distributed_history/test_graph/sources/collect_evidence.py:59:def run(ctx):
+examples/distributed_history/test_graph/sources/collect_evidence.py:129:    run()
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:14:import subprocess
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:48:def run(ctx):
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:71:    process = subprocess.Popen(
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:104:        result = subprocess.run(["bash", "-lc", command], cwd=root, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:134:        completed = subprocess.run(
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:183:    run()
+examples/distributed_history/test_graph/sources/run_external_cases.py:12:import subprocess
+examples/distributed_history/test_graph/sources/run_external_cases.py:32:def run(ctx):
+examples/distributed_history/test_graph/sources/run_external_cases.py:69:        regenerate_result = subprocess.run(regenerate_command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/run_external_cases.py:72:            result = subprocess.run(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+examples/distributed_history/test_graph/sources/run_external_cases.py:87:        return NodeResult.fail(SPEC.id, "adapter batch did not run").process(regenerate_record).artifact("log", str(log_path))
+examples/distributed_history/test_graph/sources/run_external_cases.py:155:    run()
+examples/run_distributed_history_validation.py:11:import subprocess
+examples/run_distributed_history_validation.py:26:def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None) -> None:
+examples/run_distributed_history_validation.py:28:    subprocess.run(command, cwd=cwd, env=env, check=True)
+examples/run_distributed_history_validation.py:34:    parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
+examples/run_distributed_history_validation.py:64:    run(
+examples/run_distributed_history_validation.py:76:    run(
+examples/run_distributed_history_validation.py:103:    This asserts the STRICT outcome: a green control run and a verdict of
+examples/run_distributed_history_validation.py:108:    end-to-end run measured **0.571 (4/7)** against the 0.8 floor, with three
+examples/run_distributed_history_validation.py:152:    completed = subprocess.run(
+examples/run_distributed_history_validation.py:180:    # The control run first: without it, a corpus that is already red would
+examples/run_distributed_history_validation.py:184:            f"kill test control run failed -- the corpus does not pass on the unmutated "
+examples/run_distributed_history_validation.py:216:    process = subprocess.Popen(
+examples/run_distributed_history_validation.py:220:        stdout=subprocess.DEVNULL,
+examples/run_distributed_history_validation.py:221:        stderr=subprocess.DEVNULL,
+examples/run_distributed_history_validation.py:264:            result = subprocess.run(command, cwd=EXAMPLE_ROOT, env=negative_env, text=True, capture_output=True)
+examples/run_distributed_history_validation.py:282:        except subprocess.TimeoutExpired:
+examples/run_distributed_history_validation.py:318:    run(
+examples/run_distributed_history_validation.py:406:    subprocess.run(["k3d", "cluster", "delete", CLUSTER_NAME], check=False)
+examples/run_distributed_history_validation.py:407:    subprocess.run(["docker", "rmi", "ecommerce-history:local"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+examples/validation/ex1_scaffold_only/taskq/taskq.py:4:Tasks move pending -> running -> done. At most two tasks run at once.
+scripts/analyze_complexity.py:1589:def run(args: argparse.Namespace) -> int:
+scripts/analyze_complexity.py:1649:    return run(parser.parse_args(argv))
+scripts/budgets.py:41:    "tlc_seconds": "hard external timeout per TLC run",
+scripts/close_tickets.py:111:        "into program_model/, mark every ticket closed), then re-run this command.\n"
+scripts/close_tickets.py:112:        "- Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and "
+scripts/close_tickets.py:241:    parser.add_argument("--dry-run", action="store_true", help="Validate and print removals without deleting files.")
+scripts/complexity_ledger.py:115:# Recorded at EVERY close, including ticket closes where the audit has not run.
+scripts/complexity_ledger.py:124:    "not_run": "audit has not been run for this scope",
+scripts/complexity_ledger.py:219:    has not yet run the audit.
+scripts/complexity_ledger.py:271:    figures come from a real TLC run when one is supplied and are left null
+scripts/complexity_ledger.py:541:    """Build the ledger entry and run every gate. Errors mean the close is refused."""
+scripts/complexity_ledger.py:599:            "the same run. Absent evidence is not passing evidence."
+scripts/complexity_ledger.py:659:    # every ticket to run a whole-epic audit or to fake a verdict. Both are
+scripts/complexity_ledger.py:683:            f"coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
+scripts/complexity_ledger.py:860:# step, run after the mechanism tickets land and before final integration. It is
+scripts/complexity_ledger.py:884:  measured: false      # true only if a real TLC run produced the figure
+scripts/corpus_diagnostics.py:101:# shapes. These readers accept either so the same diagnostics run over a
+scripts/corpus_diagnostics.py:785:    two hard gates read identically at every call site.
+scripts/corpus_diagnostics.py:805:    anything, it only refuses to call the result acceptable.
+scripts/corpus_diagnostics.py:902:def run(args: Any) -> int:
+scripts/corpus_diagnostics.py:934:    return run(parser.parse_args())
+scripts/effect_conformance_report.py:2:"""`tla-spec-dev run effect-conformance` (MF-013).
+scripts/effect_conformance_report.py:10:ENFORCING copy of the same measurement runs inside ``run spec-unit-tests``,
+scripts/effect_conformance_report.py:67:def run(args: argparse.Namespace) -> int:
+scripts/effect_conformance_report.py:190:    return run(parser.parse_args())
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:40:   sandbox saw only the spawn and refused. :class:`WorkingTreeObserver` sees the
+scripts/effect_conformance.py:46:   :func:`diff_effects` narrows a spawn's process-boundary finding to name only
+scripts/effect_conformance.py:48:   ``unobservable`` until *every* axis has an observer. A spawn with no
+scripts/effect_conformance.py:50:   downgrades a verdict; it only lets the run SEE more, and report what it still
+scripts/effect_conformance.py:58:     recorded AND the run fails.
+scripts/effect_conformance.py:93:import subprocess
+scripts/effect_conformance.py:105:        "process.spawn",
+scripts/effect_conformance.py:153:#: something the run has no evidence for.
+scripts/effect_conformance.py:191:    "subprocess",
+scripts/effect_conformance.py:241:#: MF-033: every effect type a child process could emit across a spawn boundary.
+scripts/effect_conformance.py:245:#: exactly ``EFFECT_TYPES``: a child can write, delete, spawn again, and connect.
+scripts/effect_conformance.py:254:    adapter and a subprocess-delegating adapter both return ``clean``: the
+scripts/effect_conformance.py:278:    MF-027/MF-028 a declared ``process.spawn`` produced :data:`VERDICT_UNOBSERVABLE`
+scripts/effect_conformance.py:280:    spawn but nothing the child did, and refused. This record carries what an
+scripts/effect_conformance.py:335:    into this interpreter, that the runner is about to call directly. If the
+scripts/effect_conformance.py:564:    """Collects observed effects. Passive: adapters do not call into this."""
+scripts/effect_conformance.py:571:    #: run actually saw -- and because a diff that ignored them would be a
+scripts/effect_conformance.py:576:    #: bracketed window. Like ``unobservable``, this is a fact the run gathered;
+scripts/effect_conformance.py:635:        Runners call this **before** executing an adapter. The return value is
+scripts/effect_conformance.py:639:        the sandbox, not decided at the call site.
+scripts/effect_conformance.py:704:        self._patch_process("run")
+scripts/effect_conformance.py:705:        self._patch_process("call")
+scripts/effect_conformance.py:706:        self._patch_process("check_call")
+scripts/effect_conformance.py:707:        self._patch_process("check_output")
+scripts/effect_conformance.py:743:        original = getattr(subprocess, name, None)
+scripts/effect_conformance.py:746:        key = f"subprocess.{name}"
+scripts/effect_conformance.py:747:        self._originals[key] = (subprocess, name, original)
+scripts/effect_conformance.py:753:                    ObservedEffect(type="process.spawn", target=_command_target(args[0]), detail=key)
+scripts/effect_conformance.py:757:        setattr(subprocess, name, patched)
+scripts/effect_conformance.py:760:        original = subprocess.Popen
+scripts/effect_conformance.py:761:        self._originals["subprocess.Popen"] = (subprocess, "Popen", original)
+scripts/effect_conformance.py:767:                    ObservedEffect(type="process.spawn", target=_command_target(args), detail="subprocess.Popen")
+scripts/effect_conformance.py:771:        subprocess.Popen = PatchedPopen  # type: ignore[misc]
+scripts/effect_conformance.py:805:    this repository shells out, so the sandbox saw the spawn and nothing else).
+scripts/effect_conformance.py:825:    Used as a context manager around the adapter call whose child you want to
+scripts/effect_conformance.py:992:    #: MF-027: targets the run could not observe. Non-empty => the run FAILS.
+scripts/effect_conformance.py:1002:        # consulted here. Findings exist => the run fails. This property is the
+scripts/effect_conformance.py:1142:                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+scripts/effect_conformance.py:1177:    and every observed ``process.spawn`` additionally produces a
+scripts/effect_conformance.py:1179:    spawn that MATCHES a declared port is still a boundary the sandbox cannot
+scripts/effect_conformance.py:1180:    see through. Declaring ``tlc_process`` says "I spawn java"; it does not
+scripts/effect_conformance.py:1181:    say what java then wrote. Treating a declared spawn as fully accounted for
+scripts/effect_conformance.py:1187:    :class:`WorkingTreeObserver` snapshot diff). For a spawn whose case an
+scripts/effect_conformance.py:1192:    a positive measurement, an unwatched axis (network, nested spawn) stays in
+scripts/effect_conformance.py:1193:    the residual, and a spawn with no out-of-process evidence at all is
+scripts/effect_conformance.py:1194:    unchanged -- still fully unobservable. Only a spawn every one of whose axes
+scripts/effect_conformance.py:1219:        if effect.type != "process.spawn":
+scripts/effect_conformance.py:1225:            # out-of-process observer. There is nothing left the run cannot see,
+scripts/effect_conformance.py:1233:                "observer and remain invisible to this run"
+scripts/effect_conformance.py:1237:                "a child process was spawned; the sandbox records the spawn but "
+scripts/effect_conformance.py:1239:                "connections are invisible to this run"
+scripts/export_testgraph_cases.py:90:    which ports were real and which were doubled, so a graph run can say which
+scripts/export_testgraph_cases.py:142:            "Limit how many selected cases are exported in THIS run. This is a "
+scripts/export_testgraph_cases.py:143:            "user-driven selection for a focused run, not a budget mechanism: "
+scripts/extract_spec_manifest.py:5:run in a bare Python environment. If PyYAML is installed, it is used.
+scripts/fitness_functions.py:275:    reports its absence as an advisory error (the CLI may run under a bare
+scripts/fitness_functions.py:418:    """One-call entry point for the scanner.
+scripts/generate_cases_from_tlc_dump.py:17:import subprocess
+scripts/generate_cases_from_tlc_dump.py:95:        subprocess.run(command, check=True, cwd=spec_dir)
+scripts/generate_cases_from_tlc_dump.py:790:        "    def call(self, value: StateGraphInput) -> Any:\n"
+scripts/kill_test.py:6:declared boundaries match observed behavior (`run effect-conformance`). None
+scripts/kill_test.py:12:    Experiment:  seed k faults into C, run the distilled corpus, and require
+scripts/kill_test.py:45:obligation every run from the two declaration sites themselves -- the ports in
+scripts/kill_test.py:57:assert something the run has no evidence for.
+scripts/kill_test.py:70:The control run
+scripts/kill_test.py:72:"Killed" is operationalized as "the corpus run failed", which means a corpus
+scripts/kill_test.py:76:end-to-end run of the worked distributed_history kill test scored 7/7 for
+scripts/kill_test.py:94:import subprocess
+scripts/kill_test.py:111:#: A complete catalog was run and the kill rate fell below ``kill_rate_floor``.
+scripts/kill_test.py:344:    manifest that declares no ports is an exit-2 refusal at the call site: a
+scripts/kill_test.py:446:    recomputed from ``spec_manifest.yaml`` and ``MC.cfg`` on every run, so the
+scripts/kill_test.py:467:    # actually run. Every mutant in the catalog is executed either way, so a
+scripts/kill_test.py:529:    The restore is in a ``finally`` so an exception mid-run cannot leave a
+scripts/kill_test.py:555:#: Passing ``None`` instead of a mutant means "run the corpus unmutated" -- the
+scripts/kill_test.py:556:#: control run. Every runner must support it; see :func:`control_run`.
+scripts/kill_test.py:565:    "the corpus run failed", so a corpus that ALREADY FAILS on correct code
+scripts/kill_test.py:570:    This is not hypothetical. The first end-to-end run of the worked
+scripts/kill_test.py:597:    runner SHELLS OUT. Under the MF-027 effect oracle a ``process.spawn`` is
+scripts/kill_test.py:600:    ``test_process`` -> ``*pytest*``). A kill-test run driven this way must
+scripts/kill_test.py:601:    therefore execute OUTSIDE the effect sandbox; run it inside and the two
+scripts/kill_test.py:604:    it is a real constraint on how the kill test can be run in this
+scripts/kill_test.py:608:    def _invoke() -> subprocess.CompletedProcess[str]:
+scripts/kill_test.py:609:        return subprocess.run(
+scripts/kill_test.py:618:    def run(mutant: Mutant | None) -> tuple[bool, list[str], str]:
+scripts/kill_test.py:620:            # Control run: no fault seeded.
+scripts/kill_test.py:629:    return run
+scripts/kill_test.py:689:        # Control dominates everything: without a green control run, no kill
+scripts/kill_test.py:758:                        f"generated case exercises the difference). Then re-run; the mutant "
+scripts/kill_test.py:891:        lines.append("Control run (unmutated program) FAILED. Corpus output:")
+scripts/kill_test.py:940:    """Seed every mutant, run the corpus against each, and gate the rate."""
+scripts/kill_test.py:959:        # Do not run a partial experiment. See the module docstring.
+scripts/kill_test.py:1050:    every call site.
+scripts/new_ticket_workflow.py:427:  5. Mark {ticket_id} closed/done in the project ticket plan and run:
+scripts/new_ticket_workflow.py:828:case pre-state, call the production boundary, observe production state, and
+scripts/new_ticket_workflow.py:1026:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/onboard_program_model.py:431:#   tla-spec-dev run spec-unit-tests
+scripts/onboard_program_model.py:457:#   adapter             -> drives the public action (HTTP call, CLI run, ...)
+scripts/onboard_program_model.py:474:#     one real. All-doubles is a spec-unit run, never a Test Graph node.
+scripts/onboard_program_model.py:576:each one with a call into this repository's real boundary. The class names here
+scripts/onboard_program_model.py:596:# Hook order per batch: setup_all -> (run per case) -> teardown_all.
+scripts/onboard_program_model.py:597:# `run` materializes case.before, applies one internal action, and returns the
+scripts/onboard_program_model.py:609:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:632:        raise NotImplementedError("call the real RegisterActor boundary")
+scripts/onboard_program_model.py:637:        raise NotImplementedError("call the real AcceptRecord boundary")
+scripts/onboard_program_model.py:642:        raise NotImplementedError("call the real PublishRecord boundary")
+scripts/onboard_program_model.py:649:#   setup_all -> for each case: setup -> run -> projected-state assertion ->
+scripts/onboard_program_model.py:670:        """Load `context.case.before` into the real system before each case."""
+scripts/onboard_program_model.py:679:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:705:# actual   = ProgramStateProjector.observe(context)             (from real system)
+scripts/onboard_program_model.py:718:            "observe the real system's externally visible state and pass it "
+scripts/onboard_program_model.py:773:projection. `project_adapter_output` derives the output a correct adapter run
+scripts/onboard_program_model.py:1058:  Generates spec-unit cases, run by the spec-unit adapters in `adapters.py`.
+scripts/onboard_program_model.py:1060:  from outside. Generates Test Graph cases, run by the Test Graph adapters.
+scripts/onboard_program_model.py:1072:tla-spec-dev --spec-root {spec_root_text} run spec-unit-tests
+scripts/onboard_program_model.py:1143:The external counterpart is NOT a pytest test: External-view cases run as Test
+scripts/onboard_program_model.py:1154:import subprocess
+scripts/onboard_program_model.py:1188:    subprocess.run(command, check=True, cwd=REPO_ROOT)
+scripts/onboard_program_model.py:1286:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/run_generated_case_adapters.py:2:"""Generate and run adapter programs for TLC-derived cases.
+scripts/run_generated_case_adapters.py:16:import subprocess
+scripts/run_generated_case_adapters.py:317:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/run_generated_case_adapters.py:391:        return asyncio.run(value)
+scripts/run_generated_case_adapters.py:477:    field agrees". Every other field is compared on its own, so a run reports
+scripts/run_generated_case_adapters.py:875:                        # Python object the runner is about to call, which is
+scripts/run_generated_case_adapters.py:897:                    # setup/run/teardown. Everything the adapter causes to cross
+scripts/run_generated_case_adapters.py:945:    # is appended to `failures`, so a gap or a dead port fails the run exactly
+scripts/run_generated_case_adapters.py:992:    return subprocess.run(command, env=env).returncode
+scripts/run_generated_case_adapters.py:998:        result = subprocess.run([*python, str(program)])
+scripts/run_generated_case_adapters.py:1012:    parser.add_argument("--view", choices=["internal", "external"], help="Only validate/run cases for this generated view")
+scripts/run_generated_case_adapters.py:1013:    parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
+scripts/run_generated_case_adapters.py:1014:    parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
+scripts/run_generated_case_adapters.py:1017:    parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
+scripts/run_generated_case_adapters.py:1019:    parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")
+scripts/run_kill_test.py:4:    tla-spec-dev run kill-test --ticket MF-016 --out results/kill-test.json
+scripts/run_kill_test.py:92:        help="Compare two existing reports as an abstraction validation, and run nothing.",
+scripts/run_kill_test.py:120:        prog="tla-spec-dev run kill-test",
+scripts/run_kill_test.py:127:    return run(args)
+scripts/run_kill_test.py:130:def run(args: argparse.Namespace) -> int:
+scripts/run_kill_test.py:218:        "process.spawn is an unobservable boundary even when a port declares it, so the kill "
+scripts/run_kill_test.py:219:        "test must run OUTSIDE the effect sandbox in this repository."
+scripts/scaffold_spec.py:303:#     real -- all-doubles is a spec-unit run, never a Test Graph node.
+scripts/scaffold_spec.py:356:SCAFFOLD: replace each NotImplementedError with a call into the real boundary.
+scripts/scaffold_spec.py:373:# Hook order per batch: setup_all -> (run per case) -> teardown_all.
+scripts/scaffold_spec.py:383:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:400:        raise NotImplementedError("call the real Create boundary")
+scripts/scaffold_spec.py:405:#   setup_all -> for each case: setup -> run -> assertion -> teardown
+scripts/scaffold_spec.py:429:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/scaffold_spec.py:443:# actual   = ProgramStateProjector.observe(context)             (from real system)
+scripts/scaffold_spec.py:455:            "observe the real system's visible state and pass it through "
+scripts/skill_feedback.py:275:- `observed_on:` the real repository/module/ticket it was run against. A finding
+scripts/spec_evolution.py:10:import subprocess
+scripts/spec_evolution.py:99:        result = subprocess.run(["git", *args], check=True, capture_output=True, text=True)
+scripts/spec_evolution.py:100:    except (OSError, subprocess.CalledProcessError):
+scripts/spec_evolution.py:333:        "matches desired/, re-run the spec-unit validations, then re-run the close.\n"
+scripts/spec_evolution.py:334:        "- Option B: re-run the close with --accept-new to accept the ticket desired/ as the new "
+scripts/spec_evolution.py:856:    # MF-017: the workflow close is the last chance to run the Phase 6 retro,
+scripts/start_ticket.py:22:    parser.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/testgraph_channels.py:24:   lets a graph run name its integration-ladder rung. An all-doubles
+scripts/testgraph_channels.py:26:   test, so it is a spec-unit run and never a Test Graph node.
+scripts/testgraph_channels.py:58:#: Each is import-isolated: all four run in the harness, so a production
+scripts/testgraph_channels.py:199:                    "integration-ladder rung the graph run occupies"
+scripts/testgraph_channels.py:226:                        "bind at least one port to real, or run these cases as "
+scripts/tla_spec_dev.py:8:import subprocess
+scripts/tla_spec_dev.py:143:    return analyze_complexity.run(args)
+scripts/tla_spec_dev.py:149:    return corpus_diagnostics.run(args)
+scripts/tla_spec_dev.py:161:    return effect_conformance_report.run(args)
+scripts/tla_spec_dev.py:174:    return run_kill_test_module.run(args)
+scripts/tla_spec_dev.py:297:                        "run",
+scripts/tla_spec_dev.py:358:        result = subprocess.run(command, cwd=repo_root, env=env)
+scripts/tla_spec_dev.py:371:            "analyze complexity -> run spec-unit-tests -> close ticket."
+scripts/tla_spec_dev.py:409:    scaffold_project.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:424:    scaffold_workflow.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:452:    open_ticket.add_argument("--dry-run", action="store_true", help="Print planned writes without changing files.")
+scripts/tla_spec_dev.py:460:        "run",
+scripts/tla_spec_dev.py:467:        command_path="tla-spec-dev run",
+scripts/tla_spec_dev.py:468:        next_step="Choose a target: tla-spec-dev run spec-unit-tests.",
+scripts/tla_spec_dev.py:489:    run_spec_units.add_argument("--label", action="append", default=[], help="Only run generated cases with this label.")
+scripts/tla_spec_dev.py:490:    run_spec_units.add_argument("--case", action="append", default=[], help="Only run this generated case name.")
+scripts/tla_spec_dev.py:493:    run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
+scripts/tla_spec_dev.py:503:        command_path="tla-spec-dev run spec-unit-tests",
+scripts/tla_spec_dev.py:530:        command_path="tla-spec-dev run effect-conformance",
+scripts/tla_spec_dev.py:531:        next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
+scripts/tla_spec_dev.py:545:            "The required boundary set is recomputed every run from the port declarations "
+scripts/tla_spec_dev.py:560:        command_path="tla-spec-dev run kill-test",
+spec_double_compiler/runtime.py:57:    def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult | dict[str, Any] | None:
+spec_double_compiler/runtime.py:75:    if callable(obj) and not hasattr(obj, "run"):
+spec_double_compiler/runtime.py:102:    run = getattr(adapter, "run", None)
+spec_double_compiler/runtime.py:103:    if run is None:
+spec_double_compiler/runtime.py:104:        raise TypeError(f"adapter {adapter!r} does not define run(case, ...)")
+spec_double_compiler/runtime.py:106:        result = run(case, work_dir=work_dir)
+spec_double_compiler/runtime.py:110:        result = run(case)
+specs/current/adapter_case_runtime.py:8:``run(case, work_dir)``. ``apply()`` stays the spec-unit surface untouched;
+specs/current/adapter_case_runtime.py:9:``run()`` is additive.
+specs/current/adapter_case_runtime.py:11:The three obligations of a ``run()`` -- MATERIALIZE ``case.before`` as a real
+specs/current/adapter_case_runtime.py:22:import subprocess
+specs/current/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/adapter_case_runtime.py:36:    return subprocess.run(
+specs/current/adapter_case_runtime.py:48:# `run_generated_case_adapters.py` calls `run(case, work_dir=...)`; the adapters
+specs/current/adapter_case_runtime.py:53:# variables. `run()` therefore has three obligations, each with a different cost
+specs/current/adapter_case_runtime.py:213:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/current/adapter_case_runtime.py:231:    run -- for setup-segment actions they are carried from `prior` because the
+specs/current/adapter_case_runtime.py:319:    """Fail the run when the projected after-state disagrees with the case.
+specs/current/adapter_case_runtime.py:325:    `adapter.run(case)` call -- the way the spec-unit negative controls exercise
+specs/current/adapter_case_runtime.py:396:      * ``TicketOpened`` -- run ``open ticket``; the ticket workspace exists.
+specs/current/production_adapters.py:7:import subprocess
+specs/current/production_adapters.py:16:# and composes them inside its own run(). apply() stays the spec-unit surface.
+specs/current/production_adapters.py:58:    editing the ticket's desired, then current, model. So `run()`:
+specs/current/production_adapters.py:102:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:181:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:202:    # `run()` in the repository and therefore calibrates the bottom of the
+specs/current/production_adapters.py:206:    # ScaffoldProject run() below for the first honest measurement.
+specs/current/production_adapters.py:214:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:258:        install = subprocess.run(
+specs/current/production_adapters.py:267:        version = subprocess.run(
+specs/current/production_adapters.py:297:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:343:        result = subprocess.run(
+specs/current/production_adapters.py:387:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:454:        result = subprocess.run(
+specs/current/production_adapters.py:494:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/current/production_adapters.py:629:    # Unopened. `materialize_before` builds exactly that; `run()` then drives the
+specs/current/production_adapters.py:651:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:704:# most one of the four is ever reachable from the corpus -- no run() they grow
+specs/current/production_adapters.py:985:        title: str = "CLI run spec-unit tests",
+specs/current/production_adapters.py:994:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/current/production_adapters.py:1041:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/current/production_adapters.py:1065:        result = subprocess.run(
+specs/current/production_adapters.py:1115:    # spec-unit surface; `run()` performs only the one modelled transition.
+specs/current/production_adapters.py:1128:    def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:1316:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1317:            return subprocess.run(
+specs/current/production_adapters.py:1334:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1335:            return subprocess.run(
+specs/current/production_adapters.py:1488:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1489:            return subprocess.run(
+specs/current/production_adapters.py:1503:        # The same 201-case corpus, before and after a FAILING gate run.
+specs/current/production_adapters.py:1564:    """`tla-spec-dev run effect-conformance` diffs observed vs declared effects.
+specs/current/production_adapters.py:1609:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1610:            return subprocess.run(
+specs/current/production_adapters.py:1612:                 "--spec-root", spec_root, "run", "effect-conformance",
+specs/current/production_adapters.py:1656:    """`tla-spec-dev run kill-test` -- oracle 4, the mutation kill test.
+specs/current/production_adapters.py:1674:    The fixture programs are trivial on purpose: a real corpus run is deferred
+specs/current/production_adapters.py:1738:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/production_adapters.py:1742:            return subprocess.run(
+specs/current/production_adapters.py:1777:        pass_run = run(complete, "--corpus-command", cmd, "--out", str(pass_out))
+specs/current/production_adapters.py:1793:        surv_run = run(surviving, "--corpus-command", surv_cmd, "--out", str(surv_out))
+specs/current/production_adapters.py:1804:        unc_run = run(uncovered, "--corpus-command", unc_cmd, "--out", str(unc_out))
+specs/current/production_adapters.py:1826:        waived_run = run(waived, "--corpus-command", waived_cmd, "--out", str(waived_out))
+specs/current/tests/test_current_ticket_workflow.py:91:    # re-run self-loop (measured at MF-020: 3664 -> 3184 generated states).
+specs/current/tests/test_current_ticket_workflow.py:93:        "RunSpecUnitTests guard must remain a range to preserve the re-run self-loop"
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:1:"""MF-032: spec-unit coverage for the adapters given run() by this ticket.
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:5:its real run() against a model-shaped case (the before/after shape the TLC
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:99:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:110:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:121:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:132:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:143:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:154:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:166:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:179:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:34:        "from the same run -- the number is meaningless alone"
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:1:"""MF-016 spec-unit conformance: `tla-spec-dev run kill-test` (oracle 4).
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:75:        from a surface nobody covered asserts something the run has no
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:3:Drives each adapter's run() against a synthetic-but-model-shaped case (the same
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:68:    after["result"] = {"accepted": True, "next": "tla-spec-dev run spec-unit-tests", "reason": "NoReason"}
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:84:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:97:    result = adapter.run(case, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:109:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:117:        adapter.run(bad, work_dir=tmp_path)
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:127:        adapter.run(bad, work_dir=tmp_path)
+specs/desired_program_model/production_adapters.py:6:import subprocess
+specs/desired_program_model/production_adapters.py:44:        install = subprocess.run(
+specs/desired_program_model/production_adapters.py:53:        version = subprocess.run(
+specs/desired_program_model/production_adapters.py:75:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:112:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:138:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/production_adapters.py:139:    return subprocess.run(
+specs/desired_program_model/production_adapters.py:155:) -> list[subprocess.CompletedProcess[str]]:
+specs/desired_program_model/production_adapters.py:247:        title: str = "CLI run spec-unit tests",
+specs/desired_program_model/production_adapters.py:256:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/desired_program_model/production_adapters.py:303:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/program_model/production_adapters.py:7:import subprocess
+specs/program_model/production_adapters.py:16:# and composes them inside its own run(). apply() stays the spec-unit surface.
+specs/program_model/production_adapters.py:58:    editing the ticket's desired, then current, model. So `run()`:
+specs/program_model/production_adapters.py:102:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:181:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:202:    # `run()` in the repository and therefore calibrates the bottom of the
+specs/program_model/production_adapters.py:206:    # ScaffoldProject run() below for the first honest measurement.
+specs/program_model/production_adapters.py:214:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:258:        install = subprocess.run(
+specs/program_model/production_adapters.py:267:        version = subprocess.run(
+specs/program_model/production_adapters.py:297:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:343:        result = subprocess.run(
+specs/program_model/production_adapters.py:387:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:454:        result = subprocess.run(
+specs/program_model/production_adapters.py:494:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/program_model/production_adapters.py:629:    # Unopened. `materialize_before` builds exactly that; `run()` then drives the
+specs/program_model/production_adapters.py:651:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:704:# most one of the four is ever reachable from the corpus -- no run() they grow
+specs/program_model/production_adapters.py:985:        title: str = "CLI run spec-unit tests",
+specs/program_model/production_adapters.py:994:        result = run_cli(root, target_repo, "--spec-root", spec_root, "run", "spec-unit-tests")
+specs/program_model/production_adapters.py:1041:            and "tla-spec-dev --spec-root specs run spec-unit-tests" in readme_text
+specs/program_model/production_adapters.py:1065:        result = subprocess.run(
+specs/program_model/production_adapters.py:1115:    # spec-unit surface; `run()` performs only the one modelled transition.
+specs/program_model/production_adapters.py:1128:    def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:1316:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1317:            return subprocess.run(
+specs/program_model/production_adapters.py:1334:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1335:            return subprocess.run(
+specs/program_model/production_adapters.py:1488:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1489:            return subprocess.run(
+specs/program_model/production_adapters.py:1503:        # The same 201-case corpus, before and after a FAILING gate run.
+specs/program_model/production_adapters.py:1564:    """`tla-spec-dev run effect-conformance` diffs observed vs declared effects.
+specs/program_model/production_adapters.py:1609:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1610:            return subprocess.run(
+specs/program_model/production_adapters.py:1612:                 "--spec-root", spec_root, "run", "effect-conformance",
+specs/program_model/production_adapters.py:1656:    """`tla-spec-dev run kill-test` -- oracle 4, the mutation kill test.
+specs/program_model/production_adapters.py:1674:    The fixture programs are trivial on purpose: a real corpus run is deferred
+specs/program_model/production_adapters.py:1738:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/production_adapters.py:1742:            return subprocess.run(
+specs/program_model/production_adapters.py:1777:        pass_run = run(complete, "--corpus-command", cmd, "--out", str(pass_out))
+specs/program_model/production_adapters.py:1793:        surv_run = run(surviving, "--corpus-command", surv_cmd, "--out", str(surv_out))
+specs/program_model/production_adapters.py:1804:        unc_run = run(uncovered, "--corpus-command", unc_cmd, "--out", str(unc_out))
+specs/program_model/production_adapters.py:1826:        waived_run = run(waived, "--corpus-command", waived_cmd, "--out", str(waived_out))
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:38:    close_record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:91:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:87:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:39:            "run",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:38:    close_record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:89:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:91:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:87:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:39:            "run",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+test_graph/sdk/python/src/testgraphsdk/context.py:17:      --runId=<id>          overall graph run id
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:56:        nodes that are safe to re-run; most graph nodes are stateful
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:65:        """Control whether failed-run guidance should offer a direct rerun.
+test_graph/sdk/python/src/testgraphsdk/procs.py:7:renderer can show per-subprocess details without scraping stdout.
+test_graph/sdk/python/src/testgraphsdk/procs.py:9:Never raises on spawn failure: if :func:`subprocess.Popen` blows up
+test_graph/sdk/python/src/testgraphsdk/procs.py:18:import subprocess
+test_graph/sdk/python/src/testgraphsdk/procs.py:28:    subprocess within the current node's execution.
+test_graph/sdk/python/src/testgraphsdk/procs.py:39:def run(
+test_graph/sdk/python/src/testgraphsdk/procs.py:70:            proc = subprocess.Popen(
+test_graph/sdk/python/src/testgraphsdk/procs.py:73:                stderr=subprocess.STDOUT,
+test_graph/sdk/python/src/testgraphsdk/procs.py:101:            error=f"spawn failed: {e}",
+test_graph/sdk/python/src/testgraphsdk/result.py:32:    """Structured record of one subprocess a node spawned.
+test_graph/sdk/python/src/testgraphsdk/result.py:35:    report renderer can show per-subprocess details (exit code, log
+test_graph/sdk/python/src/testgraphsdk/result.py:44:    If the spawn itself fails (binary missing, OSError on start),
+test_graph/sdk/python/src/testgraphsdk/result.py:145:        """Attach a structured record for one subprocess this node spawned.
+test_graph/sdk/python/src/testgraphsdk/result.py:149:        call: some nodes want a non-zero exit code as the success
+test_graph/sdk/python/src/testgraphsdk/runner.py:77:        # downgrades the run to a synthesized envelope — never loses it.
+test_graph/sources/spec_workflow_close_ticket.py:12:import subprocess
+test_graph/sources/spec_workflow_close_ticket.py:61:    close_record = procs.run(
+test_graph/sources/spec_workflow_close_ticket.py:130:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_close_ticket.py:132:    status = subprocess.run(["git", "status", "--short"], cwd=repo, capture_output=True, text=True, check=False)
+test_graph/sources/spec_workflow_complete_ticket.py:149:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/spec_workflow_create_repo.py:50:        record = procs.run(ctx, label, argv, cwd=repo_dir)
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:87:    record = procs.run(
+test_graph/sources/spec_workflow_spec_units.py:32:    record = procs.run(
+test_graph/sources/spec_workflow_spec_units.py:34:        "cli-run-spec-unit-tests",
+test_graph/sources/spec_workflow_spec_units.py:39:            "run",
+test_graph/sources/spec_workflow_start_ticket.py:73:        record = procs.run(ctx, label, argv, cwd=repo)
+test_graph/sources/tla_spec_dev_cli_help.py:25:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:36:    record = procs.run(ctx, label, argv)
+test_graph/sources/tla_spec_dev_cli_help.py:52:        ("root-help", [str(cli), "--help"], ["--spec-root", "scaffold", "open", "run", "close"]),
+test_graph/sources/tla_spec_dev_cli_help.py:57:        ("run-spec-units-help", [str(cli), "run", "spec-unit-tests", "--help"], ["generated/adapted", "spec root"]),
+test_graph/sources/tla_spec_dev_cli_help.py:62:    for command in ["scaffold", "open", "run", "close"]:
+test_graph/sources/tla_spec_dev_cli_install.py:44:    record = procs.run(
+tests/corpus_fixtures.py:7:4 and 2 cases. That corpus is regenerated under a validation report at run time
+tests/corpus_fixtures.py:10:external placeholder cases. Regenerating it needs a TLC run over the reachable
+tests/effect_adapter_fixtures.py:7:  the specimen that must FAIL the run.
+tests/effect_adapter_fixtures.py:22:    def run(self, case: Any, work_dir: Path | None = None) -> dict[str, Any]:
+tests/effect_adapter_fixtures.py:32:    """Writes outside every declared port. The run must fail because of this."""
+tests/effect_adapter_fixtures.py:34:    def run(self, case: Any, work_dir: Path | None = None) -> dict[str, Any]:
+tests/test_analyze_complexity.py:27:import subprocess
+tests/test_analyze_complexity.py:834:def run_generation(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+tests/test_analyze_complexity.py:836:    return subprocess.run(
+tests/test_analyze_complexity.py:881:def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+tests/test_analyze_complexity.py:882:    return subprocess.run(
+tests/test_budgets.py:5:import subprocess
+tests/test_budgets.py:105:def _scaffold(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+tests/test_budgets.py:106:    return subprocess.run(
+tests/test_case_adapter_runtime.py:3:import subprocess
+tests/test_case_adapter_runtime.py:225:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:226:        EVENTS.append(("run", case.name, work_dir.name))
+tests/test_case_adapter_runtime.py:251:        ("run", "case_1", "case_1"),
+tests/test_case_adapter_runtime.py:254:        ("run", "case_2", "case_2"),
+tests/test_case_adapter_runtime.py:273:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:274:        EVENTS.append(("run", case.name))
+tests/test_case_adapter_runtime.py:301:        ("run", "case_1"),
+tests/test_case_adapter_runtime.py:314:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:315:        EVENTS.append(("run", case.name))
+tests/test_case_adapter_runtime.py:345:        ("run", "case_1"),
+tests/test_case_adapter_runtime.py:393:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:443:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:478:    result = subprocess.run(
+tests/test_case_adapter_runtime.py:509:    def run(self, case, work_dir=None):
+tests/test_case_adapter_runtime.py:589:    def run(self, case, work_dir=None):
+tests/test_complexity_ledger.py:677:        would force each ticket to run a whole-epic audit or to fake a verdict;
+tests/test_corpus_diagnostics.py:14:import subprocess
+tests/test_corpus_diagnostics.py:354:        "    def run(self, case, work_dir=None):\n"
+tests/test_corpus_diagnostics.py:375:    """--limit is a focused-run selection, never a way to satisfy a budget."""
+tests/test_corpus_diagnostics.py:380:    result = subprocess.run(
+tests/test_corpus_diagnostics.py:397:    result = subprocess.run(
+tests/test_corpus_diagnostics.py:413:def _cli(*args: str) -> subprocess.CompletedProcess:
+tests/test_corpus_diagnostics.py:414:    return subprocess.run(
+tests/test_corpus_diagnostics.py:440:    result = subprocess.run(
+tests/test_effect_conformance_cli.py:1:"""MF-013: `tla-spec-dev run effect-conformance` exit-code contract.
+tests/test_effect_conformance_cli.py:54:    assert effect_conformance_report.run(make_args(target=tmp_path / "nope")) == 2
+tests/test_effect_conformance_cli.py:59:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 2
+tests/test_effect_conformance_cli.py:67:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 2
+tests/test_effect_conformance_cli.py:73:    assert effect_conformance_report.run(make_args(target=spec_dir)) == 1
+tests/test_effect_conformance_cli.py:79:    assert effect_conformance_report.run(make_args(target=spec_dir, out=out)) == 1
+tests/test_effect_conformance_cli.py:93:    assert effect_conformance_report.run(make_args(target=plain)) == 1
+tests/test_effect_conformance_cli.py:94:    assert effect_conformance_report.run(make_args(target=justified)) == 1
+tests/test_effect_conformance_cli.py:103:    code = effect_conformance_report.run(make_args(target=target, out=out))
+tests/test_effect_conformance_cli.py:105:    # Exit 1, not 0: no corpus was run, so every declared port reads as dead
+tests/test_effect_conformance_cli.py:107:    # MF-023 must run the corpus and then confirm or remove each port.
+tests/test_effect_conformance_runner.py:87:        """THE rule: the run FAILS. Not warns, not records-and-continues."""
+tests/test_effect_conformance_runner.py:131:    ``allow_undeclared`` flag. The run must fail exactly as if none of them
+tests/test_effect_conformance.py:22:import subprocess
+tests/test_effect_conformance.py:135:            subprocess.run([sys.executable, "-c", "pass"], check=True)
+tests/test_effect_conformance.py:136:        assert any(e.type == "process.spawn" for e in sandbox.recorder.for_case("c1"))
+tests/test_effect_conformance.py:173:    """THE core rule. An undeclared observed effect FAILS the run."""
+tests/test_effect_conformance.py:425:# the in-process CPython runtime, so a JVM adapter and a subprocess-delegating
+tests/test_effect_conformance.py:466:            "/usr/bin/env python3 run.py", resolved=object()
+tests/test_effect_conformance.py:545:    """A spawn is a boundary, not a fully-accounted-for effect."""
+tests/test_effect_conformance.py:550:            ports["proc"] = {"type": "process.spawn", "target": "*java*"}
+tests/test_effect_conformance.py:556:                ObservedEffect(type="process.spawn", target="java -jar tla2tools.jar", action="Act", case="c1"),
+tests/test_effect_conformance.py:563:        assert report.unobservable, "the spawn must not be silent"
+tests/test_effect_conformance.py:569:        """Declaring "I spawn java" does not say what java then wrote.
+tests/test_effect_conformance.py:571:        This is the subtle half. The declared port makes the spawn itself
+tests/test_effect_conformance.py:576:        assert declared.gaps == [], "the spawn matches its declared port"
+tests/test_effect_conformance.py:577:        assert declared.ok is False, "but the run still refuses"
+tests/test_effect_conformance.py:586:        """Drive a real subprocess through the real patches."""
+tests/test_effect_conformance.py:588:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:592:            subprocess.run([sys.executable, "-c", "pass"], check=True)
+tests/test_effect_conformance.py:612:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:616:            subprocess.run(
+tests/test_effect_conformance.py:783:# in-process sandbox saw only the spawn and the verdict was `unobservable`
+tests/test_effect_conformance.py:787:# an unwatched axis, and a spawn with no out-of-process evidence at all, still
+tests/test_effect_conformance.py:807:            subprocess.run(
+tests/test_effect_conformance.py:824:            subprocess.run([sys.executable, "-c", f"import os; os.remove({str(victim)!r})"], check=True)
+tests/test_effect_conformance.py:910:            declarations(proc={"type": "process.spawn", "target": "*"})
+tests/test_effect_conformance.py:914:            [ObservedEffect(type="process.spawn", target="java -jar x.jar", action="Act", case="c1")],
+tests/test_effect_conformance.py:924:        assert "invisible to this run" in report.unobservable[0].reason
+tests/test_effect_conformance.py:947:        """Symmetric control: a spawn is fully accounted for ONLY when every axis is proven.
+tests/test_effect_conformance.py:989:        # Empty evidence is not a downgrade: the spawn is as unobservable as ever.
+tests/test_effect_conformance.py:1018:        the run STILL refuses -- verdict unobservable, residual named. Observed
+tests/test_effect_conformance.py:1027:                proc={"type": "process.spawn", "target": "*"},
+tests/test_effect_conformance.py:1034:                    subprocess.run(
+tests/test_effect_conformance.py:1051:        # ...and yet the run still refuses, because the spawn's network axis is unseen.
+tests/test_fitness_functions.py:248:    may run under a bare python3 with no PyYAML installed."""
+tests/test_kill_test.py:9:is an empirical claim and only a real run can make it; see
+tests/test_kill_test.py:16:import subprocess
+tests/test_kill_test.py:59:          type: process.spawn
+tests/test_kill_test.py:120:    ``mutant is None`` is the control run: it reports "failed" only when
+tests/test_kill_test.py:126:    def run(mutant: Mutant | None) -> tuple[bool, list[str], str]:
+tests/test_kill_test.py:132:    return run
+tests/test_kill_test.py:171:        This is the whole point of deriving coverage every run rather than
+tests/test_kill_test.py:218:        Reporting any number here would assert something the run has no
+tests/test_kill_test.py:700:    """These run against the real specs/current, so they fail the moment a
+tests/test_kill_test.py:779:    def run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
+tests/test_kill_test.py:780:        return subprocess.run(
+tests/test_kill_test.py:822:# The control run
+tests/test_kill_test.py:829:    "Killed" means "the corpus run failed", so a corpus that already fails on
+tests/test_kill_test.py:831:    1.0. This is not hypothetical -- the first real run of the worked
+tests/test_onboard_program_model.py:3:import subprocess
+tests/test_onboard_program_model.py:105:    A new user is told to run TLC on both views immediately after onboarding. If
+tests/test_onboard_program_model.py:112:    result = subprocess.run(
+tests/test_onboard_program_model.py:129:    result = subprocess.run(
+tests/test_spec_yaml_valid.py:11:  ``analyze complexity`` run. No verdict happened to be wrong, because the
+tests/test_spec_yaml_valid.py:33:    reason="PyYAML is not a runtime dependency; run with `uv run --with pyyaml` to enforce",
+tests/test_testgraph_channels.py:71:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:103:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:137:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:157:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:170:    """All four adapter roles run in the harness, so all four are isolated."""
+tests/test_testgraph_channels.py:466:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:488:    import subprocess
+tests/test_testgraph_channels.py:490:    return subprocess.run(
+tests/test_testgraph_channels.py:539:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:546:        "    def run(self, case, work_dir=None):\n"
+tests/test_testgraph_channels.py:559:    import subprocess
+tests/test_testgraph_channels.py:568:    result = subprocess.run(
+tests/test_testgraph_channels.py:593:    import subprocess
+tests/test_testgraph_channels.py:595:    result = subprocess.run(
+tests/test_tla_spec_dev_cli.py:2:import subprocess
+tests/test_tla_spec_dev_cli.py:16:def run_cli(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
+tests/test_tla_spec_dev_cli.py:17:    return subprocess.run(
+tests/test_tla_spec_dev_cli.py:40:    assert "run" in result.stdout
+tests/test_tla_spec_dev_cli.py:51:        ("run", "spec-unit-tests", "--help", "generated/adapted", "spec root"),
+tests/test_tla_spec_dev_cli.py:64:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:71:    for command in ["scaffold", "open", "run", "close"]:
+tests/test_tla_spec_dev_cli.py:117:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:133:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:152:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:179:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:208:    def run(self, case, work_dir=None):
+tests/test_tla_spec_dev_cli.py:214:    result = run_cli("--spec-root", "project_specs", "run", "spec-unit-tests", "--scope", "project", cwd=tmp_path)
+tests/test_tla_spec_dev_cli.py:332:    install = subprocess.run(
+tests/test_tla_spec_dev_cli.py:341:    installed = subprocess.run(
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:41:     * build-directory resume so the executor can seed a run from the exact
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:44:     * subprocess can't stall the graph past this bound.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:63: * Runtime adapter — knows how to spawn one node invocation.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:90: * call `destroyForcibly()` and report a [ExecutionOutcome.TimedOut]. Used
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:93: * spawn the process and call this.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:20:            ?: error("JBangExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:48:    fun run(
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:90:            // then still run cleanup/finalizer nodes whose dependencies are
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:196:            logger.lifecycle("  run only: ${rerunGuidance.runOnlyCommand}")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:342:                        "executor force-killed the subprocess (see capturedStdoutLog)",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:465:            runOnlyCommand = "./gradlew $graphArg --resume-from-build $buildArg --run-only-node $nodeArg",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:18:            ?: error("UvExecutor cannot run a ${invocation.spec.runtime.name} node (${invocation.spec.id})")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:22:        argv += "run"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt:6: * GraphAssembler builds one of these per-run, handing it a map that
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:36:                    "Did the script call Node.run(args, spec, body)?")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:73:            is ValidationRuntime.Uv    -> listOf(tools.uv, "run", file.absolutePath)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:51: * would run (explicit + transitive), with kind, runtime, and entry path.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt:54: * dry run of the assembly logic — same errors, same order, no execution.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:8: * test-graph run dir.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:19: *       out across multiple graphs left some run dirs without a report.</li>
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:20: *   <li>It coupled "render markdown for one run dir" to a Gradle task
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:26: * com.hayden.testgraphsdk.exec.PlanExecutor} can call it inline at the
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:27: * end of a graph run (guaranteeing every graph emits its report) and
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:28: * {@link ValidationReportTask} can still call it for the
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:36:     * Idempotent — re-running overwrites both files. No-op when the run
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:60:        // 2. report.md — human-friendly per-run report.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:140:        // Timing: prefer executor-measured (covers the full spawn) when
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:150:            timingLines += "spawn exit code: $it"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:70:        option = "run-only-node",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:71:        description = "Node id to run by itself from saved build input context.",
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:78:    fun run() {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:91:        logger.lifecycle("testGraph '${graphSpec.name}' run=$runId steps=${plan.size}")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:103:            ).run(plan, resume)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:109:        // right here, while we still own this run dir. Doing it inline avoids
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:110:        // the Gradle finalizer dedup that left some run dirs without a
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:132:                "--resume-from-build is required with --resume-from-node or --run-only-node"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:137:                "--resume-from-build requires exactly one of --resume-from-node or --run-only-node"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:147:                "--resume-from-build must point at an existing run directory: ${buildDir.absolutePath}"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:10: * Manual "regenerate every existing run's summary.json + report.md".
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:15: * deduplication that used to leave some run dirs without a report when
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:22: * run dir that carries an envelope/ subdir and rewrites the artifacts.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt:29:        description = "Re-render summary.json + report.md for every existing run dir under validation-reports/."
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:63: * DSL builder for `testGraph("name") { ... }`. Every `node(path)` call
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:66:            // build invocation, which used to leave some run dirs
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt:68:            // as a manual rebuild over every existing run dir.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:14: * Per-graph run tasks are registered by the extension itself as
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:25: * fresh run starts clean.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:73:        // Aggregate task: run every test graph the build script declared,
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:75:        // wired from `afterEvaluate` so any `testGraph(...)` call lower
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:84:            // single execution against one run dir, leaving the others
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:92:            // doesn't make Gradle run them inside `validationRunAll`'s
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:27:     * Whether failed-run output should suggest a direct rerun command from the
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java:19: * means "spawn never happened") that have to round-trip through the
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:29: *   Node.run(args,
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:37:    public static void run(String[] args, com.hayden.testgraphsdk.sdk.NodeSpec spec, com.hayden.testgraphsdk.sdk.NodeBody body) {
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:67:        // operators who run a node script directly to inspect output.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:98:            // here doesn't lose the run, it just downgrades it to a
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java:9: * escapes the body is caught by {@link Node#run} and converted to a
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:15: *   --runId=<id>          overall graph run id
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:82:     * Attach a structured record for one subprocess this node spawned.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:85:     * the node author's call: some nodes want a non-zero exit code as
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:13: * and passes it to {@link Node#run(String[], NodeSpec, java.util.function.Function)}.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:53:     * for nodes that are safe to re-run; most graph nodes are stateful
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:9: * Structured record of one subprocess a node spawned. Attached to
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:11: * report renderer can show per-subprocess details (exit code, log
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:21: * run's report dir, so it's reproducible across machines and meaningful
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:24: * <p>If the spawn itself fails (binary not found, IOException at
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:13: * exit code, pid, captured-log path (relative to the run's report
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:16: * can show per-subprocess sections without scraping stdout.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:25: * <p>Never throws on spawn failure: if {@code pb.start()} blows up
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:38:     * subprocess within the current node's execution. Callers pass a
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:54:     * subprocess output as soon as the live console scrolled.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:57:     * run's report dir (so the envelope is reproducible across
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:61:    public static ProcessRecord run(NodeContext ctx, String label, ProcessBuilder pb) {
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:79:                    -1, null, relativeLog, "spawn failed: " + e.getMessage());
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:102:     * <p>Exposed for nodes that need to spawn a subprocess with custom
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:104:     * hand-construct a {@link ProcessRecord}; they can call
+skill-scripts/install-tlc2.sh:8:  echo "java is required to run tlc2. Install a JRE or JDK, then reinstall or sync this skill." >&2

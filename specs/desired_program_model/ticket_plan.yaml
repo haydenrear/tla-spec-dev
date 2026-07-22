@@ -17,7 +17,7 @@ epic:
   branch: epic/complexity-descriptor
   default_branch: main
   base_sha: dfd2a8004c10510f4819c5a9b17d652fd3baf8df
-  schedule_revision: 1
+  schedule_revision: 2
   review_mode: epic-owner-post-merge
   notes: >
     Base is the epic/modular-fuzzing tip (dfd2a80), inheriting the working
@@ -517,7 +517,23 @@ planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
-  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands (scaffold, analyze, generate, close) ARE program behavior for this repository.
+  semantic_model_rule: >-
+    Do not add test graph nodes, pytest jobs, CI workflow steps, integration
+    harnesses, or validation scripts as TLA+ program state/actions. AMENDED
+    2026-07-22 (owner, coverage-audit run 2, resolving its scope escalations):
+    the modeled program surface is the SHIPPED CLI lifecycle — scaffold, open,
+    run spec-unit-tests, analyze (descriptor scan), close. Post-pivot, case
+    generation, the corpus gate, effect conformance, and the mutation kill
+    test are the EXPERIMENTAL fuzzing surface and are deliberately NOT
+    modeled (the 2026-07-21 ship-scanner/drop-fuzzing decision demoted them
+    from the product; modeling them would represent surface the product does
+    not ship). Advisory tooling internals — fitness-function evaluation
+    inside analyze, silent-degrade guard branches, the runner's env re-exec —
+    are declared out-of-model as transcription (MF-015 precedent: no
+    invariant needs them, no modeled command observes them; adding state for
+    them is transcription rather than evidence). Audit gaps G1/G6/G7 are
+    reclassified by this amendment; G3 is resolved by the experimental
+    demotion; G2/G4/G5 are REAL desyncs fixed by CD-09, not amended away.
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
@@ -532,16 +548,21 @@ status:
   phase: implementation
 
 service_catalog:
+  # AMENDED 2026-07-22 (owner, coverage-audit run 2): boundaries restated to
+  # the post-pivot product. The audit's escalations E1-E6 are resolved by this
+  # amendment plus the amended semantic_model_rule above; its in-scope gaps
+  # G2/G4/G5 are fixed by CD-09 (never amended away), G3 by the experimental
+  # demotion, G1/G6/G7 by the out-of-model declarations.
   existing_boundaries:
-    - tla-spec-dev CLI (scaffold/open/run/close)
-    - scripts/generate_cases_from_tlc_dump.py case generation
-    - scripts/run_generated_case_adapters.py adapter runner
-    - spec_manifest.yaml / actions.yml / testgraph_bindings.yml schemas
+    - tla-spec-dev CLI shipped lifecycle (scaffold/open/run spec-unit-tests/analyze/close) — THE MODELED SURFACE
+    - scripts/analyze_complexity.py complexity descriptor + scripts/fitness_functions.py advisory rules (advisory internals out-of-model as transcription)
+    - "EXPERIMENTAL, deliberately unmodeled: scripts/generate_cases_from_tlc_dump.py, corpus gate, effect conformance, kill test (the 2026-07-21 pivot)"
+    - spec_manifest.yaml / case_adapters.toml schemas
   desired_boundaries:
-    - budgets block in spec_manifest.yaml read by all gates
-    - analyze complexity pre-TLC gate
-    - sandboxed effect observation in the adapter runner
-    - channel-authentic Test Graph bindings with double|real port configurations
+    - model faithful to the advisory program (no blocking-gate or override representation — CD-09)
+    - declared ports match what modeled actions actually spawn (CD-09)
+    - case_adapters.toml binds exactly the model's action set (CD-09)
+    - complexity-ledger decreases licensed by the validated-refactor basis (CD-09, owner-approved 2026-07-22)
   adapter_boundaries:
     - specs/program_model/production_adapters.py spec-unit adapters
     - test_graph specWorkflow / cliWorkflow graphs
@@ -2179,3 +2200,91 @@ tickets:
         - specs/tickets/CD-03/results/complexity_ledger.yaml
         - specs/tickets/CD-03/results/graph-reports/specWorkflow-20260722-010630-66f1b436
         - specs/tickets/CD-03/results/graph-reports/cliWorkflow-20260722-010659-cdf71a22
+
+  - id: CD-09
+    title: "Audit reconciliation: advisory-faithful model, honest ports and bindings, validated-refactor retention basis"
+    status: planned
+    github_issue: "PLACEHOLDER"
+    schedule_revision: 2
+    depends_on: []
+    blocks: []
+    wave: 15
+    promotion_order: 130
+    promotion_predecessor: CD-03
+    conflict_keys:
+      production:
+        - scripts/complexity_ledger.py
+        - tests/test_complexity_ledger.py
+      tla:
+        - TlaSpecDevCli.tla
+        - MC.cfg
+      adapters:
+        - specs/current/production_adapters.py
+        - specs/current/case_adapters.toml
+        - specs/current/spec_manifest.yaml
+      test_graph: []
+      workflow: []
+    objective: >
+      Fix the three REAL desyncs coverage-audit run 2 found (report:
+      specs/results/epic-close/coverage_audit_report.md), plus the
+      owner-approved retention-basis amendment that licenses the resulting
+      complexity decrease. (G2) The model still represents the withdrawn
+      blocking complexity gate: TlaSpecDevCli.tla ~528 guards on
+      complexity_gate = "fail" /\ override, and the override input survives,
+      while the program has been advisory since MF-036/CD-01 and
+      proceeds-on-fail with no flag (generate_cases_from_tlc_dump.py
+      866-882). Make the model advisory-faithful: remove the override
+      variable and every blocking branch; the recorded verdict state may
+      remain as an observable fact. (G4) AnalyzeComplexity declares a
+      tlc_process port (*java*) but the analyze path spawns nothing — remove
+      the dead port declaration from the action (and the port if unused).
+      (G5) case_adapters.toml binds 11 of 14 model actions plus
+      ValidateTestGraphCli which is not an action — reconcile bindings to the
+      exact action set (bind the missing, drop the non-action), with
+      spec-unit tests proving the mapping. (RETENTION AMENDMENT,
+      owner-approved 2026-07-22:) amend scripts/complexity_ledger.py so a
+      complexity DECREASE is licensed by the CD-02 validated-refactor basis
+      — TLC green before/after, behavior tests green, before/after
+      descriptors compared, transition-level diff inspected (the existing
+      red-flag gate) — with the fuzzing-era retention members (kill_rate,
+      effect_conformance, external_coverage) still RECORDED (not_run /
+      experimental) but no longer gating; they were demoted by the pivot
+      after measuring kill 0.31 vs floor 0.8 and 0/9 content bugs. Update
+      tests/test_complexity_ledger.py accordingly; record the doctrine
+      change where the ledger doctrine is documented. This ticket's own
+      close is the first exercise of the amended basis — record the full
+      validated-refactor evidence set.
+    desired_actions: []
+    implementation_scope:
+      - specs/current/TlaSpecDevCli.tla + MC.cfg (override removal; advisory-faithful guards; invariants)
+      - specs/current/spec_manifest.yaml (ports; justification table rows touched)
+      - specs/current/case_adapters.toml + production_adapters.py (binding reconciliation)
+      - scripts/complexity_ledger.py + tests/test_complexity_ledger.py (retention basis)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - reconciled case_adapters.toml binding set
+      unit_tests:
+        - uv run --with pytest --with pyyaml -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-09
+      assertions:
+        - "No override input and no blocking-gate branch remains in the model; the model's gate surface matches the advisory program (grep + TLC evidence)."
+        - "Declared ports match actual spawns of modeled actions; no dead port (G4)."
+        - "case_adapters.toml binds exactly the model's action set; spec-unit tests prove it (G5)."
+        - "The ledger licenses this ticket's decrease via the validated-refactor basis: TLC green before/after with before/after descriptor comparison recorded, behavior tests green, transition-level diff inspected for the red-flag pattern; fuzzing retention members recorded not_run without gating (regression tests updated, failing pre-amendment for a validated decrease)."
+        - "This is a REAL model delta: record before/after TLC counts and the transition-level diff; a generated-states drop at constant distinct states without a recorded transition diff still REJECTS (the red-flag gate is retained)."
+      evidence:
+        - specs/tickets/CD-09/results/model_before_after_descriptors.txt
+        - specs/tickets/CD-09/results/transition_diff.md
+        - specs/tickets/CD-09/results/binding_reconciliation.txt
+        - specs/tickets/CD-09/results/tlc_current.txt
+        - specs/tickets/CD-09/results/spec_unit_tests.txt
+        - specs/tickets/CD-09/results/repo_unit_tests.txt
+        - specs/tickets/CD-09/results/graph_specWorkflow.txt
+        - specs/tickets/CD-09/results/graph_cliWorkflow.txt
