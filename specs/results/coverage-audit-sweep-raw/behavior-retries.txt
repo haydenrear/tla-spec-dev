@@ -1,0 +1,873 @@
+examples/distributed_history/specs/program_model/tlc_projection.py:83:            continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+examples/effect_providers/atomic_publisher/run_experiment.py:81:            "mutant_execution": "V0 stops after the first complete failing iteration (7 points); the green control executes all 7 x 16 points. Collect/continue mode is a follow-up, not a score correction.", "run_label": args.run_label,
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:44:    max_attempts: int = 3,
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:52:    attempt_limit = max_attempts
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:60:    for attempt in range(1, attempt_limit + 1):
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:64:                f"{idempotency_key}-retry-{attempt}"
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:65:                if mutant == "PH-05" and attempt > 1
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:82:            if mutant == "PH-07" or attempt == attempt_limit:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:83:                return PaymentResult("unavailable", "transport_exhausted", "", attempt)
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:84:            continue
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:87:            if mutant == "PH-07" or attempt == attempt_limit:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:88:                return PaymentResult("unavailable", "transport_exhausted", "", attempt)
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:89:            continue
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:91:        result = _normalize_terminal_response(response, attempt)
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:92:        if mutant == "PH-08" and response.status_code in {400, 402} and attempt < attempt_limit:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:93:            continue
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:95:            return PaymentResult("approved", "", "mutant-approved", attempt)
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:37:            (503, {"status": "retry"}),
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:49:            (502, {"status": "retry"}),
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:50:            (503, {"status": "retry"}),
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:51:            (504, {"status": "retry"}),
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:85:        return [(503, _json_bytes({"status": "retry"})), (200, approved)]
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:94:        return [(504, _json_bytes({"status": "retry"})), (409, duplicate)]
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:96:        retry = _json_bytes({"status": "retry"})
+examples/effect_providers/legacy_payment_http/payment_effects/external.py:97:        return [(502, retry), (503, retry), (504, retry)]
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:178:        attempt = len(self.requests) + 1
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:181:        if attempt > self.expected_attempts:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:183:                f"unexpected Session.send attempt {attempt}; modeled maximum is {self.expected_attempts}"
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:185:        self._assert_request(record, attempt)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:187:        if self.outcome == "transient_then_approved" and attempt == 1:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:188:            return self._response(request, self.transient_status, {"status": "retry"})
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:189:        if self.outcome == "timeout_then_duplicate_approved" and attempt == 1:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:194:            if (self.context.derived_seed + attempt) % 2:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:195:                return self._response(request, self.transient_status, {"status": "retry"})
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:249:    def _assert_request(self, record: dict[str, Any], attempt: int) -> None:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:251:            self._fail(f"attempt {attempt} method {record['method']!r} is not POST")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:253:            self._fail(f"attempt {attempt} path {record['path']!r} is not /v1/payments")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:260:                f"attempt {attempt} JSON body {record['body']!r} does not match {expected_body!r}"
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:264:                f"attempt {attempt} Idempotency-Key {record['idempotency_key']!r} "
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:269:                f"attempt {attempt} timeout must be [0.25, 0.75], observed {record['timeout']!r}"
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:49:    {"id": "PH-05", "expected_detector": "provider_local_assertion", "patch": "regenerate Idempotency-Key on every retry"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:51:    {"id": "PH-07", "expected_detector": "provider_local_assertion", "patch": "perform no retry after timeout or unavailable response"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:52:    {"id": "PH-08", "expected_detector": "provider_local_assertion", "patch": "retry terminal decline or bad request"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:53:    {"id": "PH-09", "expected_detector": "provider_local_assertion", "patch": "perform one retry beyond configured maximum"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:54:    {"id": "PH-10", "expected_detector": "provider_local_assertion", "patch": "stop one attempt before retry budget is exhausted"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:257:                "Add a collect/continue mutation mode so all deterministic iterations "
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:699:            continue
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:703:            continue
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:126:            continue
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:129:            continue
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:131:            continue
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:133:            continue
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:135:            continue
+examples/effect_providers/legacy_payment_http/tests/test_project.py:80:                document = {"status": "retry"}
+examples/effect_providers/legacy_payment_http/tests/test_project.py:99:        self.assertEqual(keys, ["idem-test", "idem-test-retry-2"])
+scripts/analyze_complexity.py:108:            continue
+scripts/analyze_complexity.py:148:            continue
+scripts/analyze_complexity.py:322:            continue
+scripts/analyze_complexity.py:372:            continue
+scripts/analyze_complexity.py:378:                continue
+scripts/analyze_complexity.py:383:            continue
+scripts/analyze_complexity.py:385:            continue
+scripts/analyze_complexity.py:388:            continue
+scripts/analyze_complexity.py:473:            continue
+scripts/analyze_complexity.py:656:                    continue
+scripts/analyze_complexity.py:727:            continue
+scripts/analyze_complexity.py:731:                continue
+scripts/analyze_complexity.py:755:            continue
+scripts/analyze_complexity.py:789:            continue
+scripts/analyze_complexity.py:984:            continue
+scripts/analyze_complexity.py:1244:            continue
+scripts/analyze_complexity.py:1250:            continue
+scripts/analyze_complexity.py:1253:            continue
+scripts/close_tickets.py:148:            continue
+scripts/complexity_ledger.py:308:            continue
+scripts/complexity_ledger.py:407:            continue
+scripts/corpus_diagnostics.py:411:            continue
+scripts/corpus_diagnostics.py:552:            continue
+scripts/effect_conformance.py:870:                continue
+scripts/effect_conformance.py:874:                        continue
+scripts/effect_conformance.py:877:                    continue
+scripts/effect_conformance.py:1220:            continue
+scripts/effect_conformance.py:1227:            continue
+scripts/effect_conformance.py:1258:            continue
+scripts/effect_conformance.py:1270:            continue
+scripts/effect_conformance_report.py:60:            continue
+scripts/effect_conformance_report.py:157:                continue
+scripts/extract_spec_manifest.py:67:            continue
+scripts/extract_spec_manifest.py:116:            continue
+scripts/extract_spec_manifest.py:119:            continue
+scripts/extract_spec_manifest.py:147:            continue
+scripts/extract_spec_manifest.py:159:                continue
+scripts/generate_cases_from_tlc_dump.py:108:            continue
+scripts/generate_cases_from_tlc_dump.py:127:            continue
+scripts/generate_cases_from_tlc_dump.py:163:            continue
+scripts/generate_cases_from_tlc_dump.py:177:            continue
+scripts/generate_cases_from_tlc_dump.py:214:            continue
+scripts/generate_cases_from_tlc_dump.py:219:            continue
+scripts/generate_cases_from_tlc_dump.py:224:            continue
+scripts/generate_cases_from_tlc_dump.py:228:            continue
+scripts/generate_cases_from_tlc_dump.py:233:            continue
+scripts/generate_cases_from_tlc_dump.py:238:            continue
+scripts/generate_cases_from_tlc_dump.py:245:            continue
+scripts/generate_cases_from_tlc_dump.py:471:            continue
+scripts/generate_cases_from_tlc_dump.py:571:                continue
+scripts/generate_python.py:112:                continue
+scripts/generate_python.py:138:            continue
+scripts/generate_python.py:443:                continue
+scripts/infer_action_params.py:168:            continue
+scripts/infer_action_params.py:174:            continue
+scripts/infer_action_params.py:208:            continue
+scripts/infer_action_params.py:272:            continue
+scripts/infer_action_params.py:379:            continue
+scripts/kill_test.py:131:#: is a tripwire, so an attempt to add degeneracy shows up in the evidence.
+scripts/kill_test.py:282:    They are never honored. Reporting them is the point: an attempt to add a
+scripts/kill_test.py:362:            continue
+scripts/kill_test.py:422:            continue
+scripts/kill_test.py:431:            continue
+scripts/kill_test.py:740:                continue
+scripts/new_ticket_workflow.py:235:            continue
+scripts/new_ticket_workflow.py:238:            continue
+scripts/new_ticket_workflow.py:265:            continue
+scripts/new_ticket_workflow.py:267:            continue
+scripts/new_ticket_workflow.py:270:            continue
+scripts/new_ticket_workflow.py:296:            continue
+scripts/new_ticket_workflow.py:299:            continue
+scripts/run_generated_case_adapters.py:265:            continue
+scripts/run_generated_case_adapters.py:270:            continue
+scripts/run_generated_case_adapters.py:278:            continue
+scripts/run_generated_case_adapters.py:286:            continue
+scripts/run_generated_case_adapters.py:294:            continue
+scripts/run_generated_case_adapters.py:355:            continue
+scripts/run_generated_case_adapters.py:647:            continue
+scripts/run_generated_case_adapters.py:984:                continue
+scripts/run_generated_case_adapters.py:986:            continue
+scripts/run_generated_case_adapters.py:988:            continue
+scripts/run_generated_case_adapters.py:991:            continue
+scripts/run_generated_case_adapters.py:1358:            continue
+scripts/run_generated_case_adapters.py:1418:            continue
+scripts/run_generated_case_adapters.py:1420:            continue
+scripts/run_generated_case_adapters.py:1424:                continue
+scripts/run_generated_case_adapters.py:1465:                continue
+scripts/run_generated_case_adapters.py:1484:                    continue
+scripts/run_generated_case_adapters.py:1501:                    continue
+scripts/run_generated_case_adapters.py:1507:            continue
+scripts/run_generated_case_adapters.py:1563:                                continue
+scripts/skill_feedback.py:173:            continue
+scripts/skill_feedback.py:176:            continue
+scripts/skill_feedback.py:178:            continue
+scripts/skill_feedback.py:193:            continue
+scripts/skill_feedback.py:196:            continue
+scripts/skill_feedback.py:198:            continue
+scripts/spec_evolution.py:147:            continue
+scripts/spec_evolution.py:369:            continue
+scripts/spec_evolution.py:396:            continue
+scripts/spec_evolution.py:399:            continue
+scripts/spec_evolution.py:917:            continue
+scripts/testgraph_channels.py:214:                continue
+scripts/testgraph_channels.py:348:            continue
+scripts/testgraph_channels.py:416:            continue
+scripts/testgraph_channels.py:426:            continue
+scripts/testgraph_channels.py:458:                continue
+scripts/tla_spec_dev.py:240:            continue
+scripts/tla_spec_dev.py:259:            continue
+skill-scripts/install-tlc2.sh:37:curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/desired/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/desired/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/snapshots/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/snapshots/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/desired/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/desired/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/desired/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/desired/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:138:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:280:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:353:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:399:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:440:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:138:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:280:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:353:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:399:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:440:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:138:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:280:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:353:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:399:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:440:            continue
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/results/measure_coverage.py:42:        continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:47:        continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:49:        continue
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:54:        continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/current/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/current/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/desired/production_adapters.py:115:            continue
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/desired/production_adapters.py:254:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:462:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:160:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:302:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:375:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:421:            continue
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:462:            continue
+specs/current/adapter_case_runtime.py:160:            continue
+specs/current/adapter_case_runtime.py:302:            continue
+specs/current/adapter_case_runtime.py:375:            continue
+specs/current/adapter_case_runtime.py:421:            continue
+specs/current/adapter_case_runtime.py:462:            continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt:55:            if (id in nodes) continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:106:            if (dir.isEmpty()) continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:70:                continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:207:            val a = item as? Map<*, *> ?: continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:231:            val p = item as? Map<*, *> ?: continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:256:            val a = item as? Map<*, *> ?: continue
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:258:            val path = a["path"] as? String ?: continue
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:45:            if (!raw.startsWith("--")) continue;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java:47:            if (eq < 0) continue;
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+test_graph/sdk/python/src/testgraphsdk/context.py:39:                continue
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+tests/test_analyze_complexity.py:350:                continue
+tests/test_complexity_ledger.py:591:                continue
+tests/test_corpus_diagnostics.py:103:            continue
+tests/test_kill_test.py:729:                continue
+tests/test_kill_test.py:767:                continue

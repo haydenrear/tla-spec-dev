@@ -5,8 +5,8 @@
 #
 # This workflow branches the concluded modular-fuzzing discovery at dfd2a80.
 # Its MF-* tickets remain below as an immutable historical record. The only
-# completed priority lane is EP-01 -> EP-02 -> EP-03. The owner-level
-# coverage audit is the remaining completeness gate.
+# completed priority lane is EP-01 -> EP-02 -> EP-03. The owner-level coverage
+# audit failed with 12 hard gaps; remediation remains the promotion gate.
 version: 1
 name: effect-provider-epic
 updated: "2026-07-22"
@@ -533,7 +533,7 @@ status:
   active_ticket: null
   active_ticket_title: null
   desired_module: TlaSpecDevCli
-  phase: coverage_audit
+  phase: coverage_audit_failed
 
 service_catalog:
   existing_boundaries:
@@ -661,6 +661,14 @@ coverage_audit_scope:
     - build a separate non-empty representation index for each project's Internal and External views
     - audit both views and all effect categories; do not pool one project's representation into another
     - report every in-scope partial or unrepresented behavior as a hard gap; do not repair it during the audit
+  result:
+    audited_source_commit: 20f0cb70058e8e514e4df3b1af09a40df97dffa5
+    status: fail
+    in_scope_hard_gaps: 12
+    report: specs/results/coverage_audit_report.md
+    proposed_ledger_input: specs/results/coverage_audit_ledger_input.yaml
+    structural_verifier: specs/results/coverage-audit-sweep-raw/verify_tables.py
+    promotion_blocked: true
 
 previous_epic_tickets:
   - id: MF-012

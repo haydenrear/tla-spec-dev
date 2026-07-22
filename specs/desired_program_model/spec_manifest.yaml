@@ -6,7 +6,7 @@ status:
   initial_ticket: EP-01
   initial_ticket_title: "Typed effect-provider lookup and case lifecycle"
   active_ticket: null
-  phase: coverage_audit
+  phase: coverage_audit_failed
   ticket_plan: ticket_plan.yaml
   relation_to_program_model: desired_successor_of_accepted_program_model
   relation_to_current: target_state_for_specs_current_to_converge_to
@@ -17,14 +17,15 @@ status:
     current_model_scaffolded: true
     effect_provider_tickets: complete
     example_validation: complete
-    coverage_audit: pending
+    coverage_audit: fail
+    coverage_audit_hard_gaps: 12
+    promotion_blocked: true
   done:
     - EP-01 typed effect-provider lookup and case lifecycle
     - EP-02 provider authoring kit and deterministic fuzz/replay loop
     - EP-03 three effectful projects and mutation evidence
   pending:
-    - Run prompts/coverage_audit.md against ticket_plan.yaml coverage_audit_scope.
-    - Reconcile any in-scope gaps before workflow finalization.
+    - Reconcile the 12 in-scope hard gaps in specs/results/coverage_audit_report.md before workflow finalization.
     - Disposition generated skill feedback before workflow finalization.
     - Promote only after every finalization gate passes and the user approves.
 
@@ -43,4 +44,4 @@ state_fields: []
 actions: []
 ports: {}
 notes:
-  direction: "This manifest records the target whole-program model and workflow status. Epic schedule revision 2 declares the exact seven-file, three-model coverage-audit scope in ticket_plan.yaml; no dispatched ticket scheduling field changed."
+  direction: "This manifest records the target whole-program model and workflow status. Epic schedule revision 2 declares the exact seven-file, three-model coverage-audit scope in ticket_plan.yaml; the audit failed with 12 hard gaps and blocks promotion. No dispatched ticket scheduling field changed."
