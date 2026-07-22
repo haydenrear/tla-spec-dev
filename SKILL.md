@@ -56,7 +56,13 @@ reads and judges, never automated moves. How to read a descriptor — what good
 and bad shapes look like, with worked examples — is
 `references/complexity_intuition.md`; the advisory stance is in "Complexity
 Budgets Are Advisory" below and in
-`references/architecture_tractability.md`, "Advisory, Not Blocking".
+`references/architecture_tractability.md`, "Advisory, Not Blocking". The
+descriptor also evaluates the project's **self-configured fitness functions**
+(experimental, CD-03): composable and/or/not rules over the descriptor's
+facts that the project's agent writes and that persist with the project; any
+rule that does not hold on a scan FIRES as a notification to future agents —
+advisory, never blocking, and there are no built-in rules. See
+`references/fitness_functions.md`.
 
 **EXPERIMENTAL — the modular-fuzzing machinery (oracles, corpus, mutation kill
 test).** The differential-fuzzing framing (TLA+ as oracle, generated cases,
@@ -578,6 +584,20 @@ irreducible domain complexity); the scanner says so in its own output. The
 `tlc_seconds` timeout below is the one hard operational limit, and it is about wall
 time, not complexity.
 
+**Fitness functions (experimental, CD-03).** When you have read a project's
+descriptor and settled the shape it should keep, **add fitness functions for
+this complexity descriptor so future agents are notified** if a later change
+breaks that shape: one or two composed and/or/not rules over the descriptor's
+facts (`bound < X`, `god_state_count == 0`, `modularity >= Q`,
+`variable_domain(v) <= D`, ...), written under `fitness_functions:` in
+`spec_manifest.yaml` or in a `fitness_functions.yaml` next to the spec, so
+they persist with the project. Every later `analyze complexity` run evaluates
+them and surfaces any rule that does not hold as a FIRED notification. Same
+advisory stance as everything above: firings report, never block, never change
+the exit code — and the tool ships with no built-in rules; only the project's
+agent configures them. Schema, facts catalog, and semantics:
+`references/fitness_functions.md`.
+
 Apply a hard 120-second timeout (the `tlc_seconds` default) to every TLC
 model-check or diagram run that generates cases from a reachable state graph.
 Never let an agent wait longer in the hope that state-space exploration will
@@ -1091,6 +1111,10 @@ current change.
   behavior), the validated-refactor practice, and the reading order for
   deciding whether/how to refactor. Intuitions to judge with, never
   automated suggestions.
+- `references/fitness_functions.md`: self-configured, composable fitness
+  functions over the complexity descriptor (experimental, CD-03) — rule
+  schema, facts catalog, per-project persistence, and the advisory
+  fired-rule notification.
 - `references/migration.md`: migrating an existing repository onto modular
   representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases

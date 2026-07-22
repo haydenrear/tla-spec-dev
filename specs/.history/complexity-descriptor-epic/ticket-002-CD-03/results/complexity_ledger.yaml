@@ -1,0 +1,116 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "TODO"
+    evidence: "TODO -- path to the kill-test report"
+  effect_conformance:
+    status: "TODO"
+    evidence: "TODO -- path to the effect-conformance report"
+  external_coverage:
+    status: "TODO"
+    evidence: "TODO -- path to the external coverage report"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Zero-delta ticket. CD-03 adds the self-configured fitness-function layer
+    (scripts/fitness_functions.py, wired into scripts/analyze_complexity.py)
+    plus tests and docs; the TLA+ model, configs, manifest, adapters and
+    spec tests are byte-identical to the epic baseline (ticket current/ ==
+    desired/, verified by diff -r), and TLC reports the same figures as
+    CD-01/CD-02: 5,619,356 states generated / 231,621 distinct / depth 25
+    (results/tlc_current.txt), 46.3% of the negotiated max_distinct_states
+    500000 carried through desired/spec_manifest.yaml with its rationale.
+    The refinement search for an architectural reduction found none
+    applicable: the ticket's objective is scanner-side tooling, not a model
+    change. The worked example was produced on an external scratch demo
+    model, not on this program's model, and no rules were configured for
+    this repository's own project (the tool ships with no built-in rules).
+  measured: true       # TLC run produced the figure (231,621 distinct / depth 25)
+  applied: false       # no architectural change applied
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  CD-03 ships self-configured, composable fitness functions over the CD-01
+  complexity descriptor. scripts/fitness_functions.py provides the
+  primitives: {fact, op, value} leaves over the descriptor's published facts
+  (bound, modularity, component_count, max_component_variables,
+  max_component_actions, god_state_count, dense_column_count,
+  port_crossing_action_count, unread_by_invariant_count, unjustified_count,
+  action/variable counts, bound_known, and the parameterized
+  variable_domain(v)) composed with all/any/not under three-valued Kleene
+  semantics -- comparing against an unmeasurable fact yields UNKNOWN, never a
+  silent pass or fail. Rules persist per-project in spec_manifest.yaml under
+  fitness_functions:, or in a sibling fitness_functions.yaml /
+  fitness_functions.json next to the spec (the .json form parses with the
+  standard library alone, needed because the pinned CLI runs under a bare
+  python3 without PyYAML). On every `analyze complexity` run the configured
+  rules are evaluated over the descriptor payload and any rule whose
+  condition does not hold is surfaced as FIRED with a leaf-level trace --
+  the notification for future agents. Advisory throughout: firings, unknown
+  results, invalid rules and broken config files are all report-only; the
+  exit code is unchanged (verified by test and in the recorded worked
+  example, exit 0 on every scan). The tool ships with NO built-in rules --
+  with nothing configured there is no fitness section at all. Worked
+  example recorded (results/fitness_worked_example.txt): an agent adds two
+  composed rules to a demo project; a later scan -- after a god-action was
+  added to the model -- surfaces exactly one firing (stay-decomposed FIRED,
+  state-space-in-check holds). Retention oracles were not re-run: the model
+  is byte-identical to the baseline, behavior retention is witnessed by the
+  identical TLC run, and no complexity decrease is claimed. No new deferred
+  findings filed; the pending CD-02-DF-01 (also touching
+  scripts/analyze_complexity.py) was deliberately left unfixed per the
+  dispatch instruction -- the owner triages it at finalization.

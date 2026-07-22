@@ -1,0 +1,35 @@
+findings:
+  - id: CD-02-DF-01
+    found_by: "CD-02"
+    found_at_commit: "c9b6ea7"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      When `analyze complexity` is run without --manifest and no default
+      manifest resolves, the warning prints a placeholder path: "no readable
+      spec manifest at does-not-exist; using documented default budgets".
+      The literal Path("does-not-exist") sentinel leaks into user-facing
+      output (scripts/analyze_complexity.py:1044). Cosmetic/UX only; budget
+      resolution itself behaves correctly (documented defaults are used).
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity
+      <model>.tla <MC.cfg>` (no --manifest) prints the warning verbatim.
+      Observed: "no readable spec manifest at does-not-exist". Expected: a
+      message naming no path, or the actually-probed default path.
+      Reproduced 2026-07-21 during CD-02 worked-example runs and again
+      independently by the epic owner during CD-01 post-merge verification.
+    evidence: []
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is outside CD-02's conflict keys
+      (references/complexity_intuition.md, SKILL.md).
+    suggested_fix: >-
+      Say "no manifest supplied; using documented default budgets" (or name
+      the actually-probed default path) instead of the sentinel.
+    blast_radius: "CD-03 also owns scripts/analyze_complexity.py in its conflict keys."
+    disposition: pending
+    disposition_ticket: null
