@@ -1,0 +1,105 @@
+analyze complexity -- TlaSpecDevCli (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets/CD-04/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets/CD-04/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets/CD-04/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain                                                        cardinality  note
+------------------  ------------------------------------------------------------  -----------  ---------------------------------------------------------
+setup_phase         0..5                                                          6
+spec_root           SpecRoots \cup {NoRoot}                                       3
+ticket_state        [Tickets -> 0..5]                                             216          6^3 total functions
+lastCommand         (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+result              (unconstrained)                                               unknown      unconstrained by TypeInvariant -- excluded from the bound
+complexity_gate     {"unknown", "pass", "fail"}                                   3
+corpus_gate         {"unknown", "pass", "fail"}                                   3
+effect_conformance  {"unknown", "clean", "gaps", "dead_surface", "unobservable"}  5
+kill_test           {"unknown", "pass", "below_floor", "incomplete_catalog"}      4
+
+[MEASURED] State-space upper bound
+  bound = 699,840  (product of 7 bounded dimensions; domains from TypeInvariant)
+  excluded (no resolvable domain): lastCommand, result
+  dominant dimensions:
+    ticket_state: 216 (39.9% of the bound in log space)
+    setup_phase: 6 (13.3% of the bound in log space)
+    effect_conformance: 5 (12.0% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  --------------------  -----------  ----------------  -----------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                     r            r                 r
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                     r            r                 r
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                     .            rw                rw
+lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+result              w              w                w                w              w                 w           w                    w                    w                  w              w                     w            w                 w
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                     .            .                 .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                     .            w                 .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              w                     .            w                 .
+kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                     w            .                 .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.000 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state  (9 variables, 14 actions)
+  no port-crossing actions (single component, or fully independent components)
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastCommand touched by 14/14 actions
+    result touched by 14/14 actions
+    setup_phase touched by 12/14 actions
+    spec_root touched by 10/14 actions
+  dense columns (action touching more than half the variables):
+    AnalyzeComplexity
+    AnalyzeCorpus
+    CloseTicket
+    OpenTicket
+    RunEffectConformance
+    RunKillTest
+    RunSpecUnitTests
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    lastCommand
+    result
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+[MEASURED] TLC transition-level diagnostics
+  INFO: TLC measured 6209780 generated / 283805 distinct / depth 25. Pass --baseline-tlc to check for the self-loop-deletion signature.
+  INFO: TLC-measured 283,805 distinct reachable states is within max_distinct_states 500,000.
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-89-cd04-redesign-question/specs/tickets/CD-04/current/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6
+
+  WARNING: component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.

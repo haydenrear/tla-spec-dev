@@ -1,0 +1,182 @@
+# CD-04 evidence: corpus gate over-cap output AFTER the redesign-question change
+# Command equivalent: cd.gate_report(ecommerce_corpus(), view='external',
+#                     budgets={'max_external_cases_per_action': 50})
+# (unit-level invocation of the same render path `tla-spec-dev analyze corpus` prints)
+
+passed=False
+
+corpus gate FAIL: 732 external case(s), cap max_external_cases_per_action = 50 per action
+
+Distribution per (action, label class) -- 11 stratum/strata:
+  SubmitDuplicateAddCartItem / duplicate_submission       200   27.3%
+  SubmitDuplicateCheckout / duplicate_submission          184   25.1%
+  SubmitDuplicateCreateAccount / duplicate_submission     120   16.4%
+  RunFulfillmentWorkerNoop / worker_noop                   84   11.5%
+  SubmitCheckout / happy_path                              60    8.2%
+  SubmitAddCartItem / happy_path                           40    5.5%
+  RunFulfillmentWorker / worker_progress                   24    3.3%
+  SubmitAddCartItemOutOfStock / rejected                    8    1.1%
+  SubmitCheckoutUnknownClient / rejected                    6    0.8%
+  SubmitCheckoutEmptyCart / rejected                        4    0.5%
+  SubmitCreateAccount / happy_path                          2    0.3%
+
+Strata that DOMINATE the corpus:
+  SubmitDuplicateAddCartItem / duplicate_submission       200   27.3%
+  SubmitDuplicateCheckout / duplicate_submission          184   25.1%
+  SubmitDuplicateCreateAccount / duplicate_submission     120   16.4%
+  RunFulfillmentWorkerNoop / worker_noop                   84   11.5%
+
+Strata that are STARVED:
+  SubmitAddCartItemOutOfStock / rejected       8    1.1%
+  SubmitCheckoutUnknownClient / rejected       6    0.8%
+  SubmitCheckoutEmptyCart / rejected           4    0.5%
+  SubmitCreateAccount / happy_path             2    0.3%
+
+  Skew: SubmitDuplicateAddCartItem / duplicate_submission holds 100x the cases of SubmitCreateAccount / happy_path.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+corpus gate FAIL -- this corpus exceeds its manifest cap. Nothing was
+trimmed: the full corpus was written, and this gate refuses instead.
+
+A lopsided corpus is evidence about the REPRESENTATION, not noise to
+clean up. The corpus is the symptom; the diagram is the defect.
+
+--- action SubmitDuplicateAddCartItem: 200 cases, cap 50 (over by 150)
+
+  Single stratum: SubmitDuplicateAddCartItem / duplicate_submission
+
+  What VARIES across the redundant group:
+    after.inventory       11 distinct / 200 cases
+                       e.g. 100; 90; 91
+    before.inventory      11 distinct / 200 cases
+                       e.g. 100; 90; 91
+    after.accounts         7 distinct / 200 cases
+                       e.g. 0; 1; 2
+    before.accounts        7 distinct / 200 cases
+                       e.g. 0; 1; 2
+    after.cart_items       5 distinct / 200 cases
+                       e.g. 0; 1; 2
+    before.cart_items      5 distinct / 200 cases
+                       e.g. 0; 1; 2
+    after.orders           3 distinct / 200 cases
+                       e.g. 0; 1; 2
+    before.orders          3 distinct / 200 cases
+                       e.g. 0; 1; 2
+
+  Held CONSTANT across the group: after.seen_request, before.seen_request, params.request_id
+
+  Likely cause: action enabled across equivalent states
+    - 1 distinct change shape(s) across 200 cases
+    - but the before-state varies widely: after.inventory (11 values), before.inventory (11 values), after.accounts (7 values)
+    - 200 distinct source states in the reachable graph
+    - the action does one thing, generated once per reachable state that enables it
+
+--- action SubmitDuplicateCheckout: 184 cases, cap 50 (over by 134)
+
+  Single stratum: SubmitDuplicateCheckout / duplicate_submission
+
+  What VARIES across the redundant group:
+    params.client     23 distinct / 184 cases
+                   e.g. 'c0'; 'c1'; 'c10'
+    params.sku         8 distinct / 184 cases
+                   e.g. 'sku-0'; 'sku-1'; 'sku-2'
+
+  Held CONSTANT across the group: after.rejected, after.submitted, before.rejected, before.submitted
+
+  Likely cause: interchangeable values
+    - parameter(s) sweep a domain while the transition shape is fixed: params.client (23 values), params.sku (8 values)
+    - 184 distinct parameter combinations across 184 cases
+    - 1 distinct change shape(s) across 184 cases
+    - the cases differ in which value was chosen, not in what the action does
+
+--- action SubmitDuplicateCreateAccount: 120 cases, cap 50 (over by 70)
+
+  Single stratum: SubmitDuplicateCreateAccount / duplicate_submission
+
+  What VARIES across the redundant group:
+    after.pending_queue     120 distinct / 120 cases  <- permutations of one multiset
+                          e.g. <'a', 'b', 'c', 'd', 'e'>; <'a', 'b', 'c', 'e', 'd'>; <'a', 'b', 'd', 'c', 'e'>
+    before.pending_queue    120 distinct / 120 cases  <- permutations of one multiset
+                          e.g. <'a', 'b', 'c', 'd', 'e'>; <'a', 'b', 'c', 'e', 'd'>; <'a', 'b', 'd', 'c', 'e'>
+
+  Held CONSTANT across the group: after.accounts, after.rejected, before.accounts, params
+
+  Likely cause: unconstrained ordering
+    - 2 field(s) vary only by element order: after.pending_queue, before.pending_queue
+    - every value is a permutation of the same multiset across 120 cases
+    - TLC enumerated each interleaving because nothing declares the order irrelevant
+
+--- action RunFulfillmentWorkerNoop: 84 cases, cap 50 (over by 34)
+
+  Single stratum: RunFulfillmentWorkerNoop / worker_noop
+
+  What VARIES across the redundant group:
+    after.accounts      84 distinct / 84 cases  <- distinct per case
+                     e.g. 1; 10; 11
+    after.step          84 distinct / 84 cases  <- distinct per case
+                     e.g. 1; 10; 11
+    before.accounts     84 distinct / 84 cases  <- distinct per case
+                     e.g. 0; 1; 10
+    before.step         84 distinct / 84 cases  <- distinct per case
+                     e.g. 0; 1; 10
+    params.client       84 distinct / 84 cases  <- distinct per case
+                     e.g. 'c0'; 'c1'; 'c10'
+
+  Likely cause: interchangeable values
+    - parameter(s) sweep a domain while the transition shape is fixed: params.client (84 values)
+    - 84 distinct parameter combinations across 84 cases
+    - 1 distinct change shape(s) across 84 cases
+    - the cases differ in which value was chosen, not in what the action does
+
+--- action SubmitCheckout: 60 cases, cap 50 (over by 10)
+
+  Single stratum: SubmitCheckout / happy_path
+
+  What VARIES across the redundant group:
+    after.accounts      60 distinct / 60 cases  <- distinct per case
+                     e.g. 1; 10; 11
+    after.step          60 distinct / 60 cases  <- distinct per case
+                     e.g. 1; 10; 11
+    before.accounts     60 distinct / 60 cases  <- distinct per case
+                     e.g. 0; 1; 10
+    before.step         60 distinct / 60 cases  <- distinct per case
+                     e.g. 0; 1; 10
+    params.client       60 distinct / 60 cases  <- distinct per case
+                     e.g. 'c0'; 'c1'; 'c10'
+
+  Likely cause: interchangeable values
+    - parameter(s) sweep a domain while the transition shape is fixed: params.client (60 values)
+    - 60 distinct parameter combinations across 60 cases
+    - 1 distinct change shape(s) across 60 cases
+    - the cases differ in which value was chosen, not in what the action does
+
+The measurements above are the finding. This gate prescribes nothing
+and applies nothing; it refuses, and leaves the judgment to you.
+
+REDESIGN QUESTION: can the architecture be redesigned to make the
+program simpler, so these cases are never generated? That judgment is
+yours, not this tool's: take the complexity descriptor
+(`tla-spec-dev analyze complexity`) together with
+references/complexity_intuition.md and consider how to refactor
+complexity out of the app. Nothing is prescribed here, and nothing is
+applied automatically.
+
+Two ways forward, and neither deletes a case:
+
+  1. REDESIGN so the redundant cases are never generated -- if,
+     taking the descriptor and references/complexity_intuition.md
+     as the judgment inputs, you conclude the architecture can be
+     made simpler.
+
+  2. ACCEPT PATH -- raise the cap, with a rationale, in <spec-dir>/spec_manifest.yaml:
+     
+       budgets:
+         max_external_cases_per_action: 200    # was 50
+         source: negotiated
+         rationale:
+           max_external_cases_per_action: "<one line: why this program genuinely needs 200 cases per action>"
+     
+     That is an explicit, reviewable decision recorded in program state.
+     There is no trimming option, opt-in or otherwise: cases are never
+     dropped, filtered, sampled, or truncated to fit a budget.

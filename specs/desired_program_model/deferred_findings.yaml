@@ -70,3 +70,48 @@ findings:
     blast_radius: "Every future workflow scaffold on an onboarded project."
     disposition: pending
     disposition_ticket: null
+  - id: CD04-DF-1
+    found_by: "CD-04-suggestion-sweep"
+    found_at_commit: "48f3ff6"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - "specs/program_model/production_adapters.py"
+        - "specs/program_model/tests/test_tla_spec_dev_corpus_adapter.py"
+        - "specs/desired_program_model/production_adapters.py"
+        - "specs/desired_program_model/tests/test_tla_spec_dev_corpus_adapter.py"
+      test_graph: []
+    summary: >-
+      The workflow-level model mirrors still carry the pre-CD-04 corpus-gate
+      assertion: AnalyzeCorpusAdapter asserts "RECOMMENDATION REQUIRING USER
+      APPROVAL -- not applied automatically." appears in over-cap stdout
+      (production_adapters.py ~1540) and the corpus adapter test still bears
+      the old recommendation name/docstring (~65). After CD-04 the CLI emits
+      the redesign-question form, so these mirror trees would fail if their
+      spec-unit tests were executed against the new CLI. They are not
+      executed by ticket validation (spec-unit runs specs/current +
+      specs/tickets/<id>/current; the specWorkflow graph runs against a
+      scaffolded fixture repo).
+    reproduction: >-
+      python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests
+      --target specs/program_model (or --target specs/desired_program_model)
+      after CD-04 merges; test_over_cap... corpus adapter check fails on the
+      absent banner.
+    evidence:
+      - "specs/tickets/CD-04/results/suggestion_sweep_inventory.md"
+    why_out_of_scope: >-
+      promotion_rule: only workflow finalization promotes the whole model;
+      ticket agents close exactly their own ticket and never run
+      close_tickets.py. CD-01 precedent (343b166) likewise left
+      program_model/desired_program_model to the finalization reconcile
+      (195b07d pattern).
+    suggested_fix: >-
+      Workflow finalization reconciles desired_program_model/program_model
+      adapters from the promoted specs/current, which already carries the
+      redesign-question form of the corpus adapter and its test.
+    blast_radius: "Only the workflow-level mirror trees; no reachable output, no ticket validation surface."
+    disposition: pending
+    disposition_ticket: null
