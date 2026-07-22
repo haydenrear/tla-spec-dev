@@ -393,6 +393,35 @@ unjustified variables as dead weight. The state budget is then spent
 exclusively on bug-relevant distinctions — the representation that catches
 the most bugs per state.
 
+### The `justification:` table schema (what the dead-weight audit reads)
+
+The scanner's dead-weight audit (`unjustified_variables`, surfaced as `DEAD
+WEIGHT` in the report and as the `unjustified_count` fitness fact) reads a
+`justification:` table from `spec_manifest.yaml` with this exact shape — one
+**mapping** per declared variable, carrying at least one **non-empty list**
+under `invariants`, `effects`, or `kill_tests`:
+
+```yaml
+justification:
+  orders:
+    invariants: [SafetyInv]          # invariant(s) that read this variable
+    effects: [order_submitted]       # declared effect(s) it carries
+    kill_tests: [test_order_cap]     # mutation/kill evidence that needs it
+  retries:
+    invariants: [SafetyInv]
+    kill_tests: [test_retry_cap]
+```
+
+Linkage is structural, not prose: a variable counts as justified only when at
+least one of those three keys is a list with a non-empty entry. **A prose
+string** (`orders: "needed for the order cap"`) **is not linkage** — the entry
+is not a mapping, so the variable is flagged `DEAD WEIGHT` even though a
+justification was written. With no `justification:` table at all the audit is
+skipped and `unjustified_count` is UNKNOWN, never silently zero. The flag is
+advisory like every other finding: it names the unlinked variables and blocks
+nothing. The scaffolded manifests carry this schema as a comment next to the
+`budgets:` block.
+
 ## Intuitiveness Tests
 
 Three self-checks an agent applies to any representation:

@@ -7,13 +7,21 @@ Budgets are program state, not prose. `tla-spec-dev scaffold project` and
 instructs the agent to propose those defaults to the user, ask which to adjust
 for this program, and record a one-line rationale per changed value.
 
-Downstream gates (`analyze complexity`, case generation, the adapter runner,
-the mutation kill test) read their thresholds through :func:`load_budgets`,
-which falls back to the documented defaults with a warning when the block is
-missing.
+Downstream readers (`analyze complexity`, and the EXPERIMENTAL fuzzing
+surface: case generation, the adapter runner, the mutation kill test) read
+their thresholds through :func:`load_budgets`, which falls back to the
+documented defaults with a warning when the block is missing. Budgets are
+advisory thresholds, not gates: the scanner warns with facts and never blocks
+(SKILL.md, "Complexity Budgets Are Advisory"). The one hard operational limit
+is ``tlc_seconds``, which is about wall time, not complexity.
 
 The defaults here are the single source of truth for the values documented in
 ``references/modular_fuzzing.md``; keep the two in sync.
+
+The EXPERIMENTAL fuzzing-era keys (``kill_rate_floor``,
+``max_symmetric_instances``) keep their documented defaults so the kill test
+stays functional when invoked, but a manifest that omits them scans clean:
+they are excluded from the missing-keys warning (VAL-02).
 """
 
 from __future__ import annotations
@@ -43,13 +51,21 @@ BUDGET_COMMENTS: dict[str, str] = {
     "max_state_space_bound": "static declared-representation ceiling; see modular_fuzzing.md",
     "max_internal_cases_per_component": "spec-unit case cap per component",
     "max_external_cases_per_action": "Test Graph case cap per external action",
-    "kill_rate_floor": "minimum mutation kill rate",
+    "kill_rate_floor": "minimum mutation kill rate (EXPERIMENTAL fuzzing surface; optional)",
     "max_component_variables": "component-size heuristic",
     "max_component_actions": "component-size heuristic",
-    "max_symmetric_instances": "component-size heuristic",
+    "max_symmetric_instances": "component-size heuristic (EXPERIMENTAL fuzzing surface; optional)",
 }
 
 BUDGET_KEYS: tuple[str, ...] = tuple(DEFAULT_BUDGETS)
+
+# Retired fuzzing-era keys (VAL-02): still read by the EXPERIMENTAL surface
+# (the kill test reads kill_rate_floor), so they keep defaults above, but the
+# descriptor-era docs no longer instruct projects to set them -- a manifest
+# without them is per-docs and must not warn.
+EXPERIMENTAL_BUDGET_KEYS: frozenset[str] = frozenset(
+    {"kill_rate_floor", "max_symmetric_instances"}
+)
 
 
 def budgets_block(indent: str = "  ") -> str:
@@ -88,9 +104,13 @@ def budget_prompt(manifest_path: str) -> str:
         "  2. Ask which to adjust for this program.\n"
         "  3. Record a one-line rationale under budgets.rationale for each changed value,\n"
         "     and set budgets.source to negotiated once agreed.\n\n"
-        "Budgets are hard gates, not aspirations: analyze complexity, case generation,\n"
-        "the adapter runner, and the mutation kill test all read them from this manifest.\n"
-        "See references/modular_fuzzing.md 'Budgets'.\n"
+        "Budgets are advisory thresholds, not gates: analyze complexity reads them from\n"
+        "this manifest and warns -- naming the component/variable/action and the measured\n"
+        "fact -- when a threshold is exceeded. It never blocks promotion or changes its\n"
+        "exit code. The one hard operational limit is tlc_seconds (wall time, not\n"
+        "complexity). The EXPERIMENTAL fuzzing surface (case generation, the adapter\n"
+        "runner, the mutation kill test) also reads its caps and floors from this block.\n"
+        "See SKILL.md 'Complexity Budgets Are Advisory' and references/modular_fuzzing.md 'Budgets'.\n"
     )
 
 
@@ -178,7 +198,11 @@ def load_budgets(
     for key in BUDGET_KEYS:
         if key in block and block[key] is not None:
             budgets[key] = _coerce(key, block[key], warn=warn, stream=stream)
-        else:
+        elif key not in EXPERIMENTAL_BUDGET_KEYS:
+            # Retired fuzzing-era keys fall back silently (VAL-02): the
+            # descriptor-era docs no longer instruct projects to set them, so
+            # a per-docs manifest must scan clean. The EXPERIMENTAL surface
+            # still reads their documented defaults when invoked.
             missing.append(key)
 
     if missing and warn:

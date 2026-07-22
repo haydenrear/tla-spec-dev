@@ -51,7 +51,7 @@ FACT_DOCS: dict[str, str] = {
     "component_count": "number of near-decomposable variable clusters",
     "max_component_variables": "size of the largest component, in variables",
     "max_component_actions": "actions touching the most-touched component",
-    "action_count": "number of actions (definitions priming a variable)",
+    "action_count": "number of actions (top-level next-state-relation disjuncts; helpers attributed to their callers)",
     "variable_count": "number of declared variables",
     "god_state_count": "dense rows: variables touched by more than half the actions",
     "dense_column_count": "actions touching more than half the variables",
@@ -283,17 +283,33 @@ def _load_rules_document(path: Path) -> tuple[Any, str | None]:
             return json.loads(text), None
         except Exception as exc:
             return None, f"{path.name}: unparseable JSON: {exc}"
-    try:
-        import yaml  # type: ignore
-    except Exception:
+    if not _yaml_available():
         return None, (
             f"{path.name}: PyYAML is unavailable under this python; use "
             "fitness_functions.json (standard library) instead"
         )
+    import yaml  # type: ignore
+
     try:
         return yaml.safe_load(text), None
     except Exception as exc:
         return None, f"{path.name}: unparseable YAML: {exc}"
+
+
+def _yaml_available() -> bool:
+    """True when PyYAML imports under this interpreter.
+
+    VAL-01: when it does not, the spec manifest was parsed by the repository's
+    minimal fallback parser, which mangles flow-style rule leaves
+    (``{fact: bound, ...}`` arrives as garbage keys like ``'{fact'``). Rules
+    embedded in the manifest must then be reported as a CONFIG ERROR naming
+    the missing dependency, never fed into rule validation.
+    """
+    try:
+        import yaml  # type: ignore  # noqa: F401
+    except Exception:
+        return False
+    return True
 
 
 def load_rules(
@@ -315,10 +331,22 @@ def load_rules(
     errors: list[str] = []
 
     if isinstance(manifest, dict) and RULES_KEY in manifest:
-        parsed, errs = _parse_entries(manifest.get(RULES_KEY), "spec_manifest.yaml")
-        rules.extend(parsed)
-        errors.extend(errs)
         sources.append(f"spec_manifest.yaml ({RULES_KEY}:)")
+        if not _yaml_available():
+            # VAL-01: under a bare python3 the manifest went through the
+            # fallback parser, which cannot read flow-style rule leaves --
+            # validating the mangled tree would surface a misleading INVALID
+            # ("got keys ['{fact']"). Name the real problem instead.
+            errors.append(
+                f"spec_manifest.yaml: the '{RULES_KEY}:' block needs PyYAML, "
+                "which is unavailable under this python -- the fallback "
+                "manifest parser cannot read rule leaves. Move the rules to "
+                "fitness_functions.json (standard library) next to the spec."
+            )
+        else:
+            parsed, errs = _parse_entries(manifest.get(RULES_KEY), "spec_manifest.yaml")
+            rules.extend(parsed)
+            errors.extend(errs)
 
     for filename in RULES_FILENAMES if spec_dir is not None else ():
         rules_path = spec_dir / filename

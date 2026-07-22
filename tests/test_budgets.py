@@ -13,6 +13,7 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.budgets import (  # noqa: E402
     BUDGET_KEYS,
     DEFAULT_BUDGETS,
+    EXPERIMENTAL_BUDGET_KEYS,
     budget_prompt,
     budgets_block,
     load_budgets,
@@ -93,6 +94,46 @@ def test_non_numeric_budget_falls_back_with_warning(tmp_path: Path, capsys) -> N
     assert "not a valid int" in capsys.readouterr().err
 
 
+def test_per_docs_block_without_experimental_keys_scans_clean(
+    tmp_path: Path, capsys
+) -> None:
+    """VAL-02: the retired fuzzing-era keys are optional. A manifest whose
+    budgets block follows the descriptor-era docs (no kill_rate_floor, no
+    max_symmetric_instances) must produce no missing-keys warning, while the
+    EXPERIMENTAL surface still resolves their documented defaults."""
+    manifest = tmp_path / "spec_manifest.yaml"
+    lines = ["module: Demo", "budgets:"]
+    for key in BUDGET_KEYS:
+        if key not in EXPERIMENTAL_BUDGET_KEYS:
+            lines.append(f"  {key}: {DEFAULT_BUDGETS[key]}")
+    manifest.write_text("\n".join(lines) + "\n")
+
+    loaded = load_budgets(manifest)
+
+    assert capsys.readouterr().err == ""
+    assert loaded["kill_rate_floor"] == DEFAULT_BUDGETS["kill_rate_floor"]
+    assert loaded["max_symmetric_instances"] == DEFAULT_BUDGETS["max_symmetric_instances"]
+
+
+def test_missing_key_warning_never_names_experimental_keys(
+    tmp_path: Path, capsys
+) -> None:
+    manifest = tmp_path / "spec_manifest.yaml"
+    manifest.write_text("module: Demo\nbudgets:\n  tlc_seconds: 45\n")
+    load_budgets(manifest)
+    warning = capsys.readouterr().err
+    assert "is missing" in warning
+    assert "kill_rate_floor" not in warning
+    assert "max_symmetric_instances" not in warning
+
+
+def test_budget_prompt_and_scaffold_comments_use_advisory_language() -> None:
+    """VAL-04: no scaffold surface may call budgets hard gates."""
+    prompt = budget_prompt("specs/program_model/spec_manifest.yaml")
+    assert "advisory thresholds, not gates" in prompt
+    assert "hard gates" not in prompt.lower()
+
+
 def test_budget_prompt_instructs_negotiation_and_rationale() -> None:
     prompt = budget_prompt("specs/program_model/spec_manifest.yaml")
     assert "Propose these defaults to the user" in prompt
@@ -117,10 +158,17 @@ def test_scaffold_project_emits_budgets_and_prompt(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
 
     manifest = tmp_path / "specs/program_model/spec_manifest.yaml"
-    assert "budgets:" in manifest.read_text()
+    manifest_text = manifest.read_text()
+    assert "budgets:" in manifest_text
     assert load_budgets(manifest, warn=False) == DEFAULT_BUDGETS
     assert "Propose these defaults to the user" in result.stdout
     assert "one-line rationale" in result.stdout
+    # VAL-04: generated manifest and epilog speak the advisory doctrine.
+    assert "hard gates" not in manifest_text.lower()
+    assert "advisory" in manifest_text
+    assert "hard gates" not in result.stdout.lower()
+    # VAL-05: the justification-table schema travels with the manifest.
+    assert "justification:" in manifest_text
 
 
 def test_scaffold_workflow_emits_budgets_and_prompt(tmp_path: Path) -> None:
@@ -132,6 +180,12 @@ def test_scaffold_workflow_emits_budgets_and_prompt(tmp_path: Path) -> None:
         tmp_path / "specs/current/spec_manifest.yaml",
         tmp_path / "specs/desired_program_model/spec_manifest.yaml",
     ):
-        assert "budgets:" in manifest.read_text(), manifest
+        manifest_text = manifest.read_text()
+        assert "budgets:" in manifest_text, manifest
         assert load_budgets(manifest, warn=False) == DEFAULT_BUDGETS
+        # VAL-04 / VAL-05: advisory doctrine and justification schema.
+        assert "hard gates" not in manifest_text.lower(), manifest
+        assert "advisory" in manifest_text, manifest
+        assert "justification:" in manifest_text, manifest
     assert "Propose these defaults to the user" in result.stdout
+    assert "hard gates" not in result.stdout.lower()

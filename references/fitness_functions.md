@@ -85,7 +85,7 @@ published facts, nothing private. (`scripts/fitness_functions.py`,
 | `component_count` | number of near-decomposable variable clusters |
 | `max_component_variables` | size of the largest component, in variables |
 | `max_component_actions` | actions touching the most-touched component |
-| `action_count` | number of actions (definitions priming a variable) |
+| `action_count` | number of actions (top-level next-state-relation disjuncts; helpers attributed to their callers) |
 | `variable_count` | number of declared variables |
 | `god_state_count` | dense rows: variables touched by more than half the actions |
 | `dense_column_count` | actions touching more than half the variables |

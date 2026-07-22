@@ -568,7 +568,10 @@ the user during scaffolding: propose the defaults in
 the agreed values with a one-line rationale under `budgets:` in
 `spec_manifest.yaml`. Budgets cover TLC wall time, distinct states per component
 model, case caps per view, component-size heuristics, and — in the experimental
-layer — the mutation kill-rate floor. When the scanner finds a model over one of
+layer — the mutation kill-rate floor. The experimental fuzzing-era keys
+(`kill_rate_floor`, `max_symmetric_instances`) are optional: a manifest that
+omits them scans with no missing-keys warning, and the kill test falls back to
+the documented default floor when invoked. When the scanner finds a model over one of
 these thresholds it emits a **warning that names the component/variable/action
 and states the measured fact**. It does **not** recommend a move, block
 promotion, refuse case generation, or change its exit code. Complexity is a
