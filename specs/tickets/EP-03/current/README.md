@@ -1,5 +1,11 @@
 # Current Program Model
 
+EP-03 deliberately keeps the host CLI model unchanged. Its semantic work is
+three independent example program models under `examples/effect_providers/`;
+the host changes only gain measurement evidence, documentation, and a Test
+Graph validation for those external examples. The preregistered experiment is
+`examples/effect_providers/PREREGISTRATION.yaml`.
+
 This directory is the executable whole-program model of what the repository
 implements right now for the active ticket workflow.
 

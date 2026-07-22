@@ -4,4 +4,40 @@ policy:
   mode: batch
   blocking: escalate
   budget: 5
-findings: []
+findings:
+  - id: DEF-001
+    found_by: "EP-03"
+    found_at_commit: "1ec5536"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - scripts/run_generated_case_adapters.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: "Recorded effect replay resolves a virtualenv interpreter symlink and can lose that environment's dependencies."
+    reproduction: >-
+      `/Users/hayde/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12
+      -c 'import requests; print(requests.__file__)'` exits 1 with
+      `ModuleNotFoundError: No module named 'requests'`. That is the resolved
+      base interpreter written into the HTTP replay command; expected replay to
+      retain the originating project virtualenv where requests is installed.
+      The accepted campaign passes only because it adds the virtualenv
+      site-packages directory as an explicit import root; see
+      campaign_limitations.replay_environment in the evidence.
+    evidence:
+      - examples/effect_providers/legacy_payment_http/evidence/reviewed-local-repetition-2.json
+      - examples/effect_providers/RESULTS.md
+    why_out_of_scope: >-
+      Fixing replay construction touches the shared runner, while EP-03's
+      production conflict keys are limited to examples/effect_providers/,
+      test_graph/build.gradle.kts, and references/effect_providers.md.
+    suggested_fix: >-
+      Preserve the virtualenv executable path without resolving its symlink and
+      add a dependency-bearing exact-replay regression.
+    blast_radius: >-
+      Shared generated-case runner replay commands, CLI spec-unit wrappers, and
+      every project that records an effect-fuzz replay.
+    disposition: pending
+    disposition_ticket: null

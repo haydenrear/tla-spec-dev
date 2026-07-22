@@ -1,0 +1,241 @@
+{
+  "schema_version": "effect-provider-experiments.v1",
+  "preregistration": {
+    "commit": "141e63b",
+    "path": "examples/effect_providers/PREREGISTRATION.yaml",
+    "sha256": "970ade21dcf9e460a60cdb1e70396b5b5507c460983e7001cb1bceff5fe9390b"
+  },
+  "overall": {
+    "decision": "go_python_v0_with_conditions",
+    "effectful_mutation": {
+      "killed": 36,
+      "total": 36,
+      "score": 1.0
+    },
+    "separate_hand_written_baselines": {
+      "killed": 30,
+      "total": 36,
+      "score": 0.833333,
+      "effectful_additional_kills": 6,
+      "comparison_is_descriptive_not_pooled": true
+    },
+    "expected_detector_attribution": {
+      "tla_derived_case_oracle": 15,
+      "provider_owned_assertion_or_shared_journal": 20,
+      "passive_bypass_detector": 1,
+      "total": 36
+    },
+    "surviving_effectful_mutants": [],
+    "framework_files_changed_by_projects": 0,
+    "fresh_checkout_validation": "pending"
+  },
+  "projects": [
+    {
+      "id": "atomic_publisher",
+      "shape": "explicit dependency injection with stateful filesystem binding",
+      "decision": "go",
+      "accepted_evidence": "examples/effect_providers/atomic_publisher/evidence/atomic-publisher-raw.json",
+      "generated_cases": 7,
+      "deterministic_iterations": 16,
+      "control_points_per_repetition": 112,
+      "accepted_repetitions": 2,
+      "effectful_mutation": {
+        "killed": 12,
+        "total": 12,
+        "expected_detector_attribution": {
+          "tla_derived_case_oracle": 8,
+          "provider_owned_assertion_or_shared_journal": 3,
+          "passive_bypass_detector": 1
+        }
+      },
+      "hand_written_baseline": {
+        "killed": 10,
+        "total": 12,
+        "survivors": ["AP-05", "AP-07"],
+        "additional_effectful_kills": 2
+      },
+      "tlc": {
+        "internal": {"generated_states": 14, "distinct_states": 14, "depth": 2, "cases": 7},
+        "external": {"generated_states": 14, "distinct_states": 14, "depth": 2, "cases": 7}
+      },
+      "external_validation_cases": 7,
+      "runtime_ms": {
+        "repetition_1": {"p50": 3.3028125, "p95": 5.50382135},
+        "repetition_2": {"p50": 3.211271, "p95": 5.3536231}
+      },
+      "cost": {
+        "retrieval_files_read": 28,
+        "retrieval_lines_read": 5934,
+        "files_changed": 48,
+        "lines_changed": 3779,
+        "application_loc": 146,
+        "interface_loc": 81,
+        "provider_loc": 332,
+        "adapter_loc": 324,
+        "projection_or_oracle_loc": 113,
+        "experiment_loc": 826,
+        "authoring_wall_minutes": 38.562,
+        "authoring_wall_measurement": "earliest project source mtime to accepted evidence write",
+        "edit_run_iterations": 10
+      },
+      "earned_findings": [
+        "The real-filesystem rung exposed and fixed a staging-file leak after replace failure.",
+        "The adapter duplicates expected revision because generated cases lack a normalized application/effect command plan."
+      ]
+    },
+    {
+      "id": "legacy_payment_http",
+      "shape": "legacy requests.Session.send monkey patch plus passive socket guard",
+      "decision": "conditional_go_for_legacy_compatibility",
+      "accepted_evidence": [
+        "examples/effect_providers/legacy_payment_http/evidence/reviewed-local-repetition-1.json",
+        "examples/effect_providers/legacy_payment_http/evidence/reviewed-local-repetition-2.json"
+      ],
+      "generated_cases": 56,
+      "deterministic_iterations": 32,
+      "control_points_per_repetition": 1792,
+      "accepted_repetitions": 2,
+      "effectful_mutation": {
+        "killed": 12,
+        "total": 12,
+        "expected_detector_attribution": {
+          "tla_derived_case_oracle": 2,
+          "provider_owned_assertion_or_shared_journal": 10,
+          "passive_bypass_detector": 0
+        }
+      },
+      "hand_written_baseline": {
+        "killed": 12,
+        "total": 12,
+        "survivors": [],
+        "additional_effectful_kills": 0
+      },
+      "tlc": {
+        "internal": {"generated_states": 57, "distinct_states": 57, "depth": 2, "cases": 56},
+        "external": {"generated_states": 57, "distinct_states": 57, "depth": 2, "cases": 56}
+      },
+      "external_validation_cases": 56,
+      "runtime_ms": {"repetition_2": {"p50": 0.166959013, "p95": 0.310999982}},
+      "cost": {
+        "retrieval_files_read": 32,
+        "retrieval_lines_read": 7701,
+        "files_changed": 51,
+        "lines_changed": 6911,
+        "application_loc": 160,
+        "interface_loc": 75,
+        "provider_loc": 402,
+        "adapter_loc": 165,
+        "projection_or_oracle_loc": 186,
+        "experiment_loc": 1597,
+        "authoring_wall_minutes": 291.79,
+        "authoring_wall_measurement": "shared elapsed wall clock from recorded start to accepted evidence",
+        "edit_run_iterations": 14
+      },
+      "earned_findings": [
+        "The four-scenario hand baseline killed the entire catalog, so this catalog shows zero incremental mutation-score value.",
+        "urllib and raw sockets bypass Session.send; the separate passive socket guard blocked both probes.",
+        "Recorded replay resolves a virtualenv interpreter symlink and needs an explicit site-packages import root.",
+        "The generated port protocol is available, but this self-installing provider binds None and does not implement that port."
+      ]
+    },
+    {
+      "id": "reminder_worker",
+      "shape": "four explicit, correlated stateful providers with shared order journal",
+      "decision": "go_for_high_value_workflows_with_schema_work",
+      "accepted_evidence": [
+        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-1/results.json",
+        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-2/results.json"
+      ],
+      "generated_cases": 7,
+      "deterministic_iterations": 25,
+      "control_points_per_repetition": 175,
+      "accepted_repetitions": 2,
+      "effectful_mutation": {
+        "killed": 12,
+        "total": 12,
+        "expected_detector_attribution": {
+          "tla_derived_case_oracle": 5,
+          "provider_owned_assertion_or_shared_journal": 7,
+          "passive_bypass_detector": 0
+        }
+      },
+      "hand_written_baseline": {
+        "killed": 8,
+        "total": 12,
+        "survivors": ["RW-03", "RW-04", "RW-11", "RW-12"],
+        "additional_effectful_kills": 4
+      },
+      "tlc": {
+        "internal": {"generated_states": 14, "distinct_states": 14, "depth": 2, "cases": 7},
+        "external": {"generated_states": 14, "distinct_states": 14, "depth": 2, "cases": 7}
+      },
+      "external_validation_cases": 7,
+      "runtime_ms": {"repetition_2": {"p50": 0.020417, "p95": 0.03325}},
+      "cost": {
+        "retrieval_files_read": 18,
+        "retrieval_lines_read": 3639,
+        "files_changed": 22,
+        "lines_changed": 2363,
+        "application_loc": 325,
+        "interface_loc": 107,
+        "provider_loc": 328,
+        "adapter_loc": 106,
+        "projection_or_oracle_loc": 21,
+        "experiment_loc": 1057,
+        "authoring_wall_minutes": 49.878,
+        "authoring_wall_measurement": "shared concurrent wall clock since preregistration; not person effort",
+        "edit_run_iterations": 5
+      },
+      "earned_findings": [
+        "Terminal-state cases omit order, cardinality, duplicate-send rejection, and response-class plans, so providers currently reimplement semantic oracle decisions.",
+        "The project hand-built an immutable correlated bundle, monotonic shared journal, and manual snapshot/refinement composition that should have a generic point-scoped utility.",
+        "A direct datetime read bypasses ClockPort; direct network access needs a separate passive guard.",
+        "Twelve kills at iteration zero demonstrate fixed-catalog oracle coverage, not later-representative fuzz sensitivity."
+      ]
+    }
+  ],
+  "limitations": [
+    "Killed mutants stop after the first complete failing iteration; only controls exercise every deterministic representative.",
+    "The three hand baselines have different scenario breadth, so the 30/36 aggregate is descriptive rather than a pooled statistical control.",
+    "Authoring wall clocks have different measurement scopes and include concurrent elapsed time; LOC and edit/run counts are the more comparable cost signals.",
+    "The experiments validate a fixed preregistered Python catalog, not exhaustive fuzzing, shrinking, arbitrary TLA+ response synthesis, universal effect interception, or service equivalence."
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "decision": "build",
+      "item": "Generate normalized semantic effect-plan metadata",
+      "detail": "Generate response class, effect order/cardinality, semantic command fields, and projection obligations from modeled transition annotations rather than duplicating them by hand. Add a generic point-scoped correlated bundle, monotonic journal, and snapshot composition utility while leaving domain assertions project-owned. Providers should still choose concrete bytes, paths, exceptions, headers, and opaque values. Do not generate a byte-level per-call response script."
+    },
+    {
+      "priority": 2,
+      "decision": "fix",
+      "item": "Preserve the originating interpreter environment in replay commands",
+      "detail": "Record the virtualenv interpreter path without resolving its symlink and add a dependency-bearing replay regression."
+    },
+    {
+      "priority": 3,
+      "decision": "build",
+      "item": "Add collect/continue campaigns and data-dependent mutants",
+      "detail": "Keep exact first-failure replay, but optionally continue after discovery so representative breadth and time-to-detection are measurable."
+    },
+    {
+      "priority": 4,
+      "decision": "build",
+      "item": "Standardize bypass declarations and stronger isolation rungs",
+      "detail": "Treat monkey patches as compatibility-only, ship passive guard probes, and offer process/network or real-service rungs when the boundary matters."
+    },
+    {
+      "priority": 5,
+      "decision": "defer_pending_more_domains",
+      "item": "Standard response-plan schema",
+      "detail": "Standardize only the normalized semantic fields proven common across more domains; a universal wire-response DSL would move implementation detail into TLA+ and overfit these examples."
+    },
+    {
+      "priority": 6,
+      "decision": "next_language_after_priorities_1_and_2",
+      "item": "Java provider bridge",
+      "detail": "Implement JVM-native typed providers and an external entrypoint protocol after semantic plans and replay provenance stabilize. Do not route Java effects through Python as the default architecture."
+    }
+  ]
+}
