@@ -612,3 +612,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-11
+
+- close_scope: ticket
+- close_id: CD-11
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T19:41:19+00:00
+- summary: Port honesty for the experimental surface + the two four-run manifest desyncs (R4-1/2/3, ESC-R4-2/3): declared mutation_write and corpus_process on RunKillTest, spec_tree on RunEffectConformance, removed AnalyzeCorpus's dead evidence_report; placeholder meaning recorded for the empty state_fields/actions/ports stanzas; @port vocabulary aligned to declared port names; kill catalog 22/22; zero TLA+ semantic delta (TLC 283,805 distinct, identical to baseline)
+- feedback_status: none-found
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

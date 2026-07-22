@@ -1,0 +1,121 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-11",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "RunKillTest's production-source mutation writes match a declared port (or seeding moved to a copied tree); the per-mutant spawn declaration is honest for user-supplied commands (R4-1).",
+        "RunEffectConformance's sandbox writes match declared ports, by declaration or relocation, with the choice recorded (R4-2).",
+        "AnalyzeCorpus declares no dead port (R4-3, G4-style rationale if removed).",
+        "state_fields/actions/ports stanzas are either populated from the model or their inapplicability recorded where the schema is documented (ESC-R4-2); the @port annotation vocabulary and declared port names intersect exactly (ESC-R4-3).",
+        "Kill catalog honest for the final port set; zero TLA+ semantic delta (annotation comments only); TLC green; max_distinct_states 500000 carried and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-11"
+      ],
+      "evidence": [
+        "specs/tickets/CD-11/results/port_honesty_reconciliation.md",
+        "specs/tickets/CD-11/results/tlc_current.txt",
+        "specs/tickets/CD-11/results/spec_unit_tests.txt",
+        "specs/tickets/CD-11/results/repo_unit_tests.txt",
+        "specs/tickets/CD-11/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-11/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/spec_manifest.yaml",
+        "specs/current/kill_mutants.toml",
+        "specs/current/TlaSpecDevCli.tla"
+      ],
+      "production": [
+        "tests/test_kill_test.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "manifest effects/ports + annotation alignment"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/87",
+    "id": "CD-11",
+    "implementation_scope": [
+      "specs/current/spec_manifest.yaml (R4-1/2/3 port rows; ESC-R4-2 stanzas)",
+      "specs/current/TlaSpecDevCli.tla (@port annotation vocabulary only \u2014 no semantic delta)",
+      "specs/current/kill_mutants.toml (catalog for changed ports)",
+      "tests/test_kill_test.py (boundary counts if they change)"
+    ],
+    "objective": "Fix audit run 4's three gaps (report: specs/results/epic-close/coverage_audit_report_run4.md) and the two MF-026-era manifest desyncs that have survived four audit runs (ESC-R4-2/3, owner-ruled real 2026-07-22). (R4-1) RunKillTest overwrites production source with mutated code on the shipped path (kill_test.py:548/:551 via run_kill_test.py:130->198; targets scripts/*.py) with no declared port \u2014 declare an honest mutation-write port (filesystem.write targeting the catalog surface) on RunKillTest, or move seeding to a copied tree; declaring is the smaller honest fix. Also make the per-mutant corpus spawn declaration honest for non-pytest user commands. (R4-2) RunEffectConformance writes its sandbox work tree under **/specs/** (effect_conformance_report.py:149/:163, effect_conformance.py:619/:656) but declares [evidence_report] only \u2014 declare spec_tree on the action or relocate the work dir under results/; pick one and record why. (R4-3) AnalyzeCorpus declares evidence_report but corpus_diagnostics.py has no writer and no --out \u2014 remove the dead port row with a G4-style rationale, or add a writer; removal matches the shipped print-only behavior. (ESC-R4-2) spec_manifest.yaml:123-125 declares state_fields: [] / actions: [] / ports: {} against a model with 9 variables / 15 actions / 7 ports \u2014 populate the stanzas from the model (or, if the schema intends them only for generated-case projects, record that meaning in a comment and in the schema doc \u2014 an empty stanza and an inapplicable stanza are different claims). (ESC-R4-3) the @port annotation vocabulary in TlaSpecDevCli.tla (TlaSpecDevCliPort.*) has empty intersection with the manifest's declared port names \u2014 align one to the other so the annotation layer and the effects layer name the same ports. Update the kill catalog for any port changes. Zero TLA+ model delta beyond annotation-comment alignment (no state/action/guard changes).\n",
+    "promotion_order": 150,
+    "promotion_predecessor": "CD-10",
+    "schedule_revision": 4,
+    "status": "planned",
+    "title": "Experimental-surface port honesty and the two four-run manifest desyncs",
+    "wave": 17
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/tickets/CD-11",
+  "ticket_id": "CD-11",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-87-cd11-port-honesty/specs/tickets"
+}
