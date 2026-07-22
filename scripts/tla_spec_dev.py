@@ -79,11 +79,13 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
         f"  - {spec_root}/program_model/Internal.tla + Internal.cfg  -> spec-unit cases\n"
         f"  - {spec_root}/program_model/External.tla + External.cfg  -> Test Graph cases\n"
         f"  - {spec_root}/program_model/case_adapters.toml           -> spec-unit adapters\n"
+        f"  - {spec_root}/program_model/providers.py                 -> semantic effect providers\n"
         f"  - {spec_root}/program_model/testgraph_bindings.yml       -> Test Graph adapters\n"
         f"  - {spec_root}/program_model/adapters.py                  -> both, plus projector/assertion\n"
         "\nTest Graph adapters are foundational to every project, not an add-on for\n"
         "distributed systems. Without the External view the public surface is never validated.\n"
-        "\nRead references/testgraph_adapters.md, then diff your tree against\n"
+        "\nRead references/testgraph_adapters.md and references/effect_providers.md, "
+        "then diff your tree against\n"
         "examples/distributed_history/specs/program_model/ before calling onboarding done."
     )
     from scripts.budgets import budget_prompt

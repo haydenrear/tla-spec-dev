@@ -9,7 +9,7 @@ instead, which creates ``specs/program_model`` as the accepted baseline.
 
 Both paths emit the SAME baseline shape, because there is only one accepted
 shape: Core.tla + Internal.tla/.cfg + External.tla/.cfg + actions.yml +
-adapters.py + case_adapters.toml + testgraph_bindings.yml. A single-module spec
+adapters.py + providers.py + case_adapters.toml + testgraph_bindings.yml. A single-module spec
 with no External view cannot generate Test Graph cases, so it can never be
 validated against its public surface. See references/testgraph_adapters.md.
 
@@ -296,6 +296,48 @@ kind = "tutorial-internal"
 adapter = "adapters:CreateInternalAdapter"
 kind = "tutorial-internal"
 """
+
+PROVIDERS_PY = '''"""Project-owned semantic effect providers for this tutorial.
+
+The generated case chooses the abstract outcome. This module chooses concrete
+representatives and installs them for one case and deterministic iteration.
+Read references/effect_providers.md before enabling a provider mapping.
+
+SCAFFOLD: replace the builders below with generated-port implementations.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from spec_double_compiler.effects import context_provider, temporary_root_provider
+from spec_double_compiler.runtime import EffectProviderContext
+
+
+def _filesystem_binding(root: Path, context: EffectProviderContext) -> Any:
+    raise NotImplementedError(
+        "SCAFFOLD: return an object implementing FilesystemPort "
+        f"for {context.action} under {root}"
+    )
+
+
+filesystem_provider = temporary_root_provider(
+    _filesystem_binding,
+    prefix="modeled-fs-",
+)
+
+
+def _install_patch(context: EffectProviderContext, stack: Any) -> Any:
+    # SCAFFOLD: enter reversible patch context managers on stack, then return
+    # the generated port implementation (or None for patch-only providers).
+    raise NotImplementedError(
+        f"SCAFFOLD: install bounded patches for {context.port_name}"
+    )
+
+
+patch_provider = context_provider(_install_patch)
+'''
 
 TESTGRAPH_BINDINGS_YML = """# TEST GRAPH ADAPTERS (external view).
 # Every External.tla action with `generates: [testgraph]` needs an entry.
@@ -698,6 +740,7 @@ This uses the one accepted baseline shape. It is not complete until it has:
 - `External.tla` / `External.cfg` — external view -> Test Graph cases
 - `actions.yml` — per-action layer, controllability, what it generates
 - `adapters.py` — spec-unit adapters AND Test Graph adapters/projector/assertion
+- `providers.py` — project-owned semantic effect providers and bounded patches
 - `case_adapters.toml` — internal action -> spec-unit adapter
 - `testgraph_bindings.yml` — external action -> Test Graph adapter
 - `tlc_projection.py` — TLC state -> generated-case shapes
@@ -733,6 +776,7 @@ def scaffold(name: str, root: Path, views: set[str] | None = None) -> Path:
     write_if_missing(target / "External.cfg", EXTERNAL_CFG)
     write_if_missing(target / "actions.yml", ACTIONS_YML)
     write_if_missing(target / "adapters.py", ADAPTERS_PY)
+    write_if_missing(target / "providers.py", PROVIDERS_PY)
     write_if_missing(target / "case_adapters.toml", CASE_ADAPTERS_TOML)
     write_if_missing(target / "testgraph_bindings.yml", TESTGRAPH_BINDINGS_YML)
     write_if_missing(target / "tlc_projection.py", TLC_PROJECTION_PY)

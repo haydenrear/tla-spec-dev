@@ -173,6 +173,11 @@ It defines the decomposition method (read/write matrix, port cuts, contract
 environments, interface model) — useful and shipped — and, clearly marked
 experimental, the per-program budgets, the four oracles including effect
 conformance and the mutation kill test, and the strict External content rule.
+Read `references/effect_providers.md` before implementing a project-owned
+effect provider or running a deterministic representative campaign. It defines
+the TLA semantic-outcome/provider-representation boundary, provider lifecycle,
+seed and exact-replay protocol, scaffold contract, and current isolation and
+bug-finding limits.
 For moving an existing repository onto this shape, read `references/migration.md`.
 
 ## Internal/External Test Graph Views
@@ -296,6 +301,8 @@ when it has:
 - [ ] `actions.yml` — per-action layer, controllability, and what it generates.
 - [ ] `adapters.py` — spec-unit adapters AND Test Graph adapters, projector,
       expected projection, and projected-state assertion.
+- [ ] `providers.py` — project-owned semantic effect providers and bounded
+      patch/temporary-resource lifecycles.
 - [ ] `case_adapters.toml` — internal action -> spec-unit adapter.
 - [ ] `testgraph_bindings.yml` — external action -> Test Graph adapter.
 - [ ] `tlc_projection.py` — TLC state -> generated-case shapes.
@@ -1056,6 +1063,9 @@ current change.
 - `references/modular_fuzzing.md`: modular pure-function/side-effect
   representations, decomposition method, budgets, oracles, corpus
   discipline, and the External content rule.
+- `references/effect_providers.md`: project-owned provider interfaces,
+  deterministic effect campaigns, exact replay, scaffold examples, and honest
+  isolation/validation limits.
 - `references/coverage_audit.md`: the end-of-epic completeness gate — why
   the four oracles cannot see unmodeled surface, the required ordering
   (after mechanisms land, before final integration), and the gate semantics.
