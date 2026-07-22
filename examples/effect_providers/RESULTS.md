@@ -7,7 +7,9 @@ three preregistered projects passed their green controls and killed their fixed
 catalogs without framework changes, but the experiments do not support calling
 this a general fuzzing gold standard yet. Broad typed-contract claims also need
 the shared dependency-sensitive manifest parser fixed (`DEF-002`); the reminder
-project neutralizes that defect locally and tests both parser environments.
+project neutralizes that syntax locally and proves typed forced-fallback
+reproducibility. A separate manual diagnostic established the PyYAML/fallback
+split; the unit test does not assume PyYAML is installed.
 
 Across the three fixed catalogs, generated cases plus providers killed 36/36
 mutants. The separate hand-written baselines killed 30/36: atomic publishing
@@ -59,15 +61,17 @@ oracle.
 
 ## Cost and benefit by project
 
-| Project | Provider LOC | Adapter LOC | Interface LOC | Experiment LOC | Files / lines changed | Retrieval files / lines |
+| Project | Provider LOC | Adapter LOC | Interface LOC | Experiment LOC | Frozen onboarding files / lines | Retrieval files / lines |
 |---|---:|---:|---:|---:|---:|---:|
 | Atomic | 332 | 324 | 81 | 826 | 48 / 3,779 | 28 / 5,934 |
 | HTTP | 402 | 165 | 75 | 1,597 | 51 / 6,911 | 32 / 7,701 |
 | Reminder | 328 | 106 | 107 | 1,122 | 22 / 2,363 | 18 / 3,639 |
 
 The raw wall clocks are not directly comparable: each agent recorded a
-different elapsed-time scope and concurrent work is included. Exact scopes,
-LOC groups, edit/run loops, TLC counts, runtimes, and source digests are in
+different elapsed-time scope and concurrent work is included. Component LOC is
+current through accepted evidence; the files/lines and retrieval columns are
+frozen onboarding measurements taken before the first scored campaign. Exact
+scopes, edit/run loops, TLC counts, runtimes, and source digests are in
 [`RESULTS.json`](RESULTS.json) and the per-project evidence.
 
 Atomic publishing gave the cleanest value signal. Explicit injection covered
@@ -96,10 +100,11 @@ tree, and now regenerates and compares the whole tree both normally and under
 verdict digest, 12/12 score, 8/12 baseline, replay, cleanup, and source hashes.
 The shared fallback parser remains a major deferred defect.
 
-The table records the updated post-correction footprint. The fresh-checkout
-correction touched seven tracked project files (+298/-52 lines): five generated
-files, the normalized manifest, and a 65-line reproduction test. It changed no
-framework file; final interface LOC remains 107, while model LOC is 564.
+The fresh-checkout correction is not included in reminder's frozen 22 / 2,363
+onboarding figure. It separately touched seven tracked project files (+298/-52
+lines): five generated files, the normalized manifest, and a 65-line
+reproduction test. It changed no framework file; final interface LOC remains
+107, while model LOC is 564 and experiment LOC is 1,122.
 
 ## Recommended architecture
 
