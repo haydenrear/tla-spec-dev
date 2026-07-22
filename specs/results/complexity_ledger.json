@@ -2666,6 +2666,128 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CD-03",
+      "workflow": "complexity-descriptor-epic",
+      "recorded_at_utc": "2026-07-22T01:09:34.364502+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "CD-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the kill-test report",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the effect-conformance report",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the external coverage report",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=(absent) (UNVERIFIED)",
+        "effect_conformance=(absent) (UNVERIFIED)",
+        "external_coverage=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Zero-delta ticket. CD-03 adds the self-configured fitness-function layer (scripts/fitness_functions.py, wired into scripts/analyze_complexity.py) plus tests and docs; the TLA+ model, configs, manifest, adapters and spec tests are byte-identical to the epic baseline (ticket current/ == desired/, verified by diff -r), and TLC reports the same figures as CD-01/CD-02: 5,619,356 states generated / 231,621 distinct / depth 25 (results/tlc_current.txt), 46.3% of the negotiated max_distinct_states 500000 carried through desired/spec_manifest.yaml with its rationale. The refinement search for an architectural reduction found none applicable: the ticket's objective is scanner-side tooling, not a model change. The worked example was produced on an external scratch demo model, not on this program's model, and no rules were configured for this repository's own project (the tool ships with no built-in rules).",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CD-03 ships self-configured, composable fitness functions over the CD-01 complexity descriptor. scripts/fitness_functions.py provides the primitives: {fact, op, value} leaves over the descriptor's published facts (bound, modularity, component_count, max_component_variables, max_component_actions, god_state_count, dense_column_count, port_crossing_action_count, unread_by_invariant_count, unjustified_count, action/variable counts, bound_known, and the parameterized variable_domain(v)) composed with all/any/not under three-valued Kleene semantics -- comparing against an unmeasurable fact yields UNKNOWN, never a silent pass or fail. Rules persist per-project in spec_manifest.yaml under fitness_functions:, or in a sibling fitness_functions.yaml / fitness_functions.json next to the spec (the .json form parses with the standard library alone, needed because the pinned CLI runs under a bare python3 without PyYAML). On every `analyze complexity` run the configured rules are evaluated over the descriptor payload and any rule whose condition does not hold is surfaced as FIRED with a leaf-level trace -- the notification for future agents. Advisory throughout: firings, unknown results, invalid rules and broken config files are all report-only; the exit code is unchanged (verified by test and in the recorded worked example, exit 0 on every scan). The tool ships with NO built-in rules -- with nothing configured there is no fitness section at all. Worked example recorded (results/fitness_worked_example.txt): an agent adds two composed rules to a demo project; a later scan -- after a god-action was added to the model -- surfaces exactly one firing (stay-decomposed FIRED, state-space-in-check holds). Retention oracles were not re-run: the model is byte-identical to the baseline, behavior retention is witnessed by the identical TLC run, and no complexity decrease is claimed. No new deferred findings filed; the pending CD-02-DF-01 (also touching scripts/analyze_complexity.py) was deliberately left unfixed per the dispatch instruction -- the owner triages it at finalization.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

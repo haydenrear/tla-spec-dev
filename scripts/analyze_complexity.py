@@ -35,6 +35,13 @@ What it emits:
   exits nonzero only when it *cannot analyze* the model at all -- an unresolved
   module hierarchy (MF-030 fail-closed) or a usage error -- which is a
   different thing from "this model is complex".
+* **self-configured fitness functions** (CD-03): when the project's agent has
+  written rules over the descriptor's facts (``fitness_functions:`` in the
+  manifest or a sibling ``fitness_functions.yaml``), each rule whose condition
+  does not hold FIRES and is surfaced here so future agents are notified.
+  There are NO built-in rules and firings are advisory -- they report, never
+  block, and never change the exit code. See
+  :mod:`scripts.fitness_functions` and ``references/fitness_functions.md``.
 
 Two standing cautions are wired into the output rather than left to prose,
 because both have already cost this repository real work (see MF-020):
@@ -908,6 +915,11 @@ class Analysis:
     budgets: dict[str, Any]
     warnings: list[Advisory]
     tlc_findings: list[dict[str, str]]
+    # CD-03: the project's self-configured fitness functions, evaluated over
+    # this descriptor. None when the project configured nothing -- there are NO
+    # built-in rules. Firings are advisory: they are surfaced in the report and
+    # NEVER change the exit code or block promotion.
+    fitness: Any = None
 
     @property
     def violations(self) -> list[str]:
@@ -1155,7 +1167,7 @@ def analyze(
                     }
                 )
 
-    return Analysis(
+    analysis = Analysis(
         module=module,
         tla_path=tla_path,
         cfg_path=cfg_path,
@@ -1178,6 +1190,18 @@ def analyze(
         warnings=warnings,
         tlc_findings=tlc_findings,
     )
+
+    # CD-03: evaluate the project's self-configured fitness functions over the
+    # published descriptor facts. Rules persist with the project -- in the
+    # manifest under `fitness_functions:` and/or in a sibling
+    # fitness_functions.yaml next to the spec. No rules configured -> None ->
+    # no fitness section in either renderer (there are NO built-in rules).
+    # Advisory: firings are surfaced for future agents, never affect the exit
+    # code, and even a broken rules file only yields advisory config errors.
+    from scripts.fitness_functions import run_fitness
+
+    analysis.fitness = run_fitness(manifest, tla_path.parent, descriptor_payload(analysis))
+    return analysis
 
 
 def parse_cfg_invariants(cfg_text: str) -> list[str]:
@@ -1374,6 +1398,32 @@ def render_text(analysis: Analysis) -> str:
             add("")
             add(f"  WARNING: {warning.finding}")
     add("")
+
+    # CD-03: the project's self-configured fitness functions. The section only
+    # exists when the project configured rules (or a rules source is broken) --
+    # there are NO built-in rules. Firings are notifications for future agents,
+    # never blocks: the exit code is unchanged by any number of firings.
+    if analysis.fitness is not None:
+        fitness = analysis.fitness
+        add("[CONFIGURED] Fitness functions (self-configured; advisory -- report, never block)")
+        add(f"  sources: {', '.join(fitness.sources) or '(none)'}")
+        for error in fitness.errors:
+            add(f"  CONFIG ERROR: {error}")
+        for result in fitness.results:
+            if result.status == "holds":
+                add(f"  holds: {result.name}")
+            else:
+                add(f"  {result.status.upper()}: {result.name} -- {result.detail}")
+                if result.description:
+                    add(f"    ({result.description})")
+        if fitness.fired:
+            add("")
+            add("  A FIRED fitness function is a NOTIFICATION to this project's future")
+            add("  agents: a condition the project's agent declared it wants to hold does")
+            add("  not hold on this scan. It does NOT block promotion and does NOT change")
+            add("  the exit code -- read it, judge it, and decide with the owner.")
+        add("")
+
     add("  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model")
     add("  is a finding, not a failure. It exits nonzero ONLY when the model cannot be")
     add("  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not")
@@ -1381,8 +1431,13 @@ def render_text(analysis: Analysis) -> str:
     return "\n".join(out) + "\n"
 
 
-def render_json(analysis: Analysis) -> str:
-    payload = {
+def descriptor_payload(analysis: Analysis) -> dict[str, Any]:
+    """The descriptor as a plain dict -- the JSON payload shape.
+
+    Also the fact source for CD-03 fitness functions: rules are evaluated over
+    exactly the facts this payload publishes, nothing private.
+    """
+    payload: dict[str, Any] = {
         "module": analysis.module,
         "spec": str(analysis.tla_path),
         "cfg": str(analysis.cfg_path),
@@ -1435,7 +1490,31 @@ def render_json(analysis: Analysis) -> str:
             ],
         },
     }
-    return json.dumps(payload, indent=2, sort_keys=False) + "\n"
+    # CD-03: self-configured fitness functions. None when the project has no
+    # rules configured (there are no built-in rules). Advisory only.
+    if analysis.fitness is None:
+        payload["fitness"] = None
+    else:
+        payload["fitness"] = {
+            "blocks_promotion": False,
+            "sources": analysis.fitness.sources,
+            "config_errors": analysis.fitness.errors,
+            "fired": [r.name for r in analysis.fitness.fired],
+            "results": [
+                {
+                    "name": r.name,
+                    "status": r.status,
+                    "detail": r.detail,
+                    "description": r.description,
+                }
+                for r in analysis.fitness.results
+            ],
+        }
+    return payload
+
+
+def render_json(analysis: Analysis) -> str:
+    return json.dumps(descriptor_payload(analysis), indent=2, sort_keys=False) + "\n"
 
 
 # --------------------------------------------------------------------------

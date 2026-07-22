@@ -1,0 +1,399 @@
+CD-03 worked example: self-configured fitness functions over the complexity descriptor
+======================================================================================
+
+Recorded 2026-07-21 from a live run of the shipped toolchain
+(python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity ...).
+Demo project: $DEMO = /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo
+
+The story: the project's agent reads the descriptor of a small pipeline model,
+decides the shape it should keep, writes TWO COMPOSED RULES that persist with
+the project, and a LATER scan -- after someone adds a god-action -- surfaces
+ONE FIRING so the future agent is notified. Advisory throughout: exit code 0
+on every scan below.
+
+--------------------------------------------------------------------------------
+STEP 0 -- the project before any rules: Demo.tla (mode/jobs/done pipeline)
+--------------------------------------------------------------------------------
+
+    ---------------------------- MODULE Demo ----------------------------
+    EXTENDS Naturals
+    
+    VARIABLES mode, jobs, done
+    
+    vars == << mode, jobs, done >>
+    
+    Init ==
+      /\ mode = "idle"
+      /\ jobs = 0
+      /\ done = 0
+    
+    Start ==
+      /\ mode = "idle"
+      /\ mode' = "running"
+      /\ UNCHANGED << jobs, done >>
+    
+    Enqueue ==
+      /\ mode = "running"
+      /\ jobs < 3
+      /\ jobs' = jobs + 1
+      /\ UNCHANGED << mode, done >>
+    
+    Complete ==
+      /\ jobs > done
+      /\ done' = done + 1
+      /\ UNCHANGED << mode, jobs >>
+    
+    Archive ==
+      /\ done > 0
+      /\ done' = done - 1
+      /\ UNCHANGED << mode, jobs >>
+    
+    Next == Start \/ Enqueue \/ Complete \/ Archive
+    
+    TypeInvariant ==
+      /\ mode \in {"idle", "running"}
+      /\ jobs \in 0..3
+      /\ done \in 0..3
+    
+    Spec == Init /\ [][Next]_vars
+    =============================================================================
+
+--------------------------------------------------------------------------------
+STEP 1 -- scan BEFORE any rules are configured (no built-in rules => no fitness
+section at all)
+--------------------------------------------------------------------------------
+
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity $DEMO/Demo.tla $DEMO/MC.cfg
+
+    warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+    analyze complexity -- Demo (complexity descriptor)
+      spec:     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/Demo.tla
+      config:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/MC.cfg
+      manifest: (none)
+    
+    This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+    spec + cfg. It states facts about the model and makes no suggestions.
+    
+    [MEASURED] Dimension table
+    variable  domain               cardinality  note
+    --------  -------------------  -----------  ----
+    mode      {"idle", "running"}  2
+    jobs      0..3                 4
+    done      0..3                 4
+    
+    [MEASURED] State-space upper bound
+      bound = 32  (product of 3 bounded dimensions; domains from TypeInvariant)
+      dominant dimensions:
+        jobs: 4 (40.0% of the bound in log space)
+        done: 4 (40.0% of the bound in log space)
+        mode: 2 (20.0% of the bound in log space)
+    
+    [MEASURED] Variables x actions read/write matrix
+    variable  Start  Enqueue  Complete  Archive
+    --------  -----  -------  --------  -------
+    mode      rw     r        .         .
+    jobs      .      rw       r         .
+    done      .      .        rw        rw
+    
+    [MEASURED] Near-decomposability
+      graph modularity Q = 0.000 over the variable interaction graph
+      (weight of an edge = number of actions touching both variables)
+      C1: done, jobs, mode  (3 variables, 4 actions)
+      no port-crossing actions (single component, or fully independent components)
+    
+    [MEASURED] Dense rows and columns of the R/W matrix
+      no dense rows (no variable is touched by more than half the actions)
+      dense columns (action touching more than half the variables):
+        Complete
+        Enqueue
+    
+    [MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+      every variable is read by at least one configured invariant.
+    
+    [MEASURED] Justification linkage
+      no justification: table in the manifest -- dead-weight analysis skipped.
+      Add one to make every variable's right to exist auditable
+      (references/architecture_tractability.md, 'Grow The Model By Evidence').
+    
+      A poor score is not a verdict. Some components score badly and still need to
+      exist in that form -- performance paths, protocol-mandated shapes, irreducible
+      domain complexity. This output is evidence for the owner, not a decision.
+      Before recording ANY complexity reduction as a result: read the transition-level
+      diff. A generated-states drop at constant distinct states is a RED FLAG (a
+      deleted self-loop), not a win -- the distinct-state gate cannot see it.
+    
+    [MEASURED] Complexity thresholds (advisory -- warnings only)
+      source: documented defaults
+        max_state_space_bound: 1,000,000
+        max_distinct_states: 50,000
+        max_component_variables: 6
+        max_component_actions: 8
+      max_state_space_bound compares against the STATIC declared-representation bound above.
+      max_distinct_states compares against ACTUAL reachable states and is checked only once
+      TLC has measured them (--tlc-report); the two are not interchangeable.
+    
+      No complexity warnings -- every metric is within its advisory threshold.
+    
+      `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+      is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+      analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+      measure this', which is distinct from 'this is complex'.
+
+    [exit code: 0]
+
+Note: the report contains NO '[CONFIGURED] Fitness functions' section --
+the tool ships with no built-in rules.
+
+--------------------------------------------------------------------------------
+STEP 2 -- the project's agent adds two composed fitness functions
+--------------------------------------------------------------------------------
+
+The agent writes $DEMO/fitness_functions.json (persists with the project;
+the .json form parses with the standard library alone, so it works under the
+bare python3 this CLI is pinned to):
+
+    {
+      "fitness_functions": [
+        {
+          "name": "stay-decomposed",
+          "description": "no god-state variable, and the busiest component stays at 4 actions or fewer",
+          "rule": {
+            "all": [
+              {"fact": "god_state_count", "op": "==", "value": 0},
+              {"fact": "max_component_actions", "op": "<=", "value": 4}
+            ]
+          }
+        },
+        {
+          "name": "state-space-in-check",
+          "description": "static bound stays small and the jobs queue domain stays tiny",
+          "rule": {
+            "all": [
+              {"fact": "bound", "op": "<", "value": 1000},
+              {"fact": "variable_domain", "var": "jobs", "op": "<=", "value": 4}
+            ]
+          }
+        }
+      ]
+    }
+
+--------------------------------------------------------------------------------
+STEP 3 -- scan WITH the rules configured: both hold on today's model
+--------------------------------------------------------------------------------
+
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity $DEMO/Demo.tla $DEMO/MC.cfg
+
+    warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+    analyze complexity -- Demo (complexity descriptor)
+      spec:     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/Demo.tla
+      config:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/MC.cfg
+      manifest: (none)
+    
+    This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+    spec + cfg. It states facts about the model and makes no suggestions.
+    
+    [MEASURED] Dimension table
+    variable  domain               cardinality  note
+    --------  -------------------  -----------  ----
+    mode      {"idle", "running"}  2
+    jobs      0..3                 4
+    done      0..3                 4
+    
+    [MEASURED] State-space upper bound
+      bound = 32  (product of 3 bounded dimensions; domains from TypeInvariant)
+      dominant dimensions:
+        jobs: 4 (40.0% of the bound in log space)
+        done: 4 (40.0% of the bound in log space)
+        mode: 2 (20.0% of the bound in log space)
+    
+    [MEASURED] Variables x actions read/write matrix
+    variable  Start  Enqueue  Complete  Archive
+    --------  -----  -------  --------  -------
+    mode      rw     r        .         .
+    jobs      .      rw       r         .
+    done      .      .        rw        rw
+    
+    [MEASURED] Near-decomposability
+      graph modularity Q = 0.000 over the variable interaction graph
+      (weight of an edge = number of actions touching both variables)
+      C1: done, jobs, mode  (3 variables, 4 actions)
+      no port-crossing actions (single component, or fully independent components)
+    
+    [MEASURED] Dense rows and columns of the R/W matrix
+      no dense rows (no variable is touched by more than half the actions)
+      dense columns (action touching more than half the variables):
+        Complete
+        Enqueue
+    
+    [MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+      every variable is read by at least one configured invariant.
+    
+    [MEASURED] Justification linkage
+      no justification: table in the manifest -- dead-weight analysis skipped.
+      Add one to make every variable's right to exist auditable
+      (references/architecture_tractability.md, 'Grow The Model By Evidence').
+    
+      A poor score is not a verdict. Some components score badly and still need to
+      exist in that form -- performance paths, protocol-mandated shapes, irreducible
+      domain complexity. This output is evidence for the owner, not a decision.
+      Before recording ANY complexity reduction as a result: read the transition-level
+      diff. A generated-states drop at constant distinct states is a RED FLAG (a
+      deleted self-loop), not a win -- the distinct-state gate cannot see it.
+    
+    [MEASURED] Complexity thresholds (advisory -- warnings only)
+      source: documented defaults
+        max_state_space_bound: 1,000,000
+        max_distinct_states: 50,000
+        max_component_variables: 6
+        max_component_actions: 8
+      max_state_space_bound compares against the STATIC declared-representation bound above.
+      max_distinct_states compares against ACTUAL reachable states and is checked only once
+      TLC has measured them (--tlc-report); the two are not interchangeable.
+    
+      No complexity warnings -- every metric is within its advisory threshold.
+    
+    [CONFIGURED] Fitness functions (self-configured; advisory -- report, never block)
+      sources: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/fitness_functions.json
+      holds: stay-decomposed
+      holds: state-space-in-check
+    
+      `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+      is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+      analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+      measure this', which is distinct from 'this is complex'.
+
+    [exit code: 0]
+
+--------------------------------------------------------------------------------
+STEP 4 -- the model evolves: a later change adds a Sweep god-action that
+writes every variable
+--------------------------------------------------------------------------------
+
+    --- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/Demo.tla.step0	2026-07-21 21:03:32
+    +++ /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/Demo.tla	2026-07-21 21:03:56
+    @@ -31,8 +31,13 @@
+       /\ done' = done - 1
+       /\ UNCHANGED << mode, jobs >>
+     
+    -Next == Start \/ Enqueue \/ Complete \/ Archive
+    +Sweep ==
+    +  /\ mode' = "idle"
+    +  /\ jobs' = 0
+    +  /\ done' = done + jobs
+     
+    +Next == Start \/ Enqueue \/ Complete \/ Archive \/ Sweep
+    +
+     TypeInvariant ==
+       /\ mode \in {"idle", "running"}
+       /\ jobs \in 0..3
+
+--------------------------------------------------------------------------------
+STEP 5 -- a LATER scan surfaces ONE FIRING; the future agent is notified
+--------------------------------------------------------------------------------
+
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity $DEMO/Demo.tla $DEMO/MC.cfg
+
+    warning: no readable spec manifest at does-not-exist; using documented default budgets (references/modular_fuzzing.md)
+    analyze complexity -- Demo (complexity descriptor)
+      spec:     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/Demo.tla
+      config:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/MC.cfg
+      manifest: (none)
+    
+    This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+    spec + cfg. It states facts about the model and makes no suggestions.
+    
+    [MEASURED] Dimension table
+    variable  domain               cardinality  note
+    --------  -------------------  -----------  ----
+    mode      {"idle", "running"}  2
+    jobs      0..3                 4
+    done      0..3                 4
+    
+    [MEASURED] State-space upper bound
+      bound = 32  (product of 3 bounded dimensions; domains from TypeInvariant)
+      dominant dimensions:
+        jobs: 4 (40.0% of the bound in log space)
+        done: 4 (40.0% of the bound in log space)
+        mode: 2 (20.0% of the bound in log space)
+    
+    [MEASURED] Variables x actions read/write matrix
+    variable  Start  Enqueue  Complete  Archive  Sweep
+    --------  -----  -------  --------  -------  -----
+    mode      rw     r        .         .        w
+    jobs      .      rw       r         .        rw
+    done      .      .        rw        rw       rw
+    
+    [MEASURED] Near-decomposability
+      graph modularity Q = 0.000 over the variable interaction graph
+      (weight of an edge = number of actions touching both variables)
+      C1: done, jobs, mode  (3 variables, 5 actions)
+      no port-crossing actions (single component, or fully independent components)
+    
+    [MEASURED] Dense rows and columns of the R/W matrix
+      dense rows (god-state signature -- variable touched by more than half the actions):
+        done touched by 3/5 actions
+        jobs touched by 3/5 actions
+        mode touched by 3/5 actions
+      dense columns (action touching more than half the variables):
+        Complete
+        Enqueue
+        Sweep
+    
+    [MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+      every variable is read by at least one configured invariant.
+    
+    [MEASURED] Justification linkage
+      no justification: table in the manifest -- dead-weight analysis skipped.
+      Add one to make every variable's right to exist auditable
+      (references/architecture_tractability.md, 'Grow The Model By Evidence').
+    
+      A poor score is not a verdict. Some components score badly and still need to
+      exist in that form -- performance paths, protocol-mandated shapes, irreducible
+      domain complexity. This output is evidence for the owner, not a decision.
+      Before recording ANY complexity reduction as a result: read the transition-level
+      diff. A generated-states drop at constant distinct states is a RED FLAG (a
+      deleted self-loop), not a win -- the distinct-state gate cannot see it.
+    
+    [MEASURED] Complexity thresholds (advisory -- warnings only)
+      source: documented defaults
+        max_state_space_bound: 1,000,000
+        max_distinct_states: 50,000
+        max_component_variables: 6
+        max_component_actions: 8
+      max_state_space_bound compares against the STATIC declared-representation bound above.
+      max_distinct_states compares against ACTUAL reachable states and is checked only once
+      TLC has measured them (--tlc-report); the two are not interchangeable.
+    
+      No complexity warnings -- every metric is within its advisory threshold.
+    
+    [CONFIGURED] Fitness functions (self-configured; advisory -- report, never block)
+      sources: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/fitness-demo/fitness_functions.json
+      FIRED: stay-decomposed -- god_state_count=3 == 0 is FALSE; max_component_actions=5 <= 4 is FALSE
+        (no god-state variable, and the busiest component stays at 4 actions or fewer)
+      holds: state-space-in-check
+    
+      A FIRED fitness function is a NOTIFICATION to this project's future
+      agents: a condition the project's agent declared it wants to hold does
+      not hold on this scan. It does NOT block promotion and does NOT change
+      the exit code -- read it, judge it, and decide with the owner.
+    
+      `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+      is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+      analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+      measure this', which is distinct from 'this is complex'.
+
+    [exit code: 0]
+
+--------------------------------------------------------------------------------
+What this shows
+--------------------------------------------------------------------------------
+
+1. Composable: each rule is an all-of over descriptor facts
+   (god_state_count == 0 AND max_component_actions <= 4; bound < 1000 AND
+   variable_domain(jobs) <= 4); any/not are equally available.
+2. Persistent per-project: the rules live in the project's own
+   fitness_functions.json and were not passed on any command line.
+3. Notification: the later scan reports 'FIRED: stay-decomposed' with the
+   leaf-level trace naming the measured facts that drove it, while
+   'state-space-in-check' still holds -- two composed rules, one firing.
+4. Advisory: every scan above exited 0. Firings report, never block.

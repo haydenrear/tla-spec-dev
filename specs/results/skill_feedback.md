@@ -576,3 +576,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket CD-03
+
+- close_scope: ticket
+- close_id: CD-03
+- workflow: complexity-descriptor-epic
+- closed_at: 2026-07-22T01:09:34+00:00
+- summary: CD-03: self-configurable composable fitness functions over the complexity descriptor — scripts/fitness_functions.py ({fact,op,value} leaves over published descriptor facts incl. parameterized variable_domain(v), composed with all/any/not under three-valued Kleene semantics); per-project persistence in spec_manifest.yaml fitness_functions: or sibling fitness_functions.yaml/.json (json is stdlib-only for the bare-python3 CLI); analyze complexity evaluates rules each scan and surfaces FIRED rules with leaf-level traces as notifications to future agents; advisory throughout (exit code unchanged; broken config is an advisory CONFIG ERROR); NO built-in rules; worked example recorded (two composed rules, later scan surfaces one firing); zero TLA model delta, TLC green 231,621 distinct
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
