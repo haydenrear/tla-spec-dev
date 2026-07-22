@@ -627,6 +627,11 @@ case_codegen:
   style: explicit_transition_cases
   generation_status: planned
 
+# Generated-case index stanzas: placeholders owned by case codegen, filled
+# only when case_codegen.generation_status reaches `generated`. Empty means
+# "no generated case index yet", NOT "the model has no state/actions/ports"
+# -- those live in the TLA+ module and the effects block. An empty stanza and
+# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
 state_fields: []
 actions: []
 ports: {{}}
@@ -678,6 +683,11 @@ case_codegen:
   style: explicit_transition_cases
   generation_status: planned
 
+# Generated-case index stanzas: placeholders owned by case codegen, filled
+# only when case_codegen.generation_status reaches `generated`. Empty means
+# "no generated case index yet", NOT "the model has no state/actions/ports"
+# -- those live in the TLA+ module and the effects block. An empty stanza and
+# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
 state_fields: []
 actions: []
 ports: {{}}

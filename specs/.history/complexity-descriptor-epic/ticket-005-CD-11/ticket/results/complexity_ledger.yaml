@@ -1,0 +1,83 @@
+# Complexity ledger input -- CD-11 (GitHub #87), experimental-surface port
+# honesty and the two four-run manifest desyncs.
+#
+# Zero TLA+ SEMANTIC delta: TlaSpecDevCli.tla changes are @port annotation
+# comments only (ESC-R4-3 vocabulary alignment); MC.cfg / MCsmall.cfg are
+# byte-identical to the CD-10 baseline, and TLC reproduces the baseline counts
+# exactly (6,209,780 generated / 283,805 distinct / depth 25). The ticket
+# changes effect declarations (spec_manifest.yaml), the kill catalog
+# (kill_mutants.toml), annotation comments, and boundary-count tests.
+
+# Validated-refactor basis. No complexity decrease is claimed (the model is
+# semantically unchanged); the evidence set is recorded anyway because it
+# exists from this run and the CD-10 baseline.
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/.history/complexity-descriptor-epic/ticket-004-CD-10/results/tlc_current.txt"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/CD-11/results/tlc_current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/CD-11/results/repo_unit_tests.txt"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/CD-11/results/port_honesty_reconciliation.md"
+
+# Fuzzing-era retention members -- recorded, non-gating since CD-09.
+# `not_run` is the honest value: no kill run, corpus conformance run, or
+# external-coverage run was performed for this declaration-only ticket. The
+# kill CATALOG was re-seeded for the two new ports and verified complete
+# against kill_test.required_boundaries (9 ports + 13 invariants, 22/22, zero
+# missing), but a verified catalog is not a measured kill rate.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- honest record: run 4's epic-scope FAIL verdict stands
+# until a re-audit. This ticket resolves its three in-scope gaps (R4-1
+# RunKillTest mutation writes + corpus spawn, R4-2 RunEffectConformance
+# sandbox writes, R4-3 AnalyzeCorpus dead port) and the two escalations
+# assigned to it (ESC-R4-2 empty index stanzas, ESC-R4-3 @port vocabulary).
+# ESC-R4-1 (stale service_catalog :585 wording) is not in CD-11's scope.
+coverage_audit:
+  status: "fail"
+  report: "specs/results/epic-close/coverage_audit_report_run4.md"
+  in_scope_gaps: 3
+  scope_source: "specs/desired_program_model/ticket_plan.yaml (CD-11 entry)"
+
+# No complexity increase: distinct states, variables, actions all unchanged.
+justification: ""
+
+# Refinement loop: searched, found none. The delta surface is declarative
+# (two ports, three effects rows, one stanza-meaning comment, annotation
+# comments, two seeded mutants); there is no state or action to refine.
+# Considered and rejected: widening test_process's `*pytest*` target over the
+# corpus spawn (target dishonesty -- the corpus command is unconstrained user
+# input), relocating the effect-conformance work dir under results/ (changes
+# a shipped default to fit a declaration), and populating the placeholder
+# stanzas from the model (creates a second, unconsumed declaration that can
+# desync -- the defect class this ticket closes). Not measured: no model
+# change to measure.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: "searched the declaration delta for refinement opportunities; found none -- zero semantic model delta; port consolidation (widening test_process over the corpus spawn), work-dir relocation, and stanza population each considered and rejected as dishonest or desync-prone"
+  measured: false
+  applied: false
+  approved_by: ""
+
+# No generated-states drop: the model semantics and TLC output are unchanged
+# (283,805 distinct states before and after, budget 500,000 with rationale
+# carried).
+transition_diff: ""
+
+narrative: "specs/tickets/CD-11/results/port_honesty_reconciliation.md -- CD-11 makes the experimental surface's declarations match what the code does: a mutation_write (filesystem.write *scripts/*) port for RunKillTest's per-mutant seed/restore writes into production source (kill_test.py:548/:551, the interrupted-run corruption risk the schema exists to expose); a corpus_process (process.spawn *) port for the user-supplied per-mutant corpus spawn (kill_test.py:609), replacing test_process on that row because the argument is unconstrained; spec_tree added to RunEffectConformance for its sandbox work tree under **/specs/** (effect_conformance_report.py:149/:163, effect_conformance.py:619/:656), chosen over relocation for symmetry with RunSpecUnitTests; AnalyzeCorpus's evidence_report removed as a dead declared port (corpus_diagnostics.py prints only, no --out) leaving a deliberate empty row; the empty state_fields/actions/ports stanzas documented as generated-content placeholders in the manifest and at the schema source (ESC-R4-2); and the @port annotation vocabulary renamed to the declared port names so the two layers intersect exactly (ESC-R4-3, comments only). Kill catalog re-seeded, one honest fault per new port, 22/22 boundaries covered. All validation green: TLC byte-identical counts (283,805 distinct, budget 500,000 with rationale carried), spec-unit 2 targets, 578 repo tests, specWorkflow and cliWorkflow graphs all nodes passed."
