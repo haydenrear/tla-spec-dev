@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import importlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from types import MappingProxyType
+from typing import Any, Mapping, Protocol, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -11,6 +12,42 @@ class CaseRunResult:
     output: Any = None
     after: Any = None
     semantic_output: Any = None
+
+
+@dataclass(frozen=True)
+class EffectProviderContext:
+    """Immutable inputs supplied when a project provider binds one case port."""
+
+    port_name: str
+    action: str
+    case: Any
+    work_dir: Path
+
+
+@runtime_checkable
+class EffectProviderBinding(Protocol):
+    """Context-managed binding returned by an effect provider.
+
+    ``__enter__`` returns either an implementation of the selected generated
+    port (explicit dependency injection) or ``None`` when the binding installs
+    and later restores its own patch.
+    """
+
+    def __enter__(self) -> Any | None:
+        ...
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool | None:
+        ...
+
+
+@runtime_checkable
+class EffectProvider(Protocol):
+    def bind(self, context: EffectProviderContext) -> EffectProviderBinding:
+        ...
+
+
+def _empty_effects() -> Mapping[str, Any]:
+    return MappingProxyType({})
 
 
 @dataclass
@@ -36,6 +73,9 @@ class AdapterCaseContext:
     shared: dict[str, Any]
     result: CaseRunResult | None = None
     error: BaseException | None = None
+    #: EP-01: stable semantic port-name -> provider binding values for this
+    #: case. The mapping is immutable; provider-owned values may be stateful.
+    effects: Mapping[str, Any] = field(default_factory=_empty_effects)
     #: MF-013: see AdapterBatchContext.sandbox.
     sandbox: Any = None
 
@@ -48,6 +88,7 @@ class ProjectedStateAssertionContext:
     mapping: Any
     shared: dict[str, Any]
     result: CaseRunResult | None
+    effects: Mapping[str, Any] = field(default_factory=_empty_effects)
     expected: Any = None
     actual: Any = None
 

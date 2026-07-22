@@ -2422,6 +2422,135 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-01",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T02:32:06.016513+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/tickets/EP-01/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-023",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": 231621,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": 5619356,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": 25,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No TLA+ representation was added. EP-01 is a host-runtime contract for Python batch cases, so ticket current and desired are byte-identical after excluding validation caches. The existing model was rechecked without change: 5,619,356 states generated, 231,621 distinct, depth 25, no error. The new essential behavior lives outside the model: typed project-owned bindings around an already generated case.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029 (specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/complexity_ledger.yaml). EP-01 changes only the Python case-runner/provider contract and generated Protocol decoration; it does not add or claim a repository-wide mutant catalog. The non-passing inherited verdict remains non-passing.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029 for the subprocess-driven host CLI. EP-01 does not claim that passive in-process observation can see that external process. It does prove the existing passive sandbox unchanged and coexisting with semantic providers in tests/test_effect_provider_runtime.py and tests/test_effect_conformance_runner.py; repository evidence is results/repository-unit-tests.txt.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029. EP-01 adds no external-view adapter, materializer, or corpus coverage and therefore does not assert movement on this axis. The inherited non-passing verdict remains explicit.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a smaller representation and retained a deliberately narrow V0: one action->effect_ports->provider lookup, one context-managed binding protocol, and one immutable effects map. No TLA state/action was warranted because provider activation is not an observable tla-spec-dev CLI transition. Generic response plans, fuzz orchestration, non-batch export, and other languages remain outside EP-01 rather than inflating this runtime.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "EP-01 introduces the minimum Python batch lifecycle needed for project-owned semantic effects. Static preflight resolves case.input.action through actions.yml effect_ports, manifest role: effect Protocols, and exact case_adapters.toml provider tables before adapter instantiation. Runtime enters providers in declaration order, exposes a fresh immutable port-name map to setup/run/assert/teardown, and exits in reverse order on every failure path. Binding work directories exist before provider construction, and the case's before/input/output/after oracle fields are deep-snapshotted and mutation checked throughout the lifecycle. The pre-existing passive effects schema is separate and unchanged. Legacy empty semantic schemas bypass action lookup; provider-bearing non-batch execution fails before work/program generation. Validation and intentional V0 boundaries are recorded in results/validation-summary.md and results/zero-model-delta.md.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

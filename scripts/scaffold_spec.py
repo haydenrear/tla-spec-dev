@@ -241,40 +241,52 @@ ACTIONS_YML = """# Which view each action belongs to, and what it generates.
 #   layer: internal -> spec-unit cases  (case_adapters.toml)
 #   layer: external -> Test Graph cases (testgraph_bindings.yml)
 #   controllability: hidden -> generates nothing.
+#   effect_ports: typed semantic ports required while this case executes.
 actions:
   Create:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   CreateRejected:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   Submit:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitRejected:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicate:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   HiddenInternalProgress:
     layer: internal
     controllability: hidden
     generates: []
+    effect_ports: []
 """
 
 CASE_ADAPTERS_TOML = """# SPEC-UNIT ADAPTERS (internal view).
 # Every Internal.tla action with `generates: [spec_unit]` needs an entry.
+# Semantic effects are separate from passive `effects:` observation. For each
+# manifest port with `role: effect` named by an action's `effect_ports`, add:
+#
+# [effect_providers.FilesystemPort]
+# provider = "providers:filesystem_provider"
 
 [adapters.Create]
 adapter = "adapters:CreateInternalAdapter"
@@ -615,6 +627,7 @@ results:
 
 ports:
   {module}Port:
+    role: application
     methods:
       create_item:
         command: CreateItem

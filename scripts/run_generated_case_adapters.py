@@ -10,6 +10,8 @@ a work directory, and optionally executes those programs.
 from __future__ import annotations
 
 import argparse
+import copy
+from contextlib import ExitStack
 import importlib
 import inspect
 import os
@@ -18,7 +20,8 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Mapping
 
 try:
     from .effect_conformance import (
@@ -64,6 +67,29 @@ class AdapterMapping:
     #: EXTERNAL binding must declare one -- see enforce_external_channels.
     channel: str | None = None
     order: int = 0
+
+
+class EffectProviderConfigurationError(ValueError):
+    """A semantic effect declaration cannot be resolved safely."""
+
+
+@dataclass(frozen=True)
+class ResolvedEffectProvider:
+    port_name: str
+    provider_reference: str
+    provider: Any
+    protocol: type[Any]
+
+
+@dataclass(frozen=True)
+class EffectProviderPlan:
+    """Preflighted semantic providers, ordered per generated case action."""
+
+    by_case: Mapping[str, tuple[ResolvedEffectProvider, ...]]
+    configured: bool = False
+
+    def for_case(self, case: Any) -> tuple[ResolvedEffectProvider, ...]:
+        return self.by_case.get(str(case.name), ())
 
 
 def load_cases(cases_dir: Path):
@@ -216,19 +242,34 @@ def parse_simple_mapping_toml(text: str) -> dict[str, Any]:
         if line.startswith("[adapters.") and line.endswith("]"):
             label = line[len("[adapters.") : -1]
             adapters = loaded.setdefault("adapters", {})
+            if label in adapters:
+                raise ValueError(f"duplicate [adapters.{label}] table")
             current = {}
             adapters[label] = current
             continue
         if line.startswith("[actions.") and line.endswith("]"):
             label = line[len("[actions.") : -1]
             actions = loaded.setdefault("actions", {})
+            if label in actions:
+                raise ValueError(f"duplicate [actions.{label}] table")
             current = {}
             actions[label] = current
+            continue
+        if line.startswith("[effect_providers.") and line.endswith("]"):
+            port_name = line[len("[effect_providers.") : -1]
+            providers = loaded.setdefault("effect_providers", {})
+            if port_name in providers:
+                raise ValueError(f"duplicate [effect_providers.{port_name}] table")
+            current = {}
+            providers[port_name] = current
             continue
         if "=" not in line or current is None:
             raise ValueError(f"unsupported TOML line: {raw_line!r}")
         key, raw_value = line.split("=", 1)
-        current[key.strip()] = parse_simple_toml_value(raw_value.strip())
+        key = key.strip()
+        if key in current:
+            raise ValueError(f"duplicate key {key!r} in TOML table")
+        current[key] = parse_simple_toml_value(raw_value.strip())
     return loaded
 
 
@@ -241,6 +282,287 @@ def parse_simple_toml_value(value: str) -> Any:
             return []
         return [parse_simple_toml_value(part.strip()) for part in body.split(",")]
     raise ValueError(f"unsupported TOML value: {value!r}")
+
+
+def _case_action(case: Any) -> str:
+    action = getattr(getattr(case, "input", None), "action", None)
+    if not isinstance(action, str) or not action:
+        raise EffectProviderConfigurationError(
+            f"case {getattr(case, 'name', '<unnamed>')} has no string input.action for semantic effect lookup"
+        )
+    return action
+
+
+_SEMANTIC_CASE_FIELDS = ("before", "input", "output", "after")
+
+
+def _case_semantic_snapshot(case: Any) -> tuple[tuple[str, bool, Any], ...]:
+    """Detach the generated oracle fields from any mutable nested values."""
+
+    snapshot: list[tuple[str, bool, Any]] = []
+    try:
+        for field_name in _SEMANTIC_CASE_FIELDS:
+            present = hasattr(case, field_name)
+            value = copy.deepcopy(getattr(case, field_name)) if present else None
+            snapshot.append((field_name, present, value))
+    except Exception as exc:
+        raise EffectProviderConfigurationError(
+            f"case {getattr(case, 'name', '<unnamed>')} semantic fields could not be snapshotted: {exc}"
+        ) from exc
+    return tuple(snapshot)
+
+
+def _assert_case_semantics_unchanged(
+    case: Any,
+    snapshot: tuple[tuple[str, bool, Any], ...],
+    *,
+    stage: str,
+) -> None:
+    changed: list[str] = []
+    for field_name, was_present, expected in snapshot:
+        is_present = hasattr(case, field_name)
+        if is_present != was_present:
+            changed.append(field_name)
+            continue
+        if is_present and getattr(case, field_name) != expected:
+            changed.append(field_name)
+    if changed:
+        raise RuntimeError(
+            f"{stage} mutated generated case semantic field(s) {', '.join(changed)}; "
+            "effect providers and adapters must not rewrite the test oracle"
+        )
+
+
+def _semantic_provider_tables(mapping_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    raw = mapping_data.get("effect_providers")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise EffectProviderConfigurationError("[effect_providers] must contain one table per typed port")
+    providers: dict[str, dict[str, Any]] = {}
+    for raw_name, raw_spec in raw.items():
+        name = str(raw_name)
+        if not name or name.strip() != name:
+            raise EffectProviderConfigurationError("semantic effect provider port names must be non-empty and trimmed")
+        if not isinstance(raw_spec, dict):
+            raise EffectProviderConfigurationError(f"[effect_providers.{name}] must be a table")
+        unknown_keys = sorted(set(raw_spec) - {"provider"})
+        if unknown_keys:
+            raise EffectProviderConfigurationError(
+                f"[effect_providers.{name}] has unknown key(s): {', '.join(unknown_keys)}"
+            )
+        reference = raw_spec.get("provider")
+        if not isinstance(reference, str) or not reference or reference.strip() != reference:
+            raise EffectProviderConfigurationError(
+                f"[effect_providers.{name}] must define provider = \"module:object\""
+            )
+        providers[name] = raw_spec
+    return providers
+
+
+def _load_generated_port_protocol(
+    *,
+    package: str,
+    port_name: str,
+    import_roots: list[Path],
+) -> type[Any]:
+    ensure_import_roots(import_roots)
+    module_name = f"{package}.ports"
+    try:
+        module = importlib.import_module(module_name)
+        protocol = getattr(module, port_name)
+    except (ImportError, AttributeError) as exc:
+        raise EffectProviderConfigurationError(
+            f"could not load generated port {port_name} from {module_name}; "
+            "generate the manifest package and add its parent with --import-root"
+        ) from exc
+    if not isinstance(protocol, type) or not getattr(protocol, "_is_protocol", False):
+        raise EffectProviderConfigurationError(f"generated port {module_name}:{port_name} is not a Protocol")
+    if not getattr(protocol, "_is_runtime_protocol", False):
+        raise EffectProviderConfigurationError(
+            f"generated port {module_name}:{port_name} is not runtime-checkable; regenerate it with EP-01 codegen"
+        )
+    return protocol
+
+
+def _load_provider(reference: str) -> Any:
+    from spec_double_compiler.runtime import load_object
+
+    try:
+        loaded = load_object(reference)
+        provider = loaded() if isinstance(loaded, type) else loaded
+    except Exception as exc:
+        raise EffectProviderConfigurationError(f"could not load provider {reference!r}: {exc}") from exc
+    if not callable(provider) and not callable(getattr(provider, "bind", None)):
+        raise EffectProviderConfigurationError(
+            f"provider {reference!r} must be callable or define bind(context)"
+        )
+    return provider
+
+
+def load_effect_provider_plan(
+    *,
+    spec_dir: Path | None,
+    mapping_path: Path,
+    cases: list[Any],
+    import_roots: list[Path],
+) -> EffectProviderPlan:
+    """Resolve case action -> declared typed ports -> project providers.
+
+    This is a static preflight: every selected action, port, generated Protocol,
+    and provider reference is checked before an adapter is instantiated or any
+    application hook runs. Provider context managers themselves are constructed
+    in a second batch preflight once case work directories are known.
+    """
+
+    try:
+        mapping_data = load_mapping_data(mapping_path)
+    except Exception as exc:
+        raise EffectProviderConfigurationError(f"invalid provider mapping {mapping_path}: {exc}") from exc
+    provider_specs = _semantic_provider_tables(mapping_data)
+    if spec_dir is None:
+        if provider_specs:
+            raise EffectProviderConfigurationError(
+                "semantic effect providers require --spec-dir with spec_manifest.yaml and actions.yml"
+            )
+        return EffectProviderPlan(MappingProxyType({}), configured=False)
+
+    manifest_path = spec_dir / "spec_manifest.yaml"
+    actions_path = spec_dir / "actions.yml"
+    if not manifest_path.is_file() or not actions_path.is_file():
+        if provider_specs:
+            missing = [path.name for path in (manifest_path, actions_path) if not path.is_file()]
+            raise EffectProviderConfigurationError(
+                f"semantic effect providers require {', '.join(missing)} under {spec_dir}"
+            )
+        return EffectProviderPlan(MappingProxyType({}), configured=False)
+
+    manifest = load_manifest(manifest_path)
+    actions_document = load_manifest(actions_path)
+    raw_ports = manifest.get("ports", {})
+    raw_actions = actions_document.get("actions", {})
+    if not isinstance(raw_ports, dict):
+        raise EffectProviderConfigurationError("spec_manifest.yaml ports must be a mapping")
+    if not isinstance(raw_actions, dict):
+        raise EffectProviderConfigurationError("actions.yml actions must be a mapping")
+
+    # An existing spec may carry actions.yml for passive observation while its
+    # generated cases predate ``input.action``.  Empty/absent effect_ports and
+    # no provider table mean EP-01 is not configured at all, so leave that
+    # legacy path untouched.  Explicit malformed or non-empty declarations are
+    # intentionally not treated as empty; they proceed to fail closed below.
+    semantic_schema_present = bool(provider_specs)
+    for raw_action_spec in raw_actions.values():
+        if isinstance(raw_action_spec, dict) and "effect_ports" in raw_action_spec:
+            semantic_schema_present = semantic_schema_present or raw_action_spec["effect_ports"] != []
+    if not semantic_schema_present:
+        return EffectProviderPlan(MappingProxyType({}), configured=False)
+
+    effect_ports: dict[str, dict[str, Any]] = {}
+    for raw_name, raw_spec in raw_ports.items():
+        if isinstance(raw_spec, dict) and raw_spec.get("role") == "effect":
+            name = str(raw_name)
+            if not name or name.strip() != name:
+                raise EffectProviderConfigurationError(
+                    "manifest semantic effect port names must be non-empty and trimmed"
+                )
+            effect_ports[name] = raw_spec
+
+    for port_name in provider_specs:
+        if port_name not in effect_ports:
+            raise EffectProviderConfigurationError(
+                f"provider configured for unknown semantic effect port {port_name}; "
+                "declare it under manifest ports with role: effect"
+            )
+
+    package = manifest.get("package")
+    providers_by_reference: dict[str, Any] = {}
+    protocols_by_port: dict[str, type[Any]] = {}
+    by_case: dict[str, tuple[ResolvedEffectProvider, ...]] = {}
+    used_provider_ports: set[str] = set()
+    configured = bool(provider_specs)
+    protocol_roots = [spec_dir / "generated", spec_dir, *import_roots]
+
+    for case in cases:
+        action = _case_action(case)
+        raw_action_spec = raw_actions.get(action, {})
+        if raw_action_spec is None:
+            raw_action_spec = {}
+        if not isinstance(raw_action_spec, dict):
+            raise EffectProviderConfigurationError(f"actions.yml action {action} must be a mapping")
+        raw_required = raw_action_spec.get("effect_ports", [])
+        if not isinstance(raw_required, list) or not all(
+            isinstance(name, str) and bool(name) and name.strip() == name for name in raw_required
+        ):
+            raise EffectProviderConfigurationError(f"actions.yml action {action} effect_ports must be a list of port names")
+        configured = configured or bool(raw_required)
+        seen: set[str] = set()
+        resolved: list[ResolvedEffectProvider] = []
+        for port_name in raw_required:
+            if port_name in seen:
+                raise EffectProviderConfigurationError(
+                    f"action {action} declares duplicate semantic effect port {port_name}"
+                )
+            seen.add(port_name)
+            if port_name not in effect_ports:
+                raise EffectProviderConfigurationError(
+                    f"action {action} references unknown semantic effect port {port_name}; "
+                    "declare it under manifest ports with role: effect"
+                )
+            provider_spec = provider_specs.get(port_name)
+            if provider_spec is None:
+                raise EffectProviderConfigurationError(
+                    f"action {action} is missing provider for semantic effect port {port_name}"
+                )
+            used_provider_ports.add(port_name)
+            if not isinstance(package, str) or not package:
+                raise EffectProviderConfigurationError(
+                    f"manifest package is required to resolve generated port {port_name}"
+                )
+            protocol = protocols_by_port.get(port_name)
+            if protocol is None:
+                protocol = _load_generated_port_protocol(
+                    package=package,
+                    port_name=port_name,
+                    import_roots=protocol_roots,
+                )
+                protocols_by_port[port_name] = protocol
+            reference = str(provider_spec["provider"])
+            provider = providers_by_reference.get(reference)
+            if provider is None:
+                provider = _load_provider(reference)
+                providers_by_reference[reference] = provider
+            resolved.append(
+                ResolvedEffectProvider(
+                    port_name=port_name,
+                    provider_reference=reference,
+                    provider=provider,
+                    protocol=protocol,
+                )
+            )
+        by_case[str(case.name)] = tuple(resolved)
+
+    orphan_ports = sorted(set(provider_specs) - used_provider_ports)
+    if orphan_ports:
+        raise EffectProviderConfigurationError(
+            "provider configured for semantic effect port(s) not required by any selected case: "
+            + ", ".join(orphan_ports)
+        )
+
+    return EffectProviderPlan(MappingProxyType(by_case), configured=configured)
+
+
+def validate_effect_provider_execution_mode(
+    plan: EffectProviderPlan,
+    *,
+    batch: bool,
+    validate_only: bool,
+) -> None:
+    if plan.configured and not batch and not validate_only:
+        raise SystemExit(
+            "ERROR: semantic effect providers require --batch in V0; "
+            "non-batch generated programs and exported cases cannot silently ignore provider bindings"
+        )
 
 
 def case_labels(cases: list[Any]) -> set[str]:
@@ -593,6 +915,7 @@ def assert_projected_state_if_configured(case_context: Any, mapping: AdapterMapp
         mapping=case_context.mapping,
         shared=case_context.shared,
         result=case_context.result,
+        effects=case_context.effects,
     )
     assertion_context.expected = expected_state_from_case(case_context, mapping, object_cache)
     assertion_context.actual = actual_state_from_cluster(assertion_context, mapping, object_cache)
@@ -760,6 +1083,69 @@ class _null_context:
         return None
 
 
+def _provider_context_manager(binding: ResolvedEffectProvider, context: Any) -> Any:
+    from spec_double_compiler.runtime import EffectProviderBinding
+
+    binder = getattr(binding.provider, "bind", None)
+    semantic_snapshot = _case_semantic_snapshot(context.case)
+    try:
+        scope = binder(context) if callable(binder) else binding.provider(context)
+    except Exception as exc:
+        raise EffectProviderConfigurationError(
+            f"provider {binding.provider_reference!r} could not bind {binding.port_name} "
+            f"for case {context.case.name}: {exc}"
+        ) from exc
+    try:
+        _assert_case_semantics_unchanged(
+            context.case,
+            semantic_snapshot,
+            stage=f"provider {binding.provider_reference!r} binding",
+        )
+    except RuntimeError as exc:
+        raise EffectProviderConfigurationError(str(exc)) from exc
+    if not isinstance(scope, EffectProviderBinding):
+        raise EffectProviderConfigurationError(
+            f"provider {binding.provider_reference!r} for {binding.port_name} must return a context manager"
+        )
+    return scope
+
+
+def prepare_effect_provider_scopes(
+    *,
+    plan: EffectProviderPlan,
+    cases: list[Any],
+    work_dir: Path,
+) -> Mapping[str, tuple[tuple[ResolvedEffectProvider, Any], ...]]:
+    """Construct every provider scope before any adapter/application hook runs."""
+
+    # Preserve the pre-EP-01 execution path exactly when no semantic provider
+    # table is configured.  In particular, passive ``effects:`` cases predate
+    # generated action inputs and may legitimately carry ``input=None``.
+    # Semantic action lookup belongs exclusively to a configured provider
+    # plan; an empty plan must not make legacy cases satisfy that new schema.
+    if not plan.configured:
+        return MappingProxyType({})
+
+    from spec_double_compiler.runtime import EffectProviderContext
+
+    prepared: dict[str, tuple[tuple[ResolvedEffectProvider, Any], ...]] = {}
+    for case in cases:
+        action = _case_action(case)
+        context_work_dir = work_dir / "case-work" / str(case.name)
+        context_work_dir.mkdir(parents=True, exist_ok=True)
+        entries: list[tuple[ResolvedEffectProvider, Any]] = []
+        for binding in plan.for_case(case):
+            context = EffectProviderContext(
+                port_name=binding.port_name,
+                action=action,
+                case=case,
+                work_dir=context_work_dir,
+            )
+            entries.append((binding, _provider_context_manager(binding, context)))
+        prepared[str(case.name)] = tuple(entries)
+    return MappingProxyType(prepared)
+
+
 def load_effect_declarations_for_spec(spec_dir: Path | None):
     """Read the ``effects:`` block from ``actions.yml`` or the manifest.
 
@@ -791,12 +1177,22 @@ def execute_cases_in_batch(
     import_roots: list[Path],
     declarations: Any = None,
     effect_report_path: Path | None = None,
+    effect_provider_plan: EffectProviderPlan | None = None,
 ) -> None:
     ensure_import_roots(import_roots)
     from spec_double_compiler.runtime import AdapterBatchContext, AdapterCaseContext, call_adapter, instantiate, load_object
     from effect_conformance import EffectRecorder, EffectSandbox
 
     effects_active = declarations is not None and bool(declarations.ports)
+    provider_plan = effect_provider_plan or EffectProviderPlan(MappingProxyType({}), configured=False)
+    try:
+        prepared_provider_scopes = prepare_effect_provider_scopes(
+            plan=provider_plan,
+            cases=cases,
+            work_dir=work_dir,
+        )
+    except EffectProviderConfigurationError as exc:
+        raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
     recorder = EffectRecorder()
     observed_case_actions: dict[str, str] = {}
 
@@ -903,26 +1299,130 @@ def execute_cases_in_batch(
                         else _null_context()
                     )
                     sandbox_scope = sandbox if sandbox is not None else _null_context()
+                    application_error: Exception | None = None
+                    teardown_error: Exception | None = None
+                    escaped_error: Exception | None = None
+                    semantic_mutation_error: Exception | None = None
+                    semantic_snapshot = _case_semantic_snapshot(case)
                     try:
-                        with sandbox_scope, effect_scope:
-                            if adapter is not None:
-                                call_optional_hook(adapter, "setup", case_context)
-                                case_context.result = call_adapter(adapter, case, case_work_dir)
-                                assert_case_result_per_field(
-                                    case=case,
-                                    result=case_context.result,
-                                    projector=projector,
+                        # Semantic provider scopes are inside the passive
+                        # sandbox so provider-installed patches and their
+                        # cleanup stay observable. ExitStack supplies strict
+                        # reverse-order cleanup on every failure path.
+                        with sandbox_scope, effect_scope, ExitStack() as provider_stack:
+                            bound_effects: dict[str, Any] = {}
+                            for binding, provider_scope in prepared_provider_scopes.get(str(case.name), ()):
+                                value = provider_stack.enter_context(provider_scope)
+                                _assert_case_semantics_unchanged(
+                                    case,
+                                    semantic_snapshot,
+                                    stage=f"provider {binding.provider_reference!r} enter",
                                 )
-                            assert_projected_state_if_configured(case_context, mapping, object_cache)
-                    except Exception as exc:
-                        case_context.error = exc
-                        failures.append(f"{case.name} via {mapping.label}: {type(exc).__name__}: {exc}")
-                    finally:
-                        if adapter is not None:
+                                if value is not None and not isinstance(value, binding.protocol):
+                                    raise TypeError(
+                                        f"provider {binding.provider_reference!r} binding for {binding.port_name} "
+                                        f"does not implement generated port {binding.port_name}"
+                                    )
+                                bound_effects[binding.port_name] = value
+                            case_context.effects = MappingProxyType(bound_effects)
+
                             try:
-                                call_optional_hook(adapter, "teardown", case_context)
+                                if adapter is not None:
+                                    call_optional_hook(adapter, "setup", case_context)
+                                    _assert_case_semantics_unchanged(
+                                        case,
+                                        semantic_snapshot,
+                                        stage=f"adapter {mapping.label} setup",
+                                    )
+                                    case_context.result = call_adapter(adapter, case, case_work_dir)
+                                    _assert_case_semantics_unchanged(
+                                        case,
+                                        semantic_snapshot,
+                                        stage=f"adapter {mapping.label} execution",
+                                    )
+                                    assert_case_result_per_field(
+                                        case=case,
+                                        result=case_context.result,
+                                        projector=projector,
+                                    )
+                                assert_projected_state_if_configured(case_context, mapping, object_cache)
+                                _assert_case_semantics_unchanged(
+                                    case,
+                                    semantic_snapshot,
+                                    stage=f"adapter {mapping.label} assertion",
+                                )
                             except Exception as exc:
-                                failures.append(f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}")
+                                application_error = exc
+                                case_context.error = exc
+                            finally:
+                                # Teardown belongs to the active provider and
+                                # passive-observation scopes. This ordering is
+                                # part of the public EP-01 lifecycle contract.
+                                if adapter is not None:
+                                    try:
+                                        call_optional_hook(adapter, "teardown", case_context)
+                                        _assert_case_semantics_unchanged(
+                                            case,
+                                            semantic_snapshot,
+                                            stage=f"adapter {mapping.label} teardown",
+                                        )
+                                    except Exception as exc:
+                                        teardown_error = exc
+                                        if case_context.error is None:
+                                            case_context.error = exc
+                                        failures.append(
+                                            f"{case.name} teardown via {mapping.label}: {type(exc).__name__}: {exc}"
+                                        )
+                            if application_error is not None:
+                                raise application_error
+                            if teardown_error is not None:
+                                raise teardown_error
+                    except Exception as exc:
+                        escaped_error = exc
+                    try:
+                        _assert_case_semantics_unchanged(
+                            case,
+                            semantic_snapshot,
+                            stage="semantic provider lifecycle",
+                        )
+                    except Exception as exc:
+                        semantic_mutation_error = exc
+                        if escaped_error is None:
+                            escaped_error = exc
+
+                    # A provider context manager is not allowed to suppress an
+                    # adapter/assertion failure. Record the original even when
+                    # __exit__ returned true, and record a distinct cleanup
+                    # failure when __exit__ replaced it.
+                    if application_error is not None:
+                        failures.append(
+                            f"{case.name} via {mapping.label}: "
+                            f"{type(application_error).__name__}: {application_error}"
+                        )
+                    elif teardown_error is None and escaped_error is not None:
+                        case_context.error = escaped_error
+                        failures.append(
+                            f"{case.name} provider lifecycle via {mapping.label}: "
+                            f"{type(escaped_error).__name__}: {escaped_error}"
+                        )
+                    if (
+                        escaped_error is not None
+                        and escaped_error is not application_error
+                        and escaped_error is not teardown_error
+                        and application_error is not None
+                    ):
+                        failures.append(
+                            f"{case.name} provider cleanup via {mapping.label}: "
+                            f"{type(escaped_error).__name__}: {escaped_error}"
+                        )
+                    if (
+                        semantic_mutation_error is not None
+                        and semantic_mutation_error is not escaped_error
+                    ):
+                        failures.append(
+                            f"{case.name} semantic oracle integrity via {mapping.label}: "
+                            f"{type(semantic_mutation_error).__name__}: {semantic_mutation_error}"
+                        )
         finally:
             for adapter, mapping in reversed(group_adapters):
                 try:
@@ -971,6 +1471,8 @@ def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
     if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
         return None
     command = [*args.python, str(Path(__file__).resolve()), str(args.cases_dir), "--mapping", str(args.mapping), "--batch"]
+    if args.spec_dir is not None:
+        command.extend(["--spec-dir", str(args.spec_dir)])
     if args.work_dir is not None:
         command.extend(["--work-dir", str(args.work_dir)])
     if args.view is not None:
@@ -987,6 +1489,8 @@ def reexec_batch_if_needed(args: argparse.Namespace) -> int | None:
         command.append("--validate-only")
     if args.validate_capabilities:
         command.append("--validate-capabilities")
+    if args.effect_report is not None:
+        command.extend(["--effect-report", str(args.effect_report)])
     env = os.environ.copy()
     env["SPEC_DOUBLE_BATCH_REEXEC"] = "1"
     return subprocess.run(command, env=env).returncode
@@ -1051,6 +1555,20 @@ def main() -> int:
     runnable_cases = selected_cases(cases, args.label, args.case, args.limit, args.view)
     if not runnable_cases:
         raise SystemExit("ERROR: no cases selected")
+    try:
+        effect_provider_plan = load_effect_provider_plan(
+            spec_dir=spec_dir,
+            mapping_path=args.mapping,
+            cases=coverage_cases,
+            import_roots=default_import_roots,
+        )
+    except EffectProviderConfigurationError as exc:
+        raise SystemExit(f"ERROR: invalid semantic effect provider configuration: {exc}") from exc
+    validate_effect_provider_execution_mode(
+        effect_provider_plan,
+        batch=args.batch,
+        validate_only=args.validate_only,
+    )
     if args.validate_capabilities:
         validate_adapter_capabilities(
             cases=runnable_cases,
@@ -1074,6 +1592,7 @@ def main() -> int:
                 import_roots=default_import_roots,
                 declarations=declarations,
                 effect_report_path=args.effect_report,
+                effect_provider_plan=effect_provider_plan,
             )
             print(f"executed {len(runnable_cases)} cases in batch")
     else:
