@@ -356,12 +356,13 @@ UpdateTicketCurrent(ticket) ==
                   kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze complexity <spec> <cfg>`
-\* MF-011: measures the model against the manifest budgets before any
-\* generation runs. The gate is a fact about the whole program, not about one
-\* ticket, so it is a single global variable rather than a per-ticket map.
-\* "unknown" means the model has never been analyzed, and in that state case
-\* generation has no enabled transition at all -- an unanalyzed model is
-\* exactly the one that exhausts TLC instead of finishing.
+\* MF-011, amended by CD-09 (G2): measures the model against the manifest
+\* budgets and records the verdict. The verdict is a fact about the whole
+\* program, not about one ticket, so it is a single global variable rather
+\* than a per-ticket map -- and it is ADVISORY: recorded as an observable
+\* fact, consulted by no guard. Nothing downstream blocks on it; a dense
+\* model is a finding the agent reads, not a refused build
+\* (references/architecture_tractability.md, "Advisory, Not Blocking").
 \* The outcome is nondeterministic here because it depends on the model being
 \* analyzed, which is outside this state machine.
 \* @command AnalyzeComplexity
@@ -509,14 +510,23 @@ RunKillTest(root) ==
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
 \* Runs generated/adapted spec-unit validation for ticket current.
-\* MF-011: case generation runs only behind the complexity gate. A passing
-\* gate enables it outright; a failing gate enables it only under the explicit
-\* `--allow-over-budget` override, modeled as the `override` input. When the
-\* gate is "unknown" no transition is enabled -- that absence IS the refusal.
+\* CD-09 (coverage-audit run 2, gap G2): the complexity gate no longer appears
+\* in this guard AT ALL, and the `override` input is gone. The shipped command
+\* performs no complexity check -- the descriptor is ADVISORY (MF-036/CD-01):
+\* the program proceeds on a failing scan with a warning and has no
+\* --allow-over-budget flag (generate_cases_from_tlc_dump.py, the scan-first
+\* generation path, proceeds-on-fail; scripts/tla_spec_dev.py
+\* run_spec_unit_tests reads no gate). The old guard
+\* `complexity_gate = "pass" \/ (complexity_gate = "fail" /\ override)`
+\* modeled the withdrawn blocking gate: doctrine withdrew the flag on
+\* 2026-07-18 as degeneracy, the removal was deferred to MF-023 and never
+\* done, and the model kept asserting a refusal the program does not perform.
+\* The recorded verdict itself survives as complexity_gate -- an observable
+\* fact AnalyzeComplexity records, read by no transition.
 \* @command RunSpecUnitTests
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.run_spec_unit_tests
-RunSpecUnitTests(root, ticket, override) ==
+RunSpecUnitTests(root, ticket) ==
   /\ setup_phase >= 2
   /\ root = spec_root
   /\ ticket \in ActiveTickets
@@ -525,18 +535,12 @@ RunSpecUnitTests(root, ticket, override) ==
   \* stays a range rather than an equality on purpose: tightening it would
   \* delete the idempotent re-run self-loop on an already-passing ticket.
   /\ ticket_state[ticket] \in TicketCurrentReady..TicketSpecUnitTestsPassed
-  /\ \/ complexity_gate = "pass"
-     \/ /\ complexity_gate = "fail"
-        /\ override
   \* MF-014: generation produces the corpus, then the case caps are measured
   \* over it. The corpus is complete either way -- the gate refuses, it never
   \* trims -- so a failing verdict advances nothing and reports instead.
-  \* `override` is deliberately NOT consulted here. The case caps have no
-  \* override and never will: raising the cap with a recorded rationale is the
-  \* accept path, and that is a different verdict rather than a bypassed one.
-  \* `override` survives only for complexity_gate, whose --allow-over-budget
-  \* flag doctrine withdrew on 2026-07-18 as degeneracy; removing it from the
-  \* shipped CLI is MF-023's, not this ticket's.
+  \* The case caps have no override and never will: raising the cap with a
+  \* recorded rationale is the accept path, and that is a different verdict
+  \* rather than a bypassed one.
   /\ corpus_gate' \in {"pass", "fail"}
   \* MF-013: the spec-unit run executes adapters in the effect sandbox, so it
   \* measures effect conformance in the same pass. The verdict is recorded
@@ -620,8 +624,8 @@ Next ==
       RunEffectConformance(root)
   \/ \E root \in SpecRoots:
       RunKillTest(root)
-  \/ \E root \in SpecRoots, ticket \in Tickets, override \in BOOLEAN:
-      RunSpecUnitTests(root, ticket, override)
+  \/ \E root \in SpecRoots, ticket \in Tickets:
+      RunSpecUnitTests(root, ticket)
   \/ \E root \in SpecRoots, ticket \in Tickets:
       CloseTicket(root, ticket)
   \/ Stutter
@@ -685,17 +689,20 @@ SpecUnitTestsRequireCurrent ==
     ticket_state[ticket] >= TicketSpecUnitTestsPassed
       => ticket_state[ticket] >= TicketCurrentReady
 
-\* MF-011: no case generation ever runs against an unanalyzed model. Reaching
-\* phase 3 means spec-unit cases were generated and run, which is only possible
-\* once analyze complexity has recorded a verdict -- pass, or fail plus the
-\* explicit override. The gate is never silently skipped.
-\* MF-025: the old guard `ticket_phase[ticket] >= 3` was satisfied by closed
-\* tickets too, because CloseTicket left the phase at 3. The faithful ordinal
-\* equivalent is therefore `>= TicketSpecUnitTestsPassed`, which covers both
-\* the passed-and-still-active state and the closed state -- not an equality.
-SpecUnitTestsRequireAnalyzedGate ==
-  (\E ticket \in Tickets: ticket_state[ticket] >= TicketSpecUnitTestsPassed)
-    => complexity_gate /= "unknown"
+\* CD-09 (G2): SpecUnitTestsRequireAnalyzedGate REMOVED, deliberately and with
+\* this tombstone rather than silently -- a deleted safety property must be
+\* distinguishable at review from a lost one (the MF-020/MF-022 retention
+\* precedent, applied in reverse). The invariant asserted that no ticket
+\* passes spec-unit tests before analyze complexity records a verdict. That
+\* was the blocking-gate era's property: it held only because the old
+\* RunSpecUnitTests guard refused to fire while complexity_gate = "unknown".
+\* The shipped program has no such refusal -- `run spec-unit-tests` performs
+\* no complexity check, and the descriptor is advisory (MF-036/CD-01) -- so
+\* the invariant claimed an assurance the program does not provide, which is
+\* precisely the defect coverage-audit run 2 recorded as gap G2. TLC evidence
+\* of the removal being real: states with a ticket at
+\* TicketSpecUnitTestsPassed and complexity_gate = "unknown" are now
+\* reachable (distinct states grew when the guard came out).
 
 \* MF-014: no ticket ever passes spec-unit tests without its generated corpus
 \* having been measured against the case caps. Reaching phase 3 means cases

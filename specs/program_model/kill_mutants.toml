@@ -57,16 +57,9 @@ description = "the installed CLI wrapper is written without the executable bit"
 refine_variable = "setup_phase"
 refine_action = "InstallLocalCli"
 
-[[mutants]]
-id = "port-tlc_process"
-boundary_kind = "port"
-boundary_ref = "tlc_process"
-path = "scripts/run_tlc.sh"
-find = '  exec java -cp "$TLA2TOOLS_JAR" tlc2.TLC -config "$CFG_FILE" "$SPEC_FILE"'
-replace = '  exec java -cp "$TLA2TOOLS_JAR" tlc2.TLC -config "$CFG_FILE" "$SPEC_FILE" -depth 1'
-description = "TLC is spawned with a depth-1 cutoff, so it explores almost nothing and still exits 0"
-refine_variable = "complexity_gate"
-refine_action = "AnalyzeComplexity"
+# CD-09 (G4): the port-tlc_process mutant left with the port. The kill test
+# recomputes its required boundary set from the declared ports on every run,
+# so a seeded fault for an undeclared boundary is catalog drift, not coverage.
 
 [[mutants]]
 id = "port-test_process"
@@ -183,16 +176,11 @@ description = "spec-unit tests run against a nonexistent ticket current/ instead
 refine_variable = "ticket_state"
 refine_action = "RunSpecUnitTests"
 
-[[mutants]]
-id = "inv-SpecUnitTestsRequireAnalyzedGate"
-boundary_kind = "invariant"
-boundary_ref = "SpecUnitTestsRequireAnalyzedGate"
-path = "scripts/generate_cases_from_tlc_dump.py"
-find = "        clean, message = gate_report("
-replace = "        clean, message = (True, 'MUTANT: complexity scan bypassed') or gate_report("
-description = "case generation proceeds without consulting the advisory complexity scan (MF-036: the scan is advisory, but bypassing it still silences the warnings, which is an evidence-integrity breach)"
-refine_variable = "complexity_gate"
-refine_action = "AnalyzeComplexity"
+# CD-09 (G2): the inv-SpecUnitTestsRequireAnalyzedGate mutant left with the
+# invariant. Its removed target -- bypassing the advisory scan inside case
+# generation -- concerned the EXPERIMENTAL generation surface, unmodeled
+# post-pivot; the INVARIANTS block no longer names the property, so the
+# recomputed obligation set no longer requires a fault for it.
 
 [[mutants]]
 id = "inv-SpecUnitTestsRequireMeasuredCorpus"

@@ -540,6 +540,19 @@ def prepare_ticket_workflow(
 # no bypass flag -- the standing objective is a required close-out step, so the
 # adapters go through the real gate rather than around it.
 PASSING_COMPLEXITY_LEDGER = """\
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "results/tlc-before.txt"
+  tlc_after:
+    status: "green"
+    evidence: "results/tlc-current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "results/behavior-tests.txt"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "results/descriptors-before-after.txt"
 retention:
   kill_rate:
     status: "pass"
@@ -557,6 +570,21 @@ refinement:
 refinement_note: "searched, found none"
 narrative: "Adapter fixture ledger narrative."
 """
+
+
+#: CD-09: the honest post-pivot retention record -- the fuzzing-era members
+#: RECORDED as not run (they are experimental and did not run), with the
+#: validated-refactor basis green. This is the input an honest validated
+#: decrease closes with.
+NOT_RUN_FUZZING_LEDGER = (
+    PASSING_COMPLEXITY_LEDGER
+    .replace('status: "pass"\n    evidence: "results/kill-test.json"',
+             'status: "not_run"\n    evidence: "experimental since the 2026-07-21 pivot"')
+    .replace('status: "clean"\n    evidence: "results/effect-conformance.txt"',
+             'status: "not_run"\n    evidence: "experimental since the 2026-07-21 pivot"')
+    .replace('status: "pass"\n    evidence: "results/external-coverage.txt"',
+             'status: "not_run"\n    evidence: "experimental since the 2026-07-21 pivot"')
+)
 
 
 def fill_complexity_ledger(target_repo: Path, spec_root: str, ticket_id: str) -> Path:
@@ -1882,9 +1910,13 @@ class ComplexityLedgerCloseOutAdapter:
       delta JOINTLY with its retention evidence and the refinement record;
     * an UNFILLED scaffolded template refuses the close -- the standing
       objective is a required step, not an optional one;
-    * a complexity DECREASE with degraded retention evidence is REJECTED, which
-      is the anti-gaming rule (MF-016 and MF-027 both applied it by hand);
-    * `unobservable` effect conformance does NOT count as `clean` (MF-027).
+    * a complexity DECREASE with DEGRADED validated-refactor evidence is
+      REJECTED -- the anti-gaming rule on the amended basis (CD-09,
+      owner-approved 2026-07-22: TLC before/after, behavior tests, descriptor
+      comparison license a decrease);
+    * a validated decrease with the fuzzing-era members honestly recorded as
+      `not_run` IS recorded -- the members are experimental since the
+      2026-07-21 pivot and no longer gate (CD-09).
     """
 
     action_name = "CloseTicket"
@@ -1941,11 +1973,13 @@ class ComplexityLedgerCloseOutAdapter:
         open_ticket(unfilled_ticket)
         unfilled = close(unfilled_ticket)
 
-        # 3. A decrease with a degraded kill rate must be REJECTED.
+        # 3. A decrease with DEGRADED validated-refactor evidence must be
+        # REJECTED (CD-09: the basis that licenses a decrease is TLC
+        # before/after + behavior tests + descriptor comparison).
         degraded_ticket = f"{ticket_id}-DEGRADED"
         degraded_input = open_ticket(degraded_ticket)
         degraded_input.write_text(
-            PASSING_COMPLEXITY_LEDGER.replace('status: "pass"', 'status: "below_floor"', 1),
+            PASSING_COMPLEXITY_LEDGER.replace('status: "recorded"', 'status: "stale"', 1),
             encoding="utf-8",
         )
         # Shrink the model so the delta is a genuine decrease. Both trees, so
@@ -1954,15 +1988,20 @@ class ComplexityLedgerCloseOutAdapter:
         set_ticket_model(target_repo, spec_root, degraded_ticket, SHRUNK_FIXTURE_MODEL)
         degraded = close(degraded_ticket)
 
-        # 4. `unobservable` is not `clean`.
-        unobs_ticket = f"{ticket_id}-UNOBSERVABLE"
-        unobs_input = open_ticket(unobs_ticket)
-        unobs_input.write_text(
-            PASSING_COMPLEXITY_LEDGER.replace('status: "clean"', 'status: "unobservable"', 1),
-            encoding="utf-8",
-        )
-        set_ticket_model(target_repo, spec_root, unobs_ticket, SHRUNK_FIXTURE_MODEL)
-        unobservable = close(unobs_ticket)
+        # 4. CD-09: a VALIDATED decrease with the fuzzing-era members honestly
+        # recorded as `not_run` closes -- the amended basis licenses it, and
+        # the non-gating members stay recorded in the entry.
+        validated_ticket = f"{ticket_id}-VALIDATED"
+        validated_input = open_ticket(validated_ticket)
+        validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
+        set_ticket_model(target_repo, spec_root, validated_ticket, SHRUNK_FIXTURE_MODEL)
+        validated = close(validated_ticket)
+        validated_entry: dict[str, object] = {}
+        if ledger_file.is_file():
+            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+            for candidate in entries:
+                if candidate.get("scope_id") == validated_ticket:
+                    validated_entry = candidate
 
         return {
             "accepted": all(record.returncode == 0 for record in setup)
@@ -1970,7 +2009,7 @@ class ComplexityLedgerCloseOutAdapter:
             and template_scaffolded
             and unfilled.returncode != 0
             and degraded.returncode != 0
-            and unobservable.returncode != 0,
+            and validated.returncode == 0,
             # 1. recorded, jointly
             "close_recorded": good.returncode == 0,
             "ledger_file_written": ledger_file.is_file(),
@@ -1988,12 +2027,25 @@ class ComplexityLedgerCloseOutAdapter:
                 "refinement" in unfilled.stdout + unfilled.stderr
                 and "narrative" in unfilled.stdout + unfilled.stderr
             ),
-            # 3. anti-gaming
+            # 3. anti-gaming on the amended basis (CD-09)
             "degraded_decrease_rejected": degraded.returncode != 0,
             "degraded_message_says_rejected": "REJECTED" in degraded.stdout + degraded.stderr,
-            # 4. MF-027
-            "unobservable_rejected": unobservable.returncode != 0,
-            "unobservable_is_not_clean": "unobservable" in unobservable.stdout + unobservable.stderr,
-            "stdout": good.stdout + unfilled.stdout + degraded.stdout,
-            "stderr": good.stderr + unfilled.stderr + degraded.stderr,
+            "degraded_message_names_the_basis": "validated-refactor" in degraded.stdout + degraded.stderr,
+            # 4. the amended licensing (CD-09)
+            "validated_decrease_recorded": validated.returncode == 0,
+            "validated_delta_direction": (
+                (validated_entry.get("delta") or {}).get("direction")
+                if isinstance(validated_entry.get("delta"), dict)
+                else None
+            ),
+            "fuzzing_members_recorded_not_run": bool(validated_entry)
+            and all(
+                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+                for name in ("kill_rate", "effect_conformance", "external_coverage")
+            ),
+            "validated_refactor_recorded_in_entry": bool(
+                validated_entry.get("validated_refactor")
+            ),
+            "stdout": good.stdout + unfilled.stdout + degraded.stdout + validated.stdout,
+            "stderr": good.stderr + unfilled.stderr + degraded.stderr + validated.stderr,
         }

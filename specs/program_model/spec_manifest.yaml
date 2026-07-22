@@ -160,9 +160,16 @@ effects:
         cli_artifact:
           type: filesystem.write
           target: "**/.venv/**"
-        tlc_process:
-          type: process.spawn
-          target: "*java*"
+        # CD-09 (coverage-audit run 2, gap G4): tlc_process (process.spawn
+        # *java*) REMOVED. It was declared for AnalyzeComplexity, but the
+        # analyze path spawns nothing -- the descriptor scan is a static
+        # parser (scripts/analyze_complexity.py contains no subprocess), and
+        # no other modeled action spawns java. By this manifest's own rule a
+        # declared port no case exercises is DEAD MODEL SURFACE. The
+        # repository's real java spawn lives in case generation
+        # (generate_cases_from_tlc_dump.py), which is EXPERIMENTAL surface,
+        # deliberately unmodeled post-pivot (G3, resolved by the 2026-07-22
+        # scope amendment).
         test_process:
           type: process.spawn
           target: "*pytest*"
@@ -174,7 +181,7 @@ effects:
     OpenTicket: [spec_tree]
     UpdateTicketDesired: [spec_tree]
     UpdateTicketCurrent: [spec_tree]
-    AnalyzeComplexity: [evidence_report, tlc_process]
+    AnalyzeComplexity: [evidence_report]
     AnalyzeCorpus: [evidence_report]
     RunEffectConformance: [evidence_report]
     RunKillTest: [evidence_report, test_process]
@@ -204,13 +211,18 @@ justification:
   # single ticket_state ordinal. It inherits the union of their invariant
   # linkages -- every named property they justified is still checked.
   ticket_state:
-    invariants: [TypeInvariant, NoOpenClosedOverlap, CurrentRequiresDesired, SpecUnitTestsRequireCurrent, SpecUnitTestsRequireAnalyzedGate, SpecUnitTestsRequireMeasuredCorpus, ClosedTicketsPassedSpecUnitTests]
+    invariants: [TypeInvariant, NoOpenClosedOverlap, CurrentRequiresDesired, SpecUnitTestsRequireCurrent, SpecUnitTestsRequireMeasuredCorpus, ClosedTicketsPassedSpecUnitTests]
     effects: []
     kill_tests: [inv-ClosedTicketsPassedSpecUnitTests, inv-CurrentRequiresDesired, inv-NoOpenClosedOverlap, inv-SpecUnitTestsRequireCurrent, port-test_process]
+  # CD-09 (G2): complexity_gate is the recorded ADVISORY verdict -- an
+  # observable fact AnalyzeComplexity writes into its evidence report, read by
+  # no guard. SpecUnitTestsRequireAnalyzedGate and the blocking guard it
+  # depended on were removed with the withdrawn gate, and port-tlc_process /
+  # inv-SpecUnitTestsRequireAnalyzedGate left the mutant catalog with them.
   complexity_gate:
-    invariants: [SpecUnitTestsRequireAnalyzedGate]
+    invariants: [TypeInvariant]
     effects: []
-    kill_tests: [inv-SpecUnitTestsRequireAnalyzedGate, port-tlc_process]
+    kill_tests: []
   corpus_gate:
     invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredCorpus]
     effects: [CliWorkflowResult.analyze_corpus_verdict]

@@ -24,6 +24,6 @@ def test_scaffold_project_and_workflow_adapters_use_cli(tmp_path: Path) -> None:
 
     assert project["accepted"] is True, project["stderr"]
     assert workflow["accepted"] is True, workflow["stderr"]
-    assert (tmp_path / "project_specs/program_model/CliProject.tla").exists()
-    assert (tmp_path / "project_specs/current/CliProject.tla").exists()
+    assert (tmp_path / "project_specs/program_model/Internal.tla").exists()
+    assert (tmp_path / "project_specs/current/Internal.tla").exists()
     assert (tmp_path / "project_specs/desired_program_model/ticket_plan.yaml").exists()
