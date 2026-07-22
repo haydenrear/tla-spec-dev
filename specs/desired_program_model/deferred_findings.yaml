@@ -41,3 +41,80 @@ findings:
       every project that records an effect-fuzz replay.
     disposition: pending
     disposition_ticket: null
+  - id: DEF-002
+    found_by: "EP-03"
+    found_at_commit: "076a28de29c4cc7e0382e2ab342eac680c2e0cd6"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - scripts/extract_spec_manifest.py
+        - scripts/generate_python.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: "Generated Python contract semantics can silently depend on whether optional PyYAML is installed."
+    reproduction: >-
+      At commit `076a28d`, generate the reminder contract once with Xcode
+      Python 3.9 plus PyYAML 6.0 and once with Homebrew Python 3.14 using `-S`.
+      The PyYAML path emits `ClockPort.now(self, command: ReadClock) -> int`;
+      the fallback path treats the valid inline map `{command: ReadClock,
+      result: int}` as a string and emits `ClockPort.now(self) -> object`.
+      Five generated files differ even though the manifest is identical. The
+      EP-03 project now expands its inline maps and proves both paths reproduce
+      one typed tree, but the shared parser remains vulnerable for future valid
+      manifests.
+    evidence:
+      - specs/tickets/EP-03/results/generator-parser-dependency.md
+      - examples/effect_providers/reminder_worker/test_reminder_worker.py
+    why_out_of_scope: >-
+      Fixing or removing the shared fallback changes framework production files,
+      while EP-03 is constrained to example projects, aggregate Test Graph
+      evidence, and documentation with zero framework-file changes.
+    suggested_fix: >-
+      Make manifest semantics dependency-invariant: either support inline maps
+      in the constrained parser or require a pinned YAML parser and fail closed.
+      Add a parity regression that generates the same fixture through both
+      parser paths and compares the complete output tree.
+    blast_radius: >-
+      Every generated state type, command field, typed port method, fake,
+      validator, and contract test produced from a manifest syntax the fallback
+      only partially parses.
+    disposition: pending
+    disposition_ticket: null
+  - id: DEF-003
+    found_by: "EP-03"
+    found_at_commit: "076a28de29c4cc7e0382e2ab342eac680c2e0cd6"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - scripts/generate_python.py
+        - scripts/run_generated_case_adapters.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: "Runtime-checkable generated Protocols verify method presence, not typed effect signatures."
+    reproduction: >-
+      Import the atomic `FilesystemPort`, define an object whose `read`,
+      `write`, `replace`, and `delete` methods accept only `self` and carry no
+      annotations, then evaluate `isinstance(object, FilesystemPort)`. It is
+      `True` even though every generated method requires a typed command and
+      result. The existing runtime preflight therefore proves shape by method
+      name only, not command arity, annotations, or return type.
+    evidence:
+      - specs/tickets/EP-03/results/runtime-protocol-conformance.md
+      - examples/effect_providers/atomic_publisher/test_atomic_publisher.py
+    why_out_of_scope: >-
+      A generated signature-conformance checker or repository type-checking
+      rung changes shared generator/runtime behavior, outside EP-03's example
+      and evidence conflict keys.
+    suggested_fix: >-
+      Generate an explicit signature/annotation conformance check and add a
+      static type-check validation rung. Document `runtime_checkable` as
+      structural method-presence validation only.
+    blast_radius: >-
+      Every typed effect provider accepted solely through `isinstance` against
+      a generated runtime-checkable Protocol.
+    disposition: pending
+    disposition_ticket: null

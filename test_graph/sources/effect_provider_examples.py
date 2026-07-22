@@ -79,8 +79,12 @@ def log_text(ctx: Any, record: Any) -> str:
 def main(ctx):
     aggregate = load(AGGREGATE)
     atomic = load(ATOMIC / "evidence" / "atomic-publisher-raw.json")
-    reminder_1 = load(REMINDER / "evidence" / "runs" / "reviewed-1" / "results.json")
-    reminder_2 = load(REMINDER / "evidence" / "runs" / "reviewed-2" / "results.json")
+    reminder_1 = load(
+        REMINDER / "evidence" / "runs" / "reviewed-parser-parity-1" / "results.json"
+    )
+    reminder_2 = load(
+        REMINDER / "evidence" / "runs" / "reviewed-parser-parity-2" / "results.json"
+    )
     http_1 = load(HTTP / "evidence" / "reviewed-local-repetition-1.json")
     http_2 = load(HTTP / "evidence" / "reviewed-local-repetition-2.json")
 
@@ -331,7 +335,13 @@ def main(ctx):
         )
         .artifact(
             "reminder-evidence",
-            str(REMINDER / "evidence" / "runs" / "reviewed-2" / "results.json"),
+            str(
+                REMINDER
+                / "evidence"
+                / "runs"
+                / "reviewed-parser-parity-2"
+                / "results.json"
+            ),
         )
     )
 

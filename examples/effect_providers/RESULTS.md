@@ -5,7 +5,9 @@
 Ship the Python V0 as an opt-in experimental harness, with conditions. All
 three preregistered projects passed their green controls and killed their fixed
 catalogs without framework changes, but the experiments do not support calling
-this a general fuzzing gold standard yet.
+this a general fuzzing gold standard yet. Broad typed-contract claims also need
+the shared dependency-sensitive manifest parser fixed (`DEF-002`); the reminder
+project neutralizes that defect locally and tests both parser environments.
 
 Across the three fixed catalogs, generated cases plus providers killed 36/36
 mutants. The separate hand-written baselines killed 30/36: atomic publishing
@@ -61,7 +63,7 @@ oracle.
 |---|---:|---:|---:|---:|---:|---:|
 | Atomic | 332 | 324 | 81 | 826 | 48 / 3,779 | 28 / 5,934 |
 | HTTP | 402 | 165 | 75 | 1,597 | 51 / 6,911 | 32 / 7,701 |
-| Reminder | 328 | 106 | 107 | 1,057 | 22 / 2,363 | 18 / 3,639 |
+| Reminder | 328 | 106 | 107 | 1,122 | 22 / 2,363 | 18 / 3,639 |
 
 The raw wall clocks are not directly comparable: each agent recorded a
 different elapsed-time scope and concurrent work is included. Exact scopes,
@@ -86,29 +88,47 @@ bugs absent from the four-scenario baseline. It also exposed the largest
 semantic duplication. The provider hard-codes `stage < send < mark < ack`, one
 clock read, duplicate-send rejection, notifier response classes, and a manual
 state projection. A direct clock read bypassed its port and a raw network path
-required a separate passive guard.
+required a separate passive guard. Fresh-checkout review also found that valid
+inline YAML maps produced typed contracts only when optional PyYAML happened to
+be installed. The project expanded all 26 maps, committed the intended typed
+tree, and now regenerates and compares the whole tree both normally and under
+`python -S`. Two new post-correction campaigns retained the same `9c5131bb…`
+verdict digest, 12/12 score, 8/12 baseline, replay, cleanup, and source hashes.
+The shared fallback parser remains a major deferred defect.
+
+The table records the updated post-correction footprint. The fresh-checkout
+correction touched seven tracked project files (+298/-52 lines): five generated
+files, the normalized manifest, and a 65-line reproduction test. It changed no
+framework file; final interface LOC remains 107, while model LOC is 564.
 
 ## Recommended architecture
 
-1. Generate a normalized semantic effect plan from modeled transition
+1. Make manifest parsing and contract generation dependency-invariant. Support
+   valid inline maps in the constrained parser or pin a YAML implementation and
+   fail closed; compare complete typed output trees across both parser paths.
+2. Generate a normalized semantic effect plan from modeled transition
    annotations: response class, effect order/cardinality, semantic command
    fields, and projection obligations. Add a generic point-scoped correlated
    bundle, monotonic journal, and snapshot-composition utility; keep domain
    assertions and concrete bytes, paths, exceptions, headers, and opaque values
    project-owned. Do not generate a byte-level call script from TLA+.
-2. Fix replay provenance so commands preserve the originating virtualenv
+3. Generate explicit provider signature/annotation conformance and add a static
+   type-check rung. Python `runtime_checkable` Protocols prove method presence,
+   not command arity or result types (`DEF-003`).
+4. Fix replay provenance so commands preserve the originating virtualenv
    interpreter without resolving its symlink; test with a dependency-bearing
    provider.
-3. Add an optional collect/continue mode and data-dependent mutants. Preserve
+5. Add an optional collect/continue mode and data-dependent mutants. Preserve
    exact first-failure replay while measuring whether later representatives
    actually add discovery power.
-4. Standardize compatibility declarations, passive bypass probes, and stronger
+6. Standardize compatibility declarations, passive bypass probes, and stronger
    process/network or real-service validation rungs. A monkey patch must never
    imply universal interception.
-5. Defer a universal response-plan DSL. First standardize only semantic fields
+7. Defer a universal response-plan DSL. First standardize only semantic fields
    proven common across more domains; otherwise the schema merely moves service
    implementation detail into TLA+.
-6. Add Java after the semantic-plan and replay contracts stabilize. Use
+8. Add Java after parser parity, semantic-plan, Python signature-conformance,
+   and replay contracts stabilize. Use
    JVM-native typed providers plus an external entrypoint protocol. A Python
    adapter service should not be the default Java architecture because it adds
    process entrypoints and loses native interception/type fidelity.
@@ -127,8 +147,8 @@ volume.
 - Atomic: [`atomic-publisher-raw.json`](atomic_publisher/evidence/atomic-publisher-raw.json).
 - HTTP: [`reviewed-local-repetition-1.json`](legacy_payment_http/evidence/reviewed-local-repetition-1.json)
   and [`reviewed-local-repetition-2.json`](legacy_payment_http/evidence/reviewed-local-repetition-2.json).
-- Reminder: [`reviewed-1/results.json`](reminder_worker/evidence/runs/reviewed-1/results.json)
-  and [`reviewed-2/results.json`](reminder_worker/evidence/runs/reviewed-2/results.json).
+- Reminder: [`reviewed-parser-parity-1/results.json`](reminder_worker/evidence/runs/reviewed-parser-parity-1/results.json)
+  and [`reviewed-parser-parity-2/results.json`](reminder_worker/evidence/runs/reviewed-parser-parity-2/results.json).
 
 The retained superseded/failed runs remain visible and unscored. This work does
 not claim exhaustive values, Hypothesis shrinking, arbitrary TLA+ response

@@ -38,9 +38,100 @@ def validate_trace(initial_state: ReminderState, commands: list[object], port: o
         _validate_transition(before, command, result, after)
 
 
+def validate_now_transition(
+    before: ReminderState,
+    command: ReadClock,
+    result: int,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for now")
+
+
+def validate_claim_transition(
+    before: ReminderState,
+    command: ClaimJob,
+    result: object,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for claim")
+
+
+def validate_dead_letter_transition(
+    before: ReminderState,
+    command: QueueMutation,
+    result: None,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for dead_letter")
+
+
+def validate_lookup_transition(
+    before: ReminderState,
+    command: LookupOutbox,
+    result: object,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for lookup")
+
+
+def validate_stage_transition(
+    before: ReminderState,
+    command: StageMessage,
+    result: None,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for stage")
+
+
+def validate_mark_sent_transition(
+    before: ReminderState,
+    command: MarkSent,
+    result: None,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for mark_sent")
+
+
+def validate_send_transition(
+    before: ReminderState,
+    command: SendMessage,
+    result: str,
+    after: ReminderState,
+) -> None:
+    raise NotImplementedError("No transition template configured for send")
+
+
 _COMMAND_METHODS = {
+    'ReadClock': 'now',
+    'ClaimJob': 'claim',
+    'QueueMutation': 'dead_letter',
+    'LookupOutbox': 'lookup',
+    'StageMessage': 'stage',
+    'MarkSent': 'mark_sent',
+    'SendMessage': 'send',
 }
 
 
 def _validate_transition(before: ReminderState, command: object, result: object, after: ReminderState) -> None:
+    if isinstance(command, ReadClock):
+        validate_now_transition(before, command, result, after)
+        return
+    if isinstance(command, ClaimJob):
+        validate_claim_transition(before, command, result, after)
+        return
+    if isinstance(command, QueueMutation):
+        validate_dead_letter_transition(before, command, result, after)
+        return
+    if isinstance(command, LookupOutbox):
+        validate_lookup_transition(before, command, result, after)
+        return
+    if isinstance(command, StageMessage):
+        validate_stage_transition(before, command, result, after)
+        return
+    if isinstance(command, MarkSent):
+        validate_mark_sent_transition(before, command, result, after)
+        return
+    if isinstance(command, SendMessage):
+        validate_send_transition(before, command, result, after)
+        return
     raise AssertionError(f"no transition validator for {command.__class__.__name__}")

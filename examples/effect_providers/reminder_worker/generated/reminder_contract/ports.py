@@ -14,40 +14,40 @@ from .types import ReminderState, ReadClock, ClaimJob, LookupOutbox, StageMessag
 
 @runtime_checkable
 class ClockPort(Protocol):
-    def now(self) -> object:
+    def now(self, command: ReadClock) -> int:
         ...
 
 
 @runtime_checkable
 class QueuePort(Protocol):
-    def claim(self) -> object:
+    def claim(self, command: ClaimJob) -> object:
         ...
 
-    def acknowledge(self) -> object:
+    def acknowledge(self, command: QueueMutation) -> None:
         ...
 
-    def release(self) -> object:
+    def release(self, command: QueueMutation) -> None:
         ...
 
-    def dead_letter(self) -> object:
+    def dead_letter(self, command: QueueMutation) -> None:
         ...
 
 
 @runtime_checkable
 class OutboxPort(Protocol):
-    def lookup(self) -> object:
+    def lookup(self, command: LookupOutbox) -> object:
         ...
 
-    def stage(self) -> object:
+    def stage(self, command: StageMessage) -> None:
         ...
 
-    def mark_sent(self) -> object:
+    def mark_sent(self, command: MarkSent) -> None:
         ...
 
 
 @runtime_checkable
 class NotifierPort(Protocol):
-    def send(self) -> object:
+    def send(self, command: SendMessage) -> str:
         ...
 
 

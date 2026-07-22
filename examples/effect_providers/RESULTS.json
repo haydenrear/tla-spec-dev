@@ -143,8 +143,8 @@
       "shape": "four explicit, correlated stateful providers with shared order journal",
       "decision": "go_for_high_value_workflows_with_schema_work",
       "accepted_evidence": [
-        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-1/results.json",
-        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-2/results.json"
+        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-parser-parity-1/results.json",
+        "examples/effect_providers/reminder_worker/evidence/runs/reviewed-parser-parity-2/results.json"
       ],
       "generated_cases": 7,
       "deterministic_iterations": 25,
@@ -170,8 +170,9 @@
         "external": {"generated_states": 14, "distinct_states": 14, "depth": 2, "cases": 7}
       },
       "external_validation_cases": 7,
-      "runtime_ms": {"repetition_2": {"p50": 0.020417, "p95": 0.03325}},
+      "runtime_ms": {"repetition_2": {"p50": 0.019292, "p95": 0.032333}},
       "cost": {
+        "measurement_point": "post-parser-correction reviewed repetition 2",
         "retrieval_files_read": 18,
         "retrieval_lines_read": 3639,
         "files_changed": 22,
@@ -181,14 +182,27 @@
         "provider_loc": 328,
         "adapter_loc": 106,
         "projection_or_oracle_loc": 21,
-        "experiment_loc": 1057,
-        "authoring_wall_minutes": 49.878,
+        "model_loc": 564,
+        "experiment_loc": 1122,
+        "authoring_wall_minutes": 101.784,
         "authoring_wall_measurement": "shared concurrent wall clock since preregistration; not person effort",
-        "edit_run_iterations": 5
+        "edit_run_iterations": 5,
+        "post_acceptance_validation_correction": {
+          "reason": "normalize 26 valid YAML inline maps into the constrained parser's supported nested form, commit the intended typed contract, and add active-environment plus stdlib-fallback reproduction assertions",
+          "tracked_project_files": 7,
+          "additions": 298,
+          "deletions": 52,
+          "net_lines": 246,
+          "interface_loc_after": 107,
+          "model_loc_after": 564,
+          "experiment_loc_after": 1122,
+          "framework_files_changed": 0
+        }
       },
       "earned_findings": [
         "Terminal-state cases omit order, cardinality, duplicate-send rejection, and response-class plans, so providers currently reimplement semantic oracle decisions.",
         "The project hand-built an immutable correlated bundle, monotonic shared journal, and manual snapshot/refinement composition that should have a generic point-scoped utility.",
+        "Fresh-checkout validation found that optional PyYAML changed generated contract semantics for valid inline maps. This project now uses dependency-invariant nested maps and proves the active and stdlib-fallback trees match; the shared parser defect is deferred as DEF-002.",
         "A direct datetime read bypasses ClockPort; direct network access needs a separate passive guard.",
         "Twelve kills at iteration zero demonstrate fixed-catalog oracle coverage, not later-representative fuzz sensitivity."
       ]
@@ -198,44 +212,58 @@
     "Killed mutants stop after the first complete failing iteration; only controls exercise every deterministic representative.",
     "The three hand baselines have different scenario breadth, so the 30/36 aggregate is descriptive rather than a pooled statistical control.",
     "Authoring wall clocks have different measurement scopes and include concurrent elapsed time; LOC and edit/run counts are the more comparable cost signals.",
+    "The reminder project locally neutralizes a dependency-sensitive manifest-parser defect, but the shared generator can still silently degrade valid inline mappings when PyYAML is absent; DEF-002 must be fixed before broad typed-contract claims.",
+    "Python runtime-checkable Protocols validate method names but not command arity, annotations, or result types. The declarations are typed; runtime provider conformance is not fully enforced until DEF-003 adds a signature/static-type rung.",
     "The experiments validate a fixed preregistered Python catalog, not exhaustive fuzzing, shrinking, arbitrary TLA+ response synthesis, universal effect interception, or service equivalence."
   ],
   "recommendations": [
     {
       "priority": 1,
+      "decision": "fix",
+      "item": "Make manifest parsing and generation dependency-invariant",
+      "detail": "Support valid inline mappings in the constrained parser or require a pinned YAML implementation and fail closed. Generate a fixture through both parser paths and compare the full typed contract tree. EP-03's reminder manifest is normalized locally, but DEF-002 remains a shared-framework correctness defect."
+    },
+    {
+      "priority": 2,
       "decision": "build",
       "item": "Generate normalized semantic effect-plan metadata",
       "detail": "Generate response class, effect order/cardinality, semantic command fields, and projection obligations from modeled transition annotations rather than duplicating them by hand. Add a generic point-scoped correlated bundle, monotonic journal, and snapshot composition utility while leaving domain assertions project-owned. Providers should still choose concrete bytes, paths, exceptions, headers, and opaque values. Do not generate a byte-level per-call response script."
     },
     {
-      "priority": 2,
+      "priority": 3,
+      "decision": "build",
+      "item": "Enforce provider signature conformance",
+      "detail": "Generate explicit command/result signature checks and add a static type-check rung. Keep runtime-checkable Protocols as method-presence preflight only; they do not enforce arity or annotations."
+    },
+    {
+      "priority": 4,
       "decision": "fix",
       "item": "Preserve the originating interpreter environment in replay commands",
       "detail": "Record the virtualenv interpreter path without resolving its symlink and add a dependency-bearing replay regression."
     },
     {
-      "priority": 3,
+      "priority": 5,
       "decision": "build",
       "item": "Add collect/continue campaigns and data-dependent mutants",
       "detail": "Keep exact first-failure replay, but optionally continue after discovery so representative breadth and time-to-detection are measurable."
     },
     {
-      "priority": 4,
+      "priority": 6,
       "decision": "build",
       "item": "Standardize bypass declarations and stronger isolation rungs",
       "detail": "Treat monkey patches as compatibility-only, ship passive guard probes, and offer process/network or real-service rungs when the boundary matters."
     },
     {
-      "priority": 5,
+      "priority": 7,
       "decision": "defer_pending_more_domains",
       "item": "Standard response-plan schema",
       "detail": "Standardize only the normalized semantic fields proven common across more domains; a universal wire-response DSL would move implementation detail into TLA+ and overfit these examples."
     },
     {
-      "priority": 6,
-      "decision": "next_language_after_priorities_1_and_2",
+      "priority": 8,
+      "decision": "next_language_after_priorities_1_through_4",
       "item": "Java provider bridge",
-      "detail": "Implement JVM-native typed providers and an external entrypoint protocol after semantic plans and replay provenance stabilize. Do not route Java effects through Python as the default architecture."
+      "detail": "Implement JVM-native typed providers and an external entrypoint protocol after parser parity, semantic plans, Python signature conformance, and replay provenance stabilize. Do not route Java effects through Python as the default architecture."
     }
   ]
 }

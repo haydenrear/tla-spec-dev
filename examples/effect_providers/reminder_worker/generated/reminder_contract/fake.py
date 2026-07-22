@@ -17,3 +17,38 @@ class ReminderWorkerSpecDouble:
     def snapshot(self) -> ReminderState:
         return self._state
 
+    def now(self, command: ReadClock) -> int:
+        raise NotImplementedError(
+            "No v0 fake template configured for now"
+        )
+
+    def claim(self, command: ClaimJob) -> object:
+        raise NotImplementedError(
+            "No v0 fake template configured for claim"
+        )
+
+    def dead_letter(self, command: QueueMutation) -> None:
+        raise NotImplementedError(
+            "No v0 fake template configured for dead_letter"
+        )
+
+    def lookup(self, command: LookupOutbox) -> object:
+        raise NotImplementedError(
+            "No v0 fake template configured for lookup"
+        )
+
+    def stage(self, command: StageMessage) -> None:
+        raise NotImplementedError(
+            "No v0 fake template configured for stage"
+        )
+
+    def mark_sent(self, command: MarkSent) -> None:
+        raise NotImplementedError(
+            "No v0 fake template configured for mark_sent"
+        )
+
+    def send(self, command: SendMessage) -> str:
+        raise NotImplementedError(
+            "No v0 fake template configured for send"
+        )
+

@@ -268,10 +268,20 @@ projection obligations, plus generic point-scoped correlated-bundle, monotonic-
 journal, and snapshot-composition utilities. Domain assertions remain project-
 owned. Do not turn TLA+ into a byte-level per-call response script.
 
+Two fresh-checkout findings qualify the word **typed**. First, optional PyYAML
+made valid inline-map manifests generate different contracts than the built-in
+fallback; the reminder example now uses dependency-invariant nested mappings
+and compares complete generated trees both normally and under `python -S`, but
+the shared parser remains `DEF-002`. Second, Python `runtime_checkable`
+Protocols check method presence, not command arity, annotations, or result
+types. Treat `isinstance(binding, Port)` as a structural preflight until
+generated signature/static-type conformance closes `DEF-003`.
+
 Use explicit injection by default. Treat monkey patches as declared legacy
 compatibility surfaces with bypass probes and a stronger external/real-service
 rung. Add collect/continue mode before claiming that later representatives add
 discovery power. Preserve the originating virtualenv in replay commands. A
-Java bridge should follow the semantic-plan and replay fixes and should use
+Java bridge should follow parser parity, signature conformance, semantic-plan,
+and replay fixes and should use
 JVM-native typed providers plus an external entrypoint, not Python patches as a
 universal cross-language effect service.

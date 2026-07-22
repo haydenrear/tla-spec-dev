@@ -27,4 +27,18 @@ def assert_clock_port_conformance(adapter_factory, initial_state: ReminderState,
 
 
 def _command_to_method(command: object) -> str:
+    if isinstance(command, ReadClock):
+        return 'now'
+    if isinstance(command, ClaimJob):
+        return 'claim'
+    if isinstance(command, QueueMutation):
+        return 'dead_letter'
+    if isinstance(command, LookupOutbox):
+        return 'lookup'
+    if isinstance(command, StageMessage):
+        return 'stage'
+    if isinstance(command, MarkSent):
+        return 'mark_sent'
+    if isinstance(command, SendMessage):
+        return 'send'
     raise AssertionError(f"no method mapping for {command.__class__.__name__}")

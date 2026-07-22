@@ -18,12 +18,24 @@ types: {}
 state:
   ReminderState:
     fields:
-      scenario: {type: str, tla: scenario}
-      queueState: {type: str, tla: queueState}
-      outboxState: {type: str, tla: outboxState}
-      notificationCount: {type: int, tla: notificationCount}
-      receiptState: {type: str, tla: receiptState}
-      result: {type: str, tla: result}
+      scenario:
+        type: str
+        tla: scenario
+      queueState:
+        type: str
+        tla: queueState
+      outboxState:
+        type: str
+        tla: outboxState
+      notificationCount:
+        type: int
+        tla: notificationCount
+      receiptState:
+        type: str
+        tla: receiptState
+      result:
+        type: str
+        tla: result
 commands:
   ReadClock:
     fields: {}
@@ -31,48 +43,77 @@ commands:
     fields: {}
   LookupOutbox:
     fields:
-      job_id: {type: str}
+      job_id:
+        type: str
   StageMessage:
     fields:
-      job_id: {type: str}
-      recipient: {type: str}
-      body: {type: str}
-      idempotency_key: {type: str}
+      job_id:
+        type: str
+      recipient:
+        type: str
+      body:
+        type: str
+      idempotency_key:
+        type: str
   SendMessage:
     fields:
-      recipient: {type: str}
-      body: {type: str}
-      idempotency_key: {type: str}
+      recipient:
+        type: str
+      body:
+        type: str
+      idempotency_key:
+        type: str
   MarkSent:
     fields:
-      job_id: {type: str}
-      receipt: {type: str}
+      job_id:
+        type: str
+      receipt:
+        type: str
   QueueMutation:
     fields:
-      job_id: {type: str}
+      job_id:
+        type: str
 results: {}
 ports:
   ClockPort:
     role: effect
     methods:
-      now: {command: ReadClock, result: int}
+      now:
+        command: ReadClock
+        result: int
   QueuePort:
     role: effect
     methods:
-      claim: {command: ClaimJob, result: object}
-      acknowledge: {command: QueueMutation, result: None}
-      release: {command: QueueMutation, result: None}
-      dead_letter: {command: QueueMutation, result: None}
+      claim:
+        command: ClaimJob
+        result: object
+      acknowledge:
+        command: QueueMutation
+        result: None
+      release:
+        command: QueueMutation
+        result: None
+      dead_letter:
+        command: QueueMutation
+        result: None
   OutboxPort:
     role: effect
     methods:
-      lookup: {command: LookupOutbox, result: object}
-      stage: {command: StageMessage, result: None}
-      mark_sent: {command: MarkSent, result: None}
+      lookup:
+        command: LookupOutbox
+        result: object
+      stage:
+        command: StageMessage
+        result: None
+      mark_sent:
+        command: MarkSent
+        result: None
   NotifierPort:
     role: effect
     methods:
-      send: {command: SendMessage, result: str}
+      send:
+        command: SendMessage
+        result: str
 invariants: []
 finite_model: {}
 generators: {}

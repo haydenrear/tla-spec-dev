@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import os
 from pathlib import Path
 import socket
@@ -20,6 +21,70 @@ import run_experiment
 
 
 class ReminderWorkerExperimentTests(unittest.TestCase):
+    def test_generated_contract_is_typed_and_fallback_reproducible(self) -> None:
+        from reminder_contract.ports import ClockPort, NotifierPort, QueuePort
+        from reminder_contract.types import QueueMutation, ReadClock, SendMessage
+
+        signatures = {
+            "clock.now": (inspect.signature(ClockPort.now), ReadClock, int),
+            "queue.acknowledge": (
+                inspect.signature(QueuePort.acknowledge),
+                QueueMutation,
+                None,
+            ),
+            "notifier.send": (
+                inspect.signature(NotifierPort.send),
+                SendMessage,
+                str,
+            ),
+        }
+        for label, (signature, command_type, result_type) in signatures.items():
+            with self.subTest(signature=label):
+                self.assertEqual(list(signature.parameters), ["self", "command"])
+                self.assertIs(signature.parameters["command"].annotation, command_type)
+                self.assertIs(signature.return_annotation, result_type)
+
+        committed = ROOT / "generated" / "reminder_contract"
+
+        def source_tree(path: Path) -> dict[str, bytes]:
+            return {
+                source.name: source.read_bytes()
+                for source in sorted(path.iterdir())
+                if source.is_file()
+            }
+
+        with tempfile.TemporaryDirectory(prefix="reminder-contract-repro-") as temporary:
+            temporary_root = Path(temporary)
+            for label, python_args in (
+                ("active-environment", []),
+                ("stdlib-fallback", ["-S"]),
+            ):
+                output = temporary_root / label
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        *python_args,
+                        str(REPO_ROOT / "scripts" / "generate_python.py"),
+                        str(ROOT / "specs" / "program_model" / "spec_manifest.yaml"),
+                        "--out",
+                        str(output),
+                    ],
+                    cwd=ROOT,
+                    text=True,
+                    capture_output=True,
+                    timeout=30,
+                )
+                self.assertEqual(
+                    completed.returncode,
+                    0,
+                    completed.stdout + completed.stderr,
+                )
+                self.assertEqual(
+                    source_tree(output / "reminder_contract"),
+                    source_tree(committed),
+                    f"generated contract drifted under {label}",
+                )
+
     def test_preregistration_and_generated_action_coverage_are_fixed(self) -> None:
         run_experiment.validate_preregistration()
         cases = run_experiment.generated_cases()

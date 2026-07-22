@@ -11,12 +11,12 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ReminderState:
-    scenario: object
-    queueState: object
-    outboxState: object
-    notificationCount: object
-    receiptState: object
-    result: object
+    scenario: str
+    queueState: str
+    outboxState: str
+    notificationCount: int
+    receiptState: str
+    result: str
 
 @dataclass(frozen=True)
 class ReadClock:
@@ -28,27 +28,27 @@ class ClaimJob:
 
 @dataclass(frozen=True)
 class LookupOutbox:
-    job_id: object
+    job_id: str
 
 @dataclass(frozen=True)
 class StageMessage:
-    job_id: object
-    recipient: object
-    body: object
-    idempotency_key: object
+    job_id: str
+    recipient: str
+    body: str
+    idempotency_key: str
 
 @dataclass(frozen=True)
 class SendMessage:
-    recipient: object
-    body: object
-    idempotency_key: object
+    recipient: str
+    body: str
+    idempotency_key: str
 
 @dataclass(frozen=True)
 class MarkSent:
-    job_id: object
-    receipt: object
+    job_id: str
+    receipt: str
 
 @dataclass(frozen=True)
 class QueueMutation:
-    job_id: object
+    job_id: str
 
