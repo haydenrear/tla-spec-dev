@@ -135,3 +135,33 @@ def test_complete_generated_tree_is_identical_with_and_without_site_packages(
         )
 
     assert trees[0] == trees[1]
+
+
+def test_inline_mapping_sequence_items_parse_whole() -> None:
+    """ex3-run4 finding 1: `- {fact: ...}` sequence items are rule leaves.
+
+    Splitting them at the first colon as block-mapping entries mangled them
+    into a `{fact` key plus an unterminated-inline-mapping error, which made
+    the ENTIRE manifest unreadable — budgets, justification, and fitness all
+    silently degraded to defaults behind one stderr warning.
+    """
+    from scripts.extract_spec_manifest import parse_simple_yaml
+
+    text = (
+        "module: X\n"
+        "budgets:\n"
+        "  max_internal_cases_per_component: 716\n"
+        "fitness_functions:\n"
+        "  - name: composed\n"
+        "    rule:\n"
+        "      all:\n"
+        "        - {fact: bound_known, op: ==, value: true}\n"
+        "        - {fact: bound, op: '<=', value: 624}\n"
+    )
+    parsed = parse_simple_yaml(text)
+    leaves = parsed["fitness_functions"][0]["rule"]["all"]
+    assert leaves == [
+        {"fact": "bound_known", "op": "==", "value": True},
+        {"fact": "bound", "op": "<=", "value": 624},
+    ]
+    assert parsed["budgets"]["max_internal_cases_per_component"] == 716

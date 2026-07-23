@@ -156,3 +156,17 @@ your assertions — they cannot repair an oracle that checks only existence.
 - Complexity and effects compose, not excuse: a FIRED fitness rule or a
   god-state dense row is not answered by more fuzz iterations. Minimize
   first; then make the effects real.
+
+## Nonstandard layouts and calibration notes (from validation runs)
+
+- `run spec-unit-tests` auto-discovers cases under `<spec-root>/generated/
+  spec-unit/*`; a generator writing to `<spec-dir>/generated/cases/spec-unit/*`
+  or a legacy single-module fixture needs explicit `--cases-dir` (and
+  `--target`/`--manifest`) throughout the stages.
+- Case generation's DOT dump needs a real `tlc2` executable (`--tlc2` or
+  PATH); `run_tlc.sh` cannot produce dumps.
+- The default `max_internal_cases_per_component: 200` is calibrated for
+  scenario-per-case models. An exhaustive transition dump of even a small,
+  well-minimized model can exceed it (a 624-bound counter model generated
+  716 cases); the corpus gate's recorded-rationale accept path is the honest
+  response when every case is a real distinct transition.

@@ -212,6 +212,16 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
             result.append(value)
             continue
 
+        if item.startswith("{"):
+            # A sequence item that IS an inline mapping (`- {fact: bound,
+            # op: "<", value: 100}` — the fitness-rule leaf syntax). Route it
+            # to the scalar parser whole; splitting it at the first colon as
+            # a `key: value` block-mapping entry mangles it into a `{fact`
+            # key and an "unterminated inline mapping" error, which makes the
+            # ENTIRE manifest unreadable and silently degrades budgets,
+            # justification, and fitness to defaults.
+            result.append(_parse_scalar(item))
+            continue
         if ":" in item and not item.startswith(("'", '"')):
             key, value_text = _split_key_value(item)
             if value_text in {">", ">-", ">+"}:

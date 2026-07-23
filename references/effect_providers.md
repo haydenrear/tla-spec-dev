@@ -241,8 +241,10 @@ generated contract tests and a repository static type-check rung for those
 claims.
 
 Manifest loading uses one constrained parser whether or not optional YAML
-packages are installed. Inline mappings are outside that supported syntax and
-fail with an instruction to use indented mappings. Replay commands retain the
+packages are installed. Its profile: indented mappings, plus single-line
+inline mappings with scalar values (the fitness-rule leaf syntax, as mapping
+values or sequence items); nested or multi-line inline mappings are rejected
+with an instruction to use indented mappings. Replay commands retain the
 originating interpreter path, including a dependency-bearing virtualenv, and
 remain absolute so they work from another directory.
 
