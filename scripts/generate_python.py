@@ -123,9 +123,14 @@ def render_types(manifest: dict[str, Any], manifest_path: Path) -> str:
 def render_ports(manifest: dict[str, Any], manifest_path: Path) -> str:
     module = str(manifest["module"])
     imports = ", ".join(class_names(manifest))
-    lines = [header(module, manifest_path), "from typing import Protocol\n\n", f"from .types import {imports}\n\n\n"]
+    lines = [
+        header(module, manifest_path),
+        "from typing import Protocol, runtime_checkable\n\n",
+        f"from .types import {imports}\n\n\n",
+    ]
 
     for port_name, port in as_dict(manifest.get("ports")).items():
+        lines.append("@runtime_checkable\n")
         lines.append(f"class {port_name}(Protocol):\n")
         methods = as_dict(as_dict(port).get("methods"))
         if not methods:

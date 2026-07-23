@@ -1,0 +1,123 @@
+module: ReminderWorker
+package: reminder_contract
+
+budgets:
+  tlc_seconds: 120
+  max_distinct_states: 50000
+  max_state_space_bound: 1000000
+  max_internal_cases_per_component: 200
+  max_external_cases_per_action: 50
+  kill_rate_floor: 0.8
+  max_component_variables: 8
+  max_component_actions: 8
+  max_symmetric_instances: 2
+  source: defaults
+  rationale: {}
+
+types: {}
+state:
+  ReminderState:
+    fields:
+      scenario:
+        type: str
+        tla: scenario
+      queueState:
+        type: str
+        tla: queueState
+      outboxState:
+        type: str
+        tla: outboxState
+      notificationCount:
+        type: int
+        tla: notificationCount
+      receiptState:
+        type: str
+        tla: receiptState
+      result:
+        type: str
+        tla: result
+commands:
+  ReadClock:
+    fields: {}
+  ClaimJob:
+    fields: {}
+  LookupOutbox:
+    fields:
+      job_id:
+        type: str
+  StageMessage:
+    fields:
+      job_id:
+        type: str
+      recipient:
+        type: str
+      body:
+        type: str
+      idempotency_key:
+        type: str
+  SendMessage:
+    fields:
+      recipient:
+        type: str
+      body:
+        type: str
+      idempotency_key:
+        type: str
+  MarkSent:
+    fields:
+      job_id:
+        type: str
+      receipt:
+        type: str
+  QueueMutation:
+    fields:
+      job_id:
+        type: str
+results: {}
+ports:
+  ClockPort:
+    role: effect
+    methods:
+      now:
+        command: ReadClock
+        result: int
+  QueuePort:
+    role: effect
+    methods:
+      claim:
+        command: ClaimJob
+        result: object
+      acknowledge:
+        command: QueueMutation
+        result: null
+      release:
+        command: QueueMutation
+        result: null
+      dead_letter:
+        command: QueueMutation
+        result: null
+  OutboxPort:
+    role: effect
+    methods:
+      lookup:
+        command: LookupOutbox
+        result: object
+      stage:
+        command: StageMessage
+        result: null
+      mark_sent:
+        command: MarkSent
+        result: null
+  NotifierPort:
+    role: effect
+    methods:
+      send:
+        command: SendMessage
+        result: str
+invariants: []
+finite_model: {}
+generators: {}
+fake:
+  class: ReminderWorkerSpecDouble
+  actions: {}
+adapters: case_adapters.toml

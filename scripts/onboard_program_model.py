@@ -43,6 +43,8 @@ REQUIRED_BASELINE_FILES = (
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -362,6 +364,7 @@ def actions_yml() -> str:
 #   layer: external  -> Test Graph cases (testgraph_bindings.yml)
 #   controllability: hidden -> generates nothing; internal progress the harness
 #                              cannot drive directly.
+#   effect_ports: typed semantic ports required while this case executes.
 #
 # SCAFFOLD: keep this in sync with Internal.tla / External.tla.
 actions:
@@ -370,55 +373,66 @@ actions:
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   AcceptRecord:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   PublishRecord:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   SubmitRegisterActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicateRegisterActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitAcceptRecord:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitAcceptRecordUnknownActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicateAcceptRecord:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   RunPublishWorker:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   RunPublishWorkerNoop:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   HiddenInternalProgress:
     layer: internal
     controllability: hidden
     generates: []
+    effect_ports: []
 """
 
 
@@ -431,6 +445,11 @@ def case_adapters_toml() -> str:
 #   tla-spec-dev run spec-unit-tests
 #
 # Every action in Internal.tla with `generates: [spec_unit]` needs an entry.
+# To supply a concrete representative for a generated semantic effect port,
+# uncomment and adapt this project-owned binding:
+#
+# [effect_providers.ExampleEffectPort]
+# provider = "specs.program_model.providers:effect_provider"
 
 [adapters.RegisterActor]
 adapter = "specs.program_model.adapters:RegisterActorInternalAdapter"
@@ -443,6 +462,59 @@ kind = "program-internal"
 [adapters.PublishRecord]
 adapter = "specs.program_model.adapters:PublishRecordInternalAdapter"
 kind = "program-internal"
+"""
+
+
+def providers_py() -> str:
+    return '''"""Project-owned semantic effect provider.
+
+Generated cases select the abstract effect outcome. Providers choose concrete
+representatives and bind repository-owned implementations for one case and one
+deterministic fuzz iteration. Read references/effect_providers.md.
+
+SCAFFOLD: implement one provider against the generated port Protocols before
+enabling its mapping tables. The framework ships no domain implementations.
+"""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+from collections.abc import Iterator
+from typing import Any
+
+from spec_double_compiler.runtime import EffectProviderContext
+
+
+class ProjectEffectProvider:
+    @contextmanager
+    def bind(self, context: EffectProviderContext) -> Iterator[Any | None]:
+        # SCAFFOLD: acquire the repository-owned implementation selected by
+        # context.port_name and context.case. Use context.derived_seed for
+        # deterministic representatives. Yield the generated-port
+        # implementation, or None only when this scope installs and restores
+        # its own bounded integration.
+        raise NotImplementedError(
+            f"SCAFFOLD: bind generated port {context.port_name}"
+        )
+        yield None
+
+
+effect_provider = ProjectEffectProvider()
+'''
+
+
+def effect_provider_usage_yml() -> str:
+    return """# Local, reviewable evidence about agent-authored providers.
+version: 1
+providers: []
+# - port: ExampleEffectPort
+#   provider: specs.program_model.providers:effect_provider
+#   binding_style: explicit_injection  # explicit_injection | self_installed | external_fixture | other
+#   state_scope: execution_point
+#   fuzz_dimensions: []
+#   assertions: []
+#   cleanup: context_manager
+#   bypass_limits: []
 """
 
 
@@ -1056,6 +1128,8 @@ split and the adapter contract are actually specified.
 | `External.tla` / `External.cfg` | external view: publicly observable behavior |
 | `actions.yml` | per-action layer, controllability, and what it generates |
 | `adapters.py` | spec-unit adapters AND Test Graph adapters/projector/assertion |
+| `providers.py` | agent-authored generated-port effect providers |
+| `effect_provider_usage.yaml` | provider state, fuzz, assertion, cleanup, and bypass evidence |
 | `case_adapters.toml` | internal action -> spec-unit adapter |
 | `testgraph_bindings.yml` | external action -> Test Graph adapter |
 | `tlc_projection.py` | TLC state -> generated-case shapes |
@@ -1117,6 +1191,8 @@ REQUIRED_BASELINE_FILES = [
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -1271,6 +1347,8 @@ def scaffold(
         (program_dir / "External.cfg", external_cfg()),
         (program_dir / "actions.yml", actions_yml()),
         (program_dir / "adapters.py", adapters_py(module)),
+        (program_dir / "providers.py", providers_py()),
+        (program_dir / "effect_provider_usage.yaml", effect_provider_usage_yml()),
         (program_dir / "case_adapters.toml", case_adapters_toml()),
         (program_dir / "testgraph_bindings.yml", testgraph_bindings_yml()),
         (program_dir / "tlc_projection.py", tlc_projection_py(module)),

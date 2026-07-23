@@ -2792,6 +2792,389 @@
     {
       "schema_version": 1,
       "scope": "ticket",
+      "scope_id": "EP-01",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T02:32:06.016513+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/tickets/EP-01/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "MF-023",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": 231621,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": 5619356,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": 25,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No TLA+ representation was added. EP-01 is a host-runtime contract for Python batch cases, so ticket current and desired are byte-identical after excluding validation caches. The existing model was rechecked without change: 5,619,356 states generated, 231,621 distinct, depth 25, no error. The new essential behavior lives outside the model: typed project-owned bindings around an already generated case.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029 (specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/complexity_ledger.yaml). EP-01 changes only the Python case-runner/provider contract and generated Protocol decoration; it does not add or claim a repository-wide mutant catalog. The non-passing inherited verdict remains non-passing.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029 for the subprocess-driven host CLI. EP-01 does not claim that passive in-process observation can see that external process. It does prove the existing passive sandbox unchanged and coexisting with semantic providers in tests/test_effect_provider_runtime.py and tests/test_effect_conformance_runner.py; repository evidence is results/repository-unit-tests.txt.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from MF-030/MF-029. EP-01 adds no external-view adapter, materializer, or corpus coverage and therefore does not assert movement on this axis. The inherited non-passing verdict remains explicit.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a smaller representation and retained a deliberately narrow V0: one action->effect_ports->provider lookup, one context-managed binding protocol, and one immutable effects map. No TLA state/action was warranted because provider activation is not an observable tla-spec-dev CLI transition. Generic response plans, fuzz orchestration, non-batch export, and other languages remain outside EP-01 rather than inflating this runtime.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "EP-01 introduces the minimum Python batch lifecycle needed for project-owned semantic effects. Static preflight resolves case.input.action through actions.yml effect_ports, manifest role: effect Protocols, and exact case_adapters.toml provider tables before adapter instantiation. Runtime enters providers in declaration order, exposes a fresh immutable port-name map to setup/run/assert/teardown, and exits in reverse order on every failure path. Binding work directories exist before provider construction, and the case's before/input/output/after oracle fields are deep-snapshotted and mutation checked throughout the lifecycle. The pre-existing passive effects schema is separate and unchanged. Legacy empty semantic schemas bypass action lookup; provider-bearing non-batch execution fails before work/program generation. Validation and intentional V0 boundaries are recorded in results/validation-summary.md and results/zero-model-delta.md.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-02",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T04:19:37.747885+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": 231621,
+        "generated_states": 5619356,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/private/tmp/tla-spec-dev-78-ep02-provider-fuzz-kit/specs/tickets/EP-02/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 231621,
+            "percent": 46.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-01",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": 231621,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": 5619356,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 25,
+            "after": 25,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No TLA+ representation was added. EP-02 is host-side Python provider orchestration, scaffolding, and author guidance; ticket current and desired are byte-identical. The unchanged model was measured again: 5,619,356 states generated, 231,621 distinct, depth 25, no error. The added host behavior is essential for deterministic representative campaigns and exact replay.",
+      "retention": {
+        "kill_rate": {
+          "status": "incomplete_catalog",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01/MF-030. EP-02 adds deterministic provider-owned representative campaigns but does not add or claim a repository-wide mutant catalog. The inherited non-passing verdict remains explicit.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "unobservable",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01 for the subprocess-driven host CLI. EP-02 does prove clean in-process coexistence between semantic providers and passive observation, including temporary-root explicit DI and a self-installed patch, in tests/test_effect_provider_fuzzing.py. It does not claim those patches observe a child process, JVM, native client, or remote service.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "incomplete",
+          "classification": "degraded",
+          "evidence": "CARRIED FORWARD from EP-01/MF-030. EP-02 adds no external-view adapter or corpus coverage and therefore asserts no improvement on this axis.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=incomplete_catalog (DEGRADED)",
+        "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+        "external_coverage=incomplete (DEGRADED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a smaller authoring/runtime representation and retained two narrow helpers plus project-owned provider implementations. The TLA case continues to own semantic outcome; the provider owns concrete responses, state, and assertions. A central response language, universal interception, Hypothesis/exhaustive orchestration, Java, and service libraries were rejected for EP-02 rather than inflating the mechanism before EP-03 measures three real projects.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "EP-02 adds a versioned stable seed protocol, bounded campaign iteration, exact single-point replay, structured lifecycle diagnostics, project-owned provider scaffolds, and small context-stack/temporary-root helpers. Provider configuration and lazy binding are prepared across the corpus before any application hook; each runtime point then gets isolated singleton batch hooks, adapter/shared caches, provider resources, and opaque work paths. Provider allocation and cleanup sit outside passive application observation, while adapter setup/run/assertion/teardown remains within both provider and observation scopes. This prevents harness filesystem churn from becoming a false effect without hiding application calls through injected bindings or installed patches. Review corrections, exact validation, explicit limits, and the zero-model-delta rationale are recorded in results/validation-summary.md, results/review-correction.txt, and results/zero-model-delta.md.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-03",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T06:52:37.100305+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 231621,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 5619356,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 25,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No host TLA+ representation changed. Ticket current and desired are byte-identical after excluding no files, and TLC retained 5,619,356 generated states, 231,621 distinct states, and depth 25 with no error. EP-03's behavior is carried by three independent example TLA+ programs and host-side evidence; see results/zero-model-delta.md and results/analyze-complexity.json.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: examples/effect_providers/RESULTS.json and results/effect-provider-graph-final.md reconcile the complete preregistered catalogs at 36/36 kills, with green controls run before every accepted campaign and no surviving effectful mutant.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md proves every declared project provider path, lifecycle/cleanup assertion, and preregistered passive bypass probe passed. This does not upgrade the inherited host subprocess/JVM observability claim; the HTTP and clock bypass limits remain explicit in examples/effect_providers/RESULTS.md.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "EXAMPLE-LOCAL measurement: results/effect-provider-graph-final.md records 70/70 generated External cases executed against the three example boundaries, including 56 real loopback/process HTTP cases.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "found",
+        "detail": "The measured experiments found a smaller useful next layer: generate a normalized semantic effect plan (response class, order/cardinality, semantic command fields, projection obligations) and generic correlated bundle/journal/snapshot utilities, while leaving concrete service values project-owned. Parser parity, provider signature conformance, and replay provenance must land first or alongside it. A universal wire-response DSL and a Python-hosted Java effect service were rejected. Priorities and measured project costs are in examples/effect_providers/RESULTS.md.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "examples/effect_providers/RESULTS.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
       "scope_id": "CD-09",
       "workflow": "complexity-descriptor-epic",
       "recorded_at_utc": "2026-07-22T17:53:01.469344+00:00",
@@ -4965,6 +5348,372 @@
       },
       "transition_diff": "",
       "narrative": "CD-07 aligns every remaining user-facing surface with the advisory doctrine and fixes the UX defects the six validation runs catalogued, with zero TLA+ model delta. VAL-04: the scaffold epilog (budgets.budget_prompt) and every generated-manifest budgets comment (new_ticket_workflow.py both manifests, onboard_program_model.py -- the latter found by this ticket's sweep beyond the finding's named sites) now state that budgets are advisory thresholds that warn and never block, with tlc_seconds named as the one hard operational limit; a grep-evidenced sweep (advisory_language_sweep.md) shows zero gate-era budget language in scaffold output and classifies every remaining 'hard gate' occurrence as by-design non-budget (corpus caps, MF-015 channels, experimental kill floor), superseded historical narrative, or immutable record. VAL-01: fitness_functions.load_rules detects PyYAML absence before validating a manifest-embedded rules block and emits the documented advisory CONFIG ERROR naming PyYAML and the fitness_functions.json alternative (verified against the real CLI under this machine's yaml-less python3, exit 0; regression test simulates absence via sys.modules). VAL-02: kill_rate_floor and max_symmetric_instances are excluded from the missing-budgets warning (EXPERIMENTAL_BUDGET_KEYS) while keeping documented defaults so kill_test stays functional; a per-docs manifest scans with empty stderr. CD-02-DF-01: analyze() no longer feeds a Path('does-not-exist') sentinel to load_budgets -- the no-manifest warning states what happened. VAL-05: the justification-table schema (mapping per variable, non-empty invariants/effects/kill_tests lists, prose is not linkage) is documented in architecture_tractability.md and as a comment in every scaffolded manifest. VAL-03: run_tlc.sh points TLC -metadir at a mktemp dir removed by an EXIT trap; the ticket TLC run leaves no states/ residue. VAL-15: complexity_intuition.md gains 'The write-only-state test' -- a write-only stamped variable is bookkeeping unless a nameable dependent (guard, invariant beyond type, test, or reader) exists; stated design intent is not a reader -- worked from the recorded ex3-run1 vs ex3-run2 divergence, blessing run 1's classification as canonical while separating classification from production-refactor authorization. CD-06-DF-01 (inherited): action_count fact description corrected in FACT_DOCS and the reference catalog. Validation: TLC green (283,805 distinct within max_distinct_states 500,000, rationale carried through desired/), spec-unit 2 targets green, 601 repo tests, specWorkflow and cliWorkflow green.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-04",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T23:00:46.065394+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-03",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "Zero host TLA+ model delta. Ticket current and desired are byte-identical. TLC completed with no error at 5,619,356 generated states, 231,621 distinct states, and depth 25. See results/zero-model-delta.md.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited example-local EP-03 evidence remains 36/36 in examples/effect_providers/RESULTS.json. EP-04 changes no example model or oracle and does not reclassify this bounded measurement as universal.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "Inherited example-local lifecycle and bypass evidence remains in examples/effect_providers/RESULTS.md. Focused EP-04 provider runtime tests passed 120/120 after the public helper reduction.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited EP-03 evidence retains 70/70 generated External cases. EP-04 changes the provider authoring contract only and adds no external-model transition.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "The authoring/runtime contract has no modeled CLI branch. Adding provider configuration state would invent a command rather than refine observed host behavior. Generic correctness findings remain scheduled as EP-05.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "results/zero-model-delta.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-05",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T23:13:47.714282+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-04",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "Zero host TLA+ model delta. Ticket current and desired are byte-identical. TLC completed with no error at 5,619,356 generated states, 231,621 distinct states, and depth 25. See results/zero-model-delta.md.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited example-local EP-03 evidence remains 36/36. EP-05 changes generic parser, replay, and signature preflight behavior without changing any example semantic oracle or mutant catalog.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "Provider hardening tests pass 83/83, including dependency-bearing replay and fail-before-application signature cases. Inherited example lifecycle evidence remains recorded in examples/effect_providers/RESULTS.md.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "Inherited EP-03 evidence retains 70/70 generated External cases. EP-05 adds no External-model transition.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Parser, replay provenance, and generated signature validation are library correctness constraints without a modeled host CLI branch. Example-specific migration and cost measurement remain scheduled as EP-06.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "results/defect-resolution.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EP-06",
+      "workflow": "effect-provider-epic",
+      "recorded_at_utc": "2026-07-22T23:53:35.446951+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 14,
+        "bound": 699840,
+        "modularity": 0.011742315426601493,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EP-05",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 14,
+            "after": 14,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "The added representation is essential replay infrastructure: three non-overwriting project validators, one shared schema/aggregate gate, usage descriptors, raw failure evidence, and an executable Test Graph node. It does not add host-model state or domain adapters. The deliberately rich research evidence measures authoring cost and product boundaries; POST_REPLACEMENT_RECOMMENDATIONS.md identifies what may later be factored.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "examples/effect_providers/evidence/validation-runs/ep06-central-20260722-v2/aggregate.json -- 36 unique fixed mutants, 48/48 scored executions killed",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "specs/tickets/EP-06/results/testgraph/effectProviderExamples-20260722-234720-abf456cf/report.md -- 37/37 exact replays, 3140/3140 cleanup checks, bounded bypass findings explicit",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/EP-06/results/testgraph/effectProviderExamples-20260722-234720-abf456cf/report.md -- all 70 generated real-boundary cases passed",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=pass (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Compared all three independent implementations. Shared append-only result validation and orchestration were factored at the repository level; concrete providers stayed local. No further safe reduction is justified before another correlated-state consumer and data-dependent mutation catalog exist.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "See results/validation-summary.md, results/agent-validation-summary.md, results/defect-resolution.md, and examples/effect_providers/POST_REPLACEMENT_RECOMMENDATIONS.md. The host model remained at 5,619,356 generated / 231,621 distinct / depth 25. The aggregate validation took 59.92s; the HTTP external tier dominated at about 32.7s.",
       "tlc_findings": [
         {
           "level": "NOTE",

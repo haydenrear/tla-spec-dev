@@ -1,5 +1,9 @@
 # Current Program Model
 
+(The effect-provider epic merged 2026-07-22 with zero host-model delta; its
+open-workflow record lives in
+`specs/.history/effect-provider-epic/open-state-at-merge/`.)
+
 This directory is the executable whole-program model of what the repository
 implements right now for the active ticket workflow.
 

@@ -1,0 +1,1096 @@
+examples/distributed_history/ecommerce_backend/domain.py:4:import sqlite3
+examples/distributed_history/ecommerce_backend/domain.py:14:    "outbox": [],
+examples/distributed_history/ecommerce_backend/domain.py:28:        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+examples/distributed_history/ecommerce_backend/domain.py:29:        self._conn.row_factory = sqlite3.Row
+examples/distributed_history/ecommerce_backend/domain.py:37:            self._conn.execute("create table if not exists accounts (account_id text primary key)")
+examples/distributed_history/ecommerce_backend/domain.py:38:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:41:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:44:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:45:                "create table if not exists outbox (order_id text primary key, event_name text not null)"
+examples/distributed_history/ecommerce_backend/domain.py:47:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:53:            for table in ("accounts", "cart_items", "orders", "outbox", "projections"):
+examples/distributed_history/ecommerce_backend/domain.py:54:                self._conn.execute(f"delete from {table}")
+examples/distributed_history/ecommerce_backend/domain.py:60:                self._conn.execute("insert into accounts(account_id) values (?)", (account_id,))
+examples/distributed_history/ecommerce_backend/domain.py:63:                    self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:68:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:77:            for event in state.get("outbox", []):
+examples/distributed_history/ecommerce_backend/domain.py:78:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:79:                    "insert into outbox(order_id, event_name) values (?, ?)",
+examples/distributed_history/ecommerce_backend/domain.py:83:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:90:            self._conn.execute("insert or ignore into accounts(account_id) values (?)", (account_id,))
+examples/distributed_history/ecommerce_backend/domain.py:99:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:108:        existing = self._conn.execute("select order_id from orders where order_id = ?", (order_id,)).fetchone()
+examples/distributed_history/ecommerce_backend/domain.py:116:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:120:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:121:                "insert into outbox(order_id, event_name) values (?, ?)",
+examples/distributed_history/ecommerce_backend/domain.py:127:        rows = self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:128:            "select order_id, event_name from outbox order by order_id limit ?",
+examples/distributed_history/ecommerce_backend/domain.py:133:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:137:                self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
+examples/distributed_history/ecommerce_backend/domain.py:141:        row = self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:142:            "select order_id, event_name from outbox where order_id = ?",
+examples/distributed_history/ecommerce_backend/domain.py:148:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:152:            self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
+examples/distributed_history/ecommerce_backend/domain.py:158:            for row in self._conn.execute("select account_id from accounts order by account_id").fetchall()
+examples/distributed_history/ecommerce_backend/domain.py:161:        for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:166:        for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:174:        outbox = [
+examples/distributed_history/ecommerce_backend/domain.py:176:            for row in self._conn.execute("select order_id, event_name from outbox order by order_id").fetchall()
+examples/distributed_history/ecommerce_backend/domain.py:180:            for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:188:            "outbox": outbox,
+examples/distributed_history/ecommerce_backend/domain.py:193:        return self._conn.execute("select 1 from accounts where account_id = ?", (account_id,)).fetchone() is not None
+examples/distributed_history/ecommerce_backend/domain.py:198:            for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/service.py:100:        if path == "/debug/state" and self.role == "queue":
+examples/distributed_history/ecommerce_backend/service.py:131:        if self.role == "queue":
+examples/distributed_history/ecommerce_backend/service.py:182:        if path == "/queue/enqueue":
+examples/distributed_history/ecommerce_backend/service.py:187:        if path == "/queue/drain":
+examples/distributed_history/ecommerce_backend/service.py:199:            self.queue_events[:] = list(state.get("outbox", []))
+examples/distributed_history/ecommerce_backend/service.py:223:                    "/queue/enqueue",
+examples/distributed_history/ecommerce_backend/service.py:232:            status, response_body = _request_json("POST", _queue_url(), "/queue/drain", body)
+examples/distributed_history/ecommerce_backend/service.py:316:    return os.environ.get("ECOMMERCE_QUEUE_URL", "http://queue-service")
+examples/distributed_history/ecommerce_backend/service.py:342:        "queue": _queue_url(),
+examples/distributed_history/scripts/k8s-deploy.sh:7:  queue-service
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:13:    "outbox": [],
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:21:    "outbox": [],
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:29:    "outbox": [],
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:43:    "outbox": [{"order_id": "order-1", "event": "OrderAccepted"}],
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:57:    "outbox": [],
+examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py:103:        tags=("checkout", "outbox"),
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:13:    "outbox": [],
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:21:    "outbox": [],
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:29:    "outbox": [],
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:43:    "outbox": [{"order_id": "order-1", "event": "OrderAccepted"}],
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:57:    "outbox": [],
+examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py:103:        tags=("checkout", "outbox", "smoke"),
+examples/distributed_history/specs/program_model/adapters.py:187:        "outbox": list(state.get("outbox", [])),
+examples/distributed_history/specs/program_model/tlc_projection.py:10:    outbox = [
+examples/distributed_history/specs/program_model/tlc_projection.py:12:        for order_id in sorted(str(item) for item in _as_list(state.get("outbox", [])))
+examples/distributed_history/specs/program_model/tlc_projection.py:23:        "outbox": outbox,
+examples/distributed_history/specs/program_model/tlc_projection.py:38:        return {"status": 200, "body": {"processed": len(projected_before.get("outbox", []))}}
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+examples/distributed_history/test_graph/sources/collect_evidence.py:34:    "queue": {
+examples/distributed_history/test_graph/sources/collect_evidence.py:35:        "/queue/enqueue": {202},
+examples/distributed_history/test_graph/sources/collect_evidence.py:36:        "/queue/drain": {200},
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:25:    "queue-service",
+examples/distributed_history/tests/test_ecommerce_backend.py:32:            "outbox": [],
+examples/effect_providers/atomic_publisher/conformance.py:46:        self.stage_path = str(root / "unicode space Ω" / ".record.stage")
+examples/effect_providers/atomic_publisher/conformance.py:86:        role = "stage" if command.path == self.stage_path else "final" if command.path == self.final_path else "other"
+examples/effect_providers/atomic_publisher/providers.py:46:        self.stage_path = str(self.root / ".record.stage")
+examples/effect_providers/atomic_publisher/providers.py:92:        label = "stage_write" if role == "stage" else "write_final"
+examples/effect_providers/atomic_publisher/providers.py:103:        label = "replace" if (source_role, target_role) == ("stage", "final") else "replace_reversed"
+examples/effect_providers/atomic_publisher/providers.py:245:                "stage_path": "stage",
+examples/effect_providers/atomic_publisher/providers.py:281:                [PermissionError(errno.EACCES, "modeled stage denied"), OSError(errno.ENOSPC, "modeled stage full")]
+examples/effect_providers/atomic_publisher/providers.py:301:            return "stage"
+examples/effect_providers/atomic_publisher/test_atomic_publisher.py:93:        with tempfile.TemporaryDirectory(prefix="atomic-stage-cleanup-test-") as raw_root:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:58:    session = requests.Session()
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:59:    session.trust_env = False
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:75:        prepared = session.prepare_request(request)
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:78:                response = session.send(prepared)
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:80:                response = session.send(prepared, timeout=REQUEST_TIMEOUT)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:105:                session: requests.Session,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:109:                return scope._send(session, request, **kwargs)
+examples/effect_providers/reminder_worker/adapter.py:19:        self.queue = context.effects["QueuePort"]
+examples/effect_providers/reminder_worker/adapter.py:20:        self.outbox = context.effects["OutboxPort"]
+examples/effect_providers/reminder_worker/adapter.py:30:        worker = ReminderWorker(self.clock, self.queue, self.outbox, self.notifier)
+examples/effect_providers/reminder_worker/app.py:45:        queue: QueuePort,
+examples/effect_providers/reminder_worker/app.py:46:        outbox: OutboxPort,
+examples/effect_providers/reminder_worker/app.py:50:        self.queue = queue
+examples/effect_providers/reminder_worker/app.py:51:        self.outbox = outbox
+examples/effect_providers/reminder_worker/app.py:55:        job = self.queue.claim(ClaimJob())
+examples/effect_providers/reminder_worker/app.py:64:            self.queue.release(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:67:        entry = self.outbox.lookup(LookupOutbox(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:77:            self.queue.acknowledge(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:80:        stage = StageMessage(
+examples/effect_providers/reminder_worker/app.py:94:            self.outbox.stage(stage)
+examples/effect_providers/reminder_worker/app.py:97:            self.outbox.mark_sent(MarkSent(job_id=job.job_id, receipt="premature"))
+examples/effect_providers/reminder_worker/app.py:98:            self.queue.acknowledge(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:103:                self.outbox.stage(stage)
+examples/effect_providers/reminder_worker/app.py:106:                self.queue.acknowledge(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:108:                self.queue.release(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:112:                self.queue.release(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:114:            self.queue.dead_letter(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/app.py:119:            self.outbox.mark_sent(MarkSent(job_id=job.job_id, receipt=stored_receipt))
+examples/effect_providers/reminder_worker/app.py:120:            self.queue.acknowledge(QueueMutation(job_id=job.job_id))
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:33:        return 'claim'
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:35:        return 'dead_letter'
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:37:        return 'lookup'
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:39:        return 'stage'
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:41:        return 'mark_sent'
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:25:    def claim(self, command: ClaimJob) -> object:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:27:            "No v0 fake template configured for claim"
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:30:    def dead_letter(self, command: QueueMutation) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:32:            "No v0 fake template configured for dead_letter"
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:35:    def lookup(self, command: LookupOutbox) -> object:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:37:            "No v0 fake template configured for lookup"
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:40:    def stage(self, command: StageMessage) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:42:            "No v0 fake template configured for stage"
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:45:    def mark_sent(self, command: MarkSent) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:47:            "No v0 fake template configured for mark_sent"
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:23:    def claim(self, command: ClaimJob) -> object:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:26:    def acknowledge(self, command: QueueMutation) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:29:    def release(self, command: QueueMutation) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:32:    def dead_letter(self, command: QueueMutation) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:38:    def lookup(self, command: LookupOutbox) -> object:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:41:    def stage(self, command: StageMessage) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:44:    def mark_sent(self, command: MarkSent) -> None:
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:56:    raise NotImplementedError("No transition template configured for claim")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:65:    raise NotImplementedError("No transition template configured for dead_letter")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:74:    raise NotImplementedError("No transition template configured for lookup")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:83:    raise NotImplementedError("No transition template configured for stage")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:92:    raise NotImplementedError("No transition template configured for mark_sent")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:106:    'ClaimJob': 'claim',
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:107:    'QueueMutation': 'dead_letter',
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:108:    'LookupOutbox': 'lookup',
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:109:    'StageMessage': 'stage',
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:110:    'MarkSent': 'mark_sent',
+examples/effect_providers/reminder_worker/providers.py:116:            stage, send = position("outbox.stage"), position("notifier.send")
+examples/effect_providers/reminder_worker/providers.py:117:            if stage < 0 or send < 0 or stage > send:
+examples/effect_providers/reminder_worker/providers.py:118:                raise DetectorFailure("shared_journal", f"stage must precede send: {self.journal!r}")
+examples/effect_providers/reminder_worker/providers.py:122:                position("outbox.mark_sent"),
+examples/effect_providers/reminder_worker/providers.py:123:                position("queue.ack"),
+examples/effect_providers/reminder_worker/providers.py:234:    def claim(self, _command: Any) -> Job | None:
+examples/effect_providers/reminder_worker/providers.py:235:        self.state.event("queue.claim")
+examples/effect_providers/reminder_worker/providers.py:243:            raise DetectorFailure("provider_local_assertion", "queue job id mismatch")
+examples/effect_providers/reminder_worker/providers.py:245:    def acknowledge(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/providers.py:247:        self.state.event("queue.ack")
+examples/effect_providers/reminder_worker/providers.py:250:    def release(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/providers.py:252:        self.state.event("queue.release")
+examples/effect_providers/reminder_worker/providers.py:255:    def dead_letter(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/providers.py:257:        self.state.event("queue.dead_letter")
+examples/effect_providers/reminder_worker/providers.py:265:    def lookup(self, command: Any) -> Entry | None:
+examples/effect_providers/reminder_worker/providers.py:267:            raise DetectorFailure("provider_local_assertion", "outbox lookup id mismatch")
+examples/effect_providers/reminder_worker/providers.py:268:        self.state.event("outbox.lookup")
+examples/effect_providers/reminder_worker/providers.py:273:    def stage(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/providers.py:279:        self.state.event("outbox.stage")
+examples/effect_providers/reminder_worker/providers.py:282:    def mark_sent(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/providers.py:285:        self.state.event("outbox.mark_sent")
+examples/effect_providers/reminder_worker/reminder_cli.py:2:"""Small process boundary backed by file-persisted queue and outbox state."""
+examples/effect_providers/reminder_worker/reminder_cli.py:34:        queue = "empty" if scenario == "empty" else "ready"
+examples/effect_providers/reminder_worker/reminder_cli.py:35:        outbox = "sent" if scenario == "duplicate" else "pending" if scenario == "pending" else "none"
+examples/effect_providers/reminder_worker/reminder_cli.py:39:            "queue": queue,
+examples/effect_providers/reminder_worker/reminder_cli.py:40:            "outbox": outbox,
+examples/effect_providers/reminder_worker/reminder_cli.py:72:    def claim(self, _command: Any) -> Job | None:
+examples/effect_providers/reminder_worker/reminder_cli.py:73:        self.state.event("queue.claim")
+examples/effect_providers/reminder_worker/reminder_cli.py:74:        if self.state.value["queue"] == "empty":
+examples/effect_providers/reminder_worker/reminder_cli.py:76:        self.state.value["queue"] = "claimed"
+examples/effect_providers/reminder_worker/reminder_cli.py:82:            raise AssertionError("queue command used the wrong job id")
+examples/effect_providers/reminder_worker/reminder_cli.py:84:        self.state.value["queue"] = value
+examples/effect_providers/reminder_worker/reminder_cli.py:87:    def acknowledge(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/reminder_cli.py:88:        self._mutate(command, "queue.ack", "acked")
+examples/effect_providers/reminder_worker/reminder_cli.py:90:    def release(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/reminder_cli.py:91:        self._mutate(command, "queue.release", "ready")
+examples/effect_providers/reminder_worker/reminder_cli.py:93:    def dead_letter(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/reminder_cli.py:94:        self._mutate(command, "queue.dead_letter", "dead")
+examples/effect_providers/reminder_worker/reminder_cli.py:102:    def lookup(self, command: Any) -> Entry | None:
+examples/effect_providers/reminder_worker/reminder_cli.py:104:            raise AssertionError("outbox lookup used the wrong job id")
+examples/effect_providers/reminder_worker/reminder_cli.py:105:        self.state.event("outbox.lookup")
+examples/effect_providers/reminder_worker/reminder_cli.py:106:        if self.state.value["outbox"] == "none":
+examples/effect_providers/reminder_worker/reminder_cli.py:109:            sent=self.state.value["outbox"] == "sent",
+examples/effect_providers/reminder_worker/reminder_cli.py:113:    def stage(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/reminder_cli.py:118:        self.state.event("outbox.stage")
+examples/effect_providers/reminder_worker/reminder_cli.py:119:        self.state.value["outbox"] = "pending"
+examples/effect_providers/reminder_worker/reminder_cli.py:122:    def mark_sent(self, command: Any) -> None:
+examples/effect_providers/reminder_worker/reminder_cli.py:125:        self.state.event("outbox.mark_sent")
+examples/effect_providers/reminder_worker/reminder_cli.py:126:        self.state.value["outbox"] = "sent"
+examples/effect_providers/reminder_worker/reminder_cli.py:153:    if state.value["outbox"] == "sent":
+examples/effect_providers/reminder_worker/reminder_cli.py:157:        "queueState": state.value["queue"],
+examples/effect_providers/reminder_worker/reminder_cli.py:158:        "outboxState": state.value["outbox"],
+examples/effect_providers/reminder_worker/run_experiment.py:705:                "provider hard-codes stage before send and send before mark/ack ordering",
+examples/effect_providers/reminder_worker/run_experiment.py:713:                "provider snapshot manually projects concrete queue/outbox/receipt state into six TLA fields",
+examples/effect_providers/reminder_worker/test_reminder_worker.py:30:            "queue.acknowledge": (
+examples/effect_providers/reminder_worker/test_reminder_worker.py:31:                inspect.signature(QueuePort.acknowledge),
+scripts/analyze_complexity.py:1351:            "explicit commit points, explicit protocol state"
+scripts/effect_conformance.py:287:    * ``covered_types`` is a positive claim -- the observer watched those axes and
+scripts/effect_conformance.py:816:    observer does not claim them: :attr:`covered_types` is exactly
+scripts/generate_cases_from_tlc_dump.py:255:    cursor = index - 1
+scripts/generate_cases_from_tlc_dump.py:256:    while cursor >= 0 and value[cursor] == "\\":
+scripts/generate_cases_from_tlc_dump.py:258:        cursor -= 1
+scripts/kill_test.py:601:    therefore execute OUTSIDE the effect sandbox; run it inside and the two
+scripts/new_ticket_workflow.py:716:# process, queue, database, file, API, model, permission, or UI boundaries can
+scripts/onboard_program_model.py:130:VARIABLES owners, records, outbox, projections, lastInternalAction
+scripts/onboard_program_model.py:132:InternalVars == <<owners, records, outbox, projections, lastInternalAction>>
+scripts/onboard_program_model.py:137:  /\\ outbox = {}
+scripts/onboard_program_model.py:148:  /\\ UNCHANGED <<records, outbox, projections>>
+scripts/onboard_program_model.py:159:  /\\ outbox' = outbox \\cup {r}
+scripts/onboard_program_model.py:167:  /\\ r \\in outbox
+scripts/onboard_program_model.py:169:  /\\ outbox' = outbox \\ {r}
+scripts/onboard_program_model.py:181:  /\\ outbox \\subseteq Records
+scripts/onboard_program_model.py:182:  /\\ \\A r \\in outbox : records[r].status = "accepted"
+scripts/onboard_program_model.py:297:  /\\ outbox # {}
+scripts/onboard_program_model.py:298:  /\\ projections' = [r \\in Records |-> IF r \\in outbox THEN "published" ELSE projections[r]]
+scripts/onboard_program_model.py:299:  /\\ outbox' = {}
+scripts/onboard_program_model.py:301:  /\\ lastInternalAction' = [name |-> "PublishAllOutbox", params |-> [records |-> outbox]]
+scripts/onboard_program_model.py:303:  /\\ MarkExternal("RunPublishWorker", [client |-> c, pending |-> Cardinality(outbox)])
+scripts/onboard_program_model.py:310:  /\\ outbox = {}
+scripts/onboard_program_model.py:525:#   channel             -> HOW the program is driven: http/cli/fs/queue/k8s
+scripts/onboard_program_model.py:989:      outbox:
+scripts/onboard_program_model.py:991:        tla: outbox
+scripts/onboard_program_model.py:1275:execute them, so this repository's public surface will NOT be validated.
+scripts/run_generated_case_adapters.py:70:    #: MF-015: the external channel this binding drives (http/cli/fs/queue/k8s).
+scripts/run_generated_case_adapters.py:320:            f"case {getattr(case, 'name', '<unnamed>')} has no string input.action for semantic effect lookup"
+scripts/run_generated_case_adapters.py:348:    stage: str,
+scripts/run_generated_case_adapters.py:360:            f"{stage} mutated generated case semantic field(s) {', '.join(changed)}; "
+scripts/run_generated_case_adapters.py:675:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/run_generated_case_adapters.py:1139:            stage=f"provider {binding.provider_reference!r} binding",
+scripts/run_generated_case_adapters.py:1297:    # Semantic action lookup belongs exclusively to a configured provider
+scripts/run_generated_case_adapters.py:1616:                        # observation and release them after it. The application
+scripts/run_generated_case_adapters.py:1635:                                        stage=f"provider {binding.provider_reference!r} enter",
+scripts/run_generated_case_adapters.py:1659:                                            stage=f"adapter {mapping.label} setup",
+scripts/run_generated_case_adapters.py:1666:                                            stage=f"adapter {mapping.label} execution",
+scripts/run_generated_case_adapters.py:1679:                                        stage=f"adapter {mapping.label} assertion",
+scripts/run_generated_case_adapters.py:1695:                                                stage=f"adapter {mapping.label} teardown",
+scripts/run_generated_case_adapters.py:1713:                            stage="semantic provider lifecycle",
+scripts/scaffold_spec.py:346:#   channel             -> HOW the program is driven: http/cli/fs/queue/k8s
+scripts/spec_evolution.py:109:        return {"inside_work_tree": inside, "branch": None, "commit": None}
+scripts/spec_evolution.py:113:        "commit": git_value("rev-parse", "--short", "HEAD"),
+scripts/spec_evolution.py:241:    git_commit_command = f"git commit -m {message!r}"
+scripts/spec_evolution.py:244:        recommendation=f"It is recommended to commit this history directory now: {rel(entry_dir)}",
+scripts/spec_evolution.py:274:            "Review this append-only entry, then commit the history directory with the related spec changes.\n",
+scripts/spec_evolution.py:748:    # MF-019: the ledger is written by this close, so it belongs in the commit
+scripts/testgraph_channels.py:7:because nothing verified the claim. This module verifies it.
+scripts/testgraph_channels.py:12:   http/cli/fs/queue/k8s. Absence fails. There is no default channel and no
+scripts/testgraph_channels.py:54:BASE_CHANNELS = frozenset({"http", "cli", "fs", "queue", "k8s"})
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-000-EP-01/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-000-EP-01/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-001-EP-02/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-001-EP-02/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-002-EP-03/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/effect-provider-epic/ticket-002-EP-03/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/results/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-000-MF-012/ticket/results/graph-reports/specWorkflow-20260718-153853-c3144c6b/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/prefix_shim.py:69:def pytest_collection_modifyitems(session, config, items):  # noqa: ARG001
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-002-MF-021/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-003-MF-011/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/snapshots/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/desired/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-005-MF-014/ticket/results/graph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report-post-promotion/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/snapshots/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/snapshots/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/desired/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/desired/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-006-MF-013/ticket/results/specWorkflow-report/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/snapshots/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/desired/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-007-MF-025/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/snapshots/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/current/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/desired/production_adapters.py:888:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-008-MF-015/ticket/results/testgraph-specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-017/ticket/results/graph-reports/specWorkflow-20260718-213733-cd7fff06/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/snapshots/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/snapshots/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/desired/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/desired/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-009-MF-027/ticket/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/snapshots/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/snapshots/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/current/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/current/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/desired/production_adapters.py:889:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/desired/production_adapters.py:983:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-010-MF-016/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/current/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/current/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/current/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/current/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/desired/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/desired/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:127:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:133:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/current/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/current/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/current/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/current/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/desired/production_adapters.py:947:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/desired/production_adapters.py:1041:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:127:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:133:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/.history/modular-fuzzing-epic/ticket-013-MF-026/ticket/results/testgraph/specWorkflow/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/desired/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/desired/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-014-MF-028/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/snapshots/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/snapshots/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/desired/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/desired/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-015-MF-029/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/current/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/current/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/desired/production_adapters.py:1391:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/desired/production_adapters.py:1485:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:83:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:383:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:397:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:398:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:400:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:402:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:412:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:414:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:417:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:509:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:511:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:529:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:1687:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/production_adapters.py:1781:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:83:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:383:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:397:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:398:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:400:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:402:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:412:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:414:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:417:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:509:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:511:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:529:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:1687:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/production_adapters.py:1781:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:83:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:383:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:397:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:398:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:400:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:402:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:412:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:414:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:417:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:509:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:511:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:529:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:1687:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/production_adapters.py:1781:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/results/closeticket_collision.py:43:print(f"  * {len(classes)} classes claim the CloseTicket transition; only 1 can bind.")
+specs/.history/modular-fuzzing-epic/ticket-017-MF-031/ticket/results/measure_coverage.py:4:Buckets every generated case by the ticket-lifecycle stage of its BEFORE-state
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:7:    any ticket at stage >= 4 (SpecUnitTestsPassed/Closed) cannot be built,
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:75:print(f"  {materializable:7d}  {pct(materializable)}  before-state stage <= 3 (materializable)")
+specs/.history/modular-fuzzing-epic/ticket-018-MF-032/ticket/results/measure_executability.py:76:print(f"  {total-materializable:7d}  {pct(total-materializable)}  before-state stage >= 4 (needs gate machinery / MF-023)\n")
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-019-MF-033/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current/production_adapters.py:1396:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current/production_adapters.py:1490:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/current/production_adapters.py:1396:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/current/production_adapters.py:1490:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/desired/production_adapters.py:1396:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/desired/production_adapters.py:1490:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-022-MF-036/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/snapshots/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/.history/modular-fuzzing-epic/ticket-024-MF-023/ticket/desired/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/current/adapter_case_runtime.py:105:# back to recover the lifecycle stage from the filesystem, exactly as
+specs/current/adapter_case_runtime.py:405:    segment this adapter deliberately does not claim. Refusing is honest; a
+specs/current/adapter_case_runtime.py:419:        stage = int(ticket_state[ticket])
+specs/current/adapter_case_runtime.py:420:        if stage <= TICKET_UNOPENED:
+specs/current/adapter_case_runtime.py:422:        if stage >= TICKET_SPEC_UNIT_PASSED:
+specs/current/adapter_case_runtime.py:424:                f"ticket {ticket!r} before-state ticket_state={stage} is at or beyond "
+specs/current/adapter_case_runtime.py:434:                f"open ticket {ticket} (to reach ticket_state={stage}) failed: {opened.stderr[-600:]}"
+specs/current/adapter_case_runtime.py:436:        if stage >= TICKET_DESIRED_READY:
+specs/current/adapter_case_runtime.py:439:        if stage >= TICKET_CURRENT_READY:
+specs/current/production_adapters.py:77:    #: The ticket_state stage this action requires in the before-state.
+specs/current/production_adapters.py:79:    #: The stage the transition advances the recovered ticket to.
+specs/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/current/production_adapters.py:1467:    central claim: over cap it REPORTS AND REFUSES, and the corpus is exactly
+specs/current/production_adapters.py:1561:    model's central claim: an undeclared observed effect FAILS, and NOTHING
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:187:    # except-index recovery succeeds and the stage guard is what rejects it.
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:3:Each test asserts ONE claim the TLA+ model makes about `RunKillTest` and the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:101:    // ---- PATH lookup --------------------------------------------------
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:54:     * (start a server, write a pidfile, claim a port) and would leave
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:57:        (start a server, claim a port, cache a token) and would leave
+test_graph/sources/effect_provider_examples.py:132:        reminder_methods["QueuePort"]["methods"]["acknowledge"],
+test_graph/sources/effect_provider_examples.py:133:        reminder_methods["QueuePort"]["methods"]["release"],
+test_graph/sources/effect_provider_examples.py:134:        reminder_methods["QueuePort"]["methods"]["dead_letter"],
+test_graph/sources/effect_provider_examples.py:135:        reminder_methods["OutboxPort"]["methods"]["stage"],
+test_graph/sources/effect_provider_examples.py:136:        reminder_methods["OutboxPort"]["methods"]["mark_sent"],
+test_graph/sources/spec_workflow_close_ticket.py:127:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+test_graph/sources/spec_workflow_close_ticket.py:133:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+test_graph/sources/spec_workflow_complete_ticket.py:34:  /\\ UNCHANGED <<owners, records, outbox, projections>>
+test_graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+test_graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+test_graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+tests/corpus_fixtures.py:38:  queue elements -> **unconstrained ordering**.
+tests/corpus_fixtures.py:157:    """The same pending queue, in every order TLC could reach it in.
+tests/test_analyze_complexity.py:612:        "3664 states generated, 919 distinct states found, 0 states left on queue.\n"
+tests/test_effect_conformance.py:697:                {"justification": "JVM adapters are audited manually every release"}
+tests/test_kill_test.py:9:is an empirical claim and only a real run can make it; see
+tests/test_promotion_preserves_current.py:178:        "promotion must therefore never claim authority to delete it"
+tests/test_skill_feedback.py:3:The load-bearing claim of this ticket is not "a file appears". It is that the

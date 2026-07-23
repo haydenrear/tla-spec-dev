@@ -18,6 +18,8 @@ BASELINE_FILES = [
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -77,6 +79,34 @@ def test_scaffold_spec_wires_both_adapter_mappings(tmp_path: Path) -> None:
         "class ProjectedStateAssertion",
     ):
         assert symbol in adapters
+
+
+def test_scaffold_spec_exposes_semantic_effect_schema_without_declaring_fake_effects(tmp_path: Path) -> None:
+    target = scaffold("request-flow", tmp_path, parse_views("internal,external"))
+
+    actions = (target / "actions.yml").read_text(encoding="utf-8")
+    assert "effect_ports: typed semantic ports" in actions
+    assert actions.count("effect_ports: []") == 6
+
+    mapping = (target / "case_adapters.toml").read_text(encoding="utf-8")
+    assert "[effect_providers.ExampleEffectPort]" in mapping
+    assert 'provider = "providers:effect_provider"' in mapping
+
+    providers = (target / "providers.py").read_text(encoding="utf-8")
+    assert "class ProjectEffectProvider" in providers
+    assert "def bind(" in providers
+    assert "temporary_root_provider" not in providers
+    assert "context_provider" not in providers
+    assert "SCAFFOLD:" in providers
+
+    usage = (target / "effect_provider_usage.yaml").read_text(encoding="utf-8")
+    assert "version: 1" in usage
+    assert "providers: []" in usage
+    assert "binding_style:" in usage
+
+    manifest = (target / "spec_manifest.yaml").read_text(encoding="utf-8")
+    assert "role: application" in manifest
+    assert "role: effect" not in manifest
 
 
 def test_scaffold_spec_view_modules_record_last_actions(tmp_path: Path) -> None:

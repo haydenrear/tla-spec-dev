@@ -1,0 +1,69 @@
+version: 1
+providers:
+  - port: ClockPort
+    provider: providers:clock_provider
+    binding_style: explicit_injection
+    state_scope: shared_execution_point_bundle_and_journal
+    fuzz_dimensions:
+      - correlated_now_timestamp
+      - due_boundary_offset
+    assertions:
+      - generated_output_and_projected_state
+      - exactly_one_clock_read
+      - shared_cross_port_journal_order
+      - deterministic_replay_transcript
+    cleanup: reverse_context_manager_exit_removes_shared_registry_after_fourth_binding
+    bypass_limits:
+      - direct_datetime_access_is_not_intercepted
+      - process_and_thread_globals_are_outside_point_isolation
+  - port: QueuePort
+    provider: providers:queue_provider
+    binding_style: explicit_injection
+    state_scope: shared_execution_point_bundle_and_journal
+    fuzz_dimensions:
+      - correlated_unicode_job_identifier
+      - modeled_empty_ready_acknowledged_and_dead_queue_states
+    assertions:
+      - generated_output_and_projected_state
+      - queue_command_job_identity
+      - acknowledge_release_and_dead_letter_cardinality
+      - shared_cross_port_journal_order
+    cleanup: reverse_context_manager_exit_removes_shared_registry_after_fourth_binding
+    bypass_limits:
+      - direct_queue_clients_and_external_brokers_are_not_intercepted
+      - provider_state_is_an_in_memory_semantic_double_not_a_real_broker
+  - port: OutboxPort
+    provider: providers:outbox_provider
+    binding_style: explicit_injection
+    state_scope: shared_execution_point_bundle_and_journal
+    fuzz_dimensions:
+      - correlated_unicode_message_fields
+      - none_pending_and_sent_prestate
+      - deterministic_opaque_receipt
+    assertions:
+      - generated_output_and_projected_state
+      - exact_staged_job_recipient_body_and_idempotency_key
+      - exact_mark_sent_job_and_receipt_projection
+      - stage_before_send_and_send_before_mark_sent
+    cleanup: reverse_context_manager_exit_removes_shared_registry_after_fourth_binding
+    bypass_limits:
+      - direct_database_or_filesystem_outbox_writes_are_not_intercepted
+      - provider_projection_duplicates_six_terminal_tla_fields
+  - port: NotifierPort
+    provider: providers:notifier_provider
+    binding_style: explicit_injection
+    state_scope: shared_execution_point_bundle_and_journal
+    fuzz_dimensions:
+      - retryable_transport_or_throttle_exception_subclass
+      - permanent_address_or_policy_exception_subclass
+      - correlated_unicode_recipient_and_body
+      - deterministic_opaque_receipt
+    assertions:
+      - generated_output_and_projected_state
+      - exact_recipient_body_and_idempotency_key
+      - duplicate_send_rejected
+      - notification_cardinality_and_shared_journal_order
+    cleanup: reverse_context_manager_exit_removes_shared_registry_after_fourth_binding
+    bypass_limits:
+      - direct_network_calls_are_not_intercepted
+      - passive_socket_probe_is_separate_from_semantic_provider_binding

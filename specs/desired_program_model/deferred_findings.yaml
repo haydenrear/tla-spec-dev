@@ -1,200 +1,294 @@
+# Live backlog of complexity-descriptor-main-readiness. The DEF-* entries at
+# the end are the effect-provider epic's findings (all resolved via EP-05),
+# carried at merge 2026-07-22 as the paper trail for the constrained-parser
+# (DEF-002) integration work.
 findings:
-  - id: CD-05-DF-01
-    found_by: "ticket-agent-CD-05"
-    found_at_commit: "42134f4"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: ["scripts/analyze_complexity.py"]
-      tla: []
-      adapters: []
-      test_graph: []
-    summary: >-
-      _set_size counts set-literal elements by splitting on EVERY comma and
-      checks the `{...}` literal regex before the `\cup` union split, so two
-      shapes produce silently WRONG cardinalities (not explicit UNKNOWNs):
-      (a) a union of set literals `{"a"} \cup {"b", "c"}` fullmatches the
-      greedy literal regex and comma-counts to 2 instead of 3; (b) tuple or
-      record elements inside a literal, e.g. `{<<1,2>>, <<3,4>>}`, count the
-      inner commas and yield 4 instead of 2. Pre-existing (not introduced by
-      CD-05); operator expansion now reaches _set_size on more inputs, so the
-      shapes are easier to hit.
-    reproduction: >-
-      python3 -c "from scripts.analyze_complexity import _set_size;
-      print(_set_size('{\"a\"} \\cup {\"b\", \"c\"}', {}),
-      _set_size('{<<1,2>>, <<3,4>>}', {}))"  -> 2 4 (expected 3 2).
-    evidence: []
-    why_out_of_scope: >-
-      CD-05's assigned scope is VAL-06/VAL-16/VAL-17 (operator-defined sets,
-      wrapped conjuncts, multi-view invariant naming). This is a distinct
-      literal-parsing defect requiring a bracket/brace-aware tokenizer; fixing
-      it here would silently broaden the ticket.
-    suggested_fix: >-
-      Check the union split before the literal fullmatch (or make the literal
-      regex non-greedy across `\cup`), and count literal elements with a
-      depth-aware comma split that ignores commas inside <<>>, [], (), {}.
-    blast_radius: >-
-      Dimension cardinalities and the state-space bound on models whose
-      domains use literal unions or tuple/record literal elements -- a wrong
-      bound, not an UNKNOWN, so it evades the F3 honesty path.
-    disposition: pending
-    disposition_ticket: null
-  - id: MR-DF-01
-    found_by: "epic-owner-scaffold-verification"
-    found_at_commit: "2880756"
-    schedule_revision: 1
-    severity: major
-    surface:
-      production: ["scripts/new_ticket_workflow.py"]
-      tla: []
-      adapters: []
-      test_graph: []
-    summary: >-
-      `scaffold workflow` regenerates current/desired spec_manifest.yaml from
-      a bare template instead of carrying the accepted program_model
-      manifest: the effects/ports block, negotiated budgets rationale,
-      justification table, and schema comments are silently dropped. Four
-      repo tests fail immediately (kill-test boundary counts 22->13,
-      effect-declaration well-formedness).
-    reproduction: >-
-      `python3 scripts/tla_spec_dev.py --spec-root specs scaffold workflow
-      <id> "<title>"` after a closed workflow; diff
-      specs/current/spec_manifest.yaml against
-      specs/program_model/spec_manifest.yaml; run pytest tests -q.
-    evidence: []
-    why_out_of_scope: "Owner-corrected by hand in the scaffold commit lineage to unblock the batch; the scaffolder fix itself is future work."
-    suggested_fix: >-
-      scaffold workflow should seed current/desired manifests from the
-      accepted program_model manifest (fresh status header only), not from
-      the bare template.
-    blast_radius: "Every future workflow scaffold on an onboarded project."
-    disposition: pending
-    disposition_ticket: null
-  - id: CD04-DF-1
-    found_by: "CD-04-suggestion-sweep"
-    found_at_commit: "48f3ff6"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: []
-      tla: []
-      adapters:
-        - "specs/program_model/production_adapters.py"
-        - "specs/program_model/tests/test_tla_spec_dev_corpus_adapter.py"
-        - "specs/desired_program_model/production_adapters.py"
-        - "specs/desired_program_model/tests/test_tla_spec_dev_corpus_adapter.py"
-      test_graph: []
-    summary: >-
-      The workflow-level model mirrors still carry the pre-CD-04 corpus-gate
-      assertion: AnalyzeCorpusAdapter asserts "RECOMMENDATION REQUIRING USER
-      APPROVAL -- not applied automatically." appears in over-cap stdout
-      (production_adapters.py ~1540) and the corpus adapter test still bears
-      the old recommendation name/docstring (~65). After CD-04 the CLI emits
-      the redesign-question form, so these mirror trees would fail if their
-      spec-unit tests were executed against the new CLI. They are not
-      executed by ticket validation (spec-unit runs specs/current +
-      specs/tickets/<id>/current; the specWorkflow graph runs against a
-      scaffolded fixture repo).
-    reproduction: >-
-      python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests
-      --target specs/program_model (or --target specs/desired_program_model)
-      after CD-04 merges; test_over_cap... corpus adapter check fails on the
-      absent banner.
-    evidence:
-      - "specs/tickets/CD-04/results/suggestion_sweep_inventory.md"
-    why_out_of_scope: >-
-      promotion_rule: only workflow finalization promotes the whole model;
-      ticket agents close exactly their own ticket and never run
-      close_tickets.py. CD-01 precedent (343b166) likewise left
-      program_model/desired_program_model to the finalization reconcile
-      (195b07d pattern).
-    suggested_fix: >-
-      Workflow finalization reconciles desired_program_model/program_model
-      adapters from the promoted specs/current, which already carries the
-      redesign-question form of the corpus adapter and its test.
-    blast_radius: "Only the workflow-level mirror trees; no reachable output, no ticket validation surface."
-    disposition: pending
-    disposition_ticket: null
-  - id: CD-08-DF-01
-    found_by: "CD-08 ticket agent"
-    found_at_commit: "fc59df1"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: ["examples/run_distributed_history_validation.py"]
-      tla: []
-      adapters: []
-      test_graph: []
-    summary: >-
-      The example validation wrapper's --mode local path still cannot pass
-      end to end: its validate_kill_test step strictly asserts verdict
-      "pass" while the recorded honest result for the pristine example is
-      0.571 (4/7) against kill_rate_floor 0.8 (three surviving mutants,
-      each with a true refinement pointer, documented in the docstring).
-      Additionally the docstring's claim that "--mode local cannot reach
-      this step today anyway" (blamed on a pre-pivot complexity-gate
-      refusal) is stale after CD-08: the regeneration path now completes,
-      so local-mode runs WILL reach and fail the kill test.
-    reproduction: >-
-      python3 examples/run_distributed_history_validation.py --mode local
-      on a machine with tlc2/docker prerequisites; the run reaches
-      validate_kill_test and exits at the strict verdict assertion.
-    evidence: ["specs/tickets/CD-08/results/example_end_to_end.txt"]
-    why_out_of_scope: >-
-      CD-08's assigned findings are VAL-08/09/10/11/14/18 (the documented
-      regeneration + adapter path, which now passes). Making the kill test
-      clear its floor is real modeling work on the example (refine
-      projections/ProjectOrder, orders/Checkout, responses/
-      SubmitCreateAccount), deliberately deferred by MF-016/MF-023, and
-      the epic's case_execution_rule excludes the kill test from ticket
-      validation. Softening the floor or the assertion would be the exact
-      degeneracy the kill test exists to prevent.
-    suggested_fix: >-
-      Either refine the example's internal model until the three recorded
-      survivors die (the MF-023-era deferred work), or have the wrapper
-      surface the recorded sub-floor result as an explicit known-result
-      gate with the refinement pointers, and refresh the stale docstring
-      sentence about local mode not reaching the step.
-    blast_radius: "Anyone following the README's local-mode wrapper instructions end to end; the documented adapter-path commands and the k3d graph path are unaffected."
-    disposition: pending
-    disposition_ticket: null
-  - id: CD-06-DF-01
-    found_by: "ticket-agent-CD-06"
-    found_at_commit: "1e147dc"
-    schedule_revision: 1
-    severity: minor
-    surface:
-      production: ["scripts/fitness_functions.py"]
-      tla: []
-      adapters: []
-      test_graph: []
-    summary: >-
-      The fitness fact-catalog description for action_count still reads
-      "number of actions (definitions priming a variable)"
-      (scripts/fitness_functions.py:54). After CD-06 the descriptor's action
-      set is the set of top-level next-state-relation disjuncts with
-      called-operator bodies expanded transitively; the computed VALUE is
-      correct (facts are derived from the corrected measured.actions
-      payload), but the human-readable description now states the retired
-      primes heuristic.
-    reproduction: >-
-      grep -n "definitions priming" scripts/fitness_functions.py -- the
-      description surfaces in references/fitness_functions.md-adjacent help
-      for rule authors.
-    evidence: []
-    why_out_of_scope: >-
-      scripts/fitness_functions.py is CD-07's conflict key
-      (production list in the canonical plan), not CD-06's; editing it here
-      would collide with the dispatched conflict-key contract. Wording-only:
-      no computed fact changes.
-    suggested_fix: >-
-      In CD-07's language sweep, reword to "number of actions (top-level
-      next-state-relation disjuncts; helpers attributed to their callers)".
-    blast_radius: "Rule authors reading the fact catalog; no numeric or behavioral effect."
-    disposition: resolved
-    disposition_ticket: CD-07
-    resolution: >-
-      Fixed by CD-07 (2026-07-22): scripts/fitness_functions.py FACT_DOCS and
-      the references/fitness_functions.md fact-catalog row now read "number of
-      actions (top-level next-state-relation disjuncts; helpers attributed to
-      their callers)".
+- id: CD-05-DF-01
+  found_by: ticket-agent-CD-05
+  found_at_commit: 42134f4
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '_set_size counts set-literal elements by splitting on EVERY comma and
+    checks the `{...}` literal regex before the `\cup` union split, so two shapes
+    produce silently WRONG cardinalities (not explicit UNKNOWNs): (a) a union of
+    set literals `{"a"} \cup {"b", "c"}` fullmatches the greedy literal regex and
+    comma-counts to 2 instead of 3; (b) tuple or record elements inside a literal,
+    e.g. `{<<1,2>>, <<3,4>>}`, count the inner commas and yield 4 instead of 2.
+    Pre-existing (not introduced by CD-05); operator expansion now reaches _set_size
+    on more inputs, so the shapes are easier to hit.'
+  reproduction: python3 -c "from scripts.analyze_complexity import _set_size; print(_set_size('{\"a\"}
+    \\cup {\"b\", \"c\"}', {}), _set_size('{<<1,2>>, <<3,4>>}', {}))"  -> 2 4 (expected
+    3 2).
+  evidence: []
+  why_out_of_scope: CD-05's assigned scope is VAL-06/VAL-16/VAL-17 (operator-defined
+    sets, wrapped conjuncts, multi-view invariant naming). This is a distinct literal-parsing
+    defect requiring a bracket/brace-aware tokenizer; fixing it here would silently
+    broaden the ticket.
+  suggested_fix: Check the union split before the literal fullmatch (or make the
+    literal regex non-greedy across `\cup`), and count literal elements with a depth-aware
+    comma split that ignores commas inside <<>>, [], (), {}.
+  blast_radius: Dimension cardinalities and the state-space bound on models whose
+    domains use literal unions or tuple/record literal elements -- a wrong bound,
+    not an UNKNOWN, so it evades the F3 honesty path.
+  disposition: pending
+  disposition_ticket: null
+- id: MR-DF-01
+  found_by: epic-owner-scaffold-verification
+  found_at_commit: '2880756'
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/new_ticket_workflow.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '`scaffold workflow` regenerates current/desired spec_manifest.yaml from
+    a bare template instead of carrying the accepted program_model manifest: the
+    effects/ports block, negotiated budgets rationale, justification table, and
+    schema comments are silently dropped. Four repo tests fail immediately (kill-test
+    boundary counts 22->13, effect-declaration well-formedness).'
+  reproduction: '`python3 scripts/tla_spec_dev.py --spec-root specs scaffold workflow
+    <id> "<title>"` after a closed workflow; diff specs/current/spec_manifest.yaml
+    against specs/program_model/spec_manifest.yaml; run pytest tests -q.'
+  evidence: []
+  why_out_of_scope: Owner-corrected by hand in the scaffold commit lineage to unblock
+    the batch; the scaffolder fix itself is future work.
+  suggested_fix: scaffold workflow should seed current/desired manifests from the
+    accepted program_model manifest (fresh status header only), not from the bare
+    template.
+  blast_radius: Every future workflow scaffold on an onboarded project.
+  disposition: pending
+  disposition_ticket: null
+- id: CD04-DF-1
+  found_by: CD-04-suggestion-sweep
+  found_at_commit: 48f3ff6
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production: []
+    tla: []
+    adapters:
+    - specs/program_model/production_adapters.py
+    - specs/program_model/tests/test_tla_spec_dev_corpus_adapter.py
+    - specs/desired_program_model/production_adapters.py
+    - specs/desired_program_model/tests/test_tla_spec_dev_corpus_adapter.py
+    test_graph: []
+  summary: 'The workflow-level model mirrors still carry the pre-CD-04 corpus-gate
+    assertion: AnalyzeCorpusAdapter asserts "RECOMMENDATION REQUIRING USER APPROVAL
+    -- not applied automatically." appears in over-cap stdout (production_adapters.py
+    ~1540) and the corpus adapter test still bears the old recommendation name/docstring
+    (~65). After CD-04 the CLI emits the redesign-question form, so these mirror
+    trees would fail if their spec-unit tests were executed against the new CLI.
+    They are not executed by ticket validation (spec-unit runs specs/current + specs/tickets/<id>/current;
+    the specWorkflow graph runs against a scaffolded fixture repo).'
+  reproduction: python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests
+    --target specs/program_model (or --target specs/desired_program_model) after
+    CD-04 merges; test_over_cap... corpus adapter check fails on the absent banner.
+  evidence:
+  - specs/tickets/CD-04/results/suggestion_sweep_inventory.md
+  why_out_of_scope: 'promotion_rule: only workflow finalization promotes the whole
+    model; ticket agents close exactly their own ticket and never run close_tickets.py.
+    CD-01 precedent (343b166) likewise left program_model/desired_program_model
+    to the finalization reconcile (195b07d pattern).'
+  suggested_fix: Workflow finalization reconciles desired_program_model/program_model
+    adapters from the promoted specs/current, which already carries the redesign-question
+    form of the corpus adapter and its test.
+  blast_radius: Only the workflow-level mirror trees; no reachable output, no ticket
+    validation surface.
+  disposition: pending
+  disposition_ticket: null
+- id: CD-08-DF-01
+  found_by: CD-08 ticket agent
+  found_at_commit: fc59df1
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - examples/run_distributed_history_validation.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The example validation wrapper''s --mode local path still cannot pass
+    end to end: its validate_kill_test step strictly asserts verdict "pass" while
+    the recorded honest result for the pristine example is 0.571 (4/7) against kill_rate_floor
+    0.8 (three surviving mutants, each with a true refinement pointer, documented
+    in the docstring). Additionally the docstring''s claim that "--mode local cannot
+    reach this step today anyway" (blamed on a pre-pivot complexity-gate refusal)
+    is stale after CD-08: the regeneration path now completes, so local-mode runs
+    WILL reach and fail the kill test.'
+  reproduction: python3 examples/run_distributed_history_validation.py --mode local
+    on a machine with tlc2/docker prerequisites; the run reaches validate_kill_test
+    and exits at the strict verdict assertion.
+  evidence:
+  - specs/tickets/CD-08/results/example_end_to_end.txt
+  why_out_of_scope: CD-08's assigned findings are VAL-08/09/10/11/14/18 (the documented
+    regeneration + adapter path, which now passes). Making the kill test clear its
+    floor is real modeling work on the example (refine projections/ProjectOrder,
+    orders/Checkout, responses/ SubmitCreateAccount), deliberately deferred by MF-016/MF-023,
+    and the epic's case_execution_rule excludes the kill test from ticket validation.
+    Softening the floor or the assertion would be the exact degeneracy the kill
+    test exists to prevent.
+  suggested_fix: Either refine the example's internal model until the three recorded
+    survivors die (the MF-023-era deferred work), or have the wrapper surface the
+    recorded sub-floor result as an explicit known-result gate with the refinement
+    pointers, and refresh the stale docstring sentence about local mode not reaching
+    the step.
+  blast_radius: Anyone following the README's local-mode wrapper instructions end
+    to end; the documented adapter-path commands and the k3d graph path are unaffected.
+  disposition: pending
+  disposition_ticket: null
+- id: CD-06-DF-01
+  found_by: ticket-agent-CD-06
+  found_at_commit: 1e147dc
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/fitness_functions.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: The fitness fact-catalog description for action_count still reads "number
+    of actions (definitions priming a variable)" (scripts/fitness_functions.py:54).
+    After CD-06 the descriptor's action set is the set of top-level next-state-relation
+    disjuncts with called-operator bodies expanded transitively; the computed VALUE
+    is correct (facts are derived from the corrected measured.actions payload),
+    but the human-readable description now states the retired primes heuristic.
+  reproduction: grep -n "definitions priming" scripts/fitness_functions.py -- the
+    description surfaces in references/fitness_functions.md-adjacent help for rule
+    authors.
+  evidence: []
+  why_out_of_scope: 'scripts/fitness_functions.py is CD-07''s conflict key (production
+    list in the canonical plan), not CD-06''s; editing it here would collide with
+    the dispatched conflict-key contract. Wording-only: no computed fact changes.'
+  suggested_fix: In CD-07's language sweep, reword to "number of actions (top-level
+    next-state-relation disjuncts; helpers attributed to their callers)".
+  blast_radius: Rule authors reading the fact catalog; no numeric or behavioral
+    effect.
+  disposition: resolved
+  disposition_ticket: CD-07
+  resolution: 'Fixed by CD-07 (2026-07-22): scripts/fitness_functions.py FACT_DOCS
+    and the references/fitness_functions.md fact-catalog row now read "number of
+    actions (top-level next-state-relation disjuncts; helpers attributed to their
+    callers)".'
+- id: DEF-001
+  found_by: EP-03
+  found_at_commit: 1ec5536
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/run_generated_case_adapters.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: Recorded effect replay resolves a virtualenv interpreter symlink and
+    can lose that environment's dependencies.
+  reproduction: '`/Users/hayde/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12
+    -c ''import requests; print(requests.__file__)''` exits 1 with `ModuleNotFoundError:
+    No module named ''requests''`. That is the resolved base interpreter written
+    into the HTTP replay command; expected replay to retain the originating project
+    virtualenv where requests is installed. The accepted campaign passes only because
+    it adds the virtualenv site-packages directory as an explicit import root; see
+    campaign_limitations.replay_environment in the evidence.'
+  evidence:
+  - examples/effect_providers/legacy_payment_http/evidence/reviewed-local-repetition-2.json
+  - examples/effect_providers/RESULTS.md
+  why_out_of_scope: Fixing replay construction touches the shared runner, while
+    EP-03's production conflict keys are limited to examples/effect_providers/,
+    test_graph/build.gradle.kts, and references/effect_providers.md.
+  suggested_fix: Preserve the virtualenv executable path without resolving its symlink
+    and add a dependency-bearing exact-replay regression.
+  blast_radius: Shared generated-case runner replay commands, CLI spec-unit wrappers,
+    and every project that records an effect-fuzz replay.
+  disposition: ticketed
+  disposition_ticket: EP-05
+  resolution:
+    status: fixed
+    issue: https://github.com/haydenrear/tla-spec-dev/issues/100
+    evidence: specs/tickets/EP-05/results/defect-resolution.md#def-001--replay-provenance
+- id: DEF-002
+  found_by: EP-03
+  found_at_commit: 076a28de29c4cc7e0382e2ab342eac680c2e0cd6
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/extract_spec_manifest.py
+    - scripts/generate_python.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: Generated Python contract semantics can silently depend on whether optional
+    PyYAML is installed.
+  reproduction: 'At commit `076a28d`, generate the reminder contract once with Xcode
+    Python 3.9 plus PyYAML 6.0 and once with Homebrew Python 3.14 using `-S`. The
+    PyYAML path emits `ClockPort.now(self, command: ReadClock) -> int`; the fallback
+    path treats the valid inline map `{command: ReadClock, result: int}` as a string
+    and emits `ClockPort.now(self) -> object`. Five generated files differ even
+    though the manifest is identical. The EP-03 project now expands its inline maps
+    and proves both paths reproduce one typed tree, but the shared parser remains
+    vulnerable for future valid manifests.'
+  evidence:
+  - specs/tickets/EP-03/results/generator-parser-dependency.md
+  - examples/effect_providers/reminder_worker/test_reminder_worker.py
+  why_out_of_scope: Fixing or removing the shared fallback changes framework production
+    files, while EP-03 is constrained to example projects, aggregate Test Graph
+    evidence, and documentation with zero framework-file changes.
+  suggested_fix: 'Make manifest semantics dependency-invariant: either support inline
+    maps in the constrained parser or require a pinned YAML parser and fail closed.
+    Add a parity regression that generates the same fixture through both parser
+    paths and compares the complete output tree.'
+  blast_radius: Every generated state type, command field, typed port method, fake,
+    validator, and contract test produced from a manifest syntax the fallback only
+    partially parses.
+  disposition: ticketed
+  disposition_ticket: EP-05
+  resolution:
+    status: fixed
+    issue: https://github.com/haydenrear/tla-spec-dev/issues/100
+    evidence: specs/tickets/EP-05/results/defect-resolution.md#def-002--manifest-parity
+- id: DEF-003
+  found_by: EP-03
+  found_at_commit: 076a28de29c4cc7e0382e2ab342eac680c2e0cd6
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/generate_python.py
+    - scripts/run_generated_case_adapters.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: Runtime-checkable generated Protocols verify method presence, not typed
+    effect signatures.
+  reproduction: Import the atomic `FilesystemPort`, define an object whose `read`,
+    `write`, `replace`, and `delete` methods accept only `self` and carry no annotations,
+    then evaluate `isinstance(object, FilesystemPort)`. It is `True` even though
+    every generated method requires a typed command and result. The existing runtime
+    preflight therefore proves shape by method name only, not command arity, annotations,
+    or return type.
+  evidence:
+  - specs/tickets/EP-03/results/runtime-protocol-conformance.md
+  - examples/effect_providers/atomic_publisher/test_atomic_publisher.py
+  why_out_of_scope: A generated signature-conformance checker or repository type-checking
+    rung changes shared generator/runtime behavior, outside EP-03's example and
+    evidence conflict keys.
+  suggested_fix: Generate an explicit signature/annotation conformance check and
+    add a static type-check validation rung. Document `runtime_checkable` as structural
+    method-presence validation only.
+  blast_radius: Every typed effect provider accepted solely through `isinstance`
+    against a generated runtime-checkable Protocol.
+  disposition: ticketed
+  disposition_ticket: EP-05
+  resolution:
+    status: fixed
+    issue: https://github.com/haydenrear/tla-spec-dev/issues/100
+    evidence: specs/tickets/EP-05/results/defect-resolution.md#def-003--generated-signature-conformance

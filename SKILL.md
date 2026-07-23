@@ -64,6 +64,13 @@ rule that does not hold on a scan FIRES as a notification to future agents —
 advisory, never blocking, and there are no built-in rules. See
 `references/fitness_functions.md`.
 
+**SHIPPED — the agent-authored effect-provider interface.** The framework
+generates repository-specific typed ports, resolves one project provider per
+declared port, scopes it around one generated case/iteration, supplies stable
+seeds, and emits exact replay evidence. The repository agent supplies every
+effect implementation. The framework does not ship domain providers. Read
+`references/effect_providers.md` before implementing or reviewing one.
+
 **EXPERIMENTAL — the modular-fuzzing machinery (oracles, corpus, mutation kill
 test).** The differential-fuzzing framing (TLA+ as oracle, generated cases,
 effect conformance, the mutation kill test as a value floor) is real
@@ -192,6 +199,23 @@ It defines the decomposition method (read/write matrix, port cuts, contract
 environments, interface model) — useful and shipped — and, clearly marked
 experimental, the per-program budgets, the four oracles including effect
 conformance and the mutation kill test, and the strict External content rule.
+Read `references/effect_providers.md` before implementing a project-owned
+effect provider or running a deterministic representative campaign. It defines
+the single `EffectProvider.bind(context)` interface, the TLA
+semantic-outcome/provider-representation boundary, provider lifecycle, usage
+descriptor, seed and exact-replay protocol, and current isolation limits.
+Implement the generated port in repository code; do not look for or add a
+framework-owned domain adapter. A provider must be an object whose `bind`
+returns a standard context manager. Record its binding style, state scope, fuzz
+dimensions, assertions, cleanup, and bypass limits in
+`effect_provider_usage.yaml`. The provider decides which deterministic
+representatives to enumerate from `context.derived_seed`; the harness schedules
+and replays them. Implement every entered binding method with the exact
+generated parameter shape and parameter/return annotations; runtime preflight
+rejects method-name-only lookalikes before adapter setup. Keep manifests within
+the dependency-invariant constrained YAML profile (use indented mappings, not
+inline mappings), and run recorded replay commands without replacing their
+originating virtualenv interpreter.
 For moving an existing repository onto this shape, read `references/migration.md`.
 
 ## Internal/External Test Graph Views
@@ -315,6 +339,10 @@ when it has:
 - [ ] `actions.yml` — per-action layer, controllability, and what it generates.
 - [ ] `adapters.py` — spec-unit adapters AND Test Graph adapters, projector,
       expected projection, and projected-state assertion.
+- [ ] `providers.py` — agent-authored implementations of generated effect
+      ports using the single `EffectProvider.bind(context)` interface.
+- [ ] `effect_provider_usage.yaml` — reviewable provider state scope, fuzz
+      dimensions, assertions, cleanup, and known bypass limits.
 - [ ] `case_adapters.toml` — internal action -> spec-unit adapter.
 - [ ] `testgraph_bindings.yml` — external action -> Test Graph adapter.
 - [ ] `tlc_projection.py` — TLC state -> generated-case shapes.
@@ -1099,6 +1127,9 @@ current change.
 - `references/modular_fuzzing.md`: modular pure-function/side-effect
   representations, decomposition method, budgets, oracles, corpus
   discipline, and the External content rule.
+- `references/effect_providers.md`: project-owned provider interfaces,
+  the domain-neutral agent contract, deterministic representative campaigns,
+  exact replay, usage evidence, and honest isolation/validation limits.
 - `references/coverage_audit.md`: the end-of-epic completeness gate — why
   the four oracles cannot see unmodeled surface, the required ordering
   (after mechanisms land, before final integration), and the gate semantics.

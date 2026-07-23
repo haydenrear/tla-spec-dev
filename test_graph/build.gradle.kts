@@ -20,4 +20,8 @@ validationGraph {
         node("sources/tla_spec_dev_cli_install.py")
         node("sources/tla_spec_dev_cli_help.py")
     }
+
+    testGraph("effectProviderExamples") {
+        node("sources/effect_provider_examples.py")
+    }
 }

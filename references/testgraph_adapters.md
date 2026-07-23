@@ -209,8 +209,12 @@ visible abstract fields, and compares them with the generated case's expected
 state. Each assertion writes a per-case evidence file:
 
 ```text
-test_graph/build/validation-reports/<run>/external-case-work/case-work/<case>/program-state.json
+test_graph/build/validation-reports/<run>/external-case-work/case-work/<opaque-case-key>/program-state.json
 ```
+
+The JSON payload carries the original case name. Work-directory components are
+stable opaque digests so generated names cannot traverse or alias the report
+root.
 
 The Test Graph evidence node aggregates these into:
 

@@ -1,0 +1,79 @@
+{
+  "artifacts": [
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/regeneration.log",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/generated-provenance.json",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/framework-baseline.json",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/experiment.log",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/experiment.json",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/real-filesystem.json",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/focused-tests.log",
+    "evidence/validation-runs/testgraph-1784764040160583000-atomic_publisher/steps.json"
+  ],
+  "cases": {
+    "control_points": 224,
+    "external": 7,
+    "generated": 14
+  },
+  "cleanup": {
+    "checked": 392,
+    "clean": 392
+  },
+  "command": [
+    "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/validate.py",
+    "--run-id",
+    "testgraph-1784764040160583000-atomic_publisher"
+  ],
+  "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+  "controls": {
+    "passed": 2,
+    "total": 2
+  },
+  "duration_seconds": 8.296547,
+  "limitations": [
+    "the passive bypass audit sees only in-process files under the provider-owned root",
+    "the adapter duplicates scenario-to-expected-revision input semantics absent from the generated case",
+    "representative enumeration is deterministic but not exhaustive and does not shrink failures",
+    "the real filesystem rung injects bounded OS failures; it does not induce every host failure mode"
+  ],
+  "mutants": {
+    "killed": 24,
+    "total": 24
+  },
+  "oracle_findings": {
+    "passive_external": [
+      "bounded physical-file bypass audit under the provider root",
+      "real TemporaryDirectory filesystem outcomes matched 7/7",
+      "external subprocess CLI projects result and filesystem artifacts independently"
+    ],
+    "provider_owned": [
+      "deterministic concrete paths, record values, unrelated files, and OSError subclasses",
+      "canonical byte projection and strict per-point protocol journal",
+      "point-local state acquisition, active-binding accounting, and cleanup"
+    ],
+    "tla_owned": [
+      "seven distinct semantic outcome classes",
+      "result status, revision, and idempotence",
+      "projected symbolic record state",
+      "ordered filesystem protocol trace including delete_stage"
+    ]
+  },
+  "project": "atomic_publisher",
+  "provider_contract": {
+    "name": "EffectProvider.bind",
+    "version": 1
+  },
+  "replay": {
+    "attempted": 12,
+    "exact": 12,
+    "interpreter": "/Users/hayde/.cache/uv/environments-v2/effect-provider-examples-beca9c4057751d18/bin/python3"
+  },
+  "run_id": "testgraph-1784764040160583000-atomic_publisher",
+  "schema_version": 1,
+  "seed": 20260721,
+  "status": "pass",
+  "usage_descriptor": {
+    "path": "effect_provider_usage.yaml",
+    "sha256": "b50138f57d42a60a02abdd497a523c5820afb490e4932d89d42ccd3d87d4012e"
+  }
+}

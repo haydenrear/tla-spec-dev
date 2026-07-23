@@ -1,0 +1,46 @@
+[
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/regenerate.py",
+      "--provenance-out",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/generated-provenance.json"
+    ],
+    "duration_seconds": 1.836934,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/regeneration.log",
+    "name": "regeneration",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/run_experiment.py",
+      "--skip-regenerate",
+      "--repetitions",
+      "2",
+      "--run-label",
+      "ep06-central-20260722-v2-atomic_publisher",
+      "--evidence",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/experiment.json",
+      "--framework-baseline",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/framework-baseline.json"
+    ],
+    "duration_seconds": 4.305534,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/experiment.log",
+    "name": "preregistered_experiment",
+    "returncode": 0,
+    "timeout_seconds": 600
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/test_atomic_publisher.py"
+    ],
+    "duration_seconds": 3.485493,
+    "log": "evidence/validation-runs/ep06-central-20260722-v2-atomic_publisher/focused-tests.log",
+    "name": "focused_tests",
+    "returncode": 0,
+    "timeout_seconds": 120
+  }
+]

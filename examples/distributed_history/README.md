@@ -149,10 +149,11 @@ The k3d scripts live in `scripts/` and the Kubernetes manifests live in
 `deploy/k8s/`.
 
 Each external case writes `program-state.json` under the Test Graph report's
-`external-case-work/case-work/<case>/` directory. The evidence node aggregates
-those files into `projected-program-states.json` and fails the graph if any
-expected program state differs from the projected cluster state. The
-`ecommerce.external_cases` envelope publishes the executed case names as
-`caseNames`, the generated trace names as `expectedCaseNames`, and the
-generated trace manifest path as `traceManifest` (case counts appear only as
-node metrics, not as envelope keys), so a fast run is still auditable.
+`external-case-work/case-work/<opaque-case-key>/` directory. The JSON payload,
+not the filesystem component, carries the original case name. The evidence
+node aggregates those files into `projected-program-states.json` and fails
+the graph if any expected program state differs from the projected cluster
+state. The `ecommerce.external_cases` envelope publishes the executed case
+names as `caseNames`, the generated trace names as `expectedCaseNames`, and
+the generated trace manifest path as `traceManifest` (case counts appear only
+as node metrics, not as envelope keys), so a fast run is still auditable.

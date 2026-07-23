@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Read and validate a Spec Double Compiler manifest.
 
-The parser intentionally supports a small YAML subset so the scripts can
-run in a bare Python environment. If PyYAML is installed, it is used.
+The parser intentionally supports one constrained YAML subset in every
+environment. Optional packages must not change the generated contract.
 """
 
 from __future__ import annotations
@@ -49,6 +49,11 @@ def _parse_scalar(value: str) -> Any:
         if not body:
             return []
         return [_parse_scalar(part.strip()) for part in body.split(",")]
+    if value.startswith("{") or value.endswith("}"):
+        raise ValueError(
+            "inline mappings are not supported in spec manifests; "
+            "use an indented mapping so parsing is dependency-invariant"
+        )
     return value
 
 
@@ -121,7 +126,7 @@ def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[d
         if index < len(rows) and rows[index][0] > row_indent:
             result[key], index = _parse_block(rows, index, rows[index][0])
         else:
-            result[key] = {}
+            result[key] = None
     return result, index
 
 
@@ -157,7 +162,7 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
                         value.update(child)
                 result.append(value)
                 continue
-            value: dict[str, Any] = {key: _parse_scalar(value_text) if value_text else {}}
+            value: dict[str, Any] = {key: _parse_scalar(value_text) if value_text else None}
             if index < len(rows) and rows[index][0] > row_indent:
                 child, index = _parse_block(rows, index, rows[index][0])
                 if not value_text:
@@ -207,15 +212,7 @@ def parse_simple_yaml(text: str) -> dict[str, Any]:
 
 
 def load_manifest(path: Path) -> dict[str, Any]:
-    text = path.read_text()
-    try:
-        import yaml  # type: ignore
-    except Exception:
-        return parse_simple_yaml(text)
-    loaded = yaml.safe_load(text)
-    if not isinstance(loaded, dict):
-        raise ValueError("manifest root must be a mapping")
-    return loaded
+    return parse_simple_yaml(path.read_text(encoding="utf-8"))
 
 
 # The accepted baseline spreads its semantics across three modules. Actions live

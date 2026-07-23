@@ -1,0 +1,11 @@
+Command (after EP-02 moved from specs/tickets into append-only history):
+uv run --with pytest --with pyyaml -m pytest tests -q
+
+Result:
+611 passed in 11.79s
+
+The pre-close run collected 615 tests. Closing the active ticket removes four
+non-history YAML inputs (current/desired manifests, ticket.yaml, and the ledger)
+from tests/test_spec_yaml_valid.py's dynamic parametrization; historical YAML is
+intentionally excluded. The four-test count reduction is therefore the expected
+ticket-close topology change, not a skip or failure.

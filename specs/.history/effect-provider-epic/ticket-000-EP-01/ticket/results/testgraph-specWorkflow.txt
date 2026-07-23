@@ -1,0 +1,43 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :specWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.11.29 (path: /opt/homebrew/bin/uv)
+testGraph 'specWorkflow' run=specWorkflow-20260722-022801-d6bb9143 steps=8
+  plan[1/8] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/8] spec.workflow.repo  [testbed, uv]  sources/spec_workflow_create_repo.py
+  plan[3/8] spec.workflow.start  [action, uv]  sources/spec_workflow_start_ticket.py
+  plan[4/8] spec.workflow.complete  [action, uv]  sources/spec_workflow_complete_ticket.py
+  plan[5/8] spec.workflow.spec_units  [assertion, uv]  sources/spec_workflow_spec_units.py
+  plan[6/8] spec.workflow.close  [assertion, uv]  sources/spec_workflow_close_ticket.py
+  plan[7/8] spec.workflow.failure_cleanup_probe  [assertion, uv]  sources/spec_workflow_failure_cleanup_probe.py
+  plan[8/8] spec.workflow.cleanup  [fixture, uv]  sources/spec_workflow_cleanup.py
+  [1/8] spec.cli.install (uv)
+  [2/8] spec.workflow.repo (uv)
+  [3/8] spec.workflow.start (uv)
+  [4/8] spec.workflow.complete (uv)
+  [5/8] spec.workflow.spec_units (uv)
+  [6/8] spec.workflow.close (uv)
+  [7/8] spec.workflow.failure_cleanup_probe (uv)
+  [8/8] spec.workflow.cleanup (uv)
+wrote /private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/test_graph/build/validation-reports/specWorkflow-20260722-022801-d6bb9143/summary.json + /private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/test_graph/build/validation-reports/specWorkflow-20260722-022801-d6bb9143/report.md
+testGraph 'specWorkflow' done. reports: /private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/test_graph/build/validation-reports/specWorkflow-20260722-022801-d6bb9143
+
+[Incubating] Problems report is available at: file:///private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 16s
+5 actionable tasks: 1 executed, 4 up-to-date

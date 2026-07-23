@@ -151,7 +151,10 @@ def _expected_case_names(manifest: Path) -> list[str]:
 
 
 def _executed_case_names(work_dir: Path) -> list[str]:
-    return sorted(path.parent.name for path in (work_dir / "case-work").glob("*/program-state.json"))
+    return sorted(
+        json.loads(path.read_text(encoding="utf-8"))["case"]
+        for path in (work_dir / "case-work").glob("*/program-state.json")
+    )
 
 
 if __name__ == "__main__":

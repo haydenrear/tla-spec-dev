@@ -9,7 +9,7 @@ instead, which creates ``specs/program_model`` as the accepted baseline.
 
 Both paths emit the SAME baseline shape, because there is only one accepted
 shape: Core.tla + Internal.tla/.cfg + External.tla/.cfg + actions.yml +
-adapters.py + case_adapters.toml + testgraph_bindings.yml. A single-module spec
+adapters.py + providers.py + case_adapters.toml + testgraph_bindings.yml. A single-module spec
 with no External view cannot generate Test Graph cases, so it can never be
 validated against its public surface. See references/testgraph_adapters.md.
 
@@ -241,40 +241,52 @@ ACTIONS_YML = """# Which view each action belongs to, and what it generates.
 #   layer: internal -> spec-unit cases  (case_adapters.toml)
 #   layer: external -> Test Graph cases (testgraph_bindings.yml)
 #   controllability: hidden -> generates nothing.
+#   effect_ports: typed semantic ports required while this case executes.
 actions:
   Create:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   CreateRejected:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   Submit:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitRejected:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicate:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   HiddenInternalProgress:
     layer: internal
     controllability: hidden
     generates: []
+    effect_ports: []
 """
 
 CASE_ADAPTERS_TOML = """# SPEC-UNIT ADAPTERS (internal view).
 # Every Internal.tla action with `generates: [spec_unit]` needs an entry.
+# Semantic effects are separate from passive `effects:` observation. For each
+# manifest port with `role: effect` named by an action's `effect_ports`, add:
+#
+# [effect_providers.ExampleEffectPort]
+# provider = "providers:effect_provider"
 
 [adapters.Create]
 adapter = "adapters:CreateInternalAdapter"
@@ -283,6 +295,55 @@ kind = "tutorial-internal"
 [adapters.CreateRejected]
 adapter = "adapters:CreateInternalAdapter"
 kind = "tutorial-internal"
+"""
+
+PROVIDERS_PY = '''"""Project-owned semantic effect provider for this tutorial.
+
+The generated case chooses the abstract outcome. This module chooses concrete
+representatives and binds them for one case and deterministic iteration.
+Read references/effect_providers.md before enabling a provider mapping.
+
+SCAFFOLD: implement one provider against the generated port Protocols. The
+framework has no domain-specific effect implementations.
+"""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+from collections.abc import Iterator
+from typing import Any
+
+from spec_double_compiler.runtime import EffectProviderContext
+
+
+class ProjectEffectProvider:
+    @contextmanager
+    def bind(self, context: EffectProviderContext) -> Iterator[Any | None]:
+        # SCAFFOLD: acquire the repository-owned implementation selected by
+        # context.port_name and context.case. Use context.derived_seed for
+        # deterministic representatives. Yield the generated-port
+        # implementation, or None only when this scope installs and restores
+        # its own bounded integration.
+        raise NotImplementedError(
+            f"SCAFFOLD: bind generated port {context.port_name}"
+        )
+        yield None
+
+
+effect_provider = ProjectEffectProvider()
+'''
+
+EFFECT_PROVIDER_USAGE_YAML = """# Local, reviewable evidence about agent-authored providers.
+version: 1
+providers: []
+# - port: ExampleEffectPort
+#   provider: providers:effect_provider
+#   binding_style: explicit_injection  # explicit_injection | self_installed | external_fixture | other
+#   state_scope: execution_point
+#   fuzz_dimensions: []
+#   assertions: []
+#   cleanup: context_manager
+#   bypass_limits: []
 """
 
 TESTGRAPH_BINDINGS_YML = """# TEST GRAPH ADAPTERS (external view).
@@ -615,6 +676,7 @@ results:
 
 ports:
   {module}Port:
+    role: application
     methods:
       create_item:
         command: CreateItem
@@ -685,6 +747,8 @@ This uses the one accepted baseline shape. It is not complete until it has:
 - `External.tla` / `External.cfg` — external view -> Test Graph cases
 - `actions.yml` — per-action layer, controllability, what it generates
 - `adapters.py` — spec-unit adapters AND Test Graph adapters/projector/assertion
+- `providers.py` — agent-authored generated-port effect providers
+- `effect_provider_usage.yaml` — provider state, fuzz, assertion, and bypass evidence
 - `case_adapters.toml` — internal action -> spec-unit adapter
 - `testgraph_bindings.yml` — external action -> Test Graph adapter
 - `tlc_projection.py` — TLC state -> generated-case shapes
@@ -720,6 +784,8 @@ def scaffold(name: str, root: Path, views: set[str] | None = None) -> Path:
     write_if_missing(target / "External.cfg", EXTERNAL_CFG)
     write_if_missing(target / "actions.yml", ACTIONS_YML)
     write_if_missing(target / "adapters.py", ADAPTERS_PY)
+    write_if_missing(target / "providers.py", PROVIDERS_PY)
+    write_if_missing(target / "effect_provider_usage.yaml", EFFECT_PROVIDER_USAGE_YAML)
     write_if_missing(target / "case_adapters.toml", CASE_ADAPTERS_TOML)
     write_if_missing(target / "testgraph_bindings.yml", TESTGRAPH_BINDINGS_YML)
     write_if_missing(target / "tlc_projection.py", TLC_PROJECTION_PY)
