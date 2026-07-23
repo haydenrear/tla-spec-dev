@@ -292,3 +292,117 @@ findings:
     status: fixed
     issue: https://github.com/haydenrear/tla-spec-dev/issues/100
     evidence: specs/tickets/EP-05/results/defect-resolution.md#def-003--generated-signature-conformance
+- id: R4-DF-02
+  found_by: "validation-ex1-run4"
+  found_at_commit: "861f485"
+  schedule_revision: 1
+  severity: major
+  surface:
+    production: ["scripts/new_ticket_workflow.py", "scripts/run_generated_case_adapters.py"]
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: >-
+    The scaffolded tests/test_spec_unit_adapters.py invokes the runner as
+    `python -m scripts.run_generated_case_adapters` without --spec-dir;
+    once [effect_providers.*] is configured, the runner's top-level
+    `from effect_conformance import ...` (~:1422) only resolves in
+    direct-script mode (ModuleNotFoundError under -m) and --spec-dir is
+    mandatory — the scaffold's own test breaks the moment a project adopts
+    providers.
+  reproduction: >-
+    Scaffold a project, configure one effect provider, run the scaffolded
+    spec-unit test. Observed: ModuleNotFoundError / missing --spec-dir.
+    ex1-run4 fixed its project-local copy (absolute script path via
+    spec_double_compiler.__file__ + --spec-dir/--seed/--fuzz-runs).
+  evidence: ["examples/validation/runs/ex1-run4/scoring.md"]
+  why_out_of_scope: "Post-merge validation finding; filed, not fixed (measurement discipline)."
+  suggested_fix: >-
+    Make the runner's effect_conformance import package-relative (or
+    lazy/fallback), and scaffold the test with the absolute script path and
+    --spec-dir.
+  blast_radius: "Every scaffolded project that adopts effect providers."
+  disposition: pending
+  disposition_ticket: null
+- id: R4-DF-03
+  found_by: "validation-ex1-run4"
+  found_at_commit: "861f485"
+  schedule_revision: 1
+  severity: major
+  surface:
+    production: ["scripts/run_generated_case_adapters.py", "references/effect_providers.md"]
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: >-
+    EFFECT_FUZZ_FAILURE replay commands are not self-contained: the
+    originating PYTHONPATH is not recorded (bare execution fails to load
+    the provider module), and failures surfaced through the CLI's pytest
+    step record the ephemeral `uv run` interpreter path, which need not
+    outlive the run — in tension with effect_providers.md's "remain
+    absolute so they work from another directory".
+  reproduction: >-
+    Trigger a provider failure via the CLI pytest path; run the recorded
+    replay verbatim from a clean shell. Observed: ModuleNotFoundError
+    until PYTHONPATH restored; interpreter path under ~/.cache/uv/builds-v0
+    may be gone. ex1-run4 kill_probe.txt records both the bare failure and
+    the env-restored success.
+  evidence: ["examples/validation/runs/ex1-run4/scoring.md"]
+  why_out_of_scope: "Post-merge validation finding; filed, not fixed."
+  suggested_fix: >-
+    Record PYTHONPATH (and env deltas the runner itself set) into the
+    replay command; prefer sys.executable only when not an ephemeral build
+    dir, else fall back to a stable interpreter with a warning.
+  blast_radius: "Replay fidelity of every provider failure."
+  disposition: pending
+  disposition_ticket: null
+- id: R4-DF-04
+  found_by: "validation-ex1-run4"
+  found_at_commit: "861f485"
+  schedule_revision: 1
+  severity: major
+  surface:
+    production: ["scripts/generate_cases_from_tlc_dump.py", "references/testgraph_adapters.md"]
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: >-
+    Pure alias wrapper actions (CliAdd(t) == AddTask(t)) are attributed in
+    the TLC dot dump to the inner action's definition site, so the external
+    view filter silently generated ZERO cases for 7 of 9 external actions.
+    Undocumented; the shipped example never hits it because its wrappers
+    all add conjuncts. Silent-zero coverage loss is the dangerous part.
+  reproduction: >-
+    External view whose wrappers are pure aliases; generate cases; observe
+    0 cases for those actions with no warning. Anchoring conjuncts restore
+    attribution.
+  evidence: ["examples/validation/runs/ex1-run4/scoring.md"]
+  why_out_of_scope: "Post-merge validation finding; filed, not fixed."
+  suggested_fix: >-
+    Warn (or attribute through single-alias definitions) when a declared
+    view action generates zero cases; document the anchoring-conjunct
+    convention.
+  blast_radius: "External case coverage on alias-styled views."
+  disposition: pending
+  disposition_ticket: null
+- id: R4-DF-05
+  found_by: "validation-ex1-run4"
+  found_at_commit: "861f485"
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production: ["scripts/tla_spec_dev.py"]
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: >-
+    `run spec-unit-tests` halts after a failing pytest step and never runs
+    its case-adapters campaign command, so a red unit suite masks the
+    campaign's own EFFECT_FUZZ_FAILURE output.
+  reproduction: "Make the scaffolded pytest step fail while the campaign would also fail; only the pytest failure surfaces."
+  evidence: ["examples/validation/runs/ex1-run4/scoring.md"]
+  why_out_of_scope: "Post-merge validation finding; filed, not fixed."
+  suggested_fix: "Run remaining steps and aggregate failures (or add --keep-going)."
+  blast_radius: "Failure visibility during campaigns."
+  disposition: pending
+  disposition_ticket: null

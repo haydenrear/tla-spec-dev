@@ -121,8 +121,12 @@ mutant kills came from provider assertions).
 
 ```bash
 python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests \
-  --fuzz-runs 25 --seed 20260722
+  --target specs/program_model --fuzz-runs 25 --seed 20260722
 ```
+
+(`--target specs/program_model` is required on a freshly onboarded repository
+— the default target `specs/current` exists only once a ticket workflow is
+open.)
 
 Seeds derive per (root seed, case, iteration, port); construct provider
 randomness from `context.derived_seed` only. On failure the runner emits

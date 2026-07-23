@@ -1,0 +1,60 @@
+=== KILL PROBE: taskq.py finish() persists 'pending' instead of 'done' (message + exit code unchanged) ===
+diff vs pristine:
+53c53
+<     tasks[name] = "done"
+---
+>     tasks[name] = "pending"  # KILL PROBE: wrong persisted status; message/exit unchanged
+
+$ python3 /Users/hayde/IdeaProjects/tla-spec-dev/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --target specs/program_model --fuzz-runs 5 --seed 20260722
+...............F                                                         [100%]
+=================================== FAILURES ===================================
+_____________________ test_internal_adapters_run_in_batch ______________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-711/test_internal_adapters_run_in_0')
+
+    @pytest.mark.skipif(
+        not CASES_DIR.exists(),
+        reason="no generated spec-unit cases yet; generate them from Internal.tla first",
+    )
+    def test_internal_adapters_run_in_batch(tmp_path: Path) -> None:
+        # Invoke the runner script by absolute path, not `-m scripts....`:
+        # once [effect_providers.*] is configured the runner imports its sibling
+        # module `effect_conformance` top-level, which only resolves when
+        # sys.path[0] is the toolchain scripts/ directory (direct-script mode).
+        import spec_double_compiler
+    
+        runner = (
+            Path(spec_double_compiler.__file__).resolve().parents[1]
+            / "scripts"
+            / "run_generated_case_adapters.py"
+        )
+        command = [
+            sys.executable,
+            str(runner),
+            str(CASES_DIR),
+            "--mapping",
+            str(SPEC_DIR / "case_adapters.toml"),
+            # --spec-dir is required once [effect_providers.*] is configured: the
+            # provider plan is resolved from spec_manifest.yaml + actions.yml.
+            "--spec-dir",
+            str(SPEC_DIR),
+            "--view",
+            "internal",
+            "--batch",
+            "--seed",
+            "20260722",
+            "--fuzz-runs",
+            "1",
+            "--work-dir",
+            str(tmp_path / "internal-work"),
+            "--import-root",
+            str(REPO_ROOT),
+        ]
+>       subprocess.run(command, check=True, cwd=REPO_ROOT)
+
+specs/program_model/tests/test_spec_unit_adapters.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = False, timeout = None, check = True
+popenargs = (['/Users/hayde/.cache/uv/builds-v0/.tmpWsUmzo/bin/python', '/Users/hayde/IdeaProjects/tla-spec-dev/scripts/run_genera...c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex1-run4/specs/program_model/case_adapters.toml', '--spec-dir', ...],)
+kwargs = {'cwd': PosixPath('/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex1-run4')}
