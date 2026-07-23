@@ -542,8 +542,14 @@ def load_effect_provider_plan(
             )
         return EffectProviderPlan(MappingProxyType({}), configured=False)
 
-    manifest = load_manifest(manifest_path)
-    actions_document = load_manifest(actions_path)
+    try:
+        manifest = load_manifest(manifest_path)
+        actions_document = load_manifest(actions_path)
+    except ValueError as exc:
+        raise EffectProviderConfigurationError(
+            f"cannot read {manifest_path.name}/{actions_path.name} with the "
+            f"constrained dependency-invariant parser: {exc}"
+        ) from exc
     raw_ports = manifest.get("ports", {})
     raw_actions = actions_document.get("actions", {})
     if not isinstance(raw_ports, dict):

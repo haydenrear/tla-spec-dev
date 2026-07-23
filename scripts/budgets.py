@@ -117,8 +117,9 @@ def budget_prompt(manifest_path: str) -> str:
 def _read_manifest(manifest_path: Path) -> dict[str, Any] | None:
     """Load a spec manifest, or return None when it cannot be read.
 
-    Reuses ``extract_spec_manifest.load_manifest``, which already falls back to
-    the repository's minimal YAML parser when PyYAML is unavailable.
+    Reuses ``extract_spec_manifest.load_manifest``, which always parses with
+    the repository's constrained dependency-invariant parser (DEF-002): the
+    same tree with or without PyYAML installed.
     """
     if not manifest_path.is_file():
         return None

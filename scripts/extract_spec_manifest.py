@@ -44,17 +44,78 @@ def _parse_scalar(value: str) -> Any:
         return value[1:-1]
     if re.fullmatch(r"-?\d+", value):
         return int(value)
+    if re.fullmatch(r"-?\d+\.\d+", value):
+        return float(value)
     if value.startswith("[") and value.endswith("]"):
         body = value[1:-1].strip()
         if not body:
             return []
-        return [_parse_scalar(part.strip()) for part in body.split(",")]
+        return [_parse_scalar(part.strip()) for part in _split_inline_items(body)]
+    if value.startswith("{") and value.endswith("}"):
+        # Single-line inline mappings with scalar values are part of the
+        # supported dependency-invariant profile (the manifest fitness-rule
+        # leaf syntax, e.g. `{fact: bound, op: "<", value: 100}`). Nested
+        # inline mappings remain unsupported.
+        return _parse_inline_mapping(value)
     if value.startswith("{") or value.endswith("}"):
         raise ValueError(
-            "inline mappings are not supported in spec manifests; "
-            "use an indented mapping so parsing is dependency-invariant"
+            "unterminated inline mapping in spec manifest; inline mappings "
+            "must open and close on one line, with scalar values only"
         )
     return value
+
+
+def _split_inline_items(body: str) -> list[str]:
+    """Split a flow-collection body on top-level commas (quote-aware)."""
+    items: list[str] = []
+    depth = 0
+    quote: str | None = None
+    current = ""
+    for ch in body:
+        if quote is not None:
+            current += ch
+            if ch == quote:
+                quote = None
+            continue
+        if ch in "\"'":
+            quote = ch
+            current += ch
+        elif ch in "[{":
+            depth += 1
+            current += ch
+        elif ch in "]}":
+            depth -= 1
+            current += ch
+        elif ch == "," and depth == 0:
+            items.append(current.strip())
+            current = ""
+        else:
+            current += ch
+    if current.strip():
+        items.append(current.strip())
+    return items
+
+
+def _parse_inline_mapping(value: str) -> dict[str, Any]:
+    body = value[1:-1].strip()
+    if not body:
+        return {}
+    result: dict[str, Any] = {}
+    for item in _split_inline_items(body):
+        if ":" not in item:
+            raise ValueError(
+                f"inline mapping entry {item!r} has no key; expected `key: value`"
+            )
+        key, _, raw = item.partition(":")
+        key = key.strip().strip("\"'")
+        raw = raw.strip()
+        if raw.startswith("{"):
+            raise ValueError(
+                "nested inline mappings are not supported in spec manifests; "
+                "use an indented mapping so parsing is dependency-invariant"
+            )
+        result[key] = _parse_scalar(raw) if raw else None
+    return result
 
 
 def _split_key_value(content: str) -> tuple[str, str]:

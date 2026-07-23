@@ -332,21 +332,15 @@ def load_rules(
 
     if isinstance(manifest, dict) and RULES_KEY in manifest:
         sources.append(f"spec_manifest.yaml ({RULES_KEY}:)")
-        if not _yaml_available():
-            # VAL-01: under a bare python3 the manifest went through the
-            # fallback parser, which cannot read flow-style rule leaves --
-            # validating the mangled tree would surface a misleading INVALID
-            # ("got keys ['{fact']"). Name the real problem instead.
-            errors.append(
-                f"spec_manifest.yaml: the '{RULES_KEY}:' block needs PyYAML, "
-                "which is unavailable under this python -- the fallback "
-                "manifest parser cannot read rule leaves. Move the rules to "
-                "fitness_functions.json (standard library) next to the spec."
-            )
-        else:
-            parsed, errs = _parse_entries(manifest.get(RULES_KEY), "spec_manifest.yaml")
-            rules.extend(parsed)
-            errors.extend(errs)
+        # The manifest is parsed by the repository's dependency-invariant
+        # constrained parser (extract_spec_manifest), which reads flow-style
+        # rule leaves and floats identically with or without PyYAML — so
+        # manifest-embedded rules simply work under a bare python3. (The
+        # VAL-01-era CONFIG ERROR gate predated that parser; sibling
+        # fitness_functions.yaml files still need PyYAML and keep theirs.)
+        parsed, errs = _parse_entries(manifest.get(RULES_KEY), "spec_manifest.yaml")
+        rules.extend(parsed)
+        errors.extend(errs)
 
     for filename in RULES_FILENAMES if spec_dir is not None else ():
         rules_path = spec_dir / filename

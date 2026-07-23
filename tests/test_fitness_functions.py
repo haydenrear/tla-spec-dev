@@ -335,19 +335,18 @@ def test_manifest_carried_rules_reach_the_scan(tmp_path: Path) -> None:
     assert [r.name for r in analysis.fitness.fired] == ["bound-small"]
 
 
-def test_manifest_rules_without_pyyaml_surface_config_error_not_invalid(
+def test_manifest_rules_without_pyyaml_evaluate_identically(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """VAL-01: manifest-embedded rules under a bare python3 (no PyYAML).
+    """VAL-01, superseded by DEF-002: manifest rules are dependency-invariant.
 
-    The fallback manifest parser mangles flow-style rule leaves into garbage
-    keys, so validating them surfaced a misleading
-    "INVALID: ... got keys ['{fact']". The documented behavior is an advisory
-    CONFIG ERROR naming the missing PyYAML dependency and the
-    fitness_functions.json (standard-library) alternative -- with the exit
-    code unchanged.
+    The manifest is parsed by the constrained dependency-invariant parser,
+    which reads flow-style rule leaves and floats identically with or without
+    PyYAML. So under a bare python3, manifest-embedded rules simply EVALUATE
+    (the old CONFIG ERROR redirect and the older mangled
+    "INVALID: ... got keys ['{fact']" are both gone). Exit code unchanged.
     """
     manifest_text = (
         "module: Small\n"
@@ -358,14 +357,13 @@ def test_manifest_rules_without_pyyaml_surface_config_error_not_invalid(
     tla, cfg, manifest = write_small_model(tmp_path, manifest_text)
     assert manifest is not None
     # Simulate PyYAML absence: None in sys.modules makes `import yaml` raise
-    # ImportError, which routes the manifest through the fallback parser.
+    # ImportError; the constrained parser must carry the block regardless.
     monkeypatch.setitem(sys.modules, "yaml", None)
 
     assert main([str(tla), str(cfg), "--manifest", str(manifest)]) == EXIT_PASS
     out = capsys.readouterr().out
-    assert "CONFIG ERROR" in out
-    assert "PyYAML" in out
-    assert "fitness_functions.json" in out
+    assert "bound-small" in out
+    assert "CONFIG ERROR" not in out
     assert "INVALID" not in out
     assert "'{fact'" not in out
 

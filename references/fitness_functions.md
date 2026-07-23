@@ -33,9 +33,13 @@ Three places, all read on every scan, all allowed at once:
    (the same directory the default manifest is resolved from), for projects
    that want the rules in their own file.
 3. **`fitness_functions.json`** — same shape as the YAML file, parsed with
-   the standard library alone. **Use this when the CLI runs under a bare
-   `python3` without PyYAML** — the manifest block and the `.yaml` file need
-   PyYAML, and their absence is reported as an advisory `CONFIG ERROR`.
+   the standard library alone. The manifest block is parsed by the
+   repository's constrained dependency-invariant parser and works with or
+   without PyYAML (flow-style rule leaves like `{fact: bound, op: "<",
+   value: 100}` and floats included; no nested inline mappings). Only the
+   sibling `.yaml` file needs PyYAML; under a bare `python3` its presence is
+   reported as an advisory `CONFIG ERROR` — use the manifest block or `.json`
+   there.
 
 All use the same shape:
 
