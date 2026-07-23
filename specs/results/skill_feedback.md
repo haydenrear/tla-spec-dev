@@ -152,7 +152,7 @@ as `SF-000x` examples and are excluded from filing status.
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
-### SF-001 — scaffolded fixture workflow cannot exercise two consecutive closes
+### SF-001 (filed: https://github.com/haydenrear/tla-spec-dev/issues/105) — scaffolded fixture workflow cannot exercise two consecutive closes
 - category: profile-schema-cli
 - target: scripts/scaffold_spec_workflow.py — emitted desired_program_model/ticket_plan.yaml
 - observed_on: tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)
@@ -174,7 +174,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   is testable without hand-editing YAML
 - status: open
 
-### SF-002 — plan prescribed model state that implementation showed to be wrong
+### SF-002 (filed: https://github.com/haydenrear/tla-spec-dev/issues/106) — plan prescribed model state that implementation showed to be wrong
 - category: budget-and-metric
 - target: specs/desired_program_model/ticket_plan.yaml — per-ticket
   `desired_actions` / `current_increment.model_state`
@@ -198,7 +198,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   contradicting the accepted model
 - status: open
 
-### SF-003 — promotion silently discards edits to seeded specs/current files
+### SF-003 (filed: https://github.com/haydenrear/tla-spec-dev/issues/107) — promotion silently discards edits to seeded specs/current files
 - category: profile-schema-cli
 - target: scripts/spec_evolution.py::promote_current_tree — promotion report
 - observed_on: tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)
@@ -229,7 +229,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - summary: Corpus diagnostics and hard case caps. Case caps are hard gates in the shape of MF-011's state-space bound: over budget reports and exits nonzero, never trims. No code path drops, filters, samples, or truncates a case to fit a budget. Diagnostics report count per (action, label class), dominant and starved strata, and what varies across the redundant group, classified into unconstrained ordering / interchangeable values / action enabled across equivalent states. Labelers repurposed to diagnostic strata; remediation is a recommendation requiring user approval; named regression traces always retained. Accept path is raising the cap in spec_manifest.yaml with a recorded rationale. Model delta: corpus_gate + AnalyzeCorpus, 8->9 vars, 11->12 actions, deviating from the stale DistillCorpus/corpus_distilled plan fields.
 - feedback_status: items-recorded
 
-### SF-004 — the minimal YAML fallback parser could not read the repository's own manifests
+### SF-004 (filed: https://github.com/haydenrear/tla-spec-dev/issues/108) — the minimal YAML fallback parser could not read the repository's own manifests
 
 - category: profile-schema-cli
 - target: scripts/extract_spec_manifest.py::_parse_list
@@ -261,7 +261,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   that is absent.
 - status: open
 
-### SF-005 — a corpus documented in four places as committed is not committed
+### SF-005 (filed: https://github.com/haydenrear/tla-spec-dev/issues/109) — a corpus documented in four places as committed is not committed
 
 - category: docs-and-examples
 - target: references/examples.md:48, references/edge-cases.md:84,
@@ -292,7 +292,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   output and record the actual distribution
 - status: open
 
-### SF-006 — plan prescribed model state for a scope that had been withdrawn
+### SF-006 (filed: https://github.com/haydenrear/tla-spec-dev/issues/110) — plan prescribed model state for a scope that had been withdrawn
 
 - category: budget-and-metric
 - target: specs/desired_program_model/ticket_plan.yaml — MF-014
@@ -330,7 +330,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-18T23:11:53+00:00
 - summary: MF-025: collapse active_tickets, closed_tickets and ticket_phase into one ticket_state ordinal (0..5). Premise re-verified with TLC in both directions. Retention exact: 9,011 distinct / depth 24 / 87,464 generated, unchanged. Declared bound measured 663,552 -> 34,992 (18.96x).
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -342,7 +342,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T18:23:24+00:00
 - summary: MF-015: external channel enforcement. Required channel per Test Graph binding (http/cli/fs/queue/k8s, explicitly extensible), transitive static import analysis proving no Test Graph adapter imports the declared production package, violations reported with adapter/import/remediation, and required double|real port binding configurations with at least one real port so graph runs express integration-ladder rungs. Shared gate in scripts/testgraph_channels.py applied by both run_generated_case_adapters.py (external view) and export_testgraph_cases.py. Zero model delta, reasoned and recorded: the gates are Test-Graph-invoked and no modeled CLI command reaches them. TLC 87,464/9,011/depth 24 and bound 34,992 identical to baseline; 226 repository tests, 27+24 spec-unit, specWorkflow 8/8, cliWorkflow 2/2.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -359,7 +359,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
-### SF-007 — three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close
+### SF-007 (filed: https://github.com/haydenrear/tla-spec-dev/issues/111) — three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close
 
 - category: profile-schema-cli
 - target: scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path
@@ -404,7 +404,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T19:50:48+00:00
 - summary: MF-027: effect oracle refuses targets it cannot observe. Observability granted only on positive in-process evidence; unobservable targets and subprocess boundaries FAIL with explicit findings; inverse test proves no config downgrades the verdict; External/test-graph gap documented with follow-up #44.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -416,7 +416,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T21:17:14+00:00
 - summary: MF-016: mutation kill test (oracle 4). Coverage derived from port/invariant declarations every run; control run refuses a red corpus; kill_rate_floor gate fails below floor with no waiver; survivors point at the variable and action to refine; abstraction validator via --baseline/--compare. Mechanism built and unit/adapter/example-validated; empirical proof over this repository's corpus deferred to MF-023 per epic policy.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -428,7 +428,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T22:44:51+00:00
 - summary: Mechanize the standing objective: complexity ledger recorded per ticket/workflow close with the delta reported jointly with retention evidence; increases require a recorded justification; a decrease with degraded or unverified retention is rejected at close; the MF-020 self-loop red flag is a hard gate; and the recursive refinement record is required. Zero model delta -- max_state_space_bound is at 70.0% with 1.43x headroom, so no new bounded variable of any cardinality fits; recorded as a finding for MF-023.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -440,7 +440,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T23:36:50+00:00
 - summary: MF-026: coverage audit gate -- prompt, report template, doctrine, ledger recording, and a worked example that found 19 in-scope gaps and real defects in the prompt itself. Zero model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -452,7 +452,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T01:23:00+00:00
 - summary: Spike: measured the cost of case execution. One adapter (ScaffoldProject) executes one generated case end to end through the real runner -- before-state materialized by CLI prefix replay, action executed, after-state projected from the filesystem, 9 fields checked, 2 declared unchecked, 3 negative controls rejected. Before-state materialization -- the predicted hard part -- is cheap and ~100% shared. Found four structural blockers the ticket did not anticipate: all 57,617 cases carry empty action params (parameterized actions untestable); UpdateTicketDesired/UpdateTicketCurrent have no adapter, blocking 72.5% of the corpus; 16 adapters cover only 13 labels with 3 colliding on CloseTicket; and the effect oracle moved from 0 to 6 observed effects but still refuses as unobservable because every adapter shells out. run() alone does not restore oracle 3.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -464,7 +464,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T02:25:41+00:00
 - summary: MF-029: recover action parameters from each case's before/after state pair, generator-side. Zero TLA+ model delta. Audited all 14 action labels plus Stutter: 9 guard-pinned, 5 except-index, 1 written-through (ScaffoldProject, the only action that sacrifices an after-state check), 1 UNRECOVERABLE (RunSpecUnitTests override) marked UNCHECKED and never fabricated. 14/14 negative controls verified to fail; 6/6 implementation mutations caught after closing an initially-surviving before-vs-after mutation. No case dropped: 798,411 TLC transitions in, 798,411 cases out.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -476,7 +476,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T22:09:21+00:00
 - summary: Resolve EXTENDS in analyze_complexity: follow the module hierarchy and union VARIABLES/CONSTANTS/definitions; fail closed (named errors) on INSTANCE, WITH substitution, parameterized instantiation, LOCAL, and unresolved EXTENDS. Zero TLA+ model delta (TLC 231,621 distinct/depth 25; binding bound 699,840 unchanged). Regression proves bound moves 1->4 across an EXTENDS edge and fails pre-fix. Shipped example re-measured: External verdict diagnosis corrected from spurious 'C2 {responses} 9 actions' to true 'C1 13 actions' over all 10 variables (relevant to MF-037).
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -488,7 +488,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T23:03:55+00:00
 - summary: Made complexity advisory: analyze complexity and case generation no longer block or refuse over threshold (exit 0 with warnings + recommendations); only an unanalyzable model (ModuleResolutionError) still exits nonzero. Fixed the v'=v frame-condition R/W over-count. Zero TLA delta; TLC 231,621 distinct/depth 25.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -500,7 +500,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T00:38:02+00:00
 - summary: MF-031: UpdateTicketDesired/UpdateTicketCurrent adapters made case-executable via ticket-segment materialization; CloseTicket collision characterized as a binding-model limitation
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -512,7 +512,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T01:35:18+00:00
 - summary: Give run() to InstallLocalCli, ScaffoldWorkflow, RecordBudgets, OpenTicket (4 adapters now execute cases); promote the shared before-state builder/projector as module adapter_case_runtime.py (not a base class); fix the runner all-or-nothing == to per-field honoring UNCHECKED. Remaining adapters stay apply()-only for structural reasons (reported). Executability 7.8%->9.8% (both axes), re-measured. Zero TLA+ delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -524,7 +524,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T02:12:02+00:00
 - summary: Effect oracle observes out-of-process child effects via WorkingTreeObserver snapshot diff; MF-027 polarity preserved; cost report recommends running oracles advisorily.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -536,7 +536,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T11:30:31+00:00
 - summary: MF-038 kill-rate probe: control GREEN on the reduced runnable corpus; kill rate 4/13=0.308; all 9 subtle content/value/field bugs SURVIVED, only 4 structural directory/tree bugs killed. Cases are existence-and-exit-code oracles, not content oracles. Zero model delta. Recommendation: not yet ship-worthy as case-advising until file/field content is projected into model variables.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -548,7 +548,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T12:01:44+00:00
 - summary: MF-023: dogfooded the complexity scanner on this repo (advisory report recorded; suggested move ABSTRACT, modularity Q=0.012, one advisory C1 warning, exit 0); took no refactor with recorded reasoning; rewrote SKILL.md + references/modular_fuzzing.md + references/architecture_tractability.md to present the scanner as the shipped advisory feature and demote the fuzzing/oracle/kill-test machinery to EXPERIMENTAL not-validated-for-bug-catching, citing kill rate 0.31 / 0-of-9 and the Hypothesis-arm stub; zero TLA+ model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -560,7 +560,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-epic
 - closed_at: 2026-07-22T00:16:40+00:00
 - summary: CD-01: shipped the complexity descriptor -- removed all suggested-move machinery (abstract/decompose/refactor), fixed F1 (transitive invariant alias/composition resolution) and F3 (explicit-unknown bound, never a silent 1); docs present the descriptor as the shipped surface; zero TLA model delta, TLC green at 231,621 distinct / depth 25
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -572,7 +572,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-epic
 - closed_at: 2026-07-22T00:45:24+00:00
 - summary: CD-02: complexity intuition — references/complexity_intuition.md teaches reading a descriptor as refactoring input (good/bad shapes, five real-run worked examples, how-complex-should-a-program-be best practices, validated refactors encouraged as normal practice, intuitions never automated moves); SKILL.md wires the take-this-descriptor-to-refactor framing; zero TLA model delta, TLC green 231,621 distinct
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -584,7 +584,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-epic
 - closed_at: 2026-07-22T01:09:34+00:00
 - summary: CD-03: self-configurable composable fitness functions over the complexity descriptor — scripts/fitness_functions.py ({fact,op,value} leaves over published descriptor facts incl. parameterized variable_domain(v), composed with all/any/not under three-valued Kleene semantics); per-project persistence in spec_manifest.yaml fitness_functions: or sibling fitness_functions.yaml/.json (json is stdlib-only for the bare-python3 CLI); analyze complexity evaluates rules each scan and surfaces FIRED rules with leaf-level traces as notifications to future agents; advisory throughout (exit code unchanged; broken config is an advisory CONFIG ERROR); NO built-in rules; worked example recorded (two composed rules, later scan surfaces one firing); zero TLA model delta, TLC green 231,621 distinct
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -596,7 +596,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-epic
 - closed_at: 2026-07-22T17:53:01+00:00
 - summary: CD-09 audit reconciliation: advisory-faithful model (override + blocking gate + SpecUnitTestsRequireAnalyzedGate removed, TLC 231,621 -> 283,805 distinct at depth 25), dead tlc_process port removed (17/17 boundaries seeded), case_adapters.toml reconciled to the exact 14-action set, complexity ledger amended to the owner-approved validated-refactor retention basis with fuzzing members recorded non-gating
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -632,7 +632,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-epic
 - closed_at: 2026-07-22T19:59:04+00:00
 - summary: Complexity-descriptor epic closed: CD-01 factual descriptor (F1/F3), CD-02 complexity intuition, CD-03 advisory fitness functions, validated 6/6 by agent-example runs; CD-09/10/11 audit reconciliation (advisory-faithful model, honest ports/bindings/manifest, validated-refactor retention basis); coverage audit PASS at run 5 (0 gaps)
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -656,7 +656,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-main-readiness
 - closed_at: 2026-07-22T20:36:11+00:00
 - summary: Domain resolution sees operator-defined sets (VAL-06: _set_size expands zero-parameter operators transitively through EXTENDS, sizes [S -> T] as |T|^|S|), wrapped conjuncts (VAL-16: conjunct-wise constraint parsing via resolve_constraint_chunks), and multi-view invariant naming (VAL-17: per-variable domain-source merge in documented order TypeInvariant > TypeOK > cfg invariants). F3 explicit-UNKNOWN preserved; resolver coverage contract documented in references/architecture_tractability.md 'What The Domain Resolver Can And Cannot See', cited by scanner output. Three regression tests each proven failing pre-fix. Zero TLA+ model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -680,7 +680,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-main-readiness
 - closed_at: 2026-07-22T21:00:22+00:00
 - summary: R/W matrix attributed to top-level Next disjuncts through called operators (VAL-07/VAL-12): wrapper actions priming only via helpers get columns, composed actions writing via called operators/UNCHANGED get columns, helpers are never columns; dense rows/columns, action counts, and fitness facts follow the corrected action set; fallback without a findable next-state relation is stated honestly; zero TLA+ model delta
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -692,7 +692,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: complexity-descriptor-main-readiness
 - closed_at: 2026-07-22T21:25:34+00:00
 - summary: Advisory-doctrine language and UX polish: scaffold epilog and generated manifests speak the advisory doctrine (VAL-04); manifest fitness rules under bare python3 emit the documented PyYAML CONFIG ERROR (VAL-01); retired fuzzing-era budget keys no longer warn (VAL-02); no-manifest warning names no sentinel path (CD-02-DF-01); justification-table schema documented (VAL-05); run_tlc.sh leaves no states/ scratch dir (VAL-03); write-only-state test added to the intuition doc from the recorded ex3 divergence (VAL-15); action_count fact description corrected (CD-06-DF-01). Zero TLA+ model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -844,7 +844,7 @@ as `SF-000x` examples and are excluded from filing status.
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
-### SF-001 — scaffolded fixture workflow cannot exercise two consecutive closes
+### SF-001 (filed: https://github.com/haydenrear/tla-spec-dev/issues/105) — scaffolded fixture workflow cannot exercise two consecutive closes
 - category: profile-schema-cli
 - target: scripts/scaffold_spec_workflow.py — emitted desired_program_model/ticket_plan.yaml
 - observed_on: tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)
@@ -866,7 +866,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   is testable without hand-editing YAML
 - status: open
 
-### SF-002 — plan prescribed model state that implementation showed to be wrong
+### SF-002 (filed: https://github.com/haydenrear/tla-spec-dev/issues/106) — plan prescribed model state that implementation showed to be wrong
 - category: budget-and-metric
 - target: specs/desired_program_model/ticket_plan.yaml — per-ticket
   `desired_actions` / `current_increment.model_state`
@@ -890,7 +890,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   contradicting the accepted model
 - status: open
 
-### SF-003 — promotion silently discards edits to seeded specs/current files
+### SF-003 (filed: https://github.com/haydenrear/tla-spec-dev/issues/107) — promotion silently discards edits to seeded specs/current files
 - category: profile-schema-cli
 - target: scripts/spec_evolution.py::promote_current_tree — promotion report
 - observed_on: tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)
@@ -921,7 +921,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - summary: Corpus diagnostics and hard case caps. Case caps are hard gates in the shape of MF-011's state-space bound: over budget reports and exits nonzero, never trims. No code path drops, filters, samples, or truncates a case to fit a budget. Diagnostics report count per (action, label class), dominant and starved strata, and what varies across the redundant group, classified into unconstrained ordering / interchangeable values / action enabled across equivalent states. Labelers repurposed to diagnostic strata; remediation is a recommendation requiring user approval; named regression traces always retained. Accept path is raising the cap in spec_manifest.yaml with a recorded rationale. Model delta: corpus_gate + AnalyzeCorpus, 8->9 vars, 11->12 actions, deviating from the stale DistillCorpus/corpus_distilled plan fields.
 - feedback_status: items-recorded
 
-### SF-004 — the minimal YAML fallback parser could not read the repository's own manifests
+### SF-004 (filed: https://github.com/haydenrear/tla-spec-dev/issues/108) — the minimal YAML fallback parser could not read the repository's own manifests
 
 - category: profile-schema-cli
 - target: scripts/extract_spec_manifest.py::_parse_list
@@ -953,7 +953,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   that is absent.
 - status: open
 
-### SF-005 — a corpus documented in four places as committed is not committed
+### SF-005 (filed: https://github.com/haydenrear/tla-spec-dev/issues/109) — a corpus documented in four places as committed is not committed
 
 - category: docs-and-examples
 - target: references/examples.md:48, references/edge-cases.md:84,
@@ -984,7 +984,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   output and record the actual distribution
 - status: open
 
-### SF-006 — plan prescribed model state for a scope that had been withdrawn
+### SF-006 (filed: https://github.com/haydenrear/tla-spec-dev/issues/110) — plan prescribed model state for a scope that had been withdrawn
 
 - category: budget-and-metric
 - target: specs/desired_program_model/ticket_plan.yaml — MF-014
@@ -1022,7 +1022,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-18T23:11:53+00:00
 - summary: MF-025: collapse active_tickets, closed_tickets and ticket_phase into one ticket_state ordinal (0..5). Premise re-verified with TLC in both directions. Retention exact: 9,011 distinct / depth 24 / 87,464 generated, unchanged. Declared bound measured 663,552 -> 34,992 (18.96x).
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1034,7 +1034,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T18:23:24+00:00
 - summary: MF-015: external channel enforcement. Required channel per Test Graph binding (http/cli/fs/queue/k8s, explicitly extensible), transitive static import analysis proving no Test Graph adapter imports the declared production package, violations reported with adapter/import/remediation, and required double|real port binding configurations with at least one real port so graph runs express integration-ladder rungs. Shared gate in scripts/testgraph_channels.py applied by both run_generated_case_adapters.py (external view) and export_testgraph_cases.py. Zero model delta, reasoned and recorded: the gates are Test-Graph-invoked and no modeled CLI command reaches them. TLC 87,464/9,011/depth 24 and bound 34,992 identical to baseline; 226 repository tests, 27+24 spec-unit, specWorkflow 8/8, cliWorkflow 2/2.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1051,7 +1051,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
-### SF-007 — three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close
+### SF-007 (filed: https://github.com/haydenrear/tla-spec-dev/issues/111) — three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close
 
 - category: profile-schema-cli
 - target: scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path
@@ -1096,7 +1096,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T19:50:48+00:00
 - summary: MF-027: effect oracle refuses targets it cannot observe. Observability granted only on positive in-process evidence; unobservable targets and subprocess boundaries FAIL with explicit findings; inverse test proves no config downgrades the verdict; External/test-graph gap documented with follow-up #44.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1108,7 +1108,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T21:17:14+00:00
 - summary: MF-016: mutation kill test (oracle 4). Coverage derived from port/invariant declarations every run; control run refuses a red corpus; kill_rate_floor gate fails below floor with no waiver; survivors point at the variable and action to refine; abstraction validator via --baseline/--compare. Mechanism built and unit/adapter/example-validated; empirical proof over this repository's corpus deferred to MF-023 per epic policy.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1120,7 +1120,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T22:44:51+00:00
 - summary: Mechanize the standing objective: complexity ledger recorded per ticket/workflow close with the delta reported jointly with retention evidence; increases require a recorded justification; a decrease with degraded or unverified retention is rejected at close; the MF-020 self-loop red flag is a hard gate; and the recursive refinement record is required. Zero model delta -- max_state_space_bound is at 70.0% with 1.43x headroom, so no new bounded variable of any cardinality fits; recorded as a finding for MF-023.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1132,7 +1132,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-19T23:36:50+00:00
 - summary: MF-026: coverage audit gate -- prompt, report template, doctrine, ledger recording, and a worked example that found 19 in-scope gaps and real defects in the prompt itself. Zero model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1144,7 +1144,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T01:23:00+00:00
 - summary: Spike: measured the cost of case execution. One adapter (ScaffoldProject) executes one generated case end to end through the real runner -- before-state materialized by CLI prefix replay, action executed, after-state projected from the filesystem, 9 fields checked, 2 declared unchecked, 3 negative controls rejected. Before-state materialization -- the predicted hard part -- is cheap and ~100% shared. Found four structural blockers the ticket did not anticipate: all 57,617 cases carry empty action params (parameterized actions untestable); UpdateTicketDesired/UpdateTicketCurrent have no adapter, blocking 72.5% of the corpus; 16 adapters cover only 13 labels with 3 colliding on CloseTicket; and the effect oracle moved from 0 to 6 observed effects but still refuses as unobservable because every adapter shells out. run() alone does not restore oracle 3.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1156,7 +1156,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T02:25:41+00:00
 - summary: MF-029: recover action parameters from each case's before/after state pair, generator-side. Zero TLA+ model delta. Audited all 14 action labels plus Stutter: 9 guard-pinned, 5 except-index, 1 written-through (ScaffoldProject, the only action that sacrifices an after-state check), 1 UNRECOVERABLE (RunSpecUnitTests override) marked UNCHECKED and never fabricated. 14/14 negative controls verified to fail; 6/6 implementation mutations caught after closing an initially-surviving before-vs-after mutation. No case dropped: 798,411 TLC transitions in, 798,411 cases out.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1168,7 +1168,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T22:09:21+00:00
 - summary: Resolve EXTENDS in analyze_complexity: follow the module hierarchy and union VARIABLES/CONSTANTS/definitions; fail closed (named errors) on INSTANCE, WITH substitution, parameterized instantiation, LOCAL, and unresolved EXTENDS. Zero TLA+ model delta (TLC 231,621 distinct/depth 25; binding bound 699,840 unchanged). Regression proves bound moves 1->4 across an EXTENDS edge and fails pre-fix. Shipped example re-measured: External verdict diagnosis corrected from spurious 'C2 {responses} 9 actions' to true 'C1 13 actions' over all 10 variables (relevant to MF-037).
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1180,7 +1180,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-20T23:03:55+00:00
 - summary: Made complexity advisory: analyze complexity and case generation no longer block or refuse over threshold (exit 0 with warnings + recommendations); only an unanalyzable model (ModuleResolutionError) still exits nonzero. Fixed the v'=v frame-condition R/W over-count. Zero TLA delta; TLC 231,621 distinct/depth 25.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1192,7 +1192,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T00:38:02+00:00
 - summary: MF-031: UpdateTicketDesired/UpdateTicketCurrent adapters made case-executable via ticket-segment materialization; CloseTicket collision characterized as a binding-model limitation
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1204,7 +1204,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T01:35:18+00:00
 - summary: Give run() to InstallLocalCli, ScaffoldWorkflow, RecordBudgets, OpenTicket (4 adapters now execute cases); promote the shared before-state builder/projector as module adapter_case_runtime.py (not a base class); fix the runner all-or-nothing == to per-field honoring UNCHECKED. Remaining adapters stay apply()-only for structural reasons (reported). Executability 7.8%->9.8% (both axes), re-measured. Zero TLA+ delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1216,7 +1216,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T02:12:02+00:00
 - summary: Effect oracle observes out-of-process child effects via WorkingTreeObserver snapshot diff; MF-027 polarity preserved; cost report recommends running oracles advisorily.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1228,7 +1228,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T11:30:31+00:00
 - summary: MF-038 kill-rate probe: control GREEN on the reduced runnable corpus; kill rate 4/13=0.308; all 9 subtle content/value/field bugs SURVIVED, only 4 structural directory/tree bugs killed. Cases are existence-and-exit-code oracles, not content oracles. Zero model delta. Recommendation: not yet ship-worthy as case-advising until file/field content is projected into model variables.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1240,7 +1240,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: modular-fuzzing-epic
 - closed_at: 2026-07-21T12:01:44+00:00
 - summary: MF-023: dogfooded the complexity scanner on this repo (advisory report recorded; suggested move ABSTRACT, modularity Q=0.012, one advisory C1 warning, exit 0); took no refactor with recorded reasoning; rewrote SKILL.md + references/modular_fuzzing.md + references/architecture_tractability.md to present the scanner as the shipped advisory feature and demote the fuzzing/oracle/kill-test machinery to EXPERIMENTAL not-validated-for-bug-catching, citing kill rate 0.31 / 0-of-9 and the Hypothesis-arm stub; zero TLA+ model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1252,7 +1252,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: effect-provider-epic
 - closed_at: 2026-07-22T02:32:06+00:00
 - summary: Added typed project-owned effect-provider lookup and failure-safe Python batch lifecycle with zero host TLA+ model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1264,7 +1264,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: effect-provider-epic
 - closed_at: 2026-07-22T04:19:37+00:00
 - summary: Add deterministic provider campaigns, exact replay, project-owned helper scaffolds, and effect-safe lifecycle isolation with zero host-model delta.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1276,7 +1276,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - workflow: effect-provider-epic
 - closed_at: 2026-07-22T06:52:37+00:00
 - summary: Validated three preregistered effect-provider projects; Python V0 is a conditional go with parser, semantic-plan, signature, replay, bypass, and Java sequencing recommendations.
-- feedback_status: unreviewed
+- feedback_status: none-found  # finalization review 2026-07-23: placeholder entry, no findings recorded
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
@@ -1307,3 +1307,7 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - closed_at: 2026-07-22T23:53:35+00:00
 - summary: Revalidated three independent agent-authored provider consumers with repeatable non-overwriting evidence: 140 generated cases, 36 unique fixed mutants, 37 exact replays, 3140 clean lifecycle checks, and 70 real-boundary cases. Recorded the Python-first generic-interface recommendation with zero host-model delta.
 - feedback_status: none-found
+
+---
+
+Finalization review 2026-07-23 (epic owner): SF-001..SF-007 filed as issues #105-#111 (links inline above); all placeholder entries reviewed and set none-found; the four pending backlog findings carried as issues #112-#115.

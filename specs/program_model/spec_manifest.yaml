@@ -2,83 +2,26 @@ module: TlaSpecDevCli
 package: current_program_cases
 
 status:
-  workflow: complexity-descriptor-epic
-  active_ticket: MF-015
-  active_ticket_title: "External channel enforcement"
+  workflow: complexity-descriptor-main-readiness
+  active_ticket: CD-05
+  active_ticket_title: "Main-readiness batch"
   relation_to_program_model: starts_equivalent_then_advances_as_slices_land
   relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
   current_model_rule: whole_program_working_copy_not_ticket_projection
   test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
-  updated: "2026-07-19"
+  updated: "2026-07-22"
   current_slice:
-    name: external-channel-enforcement
-    status: implemented
-    refines: [corpus-diagnostics-and-hard-caps]
+    name: baseline
+    status: scaffolded
+    refines: []
     implemented_actions: []
-    model_change:
-      note: >-
-        ZERO MODEL DELTA, deliberately. MF-015 enforces External-ness on Test
-        Graph bindings: a required `channel` per binding, static (transitive)
-        import analysis proving no adapter/projector/expected_projection/
-        assertion module imports the declared production package, and a
-        required double|real port binding configuration with at least one real
-        port. All three are hard gates with no override.
-        The gates live in scripts/run_generated_case_adapters.py (external
-        view) and scripts/export_testgraph_cases.py, which the TEST GRAPH
-        invokes. They are not reachable from any command this module models:
-        `run spec-unit-tests` drives --view internal against
-        case_adapters.toml, and no modeled CLI command reads a
-        testgraph_bindings.yml. Nothing in the CLI lifecycle -- no command, no
-        guard, no branch, no result -- changes.
-        Modeling a `channel_enforcement` variable and an
-        `EnforceExternalChannels` action would therefore have required
-        inventing a `tla-spec-dev` subcommand that does not exist, in order to
-        have something to set it. That is transcription rather than evidence
-        (references/architecture_tractability.md, "Grow The Model By Evidence,
-        Not By Transcription"): the variable would carry no invariant it is
-        needed for, and MF-011's justification table would show it as dead
-        weight. It would also have cost roughly 3x on the declared bound for a
-        fact no modeled command can observe.
-        The faithfulness rule cuts BOTH ways. "If the program cannot be
-        represented in the diagram, the program changes" forbids leaving real
-        behavior unmodeled; it equally forbids adding model elements for
-        behavior the modeled program does not have.
-      state_variables: 7 -> 7
-      declared_state_space_bound: 34992 -> 34992
-      distinct_states: 9011 -> 9011
-      search_depth: 24 -> 24
-      actions: 12 -> 12
-    deviation_from_planned_scope:
-      note: >-
-        The MF-015 plan entry prescribes desired_actions
-        [EnforceExternalChannels] and a `channel_enforcement` model_state.
-        Both are withdrawn for the reason recorded above: the enforcement
-        surface is the Test-Graph-invoked export/run path, not the modeled CLI
-        lifecycle, and the plan entry's conflict_keys confirm it -- production
-        is [run_generated_case_adapters.py, export_testgraph_cases.py] and
-        deliberately NOT scripts/tla_spec_dev.py, so no new CLI command was
-        ever in scope. The staleness of these prescribed fields is tracked as
-        #33 and they are not binding. This follows the precedent MF-017 set
-        when it recorded a zero model delta against the same kind of stale
-        field.
-    validation:
-      unit:
-        - uv run --with pytest -m pytest tests -q
-      tlc:
-        - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
-      graph:
-        - specWorkflow
-        - cliWorkflow
-      evidence:
-        - specs/tickets/MF-015/results
   next:
-    - >-
-      MF-023 (Internal/External decomposition by dogfooding) owns every
-      deferred spec-case run for this ticket: case generation over the
-      reachable state graph, the effect-conformance sweep, and the mutation
-      kill test. It is also where the C1 action-count finding is resolved at
-      the root.
+    - CD-04/CD-05/CD-08 (wave 1), CD-06, CD-07 -- see ticket_plan.yaml
 
+# Semantic blocks below are carried VERBATIM from the accepted
+# specs/program_model manifest (scaffold-workflow regenerates a bare template
+# that drops effects/budgets/justification -- owner-corrected 2026-07-22,
+# finding MR-DF-01).
 # Per-program complexity and case budgets. Scaffolding emits this block with
 # the documented defaults from references/modular_fuzzing.md and instructs the
 # agent to negotiate the values with the user, recording a one-line rationale

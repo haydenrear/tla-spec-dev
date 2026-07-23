@@ -1536,8 +1536,17 @@ class AnalyzeCorpusAdapter:
         reports_starved = "Strata that are STARVED" in over.stdout
         reports_variance = "What VARIES across the redundant group" in over.stdout
         names_cause = "Likely cause:" in over.stdout
-        recommendation_labeled = (
-            "RECOMMENDATION REQUIRING USER APPROVAL -- not applied automatically." in over.stdout
+        # CD-04 (resolves VAL-13): the over-cap output states the finding and
+        # asks the redesign question -- naming the descriptor and the
+        # intuition doc as judgment inputs -- and never prescribes a move.
+        asks_redesign_question = (
+            "REDESIGN QUESTION" in over.stdout
+            and "analyze complexity" in over.stdout
+            and "references/complexity_intuition.md" in over.stdout
+            and "Suggested move" not in over.stdout
+            and "SUGGESTED MOVE" not in over.stdout
+            and "RECOMMENDATION REQUIRING USER APPROVAL" not in over.stdout
+            and "Apply the suggested" not in over.stdout
         )
         accept_path = (
             "ACCEPT PATH" in over.stdout
@@ -1565,7 +1574,7 @@ class AnalyzeCorpusAdapter:
                 and reports_starved
                 and reports_variance
                 and names_cause
-                and recommendation_labeled
+                and asks_redesign_question
                 and accept_path
                 and never_trims
                 and regression_retained
@@ -1579,7 +1588,7 @@ class AnalyzeCorpusAdapter:
             "reports_starved_strata": reports_starved,
             "reports_what_varies_across_redundant_group": reports_variance,
             "names_representation_cause": names_cause,
-            "remediation_labeled_recommendation": recommendation_labeled,
+            "asks_redesign_question_never_prescribes": asks_redesign_question,
             "cap_raise_accept_path_offered": accept_path,
             "never_offers_to_trim": never_trims and no_trim_offered,
             "regression_traces_retained": regression_retained,
