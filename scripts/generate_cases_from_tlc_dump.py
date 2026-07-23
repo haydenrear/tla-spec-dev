@@ -972,6 +972,26 @@ def main() -> int:
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
 
+    # R4-DF-04: a declared view action that generated ZERO cases is a silent
+    # coverage hole, most often caused by a pure alias wrapper
+    # (`CliAdd(t) == AddTask(t)`) -- TLC attributes such edges to the inner
+    # action's definition site, so the wrapper never appears in the dump.
+    emitted_actions = {case.edge.action for case in prepared}
+    declared_for_view = {
+        name
+        for name, meta in action_metadata.items()
+        if should_emit_action(meta, view)
+    }
+    for silent in sorted(declared_for_view - emitted_actions):
+        print(
+            f"warning: declared {view} action {silent!r} generated ZERO cases. "
+            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
+            "attributes its transitions to the inner action -- add a semantic "
+            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
+            "the action from actions.yml if it is not a real view action.",
+            file=sys.stderr,
+        )
+
     if param_recipes is not None:
         audit_path = out_path / args.package / "param_recovery_audit.md"
         write(audit_path, render_audit(param_recipes))

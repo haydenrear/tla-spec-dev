@@ -64,8 +64,10 @@ findings:
     accepted program_model manifest (fresh status header only), not from the bare
     template.
   blast_radius: Every future workflow scaffold on an onboarded project.
-  disposition: pending
+  disposition: fixed-inline
   disposition_ticket: null
+  resolution_note: >-
+    owner spot-fix 2026-07-23: scaffold workflow carries the accepted manifest semantic tail (carry_manifest_semantic_tail + regression test)
 - id: CD04-DF-1
   found_by: CD-04-suggestion-sweep
   found_at_commit: 48f3ff6
@@ -322,8 +324,10 @@ findings:
     lazy/fallback), and scaffold the test with the absolute script path and
     --spec-dir.
   blast_radius: "Every scaffolded project that adopts effect providers."
-  disposition: pending
+  disposition: fixed-inline
   disposition_ticket: null
+  resolution_note: >-
+    owner spot-fix 2026-07-23: runner effect_conformance import dual-mode; scaffolded test uses absolute runner path + --spec-dir
 - id: R4-DF-03
   found_by: "validation-ex1-run4"
   found_at_commit: "861f485"
@@ -354,8 +358,10 @@ findings:
     replay command; prefer sys.executable only when not an ephemeral build
     dir, else fall back to a stable interpreter with a warning.
   blast_radius: "Replay fidelity of every provider failure."
-  disposition: pending
+  disposition: fixed-inline
   disposition_ticket: null
+  resolution_note: >-
+    owner spot-fix 2026-07-23: PYTHONPATH entries folded into --import-root args in replay commands (plain argv preserved)
 - id: R4-DF-04
   found_by: "validation-ex1-run4"
   found_at_commit: "861f485"
@@ -383,8 +389,10 @@ findings:
     view action generates zero cases; document the anchoring-conjunct
     convention.
   blast_radius: "External case coverage on alias-styled views."
-  disposition: pending
+  disposition: fixed-inline
   disposition_ticket: null
+  resolution_note: >-
+    owner spot-fix 2026-07-23: generator warns per declared view action with ZERO cases, naming the alias-wrapper cause
 - id: R4-DF-05
   found_by: "validation-ex1-run4"
   found_at_commit: "861f485"

@@ -1419,7 +1419,10 @@ def load_effect_declarations_for_spec(spec_dir: Path | None):
     error -- a program with no declared ports is checked as such, and any
     effect it emits is a gap.
     """
-    from effect_conformance import load_effect_declarations as _load
+    try:
+        from .effect_conformance import load_effect_declarations as _load
+    except ImportError:  # pragma: no cover - direct script execution
+        from effect_conformance import load_effect_declarations as _load
 
     if spec_dir is None:
         return _load(None)
@@ -2076,8 +2079,22 @@ def build_replay_command(
         command.extend(["--spec-dir", str(spec_dir.resolve())])
     if args.view is not None:
         command.extend(["--view", args.view])
+    recorded_roots = {str(root.resolve()) for root in import_roots}
     for root in import_roots:
         command.extend(["--import-root", str(root.resolve())])
+    # R4-DF-03: the provider module often resolves only through the invoking
+    # environment's PYTHONPATH; a replay command that omits it fails from a
+    # clean shell with ModuleNotFoundError. Fold each PYTHONPATH entry into
+    # an --import-root argument (the runner puts import roots on sys.path),
+    # keeping the command a plain argv with the interpreter first.
+    for entry in (os.environ.get("PYTHONPATH") or "").split(os.pathsep):
+        entry = entry.strip()
+        if not entry:
+            continue
+        resolved = str(Path(entry).resolve())
+        if resolved not in recorded_roots:
+            recorded_roots.add(resolved)
+            command.extend(["--import-root", resolved])
     return shlex.join(command)
 
 

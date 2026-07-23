@@ -224,6 +224,29 @@ def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_ru
     return True
 
 
+MANIFEST_CARRY_ANCHOR = "# Per-program complexity and case budgets"
+
+
+def carry_manifest_semantic_tail(template_text: str, baseline_manifest: Path) -> str:
+    """MR-DF-01: keep the accepted manifest's semantic blocks at scaffold time.
+
+    The workflow scaffold regenerates spec_manifest.yaml from a bare template,
+    which silently drops everything the accepted program model negotiated:
+    budgets with recorded rationales, the effects/ports declarations, the
+    justification table, schema stanzas. The fresh status header still comes
+    from the template; everything from the budgets section onward is carried
+    verbatim from the accepted manifest when both sides carry the anchor.
+    """
+    if not baseline_manifest.is_file():
+        return template_text
+    accepted = baseline_manifest.read_text(encoding="utf-8")
+    template_idx = template_text.find(MANIFEST_CARRY_ANCHOR)
+    accepted_idx = accepted.find(MANIFEST_CARRY_ANCHOR)
+    if template_idx == -1 or accepted_idx == -1:
+        return template_text
+    return template_text[:template_idx] + accepted[accepted_idx:]
+
+
 def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
     if not src_dir.exists():
         return []
@@ -1013,10 +1036,22 @@ def scaffold(
 
     files = [
         (current_dir / "README.md", current_readme(ticket_id, title, baseline, spec_root)),
-        (current_dir / "spec_manifest.yaml", current_manifest(module, package, ticket_id, title, spec_root)),
+        (
+            current_dir / "spec_manifest.yaml",
+            carry_manifest_semantic_tail(
+                current_manifest(module, package, ticket_id, title, spec_root),
+                baseline.program_dir / "spec_manifest.yaml",
+            ),
+        ),
         (current_dir / "tests" / "test_current_ticket_workflow.py", current_test_for_spec_root(ticket_id, spec_root)),
         (desired_dir / "README.md", desired_readme(ticket_id, title, baseline)),
-        (desired_dir / "spec_manifest.yaml", desired_manifest(module, package, ticket_id, title, spec_root)),
+        (
+            desired_dir / "spec_manifest.yaml",
+            carry_manifest_semantic_tail(
+                desired_manifest(module, package, ticket_id, title, spec_root),
+                baseline.program_dir / "spec_manifest.yaml",
+            ),
+        ),
         (desired_dir / "ticket_plan.yaml", ticket_plan(ticket_id, title, module, spec_root)),
         (desired_dir / "desired_state.yaml", desired_state(ticket_id, title, module, spec_root)),
     ]

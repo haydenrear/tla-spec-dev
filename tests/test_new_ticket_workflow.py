@@ -580,3 +580,46 @@ def test_close_ticket_workflow_accept_new_still_requires_closed_tickets(tmp_path
         assert "ticket AUTH-134 is not closed" in str(exc)
     else:
         raise AssertionError("expected accept-new to still require closed tickets")
+
+
+def test_scaffold_workflow_carries_accepted_manifest_semantics(tmp_path, monkeypatch):
+    """MR-DF-01: scaffold workflow must not regenerate a bare manifest.
+
+    The accepted program_model manifest carries negotiated budgets, effects,
+    and justification blocks; the workflow scaffold's template previously
+    overwrote them with defaults (boundaries dropped 22->13 the day it
+    happened). The semantic tail must be carried verbatim under the fresh
+    status header.
+    """
+    from scripts.new_ticket_workflow import carry_manifest_semantic_tail
+
+    template = (
+        "module: X\n"
+        "package: current_program_cases\n"
+        "status:\n"
+        "  workflow: fresh\n"
+        "# Per-program complexity and case budgets -- advisory thresholds read by\n"
+        "budgets:\n"
+        "  max_distinct_states: 50000\n"
+    )
+    accepted = tmp_path / "spec_manifest.yaml"
+    accepted.write_text(
+        "module: X\n"
+        "status:\n"
+        "  workflow: old\n"
+        "# Per-program complexity and case budgets. NEGOTIATED SENTINEL.\n"
+        "budgets:\n"
+        "  max_distinct_states: 500000\n"
+        "effects:\n"
+        "  components: {}\n",
+        encoding="utf-8",
+    )
+    carried = carry_manifest_semantic_tail(template, accepted)
+    assert "workflow: fresh" in carried          # fresh header wins
+    assert "workflow: old" not in carried
+    assert "NEGOTIATED SENTINEL" in carried      # semantic tail carried
+    assert "max_distinct_states: 500000" in carried
+    assert "effects:" in carried
+    assert "max_distinct_states: 50000\n" not in carried
+    # no accepted manifest -> template unchanged
+    assert carry_manifest_semantic_tail(template, tmp_path / "missing.yaml") == template

@@ -1254,18 +1254,39 @@ REPO_ROOT = SPEC_ROOT.parent
 CASES_DIR = SPEC_ROOT / "generated" / "spec-unit" / "{_slug(module)}_internal_cases"
 
 
+def _runner_script() -> Path | None:
+    # The runner must be invoked as a script by absolute path, not as
+    # `-m scripts.run_generated_case_adapters`: the module name resolves only
+    # inside the toolchain repository, and once [effect_providers.*] is
+    # configured the runner's import layout requires direct-script mode.
+    try:
+        import spec_double_compiler
+    except ImportError:
+        return None
+    candidate = (
+        Path(spec_double_compiler.__file__).resolve().parents[1]
+        / "scripts"
+        / "run_generated_case_adapters.py"
+    )
+    return candidate if candidate.is_file() else None
+
+
 @pytest.mark.skipif(
     not CASES_DIR.exists(),
     reason="no generated spec-unit cases yet; generate them from Internal.tla first",
 )
 def test_internal_adapters_run_in_batch(tmp_path: Path) -> None:
+    runner = _runner_script()
+    if runner is None:
+        pytest.skip("spec_double_compiler runtime not importable; set PYTHONPATH to the tla-spec-dev checkout")
     command = [
         sys.executable,
-        "-m",
-        "scripts.run_generated_case_adapters",
+        str(runner),
         str(CASES_DIR),
         "--mapping",
         str(SPEC_DIR / "case_adapters.toml"),
+        "--spec-dir",
+        str(SPEC_DIR),
         "--view",
         "internal",
         "--batch",
