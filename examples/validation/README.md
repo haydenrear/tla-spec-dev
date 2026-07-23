@@ -23,3 +23,9 @@ Protocol:
    artifacts under `runs/<example>-run<N>/` and scores it against the
    predictions.
 5. Each example runs at least twice. Findings are filed, never fixed inline.
+6. Run 4 onward (post effect-provider merge): tasks enter through
+   `references/effectful_onboarding.md` and compose complexity minimization
+   with agent-authored effect providers — see the run-4 addendum in
+   PREDICTIONS.md. The example projects stay pristine fixtures; providers
+   are authored by the agents in their scratch copies, per the product's
+   own design.

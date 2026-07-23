@@ -219,6 +219,21 @@ single-line inline mappings with scalar values — the fitness-rule leaf syntax
 originating virtualenv interpreter.
 For moving an existing repository onto this shape, read `references/migration.md`.
 
+## Onboarding to effectful fuzzing + complexity minimization
+
+Once the spec workflow is green, the composed path — measure complexity with
+the descriptor, judge it with `references/complexity_intuition.md`, take any
+validated refactor the judgment earns, lock the shape in with fitness
+functions, then declare effect ports and implement agent-authored providers
+for deterministic content-asserting fuzz campaigns — is a single ordered
+walk. Read `references/effectful_onboarding.md` and follow its stages in
+order: complexity minimization comes FIRST (a provider written against
+god-state actions duplicates every coupled rule, and representation-heavy
+state multiplies per-point campaign cost for nothing), effects second,
+one boundary at a time. Existing onboarded repositories migrate additively —
+with no `role: effect` port and no `[effect_providers.*]` table configured,
+every legacy path is preserved exactly.
+
 ## Internal/External Test Graph Views
 
 **Every project uses one semantic authority with two generated views. This is
@@ -1128,6 +1143,9 @@ current change.
 - `references/modular_fuzzing.md`: modular pure-function/side-effect
   representations, decomposition method, budgets, oracles, corpus
   discipline, and the External content rule.
+- `references/effectful_onboarding.md`: the ordered onboarding/migration walk
+  onto effectful fuzzing + complexity minimization — descriptor first,
+  fitness lock-in, then effect ports, providers, and deterministic campaigns.
 - `references/effect_providers.md`: project-owned provider interfaces,
   the domain-neutral agent contract, deterministic representative campaigns,
   exact replay, usage evidence, and honest isolation/validation limits.

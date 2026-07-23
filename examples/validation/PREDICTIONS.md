@@ -138,3 +138,35 @@ to this run:
 - **R3-X1**: no scan prints the does-not-exist sentinel or warns about
   retired budget keys (CD-02-DF-01, VAL-02); run_tlc.sh leaves no states/
   dir in any spec dir (VAL-03).
+
+## Run 4 addendum — the effectful run (written before dispatch, 2026-07-22)
+
+The effect-provider runtime is merged (EP-01..06 + integration). Run 4 is the
+first validation of the COMPOSED surface: each agent enters through
+`references/effectful_onboarding.md` (new in SKILL.md) and walks its stages —
+descriptor → intuition judgment → fitness lock-in → effect ports → provider →
+deterministic campaign. Prior predictions still hold where applicable.
+
+- **R4-E1** (ex1 taskq): the scaffold now emits `providers.py`,
+  `effect_provider_usage.yaml`, and `effect_ports: []` stubs — the agent
+  declares a real TaskStore effect port for taskq.json persistence,
+  implements a provider whose assertions check CONTENT (persisted map vs the
+  modeled after-state), records the usage descriptor, and runs a seeded
+  campaign (`--fuzz-runs ≥ 5`) green. A deliberate provider-visible bug probe
+  (agent's choice) demonstrates a kill with an `EFFECT_FUZZ_FAILURE` +
+  working replay, or the agent honestly reports why not.
+- **R4-E2** (ex2 distributed_history): the cancellation ticket completes as
+  in runs 1-3 AND the agent migrates ONE internal action to an effect port +
+  provider per the migration section (explicit empty `effect_ports` added to
+  the remaining actions; legacy path preserved for everything else). The
+  descriptor/fitness stages precede the provider work per the doc's ordering.
+- **R4-E3** (ex3 order_hub): complexity stages first (expect convergence with
+  run 3's canonical refactor); then the agent treats the audit journal as the
+  effect boundary — declares an AuditJournalPort, injects a provider that
+  asserts count/ordering against the modeled auditLog, campaign green.
+- **R4-X1**: no agent needs toolchain source as documentation for the
+  effectful stages (the onboarding doc + effect_providers.md suffice — gaps
+  are findings about those docs); providers never mutate generated cases
+  (oracle-integrity stays silent); all failures replay exactly.
+- **R4-X2**: complexity-first ordering is observed: no agent starts provider
+  work before the descriptor/fitness stages, per the doc.
