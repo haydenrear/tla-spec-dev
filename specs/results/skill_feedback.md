@@ -172,7 +172,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - recommendation: (none yet) — recommend a `--tickets N` option on
   `scaffold workflow`, or a multi-ticket fixture plan, so cross-close behavior
   is testable without hand-editing YAML
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/105
 
 ### SF-002 (filed: https://github.com/haydenrear/tla-spec-dev/issues/106) — plan prescribed model state that implementation showed to be wrong
 - category: budget-and-metric
@@ -196,7 +197,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   `desired_actions`/`model_state` against the promoted model and require an
   explicit `outcome:` when they disagree, rather than leaving the plan silently
   contradicting the accepted model
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/106
 
 ### SF-003 (filed: https://github.com/haydenrear/tla-spec-dev/issues/107) — promotion silently discards edits to seeded specs/current files
 - category: profile-schema-cli
@@ -218,7 +220,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - recommendation: (none yet) — recommend the promotion report also enumerate
   overwritten paths whose content changed, the same way it already enumerates
   removed and preserved paths
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/107
 
 ## Close-out ticket MF-014
 
@@ -259,7 +262,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   purge of that fallback from the withdrawn MF-024 and should treat a manifest
   that exists but cannot be parsed as a hard failure, distinct from a manifest
   that is absent.
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/108
 
 ### SF-005 (filed: https://github.com/haydenrear/tla-spec-dev/issues/109) — a corpus documented in four places as committed is not committed
 
@@ -290,7 +294,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   that the 732-case corpus is regenerated per run and not committed, and that
   MF-023 re-run `tla-spec-dev analyze corpus` against the real regenerated
   output and record the actual distribution
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/109
 
 ### SF-006 (filed: https://github.com/haydenrear/tla-spec-dev/issues/110) — plan prescribed model state for a scope that had been withdrawn
 
@@ -319,7 +324,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   required to rewrite or explicitly null the `desired_actions` /
   `current_increment` fields in the same change, since a stale prescription
   that contradicts the new objective is worse than an absent one
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/110
 
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
@@ -395,7 +401,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   gates while the strictest one surfaces it only at close. Absorbed into
   MF-023 with SF-004; not filed as a separate issue because it is the same
   defect class and splitting it would fragment the fix.
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/111
 
 ## Close-out ticket MF-027
 
@@ -864,7 +871,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - recommendation: (none yet) — recommend a `--tickets N` option on
   `scaffold workflow`, or a multi-ticket fixture plan, so cross-close behavior
   is testable without hand-editing YAML
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/105
 
 ### SF-002 (filed: https://github.com/haydenrear/tla-spec-dev/issues/106) — plan prescribed model state that implementation showed to be wrong
 - category: budget-and-metric
@@ -888,7 +896,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   `desired_actions`/`model_state` against the promoted model and require an
   explicit `outcome:` when they disagree, rather than leaving the plan silently
   contradicting the accepted model
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/106
 
 ### SF-003 (filed: https://github.com/haydenrear/tla-spec-dev/issues/107) — promotion silently discards edits to seeded specs/current files
 - category: profile-schema-cli
@@ -910,7 +919,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - recommendation: (none yet) — recommend the promotion report also enumerate
   overwritten paths whose content changed, the same way it already enumerates
   removed and preserved paths
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/107
 
 ## Close-out ticket MF-014
 
@@ -951,7 +961,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   purge of that fallback from the withdrawn MF-024 and should treat a manifest
   that exists but cannot be parsed as a hard failure, distinct from a manifest
   that is absent.
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/108
 
 ### SF-005 (filed: https://github.com/haydenrear/tla-spec-dev/issues/109) — a corpus documented in four places as committed is not committed
 
@@ -982,7 +993,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   that the 732-case corpus is regenerated per run and not committed, and that
   MF-023 re-run `tla-spec-dev analyze corpus` against the real regenerated
   output and record the actual distribution
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/109
 
 ### SF-006 (filed: https://github.com/haydenrear/tla-spec-dev/issues/110) — plan prescribed model state for a scope that had been withdrawn
 
@@ -1011,7 +1023,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   required to rewrite or explicitly null the `desired_actions` /
   `current_increment` fields in the same change, since a stale prescription
   that contradicts the new objective is worse than an absent one
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/110
 
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
@@ -1087,7 +1100,8 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
   gates while the strictest one surfaces it only at close. Absorbed into
   MF-023 with SF-004; not filed as a separate issue because it is the same
   defect class and splitting it would fragment the fix.
-- status: open
+- status: filed
+- reference: https://github.com/haydenrear/tla-spec-dev/issues/111
 
 ## Close-out ticket MF-027
 
@@ -1311,3 +1325,12 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 ---
 
 Finalization review 2026-07-23 (epic owner): SF-001..SF-007 filed as issues #105-#111 (links inline above); all placeholder entries reviewed and set none-found; the four pending backlog findings carried as issues #112-#115.
+
+## Close-out workflow complexity-descriptor-main-readiness
+
+- close_scope: workflow
+- close_id: complexity-descriptor-main-readiness
+- workflow: complexity-descriptor-main-readiness
+- closed_at: 2026-07-23T21:22:33+00:00
+- summary: Main-readiness workflow closed: CD-04..08 removed every validated negative side effect (redesign question, descriptor accuracy, advisory language, example repair); effect-provider epic merged with zero host-model delta and the composed surface validated by run-4 kill probes; coverage audit close-2 PASS (0 gaps); SF findings filed #105-#111, backlog carried #112-#115; promotion gate for main
+- feedback_status: none-found  # finalization review 2026-07-23: no NEW findings at this close; all prior SF findings are status: filed with issue references (#105-#111)
