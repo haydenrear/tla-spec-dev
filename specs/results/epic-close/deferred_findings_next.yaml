@@ -1,0 +1,81 @@
+# Deferred out-of-scope findings backlog (created by CD-09 per the epic
+# deferment policy: mode batch, blocking escalate, budget 5).
+findings:
+  - id: CD09-DF-1
+    source: CD-09
+    date: "2026-07-22"
+    finding: >
+      `Stutter` remains unbound in case_adapters.toml and StutterAdapter
+      (production_adapters.py) is self-described MF-028 spike scaffolding
+      marked for deletion in favour of PR #50's version. The case runner's
+      whole-corpus coverage gate would refuse any generated corpus containing
+      Stutter-labeled cases. Deliberately out of CD-09's G5 scope: Stutter is
+      not an @command action and the corpus is experimental surface post-pivot.
+      Resolve (bind, or exclude Stutter cases at generation) if the fuzzing
+      surface returns.
+    blocking: false
+  - id: CD09-DF-2
+    source: CD-09
+    date: "2026-07-22"
+    finding: >
+      spec_manifest.yaml effects.actions maps 13 of the 14 @command actions:
+      RecordBudgets declares no port list although it writes the budgets block
+      into spec_manifest.yaml (a spec_tree candidate). Pre-existing index
+      desync noted by both audits, assigned to no CD-09 gap; needs an owner
+      decision (declare spec_tree for it, or record why budget-recording is
+      out of the effect contract).
+    blocking: false
+  - id: CD09-DF-3
+    source: CD-09
+    date: "2026-07-22"
+    finding: >
+      spec_manifest.yaml source_model still references
+      ../program_model/Core.tla, Internal.tla, External.tla — none exist
+      (MF-026 index desync 1, re-verified by audit run 2, still open). The
+      Internal/External split is the recorded known_gap (MF-023 lineage);
+      the dangling references should either be removed or the split performed.
+    blocking: false
+  - id: CD09-DF-4
+    source: CD-09
+    date: "2026-07-22"
+    finding: >
+      After CD-09's ticket-scoped promotion, specs/current carries the
+      advisory-faithful model/manifest/bindings but specs/program_model and
+      specs/desired_program_model still carry the pre-CD-09 baseline (override
+      guard, SpecUnitTestsRequireAnalyzedGate, tlc_process port,
+      ValidateTestGraphCli binding, 19-boundary kill catalog). Epic
+      finalization's whole-workflow promotion must reconcile the baseline
+      trees; a ticket agent must not run it.
+    blocking: false
+  - id: CD10-DF-1
+    source: CD-10
+    date: "2026-07-22"
+    finding: >
+      After CD-10's ticket-scoped promotion, specs/current carries the honest
+      manifest (spec_tree_delete / runner_process / git_metadata ports, the
+      RecordBudgets: [] row, cleaned source_model) and the 20-boundary kill
+      catalog, but specs/program_model and specs/desired_program_model still
+      carry the pre-CD-10 shapes: the dangling Core/Internal/External
+      source_model references (their spec_manifest.yaml:111-113), the
+      13-of-14 effects.actions map, and 17-boundary kill catalogs. Same shape
+      as CD09-DF-4: epic finalization's whole-workflow reconciliation must
+      carry the CD-10 manifest deltas into the baseline trees; a ticket agent
+      must not run it.
+    blocking: false
+  - id: CD11-DF-1
+    source: CD-11
+    date: "2026-07-22"
+    finding: >
+      After CD-11's ticket-scoped promotion, specs/current carries the honest
+      experimental-surface declarations (mutation_write / corpus_process
+      ports, RunEffectConformance spec_tree, AnalyzeCorpus: [], the
+      ESC-R4-2 placeholder-stanza comment, the ESC-R4-3 @port vocabulary)
+      and the 22-boundary kill catalog, but specs/program_model and
+      specs/desired_program_model still carry the pre-CD-11 shapes: old
+      @port command-name annotations, RunKillTest: [evidence_report,
+      test_process], AnalyzeCorpus: [evidence_report], uncommented empty
+      stanzas, and 20-boundary kill catalogs. Same shape as CD09-DF-4 /
+      CD10-DF-1: epic finalization's whole-workflow reconciliation must
+      carry the CD-11 deltas into the baseline trees; a ticket agent must
+      not run it.
+    blocking: false

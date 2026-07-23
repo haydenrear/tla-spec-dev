@@ -1,0 +1,44 @@
+{
+  "cases": [],
+  "dead_surface": [
+    {
+      "port": "TlaSpecDevCliPort.cli_artifact",
+      "target": "**/.venv/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.evidence_report",
+      "target": "**/results/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.spec_tree",
+      "target": "**/specs/**",
+      "type": "filesystem.write"
+    },
+    {
+      "port": "TlaSpecDevCliPort.test_process",
+      "target": "*pytest*",
+      "type": "process.spawn"
+    },
+    {
+      "port": "TlaSpecDevCliPort.tlc_process",
+      "target": "*java*",
+      "type": "process.spawn"
+    }
+  ],
+  "declared_ports": [
+    "TlaSpecDevCliPort.cli_artifact",
+    "TlaSpecDevCliPort.evidence_report",
+    "TlaSpecDevCliPort.spec_tree",
+    "TlaSpecDevCliPort.test_process",
+    "TlaSpecDevCliPort.tlc_process"
+  ],
+  "gaps": [],
+  "ignored_suppression_keys": [],
+  "observed_effects": [],
+  "ok": false,
+  "summary": "effect conformance dead_surface: 0 observed effect(s) over 0 case(s), 5 declared port(s), 0 gap(s), 5 dead port(s)",
+  "suppression_policy": "withdrawn 2026-07-18: no justification, annotation, or manifest entry suppresses a gap report",
+  "verdict": "dead_surface"
+}

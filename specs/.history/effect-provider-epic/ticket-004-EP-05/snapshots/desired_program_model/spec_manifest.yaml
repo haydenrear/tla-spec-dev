@@ -1,0 +1,49 @@
+module: TlaSpecDevCli
+package: desired_program_cases
+
+status:
+  workflow: effect-provider-epic
+  initial_ticket: EP-01
+  initial_ticket_title: "Typed effect-provider lookup and case lifecycle"
+  active_ticket: null
+  phase: repeatable_example_validation_pending
+  ticket_plan: ticket_plan.yaml
+  relation_to_program_model: desired_successor_of_accepted_program_model
+  relation_to_current: target_state_for_specs_current_to_converge_to
+  updated: "2026-07-22"
+  summary:
+    desired_model_scaffolded: true
+    ticket_plan_scaffolded: true
+    current_model_scaffolded: true
+    original_effect_provider_tickets: complete
+    agent_provider_amendment: in_progress
+    example_validation: complete
+    coverage_audit: fail
+    coverage_audit_hard_gaps: 12
+    promotion_blocked: true
+  done:
+    - EP-01 typed effect-provider lookup and case lifecycle
+    - EP-02 provider authoring kit and deterministic fuzz/replay loop
+    - EP-03 three effectful projects and mutation evidence
+    - EP-04 one generic agent-authored provider interface and explicit audit disposition
+    - EP-05 dependency-invariant parsing, virtualenv-correct replay, and generated signature validation
+  pending:
+    - EP-06 rerun all three examples through repeatable independent agent validation.
+    - Promote only after every finalization gate passes and the user approves.
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
+  baseline_package: tlaspecdevcli_program_cases
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+state_fields: []
+actions: []
+ports: {}
+notes:
+  direction: "This manifest records the target whole-program model and workflow status. Epic schedule revision 2 declared the exact seven-file, three-model coverage-audit scope and retained its 12-gap failure. Schedule revision 3 adds EP-04 through EP-06 to narrow the shipped product to one generic agent-authored provider interface, harden its generic correctness, and revalidate the examples as experimental consumers. The host TLA+ model remains unchanged unless an observable CLI transition is added."

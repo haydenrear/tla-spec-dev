@@ -1,0 +1,648 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-038",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-020-MF-038 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-038'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-020-MF-038"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": 25,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 231621,
+        "before": 231621,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 5619356,
+        "before": 5619356,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "MF-033"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": 25,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 231621,
+          "before": 231621,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 5619356,
+          "before": 5619356,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "MF-033"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-038/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/tickets/MF-038/results/tlc.txt",
+      "variables": 9
+    },
+    "narrative": "MF-038 measured the one number the modular-fuzzing value proposition rests on: do the generated cases catch real bugs? Control on the reduced runnable corpus (14 representative cases spanning every runnable filesystem command) was GREEN, so the measurement is meaningful (MF-016's own safeguard). Kill rate = 4/13 = 0.308. The four killed mutants are all STRUCTURAL bugs that change which directory or lifecycle tree gets created (wrong program_model dir, wrong desired_program_model dir, wrong tickets/<id> dir, ticket desired-tree never created); three were caught via before-state replay divergence and one (open ticket wrong dir) via a clean projected ticket_state conformance mismatch. All NINE subtle bugs SURVIVED: empty Internal.tla, wrong manifest enums (model_role, workflow), three neighbouring/off-by-one budget defaults, a wrong manifest field value, a wrong ticket_plan phase enum, and a misplaced results/.gitkeep. Root cause is uniform: the adapters project a real repository into 9 model variables that are functions of directory/file EXISTENCE and exit codes only -- no oracle reads file content, a budget value, a manifest field, an enum, or a count. The cases are existence-and-exit-code oracles, not content oracles. Full analysis and the per-survivor refine_variable/refine_action pointers: results/kill-rate-report.md and results/kill-rate-report.json. Recommendation to the owner: NOT yet ship-worthy as \"case advising\" on bug-catching strength (0.308, and lower under a realistically subtle catalog); the highest-value deepening is to project the CONTENT the commands produce (budget block, manifest status/model_role, ticket_plan phase) into model variables so those survivors become killable. The number was not tuned in any direction: 9 of 13 mutants are subtle and all 9 survived; no threshold lowered, no survivor deleted, ignored_suppression_keys none. Validation matrix green: TLC 231,621 distinct / depth 25 (zero delta), spec-unit 63+60 passed, repo units 526 passed (>=522 baseline), specWorkflow 8/8, cliWorkflow 2/2.",
+    "notes": [
+      "OK: generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-21T11:30:31.083009+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "MF-038 is an investigation ticket that adds NO TLA+ model or production code -- only a results-local measurement harness, a mutant catalog, and evidence under specs/tickets/MF-038/results. The complexity delta is zero (variables 9, actions 14, distinct 231,621, depth 25 -- identical to the MF-033 tip), so there is no added representation to refine and no abstraction to simplify. Searched for a smaller representation that would still support the probe: none applies, because the probe measures the EXISTING corpus's kill power rather than changing the model. The refinement this probe DID surface is a model-deepening recommendation (project file/field content into model variables so subtle bugs are killable); it is advisory, user-approved, and belongs to MF-023's surface, not to this measurement ticket.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the effect-conformance report",
+        "status": "",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the external coverage report",
+        "status": "",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the kill-test report",
+        "status": "",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=(absent) (UNVERIFIED)",
+      "effect_conformance=(absent) (UNVERIFIED)",
+      "external_coverage=(absent) (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-038",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 5619356 -> 5619356, distinct 231621 -> 231621, depth 25 -> 25. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-21T11:30:31.115944+00:00",
+  "entry_name": "ticket-020-MF-038",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/68-mf038-kill-rate-probe",
+    "commit": "c9aba34",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-038/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/MF-038/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-038/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-038/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/MF-038/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-038/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-038/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-038/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-038/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/MF-038/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-038/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-038"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "MF-038 is an investigation ticket that adds NO TLA+ model or production code -- only a results-local measurement harness, a mutant catalog, and evidence under specs/tickets/MF-038/results. The complexity delta is zero (variables 9, actions 14, distinct 231,621, depth 25 -- identical to the MF-033 tip), so there is no added representation to refine and no abstraction to simplify. Searched for a smaller representation that would still support the probe: none applies, because the probe measures the EXISTING corpus's kill power rather than changing the model. The refinement this probe DID surface is a model-deepening recommendation (project file/field content into model variables so subtle bugs are killable); it is advisory, user-approved, and belongs to MF-023's surface, not to this measurement ticket.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/kill-rate-report.md",
+      "source": "specs/tickets/MF-038/results/kill-rate-report.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/kill-rate-report.json",
+      "source": "specs/tickets/MF-038/results/kill-rate-report.json"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/kill_mutants_mf038.toml",
+      "source": "specs/tickets/MF-038/results/kill_mutants_mf038.toml"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/tlc.txt",
+      "source": "specs/tickets/MF-038/results/tlc.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/spec-unit.txt",
+      "source": "specs/tickets/MF-038/results/spec-unit.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/pytest.txt",
+      "source": "specs/tickets/MF-038/results/pytest.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/graph-specWorkflow-report.md",
+      "source": "specs/tickets/MF-038/results/graph-specWorkflow-report.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/results/graph-cliWorkflow-report.md",
+      "source": "specs/tickets/MF-038/results/graph-cliWorkflow-report.md"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the effect-conformance report",
+      "status": "",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the external coverage report",
+      "status": "",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "TODO -- path to the kill-test report",
+      "status": "",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 17,
+    "close_out_entry": "Close-out ticket MF-038",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-68-mf038-kill-rate-probe/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket",
+      "source": "specs/tickets/MF-038"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "MF-038 kill-rate probe: control GREEN on the reduced runnable corpus; kill rate 4/13=0.308; all 9 subtle content/value/field bugs SURVIVED, only 4 structural directory/tree bugs killed. Cases are existence-and-exit-code oracles, not content oracles. Zero model delta. Recommendation: not yet ship-worthy as case-advising until file/field content is projected into model variables.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "a green control run on the runnable corpus, or an honest report that the control is not green and why.",
+        "at least ~10 seeded bugs across the runnable adapters, spanning obvious and subtle, each a real behavioral change not a syntax break.",
+        "a measured kill rate with the kill/survive status of every seeded bug.",
+        "for each survivor, the reason the cases missed it (wrong oracle, unchecked field, coverage gap, path never exercised).",
+        "a plain recommendation on whether model-derived conformance testing is worth shipping as case-advising, based on the number, and what would deepen shallow cases.",
+        {
+          "the kill rate is NOT tuned": "no threshold lowered, no survivor deleted, no seeding restricted to catchable bugs."
+        }
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-038"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/kill_test.py",
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-032"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/68",
+    "id": "MF-038",
+    "implementation_scope": [
+      "scripts/kill_test.py (point at the runnable corpus)",
+      "a probe driver and seeded-bug set under the ticket results"
+    ],
+    "objective": "INVESTIGATION TICKET, deliverable is a measured kill rate not a feature. Answers the one question the fuzzing value-proposition rests on and never answered against a runnable corpus: DO THE GENERATED CASES CATCH REAL BUGS? The kill test (MF-016) is the only instrument that measures bug-catching power and has never produced a real number here -- its worked example was synthetic (4/7 on a toy), and against the real corpus it control_failed because no case ran. MF-031/MF-032 made ~10% of the corpus (the filesystem-mutating commands) executable, so the experiment is finally possible. Establish a GREEN CONTROL first (unmutated runnable corpus must pass, or the rate is meaningless -- report and stop). Seed >=10 realistic bugs across the runnable adapters (ScaffoldProject, ScaffoldWorkflow, RecordBudgets, OpenTicket, InstallLocalCli, UpdateTicketDesired/Current), spanning obvious (wrong file, wrong output) and SUBTLE (off-by-one count, plausible-but-wrong phase, neighbouring budget default, dropped field) -- the subtle ones are the real test and trivial-only seeding inflates the rate. Run cases against each mutant; a mutant is killed if some oracle (output/projected-state/effect conformance) catches the divergence. Report the kill rate, per-bug kill/survive, and for each survivor WHY the cases missed it. HONEST-OUTCOME RULE: a low kill rate is a valid valuable result -- do not tune it, do not seed only catchable bugs, do not delete a survivor; MF-016 nearly shipped a spurious perfect rate and caught itself. Recommend whether model-derived conformance testing is worth shipping as case-advising based on the number. See tickets/038-kill-rate-probe.md.",
+    "promotion_order": 91,
+    "promotion_predecessor": "MF-033",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Probe -- do the generated cases catch real bugs (kill rate on the runnable corpus)",
+    "wave": 10
+  },
+  "ticket_id": "MF-038",
+  "ticket_index": 20,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-020-MF-038/ticket",
+    "source": "specs/tickets/MF-038"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}

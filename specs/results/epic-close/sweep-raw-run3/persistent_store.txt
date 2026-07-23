@@ -1,0 +1,87 @@
+examples/distributed_history/ecommerce_backend/domain.py:4:import sqlite3
+examples/distributed_history/ecommerce_backend/domain.py:28:        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+examples/distributed_history/ecommerce_backend/domain.py:29:        self._conn.row_factory = sqlite3.Row
+examples/distributed_history/ecommerce_backend/domain.py:37:            self._conn.execute("create table if not exists accounts (account_id text primary key)")
+examples/distributed_history/ecommerce_backend/domain.py:38:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:41:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:44:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:47:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:54:                self._conn.execute(f"delete from {table}")
+examples/distributed_history/ecommerce_backend/domain.py:60:                self._conn.execute("insert into accounts(account_id) values (?)", (account_id,))
+examples/distributed_history/ecommerce_backend/domain.py:63:                    self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:68:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:78:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:83:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:90:            self._conn.execute("insert or ignore into accounts(account_id) values (?)", (account_id,))
+examples/distributed_history/ecommerce_backend/domain.py:99:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:108:        existing = self._conn.execute("select order_id from orders where order_id = ?", (order_id,)).fetchone()
+examples/distributed_history/ecommerce_backend/domain.py:116:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:120:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:127:        rows = self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:133:                self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:137:                self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
+examples/distributed_history/ecommerce_backend/domain.py:141:        row = self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:148:            self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:152:            self._conn.execute("delete from outbox where order_id = ?", (row["order_id"],))
+examples/distributed_history/ecommerce_backend/domain.py:158:            for row in self._conn.execute("select account_id from accounts order by account_id").fetchall()
+examples/distributed_history/ecommerce_backend/domain.py:161:        for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:166:        for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:176:            for row in self._conn.execute("select order_id, event_name from outbox order by order_id").fetchall()
+examples/distributed_history/ecommerce_backend/domain.py:180:            for row in self._conn.execute(
+examples/distributed_history/ecommerce_backend/domain.py:193:        return self._conn.execute("select 1 from accounts where account_id = ?", (account_id,)).fetchone() is not None
+examples/distributed_history/ecommerce_backend/domain.py:198:            for row in self._conn.execute(
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+scripts/generate_cases_from_tlc_dump.py:255:    cursor = index - 1
+scripts/generate_cases_from_tlc_dump.py:256:    while cursor >= 0 and value[cursor] == "\\":
+scripts/generate_cases_from_tlc_dump.py:258:        cursor -= 1
+scripts/kill_test.py:601:    therefore execute OUTSIDE the effect sandbox; run it inside and the two
+scripts/onboard_program_model.py:1204:execute them, so this repository's public surface will NOT be validated.
+scripts/run_generated_case_adapters.py:317:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/spec_evolution.py:109:        return {"inside_work_tree": inside, "branch": None, "commit": None}
+scripts/spec_evolution.py:113:        "commit": git_value("rev-parse", "--short", "HEAD"),
+scripts/spec_evolution.py:241:    git_commit_command = f"git commit -m {message!r}"
+scripts/spec_evolution.py:244:        recommendation=f"It is recommended to commit this history directory now: {rel(entry_dir)}",
+scripts/spec_evolution.py:274:            "Review this append-only entry, then commit the history directory with the related spec changes.\n",
+scripts/spec_evolution.py:748:    # MF-019: the ledger is written by this close, so it belongs in the commit
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:86:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:92:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:70:    fun execute(invocation: NodeInvocation): ExecutionOutcome
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:18:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:165:            execOutcome = registry.forNode(spec).execute(invocation)
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt:16:    override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:15: * `testGraph("X") { ... }` calls execute during configuration — one
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt:3:/** A runtime adapter that knows how to execute a node script. */
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:16: * with full context args to execute the body.
+test_graph/sources/spec_workflow_close_ticket.py:127:        ("git-commit", ["git", "commit", "-m", "close ticket workflow"]),
+test_graph/sources/spec_workflow_close_ticket.py:133:    result.assertion("git working tree clean after close commit", status.returncode == 0 and status.stdout.strip() == "")
+test_graph/sources/spec_workflow_complete_ticket.py:147:        ("git-commit", ["git", "commit", "-m", "complete ticket desired and current"]),
+test_graph/sources/spec_workflow_create_repo.py:47:        ("git-commit", ["git", "commit", "-m", "initial program model"]),
+test_graph/sources/spec_workflow_start_ticket.py:70:        ("git-commit", ["git", "commit", "-m", "start ticket workflow"]),

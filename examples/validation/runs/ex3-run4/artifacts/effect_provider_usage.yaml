@@ -1,0 +1,12 @@
+version: 1
+providers:
+  - port: AuditJournalPort
+    provider: providers:audit_journal_provider
+    binding_style: explicit_injection
+    state_scope: execution_point
+    fuzz_dimensions: [journal_entry_encoding, historical_entry_operations]
+    assertions: [entry_count_vs_modeled_auditLog, consecutive_seq_ordering, operation_matches_modeled_action, modeled_result, projected_state]
+    cleanup: context_manager
+    bypass_limits:
+      - the app can increment audit_log without calling on_audit only if order_hub._audit is edited; the provider cannot observe such a bypass, the count assertion catches it because the adapter still reports the incremented auditLog
+      - in-memory journal only; no cross-process observation

@@ -1,0 +1,112 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "incomplete_catalog"
+    evidence: >-
+      CARRIED FORWARD from MF-030/MF-029
+      (specs/.history/modular-fuzzing-epic/ticket-016-MF-030/ticket/results/complexity_ledger.yaml).
+      EP-01 changes only the Python case-runner/provider contract and generated
+      Protocol decoration; it does not add or claim a repository-wide mutant
+      catalog. The non-passing inherited verdict remains non-passing.
+  effect_conformance:
+    status: "unobservable"
+    evidence: >-
+      CARRIED FORWARD from MF-030/MF-029 for the subprocess-driven host CLI.
+      EP-01 does not claim that passive in-process observation can see that
+      external process. It does prove the existing passive sandbox unchanged
+      and coexisting with semantic providers in tests/test_effect_provider_runtime.py
+      and tests/test_effect_conformance_runner.py; repository evidence is
+      results/repository-unit-tests.txt.
+  external_coverage:
+    status: "incomplete"
+    evidence: >-
+      CARRIED FORWARD from MF-030/MF-029. EP-01 adds no external-view adapter,
+      materializer, or corpus coverage and therefore does not assert movement
+      on this axis. The inherited non-passing verdict remains explicit.
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  No TLA+ representation was added. EP-01 is a host-runtime contract for Python
+  batch cases, so ticket current and desired are byte-identical after excluding
+  validation caches. The existing model was rechecked without change: 5,619,356
+  states generated, 231,621 distinct, depth 25, no error. The new essential
+  behavior lives outside the model: typed project-owned bindings around an
+  already generated case.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched for a smaller representation and retained a deliberately narrow
+    V0: one action->effect_ports->provider lookup, one context-managed binding
+    protocol, and one immutable effects map. No TLA state/action was warranted
+    because provider activation is not an observable tla-spec-dev CLI
+    transition. Generic response plans, fuzz orchestration, non-batch export,
+    and other languages remain outside EP-01 rather than inflating this runtime.
+  measured: true       # results/tlc-current.txt
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  EP-01 introduces the minimum Python batch lifecycle needed for project-owned
+  semantic effects. Static preflight resolves case.input.action through
+  actions.yml effect_ports, manifest role: effect Protocols, and exact
+  case_adapters.toml provider tables before adapter instantiation. Runtime enters
+  providers in declaration order, exposes a fresh immutable port-name map to
+  setup/run/assert/teardown, and exits in reverse order on every failure path.
+  Binding work directories exist before provider construction, and the case's
+  before/input/output/after oracle fields are deep-snapshotted and mutation
+  checked throughout the lifecycle. The pre-existing passive effects schema is
+  separate and unchanged. Legacy empty semantic schemas bypass action lookup;
+  provider-bearing non-batch execution fails before work/program generation.
+  Validation and intentional V0 boundaries are recorded in
+  results/validation-summary.md and results/zero-model-delta.md.

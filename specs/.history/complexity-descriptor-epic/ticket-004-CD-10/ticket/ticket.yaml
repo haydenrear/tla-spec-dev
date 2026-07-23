@@ -1,0 +1,119 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-10",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Every destructive delete performed by a modeled action is declared as a filesystem.delete port with an honest target (R3-2), including the #22 rmtree sites.",
+        "Every real spawn of a modeled action matches a declared port; no declared port is dead (R3-3).",
+        "effects.actions covers every modeled action (DF-2, absent vs empty distinguished); source_model references resolve (DF-3).",
+        "Kill catalog seeds the amended boundary honestly; spec-unit and binding tests green.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-10"
+      ],
+      "evidence": [
+        "specs/tickets/CD-10/results/manifest_reconciliation.md",
+        "specs/tickets/CD-10/results/tlc_current.txt",
+        "specs/tickets/CD-10/results/spec_unit_tests.txt",
+        "specs/tickets/CD-10/results/repo_unit_tests.txt",
+        "specs/tickets/CD-10/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-10/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/spec_manifest.yaml",
+        "specs/current/case_adapters.toml",
+        "specs/current/production_adapters.py",
+        "specs/current/kill_mutants.toml"
+      ],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "manifest effects/ports reconciliation"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/85",
+    "id": "CD-10",
+    "implementation_scope": [
+      "specs/current/spec_manifest.yaml (delete/spawn ports; effects.actions; source_model)",
+      "specs/current/kill_mutants.toml (boundary seeding for new ports)",
+      "specs/current/production_adapters.py + case_adapters.toml (only if schema surface requires)"
+    ],
+    "objective": "Fix audit run 3's real manifest desyncs (report: specs/results/epic-close/coverage_audit_report_run3.md); the granularity/scope rulings are already recorded in the amended semantic_model_rule (schedule_revision 3) \u2014 do not widen into them. (R3-2) CloseTicket performs destructive deletes with no filesystem.delete port: spec_evolution.py:154 (states rmtree), :385 (current/ rmtree before promotion \u2014 the GitHub mechanism), :477 (seeded unlink). Declare filesystem.delete port(s) with honest targets and attach them to CloseTicket. (R3-3) declared ports must match real spawns of modeled actions: RunSpecUnitTests' case-runner spawn (tla_spec_dev.py:313-339,:358) matches no port (test_process is *pytest*; only the -m pytest child matches) \u2014 declare it; CloseTicket spawns git (spec_evolution.py:99 via :801) \u2014 declare it. (DF-2) add RecordBudgets to effects.actions with its real effect (its scaffold-time emission is under spec_tree; if it truly performs no distinct effect, record it with an empty port list and a comment \u2014 an absent row and an empty row are different claims). (DF-3) remove the dangling Core/Internal/External source_model references (spec_manifest.yaml:110-113) per the amended known_gaps. Update the kill catalog for any new ports (seed the boundary honestly) and the binding/adapter tests if the manifest schema surface changes. Zero TLA+ model delta.\n",
+    "promotion_order": 140,
+    "promotion_predecessor": "CD-09",
+    "schedule_revision": 3,
+    "status": "planned",
+    "title": "Manifest honesty: declare the close path's deletes and the real spawns; effects.actions and source_model hygiene",
+    "wave": 16
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/tickets/CD-10",
+  "ticket_id": "CD-10",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-85-cd10-manifest-honesty/specs/tickets"
+}

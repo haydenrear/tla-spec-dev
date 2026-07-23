@@ -1,0 +1,18 @@
+NEGATIVE CONTROL PROOF -- each wrong expectation must raise AssertionError
+
+  FAILED-AS-REQUIRED  BuildSkillCli            BuildSkillCli: recovered {}, expected {'root': 'default_specs'}
+  FAILED-AS-REQUIRED  InstallLocalCli          InstallLocalCli: recovered {}, expected {'ticket': 'cli_workflow'}
+  FAILED-AS-REQUIRED  ScaffoldProject          ScaffoldProject: recovered {'root': 'custom_specs'}, expected {'root': 'default_specs'}
+  FAILED-AS-REQUIRED  RecordBudgets            RecordBudgets: recovered {'root': 'custom_specs'}, expected {'root': 'default_specs'}
+  FAILED-AS-REQUIRED  ScaffoldWorkflow         ScaffoldWorkflow: recovered {'root': 'custom_specs'}, expected {'root': 'default_specs'}
+  FAILED-AS-REQUIRED  OpenTicket               OpenTicket: recovered {'root': 'custom_specs', 'ticket': 'cli_workflow'}, expected {'root': 'custom_specs', 'ticket': 'cli_entrypoint'}
+  FAILED-AS-REQUIRED  UpdateTicketDesired      UpdateTicketDesired: recovered {'ticket': 'cli_validation'}, expected {'ticket': 'cli_workflow'}
+  FAILED-AS-REQUIRED  UpdateTicketCurrent      UpdateTicketCurrent: recovered {'ticket': 'cli_entrypoint'}, expected {'ticket': 'cli_validation'}
+  FAILED-AS-REQUIRED  AnalyzeComplexity        AnalyzeComplexity: recovered {'root': 'default_specs'}, expected {'root': 'custom_specs'}
+  FAILED-AS-REQUIRED  AnalyzeCorpus            AnalyzeCorpus: recovered {'root': 'default_specs'}, expected {'root': 'custom_specs'}
+  FAILED-AS-REQUIRED  RunEffectConformance     RunEffectConformance: recovered {'root': 'default_specs'}, expected {'root': 'custom_specs'}
+  FAILED-AS-REQUIRED  RunKillTest              RunKillTest: recovered {'root': 'default_specs'}, expected {'root': 'custom_specs'}
+  FAILED-AS-REQUIRED  RunSpecUnitTests         RunSpecUnitTests: recovered {'root': 'custom_specs', 'ticket': 'cli_workflow', 'override': UNCHECKED}, expected {'root': 'custom_specs', 'ticket': 'cli_workflow', 'override': True}
+  FAILED-AS-REQUIRED  CloseTicket              CloseTicket: recovered {'root': 'default_specs', 'ticket': 'cli_validation'}, expected {'root': 'default_specs', 'ticket': 'cli_entrypoint'}
+
+14/14 negative controls failed as required; 0 vacuous.

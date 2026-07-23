@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/regenerate.py",
+      "--tlc2",
+      "/Users/hayde/.skill-manager/bin/cli/tlc2",
+      "--out",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated"
+    ],
+    "duration_seconds": 1.862035,
+    "log": "evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/regeneration.log",
+    "name": "regeneration_and_tlc",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/scripts/run_generated_case_adapters.py",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases",
+      "--mapping",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/specs/program_model/testgraph_bindings.yml",
+      "--spec-dir",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/specs/program_model",
+      "--view",
+      "external",
+      "--batch",
+      "--validate-capabilities",
+      "--import-root",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker",
+      "--import-root",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated",
+      "--work-dir",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/external-work"
+    ],
+    "duration_seconds": 0.481358,
+    "log": "evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/external.log",
+    "name": "real_cli_external_rung",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/reminder_worker/test_reminder_worker.py"
+    ],
+    "duration_seconds": 0.69099,
+    "log": "evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/focused-tests.log",
+    "name": "focused_tests",
+    "returncode": 0,
+    "timeout_seconds": 120
+  }
+]

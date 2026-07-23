@@ -1,0 +1,546 @@
+# All findings triaged 2026-07-22 (owner): ticketed into the successor
+# workflow 'complexity-descriptor-main-readiness' (CD-04..CD-08), the
+# main-readiness batch. See that workflow's ticket_plan.yaml.
+findings:
+- id: CD-02-DF-01
+  found_by: CD-02
+  found_at_commit: c9b6ea7
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'When `analyze complexity` is run without --manifest and no default manifest
+    resolves, the warning prints a placeholder path: "no readable spec manifest
+    at does-not-exist; using documented default budgets". The literal Path("does-not-exist")
+    sentinel leaks into user-facing output (scripts/analyze_complexity.py:1044).
+    Cosmetic/UX only; budget resolution itself behaves correctly (documented defaults
+    are used).'
+  reproduction: '`python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity
+    <model>.tla <MC.cfg>` (no --manifest) prints the warning verbatim. Observed:
+    "no readable spec manifest at does-not-exist". Expected: a message naming no
+    path, or the actually-probed default path. Reproduced 2026-07-21 during CD-02
+    worked-example runs and again independently by the epic owner during CD-01 post-merge
+    verification.'
+  evidence: []
+  why_out_of_scope: scripts/analyze_complexity.py is outside CD-02's conflict keys
+    (references/complexity_intuition.md, SKILL.md).
+  suggested_fix: Say "no manifest supplied; using documented default budgets" (or
+    name the actually-probed default path) instead of the sentinel.
+  blast_radius: CD-03 also owns scripts/analyze_complexity.py in its conflict keys.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-01
+  found_by: validation-ex3-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/fitness_functions.py
+    - references/fitness_functions.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Manifest-embedded fitness rules mis-parse under a bare python3 (no PyYAML):
+    the fallback manifest parser turns flow-style rule leaves into garbage keys
+    and every rule surfaces as "INVALID: rule node needs one of ''fact'', ''all'',
+    ''any'', ''not''; got keys [''{fact'']" with no hint that PyYAML is missing,
+    while references/fitness_functions.md promises an advisory CONFIG ERROR for
+    that case. The documented fitness_functions.json escape hatch works correctly.'
+  reproduction: 'Add a fitness_functions: block with flow-style leaves ({fact: bound,
+    op: "<=", value: 2000}) to a project spec_manifest.yaml, then run `python3 scripts/tla_spec_dev.py
+    --spec-root <specs> analyze complexity <tla> <cfg>` with a python3 lacking PyYAML.
+    Observed: INVALID with keys [''{fact'']. Expected: advisory CONFIG ERROR naming
+    missing PyYAML. Reproduced by the epic owner 2026-07-21.'
+  evidence:
+  - examples/validation/runs/ex3-run1/scoring.md
+  why_out_of_scope: Found during post-epic validation runs; validation is a measurement
+    and files findings rather than fixing them (MF-037 discipline).
+  suggested_fix: Detect the PyYAML-absent case in the manifest fitness loader and
+    emit the documented CONFIG ERROR (naming PyYAML and the .json alternative) instead
+    of feeding the fallback parse into rule validation.
+  blast_radius: scripts/fitness_functions.py loader; references/fitness_functions.md
+    wording.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-02
+  found_by: validation-ex3-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/budgets.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: "Every scan of a manifest whose budgets block follows the shipped docs\
+    \ warns \"budgets block ... is missing kill_rate_floor, max_symmetric_instances;\
+    \ using documented defaults\" \u2014 retired fuzzing-era keys the descriptor-era\
+    \ docs no longer instruct projects to set, so a per-docs manifest warns on every\
+    \ run."
+  reproduction: '`python3 scripts/tla_spec_dev.py --spec-root <specs> analyze complexity
+    <tla> <cfg>` against a manifest with the budgets keys the current README documents.
+    Observed: the missing-keys warning names kill_rate_floor and max_symmetric_instances.
+    Expected: no warning for a per-docs manifest.'
+  evidence:
+  - examples/validation/runs/ex3-run1/scoring.md
+  why_out_of_scope: Found during post-epic validation runs; filed, not fixed (MF-037
+    discipline).
+  suggested_fix: Drop the retired keys from the required-budgets set (or gate them
+    behind the experimental fuzzing surface).
+  blast_radius: scripts/budgets.py; any doc listing the budgets block keys.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-03
+  found_by: validation-ex3-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/run_tlc.sh
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: run_tlc.sh leaves a TLC states/ scratch directory inside the target project's
+    specs/program_model/ directory (harmless but pollutes the spec dir; the repo's
+    own examples/workspace shows the same residue).
+  reproduction: '`bash scripts/run_tlc.sh <project>/specs/program_model/<M>.tla
+    <cfg>`; observe <project>/specs/program_model/states/ afterwards. Expected:
+    scratch output under a build/tmp location or cleaned up.'
+  evidence:
+  - examples/validation/runs/ex3-run1/scoring.md
+  why_out_of_scope: Found during post-epic validation runs; filed, not fixed (MF-037
+    discipline).
+  suggested_fix: Point TLC's metadir at a temp dir or delete states/ on exit.
+  blast_radius: scripts/run_tlc.sh only.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-04
+  found_by: validation-ex1-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/tla_spec_dev.py
+    - scripts/new_ticket_workflow.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Scaffold output contradicts the advisory doctrine: the scaffold-project
+    epilog and the generated spec_manifest.yaml budget comment (scripts/new_ticket_workflow.py:615,666)
+    say "hard gates read by analyze complexity ...", while SKILL.md, the references,
+    and the scanner''s own output all say advisory-never-blocking. Every newly onboarded
+    project starts with gate-era language.'
+  reproduction: '`python3 scripts/tla_spec_dev.py --spec-root specs scaffold project
+    --name X` in a fresh directory; read the epilog and the generated manifest''s
+    budgets comment. Observed: "hard gates". Expected: advisory wording matching
+    SKILL.md "Complexity Budgets Are Advisory". Confirmed in source by the epic
+    owner 2026-07-21.'
+  evidence:
+  - examples/validation/runs/ex1-run1/scoring.md
+  why_out_of_scope: Found during post-epic validation; filed, not fixed (MF-037
+    discipline). Outside CD-01's acceptance surface (SKILL.md/references).
+  suggested_fix: Reword the scaffold epilog and generated-manifest comments to the
+    advisory framing.
+  blast_radius: Scaffold text only; no behavior change.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-05
+  found_by: validation-ex1-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - references/architecture_tractability.md
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: The manifest justification-table schema required by unjustified_variables
+    (dict per variable with a non-empty invariants/effects/kill_tests list; prose
+    strings silently flagged DEAD WEIGHT) is documented nowhere; agents must read
+    analyze_complexity.py (~line 952) to learn it.
+  reproduction: 'Write justification entries as prose strings and scan: every variable
+    is flagged DEAD WEIGHT despite justifications being present. Expected: a documented
+    schema (or prose accepted).'
+  evidence:
+  - examples/validation/runs/ex1-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Document the schema with an example in references/architecture_tractability.md
+    and the scaffolded manifest comment.
+  blast_radius: Docs plus possibly a friendlier parse in analyze_complexity.py.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-06
+  found_by: validation-ex1-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: Domain resolution (_set_size) handles only set literals, int ranges,
+    BOOLEAN, unions thereof, and cfg-constant names. A standard shape like `tasks
+    \in [Names -> TaskStatus]` with TaskStatus defined in an EXTENDS-ed module resolves
+    to bound UNKNOWN even though the invariant is found. The honest-unknown path
+    works (no silent 1), but the resolver is narrower than the standard patterns
+    real users write, and the limitation is undocumented.
+  reproduction: 'Model with TypeInvariant using a function set over a module-defined
+    status set; scan: bound = UNKNOWN. Inlining the status-set literal in the invariant
+    resolves it. Expected: module-defined set operators resolved (profile permitting)
+    or the limitation documented.'
+  evidence:
+  - examples/validation/runs/ex1-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Resolve zero-arity set-operator definitions transitively (the same
+    machinery as CD-01's invariant alias resolution) before giving up, and document
+    what the resolver can see.
+  blast_radius: scripts/analyze_complexity.py domain resolution; F3 accuracy on
+    real models.
+  disposition: ticketed
+  disposition_ticket: CD-05
+- id: VAL-07
+  found_by: validation-ex1-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The R/W matrix attributes variable writes to the syntactic primer, so
+    wrapper actions that prime a variable only through a helper operator (e.g. MarkCli(cmd,
+    task, exit) doing the lastCli'' assignment) vanish from the matrix, dense-column
+    list, and action count: 9 CLI actions collapsed to 4 rows until the assignments
+    were inlined. Understates action counts, which also feeds fitness-function facts.'
+  reproduction: 'External view whose actions call a shared helper for the primed
+    variable; scan and compare the action columns with the module''s disjuncts.
+    Observed: helper listed as the action, wrappers absent. Expected: attribution
+    to the top-level actions (or a documented limitation).'
+  evidence:
+  - examples/validation/runs/ex1-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Expand helper-operator bodies when attributing primed variables
+    (same transitive-resolution direction as CD-01/F1), or document the inline-your-primes
+    convention.
+  blast_radius: R/W matrix, dense columns, action_count, component actions; fitness
+    facts derived from them.
+  disposition: ticketed
+  disposition_ticket: CD-06
+- id: VAL-08
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - examples/distributed_history/specs/program_model/spec_manifest.yaml
+    - examples/distributed_history/README.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The pristine distributed_history example fails its own documented regeneration
+    path: manifest cap max_external_cases_per_action 50 vs the 732-case corpus its
+    README advertises (worst action SubmitDuplicateAddCartItem = 200). External
+    case generation exits 2 on the unmodified example.'
+  reproduction: 'In a copy of examples/distributed_history run the README''s regenerate_tlc_cases.py
+    path. Observed: corpus gate FAIL, exit 2, before any change. Expected: the shipped
+    example passes its own gate.'
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed (MF-037 discipline).
+  suggested_fix: Set the example's caps to fit its actual corpus with a rationale,
+    or shrink the corpus.
+  blast_radius: Example only; also VAL-09/VAL-10 sit on the same path.
+  disposition: ticketed
+  disposition_ticket: CD-08
+- id: VAL-09
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - examples/distributed_history/scripts/regenerate_tlc_cases.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'regenerate_tlc_cases.py calls export_testgraph_cases.py without the
+    now-required --bindings argument and exits 2 ("the following arguments are required:
+    --bindings"). Stale against the current exporter CLI.'
+  reproduction: Run the example's regenerate_tlc_cases.py; the exporter aborts on
+    missing --bindings.
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Pass --bindings (and --manifest, see VAL-10) in the example script.
+  blast_radius: Example script only.
+  disposition: ticketed
+  disposition_ticket: CD-08
+- id: VAL-10
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/export_testgraph_cases.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: export_testgraph_cases.py re-runs the corpus gate but cannot locate spec_manifest.yaml
+    when the corpus lives in a build directory; it silently falls back to the built-in
+    cap 50 and exits 2 even after the manifest cap was raised, unless --manifest
+    is passed explicitly.
+  reproduction: 'Export a corpus generated into test_graph/build/... without --manifest;
+    the gate uses cap 50 regardless of the manifest. Expected: resolve the manifest
+    from the spec root or fail loudly asking for --manifest.'
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Resolve the manifest relative to the spec root, and warn (not silently
+    default) when none is found.
+  blast_radius: Exporter gate behavior; example scripts on the same path.
+  disposition: ticketed
+  disposition_ticket: CD-08
+- id: VAL-11
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - examples/distributed_history/scripts/regenerate_tlc_cases.py
+    - examples/run_distributed_history_validation.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: Example tooling hardcodes the toolchain root as parents[1] of the example
+    dir (regenerate_tlc_cases.py, test_ecommerce_adapters.py, run_external_cases.py),
+    so a standalone checkout cannot find the toolchain; run_distributed_history_validation.py
+    hardcodes the toolchain-internal example path and can never validate an external
+    checkout.
+  reproduction: Copy the example outside the toolchain repo and run its scripts;
+    root resolution fails. Agent routed around with a TLA_SPEC_DEV_ROOT env override
+    (example-local edits).
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Adopt the TLA_SPEC_DEV_ROOT override upstream in the example scripts.
+  blast_radius: Example scripts; onboarding docs.
+  disposition: ticketed
+  disposition_ticket: CD-08
+- id: VAL-12
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Extends VAL-07 with the inverse case: actions whose primed-variable
+    writes happen entirely through called operators or UNCHANGED (RunFulfillmentWorker,
+    RunFulfillmentWorkerNoop, HiddenInternalProgress in the distributed_history
+    External view) get NO R/W matrix column, while the helper operator MarkExternal
+    is listed as an action. Dense-row fractions (e.g. "9/15 actions") are computed
+    over a partially wrong action set on a standard real model.'
+  reproduction: Scan examples/distributed_history External.tla/External.cfg and
+    compare matrix columns against the module's ExternalNext disjuncts.
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: 'Same direction as VAL-07: expand called-operator bodies when attributing
+    primes (CD-01/F1-style transitive resolution).'
+  blast_radius: R/W matrix, dense rows/columns, action counts, fitness facts; same
+    fix as VAL-07.
+  disposition: ticketed
+  disposition_ticket: CD-06
+- id: VAL-13
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: major
+  surface:
+    production:
+    - scripts/corpus_diagnostics.py
+    - scripts/tla_spec_dev.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Suggested-move output is still live in the documented ticket workflow:
+    the corpus gate prints "Suggested move: Abstract the before-state ... RECOMMENDATION
+    REQUIRING USER APPROVAL" (corpus_diagnostics.py:760; also the analyze corpus
+    help text in tla_spec_dev.py). CD-01 removed suggestions from the scanner, but
+    the corpus path retains them and a real agent met one mid-ticket (it correctly
+    declined to apply it).'
+  reproduction: Trip the corpus cap gate (e.g. the pristine distributed_history
+    example, VAL-08); the refusal output includes the suggested move.
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed. corpus_diagnostics
+    was outside CD-01's conflict keys as experimental fuzzing machinery, but the
+    example's documented regeneration path reaches it.
+  suggested_fix: 'Owner decision: either strip suggestion language from the corpus
+    gate (align with the epic pivot) or clearly mark that output EXPERIMENTAL where
+    it appears.'
+  blast_radius: Corpus gate output and docs; consistency of the no-suggestions pivot.
+  disposition: ticketed
+  disposition_ticket: CD-04
+- id: VAL-14
+  found_by: validation-ex2-run1
+  found_at_commit: 9a80f7b
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - examples/distributed_history/README.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Doc drift: both READMEs claim the ecommerce.external_cases envelope
+    records expectedCaseCount/executedCaseCount; the node publishes caseNames/expectedCaseNames
+    and no counts.'
+  reproduction: Run the ecommerceExternal graph and compare the envelope keys with
+    the README.
+  evidence:
+  - examples/validation/runs/ex2-run1/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Correct the README key names.
+  blast_radius: Docs only.
+  disposition: ticketed
+  disposition_ticket: CD-08
+- id: VAL-15
+  found_by: epic-owner-comparing-ex3-run1-vs-run2
+  found_at_commit: f9e27a7
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - references/complexity_intuition.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The intuition doc''s example-3 (bookkeeping smear, remove it) vs example-5
+    (deliberate density, defend it) boundary is ambiguous for write-only state:
+    two agents with identical instructions, descriptor, and doc classified the same
+    mode/dirty variables on opposite sides (run 1 deleted them from model and code,
+    bound 624; run 2 kept them as stated design, bound 6,240). Both outcomes were
+    green, warning-free, and grounded; WHETHER to refactor converged, WHICH moves
+    did not.'
+  reproduction: Compare examples/validation/runs/ex3-run1/artifacts/complexity_decision.md
+    with runs/ex3-run2/artifacts/complexity_decision.md over the identical baseline
+    descriptor.
+  evidence:
+  - examples/validation/runs/ex3-run1/scoring.md
+  - examples/validation/runs/ex3-run2/scoring.md
+  why_out_of_scope: Post-epic validation finding about CD-02's doc; filed, not fixed.
+  suggested_fix: "Give the doc a sharper test for write-only stamped state, e.g.\
+    \ \"if no guard, invariant, test, or reader depends on it, it is bookkeeping\
+    \ regardless of stated design intent\" \u2014 or explicitly bless both outcomes\
+    \ and say what evidence would separate them."
+  blast_radius: references/complexity_intuition.md only; determinism of agent refactor
+    choices.
+  disposition: ticketed
+  disposition_ticket: CD-07
+- id: VAL-16
+  found_by: validation-ex1-run2
+  found_at_commit: 8f6c9c2
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: infer_dimensions' `variable \in <domain>` regex captures to end-of-line
+    only, so a membership conjunct wrapped across lines (ordinary TLA+ style for
+    larger sets) silently resolves the variable to unknown. The single-line requirement
+    is documented nowhere.
+  reproduction: 'Wrap a TypeInvariant membership conjunct across two lines and scan:
+    the variable becomes (unconstrained)/unknown; joining it to one line resolves
+    it.'
+  evidence:
+  - examples/validation/runs/ex1-run2/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Parse conjunct-wise instead of line-wise, or document the single-line
+    rule in the profile doc.
+  blast_radius: Domain resolution accuracy (same surface as VAL-06).
+  disposition: ticketed
+  disposition_ticket: CD-05
+- id: VAL-17
+  found_by: validation-ex1-run2
+  found_at_commit: 8f6c9c2
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - scripts/analyze_complexity.py
+    - scripts/new_ticket_workflow.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Domain-source precedence (any TypeInvariant in the EXTENDS hierarchy
+    becomes the sole source, then TypeOK, then cfg invariants) interacts badly with
+    the scaffold''s own Core/Internal/External layout: TLA+ forbids redefining TypeInvariant
+    across views, so one view''s variables always come back unresolved unless the
+    views deliberately use different invariant names. Undocumented interaction between
+    the scaffold layout and the analyzer.'
+  reproduction: 'Scaffold the standard multi-view layout, name both views'' type
+    invariants per the docs, scan each view: one view''s variables resolve unknown.
+    Renaming one to TypeOK resolves it.'
+  evidence:
+  - examples/validation/runs/ex1-run2/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Merge domain sources across TypeInvariant/TypeOK/cfg invariants
+    instead of first-match-wins, or document the per-view naming convention in the
+    scaffold and profile docs.
+  blast_radius: Domain resolution on every multi-view scaffolded project.
+  disposition: ticketed
+  disposition_ticket: CD-05
+- id: VAL-18
+  found_by: validation-ex2-run2
+  found_at_commit: 0806272
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - examples/distributed_history/README.md
+    - examples/distributed_history/scripts/regenerate_tlc_cases.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Example polish, three small sharp edges: (a) external case counts are
+    hardcoded in both READMEs and churn with any model change; (b) regenerate_tlc_cases.py
+    prints its "$ command" echo lines unflushed so captured logs show them out of
+    order, making failure logs confusing; (c) a manual tlc2 run without -deadlock
+    reports "Deadlock reached" (the model has legitimate terminal states; only the
+    generator''s -deadlock invocation is documented), a trap for anyone reproducing
+    by hand.'
+  reproduction: (a) diff README counts against generated docs.md after any model
+    change; (b) capture regenerate_tlc_cases.py output to a file on a failure and
+    observe echo ordering; (c) run tlc2 on External.tla without -deadlock.
+  evidence:
+  - examples/validation/runs/ex2-run2/scoring.md
+  why_out_of_scope: Post-epic validation finding; filed, not fixed.
+  suggested_fix: Point READMEs at generated docs.md for counts; flush the echo lines;
+    note the -deadlock requirement in the README's manual-TLC section.
+  blast_radius: Example docs/scripts only.
+  disposition: ticketed
+  disposition_ticket: CD-08

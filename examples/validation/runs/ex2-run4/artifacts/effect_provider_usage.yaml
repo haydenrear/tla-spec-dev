@@ -1,0 +1,31 @@
+version: 1
+providers:
+  - port: OrderCancellationPort
+    provider: specs.program_model.providers:effect_provider
+    binding_style: explicit_injection
+    state_scope: execution_point
+    fuzz_dimensions:
+      - sqlite_backing_memory_or_file
+      - before_state_row_insertion_order
+    assertions:
+      - modeled_result_status_and_body
+      - cancel_command_matches_generated_case_params
+      - cancelled_order_content_vs_modeled_after_state
+      - outbox_content_vs_modeled_after_state
+      - projection_content_vs_modeled_after_state
+      - full_store_snapshot_equals_modeled_after_state
+    cleanup: context_manager
+    bypass_limits:
+      - >
+        Only the internal CancelOrder action is migrated; every other internal
+        action and the whole external Test Graph path run the preserved legacy
+        adapters and receive no provider-level content assertions.
+      - >
+        The provider binds a fresh per-point EcommerceStore; it cannot observe
+        or reset application globals outside that store, and the HTTP service
+        path (external view) bypasses the provider entirely by design.
+      - >
+        The adapter drives the boundary through the typed port; a legacy run
+        without a configured provider (no [effect_providers.*] table) falls
+        back to calling the store directly, which is the preserved pre-migration
+        path, not a provider bypass.

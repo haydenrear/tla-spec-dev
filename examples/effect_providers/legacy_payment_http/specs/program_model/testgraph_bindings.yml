@@ -1,0 +1,57 @@
+external:
+  production_package: legacy_payment_http_app
+  port_bindings:
+    PaymentHttpPort: real
+    ProcessPort: real
+
+actions:
+  SubmitApproved:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitDeclined:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitBadRequest:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitTransientThenApproved:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitTimeoutThenDuplicateApproved:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitExhaustedUnavailable:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+  SubmitMalformedResponse:
+    view: external
+    channel: http
+    layer: external
+    controllability: e2e_direct
+    kind: legacy-payment-http-loopback
+    adapter: payment_effects.external:PaymentHttpExternalAdapter
+

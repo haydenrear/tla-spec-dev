@@ -1,0 +1,19 @@
+# Local, reviewable evidence about agent-authored providers.
+version: 1
+providers:
+  - port: TaskStorePort
+    provider: specs.program_model.providers:taskq_store_provider
+    binding_style: explicit_injection
+    state_scope: execution_point
+    fuzz_dimensions:
+      - state_file_directory_flavor
+      - empty_before_state_as_missing_file_or_empty_json
+    assertions:
+      - persisted_task_map_equals_modeled_after_state
+      - no_write_on_rejected_commands
+      - persisted_statuses_within_taskq_states
+      - persisted_running_count_within_cap_2
+    cleanup: context_manager
+    bypass_limits:
+      - single_path_scope_a_write_outside_the_TASKQ_STATE_path_is_not_observed
+      - adapter_must_point_TASKQ_STATE_at_binding_state_file_for_the_boundary_to_be_real

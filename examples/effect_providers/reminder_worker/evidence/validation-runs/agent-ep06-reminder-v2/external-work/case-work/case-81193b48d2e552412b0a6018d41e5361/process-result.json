@@ -1,0 +1,21 @@
+{
+  "after": {
+    "notificationCount": 1,
+    "outboxState": "pending",
+    "queueState": "ready",
+    "receiptState": "none",
+    "result": "retryable",
+    "scenario": "retryable"
+  },
+  "journal": [
+    "queue.claim",
+    "clock.now",
+    "outbox.lookup",
+    "outbox.stage",
+    "notifier.send",
+    "queue.release"
+  ],
+  "output": {
+    "status": "retryable"
+  }
+}

@@ -24,7 +24,9 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
 
+from scripts.budgets import budgets_block
 from scripts.onboard_program_model import missing_baseline_files
+from scripts import complexity_ledger
 
 TICKET_COPY_IGNORE = {
     ".DS_Store",
@@ -222,6 +224,29 @@ def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_ru
     return True
 
 
+MANIFEST_CARRY_ANCHOR = "# Per-program complexity and case budgets"
+
+
+def carry_manifest_semantic_tail(template_text: str, baseline_manifest: Path) -> str:
+    """MR-DF-01: keep the accepted manifest's semantic blocks at scaffold time.
+
+    The workflow scaffold regenerates spec_manifest.yaml from a bare template,
+    which silently drops everything the accepted program model negotiated:
+    budgets with recorded rationales, the effects/ports declarations, the
+    justification table, schema stanzas. The fresh status header still comes
+    from the template; everything from the budgets section onward is carried
+    verbatim from the accepted manifest when both sides carry the anchor.
+    """
+    if not baseline_manifest.is_file():
+        return template_text
+    accepted = baseline_manifest.read_text(encoding="utf-8")
+    template_idx = template_text.find(MANIFEST_CARRY_ANCHOR)
+    accepted_idx = accepted.find(MANIFEST_CARRY_ANCHOR)
+    if template_idx == -1 or accepted_idx == -1:
+        return template_text
+    return template_text[:template_idx] + accepted[accepted_idx:]
+
+
 def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
     if not src_dir.exists():
         return []
@@ -274,6 +299,29 @@ def copy_workflow_tree(
             print(f"copied {src} -> {dst}")
         copied.append(dst)
     return copied
+
+
+def workflow_tree_seed_paths(src_dir: Path, skip_paths: set[str] | None = None) -> list[str]:
+    """Relative paths ``copy_workflow_tree`` seeds from ``src_dir``.
+
+    This is the logical seeded set, independent of which files a resumed
+    scaffold actually rewrote, so it stays stable across ``--force`` and
+    re-runs. Promotion reads it back to tell a path the ticket deliberately
+    deleted from a path the ticket was never given.
+    """
+    if not src_dir.exists():
+        return []
+    skipped = skip_paths or set()
+    seeded: list[str] = []
+    for src in sorted(path for path in src_dir.rglob("*") if path.is_file()):
+        relative = src.relative_to(src_dir)
+        if any(part in TICKET_COPY_IGNORE for part in relative.parts):
+            continue
+        posix = relative.as_posix()
+        if posix in skipped:
+            continue
+        seeded.append(posix)
+    return seeded
 
 
 def copy_optional_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
@@ -416,9 +464,11 @@ def ticket_state_payload(
     source_current: Path,
     source_project_desired: Path,
     spec_root: Path,
+    seed_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "schema_version": "tla-spec-dev.ticket-workflow.v1",
+        "seed_manifest": seed_manifest if seed_manifest is not None else {},
         "ticket_id": ticket_id,
         "ticket_index": ticket_index,
         "status": "active",
@@ -433,7 +483,7 @@ def ticket_state_payload(
         "testgraph_dir": "testgraph",
         "promotion": {
             "close_command": ticket_close_command(ticket_id, spec_root, ticket_root_arg),
-            "on_close": "replace project current with ticket desired/ and merge Test Graph artifacts into project specs/",
+            "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
             "worktree": "deferred",
         },
         "ticket": ticket,
@@ -583,6 +633,24 @@ status:
     - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
     - Preserve all existing {spec_root_text}/program_model state/actions unless production behavior changes them.
     - Run TLC and adapter/unit tests before adding graph execution coverage.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
+
+# Per-program complexity and case budgets -- advisory thresholds read by
+# analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# doctrine: SKILL.md "Complexity Budgets Are Advisory".
+{budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
@@ -595,6 +663,11 @@ case_codegen:
   style: explicit_transition_cases
   generation_status: planned
 
+# Generated-case index stanzas: placeholders owned by case codegen, filled
+# only when case_codegen.generation_status reaches `generated`. Empty means
+# "no generated case index yet", NOT "the model has no state/actions/ports"
+# -- those live in the TLA+ module and the effects block. An empty stanza and
+# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
 state_fields: []
 actions: []
 ports: {{}}
@@ -629,6 +702,24 @@ status:
     - Break the work into tickets in ticket_plan.yaml.
     - Update {spec_root_text}/current as each ticket lands.
     - Promote converged desired/current model back into {spec_root_text}/program_model.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
+
+# Per-program complexity and case budgets -- advisory thresholds read by
+# analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# doctrine: SKILL.md "Complexity Budgets Are Advisory".
+{budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
 
 source_model:
   program_model_manifest: ../program_model/spec_manifest.yaml
@@ -641,6 +732,11 @@ case_codegen:
   style: explicit_transition_cases
   generation_status: planned
 
+# Generated-case index stanzas: placeholders owned by case codegen, filled
+# only when case_codegen.generation_status reaches `generated`. Empty means
+# "no generated case index yet", NOT "the model has no state/actions/ports"
+# -- those live in the TLA+ module and the effects block. An empty stanza and
+# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
 state_fields: []
 actions: []
 ports: {{}}
@@ -872,6 +968,16 @@ def scaffold_ticket_directory(
     written: list[Path] = []
     written.extend(copy_workflow_tree(source_current, current_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
     written.extend(copy_workflow_tree(source_current, desired_dir, force=force, dry_run=dry_run, skip_paths=skip_project_tests))
+    seed_manifest = {
+        "source": str(source_current),
+        "excluded": sorted(skip_project_tests),
+        "desired": workflow_tree_seed_paths(source_current, skip_project_tests),
+        "note": (
+            "Paths seeded from project current/ into this ticket workspace. Promotion may "
+            "remove a project current/ path only if it appears here and the ticket dropped it; "
+            "paths absent from this list were never offered to the ticket and are preserved."
+        ),
+    }
     written.extend(copy_optional_tree(specs_dir / "testgraph", ticket_dir / "testgraph", force=force, dry_run=dry_run))
     written.extend(copy_optional_tree(specs_dir / "test_graph", ticket_dir / "test_graph", force=force, dry_run=dry_run))
 
@@ -886,12 +992,18 @@ def scaffold_ticket_directory(
         source_current=source_current,
         source_project_desired=source_project_desired,
         spec_root=spec_root,
+        seed_manifest=seed_manifest,
     )
     files = [
         (ticket_dir / "README.md", ticket_readme(resolved_ticket_id, title, source_current, spec_root, ticket_root)),
         (ticket_dir / "ticket.yaml", json.dumps(ticket_payload, indent=2, sort_keys=True) + "\n"),
         (ticket_dir / "tests" / "test_ticket_workflow.py", ticket_workflow_test(resolved_ticket_id)),
         (ticket_dir / "results" / ".gitkeep", ""),
+        # MF-019: every ticket opens with the complexity-ledger input already
+        # scaffolded, carrying TODO sentinels that FAIL the close gate. The
+        # standing objective is therefore a step you fill in, never a step you
+        # can omit -- an unfilled template cannot be closed through.
+        (ticket_dir / "results" / "complexity_ledger.yaml", complexity_ledger.TEMPLATE),
     ]
     for path, content in files:
         if write_file(path, content, force=force, dry_run=dry_run):
@@ -924,10 +1036,22 @@ def scaffold(
 
     files = [
         (current_dir / "README.md", current_readme(ticket_id, title, baseline, spec_root)),
-        (current_dir / "spec_manifest.yaml", current_manifest(module, package, ticket_id, title, spec_root)),
+        (
+            current_dir / "spec_manifest.yaml",
+            carry_manifest_semantic_tail(
+                current_manifest(module, package, ticket_id, title, spec_root),
+                baseline.program_dir / "spec_manifest.yaml",
+            ),
+        ),
         (current_dir / "tests" / "test_current_ticket_workflow.py", current_test_for_spec_root(ticket_id, spec_root)),
         (desired_dir / "README.md", desired_readme(ticket_id, title, baseline)),
-        (desired_dir / "spec_manifest.yaml", desired_manifest(module, package, ticket_id, title, spec_root)),
+        (
+            desired_dir / "spec_manifest.yaml",
+            carry_manifest_semantic_tail(
+                desired_manifest(module, package, ticket_id, title, spec_root),
+                baseline.program_dir / "spec_manifest.yaml",
+            ),
+        ),
         (desired_dir / "ticket_plan.yaml", ticket_plan(ticket_id, title, module, spec_root)),
         (desired_dir / "desired_state.yaml", desired_state(ticket_id, title, module, spec_root)),
     ]

@@ -31,7 +31,14 @@ duplicate create, duplicate cart mutation, missing-account cart mutation,
 missing-account checkout, empty-cart checkout, duplicate checkout, fulfillment
 worker drain, and idle worker drain. `External.tla` declares these public
 actions over bounded clients, SKUs, orders, and reachable internal states; TLC
-expands that into 732 external Test Graph cases after projected-state dedupe.
+expands that into the external Test Graph corpus after projected-state dedupe.
+The exact state and case counts for the current model are recorded in the
+generated package's `docs.md` (for example
+`test_graph/build/generated/manual/testgraph/ecommerce_external_cases/docs.md`
+after the regeneration command below) rather than hardcoded here. The
+per-action case caps those counts are gated against live in
+`specs/program_model/spec_manifest.yaml` under `budgets:`, with a recorded
+rationale for every value that differs from the documented defaults.
 Each case uses adapter `setup` to load its modeled `before` state and adapter
 `teardown` to clear residue afterward.
 
@@ -53,7 +60,10 @@ uv run specs/program_model/tests/test_ecommerce_adapters.py
 
 uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
 
-python3 ../../scripts/run_generated_case_adapters.py \
+# TLA_SPEC_DEV_ROOT points at the tla-spec-dev toolchain checkout. It defaults
+# to ../.. here, which is correct for this embedded copy; a standalone checkout
+# of the example must set it.
+python3 "${TLA_SPEC_DEV_ROOT:-../..}/scripts/run_generated_case_adapters.py" \
   test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
   --mapping specs/program_model/case_adapters.toml \
   --view internal \
@@ -61,7 +71,7 @@ python3 ../../scripts/run_generated_case_adapters.py \
   --import-root .
 
 ECOMMERCE_BASE_URL=http://127.0.0.1:18080 \
-python3 ../../scripts/run_generated_case_adapters.py \
+python3 "${TLA_SPEC_DEV_ROOT:-../..}/scripts/run_generated_case_adapters.py" \
   test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
   --mapping specs/program_model/testgraph_bindings.yml \
   --view external \
@@ -72,6 +82,20 @@ python3 ../../scripts/run_generated_case_adapters.py \
 The second command expects a running service. The Test Graph deployment node
 starts one automatically when running the graph; use
 `ECOMMERCE_TEST_MODE=local` when you want that target to be a local monolith.
+
+The regeneration script drives TLC for you. If you run `tlc2` by hand against
+`specs/program_model/Internal.tla` or `External.tla`, pass `-deadlock`: the
+bounded models have terminal states by design, and without the flag TLC
+reports a spurious deadlock error.
+
+When this example lives in a standalone checkout (not embedded in the
+tla-spec-dev repository), set `TLA_SPEC_DEV_ROOT` to the toolchain checkout so
+the scripts above can find the generator, exporter, and adapter runner:
+
+```bash
+TLA_SPEC_DEV_ROOT=/path/to/tla-spec-dev \
+uv run scripts/regenerate_tlc_cases.py --out test_graph/build/generated/manual
+```
 
 Run the Test Graph:
 
@@ -106,6 +130,13 @@ Use local mode explicitly for fast iteration without Kubernetes:
 python3 examples/run_distributed_history_validation.py --mode local
 ```
 
+The wrapper accepts an optional target example path, defaulting to this
+embedded copy, so it can also validate a standalone checkout:
+
+```bash
+python3 examples/run_distributed_history_validation.py /path/to/distributed_history --mode local
+```
+
 The k3d cleanup node deletes the cluster by default. Set
 `ECOMMERCE_KEEP_K3D=1` or pass `--keep-k3d` to the wrapper when debugging a
 cluster after a run:
@@ -118,9 +149,11 @@ The k3d scripts live in `scripts/` and the Kubernetes manifests live in
 `deploy/k8s/`.
 
 Each external case writes `program-state.json` under the Test Graph report's
-`external-case-work/case-work/<case>/` directory. The evidence node aggregates
-those files into `projected-program-states.json` and fails the graph if any
-expected program state differs from the projected cluster state. The
-`ecommerce.external_cases` envelope also records the exact executed case names
-and `expectedCaseCount` / `executedCaseCount`, and publishes the generated
-trace manifest path at `traceManifest`, so a fast run is still auditable.
+`external-case-work/case-work/<opaque-case-key>/` directory. The JSON payload,
+not the filesystem component, carries the original case name. The evidence
+node aggregates those files into `projected-program-states.json` and fails
+the graph if any expected program state differs from the projected cluster
+state. The `ecommerce.external_cases` envelope publishes the executed case
+names as `caseNames`, the generated trace names as `expectedCaseNames`, and
+the generated trace manifest path as `traceManifest` (case counts appear only
+as node metrics, not as envelope keys), so a fast run is still auditable.

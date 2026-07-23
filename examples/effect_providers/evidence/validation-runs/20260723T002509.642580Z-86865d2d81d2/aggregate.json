@@ -1,0 +1,101 @@
+{
+  "duration_seconds": 16.921521,
+  "processes": {
+    "atomic_publisher": {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/atomic_publisher/validate.py",
+        "--run-id",
+        "20260723T002509.642580Z-86865d2d81d2-atomic_publisher"
+      ],
+      "duration_seconds": 16.230622,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\"result\": \"/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/atomic_publisher/evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/result.json\", \"run_id\": \"20260723T002509.642580Z-86865d2d81d2-atomic_publisher\", \"status\": \"pass\"}\n"
+    }
+  },
+  "projects": {
+    "atomic_publisher": {
+      "artifacts": [
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/regeneration.log",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/generated-provenance.json",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/framework-baseline.json",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/experiment.log",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/experiment.json",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/real-filesystem.json",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/focused-tests.log",
+        "evidence/validation-runs/20260723T002509.642580Z-86865d2d81d2-atomic_publisher/steps.json"
+      ],
+      "cases": {
+        "control_points": 224,
+        "external": 7,
+        "generated": 14
+      },
+      "cleanup": {
+        "checked": 392,
+        "clean": 392
+      },
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/hayde/IdeaProjects/tla-spec-dev/examples/effect_providers/atomic_publisher/validate.py",
+        "--run-id",
+        "20260723T002509.642580Z-86865d2d81d2-atomic_publisher"
+      ],
+      "commit": "86865d2d81d2a00c0cbd4d6c677f045772b60283",
+      "controls": {
+        "passed": 2,
+        "total": 2
+      },
+      "duration_seconds": 16.143043,
+      "limitations": [
+        "the passive bypass audit sees only in-process files under the provider-owned root",
+        "the adapter duplicates scenario-to-expected-revision input semantics absent from the generated case",
+        "representative enumeration is deterministic but not exhaustive and does not shrink failures",
+        "the real filesystem rung injects bounded OS failures; it does not induce every host failure mode"
+      ],
+      "mutants": {
+        "killed": 24,
+        "total": 24
+      },
+      "oracle_findings": {
+        "passive_external": [
+          "bounded physical-file bypass audit under the provider root",
+          "real TemporaryDirectory filesystem outcomes matched 7/7",
+          "external subprocess CLI projects result and filesystem artifacts independently"
+        ],
+        "provider_owned": [
+          "deterministic concrete paths, record values, unrelated files, and OSError subclasses",
+          "canonical byte projection and strict per-point protocol journal",
+          "point-local state acquisition, active-binding accounting, and cleanup"
+        ],
+        "tla_owned": [
+          "seven distinct semantic outcome classes",
+          "result status, revision, and idempotence",
+          "projected symbolic record state",
+          "ordered filesystem protocol trace including delete_stage"
+        ]
+      },
+      "project": "atomic_publisher",
+      "provider_contract": {
+        "name": "EffectProvider.bind",
+        "version": 1
+      },
+      "replay": {
+        "attempted": 12,
+        "exact": 12,
+        "interpreter": "/opt/homebrew/opt/python@3.14/bin/python3.14"
+      },
+      "run_id": "20260723T002509.642580Z-86865d2d81d2-atomic_publisher",
+      "schema_version": 1,
+      "seed": 20260721,
+      "status": "pass",
+      "usage_descriptor": {
+        "path": "effect_provider_usage.yaml",
+        "sha256": "b50138f57d42a60a02abdd497a523c5820afb490e4932d89d42ccd3d87d4012e"
+      }
+    }
+  },
+  "run_id": "20260723T002509.642580Z-86865d2d81d2",
+  "schema_version": 1,
+  "status": "pass"
+}

@@ -1,0 +1,37 @@
+complexity ledger -- standing objective (MF-019)
+  scope:    ticket MF-019
+  measured: variables=9 actions=14 bound=699,840
+            distinct=231,621 generated=5,619,356 depth=25
+            max_state_space_bound: 699,840 / 1,000,000 (70.0%, within cap)
+            max_distinct_states: 231,621 / 500,000 (46.3%, within cap)
+  delta:    direction=baseline (vs baseline)
+  retention (joint requirement -- a delta is meaningless without it):
+            kill_rate=deferred (UNVERIFIED)
+            effect_conformance=deferred (UNVERIFIED)
+            external_coverage=deferred (UNVERIFIED)
+  refinement: searched, found none
+  note:     NOTE: TLC reports incomplete; comparison skipped.
+  VERDICT: recorded
+
+promotion -> specs/current
+  basis: seed manifest recorded at open; removing only seeded paths the ticket dropped
+  removed 0 paths
+  preserved 1 current-only path(s) the ticket never carried:
+    = tests/test_current_ticket_workflow.py
+complexity ledger: specs/results/complexity_ledger.json (delta baseline vs baseline, refinement none)
+skill feedback -> /Users/hayde/IdeaProjects/wt-19-mf019-complexity-objective/specs/results/skill_feedback.md
+  appended entry: Close-out ticket MF-019
+  feedback NOT yet filed: declared_status=unreviewed, 7 finding(s) recorded
+    ! SF-001 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-002 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-003 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-004 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-005 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-006 has no ticket/PR against spec-double-compiler / tla-spec-dev
+    ! SF-007 has no ticket/PR against spec-double-compiler / tla-spec-dev
+  fill in the close-out entry and file each finding before the workflow closes
+recorded spec history entry: /Users/hayde/IdeaProjects/wt-19-mf019-complexity-objective/specs/.history/modular-fuzzing-epic/ticket-012-MF-019
+It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-012-MF-019
+recommended next step:
+  git add specs/.history/modular-fuzzing-epic/ticket-012-MF-019 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json
+  git commit -m 'record spec history for MF-019'

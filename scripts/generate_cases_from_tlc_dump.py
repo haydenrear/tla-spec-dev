@@ -21,10 +21,14 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
+    from .infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
+    from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
+    from infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 
 
@@ -367,6 +371,46 @@ def params_from_action_marker(edge: Edge, after: dict[str, Any], view: str) -> d
     return dict(to_plain_value(params))
 
 
+def params_for_case(
+    edge: Edge,
+    raw_before: dict[str, Any],
+    raw_after: dict[str, Any],
+    view: str,
+    param_recipes: dict[str, ActionRecipe] | None,
+) -> dict[str, Any]:
+    """Determine an edge's action arguments.
+
+    An explicit action marker in the model wins when one exists -- a model that
+    states its own arguments is authoritative. Otherwise MF-029 recovers them
+    from the case's own before/after pair. Recovery derives from the BEFORE
+    state and the transition; where it cannot, the parameter is ``UNCHECKED``
+    rather than a fabricated value that would make a comparison succeed.
+    """
+    declared = params_from_action_marker(edge, raw_after, view)
+    if declared:
+        return declared
+    return infer_params(edge.action, raw_before, raw_after, param_recipes)
+
+
+def param_provenance_labels(params: dict[str, Any]) -> list[str]:
+    """Labels recording how trustworthy an emitted case's arguments are.
+
+    These exist so an unrecoverable parameter is MARKED AND KEPT. No case is
+    ever dropped, filtered, or skipped for failing recovery -- the corpus is
+    complete either way, and the label is how a consumer tells the difference.
+    """
+    if not params:
+        return []
+    unchecked = unchecked_param_names(params)
+    if not unchecked:
+        return ["params:recovered"]
+    labels = ["params:unchecked"]
+    labels.extend(f"params:unchecked:{name}" for name in unchecked)
+    if len(unchecked) < len(params):
+        labels.append("params:partial")
+    return labels
+
+
 def case_name(index: int, action: str) -> str:
     snake = re.sub(r"(?<!^)([A-Z])", r"_\1", action).lower()
     snake = re.sub(r"[^a-z0-9_]+", "_", snake).strip("_")
@@ -374,6 +418,10 @@ def case_name(index: int, action: str) -> str:
 
 
 def py_repr(value: Any) -> str:
+    if value is UNCHECKED:
+        # Rendered as the imported sentinel, never as a literal. A generated
+        # case must not be able to state an argument it does not know.
+        return "UNCHECKED"
     if isinstance(value, frozenset):
         if not value:
             return "frozenset()"
@@ -484,6 +532,7 @@ def prepare_cases(
     state_projector: Any | None,
     output_projector: Any | None,
     dedupe: str,
+    param_recipes: dict[str, ActionRecipe] | None = None,
 ) -> list[PreparedCase]:
     prepared: list[PreparedCase] = []
     seen: set[Any] = set()
@@ -492,7 +541,10 @@ def prepare_cases(
         raw_after = states[edge.target]
         before = call_state_projector(state_projector, raw_before)
         after = call_state_projector(state_projector, raw_after)
-        params = params_from_action_marker(edge, raw_after, view)
+        # MF-029: recovery reads the RAW states, not the projected ones. A
+        # projector may drop or rename fields, and a parameter recovered from a
+        # projection would be recovered from something other than the model.
+        params = params_for_case(edge, raw_before, raw_after, view, param_recipes)
         changes = changed_fields(before, after)
         output_value, output_expression = call_output_projector(
             output_projector,
@@ -519,6 +571,9 @@ def prepare_cases(
                 continue
             seen.add(signature)
         labels = labels_for_case(before=before, action=edge.action, after=after, changes=changes, labelers=labelers)
+        for provenance in param_provenance_labels(params):
+            if provenance not in labels:
+                labels.append(provenance)
         metadata = action_metadata_for(edge.action, view, action_metadata)
         prepared.append(
             PreparedCase(
@@ -549,7 +604,8 @@ def render_python_package(
     state_projector: Any | None = None,
     output_projector: Any | None = None,
     dedupe: str = "none",
-) -> None:
+    param_recipes: dict[str, ActionRecipe] | None = None,
+) -> list[PreparedCase]:
     metadata = action_metadata or {}
     emitted_edges = [
         edge
@@ -565,6 +621,7 @@ def render_python_package(
         state_projector=state_projector,
         output_projector=output_projector,
         dedupe=dedupe,
+        param_recipes=param_recipes,
     )
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
@@ -573,19 +630,24 @@ def render_python_package(
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
     write(package_dir / "docs.md", render_docs(module, view, len(states), len(prepared_cases), len(emitted_edges), len(edges), dedupe))
+    # Every prepared case has now been written. The caller gates the corpus
+    # AFTER this point, so a failing cap gate never removes anything -- the
+    # package on disk is complete either way (MF-014).
+    return prepared_cases
 
 
 def render_init() -> str:
     return (
         "from .cases import CASES, CASES_BY_NAME, SOURCE_MODULE, SOURCE_VIEW\n"
         "from .doubles import ScriptedTransitionDouble\n"
-        "from .types import StateGraphCase, StateGraphInput, StateGraphOutput\n"
+        "from .types import UNCHECKED, StateGraphCase, StateGraphInput, StateGraphOutput\n"
         "from .validators import assert_case_replays\n\n"
         "__all__ = [\n"
         "    \"CASES\",\n"
         "    \"CASES_BY_NAME\",\n"
         "    \"SOURCE_MODULE\",\n"
         "    \"SOURCE_VIEW\",\n"
+        "    \"UNCHECKED\",\n"
         "    \"ScriptedTransitionDouble\",\n"
         "    \"StateGraphCase\",\n"
         "    \"StateGraphInput\",\n"
@@ -601,6 +663,31 @@ def render_types() -> str:
         "from dataclasses import dataclass\n"
         "from dataclasses import field\n"
         "from typing import Any\n\n\n"
+        "class Unchecked:\n"
+        "    \"\"\"An action argument this corpus could not recover from the state pair.\n\n"
+        "    MF-029. It is NOT None, \"\" or 0 -- those are values a model could\n"
+        "    legitimately produce, so an adapter comparing against one could pass by\n"
+        "    coincidence. UNCHECKED equals only itself, so any check expecting a\n"
+        "    concrete argument fails against it instead of passing vacuously.\n\n"
+        "    A case carrying UNCHECKED is still a real case and is never dropped: the\n"
+        "    sentinel marks the argument, it does not disqualify the transition.\n"
+        "    \"\"\"\n\n"
+        "    _instance = None\n\n"
+        "    def __new__(cls):\n"
+        "        if cls._instance is None:\n"
+        "            cls._instance = super().__new__(cls)\n"
+        "        return cls._instance\n\n"
+        "    def __repr__(self) -> str:\n"
+        "        return \"UNCHECKED\"\n\n"
+        "    def __bool__(self) -> bool:\n"
+        "        return False\n\n"
+        "    def __eq__(self, other: Any) -> bool:\n"
+        "        return other is self\n\n"
+        "    def __ne__(self, other: Any) -> bool:\n"
+        "        return other is not self\n\n"
+        "    def __hash__(self) -> int:\n"
+        "        return hash(\"tla-spec-dev.UNCHECKED\")\n\n\n"
+        "UNCHECKED = Unchecked()\n\n\n"
         "@dataclass(frozen=True)\n"
         "class StateGraphInput:\n"
         "    action: str\n"
@@ -642,7 +729,7 @@ def render_cases(
 ) -> str:
     lines = [
         "from __future__ import annotations\n\n",
-        "from .types import ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
+        "from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
         f'SCHEMA_VERSION = {TRACE_SCHEMA_VERSION!r}\n',
         f'SOURCE_MODULE = {module!r}\n',
         f'SOURCE_VIEW = {view!r}\n',
@@ -753,6 +840,48 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def advise_complexity(
+    tla_path: Path,
+    cfg_path: Path,
+    spec_dir: Path,
+) -> None:
+    """Print the complexity scan as ADVICE before generating cases (MF-036).
+
+    Complexity is a scanner, not a gate
+    (references/architecture_tractability.md, "Advisory, Not Blocking").
+    Generation ALWAYS proceeds: a dense model is a finding the agent should
+    read, not a blocked build. The scan runs first only so its findings
+    appear before the (potentially long) TLC exploration, never
+    to refuse it. A model the scan cannot analyze is surfaced the same way --
+    reported, not refused -- because TLC may handle a model the static scanner
+    cannot.
+    """
+    manifest_path = spec_dir / "spec_manifest.yaml"
+    try:
+        from scripts.analyze_complexity import gate_report
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import gate_report  # type: ignore[no-redef]
+
+    try:
+        clean, message = gate_report(
+            tla_path, cfg_path, manifest_path if manifest_path.is_file() else None
+        )
+    except Exception as exc:  # a scan that cannot parse must not block generation
+        print(f"warning: complexity scan could not analyze {tla_path}: {exc}", file=sys.stderr)
+        return
+
+    if clean:
+        print(message)
+        return
+    print(message, file=sys.stderr)
+    print(
+        "\nProceeding with case generation -- complexity is advisory and does not block. "
+        "Read the findings above (references/architecture_tractability.md, "
+        "'Advisory, Not Blocking').",
+        file=sys.stderr,
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tla", type=Path)
@@ -783,6 +912,16 @@ def main() -> int:
         default=[],
         help="Optional module:function returning extra labels for before/action/after/changed",
     )
+    parser.add_argument(
+        "--no-infer-params",
+        action="store_true",
+        help=(
+            "Emit params={} instead of recovering action arguments from each case's "
+            "before/after state pair. The MF-029 revert switch: parameter inference is "
+            "experimental and generator-side, so turning it off must not require a "
+            "model or spec change."
+        ),
+    )
     args = parser.parse_args()
 
     tla_path = resolve_existing_from_cwd(args.tla)
@@ -800,12 +939,24 @@ def main() -> int:
         resolved = str(root.resolve())
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
+
+    # Complexity scan (MF-011, made advisory in MF-036). Runs BEFORE
+    # run_tlc_dump only so the warnings and recommendations print ahead of the
+    # TLC exploration. It never refuses generation -- complexity is advisory.
+    advise_complexity(tla_path, cfg_path, spec_dir)
+
     run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
     action_metadata = load_action_metadata(args.actions_metadata, spec_dir)
-    render_python_package(
+
+    # MF-029: recover action arguments from each case's own state pair. The
+    # recipes come from the SAME module TLC just explored, so the recovery and
+    # the corpus can never describe different actions.
+    param_recipes = None if args.no_infer_params else build_recipes_from_path(tla_path)
+
+    prepared = render_python_package(
         module=tla_path.stem,
         states=states,
         edges=edges,
@@ -816,9 +967,53 @@ def main() -> int:
         state_projector=load_object(args.state_projector) if args.state_projector else None,
         output_projector=load_object(args.output_projector) if args.output_projector else None,
         dedupe=args.dedupe,
+        param_recipes=param_recipes,
     )
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
+
+    # R4-DF-04: a declared view action that generated ZERO cases is a silent
+    # coverage hole, most often caused by a pure alias wrapper
+    # (`CliAdd(t) == AddTask(t)`) -- TLC attributes such edges to the inner
+    # action's definition site, so the wrapper never appears in the dump.
+    emitted_actions = {case.edge.action for case in prepared}
+    declared_for_view = {
+        name
+        for name, meta in action_metadata.items()
+        if should_emit_action(meta, view)
+    }
+    for silent in sorted(declared_for_view - emitted_actions):
+        print(
+            f"warning: declared {view} action {silent!r} generated ZERO cases. "
+            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
+            "attributes its transitions to the inner action -- add a semantic "
+            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
+            "the action from actions.yml if it is not a real view action.",
+            file=sys.stderr,
+        )
+
+    if param_recipes is not None:
+        audit_path = out_path / args.package / "param_recovery_audit.md"
+        write(audit_path, render_audit(param_recipes))
+        with_params = sum(1 for case in prepared if case.params)
+        unchecked = sum(1 for case in prepared if unchecked_param_names(case.params))
+        print(
+            f"parameter recovery: {with_params}/{len(prepared)} cases carry arguments, "
+            f"{unchecked} carry at least one UNCHECKED argument (kept, never dropped); "
+            f"audit written to {audit_path}"
+        )
+
+    # Case-cap hard gate (MF-014). Runs AFTER the complete package is written:
+    # the corpus is never trimmed to pass, so the artifacts on disk hold every
+    # generated case whether this gate passes or fails. Over cap it reports the
+    # distribution and what varies across the redundant group, then exits
+    # nonzero -- fix the diagram, or raise the cap with a recorded rationale.
+    enforce_case_cap(
+        prepared,
+        view=view,
+        manifest_path=spec_dir / "spec_manifest.yaml",
+        source=str(out_path / args.package),
+    )
     return 0
 
 

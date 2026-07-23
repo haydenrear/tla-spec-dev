@@ -1,0 +1,16 @@
+Evidence that the fitness-function FIRED notification path works on this
+project (canary rule temporarily added to fitness_functions.json, scanned,
+then removed). Verbatim scanner excerpt, 2026-07-21:
+
+[CONFIGURED] Fitness functions (self-configured; advisory -- report, never block)
+  sources: .../specs/program_model/fitness_functions.json
+  holds: bound-proportional-to-cli-behavior
+  holds: only-observability-channels-invisible
+  FIRED: canary-should-fire -- god_state_count=3 == 0 is FALSE
+
+  A FIRED fitness function is a NOTIFICATION to this project's future
+  agents: a condition the project's agent declared it wants to hold does
+  not hold on this scan. It does NOT block promotion and does NOT change
+  the exit code -- read it, judge it, and decide with the owner.
+
+Exit code remained 0 (advisory, never blocking).

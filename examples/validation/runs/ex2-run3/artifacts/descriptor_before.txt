@@ -1,0 +1,124 @@
+analyze complexity -- External (complexity descriptor)
+  spec:     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex2-run3/specs/program_model/External.tla
+  config:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex2-run3/specs/program_model/External.cfg
+  manifest: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex2-run3/specs/program_model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain           cardinality  source                                             note
+------------------  ---------------  -----------  -------------------------------------------------  ---------------------------------------------------------------------------------------------
+accounts            (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+carts               (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+orders              (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+outbox              SUBSET Orders    4            the configured invariants (resolved transitively)  powerset of 2 elements
+projections         (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+lastInternalAction  (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+responses           (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+serviceHealth       (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+lastServiceRoute    (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+lastExternalAction  (unconstrained)  unknown      -                                                  unconstrained by the configured invariants (resolved transitively) -- excluded from the bound
+  (domain sources merge per-variable: TypeInvariant, then TypeOK, then the
+  configured invariants -- first source that resolves wins. What the resolver
+  can and cannot see: references/architecture_tractability.md,
+  'What The Domain Resolver Can And Cannot See'.)
+
+[MEASURED] State-space upper bound
+  bound = 4  (product of 1 bounded dimensions; domains from the configured invariants (resolved transitively))
+  excluded (no resolvable domain): accounts, carts, orders, projections, lastInternalAction, responses, serviceHealth, lastServiceRoute, lastExternalAction
+  dominant dimensions:
+    outbox: 4 (100.0% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+  (actions = top-level disjuncts of the next-state relation ExternalNext, called-operator bodies expanded transitively; helpers are not actions)
+variable            SubmitCreateAccount  SubmitDuplicateCreateAccount  SubmitAddCartItem  SubmitDuplicateAddCartItem  SubmitAddCartItemMissingAccount  SubmitCheckout  SubmitCheckoutMissingAccount  SubmitCheckoutEmptyCart  SubmitDuplicateCheckout  RunFulfillmentWorker  RunFulfillmentWorkerNoop  HiddenInternalProgress
+------------------  -------------------  ----------------------------  -----------------  --------------------------  -------------------------------  --------------  ----------------------------  -----------------------  -----------------------  --------------------  ------------------------  ----------------------
+accounts            rw                   r                             r                  r                           r                                r               r                             r                        r                        .                     .                         rw
+carts               .                    .                             rw                 r                           .                                r               .                             r                        .                        .                     .                         rw
+orders              .                    .                             .                  .                           .                                rw              .                             r                        r                        r                     .                         rw
+outbox              .                    .                             .                  .                           .                                rw              .                             .                        .                        rw                    r                         rw
+projections         .                    .                             .                  .                           .                                .               .                             .                        .                        rw                    .                         rw
+lastInternalAction  w                    .                             w                  .                           .                                w               .                             .                        .                        w                     .                         w
+responses           rw                   rw                            rw                 rw                          rw                               rw              rw                            rw                       rw                       .                     .                         .
+serviceHealth       r                    r                             r                  r                           r                                r               r                             r                        r                        r                     r                         .
+lastServiceRoute    w                    w                             w                  w                           w                                w               w                             w                        w                        w                     w                         .
+lastExternalAction  w                    w                             w                  w                           w                                w               w                             w                        w                        w                     w                         .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.047 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: accounts, lastExternalAction, lastServiceRoute, responses, serviceHealth  (5 variables, 12 actions)
+  C2: carts, lastInternalAction, orders, outbox, projections  (5 variables, 9 actions)
+  candidate port-crossing actions:
+    HiddenInternalProgress crosses C1, C2
+    RunFulfillmentWorker crosses C1, C2
+    RunFulfillmentWorkerNoop crosses C1, C2
+    SubmitAddCartItem crosses C1, C2
+    SubmitCheckout crosses C1, C2
+    SubmitCheckoutEmptyCart crosses C1, C2
+    SubmitCreateAccount crosses C1, C2
+    SubmitDuplicateAddCartItem crosses C1, C2
+    SubmitDuplicateCheckout crosses C1, C2
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastExternalAction touched by 11/12 actions
+    lastServiceRoute touched by 11/12 actions
+    serviceHealth touched by 11/12 actions
+    accounts touched by 10/12 actions
+    responses touched by 9/12 actions
+  dense columns (action touching more than half the variables):
+    HiddenInternalProgress
+    RunFulfillmentWorker
+    SubmitAddCartItem
+    SubmitCheckout
+    SubmitCheckoutEmptyCart
+    SubmitCreateAccount
+    SubmitDuplicateAddCartItem
+    SubmitDuplicateCheckout
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    accounts
+    carts
+    projections
+    lastInternalAction
+    responses
+    lastExternalAction
+
+[MEASURED] Justification linkage
+  no justification: table in the manifest -- dead-weight analysis skipped.
+  Add one to make every variable's right to exist auditable
+  (references/architecture_tractability.md, 'Grow The Model By Evidence').
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/542a318c-a17c-4cd4-be34-42732ff10463/scratchpad/valruns/ex2-run3/specs/program_model/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 50,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: component C1 is touched by 12 actions (SubmitCreateAccount, SubmitDuplicateCreateAccount, SubmitAddCartItem, SubmitDuplicateAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutMissingAccount, SubmitCheckoutEmptyCart, SubmitDuplicateCheckout, RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress), exceeding max_component_actions 8
+
+  WARNING: component C2 is touched by 9 actions (SubmitCreateAccount, SubmitAddCartItem, SubmitDuplicateAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitDuplicateCheckout, RunFulfillmentWorker, RunFulfillmentWorkerNoop, HiddenInternalProgress), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.

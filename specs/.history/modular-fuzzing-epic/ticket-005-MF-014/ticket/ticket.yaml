@@ -1,0 +1,118 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-014",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "no code path drops, filters, samples, or truncates a case to fit a budget -- not silently and not with a recorded drop rule. A --distill style opt-in filter is also a failure.",
+        "max_internal_cases_per_component and max_external_cases_per_action are hard gates read through scripts/budgets.py -- over budget exits nonzero and reports.",
+        "raising a cap with a recorded one-line rationale is supported as the explicit accept path.",
+        "on cap failure the diagnostics report count per (action, label class), dominant strata, starved strata, and what varies across the redundant group.",
+        "labelers are retained as diagnostic strata; no labeler output selects which cases survive.",
+        "remediation output is a recommendation requiring user approval, never auto-applied.",
+        "named regression traces are always retained.",
+        "references/modular_fuzzing.md Corpus Discipline matches what shipped."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-014"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-016"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/generate_cases_from_tlc_dump.py",
+        "scripts/export_testgraph_cases.py",
+        "references/modular_fuzzing.md"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "spec-unit adapter asserting stratification and drop records on a fixture dump"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "DistillCorpus"
+      ],
+      "model_state": [
+        "corpus_distilled"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-014/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-012",
+      "MF-022"
+    ],
+    "desired_actions": [
+      "DistillCorpus"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/14",
+    "id": "MF-014",
+    "implementation_scope": [
+      "scripts/generate_cases_from_tlc_dump.py",
+      "scripts/export_testgraph_cases.py"
+    ],
+    "objective": "Corpus diagnostics and HARD CAPS. Cases are never dropped, filtered, sampled, or truncated to fit a budget -- not silently and not with a recorded drop rule. Case caps (max_internal_cases_per_component, max_external_cases_per_action) become hard gates in the same shape as MF-011 state-space bound -- over budget exits nonzero and reports, and caps stay per-program negotiable so raising one with a recorded rationale is the explicit accept path. On failure the diagnostics report the count per (action, label class), which strata dominate, which are starved, and what varies across the redundant group, so the agent can fix the CAUSE. A lopsided corpus is evidence about the representation -- the committed example emits 200 cases for one action and 2 for another, which means the model enumerates redundant interleavings wanting symmetry reduction, a state constraint, or abstraction. The corpus is the symptom; the diagram is the defect. Labelers are retained but repurposed from selection criteria to diagnostic strata. Remediation is a recommendation requiring user approval, never auto-applied. Named regression traces are always retained. SCOPE CHANGE 2026-07-18 by owner direction -- this replaces the former Corpus Distillation scope, which transcribed the modular_fuzzing.md Corpus Discipline section; both were wrong, because filtering to fit a budget under-represents the program and the kill_rate_floor only samples for the damage. references/modular_fuzzing.md is amended in the same change. See tickets/014-corpus-diagnostics-and-caps.md.",
+    "promotion_order": 30,
+    "promotion_predecessor": "MF-017",
+    "schedule_revision": 4,
+    "status": "pending",
+    "title": "Corpus diagnostics and hard caps",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/tickets/MF-014",
+  "ticket_id": "MF-014",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-14-mf014-corpus-distillation/specs/tickets"
+}

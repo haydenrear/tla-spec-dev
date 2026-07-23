@@ -1,0 +1,23 @@
+# MF-026 coverage audit verdict, in the complexity ledger's schema shape.
+#
+# Emitted by the audit run itself (prompts/coverage_audit.md, "Output") so the
+# verdict exists as evidence before the ticket's close-time ledger is written.
+# Merge this block into the ticket/workflow ledger input at close.
+#
+# `incomplete` is NOT a pass: scripts/complexity_ledger.py treats any status
+# other than `pass` as non-passing, and rejects a workflow-scoped close on it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "incomplete"
+  report: "results/coverage_audit_report.md"
+  in_scope_gaps: 19
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:449-464 (service_catalog); :486-490, :539-542, :599-601, :664-667, :720-724, :789-791, :885-888, :940-943, :1010-1013, :1075-1078, :1145-1148, :1215-1219, :1282-1286, :1329-1332, :1373-1377 (implementation_scope); :332-340 (owner scope correction retaining the three overrides)"
+
+# Why `incomplete` rather than `fail`, recorded so the distinction is not lost:
+# 19 in-scope gaps would independently be a FAIL, but FAIL asserts the surface
+# was walked. Three sweep categories (Sweep 2 Filesystem = 225 rows, Sweep 3
+# Fallbacks = 196, Sweep 3 Config = 314) were not enumerated at the mandated
+# row granularity, and 145 of 160 Sweep-1 rows could not be classified against
+# the plan because its scope declaration is inclusion-only with no closure rule.
+# The 19 gaps gate promotion exactly as a FAIL would.

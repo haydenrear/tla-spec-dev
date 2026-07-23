@@ -31,7 +31,10 @@ SPEC = (
 @node(SPEC)
 def run(ctx):
     root = Path(__file__).resolve().parents[2]
-    repo = root.parents[1]
+    # VAL-11: TLA_SPEC_DEV_ROOT points a standalone checkout of this example
+    # at its toolchain; the fallback assumes the embedded-copy layout inside
+    # the tla-spec-dev repository.
+    repo = Path(os.environ.get("TLA_SPEC_DEV_ROOT", root.parents[1])).resolve()
     base_url = ctx.get("ecommerce.deploy", "baseUrl")
     if not base_url:
         return NodeResult.fail(SPEC.id, "missing baseUrl from ecommerce.deploy")
@@ -148,7 +151,10 @@ def _expected_case_names(manifest: Path) -> list[str]:
 
 
 def _executed_case_names(work_dir: Path) -> list[str]:
-    return sorted(path.parent.name for path in (work_dir / "case-work").glob("*/program-state.json"))
+    return sorted(
+        json.loads(path.read_text(encoding="utf-8"))["case"]
+        for path in (work_dir / "case-work").glob("*/program-state.json")
+    )
 
 
 if __name__ == "__main__":

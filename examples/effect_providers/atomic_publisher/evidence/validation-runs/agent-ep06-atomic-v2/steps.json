@@ -1,0 +1,44 @@
+[
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/regenerate.py",
+      "--provenance-out",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/agent-ep06-atomic-v2/generated-provenance.json"
+    ],
+    "duration_seconds": 1.855343,
+    "log": "evidence/validation-runs/agent-ep06-atomic-v2/regeneration.log",
+    "name": "regeneration",
+    "returncode": 0,
+    "timeout_seconds": 120
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/run_experiment.py",
+      "--skip-regenerate",
+      "--repetitions",
+      "2",
+      "--run-label",
+      "agent-ep06-atomic-v2",
+      "--evidence",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/evidence/validation-runs/agent-ep06-atomic-v2/experiment.json"
+    ],
+    "duration_seconds": 4.420238,
+    "log": "evidence/validation-runs/agent-ep06-atomic-v2/experiment.log",
+    "name": "preregistered_experiment",
+    "returncode": 0,
+    "timeout_seconds": 600
+  },
+  {
+    "command": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/atomic_publisher/test_atomic_publisher.py"
+    ],
+    "duration_seconds": 3.413854,
+    "log": "evidence/validation-runs/agent-ep06-atomic-v2/focused-tests.log",
+    "name": "focused_tests",
+    "returncode": 0,
+    "timeout_seconds": 120
+  }
+]

@@ -1,0 +1,124 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket EP-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/current"
+  },
+  "source_current": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/current",
+  "source_project_desired": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A case action deterministically resolves exactly its declared semantic effect ports and provider bindings; configuration errors fail before application code runs.",
+        "Generated typed Protocols remain the structural contract; the provider binding is checked against the selected port and is available by stable port name in AdapterCaseContext.effects.",
+        "Provider enter/setup/run/assert/teardown/exit ordering and reverse-order, failure-safe cleanup are covered, including teardown while providers remain active.",
+        "Explicit dependency injection and self-installed monkeypatch bindings are both possible without framework-specific application entrypoints beyond the existing case adapter.",
+        "Legacy batches with no semantic effect ports behave exactly as before; provider-bearing legacy non-batch/export paths are rejected rather than silently ignored.",
+        "Passive effect observation is unchanged and no generic per-call response-plan schema is introduced.",
+        "Zero host TLA+ model delta unless a new observable CLI transition is actually added; current == desired and TLC/spec-unit evidence records the decision."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket EP-01",
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EP-02"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "spec_double_compiler/runtime.py",
+        "scripts/run_generated_case_adapters.py",
+        "scripts/generate_python.py",
+        "scripts/scaffold_spec.py",
+        "templates/case_adapters.toml"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "spec_manifest.yaml-ports",
+        "actions.yml-effect_ports",
+        "case_adapters.toml-effect_providers"
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "host production adapter updated only if needed for zero-model-delta conformance"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/77",
+    "id": "EP-01",
+    "implementation_scope": [
+      "spec_double_compiler/runtime.py (provider context, binding, case effect map)",
+      "scripts/run_generated_case_adapters.py (schema loading, lookup, lifecycle, fail-closed preflight)",
+      "scripts/generate_python.py and scripts/scaffold_spec.py (typed port/provider scaffolding)",
+      "focused runtime, generator, scaffold, and CLI tests"
+    ],
+    "objective": "Add the smallest fail-closed runtime that maps a generated case's action to typed semantic effect ports and binds project-owned providers around that case. Reuse manifest `ports` as generated Protocol contracts, mark semantic effect ports explicitly, declare action requirements in actions.yml (`effect_ports`), and map each required port in case_adapters.toml (`[effect_providers.<Port>] provider = \"module:object\"`). Keep the inherited passive `effects:` observation schema separate: it detects escaped writes/process/network activity and is not a provider-response API. Introduce a provider context/binding contract and expose bound values through AdapterCaseContext.effects. Enter providers in declaration order before adapter setup; run setup/run/assert/teardown while bindings are live; exit providers in reverse order even on failure. Unknown ports, missing providers, duplicate bindings, invalid types, and provider-bearing unsupported execution modes fail before application execution. No-effect legacy batches remain compatible. V0 supports Python batch execution only.\n",
+    "promotion_order": 100,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Typed effect-provider lookup and case lifecycle",
+    "wave": 12
+  },
+  "ticket_dir": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/tickets/EP-01",
+  "ticket_id": "EP-01",
+  "ticket_index": 0,
+  "ticket_plan": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/private/tmp/tla-spec-dev-77-ep01-effect-provider-runtime/specs/tickets"
+}

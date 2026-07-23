@@ -1,0 +1,27 @@
+{
+  "_comment": "Self-configured fitness functions over the taskq complexity descriptor (advisory; see references/fitness_functions.md). JSON rather than YAML because the CLI runs under a bare python3 without PyYAML. Encodes the shape settled in validation_artifacts/complexity_decision.md. Deliberately NOT constrained: god_state_count/dense rows -- all three variables are an accepted irreducible small core (outcome + exit code are the CLI's real output channel, with named readers).",
+  "fitness_functions": [
+    {
+      "name": "bound-stays-small-and-known",
+      "description": "the whole-program bound stays resolved and proportional to the 4-status lifecycle over a handful of names; a wide counter or an unconstrained variable breaks this",
+      "rule": {
+        "all": [
+          {"fact": "bound_known", "op": "==", "value": true},
+          {"fact": "bound", "op": "<=", "value": 4096},
+          {"fact": "variable_domain", "var": "tasks", "op": "<=", "value": 64}
+        ]
+      }
+    },
+    {
+      "name": "all-state-visible-and-justified",
+      "description": "every variable stays read by some configured invariant and carries a justification linkage; bookkeeping state nothing reads is the one smell this tiny CLI could grow",
+      "rule": {
+        "all": [
+          {"fact": "unread_by_invariant_count", "op": "==", "value": 0},
+          {"fact": "unjustified_count", "op": "==", "value": 0},
+          {"fact": "variable_count", "op": "<=", "value": 4}
+        ]
+      }
+    }
+  ]
+}

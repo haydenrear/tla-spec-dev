@@ -82,6 +82,103 @@ In `examples/distributed_history/specs/program_model/adapters.py`:
 - `_HttpAdapter.teardown` resets state after the case.
 - `_HttpAdapter.teardown_all` resets state after the batch.
 
+## External Channel Enforcement
+
+Added by MF-015. External-ness used to be asserted structurally and never
+verified, so a Test Graph adapter could import the production package and
+quietly degenerate into a spec-unit adapter. Three hard gates now verify it.
+Both `scripts/run_generated_case_adapters.py` and
+`scripts/export_testgraph_cases.py` apply them, and both refuse to proceed on
+violation. There is no override flag anywhere in this path.
+
+### 1. Every binding declares a channel
+
+```yaml
+actions:
+  SubmitCheckout:
+    channel: http          # http | cli | fs | queue | k8s
+    adapter: specs.program_model.adapters:CheckoutHttpAdapter
+```
+
+A binding whose author did not say how the program is driven has not declared
+an external channel. Absence fails; there is no default and no inference from
+the adapter name.
+
+To drive a transport beyond the base five, name it explicitly in the contract:
+
+```yaml
+external:
+  additional_channels: [grpc]
+```
+
+That is a visible per-program declaration, in the same shape as raising a
+budget in the manifest. It widens the accepted set. It can never excuse a
+binding that declares no channel at all.
+
+### 2. Adapters may not import the production package
+
+```yaml
+external:
+  production_package: ecommerce
+```
+
+The `adapter`, `projector`, `expected_projection` and `assertion` modules of
+every external binding are parsed with `ast` and checked for any import of the
+declared package. All four roles run inside the harness process, so all four
+are isolated. The analysis is **transitive** across first-party modules: an
+adapter that imports a local helper which imports the production package is
+running production code in-process just the same, and only following direct
+imports would make the gate trivially evadable. Dynamic
+`importlib.import_module("pkg")` and `__import__("pkg")` with literal arguments
+are covered too.
+
+Note what is *not* an offense: importing `spec_double_compiler.runtime` for
+`CaseRunResult` is the adapter harness contract, not the program under test.
+The gate targets exactly the declared `production_package`.
+
+A violation reports the adapter, the offending import, and the remediation:
+
+```text
+ERROR: external channel enforcement failed for 1 binding(s) in .../testgraph_bindings.yml
+  action SubmitCheckout
+    adapter:     specs.program_model.adapters:CheckoutHttpAdapter
+    problem:     adapter module specs.program_model.adapters imports production
+                 package 'ecommerce'; a Test Graph adapter that imports the
+                 program under test is running it in-process, not over the
+                 declared http channel
+    remediation: rebind this action as a spec-unit adapter in
+                 case_adapters.toml, or drive the declared channel instead of
+                 calling the production package in-process
+```
+
+### 3. Port binding configurations declare the integration-ladder rung
+
+```yaml
+external:
+  port_bindings:
+    HistoryPort: real
+    OrderPort: real
+    ClockPort: double
+```
+
+Each port is bound to exactly `double` or `real`. This is what lets a graph run
+say which rung of the integration ladder it occupies; the exported
+`manifest.json` carries it as `integration_rung`.
+
+**At least one port must be `real`.** With every port doubled nothing real is
+under test, which is a spec-unit run — all-doubles is never a graph node. That
+matches the binding ladder in `references/modular_fuzzing.md`.
+
+### No degenerate escapes
+
+Every absent declaration **fails**; none of them skips the check. A missing
+`external:` block, a missing `production_package`, and a missing `port_bindings`
+are each violations in their own right. A gate that silently disables itself
+when its input is absent is the degeneracy
+`references/architecture_tractability.md` forbids, so this module contains no
+`when present` conditional, no fallback default, and no override parameter.
+
+
 ## Projected-State Assertions
 
 External assertions compare the expected program state from the generated case
@@ -92,6 +189,7 @@ The binding file wires this:
 ```yaml
 actions:
   SubmitCheckout:
+    channel: http
     adapter: specs.program_model.adapters:CheckoutHttpAdapter
     projector: specs.program_model.adapters:ClusterStateProjector
     expected_projection: specs.program_model.adapters:ExpectedClusterProjection
@@ -111,8 +209,12 @@ visible abstract fields, and compares them with the generated case's expected
 state. Each assertion writes a per-case evidence file:
 
 ```text
-test_graph/build/validation-reports/<run>/external-case-work/case-work/<case>/program-state.json
+test_graph/build/validation-reports/<run>/external-case-work/case-work/<opaque-case-key>/program-state.json
 ```
+
+The JSON payload carries the original case name. Work-directory components are
+stable opaque digests so generated names cannot traverse or alias the report
+root.
 
 The Test Graph evidence node aggregates these into:
 

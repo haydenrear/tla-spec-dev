@@ -1,0 +1,566 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/MF-019",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/modular-fuzzing-epic/ticket-012-MF-019 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for MF-019'",
+    "message": "It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-012-MF-019"
+  },
+  "complexity_delta": {
+    "direction": "baseline",
+    "metrics": {},
+    "note": "no previous ledger entry; this entry establishes the baseline",
+    "previous_scope_id": null
+  },
+  "complexity_ledger": {
+    "delta": {
+      "direction": "baseline",
+      "metrics": {},
+      "note": "no previous ledger entry; this entry establishes the baseline",
+      "previous_scope_id": null
+    },
+    "errors": [],
+    "input_path": "specs/tickets/MF-019/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 46.3,
+          "used": 231621,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 231621,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 is touched by 14 actions, exceeding max_component_actions 8"
+      ],
+      "generated_states": 5619356,
+      "modularity": 0.011742315426601493,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-19-mf019-complexity-objective/specs/tickets/MF-019/results/tlc-current.txt",
+      "variables": 9
+    },
+    "narrative": "specs/tickets/MF-019/results/complexity-ledger.md",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped."
+    ],
+    "recorded_at_utc": "2026-07-19T22:44:51.281571+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, found no NEW reduction. The four standing candidates are recorded and deliberately not re-litigated: projecting lastCommand/result (PROJECTED, pending the kill rate, MF-023's to settle); collapsing kill_test 4->3 (MF-016 MEASURED 26.2% and REFUSED, all four values individually TLC-reachable); collapsing the three failure verdicts (MF-027 MEASURED 47% and REFUSED, deletes externally-visible result.next distinctions); further ticket_state collapse (MF-025 searched, found none). Re-taking any would contradict a prior ticket's recorded refusal on evidence not re-measured. New surfaces were searched for duplication: the self-loop red-flag detector is delegated to MF-011's compare_tlc_reports and the YAML subset parser is reused from extract_spec_manifest, rather than either being reimplemented.\n",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+        "status": "deferred",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+        "status": "deferred",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+        "status": "deferred",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=deferred (UNVERIFIED)",
+      "effect_conformance=deferred (UNVERIFIED)",
+      "external_coverage=deferred (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "MF-019",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "verdict": "recorded",
+    "workflow": "modular-fuzzing-epic"
+  },
+  "created_at_utc": "2026-07-19T22:44:51.339981+00:00",
+  "entry_name": "ticket-012-MF-019",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/19-mf019-complexity-objective",
+    "commit": "cb136f3",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/MF-019/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/MF-019/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/MF-019/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/MF-019/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/MF-019/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/MF-019/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/MF-019/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/MF-019/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/MF-019/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/MF-019"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, found no NEW reduction. The four standing candidates are recorded and deliberately not re-litigated: projecting lastCommand/result (PROJECTED, pending the kill rate, MF-023's to settle); collapsing kill_test 4->3 (MF-016 MEASURED 26.2% and REFUSED, all four values individually TLC-reachable); collapsing the three failure verdicts (MF-027 MEASURED 47% and REFUSED, deletes externally-visible result.next distinctions); further ticket_state collapse (MF-025 searched, found none). Re-taking any would contradict a prior ticket's recorded refusal on evidence not re-measured. New surfaces were searched for duplication: the self-loop red-flag detector is delegated to MF-011's compare_tlc_reports and the YAML subset parser is reused from extract_spec_manifest, rather than either being reimplemented.\n",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/complexity-ledger.md",
+      "source": "specs/tickets/MF-019/results/complexity-ledger.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/tlc-current.txt",
+      "source": "specs/tickets/MF-019/results/tlc-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/spec-unit-tests.txt",
+      "source": "specs/tickets/MF-019/results/spec-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/repository-unit-tests.txt",
+      "source": "specs/tickets/MF-019/results/repository-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/testgraph-specWorkflow.txt",
+      "source": "specs/tickets/MF-019/results/testgraph-specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/testgraph-cliWorkflow.txt",
+      "source": "specs/tickets/MF-019/results/testgraph-cliWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/analyze-complexity.txt",
+      "source": "specs/tickets/MF-019/results/analyze-complexity.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/DEFERRED-TO-MF-023.md",
+      "source": "specs/tickets/MF-019/results/DEFERRED-TO-MF-023.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/results/complexity_ledger.yaml",
+      "source": "specs/tickets/MF-019/results/complexity_ledger.yaml"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+      "status": "deferred",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+      "status": "deferred",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "epic-wide deferral to MF-023 (#30); see results/DEFERRED-TO-MF-023.md",
+      "status": "deferred",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 8,
+    "close_out_entry": "Close-out ticket MF-019",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-19-mf019-complexity-objective/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket",
+      "source": "specs/tickets/MF-019"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "Mechanize the standing objective: complexity ledger recorded per ticket/workflow close with the delta reported jointly with retention evidence; increases require a recorded justification; a decrease with degraded or unverified retention is rejected at close; the MF-020 self-loop red flag is a hard gate; and the recursive refinement record is required. Zero model delta -- max_state_space_bound is at 70.0% with 1.43x headroom, so no new bounded variable of any cardinality fits; recorded as a finding for MF-023.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "analyze-complexity metrics are recorded as a ledger entry at ticket close and workflow close.",
+        "close reports the complexity delta; increases require a recorded justification naming the new essential behavior.",
+        "a complexity decrease with degraded retention evidence is rejected at close; deltas are only reported jointly with retention evidence.",
+        "the refinement loop record (approved recommendation or searched-found-none) is required at close; recommendations are advisory and user-approved."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/tickets/MF-019/current/TlaSpecDevCli.tla specs/tickets/MF-019/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-019"
+      ],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/close_ticket.py",
+        "scripts/analyze_complexity.py",
+        "scripts/close_spec_workflow.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla"
+      ],
+      "workflow": [
+        "spec_manifest.yaml-complexity-ledger"
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "spec-unit adapter closing a fixture ticket and asserting ledger entry, delta report, justification requirement, and anti-gaming rejection"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [
+        "TrackComplexity"
+      ],
+      "model_state": [
+        "complexity_ledger"
+      ],
+      "unit_tests": [
+        "uv run --with pytest -m pytest tests -q",
+        "uv run --with pytest -m pytest specs/tickets/MF-019/current/tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-011",
+      "MF-016"
+    ],
+    "desired_actions": [
+      "TrackComplexity"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/19",
+    "id": "MF-019",
+    "implementation_scope": [
+      "scripts/close_ticket.py and scripts/close_spec_workflow.py (ledger entry, delta report, anti-gaming check, refinement-loop record)",
+      "scripts/analyze_complexity.py (ledger-format output)",
+      "spec_manifest.yaml complexity_ledger schema",
+      "SKILL.md / references/architecture_tractability.md consistency check"
+    ],
+    "objective": "Mechanize the standing objective \u2014 programming as complexity minimization under behavior retention: a complexity ledger recorded per ticket/workflow close from analyze-complexity metrics, close-time complexity deltas with required justification for increases, anti-gaming rejection when a decrease coincides with degraded retention evidence (kill rate, effect conformance, external coverage), and the recursive refinement loop as a required close-out step emitting user-approved recommendations or an explicit searched-found-none record. See tickets/019-complexity-minimization-objective.md and references/architecture_tractability.md.",
+    "promotion_order": 80,
+    "promotion_predecessor": "MF-016",
+    "schedule_revision": 2,
+    "status": "done",
+    "title": "Complexity minimization objective",
+    "wave": 8
+  },
+  "ticket_id": "MF-019",
+  "ticket_index": 12,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/modular-fuzzing-epic/ticket-012-MF-019/ticket",
+    "source": "specs/tickets/MF-019"
+  },
+  "workflow_name": "modular-fuzzing-epic"
+}

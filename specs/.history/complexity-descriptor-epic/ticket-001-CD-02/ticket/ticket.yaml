@@ -1,0 +1,117 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A doc an agent can read to interpret a descriptor and decide whether/how to refactor, with at least a few worked good/bad descriptor examples and reasoning for each.",
+        "The refactor-input framing (\"take this complexity descriptor to consider how to refactor complexity out of the app\") is wired into the workflow/doctrine.",
+        "The doc includes the \"how complex should a program be\" best-practices section and explicitly encourages validated architectural refactors that lower complexity.",
+        "No automated-suggestion claims anywhere.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-02"
+      ],
+      "evidence": [
+        "specs/tickets/CD-02/results/intuition_doc_review.md",
+        "specs/tickets/CD-02/results/tlc_current.txt",
+        "specs/tickets/CD-02/results/spec_unit_tests.txt",
+        "specs/tickets/CD-02/results/repo_unit_tests.txt",
+        "specs/tickets/CD-02/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-02/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "references/complexity_intuition.md",
+        "SKILL.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "CD-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/72",
+    "id": "CD-02",
+    "implementation_scope": [
+      "references/complexity_intuition.md (new doc)",
+      "SKILL.md (wire the refactor-input framing into the workflow)"
+    ],
+    "objective": "Write references/complexity_intuition.md: guidance an agent reads ALONGSIDE a CD-01 descriptor to decide whether and how to refactor \u2014 NOT automated suggestions (CD-01 removed those because they were wrong). Teach what a GOOD descriptor looks like (bound proportional to essential behavior, high modularity / clean clusters, balanced R/W matrix, no god-state, domains sized to the real distinctions) and what a BAD one looks like (god-state / dense rows, low modularity, bound exploding past the behavior, domains wider than the behavior needs), with concrete worked good/bad examples and reasoning. Wire the framing \"take this complexity descriptor to consider how to refactor complexity out of the app\" into the workflow/doctrine. OWNER ADDENDUM (2026-07-21): include an explicit \"how complex should a program be\" best-practices section \u2014 complexity should be proportional to the essential behavior the program must exhibit, and a VALIDATED architectural refactor that lowers complexity (model still green under TLC/tests, behavior preserved, before/after descriptors compared) is ENCOURAGED as normal practice, not an exceptional event. Intuitions for the agent to judge with, never automated moves.\n",
+    "promotion_order": 110,
+    "promotion_predecessor": "CD-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Complexity intuition \u2014 what good and bad descriptors look like",
+    "wave": 13
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/tickets/CD-02",
+  "ticket_id": "CD-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-72-cd02-complexity-intuition/specs/tickets"
+}

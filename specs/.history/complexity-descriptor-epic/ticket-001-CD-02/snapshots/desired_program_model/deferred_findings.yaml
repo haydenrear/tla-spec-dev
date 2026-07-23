@@ -1,0 +1,20 @@
+findings:
+  - id: CD-02-DF-01
+    ticket: CD-02
+    date: 2026-07-21
+    severity: minor
+    blocking: false
+    summary: >-
+      When `analyze complexity` is run without --manifest and no default
+      manifest resolves, the warning prints a placeholder path: "no readable
+      spec manifest at does-not-exist; using documented default budgets".
+      The literal Path("does-not-exist") sentinel leaks into user-facing
+      output (scripts/analyze_complexity.py:1044). Cosmetic/UX only; budget
+      resolution itself behaves correctly (documented defaults are used).
+    evidence: >-
+      Reproduced 2026-07-21 during CD-02 worked-example runs:
+      `python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity
+      <model>.tla <MC.cfg>` (no --manifest) prints the warning verbatim.
+    suggested_fix: >-
+      Say "no manifest supplied; using documented default budgets" (or name
+      the actually-probed default path) instead of the sentinel.

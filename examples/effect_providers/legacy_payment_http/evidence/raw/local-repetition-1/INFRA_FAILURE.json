@@ -1,0 +1,23 @@
+{
+  "classification": "infra_failed_unscored",
+  "label": "local-repetition-1",
+  "raw_evidence_policy": "Retained for diagnosis only; no score or campaign conclusion is accepted from this attempt.",
+  "scored": false,
+  "failures": [
+    {
+      "phase": "pre_control_first_attempt",
+      "cause": "The sandbox denied TLC's local RMI socket with Operation not permitted.",
+      "evidence": "The attempt stopped before a raw directory or control score existed."
+    },
+    {
+      "phase": "post_mutation_pre_summary_escalated_attempt",
+      "cause": "The parent experiment process did not place PROJECT_ROOT on sys.path before importing payment_effects for the baseline.",
+      "evidence": "Control and mutant diagnostic artifacts exist, but no baseline, summary, or accepted score was produced."
+    },
+    {
+      "phase": "exact_replay_diagnostic",
+      "cause": "The shared runner recorded the resolved base interpreter rather than the virtualenv symlink, so the replay process could not import requests.",
+      "evidence": "The failed replay logs are diagnostic only; the project now supplies its dependency import root explicitly."
+    }
+  ]
+}

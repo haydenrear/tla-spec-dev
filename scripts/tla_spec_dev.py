@@ -79,18 +79,25 @@ def run_scaffold_project(args: argparse.Namespace) -> int:
         f"  - {spec_root}/program_model/Internal.tla + Internal.cfg  -> spec-unit cases\n"
         f"  - {spec_root}/program_model/External.tla + External.cfg  -> Test Graph cases\n"
         f"  - {spec_root}/program_model/case_adapters.toml           -> spec-unit adapters\n"
+        f"  - {spec_root}/program_model/providers.py                 -> agent-authored effect providers\n"
+        f"  - {spec_root}/program_model/effect_provider_usage.yaml   -> provider scope and limits\n"
         f"  - {spec_root}/program_model/testgraph_bindings.yml       -> Test Graph adapters\n"
         f"  - {spec_root}/program_model/adapters.py                  -> both, plus projector/assertion\n"
         "\nTest Graph adapters are foundational to every project, not an add-on for\n"
         "distributed systems. Without the External view the public surface is never validated.\n"
-        "\nRead references/testgraph_adapters.md, then diff your tree against\n"
+        "\nRead references/testgraph_adapters.md and references/effect_providers.md, "
+        "then diff your tree against\n"
         "examples/distributed_history/specs/program_model/ before calling onboarding done."
     )
-    print("\nnext:")
-    print("  1. Replace the placeholder semantics with this repository's real behavior.")
-    print(f"  2. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
-    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
-    print(f"  4. tla-spec-dev --spec-root {spec_root} scaffold workflow")
+    from scripts.budgets import budget_prompt
+
+    print(budget_prompt(f"{spec_root}/program_model/spec_manifest.yaml"))
+    print("next:")
+    print("  1. Propose the budgets above to the user and record the agreed values.")
+    print("  2. Replace the placeholder semantics with this repository's real behavior.")
+    print(f"  3. scripts/run_tlc.sh {spec_root}/program_model/Internal.tla {spec_root}/program_model/Internal.cfg")
+    print(f"  4. scripts/run_tlc.sh {spec_root}/program_model/External.tla {spec_root}/program_model/External.cfg")
+    print(f"  5. tla-spec-dev --spec-root {spec_root} scaffold workflow")
     return 0
 
 
@@ -108,7 +115,10 @@ def run_scaffold_workflow(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         spec_root=Path(args.spec_root),
     )
+    from scripts.budgets import budget_prompt
+
     print(f"scaffolded ticket workflow files: {len(written)}")
+    print(budget_prompt(f"{args.spec_root}/current/spec_manifest.yaml"))
     print(f"next: tla-spec-dev --spec-root {args.spec_root} open ticket {ticket_id}")
     return 0
 
@@ -128,6 +138,43 @@ def run_open_ticket(args: argparse.Namespace) -> int:
     )
     print(f"scaffolded ticket-local workflow files: {len(written)}")
     return 0
+
+
+def run_analyze_complexity(args: argparse.Namespace) -> int:
+    from scripts import analyze_complexity
+
+    return analyze_complexity.run(args)
+
+
+def run_analyze_corpus(args: argparse.Namespace) -> int:
+    from scripts import corpus_diagnostics
+
+    return corpus_diagnostics.run(args)
+
+
+def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
+    """MF-013: report the declared-vs-observed effect diff.
+
+    Exits nonzero on any finding. A gap and dead model surface are both
+    failures -- the report is written either way, because recording a finding
+    is evidence, never a substitute for failing on it.
+    """
+    from scripts import effect_conformance_report
+
+    return effect_conformance_report.run(args)
+
+
+def run_kill_test_cmd(args: argparse.Namespace) -> int:
+    """MF-016: oracle 4, the mutation kill test.
+
+    Exits 1 when the kill rate falls below ``kill_rate_floor`` and 2 when the
+    mutant catalog does not cover every declared port and every invariant.
+    There is no flag that accepts a surviving mutant or a sub-floor rate: this
+    is the value floor that keeps every cost cap in the toolchain honest.
+    """
+    from scripts import run_kill_test as run_kill_test_module
+
+    return run_kill_test_module.run(args)
 
 
 def run_close_ticket(args: argparse.Namespace) -> int:
@@ -292,6 +339,17 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                 command.append("--validate-capabilities")
             if not args.no_batch:
                 command.append("--batch")
+            command.extend(
+                [
+                    "--fuzz-runs",
+                    str(getattr(args, "fuzz_runs", 1)),
+                    "--seed",
+                    str(getattr(args, "seed", 0)),
+                ]
+            )
+            fuzz_iteration = getattr(args, "fuzz_iteration", None)
+            if fuzz_iteration is not None:
+                command.extend(["--fuzz-iteration", str(fuzz_iteration)])
             commands.append((f"case-adapters:{target_dir}:{cases_dir.name}", command, command_env(target_dir)))
         if target_command_count == 0:
             empty_targets.append(target_dir)
@@ -324,7 +382,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Work with a spec-double-compiler project through the modeled spec workflow.",
         epilog=(
             "Typical order: scaffold project -> scaffold workflow -> open ticket -> "
-            "run spec-unit-tests -> close ticket."
+            "analyze complexity -> run spec-unit-tests -> close ticket."
         ),
         allow_abbrev=False,
     )
@@ -449,6 +507,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_spec_units.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run selected cases.")
     run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
     run_spec_units.add_argument(
+        "--fuzz-runs",
+        type=int,
+        default=1,
+        help="Run each selected provider-bearing case this many deterministic iterations.",
+    )
+    run_spec_units.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Root seed for deterministic per-effect representative generation.",
+    )
+    run_spec_units.add_argument(
+        "--fuzz-iteration",
+        type=int,
+        help="Replay exactly this deterministic effect-provider iteration.",
+    )
+    run_spec_units.add_argument(
         "--pytest-arg",
         action="append",
         default=["-q"],
@@ -458,6 +533,126 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_spec_unit_tests,
         command_path="tla-spec-dev run spec-unit-tests",
         next_step="tla-spec-dev close ticket <ticket>",
+    )
+
+    run_effects = run_sub.add_parser(
+        "effect-conformance",
+        help="Diff observed adapter side effects against declared effect ports.",
+        description=(
+            "Execute component adapters in a sandbox (temp dirs, fake transports, recorded "
+            "boundaries), collect the side effects that actually crossed a boundary, and diff "
+            "them against the ports declared in actions.yml / spec_manifest.yaml. "
+            "An observed effect with no declared port is a GAP; a declared port no case "
+            "exercises is DEAD MODEL SURFACE. Both are recorded AND fail the command. "
+            "Nothing suppresses a gap report -- there is no justification, waiver, or "
+            "override flag, and out-of-contract justifications were withdrawn 2026-07-18."
+        ),
+        allow_abbrev=False,
+    )
+    run_effects.add_argument("--ticket", help="Use this ticket's current/ spec directory.")
+    run_effects.add_argument("--target", type=Path, help="Explicit spec directory carrying the effect declarations.")
+    run_effects.add_argument("--cases-dir", action="append", help="Generated spec-unit case package directory.")
+    run_effects.add_argument("--mapping", type=Path, help="Adapter mapping TOML/YAML. Defaults to target case_adapters.toml.")
+    run_effects.add_argument("--work-dir", type=Path, help="Work directory for sandboxed adapter execution.")
+    run_effects.add_argument("--out", type=Path, help="Write the JSON diff report here (ticket results/ evidence).")
+    run_effects.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+    run_effects.set_defaults(
+        func=run_effect_conformance_cmd,
+        command_path="tla-spec-dev run effect-conformance",
+        next_step="tla-spec-dev run spec-unit-tests --ticket <ticket>",
+    )
+
+    run_kill = run_sub.add_parser(
+        "kill-test",
+        help="Seed faults at every declared boundary and gate the kill rate against the floor.",
+        description=(
+            "Oracle 4. Seeds one fault per declared effect port and one per model invariant "
+            "into real production source, runs the distilled corpus against each mutant, and "
+            "requires the resulting kill rate to meet kill_rate_floor from the manifest "
+            "budgets. A mutant that SURVIVES is not a score -- it is a pointer: the corpus "
+            "executed a deliberately broken program and could not tell it from the correct "
+            "one, so the representation is too abstract at that boundary, and the report "
+            "names the model variable and action to refine. "
+            "The required boundary set is recomputed every run from the port declarations "
+            "and the INVARIANTS block, so a newly declared port breaks the kill test until a "
+            "fault is seeded for it; an uncovered boundary exits 2 and computes NO rate. "
+            "THERE IS NO WAIVER: no --allow-below-floor, no --accept-survivors, and no "
+            "expected-to-survive annotation. This is the value floor that makes every cost "
+            "cap in this toolchain safe, because a trivial model passes every cap and kills "
+            "no mutants. Weakening it weakens all of them."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.run_kill_test import add_arguments as _add_kill_test_arguments
+
+    _add_kill_test_arguments(run_kill)
+    run_kill.set_defaults(
+        func=run_kill_test_cmd,
+        command_path="tla-spec-dev run kill-test",
+        next_step="Record the kill matrix under the ticket results/ directory as evidence.",
+    )
+
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Analyze model complexity against the budgets.",
+        description="Analyze a spec + cfg for state-space complexity and gate it against manifest budgets.",
+        allow_abbrev=False,
+    )
+    analyze_parser.set_defaults(
+        func=incomplete_command,
+        command_path="tla-spec-dev analyze",
+        next_step="Choose a target: tla-spec-dev analyze complexity <spec.tla> [<cfg>].",
+    )
+    analyze_sub = analyze_parser.add_subparsers(dest="analyze_target", metavar="target")
+    analyze_complexity_parser = analyze_sub.add_parser(
+        "complexity",
+        help="Print the complexity descriptor: dimension table, bound, R/W matrix, modularity.",
+        description=(
+            "Print the complexity DESCRIPTOR: the per-variable domain cardinality table, the "
+            "state-space upper bound (or an explicit unknown), the variables x actions "
+            "read/write matrix, the graph-modularity score with near-decomposable clusters and "
+            "candidate port-crossing actions, dense rows/columns (god-state detection), "
+            "variables no configured invariant reads, and unjustified variables. Facts, not "
+            "judgment: it makes no suggestions, is advisory, and exits nonzero only when the "
+            "model cannot be analyzed at all."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.analyze_complexity import add_arguments as _add_analyze_arguments
+
+    _add_analyze_arguments(analyze_complexity_parser)
+    analyze_complexity_parser.set_defaults(
+        func=run_analyze_complexity,
+        command_path="tla-spec-dev analyze complexity",
+        next_step="Record the report under the ticket results/ directory as evidence.",
+    )
+
+    analyze_corpus_parser = analyze_sub.add_parser(
+        "corpus",
+        help="Print the case distribution and gate it against the case caps.",
+        description=(
+            "Print the generated corpus distribution per (action, label class), which "
+            "strata dominate, which are starved, and what varies across any redundant "
+            "group -- the measured cause of the redundancy. Exits nonzero when a "
+            "component or action exceeds its manifest case cap "
+            "(max_internal_cases_per_component / max_external_cases_per_action). "
+            "NOTHING IS EVER DROPPED, FILTERED, SAMPLED, OR TRUNCATED to fit a cap: "
+            "over budget the gate reports and refuses. It prescribes no move; the "
+            "failure output states the finding and ends with a REDESIGN QUESTION -- "
+            "can the architecture be redesigned to make the program simpler, judged "
+            "with the complexity descriptor (analyze complexity) and "
+            "references/complexity_intuition.md -- and the two ways forward are that "
+            "redesign or raising the cap with a recorded rationale."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.corpus_diagnostics import add_arguments as _add_corpus_arguments
+
+    _add_corpus_arguments(analyze_corpus_parser)
+    analyze_corpus_parser.set_defaults(
+        func=run_analyze_corpus,
+        command_path="tla-spec-dev analyze corpus",
+        next_step="Consider whether the architecture can be redesigned to make the program simpler (analyze complexity + references/complexity_intuition.md), or raise the cap with a recorded rationale.",
     )
 
     close_parser = subparsers.add_parser(

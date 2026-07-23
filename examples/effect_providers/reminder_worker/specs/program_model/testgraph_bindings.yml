@@ -1,0 +1,57 @@
+external:
+  production_package: reminder_cli
+  port_bindings:
+    ClockPort: double
+    QueuePort: real
+    OutboxPort: real
+    NotifierPort: double
+actions:
+  RunEmpty:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunNotDue:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunAccepted:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunRetryable:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunPermanent:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunDuplicate:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter
+  RunPendingRetry:
+    view: external
+    channel: cli
+    layer: external
+    controllability: e2e_direct
+    kind: reminder-worker-process
+    adapter: external_adapter:ReminderProcessAdapter

@@ -1,0 +1,299 @@
+===== examples/effect_providers/atomic_publisher/specs/program_model/Core.tla
+4:Scenarios == {
+14:NoRecord == [exists |-> FALSE, revision |-> 0, id |-> "none", payload |-> "none"]
+15:Record(revisionValue, payloadValue) ==
+18:BeforeRecord(scenarioValue) ==
+24:Result(statusValue, revisionValue, idempotentValue) ==
+27:InitialResult == Result("not_run", 0, FALSE)
+29:ExpectedRecord(scenarioValue) ==
+34:ExpectedResult(scenarioValue) ==
+43:ExpectedTrace(scenarioValue) ==
+===== examples/effect_providers/atomic_publisher/specs/program_model/Internal.tla
+6:InternalVars == <<scenario, done, record, result, trace, lastInternalAction>>
+8:InternalInit ==
+16:Finish(actionName) ==
+25:CreateSuccess == /\ scenario = "create_success" /\ Finish("CreateSuccess")
+26:ValidUpdate == /\ scenario = "valid_update" /\ Finish("ValidUpdate")
+27:IdempotentRetry == /\ scenario = "idempotent_retry" /\ Finish("IdempotentRetry")
+28:StaleRevision == /\ scenario = "stale_revision" /\ Finish("StaleRevision")
+29:ReadFailure == /\ scenario = "read_failure" /\ Finish("ReadFailure")
+30:StagedWriteFailure == /\ scenario = "staged_write_failure" /\ Finish("StagedWriteFailure")
+31:ReplaceFailure == /\ scenario = "replace_failure" /\ Finish("ReplaceFailure")
+33:InternalNext ==
+42:InternalInvariant ==
+50:InternalSpec == InternalInit /\ [][InternalNext]_InternalVars
+===== examples/effect_providers/atomic_publisher/specs/program_model/External.tla
+6:ExternalVars == <<InternalVars, lastExternalAction>>
+8:ExternalInit ==
+12:MarkExternal(actionName) ==
+15:InvokeCreateSuccess == /\ CreateSuccess /\ MarkExternal("InvokeCreateSuccess")
+16:InvokeValidUpdate == /\ ValidUpdate /\ MarkExternal("InvokeValidUpdate")
+17:InvokeIdempotentRetry == /\ IdempotentRetry /\ MarkExternal("InvokeIdempotentRetry")
+18:InvokeStaleRevision == /\ StaleRevision /\ MarkExternal("InvokeStaleRevision")
+19:InvokeReadFailure == /\ ReadFailure /\ MarkExternal("InvokeReadFailure")
+20:InvokeStagedWriteFailure == /\ StagedWriteFailure /\ MarkExternal("InvokeStagedWriteFailure")
+21:InvokeReplaceFailure == /\ ReplaceFailure /\ MarkExternal("InvokeReplaceFailure")
+23:ExternalNext ==
+32:ExternalInvariant == InternalInvariant
+33:ExternalSpec == ExternalInit /\ [][ExternalNext]_ExternalVars
+===== examples/effect_providers/atomic_publisher/specs/program_model/Internal.cfg
+1:SPECIFICATION InternalSpec
+2:INVARIANT InternalInvariant
+3:CHECK_DEADLOCK FALSE
+===== examples/effect_providers/atomic_publisher/specs/program_model/External.cfg
+1:SPECIFICATION ExternalSpec
+2:INVARIANT ExternalInvariant
+3:CHECK_DEADLOCK FALSE
+===== examples/effect_providers/atomic_publisher/specs/program_model/spec_manifest.yaml
+56:ports:
+57:  FilesystemPort:
+58:    role: effect
+===== examples/effect_providers/atomic_publisher/specs/program_model/actions.yml
+2:  CreateSuccess:
+6:    effect_ports: [FilesystemPort]
+7:  ValidUpdate:
+11:    effect_ports: [FilesystemPort]
+12:  IdempotentRetry:
+16:    effect_ports: [FilesystemPort]
+17:  StaleRevision:
+21:    effect_ports: [FilesystemPort]
+22:  ReadFailure:
+26:    effect_ports: [FilesystemPort]
+27:  StagedWriteFailure:
+31:    effect_ports: [FilesystemPort]
+32:  ReplaceFailure:
+36:    effect_ports: [FilesystemPort]
+37:  InvokeCreateSuccess:
+41:    effect_ports: [FilesystemPort]
+42:  InvokeValidUpdate:
+46:    effect_ports: [FilesystemPort]
+47:  InvokeIdempotentRetry:
+51:    effect_ports: [FilesystemPort]
+52:  InvokeStaleRevision:
+56:    effect_ports: [FilesystemPort]
+57:  InvokeReadFailure:
+61:    effect_ports: [FilesystemPort]
+62:  InvokeStagedWriteFailure:
+66:    effect_ports: [FilesystemPort]
+67:  InvokeReplaceFailure:
+71:    effect_ports: [FilesystemPort]
+===== examples/effect_providers/atomic_publisher/specs/program_model/testgraph_bindings.yml
+2:  production_package: atomic_cli
+3:  port_bindings:
+4:    FilesystemPort: real
+7:  InvokeCreateSuccess:
+9:    channel: filesystem
+17:  InvokeValidUpdate:
+19:    channel: filesystem
+27:  InvokeIdempotentRetry:
+29:    channel: filesystem
+37:  InvokeStaleRevision:
+39:    channel: filesystem
+47:  InvokeReadFailure:
+49:    channel: filesystem
+57:  InvokeStagedWriteFailure:
+59:    channel: filesystem
+67:  InvokeReplaceFailure:
+69:    channel: filesystem
+===== examples/effect_providers/legacy_payment_http/specs/program_model/Core.tla
+6:Outcomes == {
+17:Decisions == {
+26:Reasons == {
+34:ReferenceClasses == {"none", "opaque"}
+===== examples/effect_providers/legacy_payment_http/specs/program_model/Internal.tla
+7:InternalVars ==
+11:InternalInit ==
+23:AuthorizeApproved(paymentId, amount, key) ==
+39:AuthorizeDeclined(paymentId, amount, key) ==
+55:AuthorizeBadRequest(paymentId, amount, key) ==
+71:AuthorizeTransientThenApproved(paymentId, amount, key) ==
+88:AuthorizeTimeoutThenDuplicateApproved(paymentId, amount, key) ==
+105:AuthorizeExhaustedUnavailable(paymentId, amount, key) ==
+122:AuthorizeMalformedResponse(paymentId, amount, key) ==
+138:InternalNext ==
+154:TypeInvariant ==
+162:ResultInvariant ==
+196:InternalSpec == InternalInit /\ [][InternalNext]_InternalVars
+===== examples/effect_providers/legacy_payment_http/specs/program_model/External.tla
+6:ExternalVars == <<InternalVars, lastExternalAction>>
+8:ExternalInit ==
+15:MarkExternal(actionName, paymentId, amount, key, selectedOutcome) ==
+21:SubmitApproved(paymentId, amount, key) ==
+25:SubmitDeclined(paymentId, amount, key) ==
+29:SubmitBadRequest(paymentId, amount, key) ==
+33:SubmitTransientThenApproved(paymentId, amount, key) ==
+38:SubmitTimeoutThenDuplicateApproved(paymentId, amount, key) ==
+43:SubmitExhaustedUnavailable(paymentId, amount, key) ==
+48:SubmitMalformedResponse(paymentId, amount, key) ==
+53:ExternalNext ==
+69:ExternalSpec == ExternalInit /\ [][ExternalNext]_ExternalVars
+===== examples/effect_providers/legacy_payment_http/specs/program_model/Internal.cfg
+1:SPECIFICATION InternalSpec
+2:INVARIANTS TypeInvariant ResultInvariant
+3:CONSTANTS
+4:  PaymentIds = {"pay-A", "pay-B"}
+5:  Amounts = {1, 9999}
+6:  IdempotencyKeys = {"idem-A", "idem-B"}
+===== examples/effect_providers/legacy_payment_http/specs/program_model/External.cfg
+1:SPECIFICATION ExternalSpec
+2:INVARIANTS TypeInvariant ResultInvariant
+3:CONSTANTS
+4:  PaymentIds = {"pay-A", "pay-B"}
+5:  Amounts = {1, 9999}
+6:  IdempotencyKeys = {"idem-A", "idem-B"}
+===== examples/effect_providers/legacy_payment_http/specs/program_model/spec_manifest.yaml
+27:ports:
+28:  PaymentHttpPort:
+29:    role: effect
+===== examples/effect_providers/legacy_payment_http/specs/program_model/actions.yml
+2:  AuthorizeApproved:
+6:    effect_ports: [PaymentHttpPort]
+7:  AuthorizeDeclined:
+11:    effect_ports: [PaymentHttpPort]
+12:  AuthorizeBadRequest:
+16:    effect_ports: [PaymentHttpPort]
+17:  AuthorizeTransientThenApproved:
+21:    effect_ports: [PaymentHttpPort]
+22:  AuthorizeTimeoutThenDuplicateApproved:
+26:    effect_ports: [PaymentHttpPort]
+27:  AuthorizeExhaustedUnavailable:
+31:    effect_ports: [PaymentHttpPort]
+32:  AuthorizeMalformedResponse:
+36:    effect_ports: [PaymentHttpPort]
+37:  SubmitApproved:
+41:    effect_ports: []
+42:  SubmitDeclined:
+46:    effect_ports: []
+47:  SubmitBadRequest:
+51:    effect_ports: []
+52:  SubmitTransientThenApproved:
+56:    effect_ports: []
+57:  SubmitTimeoutThenDuplicateApproved:
+61:    effect_ports: []
+62:  SubmitExhaustedUnavailable:
+66:    effect_ports: []
+67:  SubmitMalformedResponse:
+71:    effect_ports: []
+===== examples/effect_providers/legacy_payment_http/specs/program_model/testgraph_bindings.yml
+2:  production_package: legacy_payment_http_app
+3:  port_bindings:
+4:    PaymentHttpPort: real
+5:    ProcessPort: real
+8:  SubmitApproved:
+10:    channel: http
+15:  SubmitDeclined:
+17:    channel: http
+22:  SubmitBadRequest:
+24:    channel: http
+29:  SubmitTransientThenApproved:
+31:    channel: http
+36:  SubmitTimeoutThenDuplicateApproved:
+38:    channel: http
+43:  SubmitExhaustedUnavailable:
+45:    channel: http
+50:  SubmitMalformedResponse:
+52:    channel: http
+===== examples/effect_providers/reminder_worker/specs/program_model/Core.tla
+4:Scenarios == {"empty", "not_due", "accepted", "retryable", "permanent", "duplicate", "pending"}
+5:QueueStates == {"empty", "ready", "acked", "dead"}
+6:OutboxStates == {"none", "pending", "sent"}
+7:ReceiptStates == {"none", "stored"}
+8:Results == {"ready", "empty", "not_due", "accepted", "retryable", "permanent", "duplicate"}
+===== examples/effect_providers/reminder_worker/specs/program_model/Internal.tla
+7:InternalVars ==
+11:InitScenario(s, q, o, r) ==
+20:InternalInit ==
+29:ProcessEmpty ==
+40:ProcessNotDue ==
+51:ProcessAccepted ==
+62:ProcessRetryable ==
+73:ProcessPermanent ==
+84:ProcessDuplicate ==
+95:ProcessPendingRetry ==
+106:InternalNext ==
+115:TypeInvariant ==
+123:DeliveryInvariant ==
+127:InternalSpec == InternalInit /\ [][InternalNext]_InternalVars
+===== examples/effect_providers/reminder_worker/specs/program_model/External.tla
+7:ExternalVars ==
+11:InitScenario(s, q, o, r) ==
+20:ExternalInit ==
+29:RunEmpty ==
+40:RunNotDue ==
+51:RunAccepted ==
+62:RunRetryable ==
+73:RunPermanent ==
+84:RunDuplicate ==
+95:RunPendingRetry ==
+106:ExternalNext ==
+115:TypeInvariant ==
+123:DeliveryInvariant ==
+127:ExternalSpec == ExternalInit /\ [][ExternalNext]_ExternalVars
+===== examples/effect_providers/reminder_worker/specs/program_model/Internal.cfg
+1:SPECIFICATION InternalSpec
+2:INVARIANT TypeInvariant
+3:INVARIANT DeliveryInvariant
+===== examples/effect_providers/reminder_worker/specs/program_model/External.cfg
+1:SPECIFICATION ExternalSpec
+2:INVARIANT TypeInvariant
+3:INVARIANT DeliveryInvariant
+===== examples/effect_providers/reminder_worker/specs/program_model/spec_manifest.yaml
+77:ports:
+78:  ClockPort:
+79:    role: effect
+84:  QueuePort:
+85:    role: effect
+99:  OutboxPort:
+100:    role: effect
+111:  NotifierPort:
+112:    role: effect
+===== examples/effect_providers/reminder_worker/specs/program_model/actions.yml
+2:  ProcessEmpty:
+6:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+7:  ProcessNotDue:
+11:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+12:  ProcessAccepted:
+16:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+17:  ProcessRetryable:
+21:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+22:  ProcessPermanent:
+26:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+27:  ProcessDuplicate:
+31:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+32:  ProcessPendingRetry:
+36:    effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+37:  RunEmpty:
+41:    effect_ports: []
+42:  RunNotDue:
+46:    effect_ports: []
+47:  RunAccepted:
+51:    effect_ports: []
+52:  RunRetryable:
+56:    effect_ports: []
+57:  RunPermanent:
+61:    effect_ports: []
+62:  RunDuplicate:
+66:    effect_ports: []
+67:  RunPendingRetry:
+71:    effect_ports: []
+===== examples/effect_providers/reminder_worker/specs/program_model/testgraph_bindings.yml
+2:  production_package: reminder_cli
+3:  port_bindings:
+4:    ClockPort: double
+5:    QueuePort: real
+6:    OutboxPort: real
+7:    NotifierPort: double
+9:  RunEmpty:
+11:    channel: process
+16:  RunNotDue:
+18:    channel: process
+23:  RunAccepted:
+25:    channel: process
+30:  RunRetryable:
+32:    channel: process
+37:  RunPermanent:
+39:    channel: process
+44:  RunDuplicate:
+46:    channel: process
+51:  RunPendingRetry:
+53:    channel: process

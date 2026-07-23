@@ -1,0 +1,28 @@
+{
+  "fitness_functions": [
+    {
+      "name": "bound-stays-behavioral",
+      "description": "TypeOK domains stay sized to the behavior's distinctions (mode 0..4, orders/shipped 0..3, retries 0..2, auditLog 0..12; bound 6,240 as of 2026-07-21). A counter widened back to production width was the original accidental-complexity finding here.",
+      "rule": {
+        "all": [
+          {"fact": "bound_known", "op": "==", "value": true},
+          {"fact": "bound", "op": "<", "value": 10000},
+          {"fact": "variable_domain", "var": "auditLog", "op": "<=", "value": 13},
+          {"fact": "variable_domain", "var": "retries", "op": "<=", "value": 3},
+          {"fact": "variable_domain", "var": "orders", "op": "<=", "value": 4}
+        ]
+      }
+    },
+    {
+      "name": "hub-density-stays-deliberate",
+      "description": "Exactly the hub trio (mode, auditLog, dirty) may be dense rows -- that coupling is the app's design. A fourth dense row, invariant-invisible state, or an unjustified variable means new bookkeeping is smearing across the hub.",
+      "rule": {
+        "all": [
+          {"fact": "god_state_count", "op": "<=", "value": 3},
+          {"fact": "unread_by_invariant_count", "op": "==", "value": 0},
+          {"fact": "unjustified_count", "op": "==", "value": 0}
+        ]
+      }
+    }
+  ]
+}

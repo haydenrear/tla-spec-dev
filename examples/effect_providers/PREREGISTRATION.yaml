@@ -1,0 +1,350 @@
+version: 1
+ticket: EP-03
+issue: 79
+registered_at: "2026-07-22"
+registered_before_experiments: true
+purpose: >-
+  Measure whether typed project-owned effect providers make TLC-derived cases
+  materially better at finding effectful bugs without making the framework a
+  filesystem, HTTP simulator, queue, clock, or response-plan language.
+
+immutability:
+  rule: >-
+    This file and every mutant id, patch, expected detector, seed, threshold,
+    and attribution rule below are fixed before any control or mutant campaign.
+    Results may report errors here but may not edit those errors away.
+  framework_change_prohibition:
+    allowed_ticket_surfaces:
+      - examples/effect_providers/**
+      - test_graph/build.gradle.kts
+      - test_graph/sources/effect_provider_examples.py
+      - test_graph/docs/effectProviderExamples.*
+      - references/effect_providers.md
+      - specs/tickets/EP-03/**
+      - specs/desired_program_model/ticket_plan.yaml
+      - specs/.history/effect-provider-epic/ticket-002-EP-03/**
+    forbidden_rescue_surfaces:
+      - spec_double_compiler/**
+      - scripts/run_generated_case_adapters.py
+      - scripts/generate_cases_from_tlc_dump.py
+      - scripts/generate_python.py
+      - scripts/tla_spec_dev.py
+      - scripts/scaffold_spec.py
+      - scripts/onboard_program_model.py
+      - templates/**
+      - tests/**
+    response: >-
+      If an experiment cannot run without changing a forbidden rescue surface,
+      record a blocking finding and stop it. Do not modify the framework,
+      weaken an oracle, change a mutant or threshold, or replace generated
+      cases with hand-written fixtures.
+
+common_protocol:
+  repetitions_before_fresh_checkout: 2
+  fresh_checkout_repetitions: 1
+  generated_case_rule: >-
+    Each project regenerates its runnable internal case package directly from
+    its checked Internal.tla and Internal.cfg. Effectful control and mutant
+    campaigns invoke scripts/run_generated_case_adapters.py against that
+    package. Hand-written fixtures are only for the separately reported
+    baseline and conformance checks.
+  semantic_boundary: >-
+    The TLA+ action/outcome fixes before, input, output, and after. Providers
+    choose only deterministic concrete representatives inside that outcome.
+    They may reject an inconsistent representative but may not rewrite a case
+    or turn one modeled outcome into another.
+  required_controls:
+    - generated package provenance matches current model and cfg digests
+    - unmutated generated/effectful campaign is green before mutants are scored
+    - every generated action/outcome pair executes at least once
+    - same root seed and iteration reproduce choices and transcript digest
+    - provider patches and resources are absent after success and failure
+    - a second run has the same verdict and canonical evidence digest
+  invalid_score_conditions:
+    - unmutated control is red
+    - a mutant was changed after the first experiment
+    - generated cases were not executed by the provider runner
+    - success is asserted only by existence or process exit code
+    - any forbidden framework rescue surface changed
+  attribution:
+    record_all_triggered_detectors: true
+    primary_priority:
+      - tla_output
+      - tla_projected_state
+      - provider_local_assertion
+      - shared_journal
+      - passive_bypass_detector
+      - cleanup_detector
+    semantic_groups:
+      tla_derived: [tla_output, tla_projected_state]
+      provider_owned: [provider_local_assertion, shared_journal]
+      capability_only: [passive_bypass_detector, cleanup_detector]
+  runtime_statistics:
+    units: milliseconds
+    quantiles: [p50, p95]
+    population: one_generated_case_iteration
+    fields: [count, minimum, p50, p95, maximum, total]
+  tlc_fields:
+    - generated_states
+    - distinct_states
+    - search_depth
+    - wall_seconds
+    - generated_cases
+    - selected_cases
+    - executed_cases
+    - action_outcome_coverage
+  mutation_fields:
+    - mutant_id
+    - expected_detector
+    - verdict
+    - triggered_detectors
+    - first_discovery_root_seed
+    - first_discovery_iteration
+    - first_discovery_case
+    - replay_command
+    - replay_digest
+  cost_fields:
+    - authoring_wall_minutes
+    - authoring_edit_run_iterations
+    - application_files
+    - application_loc
+    - interface_files
+    - interface_loc
+    - provider_files
+    - provider_loc
+    - adapter_files
+    - adapter_loc
+    - projection_or_oracle_files
+    - projection_or_oracle_loc
+    - model_files
+    - model_loc
+    - experiment_files
+    - experiment_loc
+    - framework_files_changed
+    - retrieval_files_read
+    - retrieval_lines_read
+    - retrieval_files_changed
+    - retrieval_lines_changed
+  divergence_fields:
+    - verdict_digest_per_repetition
+    - transcript_digest_per_repetition
+    - leaked_paths
+    - leaked_patches
+    - outbound_socket_attempts
+    - provider_state_after_run
+    - semantic_provider_decisions_not_in_case
+    - duplicated_concretization_or_projection
+  hand_written_baseline: >-
+    Run the same fixed catalog against the preregistered ordinary unit scenarios
+    without generated cases or provider fuzz iterations where feasible. Report
+    its mutation score separately; never combine it with the effectful score.
+
+projects:
+  atomic_publisher:
+    directory: examples/effect_providers/atomic_publisher
+    hypothesis: >-
+      Explicit dependency injection plus exact canonical-byte/state/trace
+      assertions has the lowest integration cost and kills every content/value
+      mutation, with at least ten of twelve mutants killed and no framework edit.
+    shape:
+      application: versioned canonical-JSON publisher
+      effect_ports: [FilesystemPort]
+      binding: explicit dependency injection
+      provider: strict stateful in-memory filesystem
+      conformance: smaller real TemporaryDirectory filesystem run
+      internal_outcomes:
+        - create_success
+        - valid_update
+        - idempotent_retry
+        - stale_revision
+        - read_failure
+        - staged_write_failure
+        - replace_failure
+      fuzz_dimensions:
+        - Unicode and space-heavy path components
+        - unrelated files and enumeration order
+        - OSError subclasses inside the modeled failure class
+        - finite identifiers and payload strings
+        - exact canonical JSON bytes
+    campaign:
+      root_seeds: [20260721]
+      iteration_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+      repetitions: 2
+      fresh_checkout_repetitions: 1
+      baseline_scenarios: [create_success, valid_update, stale_revision, staged_write_failure]
+    stop_go:
+      go:
+        - unmutated control and real-filesystem conformance are green
+        - all seven outcomes execute
+        - every content/value mutant AP-01 through AP-08 is killed
+        - at least 10 of 12 complete-catalog mutants are killed
+        - replay and cleanup proofs are exact
+        - framework_files_changed equals 0
+      no_go:
+        - fewer than 10 mutants killed
+        - any AP-01 through AP-08 survivor
+        - a false positive in the green control
+        - generated cases or exact bytes cannot drive the provider oracle
+    mutants:
+      - {id: AP-01, patch: "omit payload from committed canonical JSON", class: content, expected_detector: tla_projected_state}
+      - {id: AP-02, patch: "truncate the final code point of the committed id field", class: content, expected_detector: tla_projected_state}
+      - {id: AP-03, patch: "increment successful update revision by two", class: value, expected_detector: tla_output}
+      - {id: AP-04, patch: "allow stale expected revision to replace committed record", class: state, expected_detector: tla_projected_state}
+      - {id: AP-05, patch: "treat modeled read exception as missing and create", class: outcome, expected_detector: tla_output}
+      - {id: AP-06, patch: "return success after staged write exception", class: outcome, expected_detector: tla_output}
+      - {id: AP-07, patch: "return success after atomic replace exception", class: outcome, expected_detector: tla_output}
+      - {id: AP-08, patch: "delete committed final file on write or replace failure", class: state, expected_detector: tla_projected_state}
+      - {id: AP-09, patch: "write directly to final path instead of stage then replace", class: protocol, expected_detector: provider_local_assertion}
+      - {id: AP-10, patch: "call replace with final and staging arguments reversed", class: protocol, expected_detector: provider_local_assertion}
+      - {id: AP-11, patch: "perform one extra staged write", class: protocol, expected_detector: provider_local_assertion}
+      - {id: AP-12, patch: "bypass FilesystemPort with pathlib.Path.write_bytes", class: bypass, expected_detector: passive_bypass_detector}
+
+  legacy_payment_http:
+    directory: examples/effect_providers/legacy_payment_http
+    hypothesis: >-
+      A self-installed requests.Session.send patch detects request and retry
+      bugs, but costs more coupling and cannot prove universal interception.
+      All twelve in-contract mutants should die over 32 deterministic
+      iterations; alternate-client/raw-socket probes are unscored findings.
+    shape:
+      application: module-owned requests.Session payment authorizer
+      effect_ports: [PaymentHttpPort]
+      binding: self-installed patch returning no injected value
+      provider: prepared-request inspector and native response/exception script
+      internal_outcomes:
+        - approved
+        - declined
+        - bad_request
+        - transient_then_approved
+        - timeout_then_duplicate_approved
+        - exhausted_unavailable
+        - malformed_response
+      fuzz_dimensions:
+        - equivalent JSON layout and header casing
+        - transient HTTP status 502, 503, or 504
+        - requests ConnectTimeout or ReadTimeout inside modeled classes
+        - malformed response bytes
+        - deterministic opaque authorization references
+    campaign:
+      root_seeds: [20260721]
+      iteration_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+      repetitions: 2
+      fresh_checkout_repetitions: 1
+      baseline_scenarios: [approved, declined, transient_then_approved, exhausted_unavailable]
+      non_scored_capability_probes:
+        - alternate HTTP client bypasses Session.send and must be reported
+        - raw socket bypasses Session.send and must be reported
+        - no outbound socket attempt may complete successfully
+    stop_go:
+      go:
+        - control is green for all 32 deterministic iterations
+        - all seven outcomes execute
+        - all 12 in-contract mutants are killed
+        - one forced failure replays to the same request transcript digest
+        - Session.send and socket guards never leak
+        - framework_files_changed equals 0
+      compatibility_only: >-
+        A silent alternate-client or raw-socket bypass does not change the
+        scored target, but makes monkeypatch mode compatibility-only and earns
+        stronger bypass detection or process isolation as a follow-up.
+      no_go:
+        - any in-contract mutant survives
+        - fewer than 32 control iterations are green
+        - a transcript cannot replay exactly
+        - a patch leaks or an outbound socket succeeds
+    mutants:
+      - {id: PH-01, patch: "prepare GET instead of POST", class: request, expected_detector: provider_local_assertion}
+      - {id: PH-02, patch: "send to /v1/paymentz instead of /v1/payments", class: request, expected_detector: provider_local_assertion}
+      - {id: PH-03, patch: "serialize amount as JSON string instead of integer", class: request, expected_detector: provider_local_assertion}
+      - {id: PH-04, patch: "omit Idempotency-Key header", class: idempotency, expected_detector: provider_local_assertion}
+      - {id: PH-05, patch: "regenerate Idempotency-Key on every retry", class: idempotency, expected_detector: provider_local_assertion}
+      - {id: PH-06, patch: "omit connect/read timeout from Session.send", class: timeout, expected_detector: provider_local_assertion}
+      - {id: PH-07, patch: "perform no retry after timeout or unavailable response", class: retry, expected_detector: provider_local_assertion}
+      - {id: PH-08, patch: "retry terminal decline or bad request", class: retry, expected_detector: provider_local_assertion}
+      - {id: PH-09, patch: "perform one retry beyond configured maximum", class: retry, expected_detector: provider_local_assertion}
+      - {id: PH-10, patch: "stop one attempt before retry budget is exhausted", class: retry, expected_detector: provider_local_assertion}
+      - {id: PH-11, patch: "normalize declined bad-request or malformed as approved", class: output, expected_detector: tla_output}
+      - {id: PH-12, patch: "truncate approved authorization reference", class: output, expected_detector: tla_output}
+
+  reminder_worker:
+    directory: examples/effect_providers/reminder_worker
+    hypothesis: >-
+      Four explicit providers with correlated concretization and a shared
+      monotonic journal have the highest modeling cost and semantic value.
+      Exact state plus order should kill twelve of twelve; ten or eleven earns
+      one generic improvement, while fewer than ten or inability to assert
+      order requires redesign.
+    shape:
+      application: effect-designed reminder/outbox worker
+      effect_ports: [ClockPort, QueuePort, OutboxPort, NotifierPort]
+      binding: explicit dependency injection
+      provider: four point-local providers sharing immutable bundle and journal
+      internal_outcomes:
+        - empty_queue
+        - not_due
+        - accepted_delivery
+        - retryable_failure
+        - permanent_failure
+        - already_sent_duplicate
+        - pending_outbox_retry
+      fuzz_dimensions:
+        - correlated identifiers recipients bodies and idempotency keys
+        - due-boundary timestamps and offsets
+        - opaque receipts
+        - retryable and permanent exception subclasses
+        - preexisting outbox state
+        - repeated clock values inside the modeled class
+    campaign:
+      root_seeds: [20260721]
+      iteration_indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+      repetitions: 2
+      fresh_checkout_repetitions: 1
+      baseline_scenarios: [empty_queue, accepted_delivery, retryable_failure, already_sent_duplicate]
+      non_scored_capability_probes: [direct_datetime_clock_bypass, direct_network_notifier_bypass]
+    stop_go:
+      go:
+        - control is green for all 25 deterministic iterations
+        - all seven outcomes execute
+        - all 12 mutants are killed
+        - replay from case root seed and iteration has same journal digest
+        - provider state and journal do not leak between points
+        - framework_files_changed equals 0
+      investigate_one_generic_improvement: 10_or_11_kills
+      redesign:
+        - fewer than 10 mutants killed
+        - cross-provider ordering cannot be expressed or asserted
+        - control state leaks between generated points
+    mutants:
+      - {id: RW-01, patch: "send before staging outbox entry", class: ordering, expected_detector: shared_journal}
+      - {id: RW-02, patch: "mark sent and acknowledge before send completes", class: ordering, expected_detector: shared_journal}
+      - {id: RW-03, patch: "acknowledge retryable failure instead of release", class: retry, expected_detector: tla_projected_state}
+      - {id: RW-04, patch: "omit release after retryable failure", class: retry, expected_detector: tla_projected_state}
+      - {id: RW-05, patch: "send already-sent duplicate again", class: idempotency, expected_detector: provider_local_assertion}
+      - {id: RW-06, patch: "treat now equal due_at as not due", class: boundary, expected_detector: tla_output}
+      - {id: RW-07, patch: "read ClockPort more than once for one job", class: consistency, expected_detector: provider_local_assertion}
+      - {id: RW-08, patch: "send to recipient different from case bundle", class: content, expected_detector: provider_local_assertion}
+      - {id: RW-09, patch: "send body different from case bundle", class: content, expected_detector: provider_local_assertion}
+      - {id: RW-10, patch: "use job id instead of idempotency key", class: content, expected_detector: provider_local_assertion}
+      - {id: RW-11, patch: "store job id where notifier receipt belongs", class: receipt, expected_detector: tla_projected_state}
+      - {id: RW-12, patch: "classify permanent notifier failure as retryable", class: outcome, expected_detector: tla_output}
+
+overall_decision:
+  ship_v0_if:
+    - every project has valid green control and exact replay
+    - atomic publisher meets 10_of_12 and content/value targets
+    - legacy payment kills 12_of_12 in-contract mutants
+    - reminder worker kills at least 10_of_12 and asserts order
+    - no forbidden framework rescue edit occurs
+    - repeated and fresh-checkout runs do not diverge
+  no_go_if:
+    - any control is invalid or false-positive prone
+    - generated cases are not the executed effectful cases
+    - two or more projects miss their no-go threshold
+    - response/state behavior requires generated call scripts
+  follow_up_priority_rule: >-
+    Recommend only changes earned by survivors, bypasses, duplicated logic, or
+    measured authoring/retrieval cost. Candidate labels are normalized outcome
+    plans, correlated concretization, shared journals, snapshot composition,
+    stronger bypass detection/process isolation, and Java. Java is next only
+    if Python v0 meets the ship threshold and language reach, rather than oracle
+    quality, is the dominant remaining limitation.

@@ -1,0 +1,325 @@
+{
+  "module": "TlaSpecDevCli",
+  "spec": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/tickets/MF-011/current/TlaSpecDevCli.tla",
+  "cfg": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/tickets/MF-011/current/MC.cfg",
+  "manifest": "/Users/hayde/IdeaProjects/wt-13-mf011-analyze-complexity/specs/tickets/MF-011/current/spec_manifest.yaml",
+  "measured": {
+    "dimensions": [
+      {
+        "variable": "cli_built",
+        "domain": "BOOLEAN",
+        "cardinality": 2,
+        "note": ""
+      },
+      {
+        "variable": "cli_installed",
+        "domain": "BOOLEAN",
+        "cardinality": 2,
+        "note": ""
+      },
+      {
+        "variable": "spec_root",
+        "domain": "SpecRoots \\cup {NoRoot}",
+        "cardinality": 3,
+        "note": ""
+      },
+      {
+        "variable": "project_scaffolded",
+        "domain": "BOOLEAN",
+        "cardinality": 2,
+        "note": ""
+      },
+      {
+        "variable": "budgets_recorded",
+        "domain": "BOOLEAN",
+        "cardinality": 2,
+        "note": ""
+      },
+      {
+        "variable": "workflow_scaffolded",
+        "domain": "BOOLEAN",
+        "cardinality": 2,
+        "note": ""
+      },
+      {
+        "variable": "active_tickets",
+        "domain": "SUBSET Tickets",
+        "cardinality": 8,
+        "note": "powerset of 3 elements"
+      },
+      {
+        "variable": "ticket_phase",
+        "domain": "[Tickets -> 0..3]",
+        "cardinality": 64,
+        "note": "4^3 total functions"
+      },
+      {
+        "variable": "closed_tickets",
+        "domain": "SUBSET Tickets",
+        "cardinality": 8,
+        "note": "powerset of 3 elements"
+      },
+      {
+        "variable": "lastCommand",
+        "domain": null,
+        "cardinality": null,
+        "note": "unconstrained by TypeInvariant -- excluded from the bound"
+      },
+      {
+        "variable": "result",
+        "domain": null,
+        "cardinality": null,
+        "note": "unconstrained by TypeInvariant -- excluded from the bound"
+      },
+      {
+        "variable": "complexity_gate",
+        "domain": "{\"unknown\", \"pass\", \"fail\"}",
+        "cardinality": 3,
+        "note": ""
+      }
+    ],
+    "state_space_upper_bound": 1179648,
+    "unbounded_variables": [
+      "lastCommand",
+      "result"
+    ],
+    "actions": [
+      {
+        "name": "BuildSkillCli",
+        "reads": [
+          "cli_built"
+        ],
+        "writes": [
+          "cli_built",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "InstallLocalCli",
+        "reads": [
+          "cli_built",
+          "cli_installed"
+        ],
+        "writes": [
+          "cli_installed",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "ScaffoldProject",
+        "reads": [
+          "cli_installed",
+          "project_scaffolded"
+        ],
+        "writes": [
+          "lastCommand",
+          "project_scaffolded",
+          "result",
+          "spec_root"
+        ]
+      },
+      {
+        "name": "RecordBudgets",
+        "reads": [
+          "budgets_recorded",
+          "cli_installed",
+          "project_scaffolded",
+          "spec_root"
+        ],
+        "writes": [
+          "budgets_recorded",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "ScaffoldWorkflow",
+        "reads": [
+          "budgets_recorded",
+          "cli_installed",
+          "project_scaffolded",
+          "spec_root",
+          "workflow_scaffolded"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "workflow_scaffolded"
+        ]
+      },
+      {
+        "name": "OpenTicket",
+        "reads": [
+          "active_tickets",
+          "cli_installed",
+          "closed_tickets",
+          "spec_root",
+          "ticket_phase",
+          "workflow_scaffolded"
+        ],
+        "writes": [
+          "active_tickets",
+          "lastCommand",
+          "result",
+          "ticket_phase"
+        ]
+      },
+      {
+        "name": "UpdateTicketDesired",
+        "reads": [
+          "active_tickets",
+          "ticket_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_phase"
+        ]
+      },
+      {
+        "name": "UpdateTicketCurrent",
+        "reads": [
+          "active_tickets",
+          "ticket_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_phase"
+        ]
+      },
+      {
+        "name": "AnalyzeComplexity",
+        "reads": [
+          "budgets_recorded",
+          "cli_installed",
+          "project_scaffolded",
+          "spec_root"
+        ],
+        "writes": [
+          "complexity_gate",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunSpecUnitTests",
+        "reads": [
+          "active_tickets",
+          "cli_installed",
+          "complexity_gate",
+          "spec_root",
+          "ticket_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_phase"
+        ]
+      },
+      {
+        "name": "CloseTicket",
+        "reads": [
+          "active_tickets",
+          "cli_installed",
+          "closed_tickets",
+          "spec_root",
+          "ticket_phase"
+        ],
+        "writes": [
+          "active_tickets",
+          "closed_tickets",
+          "lastCommand",
+          "result"
+        ]
+      }
+    ],
+    "modularity": 0.028761416439673143,
+    "components": [
+      [
+        "active_tickets",
+        "cli_built",
+        "closed_tickets",
+        "lastCommand",
+        "result",
+        "ticket_phase"
+      ],
+      [
+        "budgets_recorded",
+        "cli_installed",
+        "complexity_gate",
+        "project_scaffolded",
+        "spec_root",
+        "workflow_scaffolded"
+      ]
+    ],
+    "port_crossing_actions": {
+      "InstallLocalCli": [
+        "C1",
+        "C2"
+      ],
+      "ScaffoldProject": [
+        "C1",
+        "C2"
+      ],
+      "RecordBudgets": [
+        "C1",
+        "C2"
+      ],
+      "ScaffoldWorkflow": [
+        "C1",
+        "C2"
+      ],
+      "OpenTicket": [
+        "C1",
+        "C2"
+      ],
+      "AnalyzeComplexity": [
+        "C1",
+        "C2"
+      ],
+      "RunSpecUnitTests": [
+        "C1",
+        "C2"
+      ],
+      "CloseTicket": [
+        "C1",
+        "C2"
+      ]
+    },
+    "unjustified_variables": [],
+    "tlc_findings": []
+  },
+  "projected": {
+    "bound_after_suggested_abstractions": 221184,
+    "verified": false,
+    "caveat": "PROJECTED figures are unverified until the transition-level diff is read and TLC is rerun. A generated-states drop at constant distinct states is a RED FLAG (deleted self-loop), not a reduction."
+  },
+  "suggested_move": {
+    "move": "ABSTRACT",
+    "status": "RECOMMENDATION -- REQUIRES USER APPROVAL, NOT AUTO-APPLIED",
+    "rationale": "The representation carries dimensions the reachable state space does not use.",
+    "evidence_measured": [
+      "latching booleans [cli_built, cli_installed, project_scaffolded, budgets_recorded, workflow_scaffolded] are pinned into a total order by their own action guards, so only 6 of 32 combinations are reachable",
+      "no configured invariant reads [lastCommand, result]; Move 1 permits projecting variables no invariant reads"
+    ],
+    "gain_projected": [
+      "collapsing [cli_built, cli_installed, project_scaffolded, budgets_recorded, workflow_scaffolded] into one ordinal 0..5 would take the model from 12 to 8 variables and the declared bound from 1,179,648 to 221,184; reachable states should be UNCHANGED -- verify with TLC, and treat a generated-states drop at constant distinct states as a red flag",
+      "projecting [lastCommand, result] removes them from the model; legitimate IFF the mutation kill rate holds afterwards (tickets/016)"
+    ]
+  },
+  "budgets": {
+    "max_distinct_states": 50000,
+    "max_component_variables": 6,
+    "max_component_actions": 8
+  },
+  "gate": {
+    "passed": false,
+    "violations": [
+      "state-space upper bound 1,179,648 exceeds max_distinct_states 50,000",
+      "component C1 is touched by 11 actions, exceeding max_component_actions 8"
+    ]
+  }
+}

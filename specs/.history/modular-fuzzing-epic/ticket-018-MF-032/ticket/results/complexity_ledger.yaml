@@ -1,0 +1,111 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "TODO"
+    evidence: "TODO -- path to the kill-test report"
+  effect_conformance:
+    status: "TODO"
+    evidence: "TODO -- path to the effect-conformance report"
+  external_coverage:
+    status: "TODO"
+    evidence: "TODO -- path to the external coverage report"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Zero-delta ticket. No complexity reduction was sought or made: MF-032 touches
+    only production_adapters.py (adds run()/can_run to four adapters), a new shared
+    module adapter_case_runtime.py (the before-state builder/projector/comparator
+    promoted out of production_adapters, not a base class), the runner's per-field
+    comparison in scripts/run_generated_case_adapters.py, and tests. The TLA+
+    module and its configs are unchanged; TLC re-measured 231,621 distinct / depth
+    25, identical to the MF-036 baseline (direction=zero). There is nothing to
+    refine because no representation was added.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  MF-032 gives run() to the remaining adapters MF-028 banded runnable and fixes the
+  runner's all-or-nothing comparison. FOUR adapters now execute generated cases end
+  to end: InstallLocalCli (trivial), ScaffoldWorkflow, RecordBudgets and OpenTicket
+  (moderate). Each run() composes the shared before-state builder + projector +
+  field comparator -- promoted from production_adapters.py into the dedicated MODULE
+  adapter_case_runtime.py (a module, NOT a base class: the adapters' apply()
+  signatures are incompatible, so inheritance would fight them). apply() is retained
+  untouched as the spec-unit surface; run() is additive. All four execute REAL
+  reduced-corpus cases through the real runner (results/case-execution-run.txt) with
+  10 checked / 1 unchecked (result.next) / 0 mismatch, and each carries a NEGATIVE
+  CONTROL proven to fail on the real case (results/case-execution-projection.txt):
+  the corrupted after-state disagrees because the value is derived from the
+  transition and observed from the filesystem, never read out of the field checked.
+  The runner's whole-dict `==` (runtime.assert_case_result / assert_projected_state)
+  is replaced by per-field comparison honoring UNCHECKED in
+  run_generated_case_adapters.py (compare_fields_honoring_unchecked,
+  assert_case_result_per_field), with new repo tests. HONEST executability
+  re-measurement (reduced single-ticket corpus; full MC.cfg is intractable to load
+  -- MF-034's surface): before-state materializability is unchanged at 81.6%
+  (MF-031's axis, which this ticket does not touch); TRUE end-to-end executability,
+  which additionally requires the case's action to HAVE a run(), is 7.8% -> 9.8%
+  (+1221 cases: OpenTicket 699 + ScaffoldWorkflow 520 + RecordBudgets 1 +
+  InstallLocalCli 1). The remaining 89.2% is dominated by the HARD/BLOCKED bands:
+  RunEffectConformance, RunKillTest, RunSpecUnitTests, AnalyzeCorpus,
+  AnalyzeComplexity and CloseTicket -- gate/oracle actions whose after-state changes
+  nondeterministic gate variables not recoverable from the filesystem, plus the
+  three CloseTicket-collision multi-close batteries. These stay apply()-only for
+  structural reasons, reported not skipped (results/mf032-report.md). Zero TLA+
+  model delta; validation matrix green (TLC 231,621/depth 25, spec-unit 60,
+  512 repo units, specWorkflow 8/8 + cliWorkflow 2/2).

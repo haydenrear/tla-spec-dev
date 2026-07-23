@@ -1,0 +1,763 @@
+examples/distributed_history/ecommerce_backend/domain.py:59:            for account_id in state.get("accounts", []):
+examples/distributed_history/ecommerce_backend/domain.py:61:            for account_id, items in state.get("carts", {}).items():
+examples/distributed_history/ecommerce_backend/domain.py:67:            for order_id, order in state.get("orders", {}).items():
+examples/distributed_history/ecommerce_backend/domain.py:73:                        json.dumps(list(order.get("items", [])), sort_keys=True),
+examples/distributed_history/ecommerce_backend/domain.py:74:                        order.get("status", "accepted"),
+examples/distributed_history/ecommerce_backend/domain.py:77:            for event in state.get("outbox", []):
+examples/distributed_history/ecommerce_backend/domain.py:80:                    (event["order_id"], event.get("event", "OrderAccepted")),
+examples/distributed_history/ecommerce_backend/domain.py:82:            for order_id, visible_status in state.get("projections", {}).items():
+examples/distributed_history/ecommerce_backend/service.py:16:    length = int(handler.headers.get("content-length", "0"))
+examples/distributed_history/ecommerce_backend/service.py:110:                state["transport_queue"] = queue_state.get("transport_queue", [])
+examples/distributed_history/ecommerce_backend/service.py:165:            result = self.store.process_outbox(int(body.get("limit", 100)))
+examples/distributed_history/ecommerce_backend/service.py:173:            self.store.load_state(body.get("state", body))
+examples/distributed_history/ecommerce_backend/service.py:183:            event = {"order_id": body["order_id"], "event": body.get("event", "OrderAccepted")}
+examples/distributed_history/ecommerce_backend/service.py:188:            limit = int(body.get("limit", 100))
+examples/distributed_history/ecommerce_backend/service.py:198:            state = body.get("state", body)
+examples/distributed_history/ecommerce_backend/service.py:199:            self.queue_events[:] = list(state.get("outbox", []))
+examples/distributed_history/ecommerce_backend/service.py:237:            for _event in response_body.get("events", []):
+examples/distributed_history/ecommerce_backend/service.py:242:                processed += int(db_body.get("processed", 0))
+examples/distributed_history/ecommerce_backend/service.py:266:            state = body.get("state", body)
+examples/distributed_history/ecommerce_backend/service.py:277:            if status == 200 and isinstance(body.get("traffic"), dict):
+examples/distributed_history/ecommerce_backend/service.py:289:    port = int(os.environ.get("ECOMMERCE_PORT", "18080"))
+examples/distributed_history/ecommerce_backend/service.py:290:    db_path = os.environ.get("ECOMMERCE_DB", "/tmp/ecommerce-example.db")
+examples/distributed_history/ecommerce_backend/service.py:291:    EcommerceHandler.role = os.environ.get("ECOMMERCE_ROLE", "monolith")
+examples/distributed_history/ecommerce_backend/service.py:312:    return os.environ.get("ECOMMERCE_DATABASE_URL", "http://database-service")
+examples/distributed_history/ecommerce_backend/service.py:316:    return os.environ.get("ECOMMERCE_QUEUE_URL", "http://queue-service")
+examples/distributed_history/ecommerce_backend/service.py:320:    return os.environ.get("ECOMMERCE_ACCOUNT_URL", "http://account-service")
+examples/distributed_history/ecommerce_backend/service.py:324:    return os.environ.get("ECOMMERCE_CART_URL", "http://cart-service")
+examples/distributed_history/ecommerce_backend/service.py:328:    return os.environ.get("ECOMMERCE_CHECKOUT_URL", "http://checkout-service")
+examples/distributed_history/ecommerce_backend/service.py:332:    return os.environ.get("ECOMMERCE_WORKER_URL", "http://worker-service")
+examples/distributed_history/scripts/k8s-deploy.sh:35:  if ! kubectl -n ecommerce-history get pods --no-headers | awk '$3 == "Terminating" { found = 1 } END { exit found ? 0 : 1 }'; then
+examples/distributed_history/scripts/regenerate_tlc_cases.py:33:    parser.add_argument("--tlc2", default=os.environ.get("TLC2", "tlc2"), help="TLC executable. Defaults to $TLC2 or tlc2.")
+examples/distributed_history/specs/program_model/adapters.py:65:        base_url = os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/adapters.py:72:        base_url = context.shared.get("base_url") or os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/adapters.py:87:        base_url = os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080").rstrip("/")
+examples/distributed_history/specs/program_model/adapters.py:148:        return self._post(base_url, "/worker/drain", {"limit": params.get("limit", 100)})
+examples/distributed_history/specs/program_model/adapters.py:158:        base_url = context.shared.get("base_url") or os.environ.get("ECOMMERCE_BASE_URL", "http://127.0.0.1:18080")
+examples/distributed_history/specs/program_model/adapters.py:184:        "accounts": list(state.get("accounts", [])),
+examples/distributed_history/specs/program_model/adapters.py:185:        "carts": dict(state.get("carts", {})),
+examples/distributed_history/specs/program_model/adapters.py:186:        "orders": dict(state.get("orders", {})),
+examples/distributed_history/specs/program_model/adapters.py:187:        "outbox": list(state.get("outbox", [])),
+examples/distributed_history/specs/program_model/adapters.py:188:        "projections": dict(state.get("projections", {})),
+examples/distributed_history/specs/program_model/tlc_projection.py:7:    accounts = sorted(str(account) for account in _as_list(state.get("accounts", [])))
+examples/distributed_history/specs/program_model/tlc_projection.py:8:    carts = _project_carts(state.get("carts", {}))
+examples/distributed_history/specs/program_model/tlc_projection.py:9:    orders = _project_orders(state.get("orders", {}))
+examples/distributed_history/specs/program_model/tlc_projection.py:12:        for order_id in sorted(str(item) for item in _as_list(state.get("outbox", [])))
+examples/distributed_history/specs/program_model/tlc_projection.py:16:        for order_id, status in _as_dict(state.get("projections", {})).items()
+examples/distributed_history/specs/program_model/tlc_projection.py:38:        return {"status": 200, "body": {"processed": len(projected_before.get("outbox", []))}}
+examples/distributed_history/specs/program_model/tlc_projection.py:59:    response_key = params.get("client", params.get("account"))
+examples/distributed_history/specs/program_model/tlc_projection.py:60:    responses = _as_dict(state.get("responses", {}))
+examples/distributed_history/specs/program_model/tlc_projection.py:82:        if order.get("status") == "none":
+examples/distributed_history/specs/program_model/tlc_projection.py:86:            "items": sorted(str(item) for item in _as_list(order.get("items", []))),
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:13: * CLI flag — either an inline JSON blob or an {@code @<path>} reference.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:63:        List<Map<String, Object>> items = Json.asObjectList(root.get("items"));
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:66:            String nodeId = (String) raw.get("nodeId");
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:67:            Map<String, String> data = Json.asStringMap(raw.get("data"));
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:74:    public NodeSpec rerun(boolean enabled)           { this.rerun = enabled; return this; }
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context_item.py:39:        ContextItem(node_id=it["nodeId"], data=dict(it.get("data", {})))
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context_item.py:40:        for it in payload.get("items", [])
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:64:    def rerun(self, enabled: bool = True) -> "NodeSpec":
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:75:        self._rerun = bool(enabled)
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:32:    mode = ctx.get("ecommerce.deploy", "mode") or "local"
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:35:    pid = ctx.get("ecommerce.deploy", "pid")
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:46:    if os.environ.get("ECOMMERCE_KEEP_K3D", "0") == "1" or os.environ.get("ECOMMERCE_DELETE_K3D") == "0":
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:48:    cluster = os.environ.get("ECOMMERCE_K3D_CLUSTER", "ecommerce-history")
+examples/distributed_history/test_graph/sources/collect_evidence.py:60:    base_url = ctx.get("ecommerce.deploy", "baseUrl")
+examples/distributed_history/test_graph/sources/collect_evidence.py:63:    mode = ctx.get("ecommerce.deploy", "mode") or "k3d"
+examples/distributed_history/test_graph/sources/collect_evidence.py:74:    work_dir = ctx.get("ecommerce.external_cases", "workDir")
+examples/distributed_history/test_graph/sources/collect_evidence.py:77:    trace_manifest = ctx.get("ecommerce.external_cases", "traceManifest")
+examples/distributed_history/test_graph/sources/collect_evidence.py:82:    observed_cases = sorted(str(record.get("case")) for record in assertion_records)
+examples/distributed_history/test_graph/sources/collect_evidence.py:86:    all_matched = bool(assertion_records) and all(record.get("matched") is True for record in assertion_records)
+examples/distributed_history/test_graph/sources/collect_evidence.py:120:    records = traffic.get("traffic", {}).get(role, [])
+examples/distributed_history/test_graph/sources/collect_evidence.py:124:        if record.get("method") == "POST" and record.get("path") == path and "response" in record
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:50:    mode = os.environ.get("ECOMMERCE_TEST_MODE", "k3d")
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:141:        status = payload.get("status", {})
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:142:        replicas = int(payload.get("spec", {}).get("replicas", 0))
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:145:            "readyReplicas": int(status.get("readyReplicas", 0)),
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:146:            "availableReplicas": int(status.get("availableReplicas", 0)),
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:147:            "updatedReplicas": int(status.get("updatedReplicas", 0)),
+examples/distributed_history/test_graph/sources/run_external_cases.py:35:    base_url = ctx.get("ecommerce.deploy", "baseUrl")
+examples/run_distributed_history_validation.py:182:    if report.get("control_green") is not True:
+examples/run_distributed_history_validation.py:193:        if not pointer.get("refine_variable") or not pointer.get("refine_action"):
+examples/run_distributed_history_validation.py:275:            if mismatch.get("matched") is not False:
+examples/run_distributed_history_validation.py:321:            "--no-daemon",
+examples/run_distributed_history_validation.py:341:    nodes = summary.get("nodes")
+examples/run_distributed_history_validation.py:345:        {"nodeId": node.get("nodeId"), "status": node.get("status"), "failureMessage": node.get("failureMessage")}
+examples/run_distributed_history_validation.py:347:        if node.get("status") != "passed"
+examples/run_distributed_history_validation.py:359:    record_cases = sorted(str(record.get("case")) for record in records)
+examples/validation/ex1_scaffold_only/taskq/taskq.py:20:    return Path(os.environ.get("TASKQ_STATE", Path(__file__).parent / "taskq.json"))
+examples/validation/ex3_over_complex/order_hub/order_hub.py:5:and dirty flag on its way. Mirrors specs/program_model/OrderHub.tla.
+scripts/analyze_complexity.py:28:* variables with no justification linkage, flagged as dead weight, when the
+scripts/analyze_complexity.py:95:    text = re.sub(r"\(\*.*?\*\)", " ", text, flags=re.DOTALL)
+scripts/analyze_complexity.py:389:            line = re.sub(r"^CONSTANTS?\s*", "", line, flags=re.IGNORECASE).strip()
+scripts/analyze_complexity.py:514:    literal = re.fullmatch(r"\{(.*)\}", expr, flags=re.DOTALL)
+scripts/analyze_complexity.py:579:            function = re.fullmatch(r"\[(.+?)\s*->\s*(.+)\]", raw, flags=re.DOTALL)
+scripts/analyze_complexity.py:949:    table = manifest.get("justification")
+scripts/analyze_complexity.py:959:    flagged: list[str] = []
+scripts/analyze_complexity.py:963:            flagged.append(variable)
+scripts/analyze_complexity.py:971:            flagged.append(variable)
+scripts/analyze_complexity.py:972:    return flagged
+scripts/analyze_complexity.py:1215:        if re.match(r"^INVARIANTS?\b", line, flags=re.IGNORECASE):
+scripts/analyze_complexity.py:1217:            rest = re.sub(r"^INVARIANTS?\s*", "", line, flags=re.IGNORECASE).strip()
+scripts/budgets.py:166:    block = manifest.get("budgets")
+scripts/close_spec_workflow.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting when ticket_plan.yaml still has open tickets.")
+scripts/close_spec_workflow.py:27:        "--no-skill-feedback",
+scripts/close_ticket.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/close_ticket.py:26:    parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+scripts/close_ticket.py:28:        "--no-skill-feedback",
+scripts/close_tickets.py:141:    tickets = plan.get("tickets")
+scripts/close_tickets.py:149:        ticket_id = ticket.get("id", f"#{index}")
+scripts/close_tickets.py:150:        status = str(ticket.get("status", "")).strip().lower()
+scripts/close_tickets.py:220:        if feedback and not feedback.get("resolved"):
+scripts/close_tickets.py:247:        "--no-skill-feedback",
+scripts/complexity_ledger.py:48:  a recorded before/after descriptor comparison, and -- when the red flag
+scripts/complexity_ledger.py:52:  check (the 2026-07-18 audit's core finding), and there is no flag to record
+scripts/complexity_ledger.py:108:# transition-level diff -- is enforced by the red-flag gate (MF-020), which
+scripts/complexity_ledger.py:193:# rather than a reduction, so it is reported and red-flagged but never on its
+scripts/complexity_ledger.py:282:        flag = "" if self.passing else "  <-- does not pass"
+scripts/complexity_ledger.py:283:        return f"coverage_audit={self.normalized} ({note}){flag}"
+scripts/complexity_ledger.py:414:    entries = [e for e in ledger.get("entries", []) if isinstance(e, dict)]
+scripts/complexity_ledger.py:418:    recorded = [e for e in entries if e.get("verdict") != "rejected"]
+scripts/complexity_ledger.py:443:    delta["previous_scope_id"] = previous.get("scope_id")
+scripts/complexity_ledger.py:444:    previous_metrics = previous.get("metrics", {}) or {}
+scripts/complexity_ledger.py:472:        pm = previous.get("metrics", {}) or {}
+scripts/complexity_ledger.py:473:        before.generated = pm.get("generated_states")
+scripts/complexity_ledger.py:474:        before.distinct = pm.get("distinct_states")
+scripts/complexity_ledger.py:475:        before.depth = pm.get("depth")
+scripts/complexity_ledger.py:476:    after.generated = current.get("generated_states")
+scripts/complexity_ledger.py:477:    after.distinct = current.get("distinct_states")
+scripts/complexity_ledger.py:478:    after.depth = current.get("depth")
+scripts/complexity_ledger.py:498:            status = str(value.get("status", "") or "")
+scripts/complexity_ledger.py:504:                evidence=str(value.get("evidence", "") or ""),
+scripts/complexity_ledger.py:505:                value=value.get("value"),
+scripts/complexity_ledger.py:527:    outcome = str(raw.get("outcome", "") or "").strip().lower()
+scripts/complexity_ledger.py:530:    detail = str(raw.get("detail", "") or "")
+scripts/complexity_ledger.py:534:        searched=bool(raw.get("searched", False)),
+scripts/complexity_ledger.py:537:        measured=bool(raw.get("measured", False)),
+scripts/complexity_ledger.py:538:        applied=bool(raw.get("applied", False)),
+scripts/complexity_ledger.py:539:        approved_by=str(raw.get("approved_by", "") or ""),
+scripts/complexity_ledger.py:550:    status = str(raw.get("status", "") or "").strip()
+scripts/complexity_ledger.py:553:    report = str(raw.get("report", "") or "")
+scripts/complexity_ledger.py:556:    scope_source = str(raw.get("scope_source", "") or "")
+scripts/complexity_ledger.py:562:        in_scope_gaps=raw.get("in_scope_gaps"),
+scripts/complexity_ledger.py:601:    retention = parse_retention(ledger_input.get("retention"))
+scripts/complexity_ledger.py:602:    validated_refactor = parse_validated_refactor(ledger_input.get("validated_refactor"))
+scripts/complexity_ledger.py:603:    refinement = parse_refinement(ledger_input.get("refinement"))
+scripts/complexity_ledger.py:604:    coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
+scripts/complexity_ledger.py:605:    justification = str(ledger_input.get("justification", "") or "").strip()
+scripts/complexity_ledger.py:608:    narrative = str(ledger_input.get("narrative", "") or "").strip()
+scripts/complexity_ledger.py:624:            if k in DIRECTION_METRICS and isinstance(v.get("delta"), int) and v["delta"] > 0
+scripts/complexity_ledger.py:631:            "flag that skips this."
+scripts/complexity_ledger.py:672:    # ---- Gate 4: the self-loop red flag (MF-020) ---------------------------
+scripts/complexity_ledger.py:676:    red_flags = [f for f in tlc_findings if f.get("level") == "RED FLAG"]
+scripts/complexity_ledger.py:677:    transition_diff = str(ledger_input.get("transition_diff", "") or "").strip()
+scripts/complexity_ledger.py:680:    if red_flags:
+scripts/complexity_ledger.py:684:                + " ".join(f["message"] for f in red_flags)
+scripts/complexity_ledger.py:695:        if finding.get("level") in {"OK", "INFO", "NOTE"}:
+scripts/complexity_ledger.py:843:    bound = metrics.get("bound")
+scripts/complexity_ledger.py:847:            variables=metrics.get("variables"),
+scripts/complexity_ledger.py:848:            actions=metrics.get("actions"),
+scripts/complexity_ledger.py:852:    if isinstance(metrics.get("distinct_states"), int):
+scripts/complexity_ledger.py:857:    for key, util in (metrics.get("budget_utilization") or {}).items():
+scripts/complexity_ledger.py:858:        flag = "within cap" if util["within_cap"] else "OVER CAP"
+scripts/complexity_ledger.py:859:        lines.append(f"            {key}: {util['used']:,} / {util['cap']:,} ({util['percent']}%, {flag})")
+scripts/complexity_ledger.py:863:    for key, change in delta.get("metrics", {}).items():
+scripts/complexity_ledger.py:864:        if isinstance(change.get("delta"), int) and change["delta"]:
+scripts/complexity_ledger.py:873:    for line in entry.get("validated_refactor_summary", []):
+scripts/complexity_ledger.py:892:    audit = entry.get("coverage_audit") or {}
+scripts/complexity_ledger.py:893:    audit_status = audit.get("status", "not_run")
+scripts/complexity_ledger.py:894:    audit_flag = "" if audit.get("passing") else "  <-- does not pass"
+scripts/complexity_ledger.py:895:    lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
+scripts/complexity_ledger.py:896:    if audit.get("report"):
+scripts/complexity_ledger.py:899:    for note in entry.get("notes", []):
+scripts/complexity_ledger.py:927:# whenever the MF-020 red flag fires.)
+scripts/corpus_diagnostics.py:30:   unconstrained orderings that want a state constraint, or an action enabled
+scripts/corpus_diagnostics.py:109:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:110:        return str(steps[0].get("action", "?"))
+scripts/corpus_diagnostics.py:120:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:121:        raw = (steps[0].get("raw") or {}).get("labels", ())
+scripts/corpus_diagnostics.py:129:        return str(case.get("trace_id", "?"))
+scripts/corpus_diagnostics.py:135:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:136:        params = steps[0].get("params") or {}
+scripts/corpus_diagnostics.py:146:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:147:        return dict(steps[0].get("pre") or {})
+scripts/corpus_diagnostics.py:153:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:154:        return dict(steps[0].get("post") or {})
+scripts/corpus_diagnostics.py:160:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:161:        return str((steps[0].get("raw") or {}).get("source_node", ""))
+scripts/corpus_diagnostics.py:369:    action enabled across many equivalent states.
+scripts/corpus_diagnostics.py:484:    # 3. Action enabled across many equivalent states. One structural
+scripts/corpus_diagnostics.py:489:            "action enabled across equivalent states",
+scripts/corpus_diagnostics.py:898:    view = loaded[0].get("view") if loaded else None
+scripts/effect_conformance_report.py:15:2 malformed declarations. No flag changes that mapping.
+scripts/effect_conformance_report.py:20:never reports clean on a target it could not see, and there is no flag here
+scripts/effect_conformance_report.py:62:        if isinstance(data, dict) and data.get("effects"):
+scripts/effect_conformance.py:63:annotation, no manifest entry, and no flag that turns a gap into a pass. The
+scripts/effect_conformance.py:468:    block = data.get("effects", data) if "effects" in data else data
+scripts/effect_conformance.py:477:    components = block.get("components") or {}
+scripts/effect_conformance.py:484:        ports = spec.get("ports") or {}
+scripts/effect_conformance.py:490:            effect_type = port_spec.get("type")
+scripts/effect_conformance.py:491:            target = port_spec.get("target")
+scripts/effect_conformance.py:509:    actions = block.get("actions") or {}
+scripts/effect_conformance.py:578:    #: not a flag.
+scripts/effect_conformance.py:1001:        # Note the shape: no flag, no manifest entry, and no justification is
+scripts/effect_conformance.py:1076:                "is no flag, annotation, or manifest entry that turns this into a "
+scripts/export_testgraph_cases.py:164:            "there is no flag that skips it."
+scripts/export_testgraph_cases.py:175:    # selection would let a narrow flag silently satisfy a budget, which is
+scripts/export_testgraph_cases.py:188:    # narrow flag hide an unchecked binding.
+scripts/extract_spec_manifest.py:260:    module_name = str(manifest.get("module", ""))
+scripts/extract_spec_manifest.py:279:    for command_name, command in dict(manifest.get("commands", {})).items():
+scripts/extract_spec_manifest.py:280:        action = command.get("action") if isinstance(command, dict) else None
+scripts/extract_spec_manifest.py:284:    for invariant in manifest.get("invariants", []) or []:
+scripts/extract_spec_manifest.py:293:    commands = ", ".join(dict(manifest.get("commands", {})).keys()) or "(none)"
+scripts/extract_spec_manifest.py:294:    ports = ", ".join(dict(manifest.get("ports", {})).keys()) or "(none)"
+scripts/extract_spec_manifest.py:295:    invariants = ", ".join(str(x) for x in manifest.get("invariants", []) or []) or "(none)"
+scripts/fitness_functions.py:82:    measured = descriptor.get("measured", {}) if isinstance(descriptor, dict) else {}
+scripts/fitness_functions.py:83:    components: list[list[str]] = measured.get("components") or []
+scripts/fitness_functions.py:84:    actions: list[dict[str, Any]] = measured.get("actions") or []
+scripts/fitness_functions.py:85:    dimensions: list[dict[str, Any]] = measured.get("dimensions") or []
+scripts/fitness_functions.py:93:            if (set(a.get("reads") or []) | set(a.get("writes") or [])) & members
+scripts/fitness_functions.py:97:    unjustified = measured.get("unjustified_variables")
+scripts/fitness_functions.py:99:        "bound": measured.get("state_space_upper_bound"),
+scripts/fitness_functions.py:100:        "bound_known": bool(measured.get("state_space_bound_known")),
+scripts/fitness_functions.py:101:        "modularity": measured.get("modularity"),
+scripts/fitness_functions.py:107:        "god_state_count": len(measured.get("dense_rows") or {}),
+scripts/fitness_functions.py:108:        "dense_column_count": len(measured.get("dense_columns") or []),
+scripts/fitness_functions.py:109:        "port_crossing_action_count": len(measured.get("port_crossing_actions") or {}),
+scripts/fitness_functions.py:110:        "unread_by_invariant_count": len(measured.get("unread_by_invariant") or []),
+scripts/fitness_functions.py:113:            d.get("variable"): d.get("cardinality") for d in dimensions
+scripts/fitness_functions.py:137:    fact = node.get("fact")
+scripts/fitness_functions.py:142:    op_name = node.get("op")
+scripts/fitness_functions.py:150:        var = node.get("var")
+scripts/fitness_functions.py:153:        domains: dict[str, Any] = facts.get("variable_domain") or {}
+scripts/fitness_functions.py:253:        name = entry.get("name")
+scripts/fitness_functions.py:264:                description=str(entry.get("description") or ""),
+scripts/generate_cases_from_tlc_dump.py:298:    raw_actions = loaded.get("actions", loaded)
+scripts/generate_cases_from_tlc_dump.py:308:        layer = str(raw_spec.get("layer", "internal"))
+scripts/generate_cases_from_tlc_dump.py:311:        controllability = str(raw_spec.get("controllability", DEFAULT_CONTROLLABILITY[layer]))
+scripts/generate_cases_from_tlc_dump.py:318:            generates=normalize_string_list(raw_spec.get("generates", (VIEW_GENERATES[layer],))),
+scripts/generate_cases_from_tlc_dump.py:319:            tags=normalize_string_list(raw_spec.get("tags", ())),
+scripts/generate_cases_from_tlc_dump.py:364:    if not isinstance(marker, dict) or marker.get("name") != edge.action:
+scripts/generate_cases_from_tlc_dump.py:366:    params = marker.get("params", {})
+scripts/generate_cases_from_tlc_dump.py:916:        "--no-infer-params",
+scripts/generate_python.py:53:    names.extend(as_dict(manifest.get("types")).keys())
+scripts/generate_python.py:54:    names.extend(as_dict(manifest.get("state")).keys())
+scripts/generate_python.py:55:    names.extend(as_dict(manifest.get("commands")).keys())
+scripts/generate_python.py:56:    names.extend(as_dict(manifest.get("results")).keys())
+scripts/generate_python.py:61:    states = list(as_dict(manifest.get("state")).keys())
+scripts/generate_python.py:68:    fake = as_dict(manifest.get("fake"))
+scripts/generate_python.py:69:    return str(fake.get("class") or f"{manifest['module']}SpecDouble")
+scripts/generate_python.py:74:    for port in as_dict(manifest.get("ports")).values():
+scripts/generate_python.py:75:        for method_name, method in as_dict(as_dict(port).get("methods")).items():
+scripts/generate_python.py:76:            command = as_dict(method).get("command")
+scripts/generate_python.py:83:    for port in as_dict(manifest.get("ports")).values():
+scripts/generate_python.py:84:        for method in as_dict(as_dict(port).get("methods")).values():
+scripts/generate_python.py:85:            if as_dict(method).get("command") == command_name:
+scripts/generate_python.py:86:                return str(as_dict(method).get("result"))
+scripts/generate_python.py:100:    for name, spec in as_dict(manifest.get("types")).items():
+scripts/generate_python.py:102:    if manifest.get("types"):
+scripts/generate_python.py:109:            fields = as_dict(as_dict(spec).get("fields"))
+scripts/generate_python.py:128:    for port_name, port in as_dict(manifest.get("ports")).items():
+scripts/generate_python.py:130:        methods = as_dict(as_dict(port).get("methods"))
+scripts/generate_python.py:136:            result = method.get("result", "object")
+scripts/generate_python.py:137:            command = method.get("command")
+scripts/generate_python.py:151:    fake = as_dict(manifest.get("fake"))
+scripts/generate_python.py:152:    action_specs = as_dict(fake.get("actions"))
+scripts/generate_python.py:153:    state_fields = list(as_dict(as_dict(manifest["state"])[state]).get("fields", {}).keys())
+scripts/generate_python.py:168:        if action.get("template") == "bounded_set_add":
+scripts/generate_python.py:173:            reason = action.get("reject_reason", "REJECTED")
+scripts/generate_python.py:225:    invariant_templates = as_dict(manifest.get("invariant_templates"))
+scripts/generate_python.py:226:    actions = as_dict(as_dict(manifest.get("fake")).get("actions"))
+scripts/generate_python.py:231:    for invariant in manifest.get("invariants", []) or []:
+scripts/generate_python.py:233:    if not manifest.get("invariants"):
+scripts/generate_python.py:260:    for invariant in manifest.get("invariants", []) or []:
+scripts/generate_python.py:265:        if spec.get("template") == "bounded_set_size":
+scripts/generate_python.py:268:            item_label = spec.get("item_label", "items")
+scripts/generate_python.py:293:        if action.get("template") == "bounded_set_add":
+scripts/generate_python.py:298:            reason = action.get("reject_reason", "REJECTED")
+scripts/generate_python.py:330:    return as_dict(as_dict(manifest.get("finite_model")).get(source)).get("values", [])
+scripts/generate_python.py:335:    for type_name, spec in as_dict(manifest.get("types")).items():
+scripts/generate_python.py:336:        source = as_dict(spec).get("source")
+scripts/generate_python.py:357:    state_fields = as_dict(as_dict(manifest["state"])[state]).get("fields", {})
+scripts/generate_python.py:360:    generators = as_dict(manifest.get("generators"))
+scripts/generate_python.py:361:    max_depth = as_dict(generators.get("traces")).get("max_depth", 8)
+scripts/generate_python.py:362:    command_names = list(as_dict(manifest.get("commands")).keys())
+scripts/generate_python.py:383:    owned_type = as_dict(state_fields.get("owned")).get("type")
+scripts/generate_python.py:407:        fields = as_dict(command.get("fields"))
+scripts/generate_python.py:410:            field_type = as_dict(field).get("type")
+scripts/generate_python.py:433:    traces = as_dict(manifest.get("example_traces"))
+scripts/generate_python.py:452:    port_names = list(as_dict(manifest.get("ports")).keys())
+scripts/generate_python.py:490:    for port_name, port in as_dict(manifest.get("ports")).items():
+scripts/generate_python.py:493:    for command_name in as_dict(manifest.get("commands")):
+scripts/generate_python.py:496:    for result_name in as_dict(manifest.get("results")):
+scripts/generate_python.py:499:    for invariant in manifest.get("invariants", []) or []:
+scripts/kill_test.py:33:So there is deliberately NO waiver here. No ``--allow-below-floor``, no
+scripts/kill_test.py:81:Exit codes (the toolchain-wide convention; no flag changes this mapping):
+scripts/kill_test.py:233:    entries = raw.get("mutants")
+scripts/kill_test.py:353:    effects = data.get("effects")
+scripts/kill_test.py:356:    components = effects.get("components")
+scripts/kill_test.py:363:        declared = component.get("ports")
+scripts/kill_test.py:368:                if isinstance(item, dict) and item.get("id"):
+scripts/kill_test.py:793:                "for a surviving mutant and no flag that accepts a sub-floor kill rate."
+scripts/kill_test.py:904:                "construction. There is no flag that skips the control."
+scripts/kill_test.py:909:                "boundary above. There is no flag that skips a boundary."
+scripts/kill_test.py:985:        rate = baseline.get("kill_rate")
+scripts/kill_test.py:1005:    before_rate = before.get("kill_rate")
+scripts/kill_test.py:1006:    after_rate = after.get("kill_rate")
+scripts/kill_test.py:1012:        row["mutant_id"] for row in before.get("kill_matrix", []) if row.get("killed")
+scripts/kill_test.py:1015:        row["mutant_id"] for row in after.get("kill_matrix", []) if row.get("killed")
+scripts/new_ticket_workflow.py:120:    module = str(manifest.get("module") or fallback_module)
+scripts/new_ticket_workflow.py:121:    package = str(manifest.get("package") or f"{_slug(module).replace('-', '_')}_cases")
+scripts/new_ticket_workflow.py:319:    if not isinstance(plan, dict) or not isinstance(plan.get("tickets"), list):
+scripts/new_ticket_workflow.py:325:    tickets = plan.get("tickets")
+scripts/new_ticket_workflow.py:329:        if isinstance(ticket, dict) and str(ticket.get("id", "")) == ticket_ref:
+scripts/new_ticket_workflow.py:341:    value = ticket.get("title")
+scripts/new_ticket_workflow.py:899:    resolved_ticket_id = str(ticket.get("id") or f"ticket-{ticket_index}")
+scripts/onboard_program_model.py:196:\\* registered and every record is accepted and published, no action is enabled.
+scripts/onboard_program_model.py:752:        "owners": sorted(state.get("owners", [])),
+scripts/onboard_program_model.py:753:        "records": dict(state.get("records", {{}})),
+scripts/onboard_program_model.py:754:        "projections": dict(state.get("projections", {{}})),
+scripts/onboard_program_model.py:787:    owners = sorted(str(owner) for owner in _as_list(state.get("owners", [])))
+scripts/onboard_program_model.py:793:        for record_id, record in _as_dict(state.get("records", {{}})).items()
+scripts/onboard_program_model.py:794:        if _as_dict(record).get("status") != "none"
+scripts/onboard_program_model.py:798:        for record_id, status in _as_dict(state.get("projections", {{}})).items()
+scripts/onboard_program_model.py:830:    response_key = params.get("client")
+scripts/onboard_program_model.py:831:    responses = _as_dict(state.get("responses", {{}}))
+scripts/run_generated_case_adapters.py:104:    adapter_tables = loaded.get("adapters")
+scripts/run_generated_case_adapters.py:109:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:112:            projection = spec.get("output_projection")
+scripts/run_generated_case_adapters.py:115:            expected_projection = spec.get("expected_projection")
+scripts/run_generated_case_adapters.py:123:                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:127:    adapter_list = loaded.get("adapter")
+scripts/run_generated_case_adapters.py:132:            labels = spec.get("labels", spec.get("label"))
+scripts/run_generated_case_adapters.py:133:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:144:                    output_projection=spec.get("output_projection") if isinstance(spec.get("output_projection"), str) else None,
+scripts/run_generated_case_adapters.py:145:                    expected_projection=spec.get("expected_projection") if isinstance(spec.get("expected_projection"), str) else None,
+scripts/run_generated_case_adapters.py:146:                    kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:150:    action_tables = loaded.get("actions")
+scripts/run_generated_case_adapters.py:155:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:158:            projection = spec.get("output_projection")
+scripts/run_generated_case_adapters.py:161:            expected_projection = spec.get("expected_projection")
+scripts/run_generated_case_adapters.py:164:            projector = spec.get("projector")
+scripts/run_generated_case_adapters.py:167:            assertion = spec.get("assertion")
+scripts/run_generated_case_adapters.py:175:                view=spec.get("view") if isinstance(spec.get("view"), str) else None,
+scripts/run_generated_case_adapters.py:176:                layer=spec.get("layer") if isinstance(spec.get("layer"), str) else None,
+scripts/run_generated_case_adapters.py:177:                controllability=spec.get("controllability") if isinstance(spec.get("controllability"), str) else None,
+scripts/run_generated_case_adapters.py:180:                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:181:                channel=spec.get("channel") if isinstance(spec.get("channel"), str) else None,
+scripts/run_generated_case_adapters.py:317:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/run_generated_case_adapters.py:508:        declared = semantic.get("unobservable")
+scripts/run_generated_case_adapters.py:584:def assert_projected_state_if_configured(case_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> None:
+scripts/run_generated_case_adapters.py:671:from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_case_result_per_field, assert_projected_state_if_configured
+scripts/run_generated_case_adapters.py:713:    assert_projected_state_if_configured(case_context, MAPPING, {{}})
+scripts/run_generated_case_adapters.py:781:        if isinstance(data, dict) and data.get("effects"):
+scripts/run_generated_case_adapters.py:916:                            assert_projected_state_if_configured(case_context, mapping, object_cache)
+scripts/run_generated_case_adapters.py:971:    if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
+scripts/run_kill_test.py:10:Exit codes -- no flag changes this mapping:
+scripts/run_kill_test.py:15:There is deliberately no ``--allow-below-floor``, no ``--accept-survivors``,
+scripts/scaffold_spec.py:486:    return {"owned": {str(actor): sorted(items) for actor, items in dict(state.get("owned", {})).items()}}
+scripts/scaffold_spec.py:503:        for actor, items in _as_dict(state.get("owned", {})).items()
+scripts/scaffold_spec.py:528:    response_key = params.get("client")
+scripts/scaffold_spec.py:529:    responses = _as_dict(state.get("responses", {}))
+scripts/scaffold_spec.py:691:- `spec_manifest.yaml` — ports, invariants, finite model, codegen config
+scripts/scaffold_spec.py:794:        help="Views to scaffold. Both internal and external are always emitted; this flag is additive.",
+scripts/skill_feedback.py:111:        return self.fields.get("category", "").strip()
+scripts/skill_feedback.py:115:        return self.fields.get("status", "").strip().lower()
+scripts/skill_feedback.py:119:        return self.fields.get("recommendation", "").strip()
+scripts/skill_feedback.py:143:            "severity": self.fields.get("severity", ""),
+scripts/skill_feedback.py:144:            "root_cause": self.fields.get("root_cause", ""),
+scripts/skill_feedback.py:145:            "target": self.fields.get("target", ""),
+scripts/skill_feedback.py:146:            "observed_on": self.fields.get("observed_on", ""),
+scripts/skill_feedback.py:147:            "evidence": self.fields.get("evidence", ""),
+scripts/skill_feedback.py:162:        return self.fields.get("feedback_status", "").strip().lower()
+scripts/skill_feedback.py:458:    if record.get("template_emitted"):
+scripts/skill_feedback.py:462:    total = record.get("findings_total", 0)
+scripts/skill_feedback.py:463:    declared = record.get("declared_status", "unreviewed")
+scripts/skill_feedback.py:464:    if record.get("resolved"):
+scripts/skill_feedback.py:467:            for where in record.get("filed_where", []):
+scripts/skill_feedback.py:473:        for unfiled in record.get("findings_unfiled", []):
+scripts/spec_evolution.py:184:    if not isinstance(plan.get("tickets"), list):
+scripts/spec_evolution.py:192:    if isinstance(plan.get("name"), str) and plan["name"].strip():
+scripts/spec_evolution.py:194:    status = plan.get("status")
+scripts/spec_evolution.py:195:    if isinstance(status, dict) and isinstance(status.get("workflow"), str) and status["workflow"].strip():
+scripts/spec_evolution.py:201:    return str(ticket.get("status", "")).strip().lower()
+scripts/spec_evolution.py:205:    value = ticket.get("id")
+scripts/spec_evolution.py:210:    tickets = plan.get("tickets")
+scripts/spec_evolution.py:215:        if isinstance(ticket, dict) and str(ticket.get("id", "")) == ticket_ref:
+scripts/spec_evolution.py:260:    if manifest.get("ticket_id"):
+scripts/spec_evolution.py:427:    seed = payload.get("seed_manifest")
+scripts/spec_evolution.py:430:    desired = seed.get("desired")
+scripts/spec_evolution.py:626:            "Complexity is minimized under behavior retention. There is no override flag."
+scripts/spec_evolution.py:684:    # There is deliberately no flag, parameter, or environment variable that
+scripts/spec_evolution.py:786:        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+scripts/spec_evolution.py:787:        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
+scripts/spec_evolution.py:792:        "complexity_delta": (complexity_record or {}).get("delta"),
+scripts/spec_evolution.py:793:        "retention_evidence": (complexity_record or {}).get("retention"),
+scripts/spec_evolution.py:794:        "refinement_record": (complexity_record or {}).get("refinement"),
+scripts/spec_evolution.py:891:        "complexity_delta": (complexity_record or {}).get("delta"),
+scripts/spec_evolution.py:892:        "retention_evidence": (complexity_record or {}).get("retention"),
+scripts/spec_evolution.py:893:        "refinement_record": (complexity_record or {}).get("refinement"),
+scripts/spec_evolution.py:895:        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+scripts/spec_evolution.py:896:        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
+scripts/spec_evolution.py:915:    for record in promotion.get("merged", []):
+scripts/spec_evolution.py:916:        if record.get("role") != "current":
+scripts/spec_evolution.py:918:        removed = record.get("removed") or []
+scripts/spec_evolution.py:919:        preserved = record.get("preserved") or []
+scripts/spec_evolution.py:943:    delta = record.get("delta") or {}
+scripts/testgraph_channels.py:29:Escapes"). There is no override flag, no "when present" conditional, and no
+scripts/testgraph_channels.py:155:    block = data.get("external")
+scripts/testgraph_channels.py:174:    package = block.get("production_package")
+scripts/testgraph_channels.py:189:    raw_ports = block.get("port_bindings")
+scripts/testgraph_channels.py:232:    raw_additional = block.get("additional_channels", [])
+scripts/testgraph_channels.py:366:    channel = spec.get("channel")
+scripts/testgraph_channels.py:396:    action_table = data.get("actions")
+scripts/testgraph_channels.py:428:        adapter_ref = spec.get("adapter")
+scripts/tla_spec_dev.py:32:    skill = parsed.get("skill")
+scripts/tla_spec_dev.py:35:    version = skill.get("version")
+scripts/tla_spec_dev.py:169:    There is no flag that accepts a surviving mutant or a sub-floor rate: this
+scripts/tla_spec_dev.py:209:    status = plan.get("status")
+scripts/tla_spec_dev.py:210:    if isinstance(status, dict) and status.get("active_ticket"):
+scripts/tla_spec_dev.py:278:        python_path = [str(target_dir), str(repo_root), str(ROOT), env.get("PYTHONPATH", "")]
+scripts/tla_spec_dev.py:494:    run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+scripts/tla_spec_dev.py:517:            "override flag, and out-of-contract justifications were withdrawn 2026-07-18."
+scripts/tla_spec_dev.py:548:            "THERE IS NO WAIVER: no --allow-below-floor, no --accept-survivors, and no "
+scripts/tla_spec_dev.py:648:    close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/tla_spec_dev.py:650:    close_ticket.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+spec_double_compiler/runtime.py:87:            output=result.get("output"),
+spec_double_compiler/runtime.py:88:            after=result.get("after"),
+spec_double_compiler/runtime.py:89:            semantic_output=result.get("semantic_output"),
+specs/current/adapter_case_runtime.py:78:#: independently flagged exactly this pair ("no configured invariant reads
+specs/current/adapter_case_runtime.py:144:    spec_root_token = str(before.get("spec_root", "NoRoot"))
+specs/current/adapter_case_runtime.py:198:    ticket_state = dict(before.get("ticket_state") or {})
+specs/current/adapter_case_runtime.py:260:    prior_result = dict(prior.get("result") or {})
+specs/current/adapter_case_runtime.py:263:        "reason": prior_result.get("reason", "NoReason"),
+specs/current/adapter_case_runtime.py:267:        "next": prior_result.get("next"),
+specs/current/adapter_case_runtime.py:330:    disagreements = comparison.get("disagreements") or []
+specs/current/adapter_case_runtime.py:492:    before = dict(getattr(case, "before").get("ticket_state") or {})
+specs/current/adapter_case_runtime.py:493:    after = dict(getattr(case, "after").get("ticket_state") or {})
+specs/current/production_adapters.py:94:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/current/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/current/production_adapters.py:125:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/current/production_adapters.py:126:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/current/production_adapters.py:211:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/current/production_adapters.py:294:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/current/production_adapters.py:384:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/current/production_adapters.py:491:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/current/production_adapters.py:540:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/current/production_adapters.py:670:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/current/production_adapters.py:671:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/current/production_adapters.py:674:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/current/production_adapters.py:705:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/current/production_adapters.py:706:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/current/production_adapters.py:972:        first_filed = first_manifest.get("feedback_filed")
+specs/current/production_adapters.py:973:        second_filed = second_manifest.get("feedback_filed")
+specs/current/production_adapters.py:974:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/current/production_adapters.py:1153:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/current/production_adapters.py:1393:        # refuses, and there is no over-budget override flag to honor.
+specs/current/production_adapters.py:1859:        survivors = surv_payload.get("surviving_mutants", [])
+specs/current/production_adapters.py:1865:            "pass_verdict": pass_payload.get("verdict"),
+specs/current/production_adapters.py:1867:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/current/production_adapters.py:1868:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/current/production_adapters.py:1870:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/current/production_adapters.py:1873:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/current/production_adapters.py:1875:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/current/production_adapters.py:1876:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/current/production_adapters.py:1878:            "waived_verdict": waived_payload.get("verdict"),
+specs/current/production_adapters.py:1881:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/current/production_adapters.py:1882:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/current/production_adapters.py:1886:                waived_payload.get("ignored_suppression_keys")
+specs/current/production_adapters.py:1889:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/current/production_adapters.py:1890:            "survivor_names_action": pointer.get("refine_action"),
+specs/current/production_adapters.py:1891:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/current/production_adapters.py:1896:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/current/production_adapters.py:2001:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/current/production_adapters.py:2003:                if candidate.get("scope_id") == validated_ticket:
+specs/current/production_adapters.py:2016:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/current/production_adapters.py:2017:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/current/production_adapters.py:2018:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/current/production_adapters.py:2020:                manifest.get("complexity_delta") is not None
+specs/current/production_adapters.py:2021:                and manifest.get("retention_evidence") is not None
+specs/current/production_adapters.py:2037:                (validated_entry.get("delta") or {}).get("direction")
+specs/current/production_adapters.py:2038:                if isinstance(validated_entry.get("delta"), dict)
+specs/current/production_adapters.py:2043:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/current/production_adapters.py:2047:                validated_entry.get("validated_refactor")
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:27:    return set(re.findall(r"^\\\* @command (\w+)", text, flags=re.MULTILINE))
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:32:    return set(re.findall(r"^\[adapters\.(\w+)\]", text, flags=re.MULTILINE))
+specs/current/tests/test_tla_spec_dev_case_execution_run.py:185:    # A ticket already Opened(1) in the before-state is not enabled for
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:133:    # A ticket already at DesiredReady(2) is not enabled for UpdateTicketDesired.
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:138:    assert "enabled only" in reason
+specs/desired_program_model/production_adapters.py:94:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/desired_program_model/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/desired_program_model/production_adapters.py:125:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/desired_program_model/production_adapters.py:126:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/desired_program_model/production_adapters.py:211:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/desired_program_model/production_adapters.py:294:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/desired_program_model/production_adapters.py:384:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/desired_program_model/production_adapters.py:491:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/desired_program_model/production_adapters.py:540:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/desired_program_model/production_adapters.py:670:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/desired_program_model/production_adapters.py:671:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/desired_program_model/production_adapters.py:674:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/desired_program_model/production_adapters.py:705:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/desired_program_model/production_adapters.py:706:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/desired_program_model/production_adapters.py:972:        first_filed = first_manifest.get("feedback_filed")
+specs/desired_program_model/production_adapters.py:973:        second_filed = second_manifest.get("feedback_filed")
+specs/desired_program_model/production_adapters.py:974:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/desired_program_model/production_adapters.py:1153:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/desired_program_model/production_adapters.py:1393:        # refuses, and there is no over-budget override flag to honor.
+specs/desired_program_model/production_adapters.py:1859:        survivors = surv_payload.get("surviving_mutants", [])
+specs/desired_program_model/production_adapters.py:1865:            "pass_verdict": pass_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:1867:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/desired_program_model/production_adapters.py:1868:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:1870:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/desired_program_model/production_adapters.py:1873:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:1875:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/desired_program_model/production_adapters.py:1876:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/desired_program_model/production_adapters.py:1878:            "waived_verdict": waived_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:1881:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/desired_program_model/production_adapters.py:1882:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/desired_program_model/production_adapters.py:1886:                waived_payload.get("ignored_suppression_keys")
+specs/desired_program_model/production_adapters.py:1889:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/desired_program_model/production_adapters.py:1890:            "survivor_names_action": pointer.get("refine_action"),
+specs/desired_program_model/production_adapters.py:1891:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/desired_program_model/production_adapters.py:1896:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/desired_program_model/production_adapters.py:2001:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/desired_program_model/production_adapters.py:2003:                if candidate.get("scope_id") == validated_ticket:
+specs/desired_program_model/production_adapters.py:2016:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/desired_program_model/production_adapters.py:2017:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/desired_program_model/production_adapters.py:2018:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/desired_program_model/production_adapters.py:2020:                manifest.get("complexity_delta") is not None
+specs/desired_program_model/production_adapters.py:2021:                and manifest.get("retention_evidence") is not None
+specs/desired_program_model/production_adapters.py:2037:                (validated_entry.get("delta") or {}).get("direction")
+specs/desired_program_model/production_adapters.py:2038:                if isinstance(validated_entry.get("delta"), dict)
+specs/desired_program_model/production_adapters.py:2043:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/desired_program_model/production_adapters.py:2047:                validated_entry.get("validated_refactor")
+specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py:27:    return set(re.findall(r"^\\\* @command (\w+)", text, flags=re.MULTILINE))
+specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py:32:    return set(re.findall(r"^\[adapters\.(\w+)\]", text, flags=re.MULTILINE))
+specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py:185:    # A ticket already Opened(1) in the before-state is not enabled for
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:133:    # A ticket already at DesiredReady(2) is not enabled for UpdateTicketDesired.
+specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:138:    assert "enabled only" in reason
+specs/program_model/adapter_case_runtime.py:78:#: independently flagged exactly this pair ("no configured invariant reads
+specs/program_model/adapter_case_runtime.py:144:    spec_root_token = str(before.get("spec_root", "NoRoot"))
+specs/program_model/adapter_case_runtime.py:198:    ticket_state = dict(before.get("ticket_state") or {})
+specs/program_model/adapter_case_runtime.py:260:    prior_result = dict(prior.get("result") or {})
+specs/program_model/adapter_case_runtime.py:263:        "reason": prior_result.get("reason", "NoReason"),
+specs/program_model/adapter_case_runtime.py:267:        "next": prior_result.get("next"),
+specs/program_model/adapter_case_runtime.py:330:    disagreements = comparison.get("disagreements") or []
+specs/program_model/adapter_case_runtime.py:492:    before = dict(getattr(case, "before").get("ticket_state") or {})
+specs/program_model/adapter_case_runtime.py:493:    after = dict(getattr(case, "after").get("ticket_state") or {})
+specs/program_model/production_adapters.py:94:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/program_model/production_adapters.py:97:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/program_model/production_adapters.py:125:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/program_model/production_adapters.py:126:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/program_model/production_adapters.py:211:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/program_model/production_adapters.py:294:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/program_model/production_adapters.py:384:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/program_model/production_adapters.py:491:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/program_model/production_adapters.py:540:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/program_model/production_adapters.py:670:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/program_model/production_adapters.py:671:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/program_model/production_adapters.py:674:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/program_model/production_adapters.py:705:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/program_model/production_adapters.py:706:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/program_model/production_adapters.py:972:        first_filed = first_manifest.get("feedback_filed")
+specs/program_model/production_adapters.py:973:        second_filed = second_manifest.get("feedback_filed")
+specs/program_model/production_adapters.py:974:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/program_model/production_adapters.py:1153:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/program_model/production_adapters.py:1393:        # refuses, and there is no over-budget override flag to honor.
+specs/program_model/production_adapters.py:1859:        survivors = surv_payload.get("surviving_mutants", [])
+specs/program_model/production_adapters.py:1865:            "pass_verdict": pass_payload.get("verdict"),
+specs/program_model/production_adapters.py:1867:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/program_model/production_adapters.py:1868:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/program_model/production_adapters.py:1870:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/program_model/production_adapters.py:1873:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/program_model/production_adapters.py:1875:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/program_model/production_adapters.py:1876:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/program_model/production_adapters.py:1878:            "waived_verdict": waived_payload.get("verdict"),
+specs/program_model/production_adapters.py:1881:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/program_model/production_adapters.py:1882:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/program_model/production_adapters.py:1886:                waived_payload.get("ignored_suppression_keys")
+specs/program_model/production_adapters.py:1889:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/program_model/production_adapters.py:1890:            "survivor_names_action": pointer.get("refine_action"),
+specs/program_model/production_adapters.py:1891:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/program_model/production_adapters.py:1896:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/program_model/production_adapters.py:2001:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/program_model/production_adapters.py:2003:                if candidate.get("scope_id") == validated_ticket:
+specs/program_model/production_adapters.py:2016:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/program_model/production_adapters.py:2017:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/program_model/production_adapters.py:2018:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/program_model/production_adapters.py:2020:                manifest.get("complexity_delta") is not None
+specs/program_model/production_adapters.py:2021:                and manifest.get("retention_evidence") is not None
+specs/program_model/production_adapters.py:2037:                (validated_entry.get("delta") or {}).get("direction")
+specs/program_model/production_adapters.py:2038:                if isinstance(validated_entry.get("delta"), dict)
+specs/program_model/production_adapters.py:2043:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/program_model/production_adapters.py:2047:                validated_entry.get("validated_refactor")
+specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py:27:    return set(re.findall(r"^\\\* @command (\w+)", text, flags=re.MULTILINE))
+specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py:32:    return set(re.findall(r"^\[adapters\.(\w+)\]", text, flags=re.MULTILINE))
+specs/program_model/tests/test_tla_spec_dev_case_execution_run.py:185:    # A ticket already Opened(1) in the before-state is not enabled for
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:133:    # A ticket already at DesiredReady(2) is not enabled for UpdateTicketDesired.
+specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py:138:    assert "enabled only" in reason
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:13: * CLI flag — either an inline JSON blob or an {@code @<path>} reference.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:63:        List<Map<String, Object>> items = Json.asObjectList(root.get("items"));
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:66:            String nodeId = (String) raw.get("nodeId");
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:67:            Map<String, String> data = Json.asStringMap(raw.get("data"));
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:74:    public NodeSpec rerun(boolean enabled)           { this.rerun = enabled; return this; }
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py:39:        ContextItem(node_id=it["nodeId"], data=dict(it.get("data", {})))
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py:40:        for it in payload.get("items", [])
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:64:    def rerun(self, enabled: bool = True) -> "NodeSpec":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:75:        self._rerun = bool(enabled)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_cleanup.py:29:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:31:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:32:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:33:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:79:        "manifest records replace promotion": manifest.get("promotion", {}).get("operation") == "replace project current with ticket desired and merge ticket artifacts into project specs",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:117:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:118:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:119:    ticket_dir = Path(ctx.get("spec.workflow.start", "ticketDir") or repo / "specs" / "tickets" / ticket_id)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:34:    cli_path = Path(ctx.get("spec.cli.install", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:69:    for node_summary in summary.get("nodes", []):
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:70:        if node_summary.get("nodeId") == node_id:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:77:    source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "").resolve()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:82:    gradle_opts = env.get("GRADLE_OPTS", "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:102:    repo_path = Path(repo_node.get("published", {}).get("repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:111:        .assertion("repo allocation node passed", repo_node.get("status") == "passed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:112:        .assertion("forced downstream failure was captured", failure_node.get("status") == "failed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:113:        .assertion("cleanup finalizer ran after failure", cleanup_node.get("status") == "passed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_force_failure.py:26:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:48:    cli = Path(ctx.get("spec.cli.install", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:13: * CLI flag — either an inline JSON blob or an {@code @<path>} reference.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:63:        List<Map<String, Object>> items = Json.asObjectList(root.get("items"));
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:66:            String nodeId = (String) raw.get("nodeId");
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:67:            Map<String, String> data = Json.asStringMap(raw.get("data"));
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:74:    public NodeSpec rerun(boolean enabled)           { this.rerun = enabled; return this; }
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py:39:        ContextItem(node_id=it["nodeId"], data=dict(it.get("data", {})))
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py:40:        for it in payload.get("items", [])
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:64:    def rerun(self, enabled: bool = True) -> "NodeSpec":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:75:        self._rerun = bool(enabled)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_cleanup.py:29:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:31:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:32:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:33:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py:79:        "manifest records replace promotion": manifest.get("promotion", {}).get("operation") == "replace project current with ticket desired and merge ticket artifacts into project specs",
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:117:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:118:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py:119:    ticket_dir = Path(ctx.get("spec.workflow.start", "ticketDir") or repo / "specs" / "tickets" / ticket_id)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py:34:    cli_path = Path(ctx.get("spec.cli.install", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:69:    for node_summary in summary.get("nodes", []):
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:70:        if node_summary.get("nodeId") == node_id:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:77:    source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "").resolve()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:82:    gradle_opts = env.get("GRADLE_OPTS", "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:102:    repo_path = Path(repo_node.get("published", {}).get("repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:111:        .assertion("repo allocation node passed", repo_node.get("status") == "passed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:112:        .assertion("forced downstream failure was captured", failure_node.get("status") == "failed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py:113:        .assertion("cleanup finalizer ran after failure", cleanup_node.get("status") == "passed")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_force_failure.py:26:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py:48:    cli = Path(ctx.get("spec.cli.install", "cliPath") or "")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:13: * CLI flag — either an inline JSON blob or an {@code @<path>} reference.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:104:        val path = System.getenv("PATH") ?: return null
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:63:        List<Map<String, Object>> items = Json.asObjectList(root.get("items"));
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:66:            String nodeId = (String) raw.get("nodeId");
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java:67:            Map<String, String> data = Json.asStringMap(raw.get("data"));
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:74:    public NodeSpec rerun(boolean enabled)           { this.rerun = enabled; return this; }
+test_graph/sdk/python/src/testgraphsdk/context_item.py:39:        ContextItem(node_id=it["nodeId"], data=dict(it.get("data", {})))
+test_graph/sdk/python/src/testgraphsdk/context_item.py:40:        for it in payload.get("items", [])
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:64:    def rerun(self, enabled: bool = True) -> "NodeSpec":
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:75:        self._rerun = bool(enabled)
+test_graph/sources/spec_workflow_cleanup.py:29:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_close_ticket.py:31:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_close_ticket.py:32:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+test_graph/sources/spec_workflow_close_ticket.py:33:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+test_graph/sources/spec_workflow_close_ticket.py:42:    # no bypass flag -- so the graph fills it and then goes through the real gate.
+test_graph/sources/spec_workflow_close_ticket.py:85:        ledger_entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+test_graph/sources/spec_workflow_close_ticket.py:90:        bool(latest.get("delta")) and bool(latest.get("retention")),
+test_graph/sources/spec_workflow_close_ticket.py:94:        (latest.get("refinement") or {}).get("outcome") in {"found", "none"},
+test_graph/sources/spec_workflow_close_ticket.py:96:    result.assertion("ledger entry verdict is recorded", latest.get("verdict") == "recorded")
+test_graph/sources/spec_workflow_close_ticket.py:120:        "manifest records replace promotion": manifest.get("promotion", {}).get("operation") == "replace project current with ticket desired and merge ticket artifacts into project specs",
+test_graph/sources/spec_workflow_complete_ticket.py:117:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_complete_ticket.py:118:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+test_graph/sources/spec_workflow_complete_ticket.py:119:    ticket_dir = Path(ctx.get("spec.workflow.start", "ticketDir") or repo / "specs" / "tickets" / ticket_id)
+test_graph/sources/spec_workflow_create_repo.py:34:    cli_path = Path(ctx.get("spec.cli.install", "cliPath") or "")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:69:    for node_summary in summary.get("nodes", []):
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:70:        if node_summary.get("nodeId") == node_id:
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:77:    source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "").resolve()
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:82:    gradle_opts = env.get("GRADLE_OPTS", "")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:102:    repo_path = Path(repo_node.get("published", {}).get("repoPath") or "")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:111:        .assertion("repo allocation node passed", repo_node.get("status") == "passed")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:112:        .assertion("forced downstream failure was captured", failure_node.get("status") == "failed")
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:113:        .assertion("cleanup finalizer ran after failure", cleanup_node.get("status") == "passed")
+test_graph/sources/spec_workflow_force_failure.py:26:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_spec_units.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_spec_units.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+test_graph/sources/spec_workflow_spec_units.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+test_graph/sources/spec_workflow_start_ticket.py:27:    repo = Path(ctx.get("spec.workflow.repo", "repoPath") or "")
+test_graph/sources/spec_workflow_start_ticket.py:28:    ticket_id = ctx.get("spec.workflow.repo", "ticketId") or "FLOW-1"
+test_graph/sources/spec_workflow_start_ticket.py:29:    cli_path = Path(ctx.get("spec.workflow.repo", "cliPath") or "")
+test_graph/sources/tla_spec_dev_cli_help.py:48:    cli = Path(ctx.get("spec.cli.install", "cliPath") or "")
+test_graph/sources/tla_spec_dev_cli_install.py:30:        os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
+tests/conftest.py:4:That is deliberate and there is no bypass flag, so tests that exercise the
+tests/corpus_fixtures.py:34:  reachable before-states -> **action enabled across equivalent states**.
+tests/test_analyze_complexity.py:653:def test_dead_weight_flagged_only_when_a_justification_table_is_present(
+tests/test_analyze_complexity.py:678:def test_a_fully_linked_table_flags_nothing(tmp_path: Path) -> None:
+tests/test_analyze_complexity.py:791:def test_generated_drop_at_constant_distinct_states_is_a_red_flag() -> None:
+tests/test_analyze_complexity.py:807:def test_a_drop_accompanied_by_fewer_distinct_states_is_not_a_red_flag() -> None:
+tests/test_analyze_complexity.py:863:    # The old refusal and its override flag are gone entirely.
+tests/test_analyze_complexity.py:868:def test_case_generation_has_no_over_budget_override_flag(tmp_path: Path) -> None:
+tests/test_analyze_complexity.py:870:    result = run_generation(tmp_path, "--allow-over-budget")
+tests/test_analyze_complexity.py:871:    # argparse rejects the removed flag: this is a usage error, not a bypass.
+tests/test_complexity_ledger.py:238:# The self-loop red flag (MF-020)
+tests/test_complexity_ledger.py:252:    def test_red_flag_is_accepted_only_with_an_inspected_transition_diff(self):
+tests/test_complexity_ledger.py:261:    def test_generated_drop_with_state_change_is_not_red_flagged(self):
+tests/test_complexity_ledger.py:410:    def test_mf020_withdrawn_projection_is_caught_by_the_red_flag(self):
+tests/test_complexity_ledger.py:415:        (21) were unchanged. This is the case the red flag exists for.
+tests/test_complexity_ledger.py:814:    comparison recorded, transition-level diff inspected when the red flag
+tests/test_complexity_ledger.py:895:    def test_red_flag_gate_is_retained_exactly_as_is(self):
+tests/test_complexity_ledger.py:909:    def test_red_flag_still_accepted_only_with_the_transition_diff(self):
+tests/test_corpus_diagnostics.py:113:def test_there_is_no_distill_flag_on_any_entry_point() -> None:
+tests/test_corpus_diagnostics.py:117:        for flag in ("--distill", "--trim", "--sample", "--prune", "--max-cases"):
+tests/test_corpus_diagnostics.py:118:            assert flag not in text, f"{script} offers {flag}; opt-in filtering is forbidden"
+tests/test_corpus_diagnostics.py:234:def test_diagnoses_action_enabled_across_equivalent_states(failing_report: cd.CorpusReport) -> None:
+tests/test_corpus_diagnostics.py:236:    assert group.cause == "action enabled across equivalent states"
+tests/test_effect_conformance_runner.py:129:    ``UndeclaredEffectAdapter`` but carries an ``out_of_contract`` flag, a
+tests/test_effect_conformance_runner.py:131:    ``allow_undeclared`` flag. The run must fail exactly as if none of them
+tests/test_effect_conformance.py:292:    def test_allow_undeclared_flag_in_manifest_does_not_suppress(self):
+tests/test_effect_conformance.py:355:    block are reported. Conflating the two would flag every manifest in the
+tests/test_effect_conformance.py:359:    def test_mf011_variable_justification_table_is_not_flagged(self):
+tests/test_effect_conformance.py:366:    def test_suppression_inside_the_effects_block_is_flagged(self):
+tests/test_effect_conformance.py:688:    def test_allow_unobservable_flag_does_not_downgrade(self):
+tests/test_effect_conformance.py:751:        for forbidden in ("config", "flag", "os.environ", "getattr(", "manifest", "if "):
+tests/test_effect_conformance.py:764:    def test_cli_exposes_no_downgrade_flag(self):
+tests/test_effect_conformance.py:765:        """The reporting command must not grow an opt-out flag."""
+tests/test_effect_conformance.py:770:            "--allow-unobservable",
+tests/test_effect_conformance.py:773:            "--no-observability",
+tests/test_effect_conformance.py:788:# refuse. The observation is positive evidence, never a downgrade flag.
+tests/test_effect_conformance.py:952:        on a flag.
+tests/test_effect_conformance.py:977:    def test_out_of_process_is_evidence_not_a_flag(self):
+tests/test_infer_action_params.py:434:    """CD-09 (G2): the withdrawn --allow-over-budget override left the model.
+tests/test_kill_test.py:419:    def test_the_cli_exposes_no_flag_that_waives_the_floor(self) -> None:
+tests/test_kill_test.py:423:        help text -- the module docstring names the flags it refuses to have,
+tests/test_kill_test.py:437:            "--allow-below-floor",
+tests/test_kill_test.py:440:            "--allow-survivors",
+tests/test_kill_test.py:445:            "--no-gate",
+tests/test_kill_test.py:446:            "--allow-over-budget",
+tests/test_kill_test.py:911:    def test_there_is_no_flag_that_skips_the_control(self) -> None:
+tests/test_kill_test.py:921:        assert not (registered & {"--skip-control", "--no-control", "--assume-green"})
+tests/test_testgraph_channels.py:522:def test_runner_enforces_without_the_view_flag(tmp_path: Path) -> None:
+tests/test_testgraph_channels.py:604:    for flag in ("--skip-channel", "--allow-in-process", "--no-channel-check"):
+tests/test_testgraph_channels.py:605:        assert flag not in text, f"export offers {flag}; a gate with a bypass is not a gate"

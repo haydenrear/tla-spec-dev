@@ -1,0 +1,29 @@
+# VAL-01 evidence: manifest-embedded fitness rules under bare python3 (no PyYAML)
+# Captured 2026-07-22 on the CD-07 branch.
+#
+# Interpreter check:
+$ python3 -c 'import yaml'  ->  ModuleNotFoundError: No module named 'yaml'
+#
+# Manifest (specs/program_model/spec_manifest.yaml) carries a per-docs budgets
+# block (no kill_rate_floor / max_symmetric_instances) plus:
+#   fitness_functions:
+#     - name: bound-stays-small
+#       rule: {fact: bound, op: '<=', value: 2000}
+#
+# Command:
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity specs/program_model/Small.tla specs/program_model/MC.cfg
+# exit code: 0
+#
+# ---- stderr (VERBATIM; also the VAL-02 evidence: empty -- a per-docs budgets
+# block produces no missing-keys warning for the retired fuzzing-era keys) ----
+# ---- stdout fitness section (VERBATIM) ----
+[CONFIGURED] Fitness functions (self-configured; advisory -- report, never block)
+  sources: spec_manifest.yaml (fitness_functions:)
+  CONFIG ERROR: spec_manifest.yaml: the 'fitness_functions:' block needs PyYAML, which is unavailable under this python -- the fallback manifest parser cannot read rule leaves. Move the rules to fitness_functions.json (standard library) next to the spec.
+
+# ---- before the fix (recorded in VAL-01, examples/validation/runs/ex3-run1/scoring.md) ----
+#   INVALID: bound-stays-small -- rule node needs one of 'fact', 'all', 'any', 'not'; got keys ['{fact']
+#
+# CD-02-DF-01 evidence: the same model with NO manifest at all now warns:
+warning: no manifest supplied (no --manifest and no spec_manifest.yaml next to the spec); using documented default budgets (references/modular_fuzzing.md)
+# (previously: "warning: no readable spec manifest at does-not-exist; ...")

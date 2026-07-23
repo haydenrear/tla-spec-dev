@@ -1,0 +1,111 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket MF-028",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "one generated case executes end to end against one real adapter, with actual command output recorded as evidence -- not a unit test standing in for a run.",
+        "the written account is specific enough to scope the remaining fifteen; what was straightforward and what would differ for an adapter mutating more state are both named.",
+        "difficulty bands cover all fifteen remaining adapters with a reason for each.",
+        "if the current adapter design cannot support case execution without redesign, that is stated plainly as the result.",
+        "if the single case cannot be made to run at all, where it stops and why is reported with output, and no partial machinery is built to disguise a blocked spike.",
+        "out of scope and untouched -- the other fifteen adapters, EXTENDS resolution, analyze corpus OOM, the component-metric design question, the silent default, the alphabetical model pick."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-028"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "MF-023"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/program_model/production_adapters.py"
+      ],
+      "production": [
+        "specs/program_model/production_adapters.py",
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "one adapter made case-executable as a proof of cost"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "MF-026"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/51",
+    "id": "MF-028",
+    "implementation_scope": [
+      "one adapter in specs/program_model/production_adapters.py",
+      "scripts/run_generated_case_adapters.py only as needed to run the single case"
+    ],
+    "objective": "INVESTIGATION TICKET -- the deliverable is a measured answer, not a finished feature. MF-023 dogfooding found that no adapter can execute a generated case (FINDING 4). run_generated_case_adapters.py drives each case through an adapter run(case, ...); all 16 adapter classes implement apply(target_repo, ...) and not one implements run. The two paths never met -- the spec-unit suite calls apply() directly, so the adapters are thoroughly tested and simultaneously unreachable from the corpus, and case execution was deferred in every ticket of this epic so no run crossed the seam. THREE OF FOUR ORACLES THEREFORE PRODUCE NO SIGNAL AT ALL -- effect conformance reports 0 observed effects over 40 cases with all 5 ports dead, the kill test cannot compute a rate, and corpus distillation has nothing real to distil; output and projected-state conformance are blocked by the same root cause. A generated case carries a before-state, an action and an expected after-state, so run() must MATERIALIZE AN ARBITRARY BEFORE-STATE, execute, and project the result -- for a CLI whose state is a filesystem tree plus a manifest that means constructing a repository already in that state. Nobody knows what that costs per adapter, it is the largest remaining item, and everything else waits behind it, so it is measured ONCE before five or six tickets are scoped against a guess. Deliverable is one adapter executing one case end to end, a written account specific enough to scope the other fifteen, per-adapter difficulty bands with reasons, and a recommendation on shape (run() shim over apply(), shared before-state builder, per-adapter rewrite, or a design the adapters cannot support without change). A blocked spike reporting where it stops and why is a legitimate result. See tickets/028-case-execution-spike.md.",
+    "promotion_order": 83,
+    "promotion_predecessor": "MF-026",
+    "schedule_revision": 1,
+    "status": "pending",
+    "title": "Spike -- make one adapter execute one generated case",
+    "wave": 9
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/tickets/MF-028",
+  "ticket_id": "MF-028",
+  "ticket_index": 14,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-51-mf028-case-execution-spike/specs/tickets"
+}

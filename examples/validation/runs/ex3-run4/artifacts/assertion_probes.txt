@@ -1,0 +1,19 @@
+# Provider assertion kill probes (2026-07-22)
+# A green campaign only counts if the assertions bite. Two temporary bugs were
+# seeded into order_hub.py, each confirmed killed, then the file was restored
+# byte-identically (verified: no PROBE marker remains; tests 6/6 green).
+
+Probe 1 -- dropped effect: _audit incremented audit_log but skipped on_audit.
+  Command: run spec-unit-tests --fuzz-runs 1 --seed 20260722 --limit 3
+  Result: EFFECT_FUZZ_FAILURE
+    "audit count violated: journal holds 0 entries but the modeled auditLog is 1 (before=0)"
+  Killed by: provider count assertion (assert_complete).
+
+Probe 2 -- wrong content: ship_order audited as "place_order".
+  Command: run spec-unit-tests --fuzz-runs 1 --seed 20260722 --label ShipOrder --limit 3
+  Result: EFFECT_FUZZ_FAILURE
+    "audit content violated: operation='place_order' but the modeled action ShipOrder audits as 'ship_order'"
+  Killed by: provider per-entry content assertion (record).
+
+Recorded campaign (validation_artifacts/campaign.txt) ran on the unmodified
+app: 716 cases x 5 iterations = 3580 effect-fuzz execution points, exit 0.

@@ -1,0 +1,1334 @@
+# Canonical plan for the modular-fuzzing epic. GitHub issues mirror this file
+# for handoff; this file remains the source of truth. Dispatched ticket IDs,
+# dependency edges, waves, and promotion order are immutable after issue
+# assignment — add amendment tickets instead of editing dispatched identities.
+version: 1
+name: modular-fuzzing-epic
+updated: "2026-07-18"
+purpose: "Mechanize the modular pure-function/side-effect fuzzing doctrine (references/modular_fuzzing.md) in the tla-spec-dev CLI: per-program budgets, complexity analysis gates, corpus distillation, effect conformance, External channel enforcement, mutation kill tests, and the skill feedback loop."
+
+epic:
+  id: modular-fuzzing
+  branch: epic/modular-fuzzing
+  default_branch: main
+  base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
+  schedule_revision: 10
+  review_mode: epic-owner-post-merge
+  notes: >
+    Per repository-owner direction, ticket agents merge their reviewed-green
+    feature branch into epic/modular-fuzzing themselves after validation and
+    ticket close; the epic owner reviews post-merge and prepares the next
+    ticket. The epic owner closes GitHub issues; ticket agents never do.
+    2026-07-17: MF-011 amended (schedule_revision 2) before start to add
+    tractability diagnostics per references/architecture_tractability.md;
+    architectural moves are recommendations requiring user approval.
+    2026-07-17: MF-019 added (complexity minimization objective, wave 8,
+    promotion after MF-017); MF-011 bumped to revision 3 and MF-016 to
+    revision 2 for the new reverse blocks edges. The standing objective and
+    recursive refinement loop doctrine landed in
+    references/architecture_tractability.md and SKILL.md.
+    2026-07-18: epic schedule_revision bumped to 2 (per desired_sync_rule,
+    for the MF-019 addition). Issues #12/#14/#15/#16/#18 backfilled with the
+    standing-objective close-out instruction and an
+    architecture_tractability.md reference — their bodies predated the
+    doctrine; per-ticket schedule revisions unchanged (no compared
+    scheduling fields changed).
+    2026-07-18: MF-012 accepted and closed at post-merge review (merge
+    fb79bc5). Its complexity ledger surfaced an architectural move that the
+    owner approved: MF-020 added (ticket_phase ordinal collapse) at
+    promotion_order 15, between MF-012 and MF-011, so the analyze-complexity
+    gate is calibrated against the retained model shape. MF-011 bumped to
+    revision 4 (depends_on gains MF-020; promotion_predecessor MF-012 ->
+    MF-020). Waves of already-dispatched tickets deliberately NOT renumbered:
+    promotion_order is the real serialization and its gaps of 10 exist for
+    insertion, so only MF-011's assignment needed re-rendering.
+    2026-07-18: MF-020 accepted and closed at post-merge review (merge
+    690b7389). Variables 13 -> 11 and declared bound 3,145,728 -> 393,216 at
+    identical 919 reachable states and depth 21. IMPORTANT CORRECTION: the
+    projected -13.1% generated-states reduction (originating in the MF-012
+    ledger, propagated into tickets/020 and issue #21) was WITHDRAWN as
+    erroneous. Reproducing it required tightening the RunSpecUnitTests guard
+    from >= 2 to = 2, deleting a legitimate idempotent re-fire transition —
+    a behavior change, not a re-representation. Generated states are
+    unchanged at 3,664. The distinct-state gate is structurally blind to
+    deleted self-loops, so MF-011 and MF-019 must treat projected reductions
+    as unverified until the transition-level diff is inspected; a
+    generated-states drop at constant distinct states is a red flag, not a
+    win. Known desync: specs/program_model/spec_manifest.yaml still names the
+    three collapsed booleans (frozen accepted baseline, promoted wholesale at
+    epic finalization) — must be reconciled there.
+    2026-07-18: MF-021 added at promotion_order 17, before MF-011, per owner
+    direction to fix the promotion data-loss defect (GitHub #22) before any
+    further model refactor runs that gauntlet. Root cause located:
+    replace_tree rmtree's specs/current before copying the ticket desired/
+    tree, and desired/ is seeded from a different source than current/, so
+    current-only files are destroyed silently. It has now fired on two
+    consecutive tickets and destroyed the sole copy of a prior ticket's
+    regression test. MF-011 bumped to revision 5 (depends_on gains MF-021;
+    promotion_predecessor MF-020 -> MF-021). The setup_phase collapse
+    (11 -> 7 variables, bound 393,216 -> 73,728 at identical 919/21, found
+    and measured by the MF-020 agent) remains an open owner decision,
+    deliberately deferred until promotion is safe.
+    2026-07-18: MF-022 accepted and closed at post-merge review (merge
+    2095b11). max_state_space_bound added at 1,000,000 and the static bound
+    gated against it; setup_phase collapse landed 12 -> 8 variables with bound
+    1,179,648 -> 221,184 at identical 18,720 generated / 2,923 distinct /
+    depth 23. The chosen default was NOT gamed: 1,000,000 is BELOW the
+    repository's own bound at the time it was chosen, so the honest default
+    failed the host repo and passes only after the genuine structural
+    reduction. THIRD SPEC-LEVEL ERROR (mine): MF-022's acceptance criteria
+    required both "analyze complexity PASSES" and "the component heuristics
+    still fire", which cannot both hold because the surviving C1 finding IS a
+    gate violation; the agent correctly escalated instead of suppressing.
+    OPEN CONSEQUENCE: enforce_budget_gate refuses on the whole gate verdict,
+    so C1 (11 actions vs max_component_actions 8) still blocks case
+    generation and therefore MF-014.
+    OWNER DIRECTION 2026-07-18: the Internal/External decomposition moves IN
+    scope but is scheduled LAST, as MF-023 at promotion_order 85, to be
+    performed by running the finished toolchain on this repository itself —
+    making it the epic's end-to-end dogfooding acceptance test rather than a
+    hand migration. C1 is therefore a true finding that MF-023 resolves at the
+    root, not a miscalibration to tune away.
+    2026-07-18: MF-017 promoted from promotion_order 70 to 28, directly after
+    MF-022, per owner direction following the spec-case execution deferral. It
+    is the only remaining ticket whose validation is unaffected by that
+    deferral: it emits a skill_feedback.md close-out template and is fully
+    testable with unit tests and the repository test graphs, whereas MF-014,
+    MF-013, MF-015 and MF-016 all validate by running generated cases. Second
+    reason: MF-017 is the mechanism that CAPTURES surviving mutants,
+    unmodelable effects, budget adjustments and CLI workarounds — and MF-023
+    is the ticket that will generate that material in volume, so the capture
+    mechanism should exist well before the dogfooding run rather than
+    immediately before it. MF-017 bumped to revision 2 (wave 7 -> 3,
+    promotion_order 70 -> 28, promotion_predecessor MF-016 -> MF-022);
+    MF-014 to revision 3 (promotion_predecessor MF-022 -> MF-017); MF-019 to
+    revision 2 (promotion_predecessor MF-017 -> MF-016). Open question for
+    when MF-019 is reached: its depends_on MF-016 exists so the anti-gaming
+    check can consume kill-rate evidence, but with kill-test RUNS deferred to
+    MF-023 that edge may now only require the mechanism to exist, not the
+    evidence — revisit rather than assume.
+    2026-07-19: MF-027 accepted by epic owner and repository owner (merge
+    e605920). The effect oracle now refuses targets it cannot observe rather
+    than reporting clean. The load-bearing design choice is POLARITY --
+    observability is granted only on positive evidence (adapter resolved to a
+    live Python object and called in-process), so every runtime nobody
+    enumerated refuses rather than silently passing; defaulting to observable
+    with a refusal list would have been the original defect wearing a longer
+    list. Verified -- 315 unit tests, 29 observability tests, the
+    unrecognised-runtime-defaults-to-refusal test, TLC 1,067,828 generated /
+    49,875 distinct / depth 24, bound 174,960, 8 variables unchanged. The
+    negotiated max_distinct_states 500000 and all its rationale comments
+    survived promotion, avoiding the SF-003 silent revert that would have
+    breached the cap on the next ticket.
+    It applied the standing objective against its own interest -- the
+    refinement search found that collapsing the three failure verdicts gives
+    26,607 distinct, 47% below this ticket and 30% below the epic baseline,
+    MEASURED by real TLC run rather than projected, and REFUSED to apply it
+    because it deletes externally-visible result.next distinctions, i.e. a
+    complexity reduction bought by dropping a boundary. Recorded as an
+    owner-approval recommendation with the number in hand.
+    Non-zero model delta, departing from three consecutive zero-delta tickets,
+    but it widened an existing enumerated domain 4 -> 5 rather than adding a
+    variable, so variables stayed at 8 and the bound moved exactly x5/4.
+    CONSEQUENCE FOR MF-023 -- this repository declares two process.spawn ports,
+    so a real corpus sweep will now report unobservable rather than clean. That
+    is accurate, since the harness genuinely cannot see inside java/pytest
+    children. MF-023 must route those through in-process adapters or record it
+    as a known limitation, NOT by relaxing the rule. Follow-up #44 opened for
+    JVM-capable observation as a separate implementation.
+    2026-07-19: max_distinct_states NEGOTIATED 50000 -> 500000 by owner
+    decision, recorded in specs/current/spec_manifest.yaml with its derivation.
+    Trigger -- after MF-013 the model sits at 38,241 distinct states, 76.5% of
+    the 50000 cap, and ANY further gate breaches it (even a 2x reaches 76,482).
+    Unlike the declared-bound trajectory MF-025 resolved, this is actual
+    reachable states against the real gate, and the obvious reduction was
+    already measured and correctly REJECTED by the MF-013 agent as
+    under-representation. The structural fix is decomposition, which is MF-023
+    and scheduled last by design because it dogfoods the finished toolchain.
+    The raise is DERIVED, not chosen to fit -- TLC completes this model in 2s
+    at ~19,120 distinct/sec, so ~2,294,400 are reachable inside the 120s
+    tlc_seconds budget, halved to ~1,147,200 for throughput decay; the epic
+    remaining worst case is ~344,169; 500000 sits 1.5x above that trajectory
+    and 4.6x under the measured ceiling at ~26s. The 50000 default was
+    MF-012 generic, never calibrated to this program, and TLC wall time -- the
+    real constraint -- is nowhere near binding. REVISIT AT MF-023 when
+    decomposition gives each component a much smaller state space.
+    NOTE the budgets block lives ONLY in specs/current/spec_manifest.yaml,
+    which promotion overwrites from a ticket desired/ tree. That is the SF-003
+    blind spot (#32), so every subsequent ticket must carry this negotiated
+    value through its own desired/ and verify it survived promotion.
+    EPIC-OWNER REVIEW MISS (mine): I accepted MF-015 without parsing its
+    spec_manifest.yaml, which was invalid YAML at 1dcce07. budgets.load_budgets
+    silently fell back to defaults on every analyze complexity run until MF-013
+    found it. No verdict was wrong because declared equalled default, but a
+    raised budget would have been ignored -- exactly the risk now that one is
+    raised. This was the second YAML-validity failure of the epic and the first
+    was my own broken ticket_plan.yaml, after which I added the habit for that
+    one file and failed to generalise. Closed structurally by
+    tests/test_spec_yaml_valid.py, which parses every YAML under specs/
+    (excluding the append-only .history tree) and is verified to catch the real
+    MF-015 break.
+    2026-07-19: MF-015 accepted by the epic owner AND by the repository owner
+    (merge 1dcce07). Channel required per Test Graph binding, an external block
+    declaring the production package and per-port double|real bindings with at
+    least one real, and a shared import-isolation module applied by BOTH entry
+    points so they cannot drift -- transitive static ast analysis covering
+    importlib.import_module and __import__. Verified independently -- 226 unit
+    tests, 3 import-proof tests, model unchanged at 7 variables and bound
+    34,992, and no pre-existing assertion removed or relaxed (661 insertions
+    against 4 deletions). Zero model delta accepted -- the gates sit on the
+    Test-Graph-invoked path, no modeled CLI command reads a bindings file, and
+    the entry conflict_keys corroborate by naming the two scripts and
+    deliberately not tla_spec_dev.py; modeling it would have meant inventing a
+    subcommand at 3x the bound for a variable with no invariant linkage. Third
+    consecutive ticket to record a deviation from a stale prescribed field
+    rather than invent a model change, which is issue #33 in action. Known
+    limitation queued for MF-023 -- the import check is proven against
+    fixtures, so MF-023 must confirm the transitive analysis raises no false
+    positive against the real adapter tree, where adapters legitimately import
+    spec_double_compiler.runtime while the production package is the CLI.
+    2026-07-18: MF-025 accepted and merged by the epic owner PRE-merge review
+    (merge cfadb40), the only ticket so far reviewed before landing rather
+    than after. Bound 663,552 -> 34,992 (18.96x), variables 9 -> 7, at
+    87,464 generated / 9,011 distinct / depth 24 -- IDENTICAL to the MF-014
+    baseline in all three figures, verified by the epic owner running TLC
+    directly on the PR model. Matching generated states is stronger than the
+    required gate and rules out a deleted self-loop. Measured bound equals
+    the independently derived 34,992 exactly. All 12 invariants retained by
+    name; named stage constants and derived ActiveTickets/ClosedTickets
+    operators keep the model reading as a lifecycle rather than arithmetic on
+    an integer, which was the owner's explicit concern.
+    The agent re-verified the premise rather than trusting it, with a
+    SixCombinationsOnly invariant across all 9,011 states plus reachability
+    probes for each ordinal -- proving the representation is neither lossy nor
+    padded. Its most valuable catch: the old gate invariants quantified
+    ticket_phase[t] >= 3, which CLOSED tickets also satisfied because close
+    left phase at 3, so mapping to an equality would have silently weakened
+    both gates. The faithful equivalent covers states 4 AND 5.
+    FIFTH SPEC-LEVEL ERROR (mine): issue #38 was created without the
+    git-epic-workflow:assignment block and without the owner deviation note
+    authorizing self-merge -- I reused the lighter format deliberately chosen
+    for MF-023 instead of the full block every dispatched ticket carries. The
+    agent correctly refused to self-merge and stopped at PR open, treating
+    missing authorization as a possible error rather than license. The owner
+    merged after review. Rendering the full assignment block is required for
+    every dispatched ticket.
+    NEW FINDING referred to MF-023, not worked around: collapsing the three
+    dissolved component C2 (which was exactly those three variables), so
+    ticket_state joins C1 and modularity Q falls 0.022 -> 0.000, with
+    analyze complexity now also reporting C1 has 7 variables > 6 alongside
+    the pre-existing 12 actions > 8. This is a metric artifact of the merge
+    rather than increased coupling -- three coupled variables became one.
+    Both are C1 decomposition, which is MF-023 scope; the gate was already
+    FAIL so its state is unchanged.
+    2026-07-18: MF-014 accepted and closed at post-merge review (merges
+    f2bffee and 344b15d). No case is dropped -- generation writes the complete
+    package then gates, export gates the COMPLETE corpus before any
+    --limit/--label selection, and no removal API or --distill flag exists
+    anywhere. Diagnostics distinguish ordering, symmetry and abstraction with
+    the evidence separating them; the accept path prints a paste-ready budgets
+    block with a rationale slot and no override.
+    FOURTH SPEC-LEVEL ERROR (mine): I told the ticket the 732-case corpus was
+    committed. It is not -- find reports 732 files on disk, git ls-files
+    reports 0 tracked, and the path is not even gitignored. I measured the
+    working directory and asserted a fact about the repository. The agent
+    reconstructed the documented distribution as a labelled fixture AND ran
+    against the genuinely committed 4-case corpus, which was the right
+    response.
+    MAJOR FINDING, VERIFIED: PyYAML is absent from the default python3
+    environment, so the hand-rolled fallback in extract_spec_manifest.py is
+    the ONLY parser, and it could not parse a wrapped list item in
+    specs/current/spec_manifest.yaml -- with the failure swallowed. Every
+    budget gate was silently reading defaults. Confirmed fixed: a manifest
+    carrying max_external_cases_per_action 777 now returns 777. Without this
+    MF-014 own accept path would have been a no-op.
+    BOUND TRAJECTORY WARNING: each gate ticket adds a 3-valued fact and
+    triples the declared bound. 221,184 -> 663,552 with MF-014. Currently
+    under the 1,000,000 max_state_space_bound, but a further gate takes it to
+    1,990,656 (BREACH) and another to 5,971,968. The deferred ticket_state
+    collapse (active_tickets/closed_tickets/ticket_phase into one ordinal,
+    measured 19x at the pre-MF-014 shape) is therefore no longer optional
+    housekeeping -- it is the refactor the standing objective demands before
+    more gates land. Note the 19x is MEASURED at the old shape and only
+    PROJECTED at the current one.
+    2026-07-18: degeneracy audit. Every hard rule had grown a documented
+    bypass, so architecture_tractability.md gained "No Degenerate Escapes" as
+    the governing section, stating the five owner rules and declaring they
+    outrank older conflicting text. modular_fuzzing.md amended -- Corpus
+    Discipline no longer says to distill (MF-014 rewritten to diagnostics and
+    hard caps), an undeclared observed effect FAILS with no annotation that
+    makes it acceptable, and dead model surface must be removed or exercised
+    rather than explained. MF-013 criteria amended in place -- out-of-contract
+    justifications withdrawn, nothing suppresses a gap report, and its test
+    inverted to prove a recorded justification does NOT prevent the failure.
+    SCOPE CORRECTION by owner, same day -- the audit over-corrected. The rule
+    is do not codify the ALLOWANCE OF BAD CASES; it is not remove every
+    override. An override someone types is an accepted cost, visible at the
+    call site. A filter that quietly runs is a hidden loss. --allow-over-budget,
+    the budgets fallback and the justification-table behavior all STAY. MF-024
+    (which proposed purging them from shipped code) is WITHDRAWN and its issue
+    closed; its residue -- confirming overrides are explicit, visible, recorded
+    and never the default path -- is absorbed into MF-023, where the toolchain
+    is actually driven end to end and where a silent default would show up.
+    MF-015 promoted to promotion_order 35, next after MF-014, on the same
+    reasoning that made MF-017 the right call under the spec-case execution
+    deferral -- its deliverables (channel field in the bindings schema, static
+    check that test-graph adapters cannot import the production package) are
+    verifiable now, whereas MF-013 is a runtime sandbox whose value is
+    inherently execution-shaped. Verified MF-015 does not need the External
+    view that arrives with MF-023; its scope is bindings and import isolation.
+    MF-015 -> revision 2, MF-013 -> revision 3 (predecessor MF-015), MF-016 ->
+    revision 3 (predecessor MF-013).
+    MF-019 depends_on MF-016 RESOLVED rather than left open -- the edge is
+    kept, because MF-019 reads the kill-rate evidence MF-016 defines and so
+    needs its schema to exist. The dependency is on the MECHANISM, not on
+    evidence from a run, which is consistent with the execution deferral.
+    2026-07-18: MF-017 accepted and closed at post-merge review (merge
+    7336036). Skill-feedback template ships with all four of the epic's real
+    findings round-tripping through it as asserted tests. Two field choices
+    exceed what was asked and are worth keeping as doctrine -- root_cause
+    (tool/spec/target), because this epic's most expensive findings were
+    correct implementations of WRONG SPECIFICATIONS that would otherwise be
+    filed against the code; and severity silent-data-loss, because the
+    promotion defect is not describable as friction. Emission is append-only
+    with read-back into manifest.json, and feedback_status none-found is a
+    first-class answer so silence records as unresolved.
+    ZERO MODEL DELTA accepted, deviating from this entry's prescribed
+    desired_actions EmitSkillFeedback / model_state skill_feedback (written
+    when the ticket sat at promotion_order 70). Close-out already exists as
+    CloseTicket; the feature adds a file effect and a history field, not a
+    command, guard, or branch, and filing status is recorded rather than
+    enforced. Precedent MF-021, same close path, same rationale. Verified
+    alternative cost -- a 3-valued fact would take the bound 221,184 ->
+    663,552 to represent a document field. Modeling filing status as state
+    would gate close and is a real behavior change; amendment ticket if
+    wanted. The deviation is recorded in the ticket entry outcome field.
+    The loop produced three findings on its first run, all verified and filed
+    as GitHub issues -- SF-003 (#32) promotion enumerates removed and
+    preserved but NOT overwritten, so an edit to specs/current is reverted
+    with no record, an incomplete transparency guarantee from MF-021;
+    SF-002 (#33) the plan's prescriptive desired_actions/model_state are
+    never reconciled against implementation, third instance after MF-011 and
+    MF-020, same root cause as the three recorded spec-level errors;
+    SF-001 (#34) scaffold workflow emits a one-ticket plan, so cross-close
+    behavior such as append-only accumulation cannot be tested without
+    hand-editing YAML, which the MF-019 ledger will hit too.
+    2026-07-18: MF-021 accepted and closed at post-merge review (merge
+    8a458f2). Promotion is now provenance-aware: `open ticket` records a
+    seed_manifest in ticket.yaml, and close partitions current-minus-desired
+    by whether the ticket was actually given the path. Seeded-then-dropped is
+    a real deletion decision and still propagates; never-seeded is preserved.
+    specs/current therefore remains a whole-program working copy rather than
+    an accumulating union. Regression test verified to FAIL against a
+    pre-fix shim (4 failed / 2 passed before, 6 passed after). Model delta
+    zero — preserve-and-enumerate changes promotion's file effect, not the
+    command state machine.
+    TOOLCHAIN INTEGRITY FINDING (epic-wide, surfaced by MF-021): the PATH
+    `tla-spec-dev` wrapper execs the installed skill clone, which tracks main
+    at da0a7ff — this epic's base_sha — so every lifecycle command run this
+    epic executed PRE-EPIC code. That is why the promotion defect destroyed
+    files on three separate closes, including once after the fix merged. The
+    MF-021 agent's recommended remedy (`skill-manager sync`) would NOT have
+    worked and would have produced false confidence: the installed clone
+    tracks main, and the epic does not reach main until finalization. All
+    remaining epic issues (#13-#19) and this plan were repinned to
+    `python3 scripts/tla_spec_dev.py`; see planning_rules.toolchain_rule.
+    Test evidence from prior tickets remains SOUND — pytest, the spec-unit
+    adapters, and the test_graph nodes all resolve to the repository
+    independently of PATH.
+    2026-07-18: MF-011 accepted and closed at post-merge review (merge
+    463c906). The analyze command reports its own gate FAILING on this
+    repository rather than tuning the budget to pass, applied MF-020's
+    self-loop lesson to its own idempotent AnalyzeComplexity transitions, and
+    independently derived the setup_phase collapse from the model alone
+    (393,216 -> 73,728 at 11 -> 7 variables), matching the figure MF-020
+    measured separately — real validation that the metric works. Complexity
+    rose 11 -> 12 variables and 919 -> 2923 distinct states, justified: the
+    gate is externally-visible behavior and the x3 is its 3-valued domain.
+    SECOND SPEC-LEVEL ERROR FOUND (same class as the withdrawn -13.1%): the
+    MF-011 spec instructed gating the static state-space upper bound against
+    max_distinct_states, but the quantities are incommensurable. On this
+    repository the bound is 1,179,648 while actual reachable distinct states
+    are 2,923 — a ~400x over-approximation — so the gate fails a model that
+    is 17x UNDER its own budget. Decisive: the tool's own recommended optimum
+    (setup_phase, bound 73,728) STILL fails the 50,000 budget. The
+    implementation was correct; the specification was wrong. MF-022 added at
+    promotion_order 25 to add a distinct max_state_space_bound and, per owner
+    decision, to bundle the approved setup_phase collapse into the same
+    model touch. MF-014 bumped to revision 2 (depends_on gains MF-022;
+    promotion_predecessor MF-011 -> MF-022) because corpus distillation needs
+    case generation, which the miscalibrated gate currently refuses.
+    Component-size heuristics are unaffected and working correctly.
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands (scaffold, analyze, generate, close) ARE program behavior for this repository.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
+  promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
+  case_execution_rule: Spec-case execution is DEFERRED epic-wide by owner direction 2026-07-18. Tickets build and unit-test their mechanisms but do not run generated spec cases, case generation over the reachable state graph, the distilled corpus, the effect-conformance sweep, or the mutation kill test. All such runs happen in MF-023, which performs the Internal/External decomposition by dogfooding the finished toolchain on this repository. Rationale -- runs made against the single-module baseline would be evidence about a model shape the epic intends to replace, and would have to be redone after the split. The surviving MF-011 gate finding (C1 touched by 11 actions vs max_component_actions 8) refuses case generation for exactly that reason -- it is a true finding about the undecomposed baseline, not a miscalibration, and must NOT be worked around with --allow-over-budget or by renegotiating the component budgets. Validate with unit tests, adapter tests, fixtures, and the repository test graphs instead, and record per ticket which validations were deferred to MF-023.
+  toolchain_rule: Never invoke the PATH `tla-spec-dev` wrapper for this epic. It execs ~/.skill-manager/skills/spec-double-compiler, a separate clone tracking main and pinned at da0a7ff (this epic's base_sha), so it runs pre-epic behavior and contains none of the epic's work. `skill-manager sync` does NOT fix this, because the installed clone tracks main and the epic does not reach main until finalization. Use `python3 scripts/tla_spec_dev.py --spec-root specs ...` from the repository root for every lifecycle command. The automated layers (pytest, spec-unit adapters via production_adapters.py, test_graph nodes) already resolve to the repository and need no change. Revisit at epic finalization, when merging to main makes the installed clone correct again.
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-016
+  active_ticket_title: "Mutation kill test"
+  desired_module: TlaSpecDevCli
+  phase: implementation
+
+service_catalog:
+  existing_boundaries:
+    - tla-spec-dev CLI (scaffold/open/run/close)
+    - scripts/generate_cases_from_tlc_dump.py case generation
+    - scripts/run_generated_case_adapters.py adapter runner
+    - spec_manifest.yaml / actions.yml / testgraph_bindings.yml schemas
+  desired_boundaries:
+    - budgets block in spec_manifest.yaml read by all gates
+    - analyze complexity pre-TLC gate
+    - sandboxed effect observation in the adapter runner
+    - channel-authentic Test Graph bindings with double|real port configurations
+  adapter_boundaries:
+    - specs/program_model/production_adapters.py spec-unit adapters
+    - test_graph specWorkflow / cliWorkflow graphs
+  known_gaps:
+    - "This repository's baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Originally recorded as out of scope for this epic. Owner direction 2026-07-18: it is now IN scope but scheduled LAST, as MF-023 at promotion_order 85, after every mechanism ticket has landed. The decomposition is to be performed by running the finished toolchain on this repository itself — analyze complexity for the cut, corpus distillation, effect conformance, External channel enforcement, and the mutation kill test — making it the epic's first end-to-end dogfooding test rather than a hand migration. It is therefore both the migration and the acceptance test of everything the epic built. See references/migration.md and tickets/023-decompose-via-dogfooding.md."
+
+tickets:
+  - id: MF-012
+    title: "Scaffold-time budget prompts"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/12"
+    schedule_revision: 1
+    depends_on: []
+    blocks: [MF-011, MF-014, MF-016]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: [scripts/tla_spec_dev.py, scripts/onboard_program_model.py, templates/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "Budgets become per-program program state: scaffold emits a budgets block in spec_manifest.yaml (tlc_seconds, max_distinct_states, case caps, component-size heuristics, kill_rate_floor), instructs the agent to negotiate values with the user, and downstream commands read gates from the manifest with documented defaults and a warning on fallback. See tickets/012-scaffold-budget-prompts.md."
+    desired_actions:
+      - RecordBudgets
+    implementation_scope:
+      - scripts/tla_spec_dev.py (scaffold project/workflow budget emission)
+      - scripts/onboard_program_model.py
+      - templates/ manifest templates
+      - references/modular_fuzzing.md defaults kept in sync
+    current_increment:
+      model_state:
+        - budgets_recorded
+      model_actions:
+        - RecordBudgets
+      adapters:
+        - specs/.../production_adapters.py scaffold adapter asserting budgets block emission
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-012/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-012
+      assertions:
+        - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
+        - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
+        - a consumer helper reads budgets. NOTE 2026-07-18 -- the silent default fallback-with-warning this shipped with is WITHDRAWN; a missing budgets block must fail, since budgets are negotiated per program. Tracked as MF-024.
+      evidence:
+        - specs/tickets/MF-012/results/validation-summary.md
+        - specs/tickets/MF-012/results/complexity-ledger.md
+        - specs/tickets/MF-012/results/tlc-current.txt
+        - specs/tickets/MF-012/results/spec-unit-tests.txt
+        - specs/tickets/MF-012/results/repository-unit-tests.txt
+        - specs/tickets/MF-012/results/graph-reports/specWorkflow-20260718-153853-c3144c6b
+        - specs/tickets/MF-012/results/graph-reports/cliWorkflow-20260718-153934-857a0f5c
+
+  - id: MF-020
+    title: "Collapse ticket phase booleans into an ordinal"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/21"
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 15
+    promotion_predecessor: MF-012
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Approved architectural move surfaced by the MF-012 complexity ledger: replace the three parallel booleans desired_ready / current_ready / spec_unit_tests_passed with a single ordinal ticket_phase in [Tickets -> 0..3]. The invariants already pin them to a strict total order, so only 4 of 8 combinations are reachable; the ordinal represents the same behavior with none of the unreachable product space. Measured on the MF-012 model: -2 state variables, -13.1% generated states, and an 8x smaller declared state-space bound (3,145,728 -> 393,216) at IDENTICAL 919 reachable states and identical depth 21 — the reachable-state equality is the proof that nothing is under-represented. Scheduled before MF-011 so the analyze-complexity gate is built and calibrated against the model shape the epic is keeping, rather than measuring a shape already slated for removal. See references/architecture_tractability.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla (variable and invariant rewrite)
+      - specs/program_model/production_adapters.py (phase-aware adapters)
+      - specs/current/tests (adapter assertions referencing the booleans)
+    current_increment:
+      model_state:
+        - ticket_phase
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read ticket_phase
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-020/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-020/current/TlaSpecDevCli.tla specs/tickets/MF-020/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-020
+      assertions:
+        - the three booleans are gone; ticket_phase carries the ordering.
+        - reachable distinct states remain 919 and depth remains 21 — behavior retention is proven by equality, not asserted.
+        - declared state-space bound drops to 393,216; state variables drop by 2.
+        - every invariant expressed over the old booleans has an equivalent over ticket_phase; none is silently dropped.
+      evidence:
+        - specs/tickets/MF-020/results/invariant-mapping.md
+        - specs/tickets/MF-020/results/complexity-ledger.md
+        - specs/tickets/MF-020/results/tlc-current.txt
+        - specs/tickets/MF-020/results/tlc-desired.txt
+        - specs/tickets/MF-020/results/spec-unit-tests.txt
+        - specs/tickets/MF-020/results/pytest-repo.txt
+        - specs/tickets/MF-020/results/graph-specWorkflow.txt
+        - specs/tickets/MF-020/results/graph-cliWorkflow.txt
+        - specs/tickets/MF-020/results/refinement-probe/tlc-setup-phase-probe.txt
+      result_notes:
+        - "Retention gate MET: 919 distinct states, depth 21, 10/10 invariants — identical to MF-012 baseline."
+        - "Complexity: state variables 13 -> 11; declared bound 3,145,728 -> 393,216 (8x)."
+        - "Generated-states target (3,183) NOT met: shipped 3,664. Reaching it requires tightening the RunSpecUnitTests guard to `= 2`, which deletes the idempotent spec-unit re-run transition. Recorded as a finding, not applied. See complexity-ledger.md section 4."
+        - "Refinement search FOUND a further reduction (setup_phase bootstrap chain, 11 -> 7 variables, bound -> 73,728 at identical 919/21). Prototyped and measured; recommendation only, awaiting owner approval."
+
+
+  - id: MF-021
+    title: "Promotion must not destroy files unique to specs/current"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/25"
+    schedule_revision: 1
+    depends_on: [MF-020]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 17
+    promotion_predecessor: MF-020
+    conflict_keys:
+      production: [scripts/spec_evolution.py, scripts/close_ticket.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Fix the silent data-loss defect in ticket promotion (GitHub #22). promote_ticket_outputs calls replace_tree(active_dir/'desired', specs_dir/'current'), and replace_tree does shutil.rmtree(dst) before copying. Because the ticket's desired/ tree is seeded from a different source than specs/current, any file unique to specs/current is destroyed with no warning and no failure. Observed twice: MF-012 and MF-020 both lost specs/current/tests/test_current_ticket_workflow.py, which carried MF-012's budgets retention test; the file was not in the history seal either, so the on-disk copy was the only one. Deleted tests cannot fail, so the loss is invisible exactly when it matters. Promotion must either preserve current-only files or abort loudly enumerating every file it would remove. Silent deletion is not an acceptable default for test files."
+    desired_actions: []
+    implementation_scope:
+      - scripts/spec_evolution.py (replace_tree / promote_ticket_outputs)
+      - scripts/close_ticket.py (close-time reporting of removals)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py close adapter asserting current-only files survive promotion
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-021/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-021/current/TlaSpecDevCli.tla specs/tickets/MF-021/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-021
+      assertions:
+        - a file present in specs/current but absent from the ticket desired/ tree survives promotion, or promotion fails naming it.
+        - the close output enumerates every path promotion removed; no path is removed silently.
+        - a regression test reproduces the original loss (seed a current-only test file, promote, assert it survives) and fails against the pre-fix behavior.
+        - directories unique to specs/current (e.g. refinement-probe/) are covered by the same rule, not just files.
+      evidence:
+        - specs/tickets/MF-021/results/design-decision.md
+        - specs/tickets/MF-021/results/complexity-ledger.md
+        - specs/tickets/MF-021/results/self-verification.md
+        - specs/tickets/MF-021/results/self-verification-postclose.txt
+        - specs/tickets/MF-021/results/close-output.txt
+        - specs/tickets/MF-021/results/close-output-prefix-cli-defect.txt
+        - specs/tickets/MF-021/results/prefix-failure.txt
+        - specs/tickets/MF-021/results/postfix-pass.txt
+        - specs/tickets/MF-021/results/tlc-current.txt
+        - specs/tickets/MF-021/results/spec-unit-tests.txt
+        - specs/tickets/MF-021/results/repository-unit-tests.txt
+        - specs/tickets/MF-021/results/testgraph-specWorkflow/summary.json
+        - specs/tickets/MF-021/results/testgraph-cliWorkflow/summary.json
+    outcome:
+      - "Chose provenance-aware promotion (seed manifest recorded at open) over repairing the seed filter; the seed repair fixes only the one excluded path and cannot reach paths added to specs/current after the ticket opened (MF-020's refinement-probe/). See design-decision.md."
+      - "Retention gate MET: 919 distinct states, depth 21, 11 variables - identical to the MF-020 baseline. No new close-failure path was modelled because the fix preserves and enumerates rather than aborting."
+      - "Regression gate MET: the regression suite FAILS 4/6 against the pre-fix replace_tree behaviour (prefix-failure.txt) and passes 6/6 after (postfix-pass.txt)."
+      - "Repository unit tests 117 -> 123 passing; no regression."
+      - "Complexity: model delta zero (correct for a mechanics fix). Refinement search found duplicate hyphenated script entrypoints (scripts/close-ticket.py, scripts/close-spec-workflow.py) - RECOMMENDATION only, owner approval required, not applied. setup_phase collapse remains deferred per owner decision."
+      - "Self-verification MET on the second attempt: close preserved and enumerated specs/current/tests/test_current_ticket_workflow.py. The FIRST attempt destroyed it a third time because the `tla-spec-dev` binary on PATH runs the INSTALLED skill copy (~/.skill-manager/skills/spec-double-compiler), not the repository under test; the close was fully reverted and re-run via `python3 scripts/tla_spec_dev.py`. See self-verification-postclose.txt."
+      - "OWNER ACTION REQUIRED (out of MF-021 scope): run `skill-manager sync` after merge so the installed spec-double-compiler carries this fix - otherwise the next ticket loses the file again despite the fix being merged. Consider pinning the epic validation matrix to `python3 scripts/tla_spec_dev.py` for this repository."
+
+  - id: MF-011
+    title: "Analyze complexity command"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
+    schedule_revision: 5
+    depends_on: [MF-012, MF-020, MF-021]
+    blocks: [MF-019]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: MF-021
+    conflict_keys:
+      production: [scripts/analyze_complexity.py, scripts/tla_spec_dev.py, scripts/generate_cases_from_tlc_dump.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, R/W-matrix modularity score, suggested move (abstract/decompose/refactor) emitted as a recommendation requiring user approval and never auto-applied, unjustified-variable flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md and references/architecture_tractability.md."
+    desired_actions:
+      - AnalyzeComplexity
+    implementation_scope:
+      - scripts/analyze_complexity.py (new)
+      - scripts/tla_spec_dev.py (analyze subcommand)
+      - scripts/generate_cases_from_tlc_dump.py (gate integration)
+    current_increment:
+      model_state:
+        - complexity_gate
+      model_actions:
+        - AnalyzeComplexity
+      adapters:
+        - spec-unit adapter running analyze complexity against a fixture spec
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-011/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-011/current/TlaSpecDevCli.tla specs/tickets/MF-011/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-011
+      assertions:
+        - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
+        - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
+        - case generation refuses above-gate models. NOTE 2026-07-18 -- the --allow-over-budget override this shipped with is WITHDRAWN as degeneracy; removal tracked as MF-024.
+        - modularity score and suggested move are emitted, labeled as recommendations requiring user approval, with evidence (candidate cut or dense rows/columns).
+        - variables lacking a justification linkage are flagged as dead weight. NOTE 2026-07-18 -- the 'when a justification table is present' conditional this shipped with is WITHDRAWN; a check that disables itself when its input is absent is degeneracy. Tracked as MF-024.
+      evidence:
+        - specs/tickets/MF-011/results/design-decision.md
+        - specs/tickets/MF-011/results/complexity-ledger.md
+        - specs/tickets/MF-011/results/analyze-complexity-self.txt
+        - specs/tickets/MF-011/results/analyze-complexity-self.json
+        - specs/tickets/MF-011/results/tlc-current.txt
+        - specs/tickets/MF-011/results/spec-unit-tests.txt
+        - specs/tickets/MF-011/results/repository-unit-tests.txt
+        - specs/tickets/MF-011/results/testgraph-specWorkflow/summary.json
+        - specs/tickets/MF-011/results/testgraph-cliWorkflow/summary.json
+
+  - id: MF-022
+    title: "Recalibrate the bound gate and collapse setup booleans"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/28"
+    schedule_revision: 1
+    depends_on: [MF-011, MF-012, MF-020]
+    blocks: [MF-014]
+    wave: 3
+    promotion_order: 25
+    promotion_predecessor: MF-011
+    conflict_keys:
+      production: [scripts/analyze_complexity.py, scripts/budgets.py, scripts/onboard_program_model.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "Two bundled changes that both touch the model and the budgets block, so they land as one TlaSpecDevCli.tla touch. (1) GATE RECALIBRATION: MF-011 gates the static state-space upper bound against max_distinct_states, but the quantities are incommensurable — on this repo the bound is 1,179,648 while actual reachable distinct states are 2,923, a ~400x over-approximation, so the gate FAILS a model that is 17x UNDER its own budget. Decisive evidence of miscalibration: applying the only reduction the tool itself recommends (setup_phase) yields a bound of 73,728, which STILL fails the 50,000 budget — a gate its own recommended optimum cannot satisfy is wrong by construction. Add a distinct max_state_space_bound budget for the static estimate and gate the bound against it; keep max_distinct_states for post-TLC comparison against actual reachable states. The error originated in the MF-011 spec, not its implementation. (2) SETUP_PHASE COLLAPSE: owner-approved architectural move, found independently by both the MF-020 and MF-011 agents — collapse cli_built / cli_installed / project_scaffolded / budgets_recorded / workflow_scaffolded into a single ordinal setup_phase in 0..5. They form a strict bootstrap chain pinned by their own action guards, so only 6 of 32 combinations are reachable. Measured: 11 -> 7 variables and declared bound 393,216 -> 73,728 at identical reachable states. See tickets/022-gate-recalibration-and-setup-phase.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/budgets.py (new max_state_space_bound default)
+      - scripts/analyze_complexity.py (gate the bound against the new budget)
+      - scripts/onboard_program_model.py (emit the new budget at scaffold time)
+      - specs/program_model/TlaSpecDevCli.tla (setup_phase collapse)
+    current_increment:
+      model_state:
+        - setup_phase
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read setup_phase
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-022/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-022/current/TlaSpecDevCli.tla specs/tickets/MF-022/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-022
+      assertions:
+        - budgets carry a distinct max_state_space_bound; the static bound is gated against it, not against max_distinct_states.
+        - the chosen default is justified against real measurements, not picked to make this repo pass; state the reasoning.
+        - after both changes analyze complexity PASSES on this repository's own model, and the pass is honest — actual reachable states remain far under max_distinct_states.
+        - the component-size heuristics are unchanged and still fire (C1 touched by 11 actions exceeding 8 remains a reported finding).
+        - the five setup booleans are gone; setup_phase carries the bootstrap ordering; every invariant over them has an equivalent.
+        - reachable distinct states and depth are unchanged by the collapse — behavior retention proven by equality, and reported separately from the gate change so the two deltas are not conflated.
+      evidence:
+        - specs/tickets/MF-022/results/complexity-ledger.md
+        - specs/tickets/MF-022/results/max-state-space-bound-derivation.md
+        - specs/tickets/MF-022/results/setup-phase-mapping.md
+        - specs/tickets/MF-022/results/analyze-baseline.txt
+        - specs/tickets/MF-022/results/analyze-part1-only.txt
+        - specs/tickets/MF-022/results/analyze-complexity.txt
+        - specs/tickets/MF-022/results/tlc-baseline.txt
+        - specs/tickets/MF-022/results/tlc-current.txt
+        - specs/tickets/MF-022/results/tlc-desired.txt
+        - specs/tickets/MF-022/results/spec-unit-tests.txt
+        - specs/tickets/MF-022/results/pytest-repo.txt
+        - specs/tickets/MF-022/results/graph-specWorkflow.txt
+        - specs/tickets/MF-022/results/graph-cliWorkflow.txt
+      evidence_archived_at: specs/.history/modular-fuzzing-epic/ticket-004-MF-022/results/
+      result_notes:
+        - "Part 1 (isolated): bound unchanged at 1,179,648; gate recalibrated to max_state_space_bound 1,000,000; the pre-collapse model STILL FAILS it (1.18x over), which is the evidence the default was not reverse-engineered to pass."
+        - "Part 2 (isolated): 12 -> 8 variables, bound 1,179,648 -> 221,184 (-81.25%), at IDENTICAL 18,720 generated / 2,923 distinct / depth 23. No self-loop-deletion signature."
+        - "The bound violation clears only under BOTH parts; neither is sufficient alone."
+        - "OPEN FINDING for owner: the overall analyze-complexity verdict is still FAIL because the untouched component heuristic still reports C1 touched by 11 actions > 8. The acceptance criteria 'analyze complexity PASSES' and 'the component heuristics still fire' are in direct tension; the heuristic was left untouched rather than gamed. See complexity-ledger.md."
+        - "Refinement search: recorded one further candidate (collapse active_tickets/closed_tickets/ticket_phase into one per-ticket ordinal, projected bound 221,184 -> 11,664) as a RECOMMENDATION requiring owner approval; NOT applied. lastCommand/result projection remains deferred to MF-016."
+
+  - id: MF-014
+    title: "Corpus diagnostics and hard caps"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
+    schedule_revision: 4
+    depends_on: [MF-012, MF-022]
+    blocks: [MF-016]
+    wave: 3
+    promotion_order: 30
+    promotion_predecessor: MF-017
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py, references/modular_fuzzing.md]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Corpus diagnostics and HARD CAPS. Cases are never dropped, filtered, sampled, or truncated to fit a budget -- not silently and not with a recorded drop rule. Case caps (max_internal_cases_per_component, max_external_cases_per_action) become hard gates in the same shape as MF-011 state-space bound -- over budget exits nonzero and reports, and caps stay per-program negotiable so raising one with a recorded rationale is the explicit accept path. On failure the diagnostics report the count per (action, label class), which strata dominate, which are starved, and what varies across the redundant group, so the agent can fix the CAUSE. A lopsided corpus is evidence about the representation -- the committed example emits 200 cases for one action and 2 for another, which means the model enumerates redundant interleavings wanting symmetry reduction, a state constraint, or abstraction. The corpus is the symptom; the diagram is the defect. Labelers are retained but repurposed from selection criteria to diagnostic strata. Remediation is a recommendation requiring user approval, never auto-applied. Named regression traces are always retained. SCOPE CHANGE 2026-07-18 by owner direction -- this replaces the former Corpus Distillation scope, which transcribed the modular_fuzzing.md Corpus Discipline section; both were wrong, because filtering to fit a budget under-represents the program and the kill_rate_floor only samples for the damage. references/modular_fuzzing.md is amended in the same change. See tickets/014-corpus-diagnostics-and-caps.md."
+    desired_actions:
+      - DistillCorpus
+    implementation_scope:
+      - scripts/generate_cases_from_tlc_dump.py
+      - scripts/export_testgraph_cases.py
+    current_increment:
+      model_state:
+        - corpus_distilled
+      model_actions:
+        - DistillCorpus
+      adapters:
+        - spec-unit adapter asserting stratification and drop records on a fixture dump
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-014/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-014
+      assertions:
+        - no code path drops, filters, samples, or truncates a case to fit a budget -- not silently and not with a recorded drop rule. A --distill style opt-in filter is also a failure.
+      evidence:
+        - specs/tickets/MF-014/results/tlc-current.txt
+        - specs/tickets/MF-014/results/spec-unit-tests.txt
+        - specs/tickets/MF-014/results/repository-unit-tests.txt
+        - specs/tickets/MF-014/results/analyze-complexity.txt
+        - specs/tickets/MF-014/results/analyze-corpus-committed-example.txt
+        - specs/tickets/MF-014/results/analyze-corpus-732-fixture.txt
+        - specs/tickets/MF-014/results/graph-specWorkflow
+        - specs/tickets/MF-014/results/graph-cliWorkflow
+        - specs/tickets/MF-014/results/complexity-ledger.md
+        - specs/tickets/MF-014/results/deferred-validations.md
+    outcome: >-
+      Shipped as a hard gate, DEVIATING from the desired_actions / model_state
+      fields above (DistillCorpus / corpus_distilled). Those fields were written
+      for the withdrawn Corpus Distillation scope; distillation no longer exists,
+      so there is nothing named DistillCorpus to model and no corpus_distilled
+      fact to record. Staleness class tracked as #33; precedent for recording the
+      deviation here rather than inventing a model change is MF-017.
+      What landed: scripts/corpus_diagnostics.py, wired as a post-write gate in
+      generate_cases_from_tlc_dump.py, a pre-selection gate in
+      export_testgraph_cases.py, and the `tla-spec-dev analyze corpus` command.
+      Model delta is NOT zero: corpus_gate (a 3-valued global verdict) plus the
+      AnalyzeCorpus action, 8 -> 9 variables, 11 -> 12 actions, bound 221,184 ->
+      663,552, distinct states 2,923 -> 9,011, depth 23 -> 24, all within budget.
+      The growth is deliberate -- an unrepresented gate is not a gate, and hiding
+      a real command to hold a count down is the under-representation this
+      ticket's own doctrine forbids.
+      NOTHING IS DROPPED: no code path removes a case to satisfy a cap. Generation
+      writes the complete package BEFORE the gate runs, and the export gate
+      measures the full corpus BEFORE --label/--case/--limit selection, so no flag
+      can bring a corpus under cap. corpus_gate deliberately has no override; the
+      accept path is raising the cap in spec_manifest.yaml with a recorded
+      rationale, which the failure output prints as a ready-to-paste block.
+      Two findings reported rather than worked around. (1) The 732-case corpus the
+      ticket names as a committed fixture is NOT committed -- that path holds 4
+      traces; 732 is a run-time figure documented in four reference files.
+      tests/corpus_fixtures.py reconstructs the documented distribution and is
+      labelled a fixture. (2) scripts/extract_spec_manifest.py could not parse a
+      wrapped plain-scalar list item, and since PyYAML is absent in this
+      environment that fallback parser is the only one -- every budget gate was
+      silently degrading to documented defaults, which would have made this
+      ticket's cap-raise accept path a no-op. Fixed minimally; the
+      fallback-with-warning policy itself is untouched and stays with MF-023.
+      Spec-case execution deferred epic-wide; see deferred-validations.md. The
+      C1 action-count finding goes 11 -> 12 and was NOT worked around with
+      --allow-over-budget or by renegotiating component budgets.
+        - max_internal_cases_per_component and max_external_cases_per_action are hard gates read through scripts/budgets.py -- over budget exits nonzero and reports.
+        - raising a cap with a recorded one-line rationale is supported as the explicit accept path.
+        - on cap failure the diagnostics report count per (action, label class), dominant strata, starved strata, and what varies across the redundant group.
+        - labelers are retained as diagnostic strata; no labeler output selects which cases survive.
+        - remediation output is a recommendation requiring user approval, never auto-applied.
+        - named regression traces are always retained.
+        - references/modular_fuzzing.md Corpus Discipline matches what shipped.
+      evidence: []
+
+  - id: MF-013
+    title: "Effect conformance harness"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/15"
+    schedule_revision: 3
+    depends_on: []
+    blocks: []
+    wave: 4
+    promotion_order: 40
+    promotion_predecessor: MF-015
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, spec_double_compiler/runtime.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [actions.yml-effects-schema]
+    objective: "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; an undeclared observed effect is recorded AND FAILS the run; declared-never-observed effects are dead model surface that must be removed or exercised by a case. Out-of-contract justifications WITHDRAWN 2026-07-18 -- nothing suppresses a gap report. See tickets/013-effect-conformance-harness.md."
+    desired_actions:
+      - RunEffectConformance
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py
+      - spec_double_compiler/runtime.py
+      - actions.yml / spec_manifest.yaml effect declarations
+    current_increment:
+      model_state:
+        - effect_conformance
+      model_actions:
+        - RunEffectConformance
+      adapters:
+        - spec-unit adapter with a deliberate undeclared effect proving the diff fails
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-013/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-013/current/TlaSpecDevCli.tla specs/tickets/MF-013/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-013
+      assertions:
+        - sandboxed observation collects filesystem and transport effects per case.
+        - undeclared observed effect FAILS -- the gap is recorded AND the run fails; recording is not an alternative to failing.
+        - no justification, annotation, or manifest entry suppresses a gap report; a test proves the inverse (a recorded justification does NOT prevent the failure).
+        - declared-but-never-observed effects are removed or exercised by a case; prose does not resolve dead model surface.
+      evidence:
+        - specs/tickets/MF-013/results/tlc_current.txt
+        - specs/tickets/MF-013/results/complexity_current.txt
+        - specs/tickets/MF-013/results/complexity_delta.md
+        - specs/tickets/MF-013/results/deferred_to_MF023.md
+        - specs/tickets/MF-013/results/repository_unit_tests.txt
+        - specs/tickets/MF-013/results/ticket_spec_unit_tests.txt
+        - specs/tickets/MF-013/results/effect_conformance_declared.json
+        - specs/tickets/MF-013/results/specWorkflow-report
+        - specs/tickets/MF-013/results/cliWorkflow-report
+
+  - id: MF-025
+    title: "Collapse the per-ticket lifecycle into one ordinal"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/38"
+    schedule_revision: 1
+    depends_on: [MF-014]
+    blocks: [MF-015]
+    wave: 4
+    promotion_order: 33
+    promotion_predecessor: MF-014
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Owner-approved architectural move, third instance of the pattern after MF-020 and MF-022. Replace active_tickets (SUBSET Tickets), closed_tickets (SUBSET Tickets) and ticket_phase ([Tickets -> 0..3]) with a single ticket_state in [Tickets -> 0..5]. These are not independent facts but one per-ticket lifecycle recorded three ways -- 0 unopened, 1..4 active at phases 0..3, 5 closed. VERIFIED against the model before scheduling, which is what makes this a faithful re-representation rather than a packing trick -- OpenTicket guards on the ticket being in neither set so it is never reopened and the lifecycle is monotonic; CloseTicket leaves ticket_phase UNCHANGED so a closed ticket retains phase 3 and there is no closed-with-other-phase state; NoOpenClosedOverlap already forbids being both. Exactly six per-ticket combinations are reachable and they are totally ordered. Declared representation 8 x 8 x 64 = 4,096 becomes 6^3 = 216, a factor of 18.96 derived from the model, projecting bound 663,552 -> ~34,992 which must be MEASURED on-branch not quoted. Scheduled now rather than later because each gate ticket triples the bound and the next one breaches the 1,000,000 budget; the standing objective answers a bad measurement with an architecture change, not a raised budget. See tickets/025-ticket-state-collapse.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla (variable, guard and invariant rewrite)
+      - specs/program_model/production_adapters.py (lifecycle-aware adapters)
+      - specs/current/tests (adapter assertions referencing the removed variables)
+    current_increment:
+      model_state:
+        - ticket_state
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read ticket_state
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-025/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-025/current/TlaSpecDevCli.tla specs/tickets/MF-025/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-025
+      assertions:
+        - the three variables are gone and ticket_state carries the lifecycle.
+        - reachable distinct states remain 9,011 and depth remains 24, matching the MF-014 baseline exactly; the baseline is established on-branch first and divergence in EITHER direction stops the ticket.
+        - derived operators ActiveTickets and ClosedTickets are defined so every set-valued reader still reads a set; the model reads as a lifecycle, not arithmetic on an integer.
+        - every invariant and guard has an equivalent over ticket_state, with the before/after mapping enumerated; invariants that become structurally true are RETAINED BY NAME per the MF-020 and MF-022 precedent.
+        - no adapter references a removed variable.
+        - if a reachable combination is found that does not fit the six, the ticket STOPS and reports -- that finding means the premise is wrong and the collapse must not proceed.
+        - the declared bound drop is measured and reported separately from any other change.
+      evidence:
+        - specs/tickets/MF-025/results/mapping.md
+        - specs/tickets/MF-025/results/complexity-ledger.md
+        - specs/tickets/MF-025/results/tlc-baseline-precollapse.txt
+        - specs/tickets/MF-025/results/tlc-current.txt
+        - specs/tickets/MF-025/results/analyze-complexity-before.txt
+        - specs/tickets/MF-025/results/analyze-complexity-after.txt
+        - specs/tickets/MF-025/results/premise-probe
+        - specs/tickets/MF-025/results/repository-unit-tests.txt
+        - specs/tickets/MF-025/results/spec-unit-tests-ticket-local.txt
+        - specs/tickets/MF-025/results/testgraph-specWorkflow
+        - specs/tickets/MF-025/results/testgraph-cliWorkflow
+      results:
+        - "PREMISE RE-VERIFIED against the model rather than trusted: TLC confirms both directions on the pre-collapse model. No seventh combination -- a SixCombinationsOnly invariant holds across all 9,011 reachable states -- and each of the six ordinals is individually reachable (six negated-reachability probes all violated). The three variables genuinely are one totally ordered lifecycle, so the collapse is a faithful re-representation and not a packing trick."
+        - "RETENTION: on-branch pre-collapse baseline MEASURED before editing (not quoted from MF-014): 9,011 distinct states, depth 24, 87,464 generated. Post-collapse: 9,011 distinct, depth 24, 87,464 generated, identical outdegree profile (avg 1, max 8, p95 6). Equal in both directions. The matching generated-state count is stronger than the distinct/depth gate alone -- a deleted self-loop would show as a generated-states drop at constant distinct states, and there is none."
+        - "REDUCTION MEASURED: declared bound 663,552 -> 34,992 (18.96x), bounded dimensions 7 -> 5, variables 9 -> 7. The ticket's DERIVED projection was ~34,992; the measured value is 34,992 exactly, so projection and measurement agree. The measured value is what is recorded."
+        - "READABILITY: derived operators ActiveTickets == {t \\in Tickets : ticket_state[t] \\in TicketOpened..TicketSpecUnitTestsPassed} and ClosedTickets == {t \\in Tickets : ticket_state[t] = TicketClosed} are defined and used at every set-valued site, alongside named stage constants TicketUnopened/TicketOpened/TicketDesiredReady/TicketCurrentReady/TicketSpecUnitTestsPassed/TicketClosed, so guards and invariants read as a lifecycle rather than as arithmetic on an integer."
+        - "All 12 invariants retained BY NAME; MC.cfg unchanged. NoOpenClosedOverlap, ClosedTicketsPassedSpecUnitTests and the TypeInvariant subset conjuncts are now structurally true and retained anyway per the MF-020/MF-022 precedent."
+        - "SUBTLE MAPPING recorded in mapping.md: the two gate invariants quantified over ticket_phase[t] >= 3, which closed tickets also satisfied because CloseTicket left the phase at 3. The faithful equivalent is >= TicketSpecUnitTestsPassed (states 4 AND 5), not an equality -- an equality would have weakened both gates. Likewise RunSpecUnitTests keeps a RANGE guard (states 3..4) rather than an equality, preserving the idempotent re-run self-loop; a regression test pins it."
+        - "NEW FINDING referred to MF-023, not worked around: the collapse dissolved component C2 (which was exactly the three lifecycle variables), so ticket_state joins C1 and modularity Q falls 0.022 -> 0.000. analyze complexity now also reports 'C1 has 7 variables, exceeding max_component_variables 6' alongside the pre-existing 'C1 is touched by 12 actions'. This is a metric artifact of the merge rather than increased coupling -- three mutually coupled variables became one. Both are C1 decomposition problems, which is MF-023's scope. The budget gate was already FAIL before this ticket, so its pass/fail state is unchanged."
+        - "Refinement search: SEARCHED, FOUND NONE in scope. ticket_state cannot shrink (all six ordinals shown reachable); setup_phase/spec_root/complexity_gate/corpus_gate are each already at reachable cardinality. Residual slack (9,011 actual vs 34,992 bound, 25.8% density) is cross-variable correlation, not single-variable over-declaration, and would need a dependent representation -- the deferred MF-018 direction. lastCommand/result projection remains deferred to MF-016 and would not move the bound anyway, since both are already excluded from it as unconstrained."
+        - "Validations DEFERRED to MF-023 per the epic-wide instruction: spec-case generation, corpus run, effect conformance, and mutation kill test. The known 'C1 touched by 12 actions' finding was not worked around."
+
+  - id: MF-015
+    title: "External channel enforcement"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/16"
+    schedule_revision: 3
+    depends_on: [MF-025]
+    blocks: []
+    wave: 4
+    promotion_order: 35
+    promotion_predecessor: MF-025
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, scripts/export_testgraph_cases.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: [testgraph_bindings.yml-schema]
+      workflow: []
+    objective: "Require channel per Test Graph binding (http/cli/fs/queue/k8s), verify Test Graph adapters cannot import the production package (static analysis or isolated interpreter), report violations with remediation, and make double|real port binding configurations declarable for integration-ladder rungs. See tickets/015-external-channel-enforcement.md."
+    desired_actions:
+      - EnforceExternalChannels
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py (testgraph path)
+      - scripts/export_testgraph_cases.py
+      - testgraph_bindings.yml schema
+    current_increment:
+      model_state:
+        - channel_enforcement
+      model_actions:
+        - EnforceExternalChannels
+      adapters:
+        - spec-unit adapter proving an in-process import is detected and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-015/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-015
+      assertions:
+        - bindings without a channel field are rejected with remediation guidance.
+        - production-package imports from Test Graph adapters are detected.
+        - port binding configurations (double|real) are declarable and validated.
+      evidence:
+        - specs/tickets/MF-015/results/complexity-ledger.md
+        - specs/tickets/MF-015/results/deferred-to-mf023.md
+        - specs/tickets/MF-015/results/tlc.txt
+        - specs/tickets/MF-015/results/complexity.txt
+        - specs/tickets/MF-015/results/repository-unit-tests.txt
+        - specs/tickets/MF-015/results/spec-unit-tests.txt
+        - specs/tickets/MF-015/results/testgraph-specWorkflow
+        - specs/tickets/MF-015/results/testgraph-cliWorkflow
+      results:
+        - "SHIPPED: three hard gates over Test Graph bindings, in a new shared scripts/testgraph_channels.py applied by BOTH scripts/run_generated_case_adapters.py (external view) and scripts/export_testgraph_cases.py, so the two entry points cannot drift into enforcing different rules. (1) every external binding declares channel: http/cli/fs/queue/k8s; (2) no adapter/projector/expected_projection/assertion module imports the declared external.production_package; (3) external.port_bindings names each port double or real with at least one real."
+        - "IMPORT ISOLATION is static AST analysis and TRANSITIVE across first-party modules, so laundering the import through a helper does not evade it; importlib.import_module(literal) and __import__(literal) are covered too. All four adapter roles are checked, since all four execute in the harness process. Importing spec_double_compiler.runtime for CaseRunResult is deliberately NOT an offense -- that is the adapter harness contract, and the gate targets exactly the declared production package."
+        - "THE DELIVERABLE'S PROOF: tests/test_testgraph_channels.py::test_illegal_production_import_from_testgraph_adapter_is_caught writes a Test Graph adapter that imports the production package and asserts the gate refuses it, reporting the adapter, the offending import, and the remediation. Companion tests prove the laundered-through-a-helper, dynamic-import, and projector-role variants are caught, and that both entry points enforce end to end -- including when --view external is OMITTED, because the gate keys on the case's own view rather than on a flag."
+        - "ALL-DOUBLES REJECTED: a port binding configuration with every port doubled exercises nothing real and is refused as 'not a Test Graph rung', matching the binding ladder in references/modular_fuzzing.md. The exported manifest.json carries an integration_rung block (rung, real_ports, double_ports) so a graph run can state which rung of the integration ladder it occupies."
+        - "NO DEGENERATE ESCAPES: --bindings is REQUIRED on export; a missing external: block, production_package, or port_bindings each FAIL rather than skipping the check; and a test asserts the gate's signature contains no allow/override/skip/force/ignore parameter. A gate that silently disables itself when its input is absent is the exact degeneracy references/architecture_tractability.md forbids. The one extensibility point, external.additional_channels, is an explicit visible per-program declaration that widens the accepted set and is proven unable to excuse a binding that declares no channel."
+        - "ZERO MODEL DELTA accepted, deviating from this entry's prescribed desired_actions EnforceExternalChannels / model_state channel_enforcement. The gates live on the Test-Graph-invoked export/run path; no command modeled by TlaSpecDevCli.tla reaches them (run spec-unit-tests drives --view internal against case_adapters.toml, and no modeled CLI command reads a testgraph_bindings.yml). This entry's own conflict_keys confirm it: production is [run_generated_case_adapters.py, export_testgraph_cases.py] and deliberately NOT scripts/tla_spec_dev.py, so no new CLI command was ever in scope. Modeling the fact would have meant INVENTING a subcommand to set it, at ~3x the declared bound, for a variable with no invariant linkage -- transcription rather than evidence. Faithfulness cuts both ways: it forbids leaving real behavior unmodeled, and equally forbids adding model elements for behavior the modeled program does not have. Stale-field staleness is tracked as #33; follows the MF-017 precedent."
+        - "RETENTION: TLC 87,464 generated / 9,011 distinct / depth 24 and declared bound 34,992 -- IDENTICAL to the epic-tip baseline in all four figures, measured on-branch rather than quoted. All 12 invariants retained. Repository suite 226 passed (196 baseline + 30 new), spec-unit 27+24 passed across 2 targets, specWorkflow 8/8 nodes and cliWorkflow 2/2 nodes passed."
+        - "THREE PRE-EXISTING TESTS MIGRATED, NOT WEAKENED: test_non_batch_generated_program_runs_projected_state_assertion and the two corpus-diagnostics export tests each now supply the external contract the new schema requires while still asserting exactly what they asserted before (projected-state mismatch; cap-gate refusal before selection; cap-gate pass). test_export_external_case_as_testgraph_trace GAINED assertions on the integration_rung manifest block."
+        - "Refinement search: SEARCHED, FOUND NONE beyond the lastCommand/result projection, which analyze complexity reports and which is explicitly OWNED BY MF-016 and deferred -- it is legitimate only once a kill rate exists to hold it, and kill-test runs are deferred to MF-023. Not implemented here."
+        - "The two live findings were NOT worked around and are unchanged: 'C1 has 7 variables, exceeding max_component_variables 6' and 'C1 is touched by 12 actions, exceeding max_component_actions 8'. Component budgets were not renegotiated and --allow-over-budget was not used; the budget gate remains FAIL exactly as at the epic tip. Both are C1 decomposition, resolved at the root by MF-023."
+        - "Validations DEFERRED to MF-023 per the epic-wide instruction, enumerated in specs/tickets/MF-015/results/deferred-to-mf023.md: spec-case generation, the corpus run, effect conformance, and the mutation kill test. Called out there for MF-015 specifically -- MF-023 must confirm the transitive import analysis raises no false positive against the REAL adapter tree, where adapters legitimately import spec_double_compiler.runtime while the declared production package is the CLI itself; fixtures cannot prove that."
+
+  - id: MF-027
+    title: "Effect oracle must refuse targets it cannot observe"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/43"
+    schedule_revision: 1
+    depends_on: [MF-013]
+    blocks: []
+    wave: 5
+    promotion_order: 45
+    promotion_predecessor: MF-013
+    conflict_keys:
+      production: [scripts/effect_conformance.py, scripts/effect_conformance_report.py, references/modular_fuzzing.md]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Amendment to MF-013, which shipped correct behavior with a SILENT boundary. EffectSandbox observes by monkeypatching the in-process Python runtime (builtins.open, os mutators, subprocess.run/Popen, socket.connect), so a Java or Kotlin adapter in a separate JVM is entirely invisible -- not hypothetical, since the Test Graph SDK ships Java and JVM nodes are first-class -- and a spawned subprocess is recorded as a spawn while everything it does is unobserved. Neither case reports a problem; the oracle returns GREEN. A clean report on an unobservable target is indistinguishable from a real one, which is the defect class this epic purged five times (corpus filtering, gap suppression, a self-disabling justification check, a budgets fallback hiding a broken parser, an override making a hard gate advisory). The problem is NOT that the oracle is Python-only -- that is useful and honest if declared -- it is that it does not declare it. Fix: the sandbox determines observability and FAILS with target-not-observable rather than returning clean; a subprocess spawn becomes an explicit unobservable-boundary finding; and the External/test-graph gap (exported cases run in JBang/uv nodes with no effect checking at all) is documented with a follow-up, since observing a JVM target needs a different mechanism behind the same port schema and is a second implementation rather than an extension. Scrapping the oracle was considered and rejected -- effect conformance is one of exactly three members of the doctrine constraint set and is the only one that catches boundaries never modeled at all. See tickets/027-effect-oracle-refuses-unobservable-targets.md."
+    desired_actions: []
+    implementation_scope:
+      - scripts/effect_conformance.py (observability determination and refusal)
+      - scripts/effect_conformance_report.py (unobservable verdict)
+      - references/modular_fuzzing.md and SKILL.md (declared observable scope)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - adapter proving an unobservable target fails rather than reporting clean
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-027/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-027
+      assertions:
+        - an adapter not observable in-process produces a FAILING verdict naming why, never a clean report; proven by a test running a deliberately unobservable target.
+        - a subprocess spawn produces an explicit unobservable-boundary finding naming the process, not silence; proven by a test.
+        - no configuration, flag, annotation or manifest entry can downgrade an unobservable-target verdict to a pass; the inverse is proven, as MF-013 did for gap suppression.
+        - the External/test-graph gap is documented in references/modular_fuzzing.md with a filed follow-up issue for JVM-capable observation.
+        - SKILL.md states the oracle observable scope plainly, so a user onboarding a JVM project learns it from documentation rather than from a false green.
+      evidence:
+        - specs/tickets/MF-027/results/observability-refusal.md
+        - specs/tickets/MF-027/results/complexity-delta.md
+        - specs/tickets/MF-027/results/deferred-to-mf023.md
+        - specs/tickets/MF-027/results/budget-retention.md
+        - specs/tickets/MF-027/results/tlc.txt
+        - specs/tickets/MF-027/results/analyze-complexity.txt
+        - specs/tickets/MF-027/results/spec-unit-tests.txt
+        - specs/tickets/MF-027/results/repository-unit-tests.txt
+        - specs/tickets/MF-027/results/graph-reports/
+      results:
+        - "SHIPPED: observability is determined by assess_target_observability() in scripts/effect_conformance.py and granted ONLY on positive evidence -- the adapter was resolved to a live Python object and called in-process. A declared non-Python runtime, a kind/channel/reference naming an out-of-process runtime, an unresolvable target, or a non-Python reference shape all REFUSE. An unrecognised runtime refuses rather than defaulting to observable; that polarity is what made the original defect silent. Both runners (run_generated_case_adapters.py, the enforcing copy, and effect_conformance_report.py, the standalone command) call EffectSandbox.require_observable BEFORE executing an adapter, so refusal is recorded at the sandbox rather than decided at the call site."
+        - "THE REFUSAL IS STRUCTURAL: VERDICT_UNOBSERVABLE is added to the SAME conjunction as gaps and dead_surface in EffectConformanceReport.ok -- not beside it -- so there is no second code path to relax, and it is tested FIRST in .verdict because a diff computed over an unseen target carries no information. Reporting it as clean, or even as gaps, would assert something the run has no evidence for."
+        - "THE DELIVERABLE'S PROOF: TestUnobservableTargetFails::test_jvm_target_fails_rather_than_reporting_clean uses a fixture whose observed effect MATCHES its declared port -- under MF-013 that exact input produced verdict=clean, ok=True. It now produces verdict=unobservable, ok=False with gaps==[] and dead_surface==[]. That is the false green, removed."
+        - "SUBPROCESS BOUNDARY: every observed process.spawn yields a process-boundary finding naming the command, derived from the observation itself so no declaration suppresses it. It fires EVEN WHEN the spawn matches a declared port -- declaring tlc_process says 'I spawn java', not 'here is what java then wrote', and that was the silent half of the defect. test_a_child_that_writes_is_proof_the_boundary_is_real spawns a child that writes a real file, asserts the file exists, and asserts the sandbox recorded NO write for it."
+        - "THE INVERSE TEST (the regression guard, built exactly as MF-013 built its gap-suppression inverse): TestNothingDowngradesAnUnobservableVerdict asserts only NEGATIVES -- manifest observable:true, assume_observable, allow_unobservable, trusted_runtime, justification prose, port-level skip_observability, EVERY SUPPRESSION_KEYS entry applied at once, lying with runtime:python on a JBang reference, and three environment variables all leave verdict and ok unchanged. Structural tests prove diff_effects accepts no suppression keyword, EffectRecorder exposes no clear/waive method, the CLI carries no --allow-unobservable/--skip-observability/--assume-observable flag, and ok's source (comments stripped) contains no config/flag/os.environ/getattr/manifest/if -- it is a pure conjunction of finding lists. There is deliberately no test that an opt-out works, because no opt-out exists."
+        - "MODEL DELTA -- NON-ZERO, deviating from this entry's prescribed desired_actions [] / model_state [] (possibly stale per #33, and not treated as binding). Three consecutive prior tickets correctly recorded a zero delta; this one does not. The effect_conformance verdict maps directly onto a TLA variable whose domain is enumerated, and 'unobservable' selects a distinct result.next and a distinct CLI exit path. Omitting it would leave the model blind to a real outcome of a modeled command -- the same defect class the verdict exists to report. Domain grows 4 -> 5 in RunEffectConformance, RunSpecUnitTests, and TypeInvariant. NO new variables (still 8), NO new actions, depth unchanged at 24."
+        - "COMPLEXITY DELTA recorded JOINTLY with retention evidence in specs/tickets/MF-027/results/complexity-delta.md: bound 139,968 -> 174,960 (exactly x5/4, confirming the domain growth is the whole delta); TLC 678,724 -> 1,067,828 generated, 38,241 -> 49,875 distinct (+30.4%), depth 24 unchanged; 10.0% of the 500,000 max_distinct_states budget. Baseline re-measured on-branch rather than quoted. RETENTION: the value supports TypeInvariant and is one of the values excluded by SpecUnitTestsRequireMeasuredEffects, and it carries the externally-visible CliWorkflowResult.effect_conformance_verdict. Its kill-test leg is deferred to MF-016/MF-023."
+        - "REFINEMENT SEARCH: SEARCHED, AND A REDUCTION WAS FOUND -- collapsing all three failure verdicts into one 'fail' measures 375,096 generated / 26,607 distinct by real TLC run, a 47% cut versus this ticket and 30% BELOW the epic baseline. NOT APPLIED: it deletes externally-visible result.next distinctions, which is a complexity reduction bought by dropping a boundary -- the cheap way the doctrine names -- and it reverses a deliberate MF-013 design choice. Recorded as an owner-approval architectural recommendation with the number in hand, so the owner can decide whether result.next granularity is worth 23,268 distinct states."
+        - "THE LIVE FINDING WAS NOT WORKED AROUND and is unchanged: 'component C1 is touched by 13 actions, exceeding max_component_actions 8'. No budget renegotiation, no --allow-over-budget; the budget gate remains FAIL exactly as at the epic tip. Resolved at the root by MF-023. The SUGGESTED MOVE ABSTRACT recommendation (project lastCommand/result) is likewise unchanged and is not this ticket's to take."
+        - "NEGOTIATED BUDGET CARRIED AND VERIFIED: max_distinct_states 500000 and its full derivation comments were carried into desired/ and current/ and confirmed present in specs/current AFTER promotion -- the SF-003 blind spot (#32). Evidence: specs/tickets/MF-027/results/budget-retention.md."
+        - "FLAGGED TO THE EPIC OWNER: this repository's own manifest declares two process.spawn ports (tlc_process -> *java*, test_process -> *pytest*), so a real corpus sweep will now report 'unobservable' rather than 'clean'. That is ACCURATE -- the harness genuinely cannot see inside the java and pytest children -- but MF-023 must route those boundaries through in-process adapters or record the refusal as a known limitation. It must NOT be resolved by relaxing the rule. See specs/tickets/MF-027/results/deferred-to-mf023.md."
+        - "DOCUMENTED: references/modular_fuzzing.md gains 'Observable scope of the effect oracle (MF-027)' and 'Known limitation: exported Test Graph cases get no effect checking' under Oracles alongside oracle 3, stating that export_testgraph_cases.py has zero references to effect conformance because exported cases run in JBang/uv nodes in their own processes. SKILL.md Testing Layers item 3 states the observable scope plainly, headed 'read this before onboarding a non-Python project', so a user onboarding a JVM project learns it from documentation rather than from a false green."
+        - "FOLLOW-UP FILED for JVM-capable observation behind the same port-declaration schema -- a JVM agent, syscall capture, or container-level recorder. A second implementation, NOT an extension, and explicitly out of scope here: https://github.com/haydenrear/tla-spec-dev/issues/44"
+        - "VALIDATION: TLC on ticket-local current 1,067,828 generated / 49,875 distinct / depth 24, no error, 02s. spec-unit 31+28 passed across 2 targets. Repository suite 284 baseline -> 315 with 31 new MF-027 tests -> 318 collected once the MF-027 ticket tree widens a parametrized YAML guard by 3 cases (verified by stashing the ticket tree and re-running: 315). No regression. specWorkflow 8/8 nodes and cliWorkflow 2/2 nodes passed."
+        - "Validations DEFERRED to MF-023 per the epic-wide instruction, enumerated in specs/tickets/MF-027/results/deferred-to-mf023.md: spec-case generation, the corpus run, the effect-conformance sweep over a real corpus, and the mutation kill test. Called out there for MF-027 specifically -- MF-023 must confirm the observability assessment raises no FALSE REFUSAL against the REAL adapter tree; fixtures cannot prove that."
+
+  - id: MF-016
+    title: "Mutation kill test"
+    status: closed
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/17"
+    schedule_revision: 4
+    depends_on: [MF-012, MF-014]
+    blocks: [MF-019]
+    wave: 6
+    promotion_order: 60
+    promotion_predecessor: MF-027
+    conflict_keys:
+      production: [scripts/run_kill_test.py, examples/distributed_history/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, kill-rate before/after comparison across model revisions so the kill test doubles as the abstraction validator (references/architecture_tractability.md), and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md."
+    desired_actions:
+      - RunKillTest
+    implementation_scope:
+      - scripts/run_kill_test.py (new) or documented procedure with runner support
+      - examples/distributed_history/ worked kill test
+      - references/modular_fuzzing.md kept in sync
+    current_increment:
+      model_state:
+        - kill_test
+      model_actions:
+        - RunKillTest
+      adapters:
+        - spec-unit adapter proving a seeded fault is killed and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-016/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-016/current/TlaSpecDevCli.tla specs/tickets/MF-016/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-016
+        - python3 examples/run_distributed_history_validation.py --mode local
+      assertions:
+        - kill rate is computed against kill_rate_floor from budgets and gates nonzero below it.
+        - mutants, kill matrix, and surviving-mutant analysis land under ticket evidence.
+        - distributed_history carries a worked kill test in local mode.
+      evidence:
+        - specs/tickets/MF-016/results/DEFERRED-TO-MF-023.md
+        - specs/tickets/MF-016/results/tlc.txt
+        - specs/tickets/MF-016/results/analyze-complexity.txt
+        - specs/tickets/MF-016/results/spec-unit-tests.txt
+        - specs/tickets/MF-016/results/repository-unit-tests.txt
+        - specs/tickets/MF-016/results/testgraph-specWorkflow.txt
+        - specs/tickets/MF-016/results/testgraph-cliWorkflow.txt
+        - specs/tickets/MF-016/results/kill-test-boundaries.txt
+        - specs/tickets/MF-016/results/example-kill-test-report.json
+    outcome:
+      - "DEVIATION 1 (plan entry not binding, known-stale #33): desired_actions/model_state prescribed the kill_test fact and RunKillTest action, both landed. Added beyond the entry: invariant KillTestVerdictRequiresBudgets, because RunKillTest guards on setup_phase >= 4 - the floor it gates against IS a budget, and reading kill_rate_floor before budgets are recorded would measure against a default nobody negotiated. That addition immediately grew the required-boundary set 18 -> 19 and made the kill test refuse until a mutant covered it: the coverage mechanism applying to its own oracle."
+      - "DEVIATION 1b: the verdict domain is 4-valued (unknown/pass/below_floor/incomplete_catalog) rather than the entry's not-run/pass/fail, on the MF-027 criterion - below_floor and incomplete_catalog have different remedies (refine the model at the survivor's named variable vs. seed a fault for an uncovered boundary) and select different result.next strings. All three non-unknown values were confirmed individually reachable by TLC before the domain was fixed at four."
+      - "DEVIATION 2: the promotion INTERLOCK is deliberately NOT modelled. CloseTicket does not require kill_test = pass, because the shipped close ticket does not enforce it and kill-test RUNS are deferred to MF-023. Gating close on a run that cannot happen would block every ticket close including this one, and writing the guard in anyway would make the model assert a behaviour the program lacks - precisely the defect oracle 4 exists to detect. The interlock lands with the runs."
+      - "DEVIATION 3: examples/run_distributed_history_validation.py --mode local is NOT green and could not have been. Case generation for the example's External model is refused by a PRE-EXISTING complexity-gate finding (C2 touched by 9 actions, exceeding max_component_actions 8), verified by re-running with this ticket's files removed. Not worked around; no --allow-over-budget. The worked kill test was validated directly end-to-end against the real internal corpus instead."
+      - "MOST IMPORTANT FINDING: the first end-to-end run of the worked example scored a perfect 7/7 kill rate that was entirely SPURIOUS. The corpus was already failing an unrelated effect-oracle dead_surface finding before any mutant was seeded, and since killed means the corpus run failed, every mutant was recorded as killed by that one pre-existing failure. A kill test without a control run reports its most flattering number exactly when the corpus is most broken. control_run() and the control_failed verdict were added because of this; it dominates every other verdict, computes no rate, seeds nothing, and has no skip flag."
+      - "The dead_surface finding was itself real: the example manifest first declared five filesystem.write ports that EcommerceStore never crosses (in-memory sqlite). Per governing rule 4 the false declarations were REMOVED rather than the finding suppressed - a port the program never crosses is not a richer model, it is a wrong one."
+      - "The corrected worked example then measured 0.571 (4/7) against the 0.8 floor with a GREEN control - BELOW FLOOR, three genuine survivors, each with an actionable pointer (projections/ProjectOrder, orders/Checkout, responses/SubmitCreateAccount). The floor was NOT lowered and the survivors were NOT waived; validate_kill_test() asserts the strict outcome and keeps failing until the example's representation is actually refined. That refinement is MF-023's work."
+      - "COMPLEXITY DELTA recorded jointly with retention evidence: 8 -> 9 variables, bound 174,960 -> 699,840 (x4), TLC 1,067,828 -> 5,619,356 generated / 49,875 -> 231,621 distinct / depth 24 -> 25. That is 46.3% of the negotiated max_distinct_states 500,000, up from 10.0% - a much larger consumption than 'a gate variable is affordable' suggested, reported as measured rather than estimated. Both caps still pass. Repository unit tests 315 -> 373."
+      - "STANDING OBJECTIVE - searched, found a measured 26.2% reduction, REFUSED it. Collapsing kill_test to 3 values gives 171,039 distinct (from 231,621) at unchanged depth 25. Refused on MF-027's own standard: it deletes an externally-visible distinction with a distinct remedy and a distinct result.next. RETENTION EVIDENCE: each of pass / below_floor / incomplete_catalog was confirmed individually reachable by TLC (invariant-violation probe), so the 4-value domain represents the reachable set exactly - a cheaper representation exists but it is not a re-representation."
+      - "ADVISORY, owner approval required, NOT applied: analyze complexity now recommends projecting [lastCommand, result] (no invariant reads them) and notes the move is legitimate iff the kill rate holds - which is the check this ticket built (--compare). lastCommand is the only model variable with no seeded mutant and no invariant, justified solely by an effect; it is the weakest-justified element and the natural first candidate if the owner wants the bound reduced."
+      - "LIVE FINDING, not worked around: C1 is now touched by 14 actions (was 13); RunKillTest is the 14th. Same TRUE finding about the undecomposed single-module baseline, resolved at the root by MF-023. No budget renegotiated, no override used."
+      - "MF-027 CONSTRAINT CONFIRMED: the runner spawns a child process per mutant, so under the effect oracle a kill-test run is unobservable, not clean. Neither oracle was relaxed; three resolution options are written up for MF-023 in results/DEFERRED-TO-MF-023.md."
+      - "DEFERRAL STATED PLAINLY: no mutant in specs/current/kill_mutants.toml has ever been run against this repository's own corpus, because case generation is deferred. The 19 mutants are verified to apply uniquely, to be behavioural rather than syntactic, and to restore byte-identically - but whether the corpus KILLS them is the open empirical question. results/DEFERRED-TO-MF-023.md states exactly what MF-023 must run."
+      - "Negotiated max_distinct_states 500000 and all 13 rationale comment lines verified present in specs/current, ticket desired/ and ticket current/ both before and after promotion."
+  - id: MF-017
+    title: "Skill feedback loop"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/18"
+    schedule_revision: 2
+    depends_on: []
+    blocks: []
+    wave: 3
+    promotion_order: 28
+    promotion_predecessor: MF-022
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/close_spec_workflow.py, scripts/close_tickets.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [close-out-templates]
+    objective: "Workflow close-out emits a skill_feedback.md template into specs/results/ prompting for surviving mutants, unmodelable effects, budget adjustments, and profile/CLI workarounds; template instructs turning items into tickets/PRs against spec-double-compiler; history entries record whether feedback was filed. See tickets/017-skill-feedback-loop.md."
+    desired_actions:
+      - EmitSkillFeedback
+    implementation_scope:
+      - scripts/close_ticket.py
+      - scripts/close_spec_workflow.py
+      - scripts/close_tickets.py
+      - references/migration.md kept in sync
+    current_increment:
+      model_state:
+        - skill_feedback
+      model_actions:
+        - EmitSkillFeedback
+      adapters:
+        - spec-unit adapter asserting close-out writes the feedback template
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-017/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-017/current/TlaSpecDevCli.tla specs/tickets/MF-017/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-017
+      assertions:
+        - close emits specs/results/skill_feedback.md with the four prompt sections.
+        - history entries record whether feedback was filed and where.
+      evidence:
+        - specs/tickets/MF-017/results/tlc-current.txt
+        - specs/tickets/MF-017/results/spec-unit-tests.txt
+        - specs/tickets/MF-017/results/pytest-repository.txt
+        - specs/tickets/MF-017/results/graph-specWorkflow.txt
+        - specs/tickets/MF-017/results/graph-cliWorkflow.txt
+        - specs/tickets/MF-017/results/complexity-ledger.md
+        - specs/tickets/MF-017/results/deferred-to-MF-023.md
+    outcome: >-
+      Implemented at ZERO model delta, deviating from the desired_actions /
+      model_state fields above (EmitSkillFeedback / skill_feedback), which were
+      written at promotion_order 70. Close-out already exists in the model as
+      CloseTicket; emitting the retro adds a file effect and a history field,
+      not a command, guard, or branch. Filing status is RECORDED, not enforced,
+      per the acceptance criterion. Direct precedent accepted at post-merge
+      review: MF-021 ("Model delta zero -- preserve-and-enumerate changes
+      promotion's file effect, not the command state machine"). Measured 8
+      variables / 2,923 distinct states / depth 23 / bound 221,184, all
+      unchanged. Rationale and the alternative (a 3-valued skill_feedback fact
+      costing 221,184 -> 663,552) are in the complexity ledger; modeling filing
+      status as state would be a real behavior change (gating close) and should
+      be an amendment ticket if the owner wants it.
+
+  - id: MF-019
+    title: "Complexity minimization objective"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/19"
+    schedule_revision: 2
+    depends_on: [MF-011, MF-016]
+    blocks: []
+    wave: 8
+    promotion_order: 80
+    promotion_predecessor: MF-016
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/analyze_complexity.py, scripts/close_spec_workflow.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [spec_manifest.yaml-complexity-ledger]
+    objective: "Mechanize the standing objective — programming as complexity minimization under behavior retention: a complexity ledger recorded per ticket/workflow close from analyze-complexity metrics, close-time complexity deltas with required justification for increases, anti-gaming rejection when a decrease coincides with degraded retention evidence (kill rate, effect conformance, external coverage), and the recursive refinement loop as a required close-out step emitting user-approved recommendations or an explicit searched-found-none record. See tickets/019-complexity-minimization-objective.md and references/architecture_tractability.md."
+    desired_actions:
+      - TrackComplexity
+    implementation_scope:
+      - scripts/close_ticket.py and scripts/close_spec_workflow.py (ledger entry, delta report, anti-gaming check, refinement-loop record)
+      - scripts/analyze_complexity.py (ledger-format output)
+      - spec_manifest.yaml complexity_ledger schema
+      - SKILL.md / references/architecture_tractability.md consistency check
+    current_increment:
+      model_state:
+        - complexity_ledger
+      model_actions:
+        - TrackComplexity
+      adapters:
+        - spec-unit adapter closing a fixture ticket and asserting ledger entry, delta report, justification requirement, and anti-gaming rejection
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-019/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-019/current/TlaSpecDevCli.tla specs/tickets/MF-019/current/MC.cfg
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-019
+      assertions:
+        - analyze-complexity metrics are recorded as a ledger entry at ticket close and workflow close.
+        - close reports the complexity delta; increases require a recorded justification naming the new essential behavior.
+        - a complexity decrease with degraded retention evidence is rejected at close; deltas are only reported jointly with retention evidence.
+        - the refinement loop record (approved recommendation or searched-found-none) is required at close; recommendations are advisory and user-approved.
+      evidence: []
+
+  - id: MF-026
+    title: "Coverage audit gate"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/41"
+    schedule_revision: 1
+    depends_on: [MF-013, MF-015, MF-016, MF-019]
+    blocks: [MF-023]
+    wave: 9
+    promotion_order: 82
+    promotion_predecessor: MF-019
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [coverage-audit-prompt]
+    objective: "An end-of-epic sub-agent procedure that finds what the model DOES NOT REPRESENT, gating promotion on closing the in-scope gaps. Fills a structural hole -- all four oracles are bounded to what is already modeled (output and projected-state conformance to cases that exist, effect conformance to a corpus generated FROM the model, and the kill test to faults seeded one per port and one per invariant, i.e. modeled boundaries only), so unmodeled program surface is never generated into a case, never adapted, never mutated, and is invisible to every gate while all of them report green. The oracles check FIDELITY of what is modeled; this checks COMPLETENESS. Coverage appears in the doctrine only as an assertion and is measured nowhere. Deliverable is prompt-only by owner decision, so the prompt itself must impose completeness discipline through required enumeration tables with per-row verdicts and file:line evidence, across four sweeps -- program surface, effect sites by category, behaviors (error paths, retries, timeouts, fallbacks, concurrency, config branches), and both Internal and External views reported separately. GATE SEMANTICS -- in-scope gaps are HARD (model it or change the program, per the fourth governing rule), out-of-scope surface is inventoried without gating, and the scope is declared once in the plan and reviewed once rather than waived per finding. That distinction is the design -- a gate whose findings can each be closed by a recorded justification is the out-of-contract suppression purged from MF-013 rebuilt one level up. Remediation is advisory; the existence of an in-scope gap is not. See tickets/026-coverage-audit-gate.md."
+    desired_actions: []
+    implementation_scope:
+      - a checked-in sub-agent prompt and report template
+      - SKILL.md and epic doctrine updated with the required end-of-epic ordering
+      - worked example run against this repository, included as evidence
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-026
+      assertions:
+        - the prompt requires four complete enumeration sweeps -- program surface, effect sites by category, behaviors including error paths and retries and timeouts and fallbacks and concurrency and config branches, and both views -- each a table with a per-row verdict and file:line evidence.
+        - the prompt explicitly FORBIDS a justified or accept-as-is disposition for an in-scope gap; the only dispositions are model it, change the program, or (out of scope) inventory it.
+        - the prompt requires the epic declared scope to be READ FROM THE PLAN, not chosen by the auditing agent -- an agent that picks its own scope can define every gap out of existence.
+        - Internal and External are reported separately; a single merged verdict is not acceptable.
+        - the report is emitted as ticket evidence and recorded in the MF-019 complexity ledger, so an epic that skipped the audit is visible.
+        - a worked example run against this repository is included as evidence; a prompt nobody has executed is unvalidated.
+        - if the worked example shows the agent skipping surface or producing impressionistic findings, that is REPORTED as a finding about the prompt rather than smoothed over, with a follow-up ticket for a mechanical inventory as the honest outcome.
+      evidence: []
+
+  - id: MF-023
+    title: "Decompose this repository by dogfooding the finished toolchain"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/30"
+    schedule_revision: 2
+    depends_on: [MF-011, MF-013, MF-014, MF-015, MF-016, MF-017, MF-019, MF-022, MF-026]
+    blocks: []
+    wave: 9
+    promotion_order: 85
+    promotion_predecessor: MF-026
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla, Core.tla, Internal.tla, External.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: [specWorkflow, cliWorkflow]
+      workflow: []
+    objective: "Perform the Internal/External decomposition this repository has carried as a known gap since the epic began — but perform it BY RUNNING THE FINISHED TOOLCHAIN ON THIS REPOSITORY ITSELF, not by hand. Every mechanism the epic built is exercised end-to-end on a real target for the first time: analyze complexity proposes the cut from the R/W matrix and modularity score, corpus distillation produces the case corpus, effect conformance validates the side-effect contracts at the new ports, External channel enforcement checks the channel-authentic bindings, and the mutation kill test proves the decomposed models are not shrunk past usefulness. The decomposition is the deliverable; the dogfooding is the acceptance test of the epic. Where a tool proves inadequate to its own repository, that finding outranks completing the migration — record it rather than working around it by hand. Motivating trigger: MF-011's component-size heuristics fail on the undecomposed model (C1 touched by 11 actions vs max_component_actions 8), which is a true finding this ticket resolves at the root. See tickets/023-decompose-via-dogfooding.md and references/migration.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/ (Core.tla / Internal.tla / External.tla split)
+      - specs/program_model/production_adapters.py (per-view adapters)
+      - specs/program_model/spec_manifest.yaml (reconcile the MF-020/MF-022 desync recorded in epic notes)
+      - test_graph specWorkflow / cliWorkflow bindings
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - per-view adapters for the decomposed Internal and External models
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-023/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket MF-023
+      assertions:
+        - the cut is PROPOSED BY analyze complexity from the R/W matrix and modularity score, not chosen by hand; record the command output that produced it.
+        - Core/Internal/External replace the single module; every action and invariant maps to a view with the mapping enumerated.
+        - the component-size heuristics PASS on the decomposed views without renegotiating max_component_actions -- if they do not, that is a finding about the budget or the cut, and must be reported rather than tuned away.
+        - reachable behavior is retained across the split, proven against the pre-split baseline rather than asserted.
+        - every epic mechanism is exercised on this repository and its output recorded as evidence: analyze complexity, corpus distillation, effect conformance, External channel enforcement, mutation kill test, and the MF-019 complexity ledger.
+        - each mechanism that proves inadequate, awkward, or wrong on a real target is recorded as a first-class finding with the evidence; this is the point of the ticket and outranks a clean migration.
+        - the MF-026 coverage audit is RE-RUN post-decomposition as this ticket promotion gate, reporting Internal and External separately now that both views exist; in-scope gaps are closed by modeling them or changing the program, never waived.
+        - the MF-019 refinement loop runs on the finished decomposition and its recommendations are recorded for owner approval.
+        - ABSORBED FROM THE WITHDRAWN MF-024 -- every override the toolchain offers (--allow-over-budget, the budgets fallback, the justification-table behavior) is exercised during the dogfooding run and confirmed to be explicit, visible in output, and recorded in evidence when used, and confirmed never to be the DEFAULT path. Overrides record an accepted cost; they must not normalize a bad state or make degradation what happens when the agent says nothing. If any override turns out to be the silent default, that is a first-class finding.
+      evidence: []

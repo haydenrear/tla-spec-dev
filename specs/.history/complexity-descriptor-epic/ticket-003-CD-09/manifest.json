@@ -1,0 +1,705 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/CD-09",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/complexity-descriptor-epic/ticket-003-CD-09 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for CD-09'",
+    "message": "It is recommended to commit this history directory now: specs/.history/complexity-descriptor-epic/ticket-003-CD-09"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 14,
+        "before": 14,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 699840,
+        "before": 699840,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 25,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": 283805,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": 6209780,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "CD-03"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": 7,
+      "passing": false,
+      "report": "specs/results/epic-close/coverage_audit_report.md",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml:534-549,1996-1999,2073-2075,2143-2147,516-525",
+      "status": "fail"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 14,
+          "before": 14,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 699840,
+          "before": 699840,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 25,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": 283805,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": 6209780,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "CD-03"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/CD-09/results/complexity_ledger.yaml",
+    "justification": "Direction metrics are flat (variables 9, bound 699,840, actions 14); the measured TLC delta vs the last measured entry is distinct 231,621 -> 283,805 (+22.5%) and generated 5,619,356 -> 6,209,780 (+10.5%) at depth 25. The new representation carries real shipped behavior the old model wrongly forbade: `run spec-unit-tests` performs no complexity check (advisory descriptor, MF-036/CD-01), so states with an advanced ticket and an unanalyzed complexity_gate are reachable in the program and now in the model (G2).",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 14,
+      "bound": 699840,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 56.8,
+          "used": 283805,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 70.0,
+          "used": 699840,
+          "within_cap": true
+        }
+      },
+      "depth": 25,
+      "distinct_states": 283805,
+      "gate_passed": false,
+      "gate_violations": [
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 6209780,
+      "modularity": 0.0,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/tickets/CD-09/results/tlc-current.txt",
+      "variables": 9
+    },
+    "narrative": "CD-09 audit reconciliation. (G2) The model's withdrawn blocking complexity gate is gone: RunSpecUnitTests(root, ticket) reads no complexity state, the `override` input is removed, and SpecUnitTestsRequireAnalyzedGate -- true only of the blocking-gate era -- is removed from the module and both cfgs with a tombstone. The recorded verdict survives as complexity_gate, write- only in the R/W matrix (an observable fact, not a control input). TLC: 231,621 -> 283,805 distinct at depth 25; the +52,184 states are exactly the gate-unknown/ticket-advanced combinations the program always allowed -- measured refutation of the brief's predicted decrease, recorded as an increase-shaped honest delta at 56.8% of the carried max_distinct_states 500,000 budget (rationale preserved). (G4) Dead tlc_process port removed with its AnalyzeComplexity declaration and its kill-catalog mutant; declared boundaries now 17/17 seeded. (G5) case_adapters.toml binds exactly the 14 @command actions (added UpdateTicketDesired/UpdateTicketCurrent/ RunEffectConformance/RunKillTest, dropped non-action ValidateTestGraphCli), proven both directions by test_tla_spec_dev_binding_reconciliation.py. (Retention basis) scripts/complexity_ledger.py amended to the validated-refactor basis; regression suite proves the old gate rejected an honest validated decrease (ledger_regression_pre_amendment.txt) and the amended gate licenses it while still rejecting degraded/absent basis evidence and keeping the MF-020 red-flag gate untouched. Full evidence: model_before_after_descriptors.txt, transition_diff.md, binding_reconciliation.txt, tlc_before.txt, tlc_current.txt, spec_unit_tests.txt, repo_unit_tests.txt, graph_specWorkflow.txt, graph_cliWorkflow.txt.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (fail) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+    ],
+    "recorded_at_utc": "2026-07-22T17:53:01.469344+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "The after-descriptor itself names the candidate: the variable-interaction graph is now one 9-variable/14-action component (Q=0.000), exceeding both component heuristics. The refinement is the Internal/External decomposition already recorded as the plan's known_gap (MF-023 lineage) -- owner-scheduled, explicitly not this ticket's to take, and PROJECTED only (no TLC measurement of a split exists). Not applied.\n",
+      "measured": false,
+      "outcome": "found",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "experimental since the 2026-07-21 pivot (MF-038: kill 0.31 vs floor 0.8, 0/9 content bugs); not run per plan case_execution_rule",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "CD-09",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "specs/tickets/CD-09/results/transition_diff.md -- NOT the red-flag pattern (generated rose with distinct at constant depth). Every removed computation is a duplicate `override` parameter binding of a retained state-graph edge; every added edge is RunSpecUnitTests (and downstream actions) from complexity_gate=\"unknown\" states, i.e. the shipped advisory behavior. No state-graph edge present before the delta is absent after it.",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-09/results/repo_unit_tests.txt (577 passed)",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-09/results/model_before_after_descriptors.txt",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-09/results/tlc_current.txt (6,209,780 generated / 283,805 distinct / depth 25, no error)",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/tickets/CD-09/results/tlc_before.txt (5,619,356 generated / 231,621 distinct / depth 25, no error)",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "complexity-descriptor-epic"
+  },
+  "created_at_utc": "2026-07-22T17:53:01.536176+00:00",
+  "entry_name": "ticket-003-CD-09",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/83-cd09-audit-reconciliation",
+    "commit": "5603546",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/CD-09/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/CD-09/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/CD-09/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/CD-09/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/CD-09/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/CD-09/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/CD-09/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/CD-09/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/CD-09/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/CD-09/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/CD-09/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/CD-09"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "The after-descriptor itself names the candidate: the variable-interaction graph is now one 9-variable/14-action component (Q=0.000), exceeding both component heuristics. The refinement is the Internal/External decomposition already recorded as the plan's known_gap (MF-023 lineage) -- owner-scheduled, explicitly not this ticket's to take, and PROJECTED only (no TLC measurement of a split exists). Not applied.\n",
+    "measured": false,
+    "outcome": "found",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/model_before_after_descriptors.txt",
+      "source": "specs/tickets/CD-09/results/model_before_after_descriptors.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/transition_diff.md",
+      "source": "specs/tickets/CD-09/results/transition_diff.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/binding_reconciliation.txt",
+      "source": "specs/tickets/CD-09/results/binding_reconciliation.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/tlc_before.txt",
+      "source": "specs/tickets/CD-09/results/tlc_before.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/tlc_current.txt",
+      "source": "specs/tickets/CD-09/results/tlc_current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/ledger_regression_pre_amendment.txt",
+      "source": "specs/tickets/CD-09/results/ledger_regression_pre_amendment.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/spec_unit_tests.txt",
+      "source": "specs/tickets/CD-09/results/spec_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/repo_unit_tests.txt",
+      "source": "specs/tickets/CD-09/results/repo_unit_tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/graph_specWorkflow.txt",
+      "source": "specs/tickets/CD-09/results/graph_specWorkflow.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/results/graph_cliWorkflow.txt",
+      "source": "specs/tickets/CD-09/results/graph_cliWorkflow.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "experimental since the 2026-07-21 pivot (MF-038: kill 0.31 vs floor 0.8, 0/9 content bugs); not run per plan case_execution_rule",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 22,
+    "close_out_entry": "Close-out ticket CD-09",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "open",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "open",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "open",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 7,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-83-cd09-audit-reconciliation/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/ticket",
+      "source": "specs/tickets/CD-09"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "CD-09 audit reconciliation: advisory-faithful model (override + blocking gate + SpecUnitTestsRequireAnalyzedGate removed, TLC 231,621 -> 283,805 distinct at depth 25), dead tlc_process port removed (17/17 boundaries seeded), case_adapters.toml reconciled to the exact 14-action set, complexity ledger amended to the owner-approved validated-refactor retention basis with fuzzing members recorded non-gating",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "No override input and no blocking-gate branch remains in the model; the model's gate surface matches the advisory program (grep + TLC evidence).",
+        "Declared ports match actual spawns of modeled actions; no dead port (G4).",
+        "case_adapters.toml binds exactly the model's action set; spec-unit tests prove it (G5).",
+        "The ledger licenses this ticket's decrease via the validated-refactor basis: TLC green before/after with before/after descriptor comparison recorded, behavior tests green, transition-level diff inspected for the red-flag pattern; fuzzing retention members recorded not_run without gating (regression tests updated, failing pre-amendment for a validated decrease).",
+        "This is a REAL model delta: record before/after TLC counts and the transition-level diff; a generated-states drop at constant distinct states without a recorded transition diff still REJECTS (the red-flag gate is retained)."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-09"
+      ],
+      "evidence": [
+        "specs/tickets/CD-09/results/model_before_after_descriptors.txt",
+        "specs/tickets/CD-09/results/transition_diff.md",
+        "specs/tickets/CD-09/results/binding_reconciliation.txt",
+        "specs/tickets/CD-09/results/tlc_current.txt",
+        "specs/tickets/CD-09/results/spec_unit_tests.txt",
+        "specs/tickets/CD-09/results/repo_unit_tests.txt",
+        "specs/tickets/CD-09/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-09/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/production_adapters.py",
+        "specs/current/case_adapters.toml",
+        "specs/current/spec_manifest.yaml"
+      ],
+      "production": [
+        "scripts/complexity_ledger.py",
+        "tests/test_complexity_ledger.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "TlaSpecDevCli.tla",
+        "MC.cfg"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "reconciled case_adapters.toml binding set"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/83",
+    "id": "CD-09",
+    "implementation_scope": [
+      "specs/current/TlaSpecDevCli.tla + MC.cfg (override removal; advisory-faithful guards; invariants)",
+      "specs/current/spec_manifest.yaml (ports; justification table rows touched)",
+      "specs/current/case_adapters.toml + production_adapters.py (binding reconciliation)",
+      "scripts/complexity_ledger.py + tests/test_complexity_ledger.py (retention basis)"
+    ],
+    "objective": "Fix the three REAL desyncs coverage-audit run 2 found (report: specs/results/epic-close/coverage_audit_report.md), plus the owner-approved retention-basis amendment that licenses the resulting complexity decrease. (G2) The model still represents the withdrawn blocking complexity gate: TlaSpecDevCli.tla ~528 guards on complexity_gate = \"fail\" /\\ override, and the override input survives, while the program has been advisory since MF-036/CD-01 and proceeds-on-fail with no flag (generate_cases_from_tlc_dump.py 866-882). Make the model advisory-faithful: remove the override variable and every blocking branch; the recorded verdict state may remain as an observable fact. (G4) AnalyzeComplexity declares a tlc_process port (*java*) but the analyze path spawns nothing \u2014 remove the dead port declaration from the action (and the port if unused). (G5) case_adapters.toml binds 11 of 14 model actions plus ValidateTestGraphCli which is not an action \u2014 reconcile bindings to the exact action set (bind the missing, drop the non-action), with spec-unit tests proving the mapping. (RETENTION AMENDMENT, owner-approved 2026-07-22:) amend scripts/complexity_ledger.py so a complexity DECREASE is licensed by the CD-02 validated-refactor basis \u2014 TLC green before/after, behavior tests green, before/after descriptors compared, transition-level diff inspected (the existing red-flag gate) \u2014 with the fuzzing-era retention members (kill_rate, effect_conformance, external_coverage) still RECORDED (not_run / experimental) but no longer gating; they were demoted by the pivot after measuring kill 0.31 vs floor 0.8 and 0/9 content bugs. Update tests/test_complexity_ledger.py accordingly; record the doctrine change where the ledger doctrine is documented. This ticket's own close is the first exercise of the amended basis \u2014 record the full validated-refactor evidence set.\n",
+    "promotion_order": 130,
+    "promotion_predecessor": "CD-03",
+    "schedule_revision": 2,
+    "status": "done",
+    "title": "Audit reconciliation: advisory-faithful model, honest ports and bindings, validated-refactor retention basis",
+    "wave": 15
+  },
+  "ticket_id": "CD-09",
+  "ticket_index": 3,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/complexity-descriptor-epic/ticket-003-CD-09/ticket",
+    "source": "specs/tickets/CD-09"
+  },
+  "workflow_name": "complexity-descriptor-epic"
+}

@@ -11,7 +11,10 @@ sys.path.insert(0, str(ROOT))
 from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
 from scripts.run_generated_case_adapters import (
     AdapterMapping,
+    _opaque_path_component,
     adapter_for_case,
+    assert_case_result_per_field,
+    compare_fields_honoring_unchecked,
     execute_cases_in_batch,
     load_mappings,
     validate_adapter_capabilities,
@@ -246,10 +249,10 @@ class SubmitAdapter:
     assert lifecycle_adapters.EVENTS == [
         ("setup_all", "request-http", ("case_1", "case_2")),
         ("setup", "request-http", "case_1", True),
-        ("run", "case_1", "case_1"),
+        ("run", "case_1", _opaque_path_component("case", "case_1")),
         ("teardown", "request-http", "case_1", True, True),
         ("setup", "request-http", "case_2", True),
-        ("run", "case_2", "case_2"),
+        ("run", "case_2", _opaque_path_component("case", "case_2")),
         ("teardown", "request-http", "case_2", True, True),
         ("teardown_all", "request-http", ("case_1", "case_2"), True),
     ]
@@ -449,9 +452,21 @@ class RequestStateProjector:
         encoding="utf-8",
     )
     mapping = tmp_path / "bindings.toml"
+    # MF-015: an external binding must declare its channel, its production
+    # package, and its double|real port bindings. The adapter above imports
+    # spec_double_compiler.runtime, which is the ADAPTER HARNESS rather than the
+    # program under test -- the gate targets the declared production package, so
+    # returning a CaseRunResult stays legal for a Test Graph adapter.
     mapping.write_text(
-        """[actions.Submit]
+        """[external]
+production_package = "program_under_test"
+
+[external.port_bindings]
+RequestPort = "real"
+
+[actions.Submit]
 view = "external"
+channel = "http"
 layer = "external"
 controllability = "e2e_direct"
 adapter = "non_batch_projection_adapters:SubmitAdapter"
@@ -519,6 +534,77 @@ class RequestStateProjector:
         )
     }
 
+    execute_cases_in_batch(cases=[case], mappings=mappings, work_dir=tmp_path / "work", import_roots=[tmp_path])
+
+
+def test_compare_fields_honoring_unchecked_reports_three_buckets() -> None:
+    # MF-032: the per-field replacement for the runner's old whole-dict ==.
+    comparison = compare_fields_honoring_unchecked(
+        {"a": 1, "b": 2, "c": 3},
+        {"a": 1, "b": 9, "c": 9},
+        unobservable=("c",),
+    )
+    assert comparison["agreements"] == ["a"]
+    assert comparison["unchecked"] == ["c"]
+    assert [item["field"] for item in comparison["disagreements"]] == ["b"]
+
+
+def test_assert_case_result_per_field_honors_declared_unobservable() -> None:
+    # An adapter returns a real `after` whose `secret` field disagrees, but it
+    # declares `secret` unobservable -- so the runner reports it UNCHECKED and
+    # does not fail. The old whole-dict `==` could not express this and would
+    # have failed or forced the adapter to fake agreement.
+    case = Case("case_1", {}, object(), Output({}), {"n": 3, "secret": "MODEL_VALUE"}, frozenset({"Act"}))
+    assert_case_result_per_field(
+        case=case,
+        result=CaseRunResult(
+            after={"n": 3, "secret": "OBSERVED_DIFFERENT"},
+            semantic_output={"unobservable": ["secret"]},
+        ),
+    )
+
+
+def test_assert_case_result_per_field_fails_on_checked_field() -> None:
+    # A CHECKED field that disagrees still fails, per field, with a message that
+    # names exactly which field diverged.
+    case = Case("case_1", {}, object(), Output({}), {"n": 3, "secret": "MODEL_VALUE"}, frozenset({"Act"}))
+    try:
+        assert_case_result_per_field(
+            case=case,
+            result=CaseRunResult(after={"n": 4, "secret": "MODEL_VALUE"}, semantic_output={}),
+        )
+    except AssertionError as exc:
+        assert "adapter after-state mismatch" in str(exc)
+        assert "n:" in str(exc)
+    else:
+        raise AssertionError("expected a per-field after-state mismatch to fail")
+
+
+def test_batched_runner_after_comparison_is_per_field(tmp_path: Path) -> None:
+    # End-to-end through execute_cases_in_batch: an adapter returning a real
+    # `after` dict with one declared-unobservable field passes, proving the
+    # runner (not just a helper) honors UNCHECKED per field.
+    module_path = tmp_path / "per_field_after_adapters.py"
+    module_path.write_text(
+        """class SubmitAdapter:
+    def run(self, case, work_dir=None):
+        return {
+            "output": None,
+            "after": {"n": case.after["n"], "secret": "OBSERVED_DIFFERENT"},
+            "semantic_output": {"unobservable": ["secret"]},
+        }
+""",
+        encoding="utf-8",
+    )
+    sys.path.insert(0, str(tmp_path))
+    case = make_view_case(
+        "case_1",
+        "Submit",
+        view="internal",
+        controllability="unit_direct",
+        after={"n": 3, "secret": "MODEL_VALUE"},
+    )
+    mappings = {"Submit": AdapterMapping("Submit", "per_field_after_adapters:SubmitAdapter", kind="per-field")}
     execute_cases_in_batch(cases=[case], mappings=mappings, work_dir=tmp_path / "work", import_roots=[tmp_path])
 
 

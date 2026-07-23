@@ -1,0 +1,123 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Retention evidence -- the doctrine's three-member constraint set. A complexity
+# DECREASE is REJECTED unless all three are retained. Absent or unknown evidence
+# does NOT pass: an unmeasured constraint cannot witness retention.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; treating that as passing here would rebuild the silence.
+retention:
+  kill_rate:
+    status: "TODO"
+    evidence: "TODO -- path to the kill-test report"
+  effect_conformance:
+    status: "TODO"
+    evidence: "TODO -- path to the effect-conformance report"
+  external_coverage:
+    status: "TODO"
+    evidence: "TODO -- path to the external coverage report"
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Zero-delta ticket. CD-01 is a scripts-and-docs change (analyze_complexity.py,
+    tests, SKILL.md, references) that removes the suggested-move machinery and
+    fixes two measurement-honesty defects (F1 invariant-alias resolution, F3
+    explicit-unknown bound). The TLA+ model is byte-identical to the epic
+    baseline and TLC reports the same 231,621 distinct states / depth 25 /
+    bound 699,840 (results/tlc_current.txt). The refinement search for an
+    architectural reduction found none applicable: the ticket's objective was
+    to make the scanner's OUTPUT honest (facts, not judgment), not to change
+    the model. The F1 fix makes the invariant-coverage fact correct on standard
+    TLA+ (aliased/composed invariants); the F3 fix stops the bound from
+    silently collapsing to 1 -- both improve measurement accuracy without
+    changing this model's own figures.
+  measured: true       # TLC run produced the figure (231,621 distinct / depth 25)
+  applied: false       # no architectural change applied
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  CD-01 ships the complexity DESCRIPTOR and removes the suggested-move
+  machinery. Validation project 1 proved the ABSTRACT/DECOMPOSE/REFACTOR
+  chooser confidently wrong on standard TLA+: with `INVARIANT Inv` and
+  `Inv == RealInv` (a one-token alias body, exactly what the scaffold ships),
+  the scanner judged every variable "read by no invariant" and recommended
+  projecting away ALL variables (results/f1_regression.txt, PRE-FIX section).
+
+  What changed (scripts and docs only, zero TLA delta):
+  (1) suggest_move, OrdinalChain, latching_booleans, implication_chains,
+      projected_bound and the Advisory.recommendation field were removed; the
+      report and JSON now carry only [MEASURED] facts -- dimension table,
+      bound + dominant dimensions, R/W matrix, modularity + clusters +
+      port-crossing actions, dense rows/columns (god-state), invariant
+      coverage, justification linkage, TLC diagnostics, and advisory
+      threshold-breach warnings that state the fact without recommending.
+  (2) F1: resolve_definition_body() expands cfg-named invariants through
+      aliasing/composition transitively (cycle-guarded). Regression tests fail
+      pre-fix (results/f1_regression.txt).
+  (3) F3: the domain source is TypeInvariant, then TypeOK, then the
+      transitively resolved cfg invariants; with no resolvable domain the
+      bound is None, rendered "UNKNOWN" with an explicit warning -- never a
+      silent 1 (results/f3_bound.txt). complexity_ledger.render_report renders
+      the None bound as "unknown".
+  (4) Exit semantics unchanged: exit 0 on any analyzable model; nonzero only
+      for an unanalyzable hierarchy (MF-030 fail-closed). Advisory, never
+      blocking (MF-036) is preserved.
+  (5) Docs: SKILL.md, references/architecture_tractability.md and
+      references/modular_fuzzing.md now present the descriptor as the shipped
+      surface; the three moves remain as the owner's design vocabulary, no
+      longer as scanner output.
+
+  Retention oracles (kill_rate/effect_conformance/external_coverage) were not
+  re-run: the model is byte-identical to the baseline, behavior retention is
+  witnessed by the identical TLC run (5,619,356 generated / 231,621 distinct /
+  depth 25, 46.3% of max_distinct_states 500000), and no complexity decrease
+  is claimed that would require them. Per the epic's case_execution_rule the
+  fuzzing machinery is experimental and not ticket validation.
+

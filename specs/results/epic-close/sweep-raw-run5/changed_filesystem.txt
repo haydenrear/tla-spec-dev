@@ -1,0 +1,179 @@
+scripts/new_ticket_workflow.py:17:from pathlib import Path
+scripts/new_ticket_workflow.py:21:SKILL_ROOT = Path(__file__).resolve().parents[1]
+scripts/new_ticket_workflow.py:44:def _load_manifest(path: Path) -> dict[str, Any]:
+scripts/new_ticket_workflow.py:86:    repo_root: Path
+scripts/new_ticket_workflow.py:87:    spec_root: Path
+scripts/new_ticket_workflow.py:88:    program_dir: Path
+scripts/new_ticket_workflow.py:89:    tla_path: Path | None
+scripts/new_ticket_workflow.py:90:    cfg_path: Path | None
+scripts/new_ticket_workflow.py:91:    manifest_path: Path | None
+scripts/new_ticket_workflow.py:102:def _resolve_spec_root(repo_root: Path, spec_root: Path) -> Path:
+scripts/new_ticket_workflow.py:106:def _display_spec_root(repo_root: Path, spec_root: Path) -> str:
+scripts/new_ticket_workflow.py:115:def discover_baseline(repo_root: Path, spec_root: Path, fallback_module: str) -> Baseline:
+scripts/new_ticket_workflow.py:121:    package = str(manifest.get("package") or f"{_slug(module).replace('-', '_')}_cases")
+scripts/new_ticket_workflow.py:159:            match = re.search(r"(?m)^\s*-+\s*MODULE\s+([A-Za-z][A-Za-z0-9_]*)\s*-+", tla_path.read_text())
+scripts/new_ticket_workflow.py:198:def write_file(path: Path, content: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:204:    path.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:205:    path.write_text(content, encoding="utf-8")
+scripts/new_ticket_workflow.py:210:def copy_file(src: Path | None, dst: Path, fallback: str, *, force: bool, dry_run: bool) -> bool:
+scripts/new_ticket_workflow.py:214:        action = f"copy {src}" if src else "write fallback"
+scripts/new_ticket_workflow.py:217:    dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:222:        dst.write_text(fallback, encoding="utf-8")
+scripts/new_ticket_workflow.py:227:def copy_baseline_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+scripts/new_ticket_workflow.py:231:    copied: list[Path] = []
+scripts/new_ticket_workflow.py:240:            print(f"would copy {src} -> {dst}")
+scripts/new_ticket_workflow.py:242:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:250:    src_dir: Path,
+scripts/new_ticket_workflow.py:251:    dst_dir: Path,
+scripts/new_ticket_workflow.py:256:) -> list[Path]:
+scripts/new_ticket_workflow.py:261:    copied: list[Path] = []
+scripts/new_ticket_workflow.py:272:            print(f"would copy {src} -> {dst}")
+scripts/new_ticket_workflow.py:274:            dst.parent.mkdir(parents=True, exist_ok=True)
+scripts/new_ticket_workflow.py:281:def workflow_tree_seed_paths(src_dir: Path, skip_paths: set[str] | None = None) -> list[str]:
+scripts/new_ticket_workflow.py:304:def copy_optional_tree(src_dir: Path, dst_dir: Path, *, force: bool, dry_run: bool) -> list[Path]:
+scripts/new_ticket_workflow.py:310:def ticket_plan_path(specs_dir: Path) -> Path:
+scripts/new_ticket_workflow.py:314:def load_ticket_plan(specs_dir: Path) -> dict[str, Any]:
+scripts/new_ticket_workflow.py:324:def find_ticket(plan: dict[str, Any], ticket_ref: str, *, source: Path | None = None) -> tuple[int, dict[str, Any]]:
+scripts/new_ticket_workflow.py:336:    plan_source = source or Path("ticket_plan.yaml")
+scripts/new_ticket_workflow.py:345:def ticket_root_dir(specs_dir: Path, ticket_root: Path) -> Path:
+scripts/new_ticket_workflow.py:349:def project_current_source(specs_dir: Path) -> Path:
+scripts/new_ticket_workflow.py:356:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:357:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:368:    source_current: Path,
+scripts/new_ticket_workflow.py:369:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:370:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:386:1. Edit `desired/` first. It starts as a copy of the project current model;
+scripts/new_ticket_workflow.py:411:    ticket_dir: Path,
+scripts/new_ticket_workflow.py:412:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:413:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:434:    specs_dir: Path,
+scripts/new_ticket_workflow.py:435:    ticket_root: Path,
+scripts/new_ticket_workflow.py:436:    ticket_root_arg: Path,
+scripts/new_ticket_workflow.py:437:    ticket_dir: Path,
+scripts/new_ticket_workflow.py:441:    source_current: Path,
+scripts/new_ticket_workflow.py:442:    source_project_desired: Path,
+scripts/new_ticket_workflow.py:443:    spec_root: Path,
+scripts/new_ticket_workflow.py:521:def current_readme(ticket_id: str, title: str, baseline: Baseline, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:538:   implementation. Do not copy only the feature or ticket-local subset.
+scripts/new_ticket_workflow.py:585:def current_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:644:def desired_manifest(module: str, package: str, ticket_id: str, title: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:699:def ticket_plan(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:710:  current_model_rule: Update {spec_root_text}/current after each production slice lands as a whole-program working copy of {spec_root_text}/program_model, not a ticket projection.
+scripts/new_ticket_workflow.py:764:        - replace.with.graph.node
+scripts/new_ticket_workflow.py:775:def desired_state(ticket_id: str, title: str, module: str, spec_root: Path = Path("specs")) -> str:
+scripts/new_ticket_workflow.py:849:        return False, "replace ScaffoldedTicketAdapter with a ticket-specific adapter"
+scripts/new_ticket_workflow.py:854:    return current_test_for_spec_root(ticket_id, Path("specs"))
+scripts/new_ticket_workflow.py:857:def current_test_for_spec_root(ticket_id: str, spec_root: Path) -> str:
+scripts/new_ticket_workflow.py:858:    return f'''from pathlib import Path
+scripts/new_ticket_workflow.py:861:SPEC_ROOT = Path(__file__).resolve().parents[1].parent
+scripts/new_ticket_workflow.py:870:    assert "{ticket_id}" in manifest.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:871:    assert "{ticket_id}" in plan.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:876:    return f'''from pathlib import Path
+scripts/new_ticket_workflow.py:879:TICKET_ROOT = Path(__file__).resolve().parents[1]
+scripts/new_ticket_workflow.py:890:    assert "{ticket_id}" in ticket.read_text(encoding="utf-8")
+scripts/new_ticket_workflow.py:895:    repo_root: Path,
+scripts/new_ticket_workflow.py:900:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:901:    ticket_root: Path = Path("tickets"),
+scripts/new_ticket_workflow.py:903:) -> list[Path]:
+scripts/new_ticket_workflow.py:919:    written: list[Path] = []
+scripts/new_ticket_workflow.py:928:            "remove a project current/ path only if it appears here and the ticket dropped it; "
+scripts/new_ticket_workflow.py:970:    repo_root: Path,
+scripts/new_ticket_workflow.py:975:    spec_root: Path = Path("specs"),
+scripts/new_ticket_workflow.py:976:) -> list[Path]:
+scripts/new_ticket_workflow.py:984:    written: list[Path] = []
+scripts/new_ticket_workflow.py:1003:    # otherwise replace a real spec-unit mapping with an empty stub. A
+scripts/new_ticket_workflow.py:1033:    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root to scaffold into.")
+scripts/new_ticket_workflow.py:1034:    parser.add_argument("--spec-root", type=Path, default=Path("specs"), help="Spec root under the repository.")
+tests/test_kill_test.py:18:from pathlib import Path
+tests/test_kill_test.py:22:REPO_ROOT = Path(__file__).resolve().parents[1]
+tests/test_kill_test.py:75:def make_spec_dir(tmp_path: Path, *, manifest: str = MANIFEST, cfg: str = CFG) -> Path:
+tests/test_kill_test.py:77:    spec_dir.mkdir()
+tests/test_kill_test.py:78:    (spec_dir / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+tests/test_kill_test.py:79:    (spec_dir / "MC.cfg").write_text(cfg, encoding="utf-8")
+tests/test_kill_test.py:99:        replace="BAD",
+tests/test_kill_test.py:147:    def test_ports_come_from_the_manifest(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:151:    def test_invariants_come_from_the_tlc_config(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:156:        self, tmp_path: Path
+tests/test_kill_test.py:167:        self, tmp_path: Path
+tests/test_kill_test.py:180:        manifest = (spec_dir / "spec_manifest.yaml").read_text(encoding="utf-8")
+tests/test_kill_test.py:182:        (spec_dir / "spec_manifest.yaml").write_text(manifest, encoding="utf-8")
+tests/test_kill_test.py:187:        self, tmp_path: Path
+tests/test_kill_test.py:191:        cfg = (spec_dir / "MC.cfg").read_text(encoding="utf-8") + "  NewlyAdded\n"
+tests/test_kill_test.py:192:        (spec_dir / "MC.cfg").write_text(cfg, encoding="utf-8")
+tests/test_kill_test.py:205:    def test_uncovered_boundary_yields_incomplete_catalog(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:215:    def test_no_kill_rate_is_computed_over_a_partial_catalog(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:234:        self, tmp_path: Path
+tests/test_kill_test.py:253:        self, tmp_path: Path
+tests/test_kill_test.py:275:    def test_rate_at_or_above_floor_passes(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:285:    def test_rate_below_floor_fails(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:299:    def test_exactly_at_the_floor_passes(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:314:    def test_just_below_the_floor_fails(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:328:    def test_the_floor_is_read_from_the_manifest_not_hardcoded(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:329:        manifest = MANIFEST.replace("kill_rate_floor: 0.8", "kill_rate_floor: 0.4")
+tests/test_kill_test.py:341:    def test_ok_is_false_for_every_non_pass_verdict(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:377:                    "replace": "BAD",
+tests/test_kill_test.py:394:    def test_a_recorded_justification_does_not_change_the_verdict(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:481:    def test_survivor_names_the_variable_and_action_to_refine(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:518:                "replace": "BAD",
+tests/test_kill_test.py:527:    def test_every_survivor_appears_in_the_json_evidence(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:539:        payload = json.loads(out.read_text(encoding="utf-8"))
+tests/test_kill_test.py:553:    def test_evidence_is_written_even_when_the_verdict_is_bad(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:567:        assert json.loads(out.read_text(encoding="utf-8"))["kill_rate"] == 0.0
+tests/test_kill_test.py:576:    def test_seeding_applies_then_restores_the_file(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:578:        source.write_text("value = 'GOOD'\n", encoding="utf-8")
+tests/test_kill_test.py:581:            assert source.read_text(encoding="utf-8") == "value = 'BAD'\n"
+tests/test_kill_test.py:582:        assert source.read_text(encoding="utf-8") == "value = 'GOOD'\n"
+tests/test_kill_test.py:584:    def test_the_file_is_restored_even_when_the_run_raises(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:588:        source.write_text("value = 'GOOD'\n", encoding="utf-8")
+tests/test_kill_test.py:592:        assert source.read_text(encoding="utf-8") == "value = 'GOOD'\n"
+tests/test_kill_test.py:594:    def test_a_stale_mutant_is_refused_not_counted_as_killed(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:598:        source.write_text("value = 'REFACTORED'\n", encoding="utf-8")
+tests/test_kill_test.py:614:            "replace": "BAD",
+tests/test_kill_test.py:669:    def test_a_baseline_regression_shows_up_as_its_own_verdict(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:738:            count = target.read_text(encoding="utf-8").count(mutant.find)
+tests/test_kill_test.py:745:        tla = (self.spec_dir / "TlaSpecDevCli.tla").read_text(encoding="utf-8")
+tests/test_kill_test.py:778:                ast.parse(target.read_text(encoding="utf-8"))
+tests/test_kill_test.py:810:    def test_a_missing_catalog_is_refused(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:815:    def test_compare_mode_refuses_a_dropped_kill_rate(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:818:        before.write_text(
+tests/test_kill_test.py:821:        after.write_text(
+tests/test_kill_test.py:844:    def test_a_red_control_refuses_rather_than_scoring(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:857:    def test_a_red_control_computes_no_kill_rate(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:871:    def test_a_red_control_seeds_no_mutants_at_all(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:890:    def test_the_control_dominates_a_below_floor_verdict(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:905:    def test_the_control_result_is_recorded_in_the_evidence(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:941:    def two_model_dir(self, tmp_path: Path) -> Path:
+tests/test_kill_test.py:943:        (spec_dir / "External.cfg").write_text(
+tests/test_kill_test.py:946:        (spec_dir / "MC.cfg").unlink()
+tests/test_kill_test.py:947:        (spec_dir / "Internal.cfg").write_text(
+tests/test_kill_test.py:952:    def test_the_strict_default_requires_every_config(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:957:    def test_scoping_narrows_the_obligation(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:966:    def test_scoping_does_not_reduce_what_is_measured(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:987:    def test_scoping_to_a_nonexistent_config_is_refused(self, tmp_path: Path) -> None:
+tests/test_kill_test.py:992:    def test_the_inline_invariant_form_is_parsed(self, tmp_path: Path) -> None:
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:16:from pathlib import Path
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:22:    path = Path(__file__).resolve().parents[1] / "production_adapters.py"
+specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py:16:from pathlib import Path
+specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py:22:    path = Path(__file__).resolve().parents[1] / "production_adapters.py"
+specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py:16:from pathlib import Path
+specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py:22:    path = Path(__file__).resolve().parents[1] / "production_adapters.py"
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:10:from pathlib import Path
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:12:RAW = Path("specs/results/epic-close/sweep-raw-run4")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:13:SURFACE = [l.strip() for l in (RAW / "ca4-surface-all.txt").read_text().splitlines() if l.strip()]
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:25:    "scripts/new_ticket_workflow.py": ("represented", "ScaffoldWorkflow, OpenTicket", ":524-525 (scaffold workflow/open; dispatch :102,:124)",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:52:        "sandbox behind RunEffectConformance :440 and RunSpecUnitTests :559; manifest:228. Sandbox root mkdir :619/:656 joins gap R4-2 on the effect-conformance path (covered by RunSpecUnitTests spec_tree on the runner path) [READ regions]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:54:        "RunKillTest TlaSpecDevCli.tla:493-525; manifest:229. UNCOVERED: mutation seed/restore write_text :548/:551 overwrites production source (scripts/**) matching NO declared port = gap R4-1; corpus spawn :609 matches test_process only for pytest-shaped commands [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:66:        "identical role to the specs/current copy; diff-verified identical this run [INFERRED]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:68:        "reconciled binding set; diff-verified identical to specs/current copy this run [grep-level]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:73:    "scripts/close_spec_workflow.py": "close wrapper; rmtree :49 not performed by a modeled action, no port owed per :556-557",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:75:    "scripts/close_tickets.py": "batch close (promotion_rule :565 forbids ticket agents running it); unlink :127 / rmtree :232 not performed by a modeled action",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:78:    "scripts/start_ticket.py": "open wrapper",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:82:    "specs/desired_program_model/production_adapters.py": "desired-tree adapter copy",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:83:    "specs/desired_program_model/adapter_case_runtime.py": "desired-tree adapter copy",
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:121:                "unrepresented", "archived ticket-tree copy; default polarity, not read")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:136:out = Path(RAW / "sweep1_table.md")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:137:out.write_text("\n".join(rows) + "\n")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:176:    for l in f.read_text().splitlines():
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:185:pat = re.compile(r"shutil\.rmtree|\.unlink\(|os\.remove\(")
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:186:dest = [l for l in (RAW / "filesystem.txt").read_text().splitlines() if pat.search(l)]
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:187:(Path(RAW / "destructive_sites.txt")).write_text("\n".join(dest) + "\n")

@@ -1,0 +1,26 @@
+{
+  "fitness_functions": [
+    {
+      "name": "state-space-stays-tiny-and-known",
+      "description": "taskq's whole model is one 4-status store over a few names; the bound must stay resolved and tiny. A jump past 1000, or a tasks domain past 256 (4 statuses x 4 names), means a new state dimension or a domain wider than the behavior -- re-read the descriptor before accepting it.",
+      "rule": {
+        "all": [
+          {"fact": "bound_known", "op": "==", "value": true},
+          {"fact": "bound", "op": "<", "value": 1000},
+          {"fact": "variable_domain", "var": "tasks", "op": "<=", "value": 256}
+        ]
+      }
+    },
+    {
+      "name": "store-stays-covered-no-new-dead-state",
+      "description": "Only the spec-unit case-label channel (lastInternalAction) may be invariant-unread; every variable keeps a justification linkage; and no dense rows appear beyond the two deliberate ones (tasks, the store itself, and lastCli, the observability channel).",
+      "rule": {
+        "all": [
+          {"fact": "unread_by_invariant_count", "op": "<=", "value": 1},
+          {"fact": "unjustified_count", "op": "==", "value": 0},
+          {"not": {"fact": "god_state_count", "op": ">", "value": 2}}
+        ]
+      }
+    }
+  ]
+}

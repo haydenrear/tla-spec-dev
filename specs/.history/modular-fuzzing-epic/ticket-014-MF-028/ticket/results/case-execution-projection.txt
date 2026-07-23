@@ -1,0 +1,30 @@
+=== case_0001_build_skill_cli :: BuildSkillCliAdapter ===
+  before : {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "Init", "result": {"accepted": true, "next": "BuildSkillCli", "reason": "NoReason"}, "setup_phase": 0, "spec_root": "NoRoot", "ticket_state": {"cli_entrypoint": 0}}
+  action : BuildSkillCli  params={}
+  after  : {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "BuildSkillCli", "result": {"accepted": true, "next": "InstallLocalCli", "reason": "NoReason"}, "setup_phase": 1, "spec_root": "NoRoot", "ticket_state": {"cli_entrypoint": 0}}
+  replay : []
+  projected(observed from the real repository): {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "BuildSkillCli", "result": {"accepted": true, "next": "BuildSkillCli", "reason": "NoReason"}, "setup_phase": 1, "spec_root": "NoRoot", "ticket_state": {"cli_entrypoint": 0}}
+  CHECKED   (10): ['complexity_gate', 'corpus_gate', 'effect_conformance', 'kill_test', 'lastCommand', 'result.accepted', 'result.reason', 'setup_phase', 'spec_root', 'ticket_state']
+  UNCHECKED (1): ['result.next']
+  MISMATCH  (0): []
+
+=== case_0005_scaffold_project :: ScaffoldProjectAdapter ===
+  before : {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "InstallLocalCli", "result": {"accepted": true, "next": "tla-spec-dev scaffold project", "reason": "NoReason"}, "setup_phase": 2, "spec_root": "NoRoot", "ticket_state": {"cli_entrypoint": 0}}
+  action : ScaffoldProject  params={}
+  after  : {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "tla-spec-dev scaffold project", "result": {"accepted": true, "next": "RecordBudgets", "reason": "NoReason"}, "setup_phase": 3, "spec_root": "default_specs", "ticket_state": {"cli_entrypoint": 0}}
+  replay : [{"step": "BuildSkillCli", "action": "no-op (source repo already built)"}, {"step": "InstallLocalCli", "action": "no-op (source repo already built)"}]
+  projected(observed from the real repository): {"complexity_gate": "unknown", "corpus_gate": "unknown", "effect_conformance": "unknown", "kill_test": "unknown", "lastCommand": "tla-spec-dev scaffold project", "result": {"accepted": true, "next": "tla-spec-dev scaffold project", "reason": "NoReason"}, "setup_phase": 3, "spec_root": "<unparameterized:specs>", "ticket_state": {"cli_entrypoint": 0}}
+  CHECKED   (9): ['complexity_gate', 'corpus_gate', 'effect_conformance', 'kill_test', 'lastCommand', 'result.accepted', 'result.reason', 'setup_phase', 'ticket_state']
+  UNCHECKED (2): ['result.next', 'spec_root']
+  MISMATCH  (0): []
+
+=== NEGATIVE CONTROLS (each MUST be rejected) ===
+  REJECTED setup_phase: setup_phase: expected 4, observed 3
+  REJECTED ticket_state: ticket_state: expected {'cli_entrypoint': 2}, observed {'cli_entrypoint': 0}
+  REJECTED result.accepted: result.accepted: expected False, observed True
+
+  NOTE: `spec_root` has no negative control because it is UNCHECKED.
+  Every case in the corpus carries params={}, so the adapter cannot
+  know which root the model chose. An earlier draft read it from
+  case.after and echoed it back; the corruption test passed anyway,
+  which is how the tautology was found. See ScaffoldProjectAdapter.run.

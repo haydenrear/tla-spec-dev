@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib
-from dataclasses import dataclass
+from contextlib import AbstractContextManager
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from types import MappingProxyType
+from typing import Any, Mapping, Protocol, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -13,6 +15,37 @@ class CaseRunResult:
     semantic_output: Any = None
 
 
+@dataclass(frozen=True)
+class EffectProviderContext:
+    """Immutable inputs supplied when a project provider binds one case port."""
+
+    port_name: str
+    action: str
+    case: Any
+    work_dir: Path
+    iteration: int = 0
+    root_seed: int = 0
+    derived_seed: int = 0
+    seed_version: str = "tla-spec-dev/effect-seed/v1"
+
+
+@runtime_checkable
+class EffectProvider(Protocol):
+    """The single framework contract implemented by repository agents.
+
+    The returned standard context manager yields either an implementation of
+    the selected generated port (explicit injection) or ``None`` when the
+    provider installs and restores its own bounded integration.
+    """
+
+    def bind(self, context: EffectProviderContext) -> AbstractContextManager[Any | None]:
+        ...
+
+
+def _empty_effects() -> Mapping[str, Any]:
+    return MappingProxyType({})
+
+
 @dataclass
 class AdapterBatchContext:
     kind: str
@@ -20,6 +53,13 @@ class AdapterBatchContext:
     work_dir: Path
     mapping: Any
     shared: dict[str, Any]
+    iteration: int = 0
+    root_seed: int = 0
+    #: MF-013: the effect sandbox for this batch, when effect conformance is
+    #: active. Adapters take temp dirs and fake transports from it. They do not
+    #: report effects through it -- observation is passive, so that an adapter
+    #: cannot decline to disclose a boundary crossing.
+    sandbox: Any = None
 
 
 @dataclass
@@ -31,6 +71,11 @@ class AdapterCaseContext:
     shared: dict[str, Any]
     result: CaseRunResult | None = None
     error: BaseException | None = None
+    #: EP-01: stable semantic port-name -> provider binding values for this
+    #: case. The mapping is immutable; provider-owned values may be stateful.
+    effects: Mapping[str, Any] = field(default_factory=_empty_effects)
+    #: MF-013: see AdapterBatchContext.sandbox.
+    sandbox: Any = None
 
 
 @dataclass
@@ -41,6 +86,7 @@ class ProjectedStateAssertionContext:
     mapping: Any
     shared: dict[str, Any]
     result: CaseRunResult | None
+    effects: Mapping[str, Any] = field(default_factory=_empty_effects)
     expected: Any = None
     actual: Any = None
 

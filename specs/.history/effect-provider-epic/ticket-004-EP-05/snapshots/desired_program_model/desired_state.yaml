@@ -1,0 +1,51 @@
+version: 1
+name: desired-program-model
+canonical_tla_module: TlaSpecDevCli
+views:
+  internal:
+    module: TlaSpecDevCli.tla
+    config: MC.cfg
+    generates: spec_unit
+    adapter_mapping: case_adapters.toml
+  external:
+    module: null
+    config: null
+    generates: testgraph
+    adapter_mapping: null
+    note: >
+      The accepted baseline predates the Internal/External split; the external
+      surface is validated by the specWorkflow and cliWorkflow Test Graph
+      graphs. Splitting this repository's own model into Internal/External
+      views is a recorded known gap, out of scope for the modular-fuzzing
+      epic (see ticket_plan.yaml service_catalog.known_gaps).
+manifest: spec_manifest.yaml
+ticket_plan: ticket_plan.yaml
+
+relationship:
+  extends_current_program_model: ../program_model/TlaSpecDevCli.tla
+  purpose: desired whole-program workflow state for the effect-provider epic
+  generation_status: planned
+
+implementation_status:
+  updated: "2026-07-22"
+  policy: specs/current is the executable state of landed work; this file summarizes the desired destination.
+  active_ticket: null
+  active_ticket_title: null
+  summary:
+    desired_model_scaffolded: true
+    ticket_breakdown: amendment_planned
+    current_model: original_effect_provider_lane_landed
+    generated_desired_cases: pending
+    adapters: agent_authored_provider_contract_pending
+
+modeled_boundary_status:
+  ticket_plan:
+    status: amendment_planned
+    artifact: ticket_plan.yaml
+    next_ticket: EP-04
+
+program_domains: []
+implementation_sources: {}
+adapter_plan:
+  desired_new_ports: []
+guardrails: {}

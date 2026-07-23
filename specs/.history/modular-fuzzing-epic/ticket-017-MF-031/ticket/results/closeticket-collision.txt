@@ -1,0 +1,21 @@
+adapter classes with action_name == 'CloseTicket': 4
+  - ClosePromotionPreservesCurrentAdapter  run()=no  apply()=yes  close-drives-in-apply~=1
+  - CloseTicketAdapter                     run()=no  apply()=yes  close-drives-in-apply~=1
+  - ComplexityLedgerCloseOutAdapter        run()=no  apply()=yes  close-drives-in-apply~=5
+  - SkillFeedbackCloseOutAdapter           run()=no  apply()=yes  close-drives-in-apply~=3
+
+Runner mapping model: run_generated_case_adapters.adapter_for_case() returns
+exactly ONE mapping per label (the toml is a dict keyed by label). So the
+corpus label 'CloseTicket' binds to a SINGLE adapter; the others are
+unreachable from the corpus regardless of any run() they grow.
+
+FINDING: this is a binding-model limitation, not an adapter defect.
+  * 4 classes claim the CloseTicket transition; only 1 can bind.
+  * The non-canonical ones are multi-close BATTERIES (each drives several
+    closes to assert accumulation/gating) -- not single transitions, so they
+    cannot be case executors even in principle. They are correct as the
+    spec-unit apply() conformance tests they already are.
+  * Even the canonical CloseTicketAdapter's before-state needs a ticket at
+    ticket_state=SpecUnitTestsPassed(4), which requires the spec-unit/close
+    gate machinery MF-031 deliberately refuses (out-of-segment). So CloseTicket
+    case execution is blocked by that same surface, independent of the collision.

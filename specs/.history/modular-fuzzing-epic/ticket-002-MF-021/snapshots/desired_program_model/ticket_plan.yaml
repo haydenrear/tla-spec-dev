@@ -1,0 +1,604 @@
+# Canonical plan for the modular-fuzzing epic. GitHub issues mirror this file
+# for handoff; this file remains the source of truth. Dispatched ticket IDs,
+# dependency edges, waves, and promotion order are immutable after issue
+# assignment — add amendment tickets instead of editing dispatched identities.
+version: 1
+name: modular-fuzzing-epic
+updated: "2026-07-18"
+purpose: "Mechanize the modular pure-function/side-effect fuzzing doctrine (references/modular_fuzzing.md) in the tla-spec-dev CLI: per-program budgets, complexity analysis gates, corpus distillation, effect conformance, External channel enforcement, mutation kill tests, and the skill feedback loop."
+
+epic:
+  id: modular-fuzzing
+  branch: epic/modular-fuzzing
+  default_branch: main
+  base_sha: da0a7ffe59078111bdc61fdaeefa2e296bf16057
+  schedule_revision: 4
+  review_mode: epic-owner-post-merge
+  notes: >
+    Per repository-owner direction, ticket agents merge their reviewed-green
+    feature branch into epic/modular-fuzzing themselves after validation and
+    ticket close; the epic owner reviews post-merge and prepares the next
+    ticket. The epic owner closes GitHub issues; ticket agents never do.
+    2026-07-17: MF-011 amended (schedule_revision 2) before start to add
+    tractability diagnostics per references/architecture_tractability.md;
+    architectural moves are recommendations requiring user approval.
+    2026-07-17: MF-019 added (complexity minimization objective, wave 8,
+    promotion after MF-017); MF-011 bumped to revision 3 and MF-016 to
+    revision 2 for the new reverse blocks edges. The standing objective and
+    recursive refinement loop doctrine landed in
+    references/architecture_tractability.md and SKILL.md.
+    2026-07-18: epic schedule_revision bumped to 2 (per desired_sync_rule,
+    for the MF-019 addition). Issues #12/#14/#15/#16/#18 backfilled with the
+    standing-objective close-out instruction and an
+    architecture_tractability.md reference — their bodies predated the
+    doctrine; per-ticket schedule revisions unchanged (no compared
+    scheduling fields changed).
+    2026-07-18: MF-012 accepted and closed at post-merge review (merge
+    fb79bc5). Its complexity ledger surfaced an architectural move that the
+    owner approved: MF-020 added (ticket_phase ordinal collapse) at
+    promotion_order 15, between MF-012 and MF-011, so the analyze-complexity
+    gate is calibrated against the retained model shape. MF-011 bumped to
+    revision 4 (depends_on gains MF-020; promotion_predecessor MF-012 ->
+    MF-020). Waves of already-dispatched tickets deliberately NOT renumbered:
+    promotion_order is the real serialization and its gaps of 10 exist for
+    insertion, so only MF-011's assignment needed re-rendering.
+    2026-07-18: MF-020 accepted and closed at post-merge review (merge
+    690b7389). Variables 13 -> 11 and declared bound 3,145,728 -> 393,216 at
+    identical 919 reachable states and depth 21. IMPORTANT CORRECTION: the
+    projected -13.1% generated-states reduction (originating in the MF-012
+    ledger, propagated into tickets/020 and issue #21) was WITHDRAWN as
+    erroneous. Reproducing it required tightening the RunSpecUnitTests guard
+    from >= 2 to = 2, deleting a legitimate idempotent re-fire transition —
+    a behavior change, not a re-representation. Generated states are
+    unchanged at 3,664. The distinct-state gate is structurally blind to
+    deleted self-loops, so MF-011 and MF-019 must treat projected reductions
+    as unverified until the transition-level diff is inspected; a
+    generated-states drop at constant distinct states is a red flag, not a
+    win. Known desync: specs/program_model/spec_manifest.yaml still names the
+    three collapsed booleans (frozen accepted baseline, promoted wholesale at
+    epic finalization) — must be reconciled there.
+    2026-07-18: MF-021 added at promotion_order 17, before MF-011, per owner
+    direction to fix the promotion data-loss defect (GitHub #22) before any
+    further model refactor runs that gauntlet. Root cause located:
+    replace_tree rmtree's specs/current before copying the ticket desired/
+    tree, and desired/ is seeded from a different source than current/, so
+    current-only files are destroyed silently. It has now fired on two
+    consecutive tickets and destroyed the sole copy of a prior ticket's
+    regression test. MF-011 bumped to revision 5 (depends_on gains MF-021;
+    promotion_predecessor MF-020 -> MF-021). The setup_phase collapse
+    (11 -> 7 variables, bound 393,216 -> 73,728 at identical 919/21, found
+    and measured by the MF-020 agent) remains an open owner decision,
+    deliberately deferred until promotion is safe.
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands (scaffold, analyze, generate, close) ARE program behavior for this repository.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
+  promotion_rule: Only epic finalization promotes; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-021
+  active_ticket_title: "Promotion must not destroy files unique to specs/current"
+  desired_module: TlaSpecDevCli
+  phase: implementation
+
+service_catalog:
+  existing_boundaries:
+    - tla-spec-dev CLI (scaffold/open/run/close)
+    - scripts/generate_cases_from_tlc_dump.py case generation
+    - scripts/run_generated_case_adapters.py adapter runner
+    - spec_manifest.yaml / actions.yml / testgraph_bindings.yml schemas
+  desired_boundaries:
+    - budgets block in spec_manifest.yaml read by all gates
+    - analyze complexity pre-TLC gate
+    - sandboxed effect observation in the adapter runner
+    - channel-authentic Test Graph bindings with double|real port configurations
+  adapter_boundaries:
+    - specs/program_model/production_adapters.py spec-unit adapters
+    - test_graph specWorkflow / cliWorkflow graphs
+  known_gaps:
+    - "This repository's own baseline is a single TlaSpecDevCli.tla module without the Internal/External view split that SKILL.md mandates for onboarded projects. Out of scope for this epic; migrate via references/migration.md in a follow-up epic."
+
+tickets:
+  - id: MF-012
+    title: "Scaffold-time budget prompts"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/12"
+    schedule_revision: 1
+    depends_on: []
+    blocks: [MF-011, MF-014, MF-016]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production: [scripts/tla_spec_dev.py, scripts/onboard_program_model.py, templates/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [spec_manifest.yaml-budgets-schema]
+    objective: "Budgets become per-program program state: scaffold emits a budgets block in spec_manifest.yaml (tlc_seconds, max_distinct_states, case caps, component-size heuristics, kill_rate_floor), instructs the agent to negotiate values with the user, and downstream commands read gates from the manifest with documented defaults and a warning on fallback. See tickets/012-scaffold-budget-prompts.md."
+    desired_actions:
+      - RecordBudgets
+    implementation_scope:
+      - scripts/tla_spec_dev.py (scaffold project/workflow budget emission)
+      - scripts/onboard_program_model.py
+      - templates/ manifest templates
+      - references/modular_fuzzing.md defaults kept in sync
+    current_increment:
+      model_state:
+        - budgets_recorded
+      model_actions:
+        - RecordBudgets
+      adapters:
+        - specs/.../production_adapters.py scaffold adapter asserting budgets block emission
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-012/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-012/current/TlaSpecDevCli.tla specs/tickets/MF-012/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-012
+      assertions:
+        - scaffold project and scaffold workflow emit a budgets block with the documented defaults.
+        - scaffold output instructs the agent to propose defaults and record user-adjusted values with rationale.
+        - a consumer helper reads budgets with default fallback and warning.
+      evidence:
+        - specs/tickets/MF-012/results/validation-summary.md
+        - specs/tickets/MF-012/results/complexity-ledger.md
+        - specs/tickets/MF-012/results/tlc-current.txt
+        - specs/tickets/MF-012/results/spec-unit-tests.txt
+        - specs/tickets/MF-012/results/repository-unit-tests.txt
+        - specs/tickets/MF-012/results/graph-reports/specWorkflow-20260718-153853-c3144c6b
+        - specs/tickets/MF-012/results/graph-reports/cliWorkflow-20260718-153934-857a0f5c
+
+  - id: MF-020
+    title: "Collapse ticket phase booleans into an ordinal"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/21"
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 15
+    promotion_predecessor: MF-012
+    conflict_keys:
+      production: []
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Approved architectural move surfaced by the MF-012 complexity ledger: replace the three parallel booleans desired_ready / current_ready / spec_unit_tests_passed with a single ordinal ticket_phase in [Tickets -> 0..3]. The invariants already pin them to a strict total order, so only 4 of 8 combinations are reachable; the ordinal represents the same behavior with none of the unreachable product space. Measured on the MF-012 model: -2 state variables, -13.1% generated states, and an 8x smaller declared state-space bound (3,145,728 -> 393,216) at IDENTICAL 919 reachable states and identical depth 21 — the reachable-state equality is the proof that nothing is under-represented. Scheduled before MF-011 so the analyze-complexity gate is built and calibrated against the model shape the epic is keeping, rather than measuring a shape already slated for removal. See references/architecture_tractability.md."
+    desired_actions: []
+    implementation_scope:
+      - specs/program_model/TlaSpecDevCli.tla (variable and invariant rewrite)
+      - specs/program_model/production_adapters.py (phase-aware adapters)
+      - specs/current/tests (adapter assertions referencing the booleans)
+    current_increment:
+      model_state:
+        - ticket_phase
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py updated to read ticket_phase
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-020/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-020/current/TlaSpecDevCli.tla specs/tickets/MF-020/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-020
+      assertions:
+        - the three booleans are gone; ticket_phase carries the ordering.
+        - reachable distinct states remain 919 and depth remains 21 — behavior retention is proven by equality, not asserted.
+        - declared state-space bound drops to 393,216; state variables drop by 2.
+        - every invariant expressed over the old booleans has an equivalent over ticket_phase; none is silently dropped.
+      evidence:
+        - specs/tickets/MF-020/results/invariant-mapping.md
+        - specs/tickets/MF-020/results/complexity-ledger.md
+        - specs/tickets/MF-020/results/tlc-current.txt
+        - specs/tickets/MF-020/results/tlc-desired.txt
+        - specs/tickets/MF-020/results/spec-unit-tests.txt
+        - specs/tickets/MF-020/results/pytest-repo.txt
+        - specs/tickets/MF-020/results/graph-specWorkflow.txt
+        - specs/tickets/MF-020/results/graph-cliWorkflow.txt
+        - specs/tickets/MF-020/results/refinement-probe/tlc-setup-phase-probe.txt
+      result_notes:
+        - "Retention gate MET: 919 distinct states, depth 21, 10/10 invariants — identical to MF-012 baseline."
+        - "Complexity: state variables 13 -> 11; declared bound 3,145,728 -> 393,216 (8x)."
+        - "Generated-states target (3,183) NOT met: shipped 3,664. Reaching it requires tightening the RunSpecUnitTests guard to `= 2`, which deletes the idempotent spec-unit re-run transition. Recorded as a finding, not applied. See complexity-ledger.md section 4."
+        - "Refinement search FOUND a further reduction (setup_phase bootstrap chain, 11 -> 7 variables, bound -> 73,728 at identical 919/21). Prototyped and measured; recommendation only, awaiting owner approval."
+
+
+  - id: MF-021
+    title: "Promotion must not destroy files unique to specs/current"
+    status: done
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/25"
+    schedule_revision: 1
+    depends_on: [MF-020]
+    blocks: [MF-011]
+    wave: 2
+    promotion_order: 17
+    promotion_predecessor: MF-020
+    conflict_keys:
+      production: [scripts/spec_evolution.py, scripts/close_ticket.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Fix the silent data-loss defect in ticket promotion (GitHub #22). promote_ticket_outputs calls replace_tree(active_dir/'desired', specs_dir/'current'), and replace_tree does shutil.rmtree(dst) before copying. Because the ticket's desired/ tree is seeded from a different source than specs/current, any file unique to specs/current is destroyed with no warning and no failure. Observed twice: MF-012 and MF-020 both lost specs/current/tests/test_current_ticket_workflow.py, which carried MF-012's budgets retention test; the file was not in the history seal either, so the on-disk copy was the only one. Deleted tests cannot fail, so the loss is invisible exactly when it matters. Promotion must either preserve current-only files or abort loudly enumerating every file it would remove. Silent deletion is not an acceptable default for test files."
+    desired_actions: []
+    implementation_scope:
+      - scripts/spec_evolution.py (replace_tree / promote_ticket_outputs)
+      - scripts/close_ticket.py (close-time reporting of removals)
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters:
+        - specs/.../production_adapters.py close adapter asserting current-only files survive promotion
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-021/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-021/current/TlaSpecDevCli.tla specs/tickets/MF-021/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-021
+      assertions:
+        - a file present in specs/current but absent from the ticket desired/ tree survives promotion, or promotion fails naming it.
+        - the close output enumerates every path promotion removed; no path is removed silently.
+        - a regression test reproduces the original loss (seed a current-only test file, promote, assert it survives) and fails against the pre-fix behavior.
+        - directories unique to specs/current (e.g. refinement-probe/) are covered by the same rule, not just files.
+      evidence:
+        - specs/tickets/MF-021/results/design-decision.md
+        - specs/tickets/MF-021/results/complexity-ledger.md
+        - specs/tickets/MF-021/results/self-verification.md
+        - specs/tickets/MF-021/results/prefix-failure.txt
+        - specs/tickets/MF-021/results/postfix-pass.txt
+        - specs/tickets/MF-021/results/tlc-current.txt
+        - specs/tickets/MF-021/results/spec-unit-tests.txt
+        - specs/tickets/MF-021/results/repository-unit-tests.txt
+        - specs/tickets/MF-021/results/testgraph-specWorkflow/summary.json
+        - specs/tickets/MF-021/results/testgraph-cliWorkflow/summary.json
+    outcome:
+      - "Chose provenance-aware promotion (seed manifest recorded at open) over repairing the seed filter; the seed repair fixes only the one excluded path and cannot reach paths added to specs/current after the ticket opened (MF-020's refinement-probe/). See design-decision.md."
+      - "Retention gate MET: 919 distinct states, depth 21, 11 variables - identical to the MF-020 baseline. No new close-failure path was modelled because the fix preserves and enumerates rather than aborting."
+      - "Regression gate MET: the regression suite FAILS 4/6 against the pre-fix replace_tree behaviour (prefix-failure.txt) and passes 6/6 after (postfix-pass.txt)."
+      - "Repository unit tests 117 -> 123 passing; no regression."
+      - "Complexity: model delta zero (correct for a mechanics fix). Refinement search found duplicate hyphenated script entrypoints (scripts/close-ticket.py, scripts/close-spec-workflow.py) - RECOMMENDATION only, owner approval required, not applied. setup_phase collapse remains deferred per owner decision."
+
+  - id: MF-011
+    title: "Analyze complexity command"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/13"
+    schedule_revision: 5
+    depends_on: [MF-012, MF-020, MF-021]
+    blocks: [MF-019]
+    wave: 2
+    promotion_order: 20
+    promotion_predecessor: MF-021
+    conflict_keys:
+      production: [scripts/analyze_complexity.py, scripts/tla_spec_dev.py, scripts/generate_cases_from_tlc_dump.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: []
+    objective: "Add tla-spec-dev analyze complexity: per-variable domain cardinality table, state-space upper bound, variables x actions read/write matrix, near-decomposable cluster flags, R/W-matrix modularity score, suggested move (abstract/decompose/refactor) emitted as a recommendation requiring user approval and never auto-applied, unjustified-variable flags, budget-gated nonzero exit, and case generation refusing (with override) when the gate fails. See tickets/011-analyze-complexity.md and references/architecture_tractability.md."
+    desired_actions:
+      - AnalyzeComplexity
+    implementation_scope:
+      - scripts/analyze_complexity.py (new)
+      - scripts/tla_spec_dev.py (analyze subcommand)
+      - scripts/generate_cases_from_tlc_dump.py (gate integration)
+    current_increment:
+      model_state:
+        - complexity_gate
+      model_actions:
+        - AnalyzeComplexity
+      adapters:
+        - spec-unit adapter running analyze complexity against a fixture spec
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-011/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-011/current/TlaSpecDevCli.tla specs/tickets/MF-011/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-011
+      assertions:
+        - analyze complexity prints cardinalities, upper bound, and R/W matrix for the constrained profile.
+        - exit is nonzero when budgets are exceeded; output names the dominant dimensions.
+        - case generation refuses above-gate models without the explicit override flag.
+        - modularity score and suggested move are emitted, labeled as recommendations requiring user approval, with evidence (candidate cut or dense rows/columns).
+        - variables lacking a justification linkage are flagged as dead weight when a justification table is present.
+      evidence: []
+
+  - id: MF-014
+    title: "Corpus distillation"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/14"
+    schedule_revision: 1
+    depends_on: [MF-012]
+    blocks: [MF-016]
+    wave: 3
+    promotion_order: 30
+    promotion_predecessor: MF-011
+    conflict_keys:
+      production: [scripts/generate_cases_from_tlc_dump.py, scripts/export_testgraph_cases.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Stratified case selection: at least one case per (action, label class), remaining budget filled by state-predicate novelty, manifest-recorded drops (no silent truncation), named regression traces always retained, caps read from manifest budgets. See tickets/014-corpus-distillation.md."
+    desired_actions:
+      - DistillCorpus
+    implementation_scope:
+      - scripts/generate_cases_from_tlc_dump.py
+      - scripts/export_testgraph_cases.py
+    current_increment:
+      model_state:
+        - corpus_distilled
+      model_actions:
+        - DistillCorpus
+      adapters:
+        - spec-unit adapter asserting stratification and drop records on a fixture dump
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-014/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-014
+      assertions:
+        - selection covers every (action, label class) before novelty fill.
+        - generated manifest lists every dropped case and the dropping rule.
+        - named regression traces survive caps.
+      evidence: []
+
+  - id: MF-013
+    title: "Effect conformance harness"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/15"
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 4
+    promotion_order: 40
+    promotion_predecessor: MF-014
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, spec_double_compiler/runtime.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: [specs/program_model/production_adapters.py]
+      test_graph: []
+      workflow: [actions.yml-effects-schema]
+    objective: "Declared effects per component in manifest/actions.yml; runner executes adapters in a sandbox and diffs observed side effects against declared effects; undeclared observed effects fail or record representation gaps; declared-never-observed effects reported as dead surface; out-of-contract justifications suppress gaps. See tickets/013-effect-conformance-harness.md."
+    desired_actions:
+      - RunEffectConformance
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py
+      - spec_double_compiler/runtime.py
+      - actions.yml / spec_manifest.yaml effect declarations
+    current_increment:
+      model_state:
+        - effect_conformance
+      model_actions:
+        - RunEffectConformance
+      adapters:
+        - spec-unit adapter with a deliberate undeclared effect proving the diff fails
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-013/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-013/current/TlaSpecDevCli.tla specs/tickets/MF-013/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-013
+      assertions:
+        - sandboxed observation collects filesystem and transport effects per case.
+        - undeclared observed effect fails or records a gap; dead declared effects are reported.
+        - justified out-of-contract effects suppress the gap report.
+      evidence: []
+
+  - id: MF-015
+    title: "External channel enforcement"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/16"
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 5
+    promotion_order: 50
+    promotion_predecessor: MF-013
+    conflict_keys:
+      production: [scripts/run_generated_case_adapters.py, scripts/export_testgraph_cases.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: [testgraph_bindings.yml-schema]
+      workflow: []
+    objective: "Require channel per Test Graph binding (http/cli/fs/queue/k8s), verify Test Graph adapters cannot import the production package (static analysis or isolated interpreter), report violations with remediation, and make double|real port binding configurations declarable for integration-ladder rungs. See tickets/015-external-channel-enforcement.md."
+    desired_actions:
+      - EnforceExternalChannels
+    implementation_scope:
+      - scripts/run_generated_case_adapters.py (testgraph path)
+      - scripts/export_testgraph_cases.py
+      - testgraph_bindings.yml schema
+    current_increment:
+      model_state:
+        - channel_enforcement
+      model_actions:
+        - EnforceExternalChannels
+      adapters:
+        - spec-unit adapter proving an in-process import is detected and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-015/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-015
+      assertions:
+        - bindings without a channel field are rejected with remediation guidance.
+        - production-package imports from Test Graph adapters are detected.
+        - port binding configurations (double|real) are declarable and validated.
+      evidence: []
+
+  - id: MF-016
+    title: "Mutation kill test"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/17"
+    schedule_revision: 2
+    depends_on: [MF-012, MF-014]
+    blocks: [MF-019]
+    wave: 6
+    promotion_order: 60
+    promotion_predecessor: MF-015
+    conflict_keys:
+      production: [scripts/run_kill_test.py, examples/distributed_history/]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: "Kill-test support: documented and CLI-assisted seeding of at least one fault per port and one per invariant, distilled-corpus run, kill_rate_floor gate from manifest budgets, evidence storage (mutants, kill matrix, surviving-mutant analysis), onboarding/promotion as required kill-test moments, kill-rate before/after comparison across model revisions so the kill test doubles as the abstraction validator (references/architecture_tractability.md), and a worked kill test in distributed_history. See tickets/016-mutation-kill-test.md."
+    desired_actions:
+      - RunKillTest
+    implementation_scope:
+      - scripts/run_kill_test.py (new) or documented procedure with runner support
+      - examples/distributed_history/ worked kill test
+      - references/modular_fuzzing.md kept in sync
+    current_increment:
+      model_state:
+        - kill_test
+      model_actions:
+        - RunKillTest
+      adapters:
+        - spec-unit adapter proving a seeded fault is killed and reported
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-016/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-016/current/TlaSpecDevCli.tla specs/tickets/MF-016/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-016
+        - python3 examples/run_distributed_history_validation.py --mode local
+      assertions:
+        - kill rate is computed against kill_rate_floor from budgets and gates nonzero below it.
+        - mutants, kill matrix, and surviving-mutant analysis land under ticket evidence.
+        - distributed_history carries a worked kill test in local mode.
+      evidence: []
+
+  - id: MF-017
+    title: "Skill feedback loop"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/18"
+    schedule_revision: 1
+    depends_on: []
+    blocks: []
+    wave: 7
+    promotion_order: 70
+    promotion_predecessor: MF-016
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/close_spec_workflow.py, scripts/close_tickets.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [close-out-templates]
+    objective: "Workflow close-out emits a skill_feedback.md template into specs/results/ prompting for surviving mutants, unmodelable effects, budget adjustments, and profile/CLI workarounds; template instructs turning items into tickets/PRs against spec-double-compiler; history entries record whether feedback was filed. See tickets/017-skill-feedback-loop.md."
+    desired_actions:
+      - EmitSkillFeedback
+    implementation_scope:
+      - scripts/close_ticket.py
+      - scripts/close_spec_workflow.py
+      - scripts/close_tickets.py
+      - references/migration.md kept in sync
+    current_increment:
+      model_state:
+        - skill_feedback
+      model_actions:
+        - EmitSkillFeedback
+      adapters:
+        - spec-unit adapter asserting close-out writes the feedback template
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-017/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-017/current/TlaSpecDevCli.tla specs/tickets/MF-017/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-017
+      assertions:
+        - close emits specs/results/skill_feedback.md with the four prompt sections.
+        - history entries record whether feedback was filed and where.
+      evidence: []
+
+  - id: MF-019
+    title: "Complexity minimization objective"
+    status: pending
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/19"
+    schedule_revision: 1
+    depends_on: [MF-011, MF-016]
+    blocks: []
+    wave: 8
+    promotion_order: 80
+    promotion_predecessor: MF-017
+    conflict_keys:
+      production: [scripts/close_ticket.py, scripts/analyze_complexity.py, scripts/close_spec_workflow.py]
+      tla: [TlaSpecDevCli.tla]
+      adapters: []
+      test_graph: []
+      workflow: [spec_manifest.yaml-complexity-ledger]
+    objective: "Mechanize the standing objective — programming as complexity minimization under behavior retention: a complexity ledger recorded per ticket/workflow close from analyze-complexity metrics, close-time complexity deltas with required justification for increases, anti-gaming rejection when a decrease coincides with degraded retention evidence (kill rate, effect conformance, external coverage), and the recursive refinement loop as a required close-out step emitting user-approved recommendations or an explicit searched-found-none record. See tickets/019-complexity-minimization-objective.md and references/architecture_tractability.md."
+    desired_actions:
+      - TrackComplexity
+    implementation_scope:
+      - scripts/close_ticket.py and scripts/close_spec_workflow.py (ledger entry, delta report, anti-gaming check, refinement-loop record)
+      - scripts/analyze_complexity.py (ledger-format output)
+      - spec_manifest.yaml complexity_ledger schema
+      - SKILL.md / references/architecture_tractability.md consistency check
+    current_increment:
+      model_state:
+        - complexity_ledger
+      model_actions:
+        - TrackComplexity
+      adapters:
+        - spec-unit adapter closing a fixture ticket and asserting ledger entry, delta report, justification requirement, and anti-gaming rejection
+      unit_tests:
+        - uv run --with pytest -m pytest tests -q
+        - uv run --with pytest -m pytest specs/tickets/MF-019/current/tests -q
+      graph_after_unit_pass:
+        - specWorkflow
+        - cliWorkflow
+    acceptance:
+      commands:
+        - bash scripts/run_tlc.sh specs/tickets/MF-019/current/TlaSpecDevCli.tla specs/tickets/MF-019/current/MC.cfg
+        - tla-spec-dev --spec-root specs run spec-unit-tests --ticket MF-019
+      assertions:
+        - analyze-complexity metrics are recorded as a ledger entry at ticket close and workflow close.
+        - close reports the complexity delta; increases require a recorded justification naming the new essential behavior.
+        - a complexity decrease with degraded retention evidence is rejected at close; deltas are only reported jointly with retention evidence.
+        - the refinement loop record (approved recommendation or searched-found-none) is required at close; recommendations are advisory and user-approved.
+      evidence: []

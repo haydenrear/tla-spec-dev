@@ -1,0 +1,128 @@
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:168:            // Stop retrying as soon as the executor reports the child
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:170:            // retryable. A body-returned `failed` should fail fast.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:337:            val attempts = spec.retries + 1
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:338:            val attemptsClause = if (attempts > 1) " across $attempts attempts" else ""
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:18:     * Extra attempts the executor makes when the spawned node-process
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:50:     * Number of <em>extra</em> attempts the executor should make if the
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:71:     * executor attempts after timeouts. Rerun is a user-directed debugging
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py:73:        executor attempts after timeouts.
+examples/validation/ex3_over_complex/order_hub/order_hub.py:48:def retry_sweep(hub: dict) -> bool:
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:32:def test_retry_cap():
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:34:    assert order_hub.retry_sweep(hub)
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:35:    assert order_hub.retry_sweep(hub)
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:36:    assert not order_hub.retry_sweep(hub)
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:43:    assert order_hub.retry_sweep(hub)
+examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:53:    assert not order_hub.retry_sweep(hub)
+examples/validation/runs/ex3-run1/artifacts/order_hub_after.py:44:def retry_sweep(hub: dict) -> bool:
+scripts/kill_test.py:131:#: is a tripwire, so an attempt to add degeneracy shows up in the evidence.
+scripts/kill_test.py:282:    They are never honored. Reporting them is the point: an attempt to add a
+skill-scripts/install-tlc2.sh:37:curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"
+specs/current/production_adapters.py:1675:            "suppression_attempt_reported_not_honored": suppression_reported,
+specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py:51:def test_suppression_attempts_are_reported_not_silently_ignored(tmp_path: Path) -> None:
+specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py:56:    assert result["suppression_attempt_reported_not_honored"] is True, result
+specs/current/tests/test_tla_spec_dev_kill_test_adapter.py:99:    def test_the_waiver_attempt_is_reported_not_honored(self, result: dict) -> None:
+specs/desired_program_model/production_adapters.py:1675:            "suppression_attempt_reported_not_honored": suppression_reported,
+specs/desired_program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py:51:def test_suppression_attempts_are_reported_not_silently_ignored(tmp_path: Path) -> None:
+specs/desired_program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py:56:    assert result["suppression_attempt_reported_not_honored"] is True, result
+specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py:99:    def test_the_waiver_attempt_is_reported_not_honored(self, result: dict) -> None:
+specs/program_model/production_adapters.py:1675:            "suppression_attempt_reported_not_honored": suppression_reported,
+specs/program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py:51:def test_suppression_attempts_are_reported_not_silently_ignored(tmp_path: Path) -> None:
+specs/program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py:56:    assert result["suppression_attempt_reported_not_honored"] is True, result
+specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py:99:    def test_the_waiver_attempt_is_reported_not_honored(self, result: dict) -> None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:168:            // Stop retrying as soon as the executor reports the child
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:170:            // retryable. A body-returned `failed` should fail fast.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:337:            val attempts = spec.retries + 1
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:338:            val attemptsClause = if (attempts > 1) " across $attempts attempts" else ""
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:18:     * Extra attempts the executor makes when the spawned node-process
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:50:     * Number of <em>extra</em> attempts the executor should make if the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:71:     * executor attempts after timeouts. Rerun is a user-directed debugging
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:73:        executor attempts after timeouts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:168:            // Stop retrying as soon as the executor reports the child
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:170:            // retryable. A body-returned `failed` should fail fast.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:337:            val attempts = spec.retries + 1
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:338:            val attemptsClause = if (attempts > 1) " across $attempts attempts" else ""
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:18:     * Extra attempts the executor makes when the spawned node-process
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:50:     * Number of <em>extra</em> attempts the executor should make if the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:71:     * executor attempts after timeouts. Rerun is a user-directed debugging
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py:73:        executor attempts after timeouts.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt:42:     * input context snapshot captured before the selected node's prior attempt.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:40:     * Wall-clock budget for one attempt, parsed once from
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:50: * Outcome of one execution attempt. Kept as a sealed type so
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:51: * `PlanExecutor` can distinguish "timed out → maybe retry" from
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:53: * --result-out". A non-zero exit code is NOT a retry trigger — only a
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:112:        // log file on retry).
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:140:        for (attempt in 1..maxAttempts) {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:141:            if (attempt > 1) {
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:143:                    "    retry ${attempt - 1}/${spec.retries} after timeout — " +
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:144:                            "previous attempt exceeded ${spec.timeout}"
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:148:            // attempt (or from a stale earlier run). The "did the SDK
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:168:            // Stop retrying as soon as the executor reports the child
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:170:            // retryable. A body-returned `failed` should fail fast.
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:337:            val attempts = spec.retries + 1
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:338:            val attemptsClause = if (attempts > 1) " across $attempts attempts" else ""
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:341:                "node timed out after ${spec.timeout}$attemptsClause; " +
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:18:     * Extra attempts the executor makes when the spawned node-process
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:21:     * `failed`/`errored` is final on the first attempt. Authors opt in
+test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt:29:     * timeout [retries], which are automatic executor attempts.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:50:     * Number of <em>extra</em> attempts the executor should make if the
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:59:     * non-timeout exit code) is final on the first attempt.
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:71:     * executor attempts after timeouts. Rerun is a user-directed debugging
+test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java:72:     * affordance exposed after a completed node attempt.
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:53:        """Extra attempts the executor makes on a timeout outcome.
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:58:        orphaned state on retry. Triggers only on timeout, never on a
+test_graph/sdk/python/src/testgraphsdk/node_spec.py:73:        executor attempts after timeouts.
+tests/test_effect_conformance.py:297:    def test_suppression_attempts_are_reported_not_silently_dropped(self):

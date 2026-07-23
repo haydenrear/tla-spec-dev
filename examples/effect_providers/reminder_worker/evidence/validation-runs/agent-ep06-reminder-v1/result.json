@@ -1,0 +1,70 @@
+{
+  "artifacts": [
+    "evidence/validation-runs/agent-ep06-reminder-v1/regeneration.log",
+    "evidence/validation-runs/agent-ep06-reminder-v1/campaign.json",
+    "evidence/validation-runs/agent-ep06-reminder-v1/campaign",
+    "evidence/validation-runs/agent-ep06-reminder-v1/external.log",
+    "evidence/validation-runs/agent-ep06-reminder-v1/steps.json"
+  ],
+  "cases": {
+    "control_points": 0,
+    "external": 0,
+    "generated": 0
+  },
+  "cleanup": {
+    "checked": 0,
+    "clean": 0
+  },
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/private/tmp/tla-spec-dev-101-ep06-repeatable-example-validation/examples/effect_providers/reminder_worker/validate.py",
+    "--run-id",
+    "agent-ep06-reminder-v1"
+  ],
+  "commit": "a78234d76a80612285d28a71886a0e9c35275cab",
+  "controls": {
+    "passed": 0,
+    "total": 0
+  },
+  "duration_seconds": 4.810926,
+  "limitations": [
+    "validation failure: AssertionError: real_cli_external_rung failed with 1; see evidence/validation-runs/agent-ep06-reminder-v1/external.log"
+  ],
+  "mutants": {
+    "killed": 0,
+    "total": 0
+  },
+  "oracle_findings": {
+    "passive_external": [],
+    "provider_owned": [],
+    "tla_owned": []
+  },
+  "project": "reminder_worker",
+  "provider_contract": {
+    "name": "EffectProvider.bind",
+    "version": 1
+  },
+  "replay": {
+    "attempted": 0,
+    "exact": 0,
+    "interpreter": "/opt/homebrew/opt/python@3.14/bin/python3.14"
+  },
+  "run_id": "agent-ep06-reminder-v1",
+  "schema_version": 1,
+  "seed": 20260721,
+  "source_digests": {
+    "adapter.py": "84671f89331d38441c4f05d736690d781af8d945030effb18360a7c4ddbb427e",
+    "app.py": "7783bc2e8b317a889d9aeb0670a5f8c8fb5e4eb626135bafb1dd7b843c114eb2",
+    "effect_provider_usage.yaml": "33f71e531762149bef57d71506a5d22ed903791d1611e3eae40ab1ba32f7fdeb",
+    "external_adapter.py": "8da7e86867384af9ea6ebcef00f2ae3c349337af2471c207c6a0a6c9779190a0",
+    "providers.py": "5b8a417f99d03fc7dc21b6ff1b5fda237d6ce240330ea70ae6d36959e6edebd7",
+    "regenerate.py": "d4a2a9889c5aac37fa44c72639e38e0026bef41452e790c350341f0ece0f98fb",
+    "run_experiment.py": "5c7170beb7c676c3df393b598885cf6065d4e86ed82e34fff407c1eee597779e",
+    "validate.py": "0e5b8599cb83ff00e3ab76762c3f6e133230bcaa86aaa071fcb3e6a7f5c345a6"
+  },
+  "status": "fail",
+  "usage_descriptor": {
+    "path": "effect_provider_usage.yaml",
+    "sha256": "33f71e531762149bef57d71506a5d22ed903791d1611e3eae40ab1ba32f7fdeb"
+  }
+}

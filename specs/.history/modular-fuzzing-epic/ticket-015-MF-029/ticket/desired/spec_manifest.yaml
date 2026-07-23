@@ -1,0 +1,235 @@
+module: TlaSpecDevCli
+package: current_program_cases
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-015
+  active_ticket_title: "External channel enforcement"
+  relation_to_program_model: starts_equivalent_then_advances_as_slices_land
+  relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
+  updated: "2026-07-19"
+  current_slice:
+    name: external-channel-enforcement
+    status: implemented
+    refines: [corpus-diagnostics-and-hard-caps]
+    implemented_actions: []
+    model_change:
+      note: >-
+        ZERO MODEL DELTA, deliberately. MF-015 enforces External-ness on Test
+        Graph bindings: a required `channel` per binding, static (transitive)
+        import analysis proving no adapter/projector/expected_projection/
+        assertion module imports the declared production package, and a
+        required double|real port binding configuration with at least one real
+        port. All three are hard gates with no override.
+        The gates live in scripts/run_generated_case_adapters.py (external
+        view) and scripts/export_testgraph_cases.py, which the TEST GRAPH
+        invokes. They are not reachable from any command this module models:
+        `run spec-unit-tests` drives --view internal against
+        case_adapters.toml, and no modeled CLI command reads a
+        testgraph_bindings.yml. Nothing in the CLI lifecycle -- no command, no
+        guard, no branch, no result -- changes.
+        Modeling a `channel_enforcement` variable and an
+        `EnforceExternalChannels` action would therefore have required
+        inventing a `tla-spec-dev` subcommand that does not exist, in order to
+        have something to set it. That is transcription rather than evidence
+        (references/architecture_tractability.md, "Grow The Model By Evidence,
+        Not By Transcription"): the variable would carry no invariant it is
+        needed for, and MF-011's justification table would show it as dead
+        weight. It would also have cost roughly 3x on the declared bound for a
+        fact no modeled command can observe.
+        The faithfulness rule cuts BOTH ways. "If the program cannot be
+        represented in the diagram, the program changes" forbids leaving real
+        behavior unmodeled; it equally forbids adding model elements for
+        behavior the modeled program does not have.
+      state_variables: 7 -> 7
+      declared_state_space_bound: 34992 -> 34992
+      distinct_states: 9011 -> 9011
+      search_depth: 24 -> 24
+      actions: 12 -> 12
+    deviation_from_planned_scope:
+      note: >-
+        The MF-015 plan entry prescribes desired_actions
+        [EnforceExternalChannels] and a `channel_enforcement` model_state.
+        Both are withdrawn for the reason recorded above: the enforcement
+        surface is the Test-Graph-invoked export/run path, not the modeled CLI
+        lifecycle, and the plan entry's conflict_keys confirm it -- production
+        is [run_generated_case_adapters.py, export_testgraph_cases.py] and
+        deliberately NOT scripts/tla_spec_dev.py, so no new CLI command was
+        ever in scope. The staleness of these prescribed fields is tracked as
+        #33 and they are not binding. This follows the precedent MF-017 set
+        when it recorded a zero model delta against the same kind of stale
+        field.
+    validation:
+      unit:
+        - uv run --with pytest -m pytest tests -q
+      tlc:
+        - bash scripts/run_tlc.sh specs/tickets/MF-015/current/TlaSpecDevCli.tla specs/tickets/MF-015/current/MC.cfg
+      graph:
+        - specWorkflow
+        - cliWorkflow
+      evidence:
+        - specs/tickets/MF-015/results
+  next:
+    - >-
+      MF-023 (Internal/External decomposition by dogfooding) owns every
+      deferred spec-case run for this ticket: case generation over the
+      reachable state graph, the effect-conformance sweep, and the mutation
+      kill test. It is also where the C1 action-count finding is resolved at
+      the root.
+
+# Per-program complexity and case budgets. Scaffolding emits this block with
+# the documented defaults from references/modular_fuzzing.md and instructs the
+# agent to negotiate the values with the user, recording a one-line rationale
+# per changed value. Downstream gates read it through scripts/budgets.py.
+budgets:
+  tlc_seconds: 120                          # hard external timeout per TLC run
+  # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
+  # 50000. Derived, not chosen to fit: TLC completes this model in 2s at ~19,120
+  # distinct/sec, so ~2,294,400 are reachable inside the 120s tlc_seconds budget
+  # -- halved to ~1,147,200 for throughput decay as the model grows. The epic's
+  # remaining worst case (two further 3x gates on 38,241) is ~344,169. 500000
+  # sits 1.5x above that trajectory and 4.6x under the measured ceiling, running
+  # in ~26s. The 50000 default was MF-012's generic value, never calibrated to
+  # this program, and the real constraint (TLC wall time) is nowhere near
+  # binding. REVISIT AT MF-023: decomposition gives each component its own much
+  # smaller state space, and this should drop back toward the default then.
+  max_distinct_states: 500000               # reachable states TLC may find, per component model
+  max_state_space_bound: 1000000            # static declared-representation ceiling; see modular_fuzzing.md
+  max_internal_cases_per_component: 200     # spec-unit case cap per component
+  max_external_cases_per_action: 50         # Test Graph case cap per external action
+  kill_rate_floor: 0.8                      # minimum mutation kill rate
+  max_component_variables: 6                # component-size heuristic
+  max_component_actions: 8                  # component-size heuristic
+  max_symmetric_instances: 2                # component-size heuristic
+  source: defaults
+  rationale: {}
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
+  desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+state_fields: []
+actions: []
+ports: {}
+
+# MF-013: EFFECT DECLARATION SCHEMA.
+#
+# Components declare typed emissions on named ports; each action names the
+# ports it may emit on. `tla-spec-dev run effect-conformance`, and every
+# `run spec-unit-tests` batch, executes adapters in a sandbox that records what
+# actually crossed a boundary and diffs it against these declarations.
+#
+# Two findings, both HARD FAILURES:
+#   - an observed effect matching no port declared for its action is a GAP;
+#   - a declared port no case ever exercises is DEAD MODEL SURFACE.
+#
+# NOTHING SUPPRESSES A GAP REPORT. There is deliberately no justification,
+# waiver, or allow-list key in this schema. Out-of-contract justifications were
+# WITHDRAWN on 2026-07-18 (references/architecture_tractability.md, "No
+# Degenerate Escapes", rules 3 and 4). Adding such a key here does not work:
+# scripts/effect_conformance.py scans for suppression-shaped keys and reports
+# them as IGNORED rather than honoring them, and
+# tests/test_effect_conformance.py asserts the verdict is identical with and
+# without one. Declare the port, or change the program so it stops emitting the
+# effect. There is no third option.
+#
+# `type` must be one of the sandbox-observable types (filesystem.write,
+# filesystem.delete, process.spawn, network.connect, network.http): a port
+# whose type cannot be observed can never be checked. `target` is a glob over
+# the resolved path or command line. Both are required -- a port that omits
+# either is rejected, not defaulted.
+effects:
+  components:
+    TlaSpecDevCliPort:
+      ports:
+        spec_tree:
+          type: filesystem.write
+          target: "**/specs/**"
+        evidence_report:
+          type: filesystem.write
+          target: "**/results/**"
+        cli_artifact:
+          type: filesystem.write
+          target: "**/.venv/**"
+        tlc_process:
+          type: process.spawn
+          target: "*java*"
+        test_process:
+          type: process.spawn
+          target: "*pytest*"
+  actions:
+    BuildSkillCli: [cli_artifact]
+    InstallLocalCli: [cli_artifact]
+    ScaffoldProject: [spec_tree]
+    ScaffoldWorkflow: [spec_tree]
+    OpenTicket: [spec_tree]
+    UpdateTicketDesired: [spec_tree]
+    UpdateTicketCurrent: [spec_tree]
+    AnalyzeComplexity: [evidence_report, tlc_process]
+    AnalyzeCorpus: [evidence_report]
+    RunEffectConformance: [evidence_report]
+    RunKillTest: [evidence_report, test_process]
+    RunSpecUnitTests: [test_process, spec_tree]
+    CloseTicket: [spec_tree]
+
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  budgets_helper: scripts/budgets.py
+
+# MF-011: per-variable justification table. Every element of the model earns
+# its place by supporting an invariant, carrying an effect, or killing a
+# mutant (references/architecture_tractability.md, "Grow The Model By
+# Evidence, Not By Transcription"). `tla-spec-dev analyze complexity` reads
+# this table and flags any variable with no linkage as dead weight.
+justification:
+  setup_phase:
+    invariants: [TypeInvariant, CliInstalledRequiresBuilt, WorkflowRequiresProject, BudgetsRequireProject, WorkflowRequiresBudgets, ProjectChoosesKnownSpecRoot]
+    effects: []
+    kill_tests: [inv-BudgetsRequireProject, inv-CliInstalledRequiresBuilt, inv-WorkflowRequiresBudgets, inv-WorkflowRequiresProject, port-cli_artifact]
+  spec_root:
+    invariants: [ProjectChoosesKnownSpecRoot, TypeInvariant]
+    effects: []
+    kill_tests: [inv-ProjectChoosesKnownSpecRoot, port-spec_tree]
+  # MF-025: active_tickets, ticket_phase and closed_tickets collapsed into the
+  # single ticket_state ordinal. It inherits the union of their invariant
+  # linkages -- every named property they justified is still checked.
+  ticket_state:
+    invariants: [TypeInvariant, NoOpenClosedOverlap, CurrentRequiresDesired, SpecUnitTestsRequireCurrent, SpecUnitTestsRequireAnalyzedGate, SpecUnitTestsRequireMeasuredCorpus, ClosedTicketsPassedSpecUnitTests]
+    effects: []
+    kill_tests: [inv-ClosedTicketsPassedSpecUnitTests, inv-CurrentRequiresDesired, inv-NoOpenClosedOverlap, inv-SpecUnitTestsRequireCurrent, port-test_process]
+  complexity_gate:
+    invariants: [SpecUnitTestsRequireAnalyzedGate]
+    effects: []
+    kill_tests: [inv-SpecUnitTestsRequireAnalyzedGate, port-tlc_process]
+  corpus_gate:
+    invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredCorpus]
+    effects: [CliWorkflowResult.analyze_corpus_verdict]
+    kill_tests: [inv-SpecUnitTestsRequireMeasuredCorpus]
+  lastCommand:
+    invariants: []
+    effects: [CliWorkflowResult.last_command]
+    kill_tests: []
+  result:
+    invariants: []
+    effects: [CliWorkflowResult]
+    kill_tests: [inv-TypeInvariant]
+  effect_conformance:
+    invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredEffects]
+    effects: [CliWorkflowResult.effect_conformance_verdict]
+    kill_tests: [inv-SpecUnitTestsRequireMeasuredEffects, port-evidence_report]
+  # MF-016: kill_test is justified by its own invariant AND by the mutant that
+  # attacks the floor it gates against -- the oracle is subject to the oracle.
+  kill_test:
+    invariants: [TypeInvariant, KillTestVerdictRequiresBudgets]
+    effects: [CliWorkflowResult.kill_test_verdict]
+    kill_tests: [inv-KillTestVerdictRequiresBudgets]

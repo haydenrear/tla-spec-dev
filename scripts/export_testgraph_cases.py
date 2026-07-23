@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_diagnostics import enforce_case_cap
     from .generate_cases_from_tlc_dump import TRACE_SCHEMA_VERSION
     from .run_generated_case_adapters import (
         case_controllability,
@@ -19,10 +20,13 @@ try:
         selected_cases,
     )
     from .spec_paths import resolve_existing_from_cwd
+    from .testgraph_channels import ChannelEnforcementError, ExternalContract, enforce_external_bindings
 except ImportError:  # pragma: no cover - direct script execution
+    from corpus_diagnostics import enforce_case_cap
     from generate_cases_from_tlc_dump import TRACE_SCHEMA_VERSION
     from run_generated_case_adapters import case_controllability, case_view, load_cases, selected_cases
     from spec_paths import resolve_existing_from_cwd
+    from testgraph_channels import ChannelEnforcementError, ExternalContract, enforce_external_bindings
 
 
 def to_jsonable(value: Any) -> Any:
@@ -73,7 +77,20 @@ def case_to_trace(case: Any, module: str | None = None) -> dict[str, Any]:
     }
 
 
-def export_cases(cases: list[Any], out_dir: Path, module: str | None = None) -> list[Path]:
+def export_cases(
+    cases: list[Any],
+    out_dir: Path,
+    module: str | None = None,
+    *,
+    contract: "ExternalContract",
+) -> list[Path]:
+    """Write Test Graph traces plus a manifest naming the integration rung.
+
+    ``contract`` is required rather than optional: the exported manifest states
+    which ports were real and which were doubled, so a graph run can say which
+    rung of the integration ladder it occupies. A trace package that cannot say
+    that is not usable as a Test Graph node.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for case in cases:
@@ -86,10 +103,69 @@ def export_cases(cases: list[Any], out_dir: Path, module: str | None = None) -> 
         "view": "external",
         "trace_count": len(written),
         "traces": [path.name for path in written],
+        # MF-015: the integration-ladder rung this package was exported for.
+        "integration_rung": {
+            "rung": contract.rung(),
+            "real_ports": list(contract.real_ports),
+            "double_ports": list(contract.double_ports),
+            "production_package": contract.production_package,
+        },
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     written.append(out_dir / "manifest.json")
     return written
+
+
+def default_manifest_for(cases_dir: Path) -> Path | None:
+    """Find the spec_manifest.yaml governing a generated case package.
+
+    Packages land at ``<spec-dir>/generated/<view-dir>/<package>``, so walk up
+    looking for the manifest rather than guessing a fixed depth.
+    """
+    for parent in [cases_dir, *cases_dir.parents]:
+        candidate = parent / "spec_manifest.yaml"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def resolve_manifest(explicit: Path | None, cases_dir: Path, bindings_path: Path) -> Path:
+    """Resolve the spec_manifest.yaml that supplies the case caps.
+
+    VAL-10: the case-cap gate is a budget gate, and a budget gate that runs on
+    built-in default caps without saying which manifest it read is a silent
+    fallback -- the defect this function removes. Resolution order:
+
+      1. an explicit ``--manifest`` (which must exist -- a typo'd path
+         silently defaulting is the same defect);
+      2. the nearest manifest at or above the case package, for packages
+         generated inside the spec tree;
+      3. the spec root, i.e. the directory holding the ``--bindings`` file,
+         for packages generated into a build directory.
+
+    When none of those yields a manifest, the export FAILS LOUDLY naming
+    ``--manifest``. There is no path on which the gate quietly uses the
+    built-in default caps.
+    """
+    if explicit is not None:
+        resolved = resolve_existing_from_cwd(explicit)
+        if not resolved.is_file():
+            raise SystemExit(f"ERROR: --manifest {resolved} does not exist")
+        return resolved
+    discovered = default_manifest_for(cases_dir)
+    if discovered is None:
+        candidate = bindings_path.parent / "spec_manifest.yaml"
+        if candidate.is_file():
+            discovered = candidate
+    if discovered is None:
+        raise SystemExit(
+            "ERROR: no spec_manifest.yaml found at or above the case package "
+            f"({cases_dir}) or beside the bindings file ({bindings_path.parent}). "
+            "The case-cap gate refuses to run on built-in default caps without a "
+            "manifest: pass --manifest <spec-root>/spec_manifest.yaml."
+        )
+    print(f"case caps read from {discovered}")
+    return discovered
 
 
 def main() -> int:
@@ -98,16 +174,87 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True, help="Directory for Test Graph trace JSON files")
     parser.add_argument("--label", action="append", default=[], help="Only export cases with this label")
     parser.add_argument("--case", action="append", default=[], help="Only export this case name")
-    parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help=(
+            "Limit how many selected cases are exported in THIS run. This is a "
+            "user-driven selection for a focused run, not a budget mechanism: "
+            "the case-cap gate below measures the full corpus before any "
+            "selection applies, so --limit/--label can never bring a corpus "
+            "under cap."
+        ),
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        help=(
+            "spec_manifest.yaml supplying the case caps. When omitted, the "
+            "manifest is resolved from the case package's spec tree or from "
+            "the spec root holding --bindings; when neither holds one, the "
+            "export fails asking for this flag rather than silently using "
+            "built-in default caps."
+        ),
+    )
+    parser.add_argument(
+        "--bindings",
+        type=Path,
+        required=True,
+        help=(
+            "testgraph_bindings.yml for the exported actions. REQUIRED: MF-015 "
+            "gates export on every external binding declaring a channel, not "
+            "importing the production package, and naming its double|real port "
+            "binding configuration. Exporting Test Graph traces whose bindings "
+            "were never checked is the degeneracy this gate exists to stop, so "
+            "there is no flag that skips it."
+        ),
+    )
     args = parser.parse_args()
 
     cases_dir = resolve_existing_from_cwd(args.cases_dir)
+    bindings_path = resolve_existing_from_cwd(args.bindings)
+    manifest_path = resolve_manifest(args.manifest, cases_dir, bindings_path)
     sys.path.insert(0, str(cases_dir.parent))
     cases_module = load_cases(cases_dir)
+
+    # Case-cap hard gate (MF-014), measured over the COMPLETE external corpus
+    # and deliberately BEFORE --label/--case/--limit selection. Gating after
+    # selection would let a narrow flag silently satisfy a budget, which is
+    # exactly the trimming this ticket forbids.
+    all_external = [case for case in cases_module.CASES if case_view(case) == "external"]
+    enforce_case_cap(
+        all_external,
+        view="external",
+        manifest_path=manifest_path,
+        source=str(cases_dir),
+    )
+
+    # MF-015: external channel enforcement, measured over the COMPLETE external
+    # corpus and deliberately BEFORE --label/--case/--limit selection, for the
+    # same reason as the case cap above: gating after selection would let a
+    # narrow flag hide an unchecked binding.
+    try:
+        contract = enforce_external_bindings(
+            bindings_path,
+            actions={case.input.action for case in all_external},
+        )
+    except ChannelEnforcementError as exc:
+        raise SystemExit(str(exc))
+    print(
+        f"external channel enforcement passed; integration rung {contract.rung()} "
+        f"(real: {', '.join(contract.real_ports) or 'none'}; "
+        f"double: {', '.join(contract.double_ports) or 'none'})"
+    )
+
     cases = selected_cases(list(cases_module.CASES), args.label, args.case, args.limit, "external")
     if not cases:
         raise SystemExit("ERROR: no external cases selected")
-    written = export_cases(cases, args.out, getattr(cases_module, "SOURCE_MODULE", None))
+    written = export_cases(
+        cases,
+        args.out,
+        getattr(cases_module, "SOURCE_MODULE", None),
+        contract=contract,
+    )
     print(f"exported {len(written) - 1} Test Graph traces into {args.out}")
     return 0
 

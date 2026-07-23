@@ -1,0 +1,62 @@
+{
+  "fitness_functions": [
+    {
+      "name": "bound-proportional-to-cli-behavior",
+      "description": "the whole-program bound stays tiny and every domain stays sized to the distinctions taskq actually makes (4 lifecycle statuses per task, 9 CLI message classes); a firing means a domain widened or a new dimension arrived -- name the new essential behavior or remodel",
+      "rule": {
+        "all": [
+          {
+            "fact": "bound_known",
+            "op": "==",
+            "value": true
+          },
+          {
+            "fact": "bound",
+            "op": "<",
+            "value": 10000
+          },
+          {
+            "fact": "variable_domain",
+            "var": "tasks",
+            "op": "<=",
+            "value": 64
+          },
+          {
+            "fact": "variable_domain",
+            "var": "cliMessage",
+            "op": "<=",
+            "value": 9
+          }
+        ]
+      }
+    },
+    {
+      "name": "only-observability-channels-invisible",
+      "description": "every state-carrying variable stays invariant-read and justified; only the two deliberate case-label channels (lastInternalAction, lastExternalAction) may be invisible to invariants, and the accepted density shape (response channel + store: 3 dense rows, 4 dense columns) may not grow",
+      "rule": {
+        "all": [
+          {
+            "fact": "unread_by_invariant_count",
+            "op": "<=",
+            "value": 2
+          },
+          {
+            "fact": "unjustified_count",
+            "op": "==",
+            "value": 0
+          },
+          {
+            "fact": "god_state_count",
+            "op": "<=",
+            "value": 3
+          },
+          {
+            "fact": "dense_column_count",
+            "op": "<=",
+            "value": 4
+          }
+        ]
+      }
+    }
+  ]
+}

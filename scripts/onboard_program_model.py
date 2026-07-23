@@ -25,7 +25,12 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from budgets import budgets_block  # noqa: E402
 
 
 # The accepted baseline is not complete until every one of these exists. This
@@ -38,6 +43,8 @@ REQUIRED_BASELINE_FILES = (
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -357,6 +364,7 @@ def actions_yml() -> str:
 #   layer: external  -> Test Graph cases (testgraph_bindings.yml)
 #   controllability: hidden -> generates nothing; internal progress the harness
 #                              cannot drive directly.
+#   effect_ports: typed semantic ports required while this case executes.
 #
 # SCAFFOLD: keep this in sync with Internal.tla / External.tla.
 actions:
@@ -365,55 +373,66 @@ actions:
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   AcceptRecord:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   PublishRecord:
     layer: internal
     controllability: unit_direct
     generates:
       - spec_unit
+    effect_ports: []
   SubmitRegisterActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicateRegisterActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitAcceptRecord:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitAcceptRecordUnknownActor:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   SubmitDuplicateAcceptRecord:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   RunPublishWorker:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   RunPublishWorkerNoop:
     layer: external
     controllability: e2e_direct
     generates:
       - testgraph
+    effect_ports: []
   HiddenInternalProgress:
     layer: internal
     controllability: hidden
     generates: []
+    effect_ports: []
 """
 
 
@@ -426,6 +445,11 @@ def case_adapters_toml() -> str:
 #   tla-spec-dev run spec-unit-tests
 #
 # Every action in Internal.tla with `generates: [spec_unit]` needs an entry.
+# To supply a concrete representative for a generated semantic effect port,
+# uncomment and adapt this project-owned binding:
+#
+# [effect_providers.ExampleEffectPort]
+# provider = "specs.program_model.providers:effect_provider"
 
 [adapters.RegisterActor]
 adapter = "specs.program_model.adapters:RegisterActorInternalAdapter"
@@ -441,6 +465,59 @@ kind = "program-internal"
 """
 
 
+def providers_py() -> str:
+    return '''"""Project-owned semantic effect provider.
+
+Generated cases select the abstract effect outcome. Providers choose concrete
+representatives and bind repository-owned implementations for one case and one
+deterministic fuzz iteration. Read references/effect_providers.md.
+
+SCAFFOLD: implement one provider against the generated port Protocols before
+enabling its mapping tables. The framework ships no domain implementations.
+"""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+from collections.abc import Iterator
+from typing import Any
+
+from spec_double_compiler.runtime import EffectProviderContext
+
+
+class ProjectEffectProvider:
+    @contextmanager
+    def bind(self, context: EffectProviderContext) -> Iterator[Any | None]:
+        # SCAFFOLD: acquire the repository-owned implementation selected by
+        # context.port_name and context.case. Use context.derived_seed for
+        # deterministic representatives. Yield the generated-port
+        # implementation, or None only when this scope installs and restores
+        # its own bounded integration.
+        raise NotImplementedError(
+            f"SCAFFOLD: bind generated port {context.port_name}"
+        )
+        yield None
+
+
+effect_provider = ProjectEffectProvider()
+'''
+
+
+def effect_provider_usage_yml() -> str:
+    return """# Local, reviewable evidence about agent-authored providers.
+version: 1
+providers: []
+# - port: ExampleEffectPort
+#   provider: specs.program_model.providers:effect_provider
+#   binding_style: explicit_injection  # explicit_injection | self_installed | external_fixture | other
+#   state_scope: execution_point
+#   fuzz_dimensions: []
+#   assertions: []
+#   cleanup: context_manager
+#   bypass_limits: []
+"""
+
+
 def testgraph_bindings_yml() -> str:
     return """# TEST GRAPH ADAPTERS (external view).
 #
@@ -448,6 +525,7 @@ def testgraph_bindings_yml() -> str:
 # surface, plus the projector/assertion that compare deployed state back to the
 # model. Read references/testgraph_adapters.md before editing this file.
 #
+#   channel             -> HOW the program is driven: http/cli/fs/queue/k8s
 #   adapter             -> drives the public action (HTTP call, CLI run, ...)
 #   projector           -> observes real state, projected into the TLA shape
 #   expected_projection -> expected state, usually a projection of case.after
@@ -456,9 +534,30 @@ def testgraph_bindings_yml() -> str:
 # Every action in External.tla with `generates: [testgraph]` needs an entry.
 # Test Graph nodes are end-to-end External-view executions only. TLC runs and
 # spec-unit runs are direct tla-spec-dev commands, never graph nodes.
+#
+# MF-015 external channel enforcement. Both the runner and the exporter refuse
+# to proceed unless:
+#   * every binding below declares a `channel`;
+#   * no adapter/projector/expected_projection/assertion module imports
+#     `external.production_package`, directly or via a first-party helper --
+#     an adapter that imports the program under test is running it in-process
+#     and is a spec-unit adapter however it is labelled; and
+#   * `external.port_bindings` names each port double or real, with at least
+#     one real. All-doubles is a spec-unit run, never a Test Graph node.
+# Replace the placeholders below with this program's real values.
+external:
+  production_package: REPLACE_ME_program_package
+  port_bindings:
+    REPLACE_ME_Port: real
+  # Uncomment to drive a transport beyond the base five. Explicit and visible,
+  # per-program -- it widens the accepted set, it never excuses a binding that
+  # declares no channel.
+  # additional_channels: [grpc]
+
 actions:
   SubmitRegisterActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -468,6 +567,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateRegisterActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -477,6 +577,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAcceptRecord:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -486,6 +587,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitAcceptRecordUnknownActor:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -495,6 +597,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   SubmitDuplicateAcceptRecord:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -504,6 +607,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunPublishWorker:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -513,6 +617,7 @@ actions:
     assertion: specs.program_model.adapters:ProjectedStateAssertion
   RunPublishWorkerNoop:
     view: external
+    channel: http
     layer: external
     controllability: e2e_direct
     kind: program-external
@@ -854,6 +959,25 @@ status:
       - Run TLC on the internal view - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
       - Run TLC on the external view - scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
       - Generate cases and validate adapter coverage for both views.
+      - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
+
+# Per-program complexity and case budgets. These are advisory thresholds read
+# by analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# negotiate them with the user and record a one-line rationale for each
+# changed value. Doctrine: SKILL.md "Complexity Budgets Are Advisory".
+{budgets_block()}
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
 
 views:
   internal:
@@ -1004,6 +1128,8 @@ split and the adapter contract are actually specified.
 | `External.tla` / `External.cfg` | external view: publicly observable behavior |
 | `actions.yml` | per-action layer, controllability, and what it generates |
 | `adapters.py` | spec-unit adapters AND Test Graph adapters/projector/assertion |
+| `providers.py` | agent-authored generated-port effect providers |
+| `effect_provider_usage.yaml` | provider state, fuzz, assertion, cleanup, and bypass evidence |
 | `case_adapters.toml` | internal action -> spec-unit adapter |
 | `testgraph_bindings.yml` | external action -> Test Graph adapter |
 | `tlc_projection.py` | TLC state -> generated-case shapes |
@@ -1065,6 +1191,8 @@ REQUIRED_BASELINE_FILES = [
     "External.cfg",
     "actions.yml",
     "adapters.py",
+    "providers.py",
+    "effect_provider_usage.yaml",
     "case_adapters.toml",
     "testgraph_bindings.yml",
     "tlc_projection.py",
@@ -1126,18 +1254,39 @@ REPO_ROOT = SPEC_ROOT.parent
 CASES_DIR = SPEC_ROOT / "generated" / "spec-unit" / "{_slug(module)}_internal_cases"
 
 
+def _runner_script() -> Path | None:
+    # The runner must be invoked as a script by absolute path, not as
+    # `-m scripts.run_generated_case_adapters`: the module name resolves only
+    # inside the toolchain repository, and once [effect_providers.*] is
+    # configured the runner's import layout requires direct-script mode.
+    try:
+        import spec_double_compiler
+    except ImportError:
+        return None
+    candidate = (
+        Path(spec_double_compiler.__file__).resolve().parents[1]
+        / "scripts"
+        / "run_generated_case_adapters.py"
+    )
+    return candidate if candidate.is_file() else None
+
+
 @pytest.mark.skipif(
     not CASES_DIR.exists(),
     reason="no generated spec-unit cases yet; generate them from Internal.tla first",
 )
 def test_internal_adapters_run_in_batch(tmp_path: Path) -> None:
+    runner = _runner_script()
+    if runner is None:
+        pytest.skip("spec_double_compiler runtime not importable; set PYTHONPATH to the tla-spec-dev checkout")
     command = [
         sys.executable,
-        "-m",
-        "scripts.run_generated_case_adapters",
+        str(runner),
         str(CASES_DIR),
         "--mapping",
         str(SPEC_DIR / "case_adapters.toml"),
+        "--spec-dir",
+        str(SPEC_DIR),
         "--view",
         "internal",
         "--batch",
@@ -1219,6 +1368,8 @@ def scaffold(
         (program_dir / "External.cfg", external_cfg()),
         (program_dir / "actions.yml", actions_yml()),
         (program_dir / "adapters.py", adapters_py(module)),
+        (program_dir / "providers.py", providers_py()),
+        (program_dir / "effect_provider_usage.yaml", effect_provider_usage_yml()),
         (program_dir / "case_adapters.toml", case_adapters_toml()),
         (program_dir / "testgraph_bindings.yml", testgraph_bindings_yml()),
         (program_dir / "tlc_projection.py", tlc_projection_py(module)),

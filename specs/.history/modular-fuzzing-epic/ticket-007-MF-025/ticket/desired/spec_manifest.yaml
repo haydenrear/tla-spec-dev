@@ -1,0 +1,138 @@
+module: TlaSpecDevCli
+package: current_program_cases
+
+status:
+  workflow: modular-fuzzing-epic
+  active_ticket: MF-014
+  active_ticket_title: "Corpus diagnostics and hard caps"
+  relation_to_program_model: starts_equivalent_then_advances_as_slices_land
+  relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
+  updated: "2026-07-18"
+  current_slice:
+    name: corpus-diagnostics-and-hard-caps
+    status: implemented
+    refines: [skill-feedback-loop]
+    implemented_actions: [AnalyzeCorpus]
+    model_change:
+      note: >-
+        The case caps become a second hard gate, in the same shape MF-011 gave
+        the state-space bound. corpus_gate records whether the GENERATED CORPUS
+        is within max_internal_cases_per_component /
+        max_external_cases_per_action; AnalyzeCorpus is the standalone
+        `tla-spec-dev analyze corpus` command, and RunSpecUnitTests records a
+        fresh verdict on every run because generation is what produces the
+        corpus the caps are measured over. Over cap the gate reports and
+        refuses; it never trims.
+        What is deliberately ABSENT is load-bearing: RunSpecUnitTests consults
+        `override` for complexity_gate and NOT for corpus_gate, because the
+        complexity gate has an explicit --allow-over-budget escape and the case
+        caps have none. No action in the module reduces a case count. Cases are
+        never dropped, filtered, sampled, or truncated to satisfy a budget --
+        not silently and not with a recorded drop rule. The accept path is
+        raising the cap in the manifest with a one-line rationale, which is a
+        different verdict rather than a bypassed one.
+      state_variables: 8 -> 9
+      declared_state_space_bound: 221184 -> 663552
+      distinct_states: 2923 -> 9011
+      search_depth: 23 -> 24
+      actions: 11 -> 12
+    deviation_from_planned_scope:
+      note: >-
+        The MF-014 plan entry prescribes a DistillCorpus action and a
+        corpus_distilled state fact. Both are withdrawn: the ticket's scope was
+        replaced on 2026-07-18 by owner direction and distillation no longer
+        exists to be modeled. The plan fields predate that replacement and are
+        not binding (the staleness is tracked as #33). corpus_gate/AnalyzeCorpus
+        model what actually shipped -- a hard gate, not a selection step.
+    validation:
+      unit:
+        - uv run --with pytest -m pytest tests -q
+      tlc:
+        - bash scripts/run_tlc.sh specs/tickets/MF-014/current/TlaSpecDevCli.tla specs/tickets/MF-014/current/MC.cfg
+      graph:
+        - specWorkflow
+        - cliWorkflow
+      evidence:
+        - specs/tickets/MF-014/results
+  next:
+    - MF-023 (Internal/External decomposition by dogfooding) owns every
+      deferred spec-case run for this ticket: case generation over the
+      reachable state graph, the effect-conformance sweep, and the mutation
+      kill test. It is also where the C1 action-count finding is resolved at
+      the root.
+
+# Per-program complexity and case budgets. Scaffolding emits this block with
+# the documented defaults from references/modular_fuzzing.md and instructs the
+# agent to negotiate the values with the user, recording a one-line rationale
+# per changed value. Downstream gates read it through scripts/budgets.py.
+budgets:
+  tlc_seconds: 120                          # hard external timeout per TLC run
+  max_distinct_states: 50000                # reachable states TLC may find, per component model
+  max_state_space_bound: 1000000            # static declared-representation ceiling; see modular_fuzzing.md
+  max_internal_cases_per_component: 200     # spec-unit case cap per component
+  max_external_cases_per_action: 50         # Test Graph case cap per external action
+  kill_rate_floor: 0.8                      # minimum mutation kill rate
+  max_component_variables: 6                # component-size heuristic
+  max_component_actions: 8                  # component-size heuristic
+  max_symmetric_instances: 2                # component-size heuristic
+  source: defaults
+  rationale: {}
+
+source_model:
+  program_model_manifest: ../program_model/spec_manifest.yaml
+  program_model_core: ../program_model/Core.tla
+  program_model_internal: ../program_model/Internal.tla
+  program_model_external: ../program_model/External.tla
+  desired_ticket_plan: ../desired_program_model/ticket_plan.yaml
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+
+state_fields: []
+actions: []
+ports: {}
+adapters: case_adapters.toml
+notes:
+  package_from_program_model: tlaspecdevcli_program_cases
+  budgets_helper: scripts/budgets.py
+
+# MF-011: per-variable justification table. Every element of the model earns
+# its place by supporting an invariant, carrying an effect, or killing a
+# mutant (references/architecture_tractability.md, "Grow The Model By
+# Evidence, Not By Transcription"). `tla-spec-dev analyze complexity` reads
+# this table and flags any variable with no linkage as dead weight.
+justification:
+  setup_phase:
+    invariants: [TypeInvariant, CliInstalledRequiresBuilt, WorkflowRequiresProject, BudgetsRequireProject, WorkflowRequiresBudgets, ProjectChoosesKnownSpecRoot]
+    effects: []
+    kill_tests: []
+  spec_root:
+    invariants: [ProjectChoosesKnownSpecRoot, TypeInvariant]
+    effects: []
+    kill_tests: []
+  # MF-025: active_tickets, ticket_phase and closed_tickets collapsed into the
+  # single ticket_state ordinal. It inherits the union of their invariant
+  # linkages -- every named property they justified is still checked.
+  ticket_state:
+    invariants: [TypeInvariant, NoOpenClosedOverlap, CurrentRequiresDesired, SpecUnitTestsRequireCurrent, SpecUnitTestsRequireAnalyzedGate, SpecUnitTestsRequireMeasuredCorpus, ClosedTicketsPassedSpecUnitTests]
+    effects: []
+    kill_tests: []
+  complexity_gate:
+    invariants: [SpecUnitTestsRequireAnalyzedGate]
+    effects: []
+    kill_tests: []
+  corpus_gate:
+    invariants: [TypeInvariant, SpecUnitTestsRequireMeasuredCorpus]
+    effects: [CliWorkflowResult.analyze_corpus_verdict]
+    kill_tests: []
+  lastCommand:
+    invariants: []
+    effects: [CliWorkflowResult.last_command]
+    kill_tests: []
+  result:
+    invariants: []
+    effects: [CliWorkflowResult]
+    kill_tests: []

@@ -16,13 +16,20 @@ from pathlib import Path
 
 
 EXAMPLE_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = EXAMPLE_ROOT.parents[1]
+# VAL-11: a standalone checkout of this example is not nested inside the
+# tla-spec-dev repository, so the toolchain root cannot always be derived from
+# this file's location. TLA_SPEC_DEV_ROOT overrides it; the embedded-copy
+# layout (examples/distributed_history inside the toolchain repo) is the
+# fallback.
+REPO_ROOT = Path(os.environ.get("TLA_SPEC_DEV_ROOT", EXAMPLE_ROOT.parents[1])).resolve()
 SPEC_DIR = EXAMPLE_ROOT / "specs" / "program_model"
 DEFAULT_GENERATED_DIR = EXAMPLE_ROOT / "test_graph" / "build" / "generated"
 
 
 def run(command: list[str]) -> None:
-    print("$ " + " ".join(command))
+    # flush=True: the child process writes straight to the shared stdout, so an
+    # unflushed echo would appear after the output of the command it announces.
+    print("$ " + " ".join(command), flush=True)
     env = os.environ.copy()
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     subprocess.run(command, cwd=EXAMPLE_ROOT, env=env, check=True)
@@ -105,9 +112,17 @@ def main() -> int:
             str(generated_dir / "testgraph" / "ecommerce_external_cases"),
             "--out",
             str(generated_dir / "testgraph" / "traces"),
+            # VAL-09: the exporter requires --bindings (MF-015 channel
+            # enforcement) and needs --manifest because the generated corpus
+            # lives in a build directory, outside the spec tree that holds
+            # spec_manifest.yaml.
+            "--bindings",
+            str(SPEC_DIR / "testgraph_bindings.yml"),
+            "--manifest",
+            str(SPEC_DIR / "spec_manifest.yaml"),
         ]
     )
-    print(f"generated TLC-derived cases under {generated_dir}")
+    print(f"generated TLC-derived cases under {generated_dir}", flush=True)
     return 0
 
 

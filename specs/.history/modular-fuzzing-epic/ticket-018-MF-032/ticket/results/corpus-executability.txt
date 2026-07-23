@@ -1,0 +1,30 @@
+reduced corpus: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/e5a6bda8-3066-4176-a1df-116c9ca122db/scratchpad/corpus/spec-unit/tlc_state_graph_cases/cases.py
+total cases: 61081
+
+AXIS 1 -- before-state materializable (MF-031's axis):
+    49833  81.6%  before-state stage <= 3 (materializable)
+    11248  18.4%  before-state stage >= 4 (needs gate machinery / MF-023)
+
+AXIS 2 -- action has a run() adapter, AND before-state materializable (true executability):
+  EXECUTABLE before MF-032 (run(): ['BuildSkillCli', 'ScaffoldProject', 'Stutter', 'UpdateTicketCurrent', 'UpdateTicketDesired']):
+       4776  7.8%
+  EXECUTABLE after  MF-032 (added: InstallLocalCli, ScaffoldWorkflow, RecordBudgets, OpenTicket):
+       5997  9.8%
+  NET UNBLOCKED by MF-032: 1221  (2.0%)
+
+per-action corpus counts and MF-032 executable-after breakdown:
+     7960  AnalyzeComplexity      apply()-only (HARD/BLOCKED)  exec-after=0
+     7960  AnalyzeCorpus          apply()-only (HARD/BLOCKED)  exec-after=0
+        1  BuildSkillCli          run()                        exec-after=1
+      304  CloseTicket            apply()-only (HARD/BLOCKED)  exec-after=0
+        1  InstallLocalCli        run() [MF-032]               exec-after=1
+      699  OpenTicket             run() [MF-032]               exec-after=699
+        1  RecordBudgets          run() [MF-032]               exec-after=1
+    15920  RunEffectConformance   apply()-only (HARD/BLOCKED)  exec-after=0
+    11940  RunKillTest            apply()-only (HARD/BLOCKED)  exec-after=0
+    10392  RunSpecUnitTests       apply()-only (HARD/BLOCKED)  exec-after=0
+        1  ScaffoldProject        run()                        exec-after=1
+      520  ScaffoldWorkflow       run() [MF-032]               exec-after=520
+     3984  Stutter                run()                        exec-after=3376
+      699  UpdateTicketCurrent    run()                        exec-after=699
+      699  UpdateTicketDesired    run()                        exec-after=699

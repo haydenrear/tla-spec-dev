@@ -1,0 +1,96 @@
+# Complexity ledger input -- CD-09 (audit reconciliation).
+# First close under the amended retention basis (owner-approved 2026-07-22):
+# a decrease is licensed by the validated-refactor evidence set; the
+# fuzzing-era members are recorded honestly as not_run and no longer gate.
+
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/tickets/CD-09/results/tlc_before.txt (5,619,356 generated / 231,621 distinct / depth 25, no error)"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/CD-09/results/tlc_current.txt (6,209,780 generated / 283,805 distinct / depth 25, no error)"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/CD-09/results/repo_unit_tests.txt (577 passed)"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/CD-09/results/model_before_after_descriptors.txt"
+
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: "experimental since the 2026-07-21 pivot (MF-038: kill 0.31 vs floor 0.8, 0/9 content bugs); not run per plan case_execution_rule"
+  effect_conformance:
+    status: "not_run"
+    evidence: "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule"
+  external_coverage:
+    status: "not_run"
+    evidence: "experimental since the 2026-07-21 pivot; not run per plan case_execution_rule"
+
+coverage_audit:
+  status: "fail"
+  report: "specs/results/epic-close/coverage_audit_report.md"
+  in_scope_gaps: 7
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:534-549,1996-1999,2073-2075,2143-2147,516-525"
+  # Honest record: run 2's verdict stands until a re-audit. This ticket fixes
+  # its G2/G4/G5; G1/G3/G6/G7 were resolved by the owner's 2026-07-22 scope
+  # amendment (schedule_revision 2). Ticket scope: recorded, non-refusing.
+
+justification: >
+  Direction metrics are flat (variables 9, bound 699,840, actions 14); the
+  measured TLC delta vs the last measured entry is distinct 231,621 -> 283,805
+  (+22.5%) and generated 5,619,356 -> 6,209,780 (+10.5%) at depth 25. The new
+  representation carries real shipped behavior the old model wrongly forbade:
+  `run spec-unit-tests` performs no complexity check (advisory descriptor,
+  MF-036/CD-01), so states with an advanced ticket and an unanalyzed
+  complexity_gate are reachable in the program and now in the model (G2).
+
+refinement:
+  searched: true
+  outcome: "found"
+  detail: >
+    The after-descriptor itself names the candidate: the variable-interaction
+    graph is now one 9-variable/14-action component (Q=0.000), exceeding both
+    component heuristics. The refinement is the Internal/External
+    decomposition already recorded as the plan's known_gap (MF-023 lineage) --
+    owner-scheduled, explicitly not this ticket's to take, and PROJECTED only
+    (no TLC measurement of a split exists). Not applied.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: >
+  specs/tickets/CD-09/results/transition_diff.md -- NOT the red-flag pattern
+  (generated rose with distinct at constant depth). Every removed computation
+  is a duplicate `override` parameter binding of a retained state-graph edge;
+  every added edge is RunSpecUnitTests (and downstream actions) from
+  complexity_gate="unknown" states, i.e. the shipped advisory behavior. No
+  state-graph edge present before the delta is absent after it.
+
+narrative: >
+  CD-09 audit reconciliation. (G2) The model's withdrawn blocking complexity
+  gate is gone: RunSpecUnitTests(root, ticket) reads no complexity state, the
+  `override` input is removed, and SpecUnitTestsRequireAnalyzedGate -- true
+  only of the blocking-gate era -- is removed from the module and both cfgs
+  with a tombstone. The recorded verdict survives as complexity_gate, write-
+  only in the R/W matrix (an observable fact, not a control input). TLC:
+  231,621 -> 283,805 distinct at depth 25; the +52,184 states are exactly the
+  gate-unknown/ticket-advanced combinations the program always allowed --
+  measured refutation of the brief's predicted decrease, recorded as an
+  increase-shaped honest delta at 56.8% of the carried max_distinct_states
+  500,000 budget (rationale preserved). (G4) Dead tlc_process port removed
+  with its AnalyzeComplexity declaration and its kill-catalog mutant; declared
+  boundaries now 17/17 seeded. (G5) case_adapters.toml binds exactly the 14
+  @command actions (added UpdateTicketDesired/UpdateTicketCurrent/
+  RunEffectConformance/RunKillTest, dropped non-action ValidateTestGraphCli),
+  proven both directions by test_tla_spec_dev_binding_reconciliation.py.
+  (Retention basis) scripts/complexity_ledger.py amended to the
+  validated-refactor basis; regression suite proves the old gate rejected an
+  honest validated decrease (ledger_regression_pre_amendment.txt) and the
+  amended gate licenses it while still rejecting degraded/absent basis
+  evidence and keeping the MF-020 red-flag gate untouched. Full evidence:
+  model_before_after_descriptors.txt, transition_diff.md,
+  binding_reconciliation.txt, tlc_before.txt, tlc_current.txt,
+  spec_unit_tests.txt, repo_unit_tests.txt, graph_specWorkflow.txt,
+  graph_cliWorkflow.txt.

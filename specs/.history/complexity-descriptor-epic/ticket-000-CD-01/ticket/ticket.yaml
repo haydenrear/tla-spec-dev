@@ -1,0 +1,122 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "No suggested-move (abstract/decompose/refactor) output remains anywhere in the scanner, its report, SKILL.md, or references.",
+        "F1 regression test, failing pre-fix: with INVARIANT Inv and Inv == RealInv, RealInv's variables are read-by-invariant; aliased/composed invariants resolve transitively.",
+        "F3: the bound is meaningful on the scaffolded baseline (domains from cfg or scaffolded TypeOK) or explicitly reported unknown \u2014 never a silent 1.",
+        "Exit 0 on any analyzable model; nonzero only when genuinely unanalyzable. Advisory, never blocking.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion.",
+        "Docs describe the descriptor, not suggestions; a reviewer reading only the new docs would expect facts, not advice."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-01"
+      ],
+      "evidence": [
+        "specs/tickets/CD-01/results/descriptor_report_baseline.txt",
+        "specs/tickets/CD-01/results/f1_regression.txt",
+        "specs/tickets/CD-01/results/f3_bound.txt",
+        "specs/tickets/CD-01/results/tlc_current.txt",
+        "specs/tickets/CD-01/results/spec_unit_tests.txt",
+        "specs/tickets/CD-01/results/repo_unit_tests.txt",
+        "specs/tickets/CD-01/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-01/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [
+      "CD-02",
+      "CD-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/analyze_complexity.py",
+        "tests/test_analyze_complexity.py",
+        "SKILL.md",
+        "references/architecture_tractability.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/71",
+    "id": "CD-01",
+    "implementation_scope": [
+      "scripts/analyze_complexity.py (remove suggestion machinery; F1 alias resolution; F3 bound honesty)",
+      "tests/test_analyze_complexity.py (F1 regression test failing pre-fix; F3 coverage)",
+      "SKILL.md and references/architecture_tractability.md (descriptor is the surface)"
+    ],
+    "objective": "Remove the suggested-move machinery (abstract/decompose/refactor recommendations) from the complexity scanner and ship a factual complexity DESCRIPTOR: per-variable dimension table, state-space bound + dominant dimensions, variables x actions R/W matrix, graph-modularity + near-decomposable clusters, dense-row/god-state detection, per-variable domains. Facts, not judgment. Fix F1: projectable_variables reads only the immediate body of the cfg-named invariant, so INVARIANT Inv with Inv == ExternalInvariant (a one-token alias) makes every variable \"read by no invariant\" and the scanner recommends projecting away ALL variables (analyze_complexity.py ~1038 / ~793) \u2014 resolve invariant aliasing/composition transitively. Fix F3: the state-space bound silently degenerates to 1 without a TypeInvariant/TypeOK \u2014 make it meaningful (resolve domains from the cfg or scaffolded TypeOK) or report it explicitly unknown, never a silent 1. Advisory, never blocking (already true; keep it). Update SKILL.md and references so the descriptor is the shipped surface and no suggested-move claims remain. Suggestions may return in a later epic, earned from real-app observations \u2014 not in this one.\n",
+    "promotion_order": 100,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Ship the complexity descriptor (remove suggested moves; fix aliasing and bound accuracy)",
+    "wave": 12
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/tickets/CD-01",
+  "ticket_id": "CD-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-71-cd01-complexity-descriptor/specs/tickets"
+}

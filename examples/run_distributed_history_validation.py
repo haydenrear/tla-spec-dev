@@ -17,22 +17,49 @@ from urllib.request import urlopen
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
+DEFAULT_EXAMPLE_ROOT = REPO_ROOT / "examples" / "distributed_history"
+# VAL-11: these are set from the target example path in main(); the defaults
+# keep module-level readers working when the embedded copy is the target.
+EXAMPLE_ROOT = DEFAULT_EXAMPLE_ROOT
 TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
 GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 CLUSTER_NAME = "ecommerce-history"
 
 
 def run(command: list[str], *, cwd: Path = REPO_ROOT, env: dict[str, str] | None = None) -> None:
-    print("$ " + " ".join(command))
+    # flush=True: the child writes straight to the shared stdout, so an
+    # unflushed echo would appear after the output of the command it announces.
+    print("$ " + " ".join(command), flush=True)
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "example_root",
+        nargs="?",
+        type=Path,
+        default=DEFAULT_EXAMPLE_ROOT,
+        help=(
+            "Path to the distributed_history example to validate. Defaults to "
+            "the copy embedded in this repository; pass a standalone checkout "
+            "to validate it instead (VAL-11). Pair with TLA_SPEC_DEV_ROOT when "
+            "the example does not live inside the toolchain repository."
+        ),
+    )
     parser.add_argument("--mode", choices=["local", "k3d"], default="k3d")
     parser.add_argument("--keep-k3d", action="store_true", help="Leave the k3d cluster and image after a k3d run.")
     args = parser.parse_args()
+
+    global EXAMPLE_ROOT, TEST_GRAPH_ROOT, GENERATED_ROOT
+    EXAMPLE_ROOT = args.example_root.resolve()
+    if not (EXAMPLE_ROOT / "specs" / "program_model").is_dir():
+        raise SystemExit(
+            f"ERROR: {EXAMPLE_ROOT} does not look like a distributed_history "
+            "example (missing specs/program_model)"
+        )
+    TEST_GRAPH_ROOT = EXAMPLE_ROOT / "test_graph"
+    GENERATED_ROOT = TEST_GRAPH_ROOT / "build" / "generated" / "validation"
 
     env = os.environ.copy()
     env["ECOMMERCE_TEST_MODE"] = args.mode
@@ -47,6 +74,7 @@ def main() -> int:
     try:
         regenerate_tlc_cases()
         validate_internal_cases()
+        validate_kill_test()
         validate_projected_state_assertion_catches_mismatch()
         run_test_graph(env)
         report_dir = latest_report_dir()
@@ -89,6 +117,117 @@ def validate_internal_cases() -> None:
         ],
         cwd=EXAMPLE_ROOT,
     )
+
+
+def validate_kill_test() -> None:
+    """MF-016 oracle 4: the worked mutation kill test.
+
+    Seeds one real behavioral fault per boundary of the internal model into the
+    ecommerce backend, runs the internal spec-unit corpus against each, and
+    requires the kill rate to meet `kill_rate_floor` from the example's
+    manifest budgets.
+
+    This asserts the STRICT outcome: a green control run and a verdict of
+    "pass". It is deliberately not softened, and the floor is deliberately not
+    lowered to match what the example currently scores.
+
+    KNOWN CURRENT RESULT, recorded rather than tuned away: the first real
+    end-to-end run measured **0.571 (4/7)** against the 0.8 floor, with three
+    surviving mutants, each carrying a true refinement pointer:
+
+      * store-projection_store -> refine `projections` / `ProjectOrder`.
+        No generated case distinguishes the projected status, so the read
+        model's advance is unmodeled.
+      * inv-InternalInvariant  -> refine `orders` / `Checkout`.
+        No generated case checks out against a nonexistent account, so
+        referential integrity is unexercised.
+      * inv-Invariant          -> refine `responses` / `SubmitCreateAccount`.
+        The HTTP boundary is genuinely outside the in-process internal corpus;
+        the external corpus is what must cover it.
+
+    All three are TRUE findings about the example's representation, which is
+    exactly what the oracle exists to produce. Refining the example's model
+    until they die is real modeling work and belongs with the other deferred
+    case-generation work in MF-023 -- note that `--mode local` cannot reach
+    this step today anyway, because case generation for the External model is
+    already refused by a pre-existing complexity-gate finding (C2 is touched
+    by 9 actions, exceeding max_component_actions 8).
+
+    Making this assertion pass by lowering the floor, waiving the survivors, or
+    dropping the mutants would be precisely the degeneracy the kill test exists
+    to prevent, so none of that was done.
+    """
+
+    spec_dir = EXAMPLE_ROOT / "specs" / "program_model"
+    corpus_command = " ".join(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
+            "--mapping",
+            str(spec_dir / "case_adapters.toml"),
+            "--view",
+            "internal",
+            "--batch",
+            "--work-dir",
+            "/tmp/ecommerce-kill-test-work",
+            "--import-root",
+            str(EXAMPLE_ROOT),
+        ]
+    )
+    report_path = GENERATED_ROOT / "kill-test.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "run_kill_test.py"),
+            "--target",
+            str(spec_dir),
+            "--root",
+            str(EXAMPLE_ROOT),
+            # The internal corpus measures the internal model. The external
+            # model is a separate kill test with its own corpus; this narrows
+            # the coverage obligation only -- every mutant still runs.
+            "--cfg",
+            "Internal.cfg",
+            "--corpus-command",
+            corpus_command,
+            "--out",
+            str(report_path),
+        ],
+        cwd=EXAMPLE_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    combined = completed.stdout + completed.stderr
+    if not report_path.is_file():
+        raise SystemExit(f"kill test wrote no evidence to {report_path}:\n{combined}")
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    # The control run first: without it, a corpus that is already red would
+    # report a perfect and meaningless 1.0.
+    if report.get("control_green") is not True:
+        raise SystemExit(
+            f"kill test control run failed -- the corpus does not pass on the unmutated "
+            f"program, so no kill can be attributed to any mutation:\n{combined}"
+        )
+    if report["uncovered_boundaries"]:
+        raise SystemExit(
+            f"kill test ran with uncovered boundaries: {report['uncovered_boundaries']}"
+        )
+    # Every survivor must carry an actionable pointer, whatever the verdict.
+    for pointer in report["surviving_mutants"]:
+        if not pointer.get("refine_variable") or not pointer.get("refine_action"):
+            raise SystemExit(f"surviving mutant carries no refinement pointer: {pointer}")
+
+    if completed.returncode != 0 or report["verdict"] != "pass":
+        raise SystemExit(
+            f"kill test did not clear the floor: {report.get('summary')}\n"
+            f"Each surviving mutant above names the variable and action to refine. "
+            f"Do not lower kill_rate_floor to make this pass.\n{combined}"
+        )
+
+    print(f"kill test ok: {report['summary']}")
 
 
 def validate_projected_state_assertion_catches_mismatch() -> None:
@@ -267,12 +406,15 @@ def validate_projected_state_artifacts(report_dir: Path) -> None:
 
     work_dir = report_dir / "external-case-work" / "case-work"
     per_case_files = sorted(work_dir.glob("*/program-state.json"))
-    file_cases = sorted(path.parent.name for path in per_case_files)
+    file_cases = sorted(
+        json.loads(path.read_text(encoding="utf-8"))["case"]
+        for path in per_case_files
+    )
     if file_cases != expected_cases:
         raise SystemExit(f"expected per-case program-state files {expected_cases}, got {file_cases}")
 
 
-def expected_external_trace_names(manifest: Path = GENERATED_ROOT / "testgraph" / "traces" / "manifest.json") -> list[str]:
+def expected_external_trace_names(manifest: Path) -> list[str]:
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     return sorted(Path(name).stem for name in payload["traces"])
 

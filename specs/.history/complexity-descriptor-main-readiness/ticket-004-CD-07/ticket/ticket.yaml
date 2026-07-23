@@ -1,0 +1,132 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CD-07",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "No scaffold output or generated file calls budgets hard gates; wording matches the advisory doctrine (grep evidence).",
+        "Manifest fitness rules under bare python3 produce the documented CONFIG ERROR naming PyYAML and the .json alternative \u2014 never the mangled INVALID (regression test without PyYAML).",
+        "A per-docs budgets block scans with no missing-keys warning; the no-manifest warning names no sentinel path.",
+        "run_tlc.sh leaves no states/ directory in the target spec dir.",
+        "The justification-table schema is documented with an example; the intuition doc's write-only-state boundary is sharpened citing the recorded divergence.",
+        "Zero TLA+ model delta: ticket current == desired; TLC green; max_distinct_states 500000 carried through desired/ with rationale and verified post-promotion."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CD-07"
+      ],
+      "evidence": [
+        "specs/tickets/CD-07/results/advisory_language_sweep.md",
+        "specs/tickets/CD-07/results/fitness_manifest_config_error.txt",
+        "specs/tickets/CD-07/results/tlc_current.txt",
+        "specs/tickets/CD-07/results/spec_unit_tests.txt",
+        "specs/tickets/CD-07/results/repo_unit_tests.txt",
+        "specs/tickets/CD-07/results/graph_specWorkflow.txt",
+        "specs/tickets/CD-07/results/graph_cliWorkflow.txt"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/new_ticket_workflow.py",
+        "scripts/tla_spec_dev.py",
+        "scripts/fitness_functions.py",
+        "scripts/budgets.py",
+        "scripts/analyze_complexity.py",
+        "scripts/run_tlc.sh",
+        "references/fitness_functions.md",
+        "references/complexity_intuition.md",
+        "references/architecture_tractability.md",
+        "SKILL.md"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow",
+        "cliWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "CD-04",
+      "CD-05",
+      "CD-06"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/92",
+    "id": "CD-07",
+    "implementation_scope": [
+      "scripts/new_ticket_workflow.py (scaffold wording)",
+      "scripts/fitness_functions.py + scripts/tla_spec_dev.py (manifest-rules CONFIG ERROR path)",
+      "scripts/budgets.py (retired keys)",
+      "scripts/analyze_complexity.py (sentinel warning wording)",
+      "scripts/run_tlc.sh (states/ scratch dir)",
+      "references/fitness_functions.md, references/complexity_intuition.md, references/architecture_tractability.md, SKILL.md (schema docs + boundary sharpening)"
+    ],
+    "objective": "Resolves VAL-04, VAL-01, VAL-02, VAL-03, VAL-05, CD-02-DF-01, VAL-15. (1) VAL-04: the scaffold-project epilog and generated manifest comment still say \"Budgets are hard gates\" (new_ticket_workflow.py ~615/~666) \u2014 reword to the advisory doctrine every other surface states. (2) VAL-01: manifest-embedded fitness rules under bare python3 go through the fallback manifest parser and surface as a misleading INVALID (flow-style leaves mangled to '{fact'); emit the documented advisory CONFIG ERROR naming missing PyYAML and the fitness_functions.json alternative instead. (3) VAL-02: drop the retired fuzzing-era keys (kill_rate_floor, max_symmetric_instances) from the required-budgets warning set or gate them behind the experimental surface. (4) CD-02-DF-01: the no-manifest warning prints a literal does-not-exist sentinel path \u2014 say what happened instead. (5) VAL-05: document the justification-table schema (dict with non-empty invariants/effects/kill_tests lists) where agents look. (6) VAL-03: run_tlc.sh leaves a TLC states/ scratch dir inside the target spec dir \u2014 point the metadir at a temp location or clean up. (7) VAL-15: sharpen complexity_intuition.md's example-3 vs example-5 boundary for write-only stamped state, using the recorded ex3 run-1 vs run-2 divergence as the worked case (a test such as: if no guard, invariant, test, or reader depends on it, it is bookkeeping regardless of stated design intent \u2014 or explicitly bless both outcomes and name the evidence that separates them).\n",
+    "promotion_order": 50,
+    "promotion_predecessor": "CD-06",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Advisory-doctrine language and UX polish across scaffold, fitness loader, budgets, and docs",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/tickets/CD-07",
+  "ticket_id": "CD-07",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-92-cd07-advisory-polish/specs/tickets"
+}

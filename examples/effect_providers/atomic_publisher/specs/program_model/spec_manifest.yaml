@@ -1,0 +1,90 @@
+module: AtomicPublisher
+package: atomic_publisher_contract
+
+types:
+  FilePath:
+    python: str
+  FileBytes:
+    python: bytes
+
+state:
+  FilesystemState:
+    fields:
+      files:
+        type: dict[str, bytes]
+
+commands:
+  ReadFile:
+    fields:
+      path:
+        type: FilePath
+  WriteFile:
+    fields:
+      path:
+        type: FilePath
+      data:
+        type: FileBytes
+  ReplaceFile:
+    fields:
+      source:
+        type: FilePath
+      target:
+        type: FilePath
+  DeleteFile:
+    fields:
+      path:
+        type: FilePath
+
+results:
+  ReadFileResult:
+    fields:
+      data:
+        type: FileBytes
+  WriteFileResult:
+    fields:
+      written:
+        type: bool
+  ReplaceFileResult:
+    fields:
+      replaced:
+        type: bool
+  DeleteFileResult:
+    fields:
+      deleted:
+        type: bool
+
+ports:
+  FilesystemPort:
+    role: effect
+    methods:
+      read:
+        command: ReadFile
+        result: ReadFileResult
+      write:
+        command: WriteFile
+        result: WriteFileResult
+      replace:
+        command: ReplaceFile
+        result: ReplaceFileResult
+      delete:
+        command: DeleteFile
+        result: DeleteFileResult
+
+invariants: []
+finite_model: {}
+budgets:
+  tlc_seconds: 120
+  max_distinct_states: 50000
+  max_state_space_bound: 1000000
+  max_internal_cases_per_component: 200
+  max_external_cases_per_action: 50
+  kill_rate_floor: 0.8
+  max_component_variables: 6
+  max_component_actions: 8
+  max_symmetric_instances: 2
+  source: preregistered-example
+  rationale: {}
+generators:
+  traces:
+    max_depth: 1
+adapters: case_adapters.toml
