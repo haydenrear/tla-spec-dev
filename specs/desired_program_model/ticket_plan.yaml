@@ -46,7 +46,26 @@ planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
-  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The CLI's own workflow commands ARE program behavior for this repository.
+  semantic_model_rule: >-
+    Do not add test graph nodes, pytest jobs, CI workflow steps, integration
+    harnesses, or validation scripts as TLA+ program state/actions. The
+    modeled program surface is the SHIPPED CLI lifecycle — scaffold, open,
+    run spec-unit-tests, analyze (descriptor scan), close. FOLDED 2026-07-23
+    (ESC-C2-1, restating the predecessor workflow's recorded owner rulings
+    verbatim-in-substance so this plan is self-contained): the experimental
+    fuzzing surface (corpus gate, effect conformance, kill test) remains
+    MODELED as-is as faithful representation of shipped experimental
+    commands; `generate` is unmodeled, a RECORDED LIMITATION; per-command
+    refusal branches beyond the modeled gate verdicts and per-flag CLI
+    variants (--accept-new, --allow-open, --no-promote-current,
+    --validate-only, --force, --dry-run) are OUT-OF-MODEL as a recorded
+    granularity limitation — guard-weakening flags are governed by doctrine,
+    not modeled; advisory tooling internals (fitness evaluation inside
+    analyze, silent-degrade guards, runner env re-exec), the
+    close/start/scaffold wrapper scripts, run_tlc.sh, clock/provenance reads
+    on the close path, and the effect-provider runtime are validation
+    harness/toolchain plumbing, out-of-model; their real effects must still
+    be DECLARED as ports where a modeled action performs them.
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes; bump schedule_revision for any change to IDs, edges, waves, promotion order, conflict keys, or validation scope.
   promotion_rule: Only workflow finalization promotes the whole model; ticket agents close exactly their own ticket and never run close_tickets.py or use --accept-new.
@@ -77,6 +96,9 @@ service_catalog:
     - specs/program_model/production_adapters.py spec-unit adapters
     - test_graph specWorkflow / cliWorkflow graphs
   known_gaps:
+    - "FOLDED 2026-07-23 (ESC-C2-1): this repository's baseline remains a single TlaSpecDevCli.tla module without the Internal/External view split — future work, unscoped (the MF-023 dogfooding measured Q=0.012, no clean cut; that decision stands)."
+    - "`generate` is unmodeled — recorded granularity limitation per semantic_model_rule; modeled if/when the experimental surface is promoted."
+    - "Per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model — recorded granularity limitation per semantic_model_rule."
     - "AMENDED 2026-07-23 (owner, pre-finalization; schedule_revision 2): the effect-provider epic merged at 86865d2 with zero host-model delta. Its runtime (scripts/run_generated_case_adapters.py provider machinery, spec_double_compiler/*, templates/python/ports.py.j2, scripts/fitness-era extensions) is SHIPPED validation harness and toolchain plumbing — out-of-model per this plan's semantic_model_rule first sentence, exactly as the spec-unit runner always was. examples/effect_providers/* are EXPERIMENTAL validation fixtures carrying 12 recorded, unwaived model-completeness gaps (specs/.history/effect-provider-epic/open-state-at-merge/README.md); their models are promotion-blocked and never enter specs/program_model. Owner-direct commits after CD-07 (merge 86865d2 + integration 497ab99/37c6c65/e7fcd09 spot fixes, validation evidence) are recorded finalization amendments: zero TLA model delta, full-suite + provider-validation green at each."
     - "Suggestions removed by CD-01 may return in a later epic, earned from real-app descriptor observations, possibly as an agent. Not in this batch."
 

@@ -21,10 +21,21 @@ retention:
     evidence: "EXPERIMENTAL per the pivot; no decrease claimed."
 
 coverage_audit:
-  status: "PENDING-AUDIT"
+  # Close-2 audit, 2026-07-23: fresh full enumeration (572 surface files, 13
+  # category/behavior sweeps, raws in specs/results/finalization/sweep-raw-close2/).
+  # Zero in-scope gaps; modeled-surface spot-verification confirms the eleven
+  # zero-model-delta claims (model files byte-identical to 5f84937; 688 repo
+  # units + 67 spec-unit conformance cases green fresh at HEAD). One advisory
+  # escalation surfaced for owner text, NOT resolved by the audit: ESC-C2-1 —
+  # the successor plan does not restate the predecessor's recorded rulings
+  # (PS:597-599 + semantic_model_rule amendments), which this audit quoted
+  # from the sealed complexity-descriptor-epic closed-snapshot per the
+  # dispatching instruction; fold them into the plan to make the gate's scope
+  # self-contained.
+  status: "pass"
   report: "specs/results/finalization/coverage_audit_report_close2.md"
-  in_scope_gaps: null
-  scope_source: ""
+  in_scope_gaps: 0
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:49,:53,:63-82,:128-132,:199-202,:270-273,:338-340,:419-425 (schedule_revision 2, :80 AMENDED 2026-07-23) + specs/.history/complexity-descriptor-epic/closed-snapshot/snapshots/desired_program_model/ticket_plan.yaml:520-562,:576-599 (recorded owner rulings, incorporated per plan header :7-8 and dispatch; see ESC-C2-1)"
 
 justification: ""
 
