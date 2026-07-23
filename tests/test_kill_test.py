@@ -697,10 +697,14 @@ class TestKillRatePreservingAbstraction:
 
 
 class TestThisRepositorysCatalogCoversItsOwnBoundaries:
-    """These run against the real specs/current, so they fail the moment a
-    port or invariant is added without a matching mutant."""
+    """These run against the real repository model, so they fail the moment a
+    port or invariant is added without a matching mutant. The live tree is
+    specs/current while a workflow is open, and the accepted
+    specs/program_model baseline once it has closed (reconciled identical at
+    every close)."""
 
-    spec_dir = REPO_ROOT / "specs" / "current"
+    _current = REPO_ROOT / "specs" / "current"
+    spec_dir = _current if _current.exists() else REPO_ROOT / "specs" / "program_model"
 
     def test_the_real_catalog_covers_every_real_boundary(self) -> None:
         catalog, _ = load_catalog(self.spec_dir / "kill_mutants.toml")
@@ -794,7 +798,7 @@ class TestCliSurface:
         )
 
     def test_list_boundaries_reports_full_coverage_for_this_repo(self) -> None:
-        result = self.run_cli("--target", "specs/current", "--list-boundaries")
+        result = self.run_cli("--target", str(TestThisRepositorysCatalogCoversItsOwnBoundaries.spec_dir.relative_to(REPO_ROOT)), "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
         assert "22/22 declared boundaries carry a seeded fault." in result.stdout
@@ -803,12 +807,12 @@ class TestCliSurface:
         """Without a corpus there is nothing to kill mutants with, so
         reporting a rate would be fabricating one."""
 
-        result = self.run_cli("--target", "specs/current")
+        result = self.run_cli("--target", str(TestThisRepositorysCatalogCoversItsOwnBoundaries.spec_dir.relative_to(REPO_ROOT)))
         assert result.returncode == EXIT_USAGE
         assert "--corpus-command is required" in result.stderr
 
     def test_a_missing_catalog_is_refused(self, tmp_path: Path) -> None:
-        result = self.run_cli("--target", "specs/current", "--catalog", str(tmp_path / "nope.toml"))
+        result = self.run_cli("--target", str(TestThisRepositorysCatalogCoversItsOwnBoundaries.spec_dir.relative_to(REPO_ROOT)), "--catalog", str(tmp_path / "nope.toml"))
         assert result.returncode == EXIT_USAGE
         assert "no mutant catalog" in result.stderr
 

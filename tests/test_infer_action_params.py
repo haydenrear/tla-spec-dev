@@ -42,7 +42,12 @@ from infer_action_params import (  # noqa: E402
     render_audit,
 )
 
-LIVE_MODEL = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
+# The live model is specs/current while a ticket workflow is open, and the
+# accepted specs/program_model baseline once the workflow has closed (a
+# promoted default-branch tree has no current/). The two are reconciled
+# identical at every close, so either is the real repository model.
+_CURRENT = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
+LIVE_MODEL = _CURRENT if _CURRENT.exists() else REPO_ROOT / "specs" / "program_model" / "TlaSpecDevCli.tla"
 
 # The thirteen-plus-one action labels of TlaSpecDevCli, exhaustively. The issue
 # said "thirteen"; the module actually defines FOURTEEN parameterisable action
