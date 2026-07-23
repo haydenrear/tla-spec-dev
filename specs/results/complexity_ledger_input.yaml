@@ -1,65 +1,30 @@
-# Complexity ledger input — workflow close of complexity-descriptor-epic
-# (owner-authored 2026-07-22). The epic was deliberately zero-TLA+-model-delta:
-# CD-01/02/03 changed scripts/, references/, and SKILL.md, not the modeled CLI
-# lifecycle. TLC on specs/current at close: 5,619,356 generated / 231,621
-# distinct / depth 25 — identical to the epic's base
-# (specs/results/epic-close/tlc_current.txt).
+# Complexity ledger input — workflow close of complexity-descriptor-main-readiness
+# (owner-authored 2026-07-23). Zero TLA+ model delta across the entire
+# workflow: CD-04..CD-08 were all zero-delta by design, and the
+# effect-provider merge (86865d2) carried zero host-model delta. TLC at
+# close: 6,209,780 generated / 283,805 distinct / depth 25 — identical to the
+# CD-11 baseline the previous workflow closed on.
 
 retention:
-  # No complexity decrease is claimed by this close (direction: unchanged), so
-  # these members are recorded, not gating. The fuzzing machinery that measures
-  # them is EXPERIMENTAL and deliberately not run this epic (the 2026-07-21
-  # ship-scanner/drop-fuzzing pivot; MF-038 measured 0/9 content bugs caught).
+  # Direction: unchanged — these members are recorded, not gating. The
+  # fuzzing-era members remain EXPERIMENTAL and not run; the validated-refactor
+  # basis (CD-09) is the licensing basis for decreases, and no decrease is
+  # claimed here.
   kill_rate:
     status: "not_run"
-    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+    evidence: "EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md) — recorded as context, not as this repository's kill rate."
   effect_conformance:
     status: "not_run"
-    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+    evidence: "EXPERIMENTAL per the pivot; no decrease claimed."
   external_coverage:
     status: "not_run"
-    evidence: "not run this epic; EXPERIMENTAL per the pivot; no decrease claimed"
+    evidence: "EXPERIMENTAL per the pivot; no decrease claimed."
 
 coverage_audit:
-  status: "pass"
-  report: "specs/results/epic-close/coverage_audit_report_run5.md"
-  in_scope_gaps: 0
-  scope_source: "specs/desired_program_model/ticket_plan.yaml:520-562 (semantic_model_rule, AMENDED x2 2026-07-22) + :576-599 (service_catalog + known_gaps; :585 restated per ESC-R4-1, schedule_revision 4), with :2046-2049/:2123-2125/:2193-2197/:2287-2291/:2365-2368/:2448-2452 (CD-01/02/03/09/10/11 implementation_scope)"
-  # 2026-07-22 audit run 5 (re-verdict at workflow close after the third owner
-  # amendment — :585 restated, retiring ESC-R4-1 — and CD-11; run 4 report kept
-  # at coverage_audit_report_run4.md). Verify-by-diff licensed by a fresh
-  # enumeration diff against run 4's recorded surface: exactly one added file
-  # (run 4's own archived classifier ca4_classify.py, out-of-scope) and five
-  # content-modified files, all CD-11 manifest/annotation/test edits; N=M=359,
-  # in 24 / out 335 / escalated rows 0. Run-4 gaps closed and verified fresh at
-  # 5f84937: R4-1 fixed (mutation_write filesystem.write *scripts/* port,
-  # manifest:233-235, covering every catalog path key incl. skill-scripts/;
-  # corpus_process process.spawn * port :244-246 with the recorded honest
-  # rationale that a narrower glob would assert an unenforced constraint;
-  # RunKillTest row [evidence_report, mutation_write, corpus_process] :292;
-  # seed/restore/spawn sites re-read live); R4-2 fixed (spec_tree added to
-  # RunEffectConformance :285 with declare-not-relocate rationale :274-284;
-  # work-tree mkdir sites re-verified); R4-3 fixed (AnalyzeCorpus: []
-  # deliberately-empty row :273 with G4-style rationale :265-272;
-  # corpus_diagnostics.py re-verified writer-free). ESC-R4-2 closed by CD-11's
-  # record-not-populate choice, judged sound on its recorded rationale
-  # (manifest:123-132 + both scaffolder templates state empty = "no generated
-  # case index yet", not "model has no state/actions/ports"; populating would
-  # recreate the desync class the ticket closes). ESC-R4-3 closed: @port
-  # annotation vocabulary renamed to the declared port names, exact 9=9
-  # intersection verified mechanically, comments only (non-comment .tla content
-  # byte-identical to 400c51a; TLC identical: 6,209,780 / 283,805 / depth 25).
-  # Kill catalog 22/22 (9 ports + 13 invariants), boundary tests updated 20->22,
-  # 578 repo unit tests pass, both graphs PASS, trees reconciled. Sweep 2/3
-  # verified by fixed-pattern old/new comparison over the changed surface: the
-  # only deltas are comment/prose lines and the archived classifier's own
-  # artifact writes — zero new effect or behavior sites in scope. Verdict PASS
-  # with the standing record: both views unrepresented by construction
-  # (known_gaps :597), generate unmodeled (:585/:598), granularity/out-of-model
-  # rulings inventory real unrepresented behavior — owner-declared boundaries,
-  # none waived per-finding. Raws: specs/results/epic-close/sweep-raw-run5/
-  # (surface diff, changed-file name-status, both enumeration scripts, 13
-  # per-category changed-surface raws).
+  status: "PENDING-AUDIT"
+  report: "specs/results/finalization/coverage_audit_report_close2.md"
+  in_scope_gaps: null
+  scope_source: ""
 
 justification: ""
 
@@ -69,36 +34,33 @@ refinement:
   searched: true
   outcome: "none"
   detail: >-
-    Searched at workflow scope: the model is unchanged this epic (before/after
-    TLC identical at 231,621 distinct / depth 25), and each ticket close
-    (CD-01/02/03) recorded its own searched/none refinement entry. The epic's
-    product — descriptor + intuition + fitness functions — was validated on
-    three example projects (6/6 scored agent runs, examples/validation/runs/),
-    where refactors were found and taken on the EXAMPLE models, not this one.
+    Searched at workflow scope: the model is unchanged (TLC byte-identical to
+    the CD-11 baseline through CD-04..08, the effect-provider merge, and the
+    owner spot fixes). Refinement THIS workflow earned happened on the
+    validation examples, not this model: run-3/run-4 agents took validated
+    refactors on taskq (424 -> 63 distinct via the corpus-priced
+    representation fix) and order_hub (bound 8,388,608 -> 624, four
+    convergent runs), evidence under examples/validation/runs/.
   applied: false
   approved_by: ""
 
 narrative: >-
-  Workflow close of complexity-descriptor-epic. The epic shipped the factual
-  complexity descriptor (CD-01: suggested moves removed after validation
-  proved them confidently wrong; F1 invariant-alias resolution; F3 explicit
-  UNKNOWN bound), the complexity-intuition doctrine (CD-02), and advisory
-  self-configured fitness functions (CD-03) — all deliberately
-  zero-model-delta — then reconciled the model and manifests to the
-  post-pivot program under the coverage-audit gate (CD-09: override/blocking
-  gate removed from the model, a distinct-state INCREASE +52,184 because a
-  falsely blocking guard had hidden honestly-reachable states; CD-10:
-  close-path deletes and real spawns declared; CD-11: experimental-surface
-  port honesty and the two four-run manifest desyncs). Measured alternatives:
-  the ex3 validation runs measured descriptor-guided refactors on example
-  projects (8,388,608 -> 624 and -> 6,240) — evidence the shipped surface
-  works; no reduction of THIS repository's model was found beyond CD-09's
-  fidelity fix (refinement: searched, none). Retention basis: the
-  owner-approved validated-refactor definition (TLC before/after, behavior
-  tests, descriptor comparison, transition diff) replaced the fuzzing-era
-  members, which the epic measured broken (kill 0.31 vs floor 0.8, 0/9
-  content bugs) and which remain recorded not_run. Coverage audit reached
-  PASS at run 5 (0 gaps) after three reconciliation tickets and three
-  recorded owner boundary rulings; the findings the core cannot express live
-  in the run 2-5 reports and the deferred-findings ledgers, all sealed as
-  evidence.
+  Workflow close of complexity-descriptor-main-readiness, the promotion
+  gate for merging to main. The batch (CD-04..08, PRs #94-#98) removed every
+  negative side effect the six earlier validation runs catalogued: the corpus
+  gate now states measurements and asks the redesign question; the
+  descriptor's domain resolution and R/W attribution are accurate on the
+  standard patterns real agents write; every surface speaks the advisory
+  doctrine; the shipped example passes its own documented workflow.
+  The effect-provider epic then merged (86865d2 + integration) with zero
+  host-model delta, adding the agent-authored provider runtime whose evals
+  reproduced here (80/80 tests; atomic_publisher and reminder_worker fresh
+  validations pass), and the composed surface was validated by run 4:
+  content-asserting providers killed the exact bug class the MF-038 probe
+  measured at 0/9 (taskq: 45/45 points, exact replay; order_hub: two probes;
+  distributed_history: one-boundary migration with the legacy path proven).
+  Four adoption-path defects were owner spot-fixed with regression tests
+  (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog carried as
+  #112-#115. Measured alternatives and the findings the machine-checked core
+  cannot express live in examples/validation/runs/ and the run 2-5 audit
+  reports of the predecessor workflow, all sealed.
