@@ -18,7 +18,7 @@ SPEC = (
     .kind("testbed")
     .tags("spec-workflow", "cli")
     .timeout("60s")
-    .side_effects("filesystem:writes")
+    .side_effects("fs:tmp")
     .output("cliPath", "string")
     .output("binDir", "string")
 )

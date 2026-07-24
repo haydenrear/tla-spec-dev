@@ -22,7 +22,7 @@ SPEC = (
     .kind("assertion")
     .tags("effect-providers", "generated-cases", "mutation", "external", "repeatable")
     .timeout("1800s")
-    .side_effects("filesystem:writes", "process:spawn", "network:loopback")
+    .side_effects("fs:tmp", "net:local")
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

@@ -19,7 +19,7 @@ SPEC = (
     .depends_on("spec.cli.install")
     .tags("spec-workflow", "git")
     .timeout("60s")
-    .side_effects("filesystem:writes", "git:writes")
+    .side_effects("fs:tmp")
     .output("repoPath", "string")
     .output("sourceRepo", "string")
     .output("ticketId", "string")

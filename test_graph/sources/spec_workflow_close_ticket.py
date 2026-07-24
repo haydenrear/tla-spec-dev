@@ -21,7 +21,7 @@ SPEC = (
     .depends_on("spec.workflow.spec_units")
     .tags("spec-workflow", "git")
     .timeout("60s")
-    .side_effects("filesystem:writes", "git:writes")
+    .side_effects("fs:tmp")
     .output("historyDir", "string")
 )
 

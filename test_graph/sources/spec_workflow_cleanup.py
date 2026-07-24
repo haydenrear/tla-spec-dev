@@ -20,7 +20,7 @@ SPEC = (
     .tags("spec-workflow", "finalizer")
     .timeout("30s")
     .rerun(False)
-    .side_effects("filesystem:delete")
+    .side_effects("fs:tmp")
 )
 
 

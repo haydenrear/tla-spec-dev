@@ -21,7 +21,7 @@ SPEC = (
     .depends_on("spec.workflow.close")
     .tags("spec-workflow", "failure-probe", "finalizer")
     .timeout("180s")
-    .side_effects("filesystem:writes", "filesystem:delete", "git:writes")
+    .side_effects("fs:tmp")
 )
 
 
@@ -61,7 +61,11 @@ def latest_probe_run(probe_root: Path) -> Path | None:
     reports = probe_root / "build" / "validation-reports"
     if not reports.exists():
         return None
-    candidates = [path for path in reports.iterdir() if path.is_dir() and path.name.startswith("cleanupFailureProbe-")]
+    candidates = [
+        path
+        for path in reports.iterdir()
+        if path.is_dir() and (path / "summary.json").is_file()
+    ]
     return max(candidates, key=lambda path: path.stat().st_mtime, default=None)
 
 

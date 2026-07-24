@@ -18,7 +18,7 @@ SPEC = (
     .depends_on("spec.workflow.complete")
     .tags("spec-workflow", "git", "spec-unit")
     .timeout("60s")
-    .side_effects("filesystem:writes")
+    .side_effects("fs:tmp")
 )
 
 
