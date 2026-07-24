@@ -531,8 +531,9 @@ inline a convenient number.
   unjustified-variable flags. **It emits no suggested move**; the earlier
   chooser was removed after validation project 1 showed it confidently wrong
   on standard TLA+.
-- Mutation kill test (tickets/016): doubles as the abstraction validator —
-  kill-rate-preserving abstraction is legitimate abstraction.
+- Mutation kill test (tickets/016): intended to double as the abstraction
+  validator — kill-rate-preserving abstraction is legitimate abstraction —
+  but EXPERIMENTAL and not yet trustworthy for that (MF-038; see Move 1).
 - `references/migration.md` Phase 3: refactors are invited from effect-diff
   evidence and from gate-failure evidence alike, and always pass through
   user approval.

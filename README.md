@@ -87,10 +87,12 @@ python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --o
 ```
 
 `--bindings` is required: export is gated on every external binding declaring
-a `channel`, on no adapter importing the declared `external.production_package`,
-and on `external.port_bindings` naming each port `double` or `real` with at
-least one `real`. See "External channel enforcement" in
-`references/testgraph_adapters.md`.
+a `channel`, on no adapter, projector, expected-projection, or assertion
+module importing the declared `external.production_package` (checked by
+static import analysis, transitively across first-party helpers), and on
+`external.port_bindings` naming each port `double` or `real` with at
+least one `real`. The same gate runs in the adapter runner. See "External
+channel enforcement" in `references/testgraph_adapters.md`.
 
 External adapter bindings may include `kind` to batch cases that need the same
 external harness setup and cleanup. Batch adapters can define optional

@@ -15,6 +15,7 @@ not compile arbitrary TLA+ into Python.
 - simple sets
 - simple maps/functions
 - records
+- sequences/tuples
 - booleans
 - enums encoded as finite sets
 - bounded integers
@@ -47,9 +48,15 @@ Examples:
 
 The implementation may be distributed; the spec state is centralized.
 
-Use separate TLA+ modules only for tutorial examples, genuinely separate
-programs, or explicitly named refinement layers. Avoid a repository that has a
-different unrelated spec for every feature.
+One program model is normally still split across the three-module accepted
+baseline: `Core.tla` (shared constants and helper operators), `Internal.tla`
+(fine-grained program state, the spec-unit case source), and `External.tla`
+(publicly observable behavior, the Test Graph case source). That is one shared
+spec expressed as views, not separate sources of truth.
+
+Beyond that split, use separate TLA+ modules only for tutorial examples,
+genuinely separate programs, or explicitly named refinement layers. Avoid a
+repository that has a different unrelated spec for every feature.
 
 ## Recommended Module Shape
 

@@ -183,8 +183,9 @@ This was MF-011's behavior and MF-022 corrected it, so each threshold now
 measures the figure it was meant for.
 
 **Complexity thresholds are advisory, not gates (MF-036).** A component model
-over threshold produces a *warning and a recommendation* — decompose or
-re-abstract — that names the component, variable, or action and a concrete move.
+over threshold produces a *warning* that names the component, variable, or
+action and the measured threshold breach — a fact, with no recommended move
+(CD-01; the moves below remain the owner's vocabulary).
 It **never blocks promotion, never refuses case generation, and never drives a
 nonzero exit.** Complexity is a scanner: it tells the agent where the model is
 dense so the owner can decide, with the user, whether to refactor. See
@@ -212,8 +213,9 @@ score with near-decomposable clusters and candidate port-crossing actions,
 and any variables lacking a justification linkage. When the model exceeds
 `max_state_space_bound`, `max_component_variables`, `max_component_actions`, or
 (with `--tlc-report`) `max_distinct_states`, it emits an advisory **warning**
-that names the component/variable/action and **recommends** a concrete move —
-but it still exits 0, and case generation still proceeds. The warnings are the
+that names the component/variable/action and the measured breach — no
+recommended move (CD-01) — but it still exits 0, and case generation still
+proceeds. The warnings are the
 product; the old exit-nonzero-to-block was an over-promise (MF-036).
 
 *History.* The complexity check was originally a hard gate with an
@@ -292,12 +294,14 @@ other.
 
 ### Observable scope of the effect oracle (MF-027)
 
-**The shipped oracle observes the in-process CPython runtime, and nothing
+**The shipped sandbox observes the in-process CPython runtime, and nothing
 else.** `EffectSandbox` (`scripts/effect_conformance.py`) works by
 monkeypatching `builtins.open`, the `os` / `shutil` / `pathlib.Path`
 mutators, `subprocess.run`/`Popen`, and `socket.connect` **in the
 interpreter that is running the harness**. No patch crosses a process
-boundary.
+boundary. (MF-033 later added a second, out-of-process observer for exactly
+one axis — see below; it extends what a run can *see*, never what the
+sandbox patches.)
 
 That is a legitimate scope. A Python-only oracle is useful and honest — as
 long as it says so. Until 2026-07-19 it did not, and that was the defect:
@@ -329,6 +333,18 @@ additionally yields an explicit process-boundary finding naming the command,
 target that was never seen carries no information, so promoting a gap count
 from it would dress an absence of evidence as a measurement.
 
+**MF-033 adds a second observer that reaches across the process boundary,
+for exactly one axis.** `WorkingTreeObserver` snapshots the working-tree
+roots before a spawned child runs and diffs them after, so files the child
+created, changed, or deleted become real `filesystem.write` /
+`filesystem.delete` observations regardless of the child's runtime. This is
+added observability, not a weakened refusal: the observer covers only what
+it can positively prove (the filesystem), the spawn's process-boundary
+finding narrows to name only the axes still unwatched (network, nested
+spawns), and the verdict stays `unobservable` until *every* axis has an
+observer. A spawn with no out-of-process evidence is unchanged — still fully
+unobservable.
+
 **No configuration downgrades this verdict.** There is no flag, annotation,
 manifest entry, or environment variable that turns an unobservable target
 into a pass, and `tests/test_effect_conformance.py` proves the inverse
@@ -358,7 +374,9 @@ Two consequences worth stating plainly:
 Closing this properly needs a **different observation mechanism** behind the
 same port-declaration schema — a JVM agent, syscall capture (eBPF/dtrace),
 or a container-level recorder — so that declarations stay portable while the
-recorder is swapped per runtime. That is a second implementation, not an
+recorder is swapped per runtime. (MF-033's working-tree diff has since
+covered the filesystem axis for spawned children; the network and
+nested-spawn axes still need one.) That is a second implementation, not an
 extension of `EffectSandbox`, and it is tracked separately in
 [issue #44](https://github.com/haydenrear/tla-spec-dev/issues/44),
 "JVM-capable effect observation behind the port-declaration schema". It is
@@ -420,10 +438,13 @@ faked:
   that records a sub-floor rate as acceptable. Suppression-shaped keys are scanned
   for, reported in `ignored_suppression_keys`, and honored never. This
   anti-suppression discipline stays — you may not doctor the measurement. Note the
-  reframe, though: the below-floor result is now **advisory** (it reports, it does
-  not block), because the floor is not yet a validated bug-catching threshold
-  (MF-038). "Do not falsify the measurement" survives; "the measurement fails your
-  build" does not.
+  reframe, though: the below-floor result is now **advisory at the promotion
+  level** — the `run kill-test` command itself still exits 1 below the floor
+  (that command contract is unchanged in code), but no close or promotion path
+  runs it, and the complexity ledger records `kill_rate` as a non-gating
+  experimental member (CD-09) — because the floor is not yet a validated
+  bug-catching threshold (MF-038). "Do not falsify the measurement" survives;
+  "the measurement gates promotion" does not.
 - **Per-component scoping narrows the obligation, never the measurement.**
   `--cfg` selects which model's invariants must be covered, because a
   repository with Internal and External models has two kill tests rather than

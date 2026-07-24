@@ -141,4 +141,4 @@ shape you decided this project should keep as one or two composed rules —
 notified** when a later change breaks the shape. Keep them few and honest:
 a fitness function is a remembered design decision, not a linter. The worked
 example recorded for CD-03 is
-`specs/tickets/CD-03/results/fitness_worked_example.txt`.
+`specs/.history/complexity-descriptor-epic/ticket-002-CD-03/results/fitness_worked_example.txt`.

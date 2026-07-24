@@ -268,7 +268,9 @@ ladder that connects the two views.
 
 **MF-015: that rule is now verified, not merely asserted.** Both the runner and
 the exporter refuse to proceed unless every external binding declares a
-`channel` (http/cli/fs/queue/k8s), no adapter/projector/expected_projection/
+`channel` (http/cli/fs/queue/k8s; a contract may widen that set only by naming
+extra channels explicitly under `external.additional_channels`, which never
+excuses a binding that declares no channel), no adapter/projector/expected_projection/
 assertion module imports the declared `external.production_package` — checked
 by static import analysis, transitively, so laundering it through a helper does
 not evade the check — and `external.port_bindings` names each port `double` or
@@ -374,7 +376,10 @@ the External view *is* the library.
 
 Before calling onboarding done, diff your tree against
 `examples/distributed_history/specs/program_model/`. That 30-second structural
-diff catches every omission this checklist exists to prevent.
+diff catches every omission this checklist exists to prevent, except the two
+effect-provider files — `distributed_history` predates them (it carries no
+`role: effect` port, the additive-migration legacy shape); check `providers.py`
+and `effect_provider_usage.yaml` against `examples/effect_providers/` instead.
 
 The External view, the bindings, and the skeleton adapters are **onboarding
 deliverables**. Tickets own per-slice adapter *implementations*, not the
@@ -981,15 +986,24 @@ back to centralized semantic state.
    study a program's boundaries, not to certify it bug-free.
 
    **Observable scope — read this before onboarding a non-Python project.**
-   The effect sandbox observes the **in-process CPython runtime only**. It
-   works by monkeypatching `builtins.open`, the `os`/`shutil`/`pathlib`
-   mutators, `subprocess`, and `socket.connect` inside the interpreter running
-   the harness. **No patch crosses a process boundary.** Therefore:
+   The effect sandbox's patches observe the **in-process CPython runtime
+   only**. It works by monkeypatching `builtins.open`, the `os`/`shutil`/
+   `pathlib` mutators, `subprocess`, and `socket.connect` inside the
+   interpreter running the harness. **No patch crosses a process boundary.**
+   One additional observer does (MF-033): a working-tree diff snapshots the
+   work roots before a spawned child runs and diffs them after, so files the
+   child created/changed/deleted become real filesystem observations
+   regardless of the child's runtime — added observability, never a weakened
+   refusal. Therefore:
 
    - A **Java or Kotlin adapter in a separate JVM is not observed.**
    - **Exported Test Graph cases are not observed** — they run in JBang/uv
      nodes in their own processes, and receive no effect checking at all.
-   - A **spawned subprocess is not observed**; only the spawn itself is.
+   - A **spawned subprocess is only partially observed**: the in-process
+     patches see the spawn and the working-tree diff sees the child's
+     filesystem effects, but the child's network and nested-spawn effects
+     have no observer, so the spawn's verdict stays `unobservable` until
+     every axis is covered.
 
    The oracle **refuses** rather than reporting clean in each of these cases:
    the verdict is `unobservable` and the run **fails**, naming the target and

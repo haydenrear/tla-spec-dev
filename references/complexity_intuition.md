@@ -156,6 +156,15 @@ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity <model>.tla
 bash scripts/run_tlc.sh <model>.tla <MC.cfg>   # wrapped in a 120s external timeout
 ```
 
+The excerpts in examples 1–4 were recorded at CD-02 with the CD-01 scanner
+against scratch models (provenance:
+`specs/.history/complexity-descriptor-epic/ticket-001-CD-02/results/intuition_doc_review.md`).
+The shipped scanner has since grown a per-variable `source` column in the
+dimension table, an action-attribution line above the R/W matrix, and footer
+notes (CD-05/CD-06), so a fresh run prints slightly richer output around the
+same kinds of measurement; example 5 is recorded against the current tree with
+the current scanner.
+
 ### Example 1 — GOOD: two subsystems, one port (`Shop`)
 
 A shop with an inventory subsystem (`stock_level`, `reorder_open`,
@@ -405,49 +414,55 @@ generated-states drop at constant distinct states is a deleted self-loop
 
 Descriptors on real programs are rarely all-good or all-bad. This repo's
 baseline (`specs/program_model/TlaSpecDevCli.tla`, run with its manifest)
-shows, in one output: resolved 2/3/8-cardinality domains sized to real
-distinctions *and* two deliberate unknowns; nameable clusters *and* a low Q
-with warnings. Excerpts:
+shows, in one output: resolved domains sized to real distinctions *and* two
+deliberate unknowns; a fully justification-linked state vector *and* a single
+dense component with warnings. Excerpts:
 
 ```text
 [MEASURED] Dimension table (excerpt)
-variable                domain                   cardinality  note
-----------------------  -----------------------  -----------  ---------------------------------------------------------
-active_tickets          SUBSET Tickets           8            powerset of 3 elements
-desired_ready           [Tickets -> BOOLEAN]     8            2^3 total functions
-lastCommand             (unconstrained)          unknown      unconstrained by TypeInvariant -- excluded from the bound
-result                  (unconstrained)          unknown      unconstrained by TypeInvariant -- excluded from the bound
+variable            domain                                                        cardinality  source         note
+------------------  ------------------------------------------------------------  -----------  -------------  -------------------------------------------------------------------------------------------------------------
+setup_phase         0..5                                                          6            TypeInvariant
+ticket_state        [Tickets -> 0..5]                                             216          TypeInvariant  6^3 total functions
+lastCommand         (unconstrained)                                               unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+result              (unconstrained)                                               unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
 
 [MEASURED] State-space upper bound
-  bound = 1,572,864  (product of 10 bounded dimensions; domains from TypeInvariant)
+  bound = 699,840  (product of 7 bounded dimensions; domains from TypeInvariant)
   excluded (no resolvable domain): lastCommand, result
 
 [MEASURED] Near-decomposability
-  graph modularity Q = 0.038 over the variable interaction graph
-  C1: cli_built, cli_installed, lastCommand, project_scaffolded, result, spec_root, workflow_scaffolded  (7 variables, 9 actions)
-  C2: active_tickets, closed_tickets, current_ready, desired_ready, spec_unit_tests_passed  (5 variables, 5 actions)
+  graph modularity Q = 0.000 over the variable interaction graph
+  C1: complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state  (9 variables, 14 actions)
+  no port-crossing actions (single component, or fully independent components)
 
 [MEASURED] Dense rows and columns of the R/W matrix
   dense rows (god-state signature -- variable touched by more than half the actions):
-    lastCommand touched by 9/9 actions
-    result touched by 9/9 actions
+    lastCommand touched by 14/15 actions
+    result touched by 14/15 actions
+    setup_phase touched by 12/15 actions
+    spec_root touched by 10/15 actions
 
 [MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
   variables no configured invariant reads:
     lastCommand
     result
 
-  WARNING: state-space upper bound 1,572,864 exceeds max_state_space_bound 1,000,000
+  WARNING: component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6
+
+  WARNING: component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8
 ```
 
 Reading it with the intuitions above:
 
-- The domain-model variables are sized to real distinctions (booleans for
-  real toggles, ticket functions over the 3-ticket constant), and the
-  clusters are nameable: C2 is the ticket lifecycle, C1 is CLI/scaffold
-  setup — plus the observability pair.
+- The domain-model variables are sized to real distinctions (a six-step
+  `setup_phase` for the setup commands, a per-ticket lifecycle function over
+  the 3-ticket constant — 216 = 6^3 — and oracle-verdict enums whose 3-to-5
+  values are exactly each oracle's verdict vocabulary), and every variable
+  carries a recorded justification linkage — plus the observability pair.
 - `lastCommand`/`result` show a textbook god-state signature — written by
-  9/9 actions, read by no invariant, excluded from the bound. Here the
+  14/15 actions (every action except the stutter step), read by no
+  invariant, excluded from the bound. Here the
   owner's judgment is that they are a *deliberate observability channel*
   (every action records what ran and what came back, for the spec-double
   layer). What makes that judgment defensible is not the stated intent but a
@@ -460,13 +475,21 @@ Reading it with the intuitions above:
   `audit_log` and this `lastCommand` look alike on the page. Knowing which
   one you have is exactly the judgment this document exists for. And when
   reading the rest of the output, discount the channel's contribution
-  mentally: both dense rows and much of the cross-cluster edge weight (and
-  hence the low Q) come from a pair every action touches by design — the
-  *rest* of the model is better-shaped than the headline numbers suggest.
-- The bound warning (1.57M > 1M advisory threshold) is dominated by three
-  8-cardinality ticket dimensions — essential behavior (the workflow really
-  does track per-ticket readiness independently), so the response is a
-  budget rationale, not a remodel: the manifest's
+  mentally: the top dense rows and much of the single component's edge
+  weight (and hence the Q of 0.000) come from a pair every action touches
+  by design, and the remaining dense rows (`setup_phase` 12/15, `spec_root`
+  10/15) are guard reads on the phase and root every command checks first —
+  example 2's lifecycle-hub reading, not a smear. The *rest* of the model
+  is better-shaped than the headline numbers suggest.
+- The warnings are the component-size pair (9 variables against the
+  advisory 6, 14 actions against the advisory 8): an ordinary CLI over
+  shared state — the exact shape the advisory reframe was measured on
+  (`references/architecture_tractability.md`, "Advisory, Not Blocking") —
+  with much of the component's coupling being the observability pair again.
+  The bound, 699,840, sits under the 1M advisory threshold, dominated by
+  the 216-value per-ticket lifecycle dimension — essential behavior (the
+  workflow really does track per-ticket state independently), so the
+  response is a budget rationale, not a remodel: the manifest's
   `max_distinct_states: 500000` records the agreed reachable-state budget
   for exactly this reason. Note the two figures are not interchangeable:
   the bound is static declared-representation size; `max_distinct_states`

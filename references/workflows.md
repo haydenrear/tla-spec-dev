@@ -40,8 +40,9 @@ python3 scripts/scaffold_spec.py workspace --root examples
 ```
 
 Do not use it for production `specs/current` or `specs/desired_program_model`
-work. Without `--views` it emits a single module with no External view, which
-cannot generate Test Graph cases — so the project's public surface would never
+work. It always emits both views (Core + Internal + External; `--views` is
+additive only) because a single-module spec with no External view cannot
+generate Test Graph cases — the project's public surface would never
 be validated. Production baselines come from
 `tla-spec-dev scaffold project`, and `specs/current` /
 `specs/desired_program_model` are created from that accepted baseline by
@@ -71,8 +72,14 @@ tla-spec-dev --spec-root specs run spec-unit-tests --ticket <ticket-id>
 
 7. Store evidence under the ticket `results/` directory or another referenced
    evidence path.
-8. Mark the ticket closed in `ticket_plan.yaml`.
-9. Close the ticket:
+8. Fill in the ticket's complexity-ledger input,
+   `specs/tickets/<ticket-id>/results/complexity_ledger.yaml` (scaffolded by
+   `open ticket` with TODO sentinels that fail the gate). The close refuses
+   until it carries a refinement record, a narrative, a justification for any
+   complexity increase, and validated-refactor evidence for any decrease.
+   There is no override flag.
+9. Mark the ticket closed in `ticket_plan.yaml`.
+10. Close the ticket:
 
 ```bash
 tla-spec-dev --spec-root specs close ticket <ticket-id> \
@@ -81,11 +88,14 @@ tla-spec-dev --spec-root specs close ticket <ticket-id> \
   --result specs/results/adapter.txt
 ```
 
-The close operation validates ticket-local `current == desired`, moves
-`specs/tickets/<ticket-id>` to
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, replaces
-project `specs/current` with ticket `desired/`, and merges ticket-local Test
-Graph artifacts into project specs.
+The close operation validates ticket-local `current == desired`, records a
+complexity-ledger entry in `specs/results/complexity_ledger.json` (refusing
+the close if the ledger gate rejects), moves `specs/tickets/<ticket-id>` to
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, promotes
+ticket `desired/` onto project `specs/current` — removing only paths that
+were seeded into the ticket workspace and dropped there, and preserving
+current-only files the ticket was never seeded with — and merges ticket-local
+Test Graph artifacts into project specs.
 
 The lower-level scripts remain implementation details behind the CLI. The
 tla-spec-dev repository validates this CLI flow with its parent Test
@@ -106,7 +116,12 @@ program model.
 2. Confirm project `specs/current` and `specs/desired_program_model`
    semantically match.
 3. Promote the converged model into `specs/program_model`.
-4. Record a closed-workflow snapshot and remove temporary workflow directories:
+4. Fill in the workflow-close ledger input,
+   `specs/results/complexity_ledger_input.yaml`. It must include a
+   `coverage_audit` block whose status is `pass`: at workflow close any other
+   verdict (`fail`, `incomplete`, `not_run`) refuses the close. Run
+   `prompts/coverage_audit.md` first and record the report path.
+5. Record a closed-workflow snapshot and remove temporary workflow directories:
 
 ```bash
 python scripts/close_tickets.py \

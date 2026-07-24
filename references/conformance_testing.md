@@ -85,5 +85,11 @@ Regression tests from counterexamples:
 
 - Do not use interaction mocks when semantic conformance is the goal.
 - Do not let the fake import production services.
+- Do not let a Test Graph adapter import the production package. On the
+  External path this is verified, not asserted: the runner and exporter
+  statically check every adapter, projector, expected-projection, and
+  assertion module — transitively — against the declared
+  `external.production_package` and refuse on violation. See "External
+  Channel Enforcement" in `references/testgraph_adapters.md`.
 - Do not make generated spec doubles production dependencies.
 - Do not hide refinement mappings behind broad integration helpers.

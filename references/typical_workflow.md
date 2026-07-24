@@ -57,9 +57,13 @@ For each ticket or implementation slice:
 tla-spec-dev --repo-root path/to/repo --spec-root specs open ticket TICKET-123
 ```
 
-This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, and any
-copied Test Graph configuration. Ticket `desired` is the whole-program state at
-the end of this ticket, not the whole project destination.
+This creates `specs/tickets/TICKET-123/current`, `desired`, `results`, any
+copied Test Graph configuration, a `ticket.yaml` recording lifecycle metadata
+plus the seed manifest of project-`current` paths copied into the workspace,
+and a `results/complexity_ledger.yaml` ledger input scaffolded with TODO
+sentinels that must be filled in before close. Ticket `desired` is the
+whole-program state at the end of this ticket, not the whole project
+destination.
 
 2. Update `specs/tickets/TICKET-123/desired` first so it represents the
    expected post-ticket whole-program state, including TLA+, configs,
@@ -85,9 +89,16 @@ tla-spec-dev --repo-root path/to/repo --spec-root specs run spec-unit-tests --ti
 tla-spec-dev --repo-root path/to/repo --spec-root specs close ticket TICKET-123 --result path/to/repo/specs/results/tlc.txt
 ```
 
-Closing validates ticket-local `current == desired`, replaces project-level
-`specs/current` with ticket `desired/`, merges ticket-local Test Graph artifacts
-into project specs, and moves `specs/tickets/TICKET-123` into history.
+Closing validates ticket-local `current == desired`, records a
+complexity-ledger entry from the ticket's filled-in
+`results/complexity_ledger.yaml` (the close is refused — with no override
+flag — while the ledger input is missing, still carries TODO sentinels, lacks
+a refinement record or narrative, reports an unjustified complexity increase,
+or claims a decrease without validated-refactor evidence), promotes ticket
+`desired/` onto project-level `specs/current` (removing only seeded paths the
+ticket dropped and preserving current-only files the ticket was never seeded
+with), merges ticket-local Test Graph artifacts into project specs, and moves
+`specs/tickets/TICKET-123` into history.
 
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or
 validation workflow mechanics as TLA+ program state/actions. Record them as
@@ -121,3 +132,9 @@ Use the same `--spec-root` used to scaffold the workflow when it is not
 
 It ignores planning/status-only fields for manifest comparison, but it does not
 ignore open tickets.
+
+The snapshot step also records a workflow-scope complexity-ledger entry from
+`specs/results/complexity_ledger_input.yaml`. That input must exist and pass
+the ledger gates, and at workflow close its `coverage_audit` status must be
+`pass` — `not_run`, `incomplete`, and `fail` all refuse the close (run
+`prompts/coverage_audit.md` first).

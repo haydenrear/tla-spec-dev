@@ -19,6 +19,8 @@ specs/program_model/
   External.tla  External.cfg   external view  -> Test Graph cases
   actions.yml              per-action layer, controllability, what it generates
   adapters.py              spec-unit adapters AND Test Graph adapters
+  providers.py             agent-authored generated-port effect providers
+  effect_provider_usage.yaml  provider state, fuzz, assertion, and bypass evidence
   case_adapters.toml       internal action -> spec-unit adapter
   testgraph_bindings.yml   external action -> Test Graph adapter
   tlc_projection.py        TLC state -> generated-case shapes

@@ -14,7 +14,8 @@ It shows:
   `External.tla`;
 - no `Desired.tla` in the accepted program model;
 - active desired-view scaffolding through `DesiredCore.tla`,
-  `DesiredInternal.tla`, and `DesiredExternal.tla`;
+  `DesiredInternal.tla`, and `DesiredExternal.tla` (exercised by the workflow
+  contract check below, which also asserts the closed example keeps none);
 - internal/spec-unit generated cases and adapters;
 - external/Test Graph generated cases and HTTP adapters;
 - TLC regeneration through `scripts/regenerate_tlc_cases.py`;
@@ -54,10 +55,13 @@ Run it in local monolith mode:
 python3 examples/run_distributed_history_validation.py --mode local
 ```
 
-The validation script checks that the internal cases run, all generated
-external Test Graph cases run, projected-state assertion files are written for
-each external trace, a deliberate wrong projection is rejected, and k3d
-deployments plus service-level REST traffic are verified in the default mode.
+The validation script checks that the internal cases run, the mutation kill
+test on the internal model clears the manifest's `kill_rate_floor` (with a
+green control run and a refinement pointer required on every survivor), all
+generated external Test Graph cases run, projected-state assertion files are
+written for each external trace, a deliberate wrong projection is rejected,
+and k3d deployments plus service-level REST traffic are verified in the
+default mode.
 
 ## Tutorial Scaffolding
 
@@ -76,6 +80,8 @@ Internal.tla  Internal.cfg    internal view -> spec-unit cases
 External.tla  External.cfg    external view -> Test Graph cases
 actions.yml
 adapters.py                   spec-unit adapters AND Test Graph adapters
+providers.py                  agent-authored generated-port effect providers
+effect_provider_usage.yaml    provider state, fuzz, assertion, cleanup evidence
 case_adapters.toml            internal action -> spec-unit adapter
 testgraph_bindings.yml        external action -> Test Graph adapter
 tlc_projection.py

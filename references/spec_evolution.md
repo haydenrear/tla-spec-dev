@@ -13,7 +13,9 @@ The active workspace is mutable:
 - `specs/current`: executable whole-program state that has landed so far.
 - `specs/tickets/<ticket-id>`: active ticket-local current/desired workspace
   for one parallelizable ticket.
-- `specs/results`: current TLC, generated-case, adapter, and graph evidence.
+- `specs/results`: current TLC, generated-case, adapter, and graph evidence,
+  plus the append-only `complexity_ledger.json` and the `skill_feedback.md`
+  retro document written at close time.
 
 The history directory is append-only by convention:
 
@@ -43,6 +45,7 @@ specs/.history/
         desired_program_model/
         current/
       ticket/
+        ticket.yaml
         current/
         desired/
         results/
@@ -70,8 +73,13 @@ overview. The copied snapshots are evidence, not active state.
 
 ## Preparing For Promotion
 
-A ticket close promotes the ticket `desired/` into the project `current/`, so
-before closing you must decide what the accepted state is:
+A ticket close promotes the ticket `desired/` onto the project `current/`, so
+before closing you must decide what the accepted state is. Promotion is not a
+blind replace: a project-`current` path is removed only when it was seeded
+into the ticket workspace (recorded in the ticket's `ticket.yaml` seed
+manifest at `open ticket` time) and the ticket then dropped it. Current-only
+paths the ticket was never seeded with are preserved, and every removal and
+preservation is enumerated in the close output and manifest.
 
 - The default close requires ticket-local `current/` to *semantically match*
   `desired/`. Semantic comparison covers `.tla`, `.cfg`, `.yaml`/`.yml`, `.py`,
@@ -89,7 +97,20 @@ before closing you must decide what the accepted state is:
   `desired_program_model/` as the new `current/` and `program_model/`.
 
 The same applies to the whole-workflow close, which requires `current/`,
-`desired_program_model/`, and the promoted `program_model/` to converge.
+`desired_program_model/`, and the promoted `program_model/` to converge
+(the whole-workflow comparison covers `.tla`, `.cfg`, `.yaml`/`.yml` files
+only).
+
+Both closes are additionally gated by the complexity ledger (MF-019): a
+ticket close reads the ticket's `results/complexity_ledger.yaml` input
+(scaffolded by `open ticket`), and the workflow close reads
+`specs/results/complexity_ledger_input.yaml`. The gate runs before the
+history entry is created, appends an entry (recorded or rejected) to
+`specs/results/complexity_ledger.json`, and has no override flag. It refuses
+when the input is missing or unfilled, when there is no refinement record or
+narrative, when complexity increased without a recorded justification, when a
+decrease lacks validated-refactor evidence, and — at workflow close only —
+when the coverage-audit status is anything but `pass`.
 
 ## Per-Ticket Close
 
@@ -110,11 +131,15 @@ tla-spec-dev --spec-root specs close ticket TICKET-123 \
   --result specs/results/adapter.txt
 ```
 
-The command reads the matching ticket mapping from `ticket_plan.yaml`, writes it
+The command reads the matching ticket mapping from `ticket_plan.yaml`,
+evaluates the complexity-ledger gate against the ticket's filled-in
+`results/complexity_ledger.yaml`, writes the ticket mapping and ledger record
 into the manifest, snapshots the project model directories, moves the active
-ticket directory into the history entry, replaces project `specs/current` with
-ticket `desired/`, merges ticket-local Test Graph artifacts into project specs,
-and recommends committing the created history entry.
+ticket directory into the history entry, promotes ticket `desired/` onto
+project `specs/current` (removing only seeded paths the ticket dropped,
+preserving unseeded current-only paths), merges ticket-local Test Graph
+artifacts into project specs, and recommends committing the created history
+entry together with the ledger and skill-feedback files it wrote.
 
 To accept the ticket `desired/` as the new `current/` without hand-reconciling
 a divergent `current/`, add `--accept-new`:
@@ -139,7 +164,10 @@ python scripts/close_tickets.py \
 ```
 
 This writes `closed-snapshot` under the workflow history directory before
-removing `current` and `desired_program_model`.
+removing `current` and `desired_program_model`. It requires the
+workflow-close ledger input at `specs/results/complexity_ledger_input.yaml`,
+whose `coverage_audit` block must record `pass` — `not_run`, `incomplete`,
+and `fail` all refuse the workflow close.
 
 If `current`, `desired_program_model`, and `program_model` have not been
 hand-reconciled but `desired_program_model` is the intended accepted state, pass

@@ -174,6 +174,8 @@ The audit's verdict is recorded in two places:
 The ledger block exists so that **an epic which skipped the audit is visible**.
 It defaults to `not_run`, which is recorded and reported as such — never
 omitted, and never inferred to be a pass. At workflow-scope close (end of
-epic), a `not_run` or `fail` verdict **refuses the close**, in keeping with
-every other gate in this toolchain: a check that silently passes when its input
-is absent is not a check.
+epic), any verdict other than `pass` — `not_run`, `fail`, or `incomplete` —
+**refuses the close**, in keeping with every other gate in this toolchain: a
+check that silently passes when its input is absent is not a check, and
+`incomplete` refuses alongside `fail` because a sweep that did not walk the
+surface carries no information about it.

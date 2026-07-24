@@ -34,16 +34,32 @@ This mode generates:
 
 - One `StateGraphCase` per action-labeled TLC edge.
 - Generic before/input/output/after case descriptors.
+- Recovered action `params` on each case input (on by default; MF-029).
+  Unrecoverable arguments are the `UNCHECKED` sentinel, provenance is recorded
+  in `params:*` labels and `param_recovery_audit.md`, and `--no-infer-params`
+  reverts to `params={}`.
 - A scripted transition double that accepts exactly the generated case input.
 - Validators for structural replay.
+
+`--view internal|external` with `--actions-metadata` generates view-aware
+packages (`spec-unit/` and `testgraph/` output subdirectories); optional
+`--state-projector`, `--output-projector`, `--dedupe projected`, and
+`--labeler` hooks shape the emitted corpus.
+
+The run prints the advisory complexity scan before TLC — findings to read,
+never a refused build — and, after the complete package is written, checks the
+corpus against the manifest case caps (`max_internal_cases_per_component`,
+`max_external_cases_per_action`). Over cap it reports the distribution, asks a
+redesign question, and exits nonzero without trimming a single case.
 
 Repository-local adapters then map real production boundaries to these generic
 case descriptors through `case_adapters.toml` and
 `scripts/run_generated_case_adapters.py`.
 
-Every TLC run used to produce this state graph has a hard two-minute budget.
-Wrap the model-check command in an external 120-second timeout and stop it when
-the budget expires. A timeout means the diagram is not a viable case-generation
+Every TLC run used to produce this state graph has a hard wall-time budget:
+`budgets.tlc_seconds` in `spec_manifest.yaml`, default 120 seconds. Wrap the
+model-check command in an external timeout of that many seconds and stop it
+when the budget expires. A timeout means the diagram is not a viable case-generation
 abstraction. First inspect domain cardinalities, variable combinations, action
 branching, interleavings, symmetry, and TLC progress output to identify what
 multiplies the state count. Distinguish compressible modeling detail from

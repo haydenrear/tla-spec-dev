@@ -14,8 +14,9 @@ plan and one ticket per component. The desired model is where the component
 inventory, budgets, and refactor decisions live — not chat.
 
 The end state to aim for: every component passes output, projected-state,
-and effect conformance across its distilled corpus, and its kill test meets
-the floor. At that point the component is deterministic-in-contract — given
+and effect conformance across its distilled corpus, and — where the
+experimental kill test is exercised — its kill test meets the floor. At
+that point the component is deterministic-in-contract — given
 `(state, input)`, its externally relevant behavior is fixed — and the
 External run over the real deployment becomes predictable from the model.
 That determinism is the acceptance criterion of the whole migration, not
@@ -26,8 +27,11 @@ file structure.
 Before touching any spec, set the budgets with the user. Propose the
 defaults from `references/modular_fuzzing.md`, ask which to adjust for this
 program, and record the agreed values plus a one-line rationale in
-`spec_manifest.yaml` under `budgets:`. Every later phase treats them as hard
-gates.
+`spec_manifest.yaml` under `budgets:`. The complexity budgets are advisory
+thresholds, not gates: `analyze complexity` warns with facts and never
+blocks. The hard operational limits are `tlc_seconds` (wall time) and the
+case caps, which `analyze corpus` refuses to exceed without a recorded
+rationale.
 
 ## Phase 1: Inventory
 
@@ -52,8 +56,11 @@ For each component ticket:
 1. Write the component model: local state, one action per input, pure
    transition, declared effects as port-variable appends. Contract
    environments stand in for neighbors.
-2. Run the complexity analysis from `references/modular_fuzzing.md`. Over
-   budget means cut again or re-abstract; record the dimension table and
+2. Run `tla-spec-dev analyze complexity` for the complexity descriptor. Its
+   budget warnings are advisory — facts, never a blocking gate or a
+   suggested move. Over budget, ask the redesign question with
+   `references/complexity_intuition.md`: cut again, re-abstract, or keep the
+   representation with a recorded rationale. Record the dimension table and
    the decision in ticket `results/`.
 3. Model-check the component and the shared interface model within
    `tlc_seconds`.
@@ -66,11 +73,10 @@ temp directories, fake transports, and recorded boundaries, then diff
 observed side effects against declared effects.
 
 Undeclared observed effects are the migration's main signal — and so are
-complexity-gate failures (see `references/architecture_tractability.md`).
+advisory complexity findings (see `references/architecture_tractability.md`).
 For each one, choose exactly one:
 
 - Model it: add the port and effect to the representation.
-- Justify it: record an explicit out-of-contract note in the manifest.
 - Refactor the source: this is the invited outcome, not a failure — but it
   is a **recommendation the user must approve** before any production
   change begins. Present the evidence (effect diff, dimension table, R/W
@@ -84,14 +90,21 @@ For each one, choose exactly one:
   convergence. Refactors are normal production changes — they go through
   the same ticket's current/desired loop and tests.
 
-Iterate until the effect diff is clean or every residue is justified.
+Iterate until the effect diff is clean. There is no justify-it disposition:
+out-of-contract justifications were withdrawn (2026-07-18 degeneracy audit) —
+no manifest note, annotation, or flag turns a gap into a pass, and
+`run effect-conformance` reports and ignores suppression-shaped keys.
 
 ## Phase 4: Kill Test (per component)
 
-Seed at minimum one fault per port and one per invariant into the component's
-production code, run the distilled corpus, and require the kill rate to meet
-`kill_rate_floor`. A surviving mutant at a modeled boundary means the
-representation is too abstract there: refine the variable or action it
+The mutation kill test is part of the EXPERIMENTAL fuzzing surface: it no
+longer gates a close (the complexity ledger records `kill_rate` as non-gating
+since CD-09, and `not_run` is the honest value when it did not run). When you
+do exercise it, `tla-spec-dev run kill-test` still enforces the floor with no
+waiver: seed at minimum one fault per port and one per invariant into the
+component's production code, run the distilled corpus, and require the kill
+rate to meet `kill_rate_floor`. A surviving mutant at a modeled boundary
+means the representation is too abstract there: refine the variable or action it
 points at and rerun. Store the mutants, the kill matrix, and the outcome in
 ticket `results/` — later tickets reuse the baseline mutants and add one new
 mutant at whatever boundary they change.
@@ -117,7 +130,10 @@ Once components exist:
 ## Phase 6: Close-Out And Skill Feedback
 
 Close tickets through the normal workflow until current equals desired,
-promote, and clean up.
+promote, and clean up. Every close is gated by the complexity ledger
+(MF-019): fill in the ticket's `results/complexity_ledger.yaml` before
+`close ticket`, and `specs/results/complexity_ledger_input.yaml` — including
+a passing coverage-audit verdict — before the workflow close.
 
 Then run the retro. **You do not have to remember to.** Every close-out —
 `tla-spec-dev close ticket` and the workflow close — emits

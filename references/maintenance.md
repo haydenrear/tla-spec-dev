@@ -39,7 +39,10 @@ the truth. Python makes that truth executable in tests.
     state.
     `scripts/close_tickets.py --repo-root .` validates matching current,
     desired, and promoted program-model semantic files, checks that all tickets
-    in `ticket_plan.yaml` are closed, and removes `specs/current` plus
+    in `ticket_plan.yaml` are closed, records a workflow-scope complexity-ledger
+    entry from `specs/results/complexity_ledger_input.yaml` (which must exist,
+    pass the ledger gates, and carry `coverage_audit.status: pass` — any other
+    audit verdict refuses the workflow close), and removes `specs/current` plus
     `specs/desired_program_model` after promotion. Record a workflow close entry
     before or during final cleanup so the promoted history is append-only.
 
@@ -82,15 +85,21 @@ closeout sequence.
 ## Append-Only Close Records
 
 Use `tla-spec-dev --spec-root specs close ticket <ticket-id>` after
-ticket-local `current` matches ticket-local `desired` and the ticket is marked
-closed in `specs/desired_program_model/ticket_plan.yaml`. It reads the ticket
-from that YAML file, snapshots `specs/program_model`,
+ticket-local `current` matches ticket-local `desired`, the ticket's
+`results/complexity_ledger.yaml` input (scaffolded by `open ticket`) is
+filled in, and the ticket is marked closed in
+`specs/desired_program_model/ticket_plan.yaml`. It reads the ticket
+from that YAML file, evaluates the complexity-ledger gate (appending a
+recorded or rejected entry to `specs/results/complexity_ledger.json`; a
+rejected gate refuses the close before anything is mutated, with no override
+flag), snapshots `specs/program_model`,
 `specs/desired_program_model`, project `specs/current`, moves
 `specs/tickets/<ticket-id>` into
-`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, merges the
-ticket `desired/` model and spec adapters/tests into project `specs/current`,
-merges ticket-local Test Graph artifacts into project specs, and records
-supplied result evidence.
+`specs/.history/<workflow-name>/ticket-NNN-<ticket-id>/ticket/`, promotes the
+ticket `desired/` model and spec adapters/tests onto project `specs/current`
+(removing only seeded paths the ticket dropped, preserving unseeded
+current-only paths), merges ticket-local Test Graph artifacts into project
+specs, and records supplied result evidence.
 
 Use `scripts/close_tickets.py` when a desired/current workflow is complete. It
 validates convergence and writes
