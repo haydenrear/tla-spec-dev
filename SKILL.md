@@ -312,6 +312,16 @@ Small tutorial specs are acceptable for examples, but production repositories
 should avoid accumulating twenty unrelated TLA+ modules that each describe one
 feature and disagree about shared state.
 
+**Case modules are an option, and they do not weaken this rule.** A case module
+EXTENDS a view and declares no state, no constants, and no actions — it only
+restricts the next-state relation to the entry points one aspect exercises, or
+replaces `Init` with an asserted Given. It adds nothing to the semantic
+authority, so removing every case module leaves the program fully represented;
+a module that fails that test has behavior in the wrong file. Nothing requires
+them, they are additive to a view's own corpus rather than a replacement for it,
+and the trade is measured rather than assumed:
+`references/case_modules.md`, evidence in `examples/case_modules/`.
+
 ## First Project Onboarding Workflow
 
 When a repository does not yet have a TLA+ program model, do not start with
@@ -1186,6 +1196,10 @@ current change.
   representations, invited source refactors, and the skill feedback loop.
 - `references/edge-cases.md`: how to choose generated integration edge cases
   for External views without assuming a distributed deployment.
+- `references/case_modules.md`: the OPTIONAL BDD case-module shape — per-aspect
+  modules that EXTEND a view to slice its next-state relation or assert a
+  Given, the measured cost/coverage trade, the integrity line between an
+  upstream Given and downstream case-dropping, and the known frictions.
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
 - `references/examples.md`: checked-in examples and when to use them.
