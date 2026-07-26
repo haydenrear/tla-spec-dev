@@ -1,0 +1,529 @@
+# Canonical plan for the architectural-coherence epic. GitHub issues mirror this
+# file for handoff; this file remains the source of truth. Dispatched ticket
+# IDs, dependency edges, waves, and promotion order are immutable after issue
+# assignment -- add amendment tickets instead of editing dispatched identities.
+#
+# Predecessor epics (closed): modular-fuzzing, complexity-descriptor,
+# effect-provider, complexity-descriptor-main-readiness. See specs/.history/
+# and ARCHITECTURAL-COHERENCE-EPIC.md at repo root.
+version: 1
+name: architectural-coherence-epic
+updated: "2026-07-26"
+purpose: >
+  Two levers on one idea: the diagram is the design authority, so the
+  decomposition it implies should be both ENTERABLE (BDD case modules that
+  slice a view by aspect) and CHECKABLE (an architecture descriptor derived
+  from the model, plus a reflexion check that measures production code against
+  it). Case modules cut the behavior surface from the user's side; the
+  architecture descriptor cuts the implementation by state ownership; both are
+  projections of the same variables x actions structure. Advisory throughout,
+  and the epic ends with a fact-finding eval run rather than a claim.
+
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
+  promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+
+status:
+  workflow: architectural-coherence-epic
+  active_ticket: null
+  active_ticket_title: null
+  desired_module: TlaSpecDevCli
+  phase: dispatch
+
+epic:
+  id: architectural-coherence
+  branch: epic/architectural-coherence
+  default_branch: main
+  base_sha: be936c12c169b0debe704fb525107d900420a53a
+  schedule_revision: 1
+  review_mode: epic-owner-post-merge
+  notes: >
+    Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
+    evidence this epic mechanizes (references/case_modules.md,
+    examples/case_modules/, tickets/039-case-modules.md). Per owner direction
+    2026-07-26, ticket agents merge their reviewed-green feature branch into
+    epic/architectural-coherence themselves after validation and ticket close;
+    the epic owner reviews post-merge and prepares the next ticket. The
+    repository owner closes GitHub issues; neither ticket agents nor the epic
+    owner do. Never merge to main and never run skill-manager sync without
+    explicit owner say-so. Never invoke tla-spec-dev from PATH (it execs a
+    stale installed clone) -- use python3 scripts/tla_spec_dev.py --spec-root
+    specs. Run pytest with --with pyyaml or the YAML-validity guard skips
+    silently. Validate this file with the git-epic-workflow validator after
+    every edit. NOTE at dispatch time: tests/test_new_ticket_workflow.py::
+    test_skill_requires_two_minute_case_generation_budget is RED on main
+    (asserts phrases the c72d03a docs refresh removed) -- a pre-existing
+    failure, not yours; file it, do not fix it inside a ticket.
+  model_delta: >
+    Unlike the complexity-descriptor epic, this one is NOT zero-model-delta.
+    specs/desired_program_model adds the architecture_scan variable (unknown |
+    coherent | divergent | unmappable) and the AnalyzeArchitecture action for
+    `tla-spec-dev analyze architecture`. Measured by the epic owner on the
+    authored desired model: TLC green, 1,292,951 distinct states / 32,122,220
+    generated, depth 26, 59s (specs/results/tlc-desired-epic-ac.txt) against
+    the baseline's 283,805 distinct / 6,209,780 generated, depth 25, 12s
+    (specs/results/tlc-baseline-epic-ac.txt) -- 4.6x. That increase is the
+    recorded justification the standing objective requires: the scan verdict is
+    a new externally observable outcome of the CLI and none of its values is
+    derivable from another variable. It exceeds the advisory
+    max_distinct_states, which stays ADVISORY -- do not renegotiate the budget
+    to make the number look better, and do not merge "unmappable" into
+    "unknown" to shrink the domain: "I could not measure this" and "not run"
+    are different facts, the same distinction analyze complexity already draws.
+  coherence_doctrine: >
+    Owner decision 2026-07-26: the architecture check is an ADVISORY SCANNER
+    plus a GENERATION-TIME lever, never a gate. Divergences are reported facts;
+    enforcement happens when the implementation brief constrains what an agent
+    may write, not when a close is refused. No action in the model guards on
+    architecture_scan and no close/promotion path may read it. A gate is earned
+    per check on real-app evidence, exactly as
+    references/architecture_tractability.md, "Advisory, Not Blocking" requires.
+
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: "specs/desired_program_model/deferred_findings.yaml"
+
+service_catalog:
+  existing_boundaries:
+    - "analyze complexity: the shipped descriptor (dimension table, bound, R/W matrix, modularity, dense rows) -- the input the architecture view is derived from"
+    - "generate_cases_from_tlc_dump.py: view-aware case generation, the surface case modules enter through"
+    - "spec_evolution.record_complexity_ledger: the standing-objective ledger (see CM-F1)"
+    - "prompts/coverage_audit.md: the precedent for a sub-agent prompt as a shipped artifact"
+  desired_boundaries:
+    - "analyze architecture: model-implied components, single-writer ownership, ports, and the reflexion diff against production code"
+    - "case_modules: manifest block declaring per-aspect modules, the view each extends, and its action scope"
+    - "prompts/implementation_brief.md: the constrained ask that carries component ownership into generation"
+    - "prompts/aspect_decomposition.md: the BDD decomposition ask, from the user's perspective"
+  adapter_boundaries:
+    - "specs/current/tests/test_tla_spec_dev_analyze_adapter.py: conformance for the analyze command family, extended by AC-01"
+  known_gaps:
+    - "The reflexion extractor ships for Python only (AC-02). Non-Python targets report unmappable, never silently clean -- the MF-027 refusal shape."
+    - "Neither lever has eval coverage before EV-01/EV-02. Until then every claim in this epic is a design claim, not a measurement."
+
+tickets:
+  - id: CM-01
+    title: "Case modules: declared model discovery, manifest block, per-module action scope, corpus aggregation"
+    status: next
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: [EV-01]
+    wave: 1
+    promotion_order: 10
+    promotion_predecessor: null
+    conflict_keys:
+      production:
+        - scripts/spec_evolution.py
+        - scripts/generate_cases_from_tlc_dump.py
+        - scripts/budgets.py
+        - tests/test_spec_evolution.py
+        - tests/test_generate_cases_from_tlc_dump.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/case_modules.md
+        - examples/case_modules/
+    objective: >
+      Mechanize the case-module option and fix the defect the probe found
+      underneath it. Three parts, in this order. (1) CM-F1 --
+      record_complexity_ledger locates its model as the alphabetically first
+      *.tla excluding MC*, which on any Core/Internal/External baseline
+      resolves to Core.tla paired with External.cfg and measures bound=None,
+      modularity=0.0; the standing-objective ledger has been measuring a module
+      with no variables and no actions. The measured model becomes DECLARED,
+      and a mismatched .tla/.cfg pair is an error rather than a silent
+      measurement. This is a live defect on every three-module project,
+      independent of case modules. (2) A `case_modules:` block in
+      spec_manifest.yaml -- per module, the view it extends, its action subset,
+      and (for a Given form) the recorded claim the Given asserts. (3)
+      Per-module action scope so generation stops emitting the R4-DF-04
+      zero-case alias-wrapper warning for actions that simply are not in this
+      aspect (CM-F2), plus an aggregation report of per-action coverage across
+      modules against the view's action set -- a report, never a gate.
+    desired_actions: []
+    implementation_scope:
+      - scripts/spec_evolution.py
+      - scripts/generate_cases_from_tlc_dump.py
+      - scripts/budgets.py
+      - tests/
+      - references/case_modules.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CM-01"
+      assertions:
+        - "A three-module baseline's ledger measures the declared model; a mismatched .tla/.cfg pair errors instead of reporting bound=None."
+        - "A case module declared in the manifest generates without spurious zero-case warnings for actions outside its scope."
+        - "The aggregation report names every view action entered by no module and not covered by the view's own corpus, and blocks nothing."
+        - "The probe's three modules (examples/case_modules/) still reproduce their recorded case counts: 160 / 16 / 14."
+      evidence: []
+    model_delta_expectation: >
+      ZERO. Case-module generation lives in generate_cases_from_tlc_dump.py,
+      which the CLI lifecycle model does not represent. Document the no-op
+      model result with evidence at close; do not invent an action to have a
+      delta.
+
+  - id: AC-01
+    title: "Architecture descriptor: the structure the diagram implies"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: []
+    blocks: [AC-02, AC-03]
+    wave: 1
+    promotion_order: 20
+    promotion_predecessor: CM-01
+    conflict_keys:
+      production:
+        - scripts/analyze_architecture.py
+        - scripts/analyze_complexity.py
+        - scripts/tla_spec_dev.py
+        - tests/test_analyze_architecture.py
+      tla:
+        - specs/current/TlaSpecDevCli.tla
+        - specs/current/MC.cfg
+      adapters:
+        - specs/current/tests/test_tla_spec_dev_analyze_adapter.py
+      test_graph: []
+      workflow:
+        - references/architecture_coherence.md
+        - SKILL.md
+    objective: >
+      Turn the structure analyze complexity already computes internally into a
+      first-class, addressable artifact: components (variable clusters), the
+      single writer of each variable and every violation of single-writer
+      ownership, the crossing actions that are the ports between components,
+      and the actions whose write set spans components. Emit it as
+      `tla-spec-dev analyze architecture` with a text descriptor and a
+      machine-readable form the later tickets consume. It states facts and
+      makes no suggestions -- the CD-01 precedent binds: a chooser that is
+      confidently wrong on standard TLA+ is worse than no chooser.
+    desired_actions:
+      - AnalyzeArchitecture
+    implementation_scope:
+      - scripts/analyze_architecture.py
+      - scripts/tla_spec_dev.py
+      - specs/current/TlaSpecDevCli.tla
+      - specs/current/MC.cfg
+      - specs/current/tests/
+      - references/architecture_coherence.md
+      - SKILL.md
+    current_increment:
+      model_state:
+        - architecture_scan
+      model_actions:
+        - AnalyzeArchitecture
+      adapters:
+        - TlaSpecDevAnalyzeArchitectureAdapter
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket AC-01"
+      graph_after_unit_pass:
+        - specWorkflow
+    acceptance:
+      commands:
+        - "bash scripts/run_tlc.sh specs/current/TlaSpecDevCli.tla specs/current/MC.cfg"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg"
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "The descriptor names components, per-variable writers, single-writer violations, and crossing actions, each labeled [MEASURED]."
+        - "It emits no suggested move and no verdict on the code (CD-01)."
+        - "It exits nonzero only when it cannot analyze the model, never because the model is complex."
+        - "A model whose structure resists clustering reports that explicitly instead of inventing a cut."
+        - "TLC on specs/current is green and its distinct-state count is recorded against the epic's desired-model measurement."
+      evidence: []
+
+  - id: AC-02
+    title: "Reflexion check: measure the production code against the model's architecture"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [AC-01]
+    blocks: [AC-04]
+    wave: 2
+    promotion_order: 30
+    promotion_predecessor: AC-01
+    conflict_keys:
+      production:
+        - scripts/architecture_reflexion.py
+        - scripts/analyze_architecture.py
+        - tests/test_architecture_reflexion.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/architecture_coherence.md
+    objective: >
+      Implement the reflexion model (Murphy/Notkin/Sullivan): a DECLARED map
+      from production modules to model components, an extracted dependency
+      graph of the real code, and a diff reported as convergences (a code edge
+      the model declares a port for), divergences (a code edge with no port --
+      the Jenga), and absences (a declared port no code edge realizes -- dead
+      architecture). Python extraction ships; any target the extractor cannot
+      resolve reports `unmappable`, which is NOT clean -- the same refusal
+      MF-027 gave the effect oracle, for the same reason: a clean report on
+      something you could not see is indistinguishable from a clean report on
+      something you could.
+    desired_actions: []
+    implementation_scope:
+      - scripts/architecture_reflexion.py
+      - scripts/analyze_architecture.py
+      - tests/
+      - references/architecture_coherence.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg --code scripts --map specs/program_model/architecture_map.yaml"
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "Convergences, divergences, and absences are reported separately, with file:line evidence for every divergent edge."
+        - "An unresolvable target yields `unmappable`, and no flag, key, or annotation downgrades it to clean -- proved by a test in the TestNothingDowngrades... shape."
+        - "The check never blocks: exit 0 on divergence, nonzero only when the map or the extraction is unusable."
+        - "Run against this repository's own scripts/ tree; the report is read and its findings recorded. The dogfood is the acceptance test (tickets/023 precedent), and a finding that the tool is wrong outranks a clean report."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+
+  - id: AC-03
+    title: "The ask: implementation-brief and aspect-decomposition prompts"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [AC-01]
+    blocks: [EV-01]
+    wave: 2
+    promotion_order: 40
+    promotion_predecessor: AC-02
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - prompts/implementation_brief.md
+        - prompts/aspect_decomposition.md
+        - templates/implementation_brief.md
+        - references/case_modules.md
+        - SKILL.md
+    objective: >
+      The generation-time half of the epic, and the owner's stated hypothesis:
+      incoherent code is partly a function of how the work is ASKED for. Ship
+      two prompts in the shape prompts/coverage_audit.md already established.
+      (1) implementation_brief.md turns an architecture descriptor into a
+      constrained ask: this action belongs to component C, which owns variables
+      V; it may reach D only through port P; effects live at the boundary
+      (functional core / imperative shell); one externally visible commitment
+      per action. The refactor target shapes in
+      references/architecture_tractability.md, Move 3, are the vocabulary --
+      this ticket makes them an instruction instead of advice. (2)
+      aspect_decomposition.md is the BDD ask from the user's perspective:
+      enumerate the aspects of the public surface, name each one's Given, and
+      map each to a case module and its action scope. Reconcile both with
+      SKILL.md's Program Spec Rule so a case module is never mistaken for a
+      feature module.
+    desired_actions: []
+    implementation_scope:
+      - prompts/
+      - templates/
+      - references/case_modules.md
+      - SKILL.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "Each prompt names its inputs (which descriptor fields), its output artifact, and what the agent may NOT do."
+        - "The implementation brief is derivable from a real architecture descriptor: demonstrate it end-to-end on this repository's own model and keep the rendered brief as evidence."
+        - "Neither prompt proposes an architectural move the descriptor did not measure (CD-01)."
+        - "SKILL.md states the case-module/feature-module distinction in one place and the Program Spec Rule is not weakened."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+
+  - id: AC-04
+    title: "Refactor capability: before/after architecture and the behavior-preserving loop"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [AC-02]
+    blocks: [EV-01]
+    wave: 3
+    promotion_order: 50
+    promotion_predecessor: AC-03
+    conflict_keys:
+      production:
+        - scripts/complexity_ledger.py
+        - scripts/architecture_reflexion.py
+        - tests/test_complexity_ledger.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/architecture_tractability.md
+    objective: >
+      Make a refactor measurable instead of hoped-for. `--baseline` on the
+      architecture scan compares two runs and reports the divergence delta with
+      the specific edges gained and lost; the delta joins the complexity ledger
+      as a RECORDED, NON-GATING member alongside the CD-09 fuzzing-era members,
+      so a ticket that increased structural divergence is visible in its close
+      evidence and one that lowered it can prove it. Extend the
+      validated-refactor basis (CD-02/CD-09) with the code-structure half: TLC
+      green before and after, behavior corpus unchanged, descriptor comparison
+      recorded, AND the divergence delta recorded. State plainly what makes a
+      refactor safe here -- the generated corpus plus effect providers with
+      content assertions (ex1-run4: 45 points killed on the exact MF-038 bug
+      class) -- and what does not (the kill rate, which MF-038 falsified as a
+      bug-catching claim).
+    desired_actions: []
+    implementation_scope:
+      - scripts/complexity_ledger.py
+      - scripts/architecture_reflexion.py
+      - references/architecture_tractability.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket AC-04"
+      assertions:
+        - "The ledger entry carries the divergence delta and never gates on it; a rise is recorded, not refused."
+        - "A divergence drop reported without the edges that disappeared is refused as unverified -- the MF-020 red-flag precedent, where a metric drop was really a deleted transition."
+        - "The refactor basis names exactly which oracles are validated for this and which are not, citing MF-038 and ex1-run4."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+
+  - id: EV-01
+    title: "Eval fixtures: examples and predictions for both levers"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [CM-01, AC-03, AC-04]
+    blocks: [EV-02]
+    wave: 4
+    promotion_order: 60
+    promotion_predecessor: AC-04
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - examples/validation/
+        - examples/case_modules/
+        - examples/distributed_history/
+        - examples/effect_providers/
+    objective: >
+      Refresh the validation surface so the next run measures THIS epic, not
+      the last one. The three existing examples were aimed at the descriptor,
+      the intuition doc, and the fitness functions; none of them exercises case
+      modules or architecture coherence. Add at least one example whose
+      production code is deliberately incoherent -- the enterprise-Jenga
+      fixture: shared mutable state, no single writer, every command reaching
+      every module -- so the reflexion check has something real to find,
+      alongside a coherent counterpart so a false positive is visible. Bring
+      the existing examples up to date with the shipped surface. Commit
+      PREDICTIONS BEFORE any run, per the MF-037 protocol, naming the
+      degenerate paths this epic can produce: case modules quietly replacing a
+      view's corpus, and a reflexion map drawn to make the code look clean.
+    desired_actions: []
+    implementation_scope:
+      - examples/validation/
+      - examples/case_modules/
+      - examples/distributed_history/
+      - examples/effect_providers/
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "PREDICTIONS.md is committed before any dispatch and names the degenerate paths, not only the success paths."
+        - "The incoherent fixture's divergences are enumerated by the epic owner in advance, so the reflexion check is scored against a known answer key."
+        - "Existing examples run green against the shipped surface, or their breakage is FILED as a finding rather than patched away."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+
+  - id: EV-02
+    title: "Run the evals as a fact-finding mission; write the follow-up self-improvement charter"
+    status: planned
+    github_issue: null
+    schedule_revision: 1
+    depends_on: [EV-01]
+    blocks: []
+    wave: 5
+    promotion_order: 70
+    promotion_predecessor: EV-01
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - examples/validation/runs/
+        - NEXT-EPIC.md
+    objective: >
+      The last ticket, and its deliverable is FINDINGS, not fixes. Run the
+      evals across multiple examples, score each against the committed
+      predictions, and write the follow-up self-improvement charter -- the
+      starter document for the next epic, in the shape of
+      COMPLEXITY-DESCRIPTOR-EPIC.md: what the evidence killed, what survived,
+      what to build next, and what not to re-litigate. A low or unflattering
+      result is a VALID and preferred outcome; the complexity-descriptor epic
+      exists because a validation agent was told exactly that and then found
+      the suggested moves were wrong. Findings are FILED, never fixed inline --
+      fixing inline destroys the measurement.
+    desired_actions: []
+    implementation_scope:
+      - examples/validation/runs/
+      - NEXT-EPIC.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "(per-run commands recorded in each examples/validation/runs/<run>/scoring.md)"
+      assertions:
+        - "Every example runs at least twice; divergence between runs is itself recorded as a finding about instruction determinism."
+        - "Each run is scored against PREDICTIONS.md with artifacts kept under examples/validation/runs/<run>/."
+        - "Findings are filed, never fixed inline."
+        - "NEXT-EPIC.md states what the evidence killed, what survived, and what the next epic should build, with the same do-not-re-litigate section the last two starters carried."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op model result with evidence."
