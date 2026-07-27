@@ -12,6 +12,33 @@ from scripts.spec_evolution import create_ticket_history_entry
 from conftest import write_ticket_ledger_input, write_workflow_ledger_input
 
 
+def stub_program_model(marker: str) -> str:
+    """A COMPLETE ProgramModel carrying a per-fixture marker.
+
+    CM-01: the complexity ledger refuses a pair whose cfg names a
+    SPECIFICATION, invariant, or constant the module does not define -- that is
+    the CM-F1 defect, "I could not measure this" instead of a silent
+    ``bound = None``. These fixtures previously wrote a one-line module beside
+    the real ``MC.cfg``, and the ledger dutifully measured 0 variables and 0
+    actions for it. The marker keeps each fixture's identity; the module is now
+    something MC.cfg actually configures.
+    """
+    return f"""---- MODULE ProgramModel ----
+EXTENDS Naturals, TLC
+
+CONSTANTS Items
+VARIABLES seen
+vars == << seen >>
+Init == seen = {{}}
+Add(i) == seen' = seen \\cup {{i}}
+Next == \\E i \\in Items: Add(i)
+SeenKnown == seen \\subseteq Items
+Spec == Init /\\ [][Next]_vars
+{marker} == TRUE
+====
+"""
+
+
 def test_skill_requires_two_minute_case_generation_budget() -> None:
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     generation_modes = (ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
@@ -199,7 +226,7 @@ def test_close_ticket_moves_ticket_directory_to_history_and_promotes_desired(tmp
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-128"
     for model_dir in ["current", "desired"]:
         (ticket_dir / model_dir / "seeded_stale_adapter.py").unlink()
-    finished_tla = "---- MODULE ProgramModel ----\nFinished == TRUE\n====\n"
+    finished_tla = stub_program_model("Finished")
     (ticket_dir / "current" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text(finished_tla, encoding="utf-8")
     for model_dir in ["current", "desired"]:
@@ -311,7 +338,7 @@ def test_close_ticket_accept_new_promotes_divergent_desired(tmp_path: Path) -> N
     scaffold_ticket_directory(tmp_path, "AUTH-131", force=False, dry_run=False)
     ticket_dir = tmp_path / "specs" / "tickets" / "AUTH-131"
     (ticket_dir / "current" / "ProgramModel.tla").write_text("stale current\n", encoding="utf-8")
-    desired_tla = "---- MODULE ProgramModel ----\nAccepted == TRUE\n====\n"
+    desired_tla = stub_program_model("Accepted")
     (ticket_dir / "desired" / "ProgramModel.tla").write_text(desired_tla, encoding="utf-8")
     (tmp_path / "specs" / "desired_program_model" / "ticket_plan.yaml").write_text(
         """tickets:
@@ -434,7 +461,7 @@ def test_close_ticket_workflow_removes_current_and_desired_after_semantic_match(
     current.mkdir(parents=True)
     desired.mkdir(parents=True)
     for directory in [program, current, desired]:
-        (directory / "ProgramModel.tla").write_text("---- MODULE ProgramModel ----\n====\n", encoding="utf-8")
+        (directory / "ProgramModel.tla").write_text(stub_program_model("Stub"), encoding="utf-8")
         (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
         states = directory / "states"
         states.mkdir()
@@ -482,7 +509,7 @@ def test_close_ticket_workflow_requires_closed_tickets(tmp_path: Path) -> None:
     desired = tmp_path / "specs" / "desired_program_model"
     for directory in [program, current, desired]:
         directory.mkdir(parents=True)
-        (directory / "ProgramModel.tla").write_text("---- MODULE ProgramModel ----\n====\n", encoding="utf-8")
+        (directory / "ProgramModel.tla").write_text(stub_program_model("Stub"), encoding="utf-8")
         (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
     (desired / "ticket_plan.yaml").write_text(
         """tickets:
@@ -538,7 +565,7 @@ def test_close_ticket_workflow_accept_new_promotes_desired_into_program_model(tm
         (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
     (program / "ProgramModel.tla").write_text("stale program\n", encoding="utf-8")
     (current / "ProgramModel.tla").write_text("stale current\n", encoding="utf-8")
-    accepted_tla = "---- MODULE ProgramModel ----\nAccepted == TRUE\n====\n"
+    accepted_tla = stub_program_model("Accepted")
     (desired / "ProgramModel.tla").write_text(accepted_tla, encoding="utf-8")
     (desired / "ticket_plan.yaml").write_text(
         """tickets:

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import sys
 import importlib
@@ -15,6 +16,7 @@ from scripts.generate_cases_from_tlc_dump import (
     parse_tlc_value,
     py_repr,
     render_python_package,
+    report_action_coverage,
 )
 
 
@@ -251,6 +253,131 @@ def test_load_action_metadata_from_actions_yaml(tmp_path: Path) -> None:
         generates=("testgraph",),
         tags=("smoke",),
     )
+
+
+EXTERNAL_METADATA = {
+    "AcceptRequest": ActionMetadata("AcceptRequest", "internal", "unit_direct", ("spec_unit",)),
+    "Submit": ActionMetadata("Submit", "external", "e2e_direct", ("testgraph",)),
+    "Retry": ActionMetadata("Retry", "external", "e2e_direct", ("testgraph",)),
+    "Cancel": ActionMetadata("Cancel", "external", "e2e_direct", ("testgraph",)),
+    "HiddenWorkerProgress": ActionMetadata("HiddenWorkerProgress", "internal", "hidden", ()),
+}
+
+
+def prepare_external_cases(tmp_path: Path, package: str):
+    states, edges = tiny_state_graph()
+    return render_python_package(
+        module="Aspect_Submit",
+        states=states,
+        edges=edges,
+        package_dir=tmp_path / package,
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+    )
+
+
+def write_case_module_manifest(tmp_path: Path, scope: str) -> Path:
+    path = tmp_path / "spec_manifest.yaml"
+    path.write_text(
+        "module: Program\n"
+        "case_modules:\n"
+        "  Aspect_Submit:\n"
+        "    extends: External\n"
+        "    form: slice\n"
+        f"    actions: [{scope}]\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_undeclared_module_warns_for_every_zero_case_view_action(tmp_path: Path, capsys) -> None:
+    """R4-DF-04, unchanged: with no declaration the whole view is in scope."""
+    prepared = prepare_external_cases(tmp_path, "undeclared_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "undeclared_cases",
+        manifest_path=tmp_path / "missing_manifest.yaml",
+    )
+
+    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert sorted(warnings)[0].startswith("warning: declared external action 'Cancel'")
+    assert len(warnings) == 2  # Cancel and Retry
+
+
+def test_declared_case_module_scopes_the_zero_case_warning(tmp_path: Path, capsys) -> None:
+    """CM-F2: an action outside the aspect is a design decision, not a hole."""
+    prepared = prepare_external_cases(tmp_path, "declared_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "declared_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit"),
+    )
+
+    captured = capsys.readouterr()
+    assert "ZERO cases" not in captured.err
+    assert "declared slice of External with 1 action(s) in scope" in captured.out
+    assert "are NOT reported as coverage holes" in captured.out
+
+
+def test_an_in_scope_action_with_no_cases_still_warns(tmp_path: Path, capsys) -> None:
+    prepared = prepare_external_cases(tmp_path, "in_scope_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "in_scope_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit, Retry"),
+    )
+
+    warnings = [line for line in capsys.readouterr().err.splitlines() if "ZERO cases" in line]
+    assert len(warnings) == 1
+    assert "'Retry'" in warnings[0]
+
+
+def test_generating_outside_the_declared_scope_is_reported_as_drift(tmp_path: Path, capsys) -> None:
+    prepared = prepare_external_cases(tmp_path, "drift_cases")
+
+    report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "drift_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Retry"),
+    )
+
+    err = capsys.readouterr().err
+    assert "generated 1 case(s) for 'Submit', which is not in its declared `actions:` scope" in err
+
+
+def test_coverage_record_is_written_beside_every_generated_package(tmp_path: Path) -> None:
+    prepared = prepare_external_cases(tmp_path, "recorded_cases")
+
+    record = report_action_coverage(
+        prepared,
+        module="Aspect_Submit",
+        view="external",
+        action_metadata=EXTERNAL_METADATA,
+        package_dir=tmp_path / "recorded_cases",
+        manifest_path=write_case_module_manifest(tmp_path, "Submit"),
+    )
+
+    written = json.loads((tmp_path / "recorded_cases" / "case_coverage.json").read_text())
+    assert written == record
+    assert written["actions"] == {"Submit": 1}
+    assert written["cases"] == 1
+    assert written["declared_view_actions"] == ["Cancel", "Retry", "Submit"]
+    assert written["case_module"]["form"] == "slice"
 
 
 if __name__ == "__main__":

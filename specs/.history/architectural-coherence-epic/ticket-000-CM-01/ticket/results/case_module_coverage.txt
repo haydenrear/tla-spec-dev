@@ -1,0 +1,28 @@
+case-module coverage -- view: external
+  manifest: specs/program_model/spec_manifest.yaml
+  declared case modules: 3 (2 slice, 1 given)
+  view action set: 11 actions, from the supplied actions metadata
+
+This is a REPORT. It states per-action coverage and gates nothing (references/architecture_tractability.md, 'Advisory, Not Blocking').
+
+action                           view corpus  Scenario_CheckoutHappyPath  Scenario_IdempotentResubmit  Scenario_RejectedRequests  modules total
+-------------------------------  -----------  --------------------------  ---------------------------  -------------------------  -------------
+RunFulfillmentWorker             74           66                          2                            0                          68
+RunFulfillmentWorkerNoop         48           0                           2                            0                          2
+SubmitAddCartItem                40           40                          0                            0                          40
+SubmitAddCartItemMissingAccount  4            0                           0                            4                          4
+SubmitCheckout                   52           52                          0                            0                          52
+SubmitCheckoutEmptyCart          4            0                           0                            4                          4
+SubmitCheckoutMissingAccount     4            0                           0                            4                          4
+SubmitCreateAccount              2            2                           0                            2                          4
+SubmitDuplicateAddCartItem       200          0                           4                            0                          4
+SubmitDuplicateCheckout          184          0                           4                            0                          4
+SubmitDuplicateCreateAccount     120          0                           4                            0                          4
+
+view corpus: External (732 cases)
+
+UNCOVERED: none -- every view action is entered by a measured module or covered by the view's own corpus.
+
+Cross-aspect interleaving is not in this table. Slices do not enumerate the interleavings between aspects; only a whole-view run does. Do not report the union of modules as equivalent to the view's corpus (references/case_modules.md, Integrity rule 4).
+
+wrote ../../specs/tickets/CM-01/results/case_module_coverage.json

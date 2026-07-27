@@ -1,10 +1,12 @@
 # Case Modules (BDD Slices Over A View)
 
-**Status: OPTION. Evidence-backed by one probe, not mechanized, not required.**
-Nothing in the workflow asks for case modules, nothing warns when a project has
-none, and a project that never writes one loses nothing it has today. This
-reference exists so that a project that *wants* the shape has a doctrine to
-follow instead of inventing one.
+**Status: OPTION. Evidence-backed by one probe, partly mechanized, not
+required.** Nothing in the workflow asks for case modules, nothing warns when a
+project has none, and a project that never writes one loses nothing it has
+today. This reference exists so that a project that *wants* the shape has a
+doctrine to follow instead of inventing one. CM-01 mechanized the declaration
+and the coverage report — see "What is mechanized" — but the shape itself is
+still something you write, not something a template writes for you.
 
 ## The shape
 
@@ -199,21 +201,30 @@ that instantiates its view is unanalyzable, and the failure is an exit-nonzero
 
 ## Known frictions (measured in the probe, filed as CM-F1..F4)
 
-- **CM-F1 — model discovery collides (pre-existing, made worse).** The
-  complexity ledger locates its model as the alphabetically first `*.tla` in the
-  spec directory excluding `MC*` (`scripts/spec_evolution.py:find_model_files`).
-  On the shipped three-module example that is already wrong — it measures
-  `Core.tla` against `External.cfg` and reports `bound = None`,
-  `modularity = 0.0`. Any case module sorting before `Core.tla` silently becomes
-  the measured model instead. Interim convention: name case modules
-  `Scenario_*.tla`, which sorts after `Core`/`External`/`Internal` and leaves
-  today's behavior unchanged. Real fix: declare the measured model in the
-  manifest.
-- **CM-F2 — zero-case warnings for actions outside the slice.** Generation warns
-  once per declared view action that produced no case (R4-DF-04), and diagnoses
-  it as an alias-wrapper problem — which is the wrong cause here, where the
-  action simply is not in this aspect. A slice covering 4 of 12 external actions
-  emits 8 misleading warnings. Needs a per-module action scope.
+- **CM-F1 — model discovery collides (pre-existing). FIXED in CM-01.** The
+  complexity ledger used to locate its model as the alphabetically first `*.tla`
+  in the spec directory excluding `MC*`. On the shipped three-module example
+  that was already wrong — it measured `Core.tla` against `External.cfg` and
+  reported `bound = None`, `modularity = 0.0` for a module with no variables and
+  no actions, and any case module sorting before `Core.tla` silently became the
+  measured model instead. `scripts/spec_evolution.py:select_model_files` now
+  resolves the model **declared first, discovered second**: a `model:` block in
+  `spec_manifest.yaml`, else the outermost view of a Core/Internal/External
+  baseline, else a legacy single module named by the manifest's `module:`. A
+  directory it cannot resolve unambiguously, and a `.tla`/`.cfg` pair where the
+  cfg names a `SPECIFICATION`, `INIT`/`NEXT`, invariant, or constant the module
+  does not declare, are both **errors** — "I could not measure this" — never a
+  silent `bound = None`. The `Scenario_*` naming convention is no longer load
+  bearing.
+- **CM-F2 — zero-case warnings for actions outside the slice. FIXED in CM-01.**
+  Generation warns once per declared view action that produced no case
+  (R4-DF-04) and diagnoses it as an alias-wrapper problem — the wrong cause when
+  the action simply is not in this aspect. Measured on
+  `Scenario_RejectedRequests`, a 4-action slice of an 11-action view: **7 wrong
+  warnings**. A module declared in `case_modules:` now has its warning scoped to
+  its own `actions:`, and the same run emits **0**. An in-scope action that
+  generates nothing still warns; the alias-wrapper diagnosis keeps meaning what
+  it says. Scope changes what is *reported*, never what is generated.
 - **CM-F3 — descriptor metrics do not compare across a slice and its view.**
   Dense rows, modularity, and component sizes are normalized by the action
   count, so the same program measured through a 4-action slice reported *more*
@@ -229,11 +240,92 @@ that instantiates its view is unanalyzable, and the failure is an exit-nonzero
   property should need a fault seeded at it — but it is a surprise. `--cfg`
   scoping is the existing lever.
 
-## What is not mechanized
+## What is mechanized (CM-01)
 
-There is no `case_modules:` block in `spec_manifest.yaml`, no CLI subcommand, no
-scaffold template, and no aggregation of per-module corpora into one report.
-Ownership (rule 2 above) is checked by hand today. A project using the option
-runs its case modules the way the probe did — explicit paths, one command per
-module — and records the set it runs in the manifest's prose or its ticket
-evidence. Mechanizing it is `tickets/039-case-modules.md`, unscheduled.
+### The `case_modules:` block
+
+A project declares the modules it runs in `spec_manifest.yaml`, beside the
+`model:` block that fixes what the complexity ledger measures:
+
+```yaml
+model:                      # CM-F1: the measured model is declared, not discovered
+  tla: External.tla
+  cfg: External.cfg
+
+case_modules:
+  Scenario_CheckoutHappyPath:
+    extends: External       # required -- the view this module EXTENDS
+    view: external          # optional -- the generation view
+    form: slice             # slice (default) | given
+    actions:                # required -- the view actions this aspect enters
+      - SubmitCreateAccount
+      - SubmitAddCartItem
+      - SubmitCheckout
+      - RunFulfillmentWorker
+  Scenario_IdempotentResubmit:
+    extends: External
+    form: given
+    actions: [SubmitDuplicateCreateAccount, SubmitDuplicateAddCartItem]
+    claim: >-               # REQUIRED for form: given
+      Resubmitting an already-applied command is independent of the reachable
+      configuration it is replayed from. ...
+```
+
+`claim:` is required on a Given and free text on purpose: it is rule 3 above
+made checkable-by-a-human, not by a parser. A `form: given` entry without one
+is a schema error, because an unexplained Given is unreviewable. The module
+file itself does not have to live beside the manifest — the block declares the
+set the project runs, and the probe's modules are kept in
+`examples/case_modules/` and copied in.
+
+```bash
+python3 scripts/case_modules.py validate --manifest specs/program_model/spec_manifest.yaml
+```
+
+A block generation cannot parse **warns and is ignored** — generation keeps its
+previous behavior and never refuses.
+
+### Per-module action scope
+
+Generation reads the declaration for the module it is generating and scopes the
+R4-DF-04 zero-case warning to that module's `actions:`. It also reports two
+kinds of drift, both advisory: an action in the declared scope that the view's
+`actions.yml` does not declare, and an action the corpus generated that the
+declared scope does not list. A stale declaration makes the coverage report lie,
+so it is said out loud.
+
+### The coverage aggregation report
+
+Every generated case package now carries a `case_coverage.json` — measured
+per-action counts, the declared view actions, and the declaration in force.
+Aggregate them:
+
+```bash
+python3 scripts/case_modules.py coverage \
+  --manifest specs/program_model/spec_manifest.yaml \
+  --actions-metadata specs/program_model/actions.yml --view external \
+  --corpus generated/testgraph/Scenario_CheckoutHappyPath_cases \
+  --corpus generated/testgraph/Scenario_IdempotentResubmit_cases \
+  --corpus generated/testgraph/Scenario_RejectedRequests_cases \
+  --corpus generated/testgraph/External_cases
+```
+
+It prints per-action coverage across every declared module beside the view's own
+corpus, and names every view action **entered by no measured module and not
+covered by the view's own corpus** — rule 2 above, mechanized. A module that is
+declared but has no corpus is reported UNMEASURED, not zero: a declaration is an
+intention, and this report counts cases. So is a missing view corpus, which is
+how rule 1 stays visible.
+
+**It gates nothing and always exits 0** when it could be produced. A nonzero
+exit means "I could not measure this" — an unreadable manifest, a corpus with no
+coverage record. Uncovered actions are a finding to read.
+
+## What is still not mechanized
+
+There is no scaffold template for the shape and no CLI subcommand under
+`tla-spec-dev`. Templating the shape before it has eval coverage would invite
+projects to slice by default, which is the degenerate path in "Integrity" above:
+case modules are **additive** to a view's corpus, never a replacement for it.
+Cross-aspect interleaving (rule 4) is not measured by anything and cannot be —
+only a whole-view run produces it, and the report says so every time it runs.

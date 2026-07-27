@@ -5880,6 +5880,168 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "CM-01",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-27T16:48:55.049497+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 15,
+        "bound": 699840,
+        "modularity": 0.0,
+        "distinct_states": 283805,
+        "generated_states": 6209780,
+        "depth": 25,
+        "gate_passed": false,
+        "gate_violations": [
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 14 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/tickets/CM-01/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 699840,
+            "percent": 70.0,
+            "within_cap": true
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 283805,
+            "percent": 56.8,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "complexity-descriptor-main-readiness",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 15,
+            "after": 15,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 699840,
+            "after": 699840,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": 283805,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": 6209780,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": 25,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No increase and no decrease: the TLA+ model is byte-identical to the accepted baseline (results/zero-model-delta.txt). Case-module declaration, per-module action scope, and the coverage report live in generation and manifest-reading code the CLI lifecycle model does not represent. No action was invented to produce a delta.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "results/tlc-current.txt",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "results/tlc-current.txt",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "results/pytest-full.txt (722 passed; 1 pre-existing failure filed as CM-01-DF-01), results/spec-unit-tests.txt (67 + 64 passed)",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "results/descriptors-before-after.txt",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a representation that would let the coverage report be derived rather than declared -- i.e. recover a case module's action scope from the module's own next-state relation instead of from spec_manifest.yaml. It is recoverable statically (analyze_complexity.extract_next_actions already does it), but it would silently agree with whatever the module happens to do, which is the opposite of what a declaration is for: the value of the block is that a stale scope is VISIBLE as drift. Nothing was applied. The one real reduction available -- deleting the R4-DF-04 warning rather than scoping it -- would have removed a true finding to silence a false one.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "CM-01 fixed CM-F1 and mechanized the case-module declaration and coverage report. The defect was real and reproduced exactly as briefed: on the shipped three-module example the ledger measured Core.tla against External.cfg and recorded variables 0, actions 0, bound None, modularity 0.0 -- for a module with no variables and no actions. It now measures External.tla + External.cfg and records variables 10, actions 12, modularity 0.047 (results/cm-f1-model-discovery.txt). Model discovery is declared first (manifest `model:`), then the outermost view of a Core/Internal/External baseline, then a legacy single module; an unresolvable directory and a .tla/.cfg pair whose cfg names a SPECIFICATION, invariant, or constant the module does not declare are both errors -- \"I could not measure this\" -- never a silent bound = None. Two test fixtures (tests/test_new_ticket_workflow.py, tests/test_skill_feedback.py) and one spec-unit adapter fixture (specs/current/production_adapters.py) were passing exactly that shape through the ledger and had to become real models; that is the fix finding its own blast radius, not collateral. CM-F2: per-module action scope took Scenario_RejectedRequests from 7 wrong zero-case warnings to 0, with an identical 14-case corpus (results/cm-f2-action-scope.txt). The probe reproduces: 160 / 16 / 14 and 732 for the whole view (results/case_module_coverage.txt). The aggregation report gates nothing and exits 0 on uncovered actions. Two findings deferred: CM-01-DF-01 (the pre-existing red doc-phrase test) and CM-01-DF-02 (parse_cfg_invariants returns the keyword line that terminates an INVARIANT block, which forced a CFG_KEYWORDS workaround in the new validator).",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

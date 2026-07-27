@@ -21,11 +21,13 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from . import case_modules
     from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
     from .infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
+    import case_modules  # type: ignore[no-redef]
     from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
     from infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
@@ -882,6 +884,93 @@ def advise_complexity(
     )
 
 
+def report_action_coverage(
+    prepared: list[PreparedCase],
+    *,
+    module: str,
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    package_dir: Path,
+    manifest_path: Path,
+) -> dict[str, Any]:
+    """Report per-action coverage for the corpus just written, and record it.
+
+    Two things happen here, both advisory:
+
+    * **R4-DF-04** -- a declared view action that generated ZERO cases is a
+      silent coverage hole, most often caused by a pure alias wrapper
+      (``CliAdd(t) == AddTask(t)``): TLC attributes such edges to the inner
+      action's definition site, so the wrapper never appears in the dump.
+    * **CM-F2** -- when the module is declared in the manifest's
+      ``case_modules:`` block, that warning is scoped to the actions the module
+      says it enters. A slice deliberately does not enter the rest of the view,
+      and warning about them diagnosed a design decision as a defect: a
+      four-action slice of an eleven-action view emitted seven wrong warnings,
+      which is how a real warning stops being read.
+
+    Nothing here can refuse a generation; the corpus is already on disk.
+    """
+    emitted_counts: dict[str, int] = {}
+    for case in prepared:
+        emitted_counts[case.edge.action] = emitted_counts.get(case.edge.action, 0) + 1
+    declared_for_view = {
+        name for name, meta in action_metadata.items() if should_emit_action(meta, view)
+    }
+
+    declaration = case_modules.declaration_for(manifest_path, module, warn_stream=sys.stderr)
+    if declaration is None:
+        reportable = declared_for_view
+    else:
+        scope = set(declaration.actions)
+        reportable = declared_for_view & scope
+        out_of_view = sorted(scope - declared_for_view)
+        out_of_scope = sorted(set(emitted_counts) - scope)
+        print(
+            f"case module {module}: declared {declaration.form} of {declaration.extends} "
+            f"with {len(scope)} action(s) in scope; "
+            f"{len(declared_for_view - scope)} other declared {view} action(s) are outside "
+            "this aspect and are NOT reported as coverage holes "
+            f"(spec_manifest.yaml {case_modules.CASE_MODULES_KEY}:)"
+        )
+        if declaration.form == "given" and declaration.claim:
+            print(f"case module {module}: recorded Given claim -- {declaration.claim}")
+        for name in out_of_view:
+            print(
+                f"warning: case module {module} declares {name!r} in its action scope, "
+                f"but actions.yml does not declare it as a {view} action.",
+                file=sys.stderr,
+            )
+        for name in out_of_scope:
+            print(
+                f"warning: case module {module} generated {emitted_counts[name]} case(s) for "
+                f"{name!r}, which is not in its declared `actions:` scope. The declaration "
+                "is out of date, and the coverage report is reading it.",
+                file=sys.stderr,
+            )
+
+    for silent in sorted(reportable - set(emitted_counts)):
+        print(
+            f"warning: declared {view} action {silent!r} generated ZERO cases. "
+            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
+            "attributes its transitions to the inner action -- add a semantic "
+            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
+            "the action from actions.yml if it is not a real view action.",
+            file=sys.stderr,
+        )
+
+    record = case_modules.coverage_record(
+        module=module,
+        view=view,
+        action_counts=emitted_counts,
+        declared_view_actions=declared_for_view,
+        declaration=declaration,
+        source=str(package_dir),
+    )
+    path = case_modules.write_coverage_record(package_dir, record)
+    print(f"per-action coverage recorded to {path}")
+    return record
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tla", type=Path)
@@ -972,25 +1061,14 @@ def main() -> int:
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
 
-    # R4-DF-04: a declared view action that generated ZERO cases is a silent
-    # coverage hole, most often caused by a pure alias wrapper
-    # (`CliAdd(t) == AddTask(t)`) -- TLC attributes such edges to the inner
-    # action's definition site, so the wrapper never appears in the dump.
-    emitted_actions = {case.edge.action for case in prepared}
-    declared_for_view = {
-        name
-        for name, meta in action_metadata.items()
-        if should_emit_action(meta, view)
-    }
-    for silent in sorted(declared_for_view - emitted_actions):
-        print(
-            f"warning: declared {view} action {silent!r} generated ZERO cases. "
-            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
-            "attributes its transitions to the inner action -- add a semantic "
-            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
-            "the action from actions.yml if it is not a real view action.",
-            file=sys.stderr,
-        )
+    report_action_coverage(
+        prepared,
+        module=tla_path.stem,
+        view=view,
+        action_metadata=action_metadata,
+        package_dir=out_path / args.package,
+        manifest_path=spec_dir / "spec_manifest.yaml",
+    )
 
     if param_recipes is not None:
         audit_path = out_path / args.package / "param_recovery_audit.md"

@@ -1,0 +1,22 @@
+CM-F2 -- per-module action scope, measured on Scenario_RejectedRequests
+(a 4-action slice of an 11-action external view). Same module, same cfg, same
+corpus; the only difference is whether spec_manifest.yaml declares the module.
+
+WITHOUT the case_modules: declaration -- 7 zero-case warnings, every one of
+them wrong (the action is not absent, it is not part of this aspect):
+  warning: declared external action 'RunFulfillmentWorker' generated ZERO cases
+  warning: declared external action 'RunFulfillmentWorkerNoop' generated ZERO cases
+  warning: declared external action 'SubmitAddCartItem' generated ZERO cases
+  warning: declared external action 'SubmitCheckout' generated ZERO cases
+  warning: declared external action 'SubmitDuplicateAddCartItem' generated ZERO cases
+  warning: declared external action 'SubmitDuplicateCheckout' generated ZERO cases
+  warning: declared external action 'SubmitDuplicateCreateAccount' generated ZERO cases
+
+WITH the declaration -- 0 zero-case warnings. Generation reports the scope instead:
+  case module Scenario_RejectedRequests: declared slice of External with 4 action(s) in scope; 7 other declared external action(s) are outside this aspect and are NOT reported as coverage holes (spec_manifest.yaml case_modules:)
+
+Corpus identical either way: 14 cases, 37 TLC states. The scope changes what is
+REPORTED, never what is generated -- no case is dropped, filtered, or sampled.
+
+An in-scope action that generates zero cases still warns: the R4-DF-04 alias-wrapper
+diagnosis keeps meaning what it says.
