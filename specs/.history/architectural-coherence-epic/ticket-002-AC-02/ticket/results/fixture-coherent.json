@@ -1,0 +1,128 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 1,
+  "map": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-coherent/map.yaml",
+  "code_root": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-coherent/pkg",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 3,
+    "modules_mapped": 3,
+    "edges_extracted": 4,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "deliver",
+        "transform"
+      ],
+      [
+        "ingest",
+        "transform"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "deliver",
+        "ingest"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 0,
+    "external_imports": {}
+  },
+  "convergences": [
+    {
+      "from": "deliver.py",
+      "to": "transform.py",
+      "kind": "import",
+      "symbol": "transform.parse",
+      "file": "pkg/deliver.py",
+      "line": 2,
+      "site": "pkg/deliver.py:2",
+      "from_component": "deliver",
+      "to_component": "transform",
+      "pair": [
+        "deliver",
+        "transform"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Ship"
+      ]
+    },
+    {
+      "from": "deliver.py",
+      "to": "transform.py",
+      "kind": "call",
+      "symbol": "parse",
+      "file": "pkg/deliver.py",
+      "line": 6,
+      "site": "pkg/deliver.py:6",
+      "from_component": "deliver",
+      "to_component": "transform",
+      "pair": [
+        "deliver",
+        "transform"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Ship"
+      ]
+    },
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "import",
+      "symbol": "ingest.read_raw",
+      "file": "pkg/transform.py",
+      "line": 2,
+      "site": "pkg/transform.py:2",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    },
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "call",
+      "symbol": "read_raw",
+      "file": "pkg/transform.py",
+      "line": 6,
+      "site": "pkg/transform.py:6",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "coherent",
+    "reasons": [
+      "every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

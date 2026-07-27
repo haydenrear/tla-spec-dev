@@ -1,0 +1,134 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket AC-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Convergences, divergences, and absences are reported separately, with file:line evidence for every divergent edge.",
+        "An unresolvable target yields `unmappable`, and no flag, key, or annotation downgrades it to clean -- proved by a test in the TestNothingDowngrades... shape.",
+        "The check never blocks: exit 0 on divergence, nonzero only when the map or the extraction is unusable.",
+        "Run against this repository's own scripts/ tree; the report is read and its findings recorded. The dogfood is the acceptance test (tickets/023 precedent), and a finding that the tool is wrong outranks a clean report."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg --code scripts --map specs/program_model/architecture_map.yaml",
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg --components specs/program_model/architecture_components.yaml --code scripts --map specs/program_model/architecture_map.yaml",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket AC-02"
+      ],
+      "evidence": [
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/dogfood-findings.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/reflexion-dogfood-repo.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/reflexion-dogfood-declared.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/reflexion-dogfood-declared.json",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-coherent.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-coherent.json",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-divergent.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-divergent.json",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-absence.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/fixture-unmappable-unmapped-module.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/suppression-ignored.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/zero-model-delta.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/zero-model-delta-diff.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/tlc-current.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/spec-unit-tests.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/pytest-full.txt",
+        "specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/complexity_ledger.yaml"
+      ]
+    },
+    "blocks": [
+      "AC-04"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/architecture_reflexion.py",
+        "scripts/analyze_architecture.py",
+        "tests/test_architecture_reflexion.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/architecture_coherence.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "AC-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/122",
+    "id": "AC-02",
+    "implementation_scope": [
+      "scripts/architecture_reflexion.py",
+      "scripts/analyze_architecture.py",
+      "tests/",
+      "references/architecture_coherence.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op model result with evidence.",
+    "objective": "Implement the reflexion model (Murphy/Notkin/Sullivan): a DECLARED map from production modules to model components, an extracted dependency graph of the real code, and a diff reported as convergences (a code edge the model declares a port for), divergences (a code edge with no port -- the Jenga), and absences (a declared port no code edge realizes -- dead architecture). Python extraction ships; any target the extractor cannot resolve reports `unmappable`, which is NOT clean -- the same refusal MF-027 gave the effect oracle, for the same reason: a clean report on something you could not see is indistinguishable from a clean report on something you could.\n",
+    "promotion_order": 30,
+    "promotion_predecessor": "AC-01",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Reflexion check: measure the production code against the model's architecture",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/tickets/AC-02",
+  "ticket_id": "AC-02",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/tickets"
+}

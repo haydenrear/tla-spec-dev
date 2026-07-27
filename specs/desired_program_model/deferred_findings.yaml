@@ -174,3 +174,51 @@ findings:
     owner_note: >
       Named as already-red in the AC-01/AC-02/AC-03 work orders and explicitly
       excluded from this ticket's scope.
+
+  - id: AC-02-DF-01
+    filed_by: AC-02
+    filed_on: "2026-07-27"
+    status: deferred
+    severity: medium
+    blocking: false
+    title: >
+      TlaSpecDevCli writes lastCommand and result from every action, so the
+      model admits no architecture the reflexion check can measure
+    reproduction: >
+      python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      --code scripts --map specs/program_model/architecture_map.yaml
+      -- reports architecture_scan = unmappable and does not run the diff:
+      consumable_as_architecture is false (one component, Q = 0.000). Adding
+      --components specs/program_model/architecture_components.yaml makes the
+      check run, but only because the partition separates kill_test; the
+      coarser three-component partition
+      (surface / tickets / scanners) has a port between EVERY pair and reports
+      unfalsifiable_coherence. Both reproduced 2026-07-27 on
+      feature/122-ac02-reflexion-check.
+    detail: >
+      All fifteen commands write lastCommand and result, so the variable
+      interaction graph is effectively complete and the emergent clustering
+      finds one component at Q = 0.000. Every declared partition of the model
+      then has a port from the component holding those two variables to every
+      other component. Divergence is detectable only across pairs that exclude
+      them, which today means only the pairs involving kill_test. The practical
+      consequence: this repository's own architecture is measurable only in a
+      narrow corner, and any future variable that every command writes closes
+      that corner too. This is a fact about the MODEL, not a defect in
+      analyze_architecture or architecture_reflexion, and it is the reason both
+      AC-01 and AC-02 report unmappable on their primary target.
+      Possible directions, none of them this ticket's to take: split lastCommand
+      and result into per-component result variables; model the CLI surface as
+      a component with no state of its own; or accept that the CLI lifecycle
+      model is genuinely one component and record the architecture check as
+      inapplicable to it. The third is a legitimate answer and should not be
+      ruled out to make a scanner produce output.
+    outside_conflict_keys: true
+    owner_note: >
+      AC-02's conflict keys list no TLA+ files (tla: []) and the epic is
+      declared zero-model-delta for this ticket. Changing the model to make the
+      scanner measurable would also be exactly the tail-wagging-the-dog move the
+      advisory doctrine warns against. Raised for EV-01/EV-02 to score against,
+      since "the toolchain cannot measure its own repository" is a fact those
+      evals should carry.

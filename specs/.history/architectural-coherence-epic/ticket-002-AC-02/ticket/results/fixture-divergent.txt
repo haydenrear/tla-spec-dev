@@ -1,0 +1,40 @@
+$ python3 scripts/architecture_reflexion.py Pipeline.tla Pipeline.cfg \
+    --components components.yaml --code pkg --map map.yaml
+exit=0
+
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       map.yaml
+  code root: pkg
+  scanned 3 Python module(s); the map places 3 of them in 3 component(s)
+  extracted 6 dependency edge(s) (imports + resolvable calls)
+  0 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    deliver<->transform, ingest<->transform
+    component pairs with NO port:   deliver<->ingest
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (4) -- a crossing edge the model declares a port for
+    deliver -> transform  (P2) deliver.py -> transform.py  [import transform.parse]  pkg/deliver.py:2
+    deliver -> transform  (P2) deliver.py -> transform.py  [call parse]  pkg/deliver.py:7
+    transform -> ingest  (P1) transform.py -> ingest.py  [import ingest.read_raw]  pkg/transform.py:2
+    transform -> ingest  (P1) transform.py -> ingest.py  [call read_raw]  pkg/transform.py:6
+
+  DIVERGENCES (2) -- a crossing edge NO port declares
+    pkg/deliver.py:3  deliver -> ingest: deliver.py imports ingest.read_raw from ingest.py
+      no port between `deliver` and `ingest`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+    pkg/deliver.py:11  deliver -> ingest: deliver.py calls read_raw from ingest.py
+      no port between `deliver` and `ingest`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+[MEASURED] Reflexion verdict
+  architecture_scan = divergent
+    - 2 code edge(s) cross a component boundary the model declares no port for
+
+  DIVERGENT is a FINDING, not a failure. This command exits 0. It names the
+  edges and the ports; it does not say which module should move (CD-01).
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

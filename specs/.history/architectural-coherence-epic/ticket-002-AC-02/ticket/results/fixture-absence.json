@@ -1,0 +1,102 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 1,
+  "map": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-absence/map.yaml",
+  "code_root": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-absence/pkg",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 3,
+    "modules_mapped": 3,
+    "edges_extracted": 2,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "deliver",
+        "transform"
+      ],
+      [
+        "ingest",
+        "transform"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "deliver",
+        "ingest"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 0,
+    "external_imports": {}
+  },
+  "convergences": [
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "import",
+      "symbol": "ingest.read_raw",
+      "file": "pkg/transform.py",
+      "line": 2,
+      "site": "pkg/transform.py:2",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    },
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "call",
+      "symbol": "read_raw",
+      "file": "pkg/transform.py",
+      "line": 6,
+      "site": "pkg/transform.py:6",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [
+    {
+      "port": "P2",
+      "between": [
+        "deliver",
+        "transform"
+      ],
+      "actions": [
+        "Ship"
+      ],
+      "why": "the model declares a port between `deliver` and `transform` (crossed by Ship), and no extracted code edge connects the modules mapped to them -- dead architecture, or an interaction the extractor cannot see"
+    }
+  ],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "divergent",
+    "reasons": [
+      "1 declared port(s) are realized by no code edge"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

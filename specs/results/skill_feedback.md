@@ -1355,3 +1355,15 @@ Finalization review 2026-07-23 (epic owner): SF-001..SF-007 filed as issues #105
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket AC-02
+
+- close_scope: ticket
+- close_id: AC-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T17:27:47+00:00
+- summary: (none given)
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

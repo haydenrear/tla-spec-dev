@@ -1,0 +1,179 @@
+AC-02 -- THE DOGFOOD, AND WHAT IT SAYS ABOUT THE TOOL
+=====================================================
+
+The issue makes the dogfood the acceptance test, and says a finding that the
+tool is wrong outranks a clean report (tickets/023). Here is the report, read.
+
+Three runs against this repository, all exit 0. Two are `unmappable` and the
+third is a descriptor-only measurement. NONE of them is `coherent`, and the
+reasons differ every time -- which is the point.
+
+
+RUN 1 -- the acceptance command, exactly as the plan wrote it
+------------------------------------------------------------
+  $ python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture \
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg \
+      --code scripts --map specs/program_model/architecture_map.yaml
+  exit 0 -- architecture_scan = unmappable
+  (specs/tickets/AC-02/results/reflexion-dogfood-repo.txt)
+
+The comparison DOES NOT RUN. `partition.consumable_as_architecture` is false:
+the model has one component and Q = 0.000, because `lastCommand` and `result`
+are written by every one of the fifteen commands. The report prints
+
+    NOT RUN. The comparison was not performed, so there are no convergences,
+    divergences, or absences to report -- not zero of them.
+
+rather than three zeroes, and names the MODEL as the reason. This is the branch
+AC-01 published `consumable_as_architecture` for. Had the check run the diff
+anyway, all 258 code edges would have been internal to the single component and
+the report would have read: 0 divergences, 0 absences, coherent. A flawless
+architecture report for a program with no architecture, indistinguishable from
+a real one.
+
+
+RUN 2 -- with a declared four-component partition
+------------------------------------------------
+  $ ... --components specs/program_model/architecture_components.yaml \
+        --code scripts --map specs/program_model/architecture_map.yaml
+  exit 0 -- architecture_scan = unmappable
+  (specs/tickets/AC-02/results/reflexion-dogfood-declared.{txt,json})
+
+Partition, cut by the state each command commits:
+  surface  {lastCommand, result, setup_phase, spec_root}
+  tickets  {ticket_state}
+  corpus   {complexity_gate, corpus_gate, effect_conformance}
+  kill     {kill_test}
+Map: all 34 .py files under scripts/, placed by which command they implement.
+
+  scanned 34 modules, all mapped, 4 components, all realized
+  extracted 258 edges (imports + resolvable calls)
+  140 internal, 118 convergences, 0 divergences, 0 absences
+
+  component pairs with a port:  corpus<->surface, corpus<->tickets,
+                                kill<->surface, surface<->tickets
+  component pairs with NO port: corpus<->kill, kill<->tickets
+
+The two unported pairs are real: no action of the model touches `kill_test`
+together with `ticket_state` or with any corpus verdict. A code edge across
+either pair would have been a divergence. There is none -- `kill_test.py` and
+`run_kill_test.py` reach only `budgets.py`, which is in `surface`, which is
+ported to `kill` via RunKillTest. **This is a genuine, falsifiable, negative
+result about this repository's code.**
+
+The verdict is nevertheless `unmappable`, for five extraction blind spots:
+
+  dynamic_import                  scripts/generate_cases_from_tlc_dump.py:447
+                                  scripts/run_generated_case_adapters.py:131
+                                  scripts/run_generated_case_adapters.py:401
+      importlib.import_module() on a computed name. The adapter-loading
+      machinery is dispatch by string; those edges cannot be resolved
+      statically and are NOT reported as absences.
+
+  non_python_file                 scripts/run_tlc.sh
+      In the tree, no extractor. Whatever it depends on is invisible.
+
+  first_party_outside_code_root   spec_double_compiler
+      A first-party package sitting BESIDE scripts/, imported by
+      effect_conformance_report.py and run_generated_case_adapters.py. Outside
+      --code, so its edges are not in the graph.
+
+So the honest sentence is: *over the edges this extractor can resolve, the
+code respects both boundaries the model draws -- and the extractor cannot
+resolve all of them, so the check will not certify it.*
+
+
+RUN 3 -- the coarser partition this ticket wrote FIRST
+------------------------------------------------------
+Fold `kill_test` in with the other scanner verdicts (surface / tickets /
+scanners), which is an entirely natural reading and was this ticket's first
+draft of architecture_components.yaml. Every one of the three component pairs
+then has a port: `RunSpecUnitTests` touches `ticket_state` and two corpus
+verdicts, and every command writes `lastCommand` and `result`. No code edge
+could diverge. The check reports `unfalsifiable_coherence` and refuses to call
+it clean.
+
+Nothing separates run 2 from run 3 except the judgment of whoever wrote the
+partition file. Pinned by
+tests/test_architecture_reflexion.py::test_a_coarser_partition_of_the_same_model_could_not_have_falsified_anything
+so the difference cannot be quietly lost.
+
+
+THE HONEST READING
+------------------
+The tool works, and the thing it measures is fragile.
+
+* Without a declared partition this repository cannot be measured at all, and
+  the obstacle is the MODEL: `lastCommand` and `result` are written by every
+  action, so the emergent clustering has nothing to cut.
+* With a declared partition the answer depends on how fine the partition is.
+  The four-component cut can falsify; the three-component cut cannot. Both are
+  defensible readings of the same model. The tool reports which one it was
+  handed and whether that one could have failed -- it cannot tell you that the
+  finer cut is the better one, and it does not try (CD-01).
+* Even when the code side is clean, the extractor's blind spots keep the
+  verdict at `unmappable`. On a 34-file tree with three computed-name imports,
+  one shell script, and one sibling package, that is the expected outcome. Any
+  real Python codebase should expect `unmappable` far more often than
+  `coherent`, and that is the design working, not a failure of it.
+
+
+EVERY WAY THIS TOOL LOOKED WRONG, NOISY, OR GAMEABLE
+----------------------------------------------------
+1. THE MAP IS WHERE THE LYING WOULD HAPPEN, and nothing in the tool can stop
+   it. Every divergence in the fixture suite disappears if the map moves the
+   offending module into the component it reaches. No code changes; the verdict
+   flips to coherent. Partial mitigations shipped: the map must place EVERY
+   module in the tree (leaving one out is `unmapped_module`, never cleaner),
+   every declared component must be realized (`unrealized_component`), a module
+   may not be in two components, and the placements are published in the report
+   so the argument is about a written claim. None of that is an audit of the
+   claim. A reviewer still has to read the map.
+
+2. THE PARTITION IS THE SECOND PLACE. Demonstrated first-hand above: the same
+   model and the same code produce a falsifiable check under one declared cut
+   and a vacuous one under another, and the difference is one variable's
+   placement. `unfalsifiable_coherence` catches the fully-degenerate case
+   (every pair ported) but there is no defense against a partition that is
+   merely coarse -- one where the SPECIFIC pair a bad edge would cross happens
+   to be ported.
+
+3. A CLEAN RESULT IS OFTEN VACUOUS, and the vacuity is invisible unless the
+   tool says so. ANY two-component architecture with a port between the two
+   components admits every possible edge. The `divergence_detectable` /
+   `unported_pairs` fields exist because of this; without them the most common
+   real configuration would report `coherent` and mean nothing. This is the
+   reflexion model's own blind spot, not this implementation's, and it is the
+   single most important thing a reader of a `coherent` verdict has to know.
+
+4. THE EDGE COUNTS ARE NOISY ON REAL PYTHON. 258 edges for 34 files, of which
+   140 are internal and 118 convergent, is far more than a human would call
+   "the dependency structure". Imports inside functions, try/except import
+   fallbacks (`from scripts.x import y` then `from x import y`), and every call
+   site of an imported symbol each produce an edge. The counts are honest but
+   they are not a summary; only the divergence list is readable at a glance.
+   Reporting an edge per call site is deliberate -- it is what makes `file:line`
+   navigable -- but edge totals should not be compared across codebases.
+
+5. `--code` SCOPE SILENTLY DETERMINED WHAT COUNTED AS EXTERNAL. Found during
+   this dogfood: `spec_double_compiler` was being classified as a third-party
+   import purely because it sits outside the scanned tree. Now reported as
+   `first_party_outside_code_root`, but the detection rule (a package sitting
+   next to the code root) is a heuristic. A first-party package installed into
+   site-packages, or two directories up, is still invisible.
+
+6. NOTHING HERE IS SEMANTIC. The check compares dependency STRUCTURE. A module
+   mapped to `corpus` that in fact runs the ticket lifecycle produces a
+   perfectly convergent graph. The map asserts a correspondence the tool cannot
+   verify.
+
+7. PYTHON ONLY, and the language edge is the one place where a refusal
+   (nonzero exit) rather than a verdict is correct: a `language: java` map has
+   no extractor, so it would be checked against an empty graph, reporting every
+   port absent and every module unmapped while looking like a measurement.
+
+8. ONE CLAIM IN THIS FILE'S FIRST DRAFT WAS WRONG. It asserted that no
+   partition of this model could have an unported pair. Run 2 disproves it.
+   The claim was written from the shape of the god-variables without being
+   measured, which is exactly the failure the descriptor exists to prevent.
+   Recorded here rather than deleted.
