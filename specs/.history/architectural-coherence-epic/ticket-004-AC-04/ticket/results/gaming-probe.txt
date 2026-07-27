@@ -1,0 +1,276 @@
+analyze architecture -- TlaSpecDevCli (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/program_model/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/program_model/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/program_model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: DECLARED
+  declared by the project in /Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/program_model/architecture_components.yaml
+  actions: top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions
+
+  C1 (surface)
+    variables:         lastCommand, result, setup_phase, spec_root
+    owns (writes confined here): setup_phase, spec_root
+    internal actions:  BuildSkillCli, InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow
+    crossing actions:  AnalyzeComplexity, AnalyzeCorpus, CloseTicket, OpenTicket, RunEffectConformance, RunKillTest, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C2 via: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C3 via: AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunSpecUnitTests
+    reaches C4 via: RunKillTest
+
+  C2 (tickets)
+    variables:         ticket_state
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C1 via: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C3 via: RunSpecUnitTests
+
+  C3 (corpus)
+    variables:         complexity_gate, corpus_gate, effect_conformance
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunSpecUnitTests
+    reaches C1 via: AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunSpecUnitTests
+    reaches C2 via: RunSpecUnitTests
+
+  C4 (kill)
+    variables:         kill_test
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  RunKillTest
+    reaches C1 via: RunKillTest
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = -0.025
+  [OK  ] component_count: measured 4, rule >= 2
+         a partition with one component separated nothing
+  [FAIL] modularity_q: measured -0.025485, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [FAIL] crossing_action_fraction: measured 0.6, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition.
+  The descriptor states that rather than presenting a cut the model does
+  not have. It does not propose a different one: naming a boundary the
+  matrix does not show is the CD-01 failure mode, and a clean-looking
+  architecture derived from an invented cut is worse than none.
+
+[MEASURED] State ownership -- which actions write each variable
+  setup_phase         BuildSkillCli, InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow
+  spec_root           ScaffoldProject
+  ticket_state        CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+  lastCommand         AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  result              AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  complexity_gate     AnalyzeComplexity
+  corpus_gate         AnalyzeCorpus, RunSpecUnitTests
+  effect_conformance  RunEffectConformance, RunSpecUnitTests
+  kill_test           RunKillTest
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  basis: the DECLARED partition (/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/program_model/architecture_components.yaml)
+  complexity_gate: written from C1, C3 by AnalyzeComplexity
+  corpus_gate: written from C1, C2, C3 by AnalyzeCorpus, RunSpecUnitTests
+  effect_conformance: written from C1, C2, C3 by RunEffectConformance, RunSpecUnitTests
+  kill_test: written from C1, C4 by RunKillTest
+  lastCommand: written from C1, C2, C3, C4 by AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  result: written from C1, C2, C3, C4 by AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  ticket_state: written from C1, C2, C3 by CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  P1  C1 <-> C2
+      crossed by: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+  P2  C1 <-> C3
+      crossed by: AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunSpecUnitTests
+  P3  C1 <-> C4
+      crossed by: RunKillTest
+  P4  C2 <-> C3
+      crossed by: RunSpecUnitTests
+
+  per crossing action:
+    AnalyzeComplexity crosses C1, C3 (P2)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C3: reads - | writes complexity_gate
+    AnalyzeCorpus crosses C1, C3 (P2)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C3: reads - | writes corpus_gate
+    CloseTicket crosses C1, C2 (P1)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C2: reads ticket_state | writes ticket_state
+    OpenTicket crosses C1, C2 (P1)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C2: reads ticket_state | writes ticket_state
+    RunEffectConformance crosses C1, C3 (P2)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C3: reads - | writes effect_conformance
+    RunKillTest crosses C1, C4 (P3)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C4: reads - | writes kill_test
+    RunSpecUnitTests crosses C1, C2, C3 (P1, P2, P4)
+      C1: reads setup_phase, spec_root | writes lastCommand, result
+      C2: reads ticket_state | writes ticket_state
+      C3: reads - | writes corpus_gate, effect_conformance
+    UpdateTicketCurrent crosses C1, C2 (P1)
+      C1: reads - | writes lastCommand, result
+      C2: reads ticket_state | writes ticket_state
+    UpdateTicketDesired crosses C1, C2 (P1)
+      C1: reads - | writes lastCommand, result
+      C2: reads ticket_state | writes ticket_state
+
+[MEASURED] Spanning actions -- write sets that span components
+  AnalyzeComplexity writes C1: lastCommand, result; C3: complexity_gate in one step
+  AnalyzeCorpus writes C1: lastCommand, result; C3: corpus_gate in one step
+  CloseTicket writes C1: lastCommand, result; C2: ticket_state in one step
+  OpenTicket writes C1: lastCommand, result; C2: ticket_state in one step
+  RunEffectConformance writes C1: lastCommand, result; C3: effect_conformance in one step
+  RunKillTest writes C1: lastCommand, result; C4: kill_test in one step
+  RunSpecUnitTests writes C1: lastCommand, result; C2: ticket_state; C3: corpus_gate, effect_conformance in one step
+  UpdateTicketCurrent writes C1: lastCommand, result; C2: ticket_state in one step
+  UpdateTicketDesired writes C1: lastCommand, result; C2: ticket_state in one step
+
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       specs/program_model/architecture_map.yaml
+  code root: scripts
+  scanned 34 Python module(s); the map places 34 of them in 4 component(s)
+  extracted 263 dependency edge(s) (imports + resolvable calls)
+  143 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    corpus<->surface, corpus<->tickets, kill<->surface, surface<->tickets
+    component pairs with NO port:   corpus<->kill, kill<->tickets
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (120) -- a crossing edge the model declares a port for
+    corpus -> surface  (P2) analyze_architecture.py -> extract_spec_manifest.py  [import scripts.extract_spec_manifest.parse_simple_yaml]  scripts/analyze_architecture.py:690
+    corpus -> surface  (P2) analyze_architecture.py -> extract_spec_manifest.py  [call parse_simple_yaml]  scripts/analyze_architecture.py:692
+    corpus -> surface  (P2) analyze_complexity.py -> budgets.py  [import scripts.budgets.DEFAULT_BUDGETS]  scripts/analyze_complexity.py:1354
+    corpus -> surface  (P2) analyze_complexity.py -> budgets.py  [call load_budgets]  scripts/analyze_complexity.py:1466
+    corpus -> surface  (P2) analyze_complexity.py -> extract_spec_manifest.py  [import scripts.extract_spec_manifest.load_manifest]  scripts/analyze_complexity.py:1446
+    corpus -> surface  (P2) analyze_complexity.py -> extract_spec_manifest.py  [call load_manifest]  scripts/analyze_complexity.py:1448
+    corpus -> surface  (P2) case_modules.py -> extract_spec_manifest.py  [import extract_spec_manifest.load_manifest]  scripts/case_modules.py:39
+    corpus -> surface  (P2) case_modules.py -> extract_spec_manifest.py  [import extract_spec_manifest.load_manifest]  scripts/case_modules.py:42
+    corpus -> surface  (P2) case_modules.py -> extract_spec_manifest.py  [call load_manifest]  scripts/case_modules.py:174
+    corpus -> surface  (P2) case_modules.py -> extract_spec_manifest.py  [call load_manifest]  scripts/case_modules.py:540
+    corpus -> surface  (P2) case_modules.py -> extract_spec_manifest.py  [call load_manifest]  scripts/case_modules.py:545
+    tickets -> surface  (P1) close_tickets.py -> extract_spec_manifest.py  [import scripts.extract_spec_manifest.load_manifest]  scripts/close_tickets.py:34
+    tickets -> surface  (P1) close_tickets.py -> extract_spec_manifest.py  [call load_manifest]  scripts/close_tickets.py:38
+    corpus -> surface  (P2) complexity_ledger.py -> extract_spec_manifest.py  [import extract_spec_manifest.parse_simple_yaml]  scripts/complexity_ledger.py:503
+    corpus -> surface  (P2) complexity_ledger.py -> extract_spec_manifest.py  [import extract_spec_manifest.parse_simple_yaml]  scripts/complexity_ledger.py:505
+    corpus -> surface  (P2) complexity_ledger.py -> extract_spec_manifest.py  [call parse_simple_yaml]  scripts/complexity_ledger.py:506
+    corpus -> surface  (P2) complexity_ledger.py -> spec_paths.py  [import spec_paths]  scripts/complexity_ledger.py:100
+    corpus -> surface  (P2) complexity_ledger.py -> spec_paths.py  [call spec_paths.resolve_existing_spec_input]  scripts/complexity_ledger.py:709
+    corpus -> surface  (P2) corpus_diagnostics.py -> budgets.py  [import budgets.load_budgets]  scripts/corpus_diagnostics.py:64
+    corpus -> surface  (P2) corpus_diagnostics.py -> budgets.py  [import budgets.load_budgets]  scripts/corpus_diagnostics.py:66
+    corpus -> surface  (P2) corpus_diagnostics.py -> budgets.py  [call load_budgets]  scripts/corpus_diagnostics.py:543
+    corpus -> surface  (P2) effect_conformance_report.py -> extract_spec_manifest.py  [import extract_spec_manifest.load_manifest]  scripts/effect_conformance_report.py:42
+    corpus -> surface  (P2) effect_conformance_report.py -> extract_spec_manifest.py  [call load_manifest]  scripts/effect_conformance_report.py:61
+    corpus -> surface  (P2) export_testgraph_cases.py -> spec_paths.py  [import spec_paths.resolve_existing_from_cwd]  scripts/export_testgraph_cases.py:22
+    corpus -> surface  (P2) export_testgraph_cases.py -> spec_paths.py  [import spec_paths.resolve_existing_from_cwd]  scripts/export_testgraph_cases.py:28
+    corpus -> surface  (P2) export_testgraph_cases.py -> spec_paths.py  [call resolve_existing_from_cwd]  scripts/export_testgraph_cases.py:151
+    corpus -> surface  (P2) export_testgraph_cases.py -> spec_paths.py  [call resolve_existing_from_cwd]  scripts/export_testgraph_cases.py:214
+    corpus -> surface  (P2) export_testgraph_cases.py -> spec_paths.py  [call resolve_existing_from_cwd]  scripts/export_testgraph_cases.py:215
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> extract_spec_manifest.py  [import extract_spec_manifest.load_manifest]  scripts/generate_cases_from_tlc_dump.py:26
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> extract_spec_manifest.py  [import extract_spec_manifest.load_manifest]  scripts/generate_cases_from_tlc_dump.py:32
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> extract_spec_manifest.py  [call load_manifest]  scripts/generate_cases_from_tlc_dump.py:299
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [import infer_action_params.UNCHECKED]  scripts/generate_cases_from_tlc_dump.py:27
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [import infer_action_params.UNCHECKED]  scripts/generate_cases_from_tlc_dump.py:33
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [call infer_params]  scripts/generate_cases_from_tlc_dump.py:394
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [call unchecked_param_names]  scripts/generate_cases_from_tlc_dump.py:406
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [call build_recipes_from_path]  scripts/generate_cases_from_tlc_dump.py:1046
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [call render_audit]  scripts/generate_cases_from_tlc_dump.py:1075
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> infer_action_params.py  [call unchecked_param_names]  scripts/generate_cases_from_tlc_dump.py:1077
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> spec_paths.py  [import spec_paths.resolve_existing_from_cwd]  scripts/generate_cases_from_tlc_dump.py:28
+    corpus -> surface  (P2) generate_cases_from_tlc_dump.py -> spec_paths.py  [import spec_paths.resolve_existing_from_cwd]  scripts/generate_cases_from_tlc_dump.py:34
+    ... (+80 more)
+
+  DIVERGENCES (0) -- a crossing edge NO port declares
+    none.
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 34 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, argparse, ast, asyncio, builtins, contextlib, copy, dataclasses, datetime, filecmp, fnmatch, hashlib, importlib, inspect, json, keyword, math, operator, os, pathlib, re, shlex, shutil, socket, spec_double_compiler, stat, subprocess, sys, tempfile, tomli, tomllib, types, typing, yaml
+
+[MEASURED] Reflexion verdict
+  architecture_scan = unmappable
+    - [dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/generate_cases_from_tlc_dump.py:447)
+    - [dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/run_generated_case_adapters.py:131)
+    - [dynamic_import] `importlib.import_module(...)` is called with a computed module name; the edge it creates cannot be resolved statically (scripts/run_generated_case_adapters.py:401)
+    - [first_party_outside_code_root] `spec_double_compiler` is imported by the scanned tree and lives beside it in /Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability, but outside --code. Its edges are not in this graph, and no component of the map can be held to them. Widen --code, or accept that this dependency is unmeasured (scripts/effect_conformance_report.py:144, scripts/run_generated_case_adapters.py:1027, scripts/run_generated_case_adapters.py:1058, scripts/run_generated_case_adapters.py:1307)
+    - [non_python_file] is in the scanned tree and has no extractor in this build; whatever dependencies it declares are invisible to this check (scripts/run_tlc.sh)
+
+  UNMAPPABLE is not 'clean with caveats' and not 'nothing found'. Any finding
+  listed above is real; the verdict says the check could not see the whole
+  target, so it will not certify what it did not observe. Nothing downgrades
+  this: there is no flag, key, annotation, or environment variable that turns
+  it into `coherent`.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
+
+[MEASURED] Architecture delta -- this scan against a recorded baseline
+  baseline map:  /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ac04/probe-map-budgets-in-kill.yaml
+    digest:      sha256:cc5738b22bf07b120f7e49dcb7a486fff600c646e9c7483e0836691b326f00e0
+  current map:   specs/program_model/architecture_map.yaml
+    digest:      sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4
+  model side:    architecture digest UNCHANGED (sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c -> sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c)
+  attribution:   unattributable
+    - 1 module(s) present in both scans were RE-PLACED by the map: budgets.py (kill -> surface). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+
+  DIVERGENCES: 6 -> 0 (-6 distinct dependenc(ies); 8 -> 0 sites)
+    LOST (6):
+      - analyze_complexity.py -call-> budgets.py  [load_budgets]  was at scripts/analyze_complexity.py:1466
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+      - analyze_complexity.py -import-> budgets.py  [scripts.budgets.DEFAULT_BUDGETS]  was at scripts/analyze_complexity.py:1354
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+      - corpus_diagnostics.py -call-> budgets.py  [load_budgets]  was at scripts/corpus_diagnostics.py:543
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+      - corpus_diagnostics.py -import-> budgets.py  [budgets.load_budgets]  was at scripts/corpus_diagnostics.py:64, scripts/corpus_diagnostics.py:66
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+      - new_ticket_workflow.py -call-> budgets.py  [budgets_block]  was at scripts/new_ticket_workflow.py:643, scripts/new_ticket_workflow.py:712
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+      - new_ticket_workflow.py -import-> budgets.py  [scripts.budgets.budgets_block]  was at scripts/new_ticket_workflow.py:27
+        endpoint_reassigned: `budgets.py` was re-placed by the map (kill -> surface). The edge did not go away; the boundary it crossed did.
+    stable-basis only (modules in both scans, same component): 0 -> 0 (+0)
+
+  CONVERGENCES: 92 -> 95 (+3 distinct dependenc(ies); 117 -> 120 sites)
+    LOST (7):
+      - budgets.py -call-> extract_spec_manifest.py  [load_manifest]  was at scripts/budgets.py:131
+      - budgets.py -import-> extract_spec_manifest.py  [extract_spec_manifest.load_manifest]  was at scripts/budgets.py:129
+      - budgets.py -import-> extract_spec_manifest.py  [scripts.extract_spec_manifest.load_manifest]  was at scripts/budgets.py:127
+      - onboard_program_model.py -call-> budgets.py  [budgets_block]  was at scripts/onboard_program_model.py:970
+      - onboard_program_model.py -import-> budgets.py  [budgets.budgets_block]  was at scripts/onboard_program_model.py:33
+      - tla_spec_dev.py -call-> budgets.py  [budget_prompt]  was at scripts/tla_spec_dev.py:94, scripts/tla_spec_dev.py:121
+      - tla_spec_dev.py -import-> budgets.py  [scripts.budgets.budget_prompt]  was at scripts/tla_spec_dev.py:92, scripts/tla_spec_dev.py:118
+    GAINED (10):
+      + analyze_complexity.py -call-> budgets.py  [load_budgets]  at scripts/analyze_complexity.py:1466
+      + analyze_complexity.py -import-> budgets.py  [scripts.budgets.DEFAULT_BUDGETS]  at scripts/analyze_complexity.py:1354
+      + corpus_diagnostics.py -call-> budgets.py  [load_budgets]  at scripts/corpus_diagnostics.py:543
+      + corpus_diagnostics.py -import-> budgets.py  [budgets.load_budgets]  at scripts/corpus_diagnostics.py:64, scripts/corpus_diagnostics.py:66
+      + kill_test.py -call-> budgets.py  [_read_manifest]  at scripts/kill_test.py:1081
+      + kill_test.py -call-> budgets.py  [load_budgets]  at scripts/kill_test.py:944
+      + kill_test.py -import-> budgets.py  [scripts.budgets._read_manifest]  at scripts/kill_test.py:1079
+      + kill_test.py -import-> budgets.py  [scripts.budgets.load_budgets]  at scripts/kill_test.py:103
+      + new_ticket_workflow.py -call-> budgets.py  [budgets_block]  at scripts/new_ticket_workflow.py:643, scripts/new_ticket_workflow.py:712
+      + new_ticket_workflow.py -import-> budgets.py  [scripts.budgets.budgets_block]  at scripts/new_ticket_workflow.py:27
+    stable-basis only (modules in both scans, same component): 85 -> 85 (+0)
+
+  ABSENCES: 0 -> 0 (+0)
+
+[MEASURED] Delta verdict
+  direction = unattributable
+    - the two scans were not measured against the same declared basis, so this is not a refactor result. The numbers below are real; what they are a fact ABOUT is undetermined.
+    - 1 module(s) present in both scans were RE-PLACED by the map: budgets.py (kill -> surface). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+
+  UNATTRIBUTABLE is not a bad result and not a good one. The two scans do not
+  share a basis, so no number here is a fact about the refactor. Re-run the
+  baseline against the current map to get a comparison, and say in the record
+  that the map changed.
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

@@ -703,7 +703,7 @@ def _load_yaml(path: Path) -> Any:
 
 
 def descriptor_payload(
-    descriptor: ArchitectureDescriptor, reflexion_report: Any = None
+    descriptor: ArchitectureDescriptor, reflexion_report: Any = None, delta: Any = None
 ) -> dict[str, Any]:
     """The machine-readable descriptor. Field contract: references/architecture_coherence.md.
 
@@ -784,12 +784,21 @@ def descriptor_payload(
         payload["reflexion"] = report_payload(reflexion_report)
         payload["verdict"]["architecture_scan"] = reflexion_report.verdict
         payload["verdict"]["reasons"] = reflexion_report.reasons
+    if delta is not None:
+        # AC-04. Additive and never verdict-bearing: the delta is evidence for a
+        # person about a change over time, and `architecture_scan` remains a
+        # statement about THIS scan alone.
+        payload["delta"] = delta
     return payload
 
 
-def render_json(descriptor: ArchitectureDescriptor, reflexion_report: Any = None) -> str:
+def render_json(
+    descriptor: ArchitectureDescriptor, reflexion_report: Any = None, delta: Any = None
+) -> str:
     return (
-        json.dumps(descriptor_payload(descriptor, reflexion_report), indent=2, sort_keys=False)
+        json.dumps(
+            descriptor_payload(descriptor, reflexion_report, delta), indent=2, sort_keys=False
+        )
         + "\n"
     )
 
@@ -804,7 +813,9 @@ def _wrap(prefix: str, items: Iterable[str]) -> str:
     return f"{prefix}{', '.join(values) if values else '(none)'}"
 
 
-def render_text(descriptor: ArchitectureDescriptor, reflexion_report: Any = None) -> str:
+def render_text(
+    descriptor: ArchitectureDescriptor, reflexion_report: Any = None, delta: Any = None
+) -> str:
     out: list[str] = []
     add = out.append
     add(f"analyze architecture -- {descriptor.module} (architecture descriptor)")
@@ -922,9 +933,12 @@ def render_text(descriptor: ArchitectureDescriptor, reflexion_report: Any = None
     add("")
 
     if reflexion_report is not None:
-        from scripts.architecture_reflexion import render_report_text
+        from scripts.architecture_reflexion import render_delta_text, render_report_text
 
         out.append(render_report_text(reflexion_report).rstrip("\n"))
+        if delta is not None:
+            out.append("")
+            out.append(render_delta_text(delta).rstrip("\n"))
         return "\n".join(out) + "\n"
 
     add("[MEASURED] Architecture scan verdict")
@@ -992,6 +1006,18 @@ def run(args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
 
+    baseline_path = getattr(args, "baseline", None)
+    if baseline_path and not (code and map_path):
+        # A baseline with no current comparison is not half a delta; it is a
+        # delta of nothing against a recorded scan.
+        print(
+            "ERROR: --baseline needs --code and --map. The delta compares this scan's "
+            "reflexion result against a recorded one, and without a code side there is no "
+            "this-scan result to compare.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
     try:
         descriptor = analyze(tla_path, cfg_path, manifest_path, components_path=components_path)
     except ModuleResolutionError as exc:
@@ -1029,10 +1055,24 @@ def run(args: argparse.Namespace) -> int:
             print(f"ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
             return EXIT_USAGE
 
+    delta = None
+    if report is not None and baseline_path:
+        from scripts.architecture_reflexion import (
+            BaselineError,
+            load_baseline,
+            structural_delta,
+        )
+
+        try:
+            delta = structural_delta(load_baseline(Path(baseline_path)), report)
+        except BaselineError as exc:
+            print(f"ERROR: the baseline scan is not usable as one:\n  {exc}", file=sys.stderr)
+            return EXIT_USAGE
+
     rendered = (
-        render_json(descriptor, report)
+        render_json(descriptor, report, delta)
         if args.format == "json"
-        else render_text(descriptor, report)
+        else render_text(descriptor, report, delta)
     )
     sys.stdout.write(rendered)
     if args.out:
@@ -1071,6 +1111,15 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help=(
             "AC-02 reflexion check: YAML file declaring the production module -> model "
             "component map. DECLARED by the project, never inferred. Requires --code."
+        ),
+    )
+    parser.add_argument(
+        "--baseline",
+        help=(
+            "AC-04 refactor delta: a previous `--format json` scan of this program to "
+            "compare this one against. Reports the divergence delta with the specific "
+            "dependencies gained and lost. Requires --code and --map: a delta needs a "
+            "current comparison to be a delta OF."
         ),
     )
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")

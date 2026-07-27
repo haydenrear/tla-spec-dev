@@ -67,6 +67,79 @@ Rules that follow:
   presented alongside the behavior-retention evidence from the same run.
   Never report one without the other.
 
+### The Validated-Refactor Basis Has A Structure Half (AC-04)
+
+The CD-09 basis above is entirely about the **representation**: did the model
+still check, did the behavior tests still pass, is the model smaller. All four
+members can be green while the code got worse — a change that lowers the
+state-space bound by scattering a responsibility across three more modules
+satisfies every one of them. **A refactor that lowers complexity while
+scattering the code further is not the refactor anyone wanted**, and until AC-04
+the ledger could not see the difference.
+
+So the basis has a fifth, **non-gating** member: the **architecture delta**.
+
+```
+tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> \
+    --code <tree> --map <map.yaml> --baseline <a previous --format json scan> \
+    --format json --out results/architecture-delta.json
+```
+
+It reports the divergence count before and after **with the specific dependencies
+gained and lost**, each carrying `file:line`, and the ledger records it beside
+the complexity delta (`architecture_delta:` in the ledger input; the direction is
+DERIVED from the report, not typed by the author). Four rules govern it, and the
+first outranks the rest:
+
+1. **It gates nothing.** A ticket that raised structural divergence records that
+   and closes. This follows "Advisory, Not Blocking" below without exception: a
+   structural finding that could refuse a close would be answered by not running
+   the scan, and then nothing is recorded at all.
+2. **A drop reported without the edges that disappeared is `unverified`.** This
+   is MF-020 applied to structure. MF-020 withdrew a projected −13.1% complexity
+   reduction that turned out to require deleting a legitimate idempotent
+   re-fire transition; the distinct-state gate was blind to it because a deleted
+   self-loop returns to an already-known state. A divergence count has the same
+   blindness: it cannot tell a removed dependency from a deleted file, or from a
+   module that stopped being mapped and therefore stopped being looked at. Each
+   disappearance is classified (`dependency_removed`, `endpoint_left_tree`,
+   `endpoint_unmapped`, `endpoint_reassigned`), and a drop the edges do not
+   explain is never reported as an improvement.
+3. **A delta across two different maps is `unattributable`.** AC-02 recorded that
+   the map is where the lying would happen: any divergence disappears if the map
+   moves the offending module into the component it reaches — no code change, the
+   verdict flips. The same forgery works from the model end, where adding a port
+   turns a divergence into a convergence. Both scans therefore record a digest of
+   the declared placements and of the component/port structure, both digests land
+   in the ledger entry, and a comparison whose basis moved reports
+   `unattributable` instead of an improvement. Measured on this repository: a
+   one-line re-placement of `scripts/budgets.py` from `surface` to `kill` moves
+   the divergence count 0 → 6 with the code untouched.
+4. **No suggested moves (CD-01).** The delta names what moved. It never names
+   what should move.
+
+**Which oracles are load-bearing for "behavior preserving", and which are not.**
+A structural delta says the shape changed; it says nothing about whether the
+program still does the same thing. State plainly which evidence carries that
+claim:
+
+- **Load-bearing: TLC green before and after, the repository behavior tests, and
+  the generated case corpus replayed against effect providers with CONTENT
+  assertions.** The effect-provider work (`references/effect_providers.md`)
+  measured 45 mutation points killed on exactly the bug class MF-038 missed, with
+  a deterministic replay command per failure (the `ex1-run4` replay property).
+  Content assertions are what makes that oracle able to catch a wrong value, as
+  opposed to a wrong exit code.
+- **NOT load-bearing: the mutation kill rate.** MF-038 measured 0 of 9 content
+  bugs caught at kill rate 0.31 against a floor of 0.8. It is recorded at every
+  close as an experimental member and it **cannot certify a refactor**. Do not
+  let a kill rate back in as the licence for a behavior-preserving claim, and do
+  not read a kill-rate number next to a divergence drop as corroboration — the
+  probe measured that it is not.
+- **Also not load-bearing: the divergence delta itself.** It is a fact about
+  dependency structure, not about behavior. It belongs in the record beside the
+  behavior evidence and never in place of it.
+
 ### The Recursive Refinement Loop
 
 Complexity minimization is part of the working loop, not a one-time design
@@ -87,7 +160,10 @@ which may expose the next refinement:
    (TLC before/after, behavior tests, before/after descriptor comparison —
    CD-09) and the measurement; record the fuzzing-era members honestly
    (`not_run` unless actually run). A refinement that lowers complexity but
-   degrades the basis is reverted.
+   degrades the basis is reverted. **Scan the structure too** (AC-04): take an
+   architecture scan before the change, one after, and record the delta with
+   `--baseline`. It is recorded, never gating — but a complexity win bought by
+   scattering the code is visible only here.
 5. Recurse: a landed refinement re-opens step 1 — decompositions expose
    projectable state, projections expose narrower cuts. Stop when a full
    pass yields no approvable candidate, and record that as the ticket's
@@ -531,6 +607,14 @@ inline a convenient number.
   unjustified-variable flags. **It emits no suggested move**; the earlier
   chooser was removed after validation project 1 showed it confidently wrong
   on standard TLA+.
+- `tla-spec-dev analyze architecture ... --code --map` (AC-02): the reflexion
+  check — the production code measured against the architecture the model
+  declares. `--baseline <previous --format json scan>` (AC-04) adds the
+  before/after delta: divergences before and after, the specific dependencies
+  gained and lost, and a refusal (`unattributable`) when the two scans did not
+  share a declared map and model. Recorded in the complexity ledger as
+  `architecture_delta`, which gates nothing. Doctrine:
+  `references/architecture_coherence.md`.
 - Mutation kill test (tickets/016): intended to double as the abstraction
   validator — kill-rate-preserving abstraction is legitimate abstraction —
   but EXPERIMENTAL and not yet trustworthy for that (MF-038; see Move 1).

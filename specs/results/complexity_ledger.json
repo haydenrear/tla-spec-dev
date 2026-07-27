@@ -6842,6 +6842,193 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "AC-04",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-27T18:02:59.900114+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/tickets/AC-04/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "AC-03",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": 1292951,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": 32122220,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": 26,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/.history/architectural-coherence-epic/ticket-003-AC-03/results/tlc-ticket-current.txt (AC-03 post-ticket = AC-04 pre-ticket: 32,122,220 generated / 1,292,951 distinct / depth 26)",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-04/results/tlc-current.txt (32,122,220 generated / 1,292,951 distinct / depth 26 / 59s -- identical, as a zero-model-delta ticket requires)",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-04/results/pytest-full.txt (864 passed; the 1 failure is the pre-existing doc-phrase test already deferred as CM-01-DF-01 / AC-DF-01) + specs/tickets/AC-04/results/spec-unit-tests.txt (2 targets, spec-unit validation passed)",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-04/results/model-delta.txt (specs/current, ticket current and ticket desired are md5-identical for TlaSpecDevCli.tla / MC.cfg / spec_manifest.yaml; variables 10, actions 16, bound 2,799,360, modularity 0.0 in all three and in the previous entry) + specs/tickets/AC-04/results/zero-model-delta.txt",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched for a representation of this ticket's capability that costs the model less. Nothing to cost: the delta is a scanner over the source tree and the ledger, and `architecture_scan` already exists from AC-01. Two candidates considered and rejected -- an action for `compare two scans` (grows the state space to represent a step no CLI user observes as a state change: the transcription failure mode) and folding the delta direction into `architecture_scan` as a fifth value (it is a fact about a PAIR of scans, not about program state). See specs/tickets/AC-04/results/complexity-ledger.md.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "unchanged",
+        "recorded": true,
+        "gates": false,
+        "report": "architecture-delta.json",
+        "resolved_report": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/tickets/AC-04/results/architecture-delta.json",
+        "claim": "",
+        "attribution": "code_only",
+        "divergences_before": 0,
+        "divergences_after": 0,
+        "divergences_delta": 0,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+        "map_digest_after": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+        "architecture_digest_before": "sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c",
+        "architecture_digest_after": "sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c",
+        "why": [
+          "the divergence count did not change (0 -> 0)."
+        ],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/AC-04/results/complexity-ledger.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture_delta=unchanged (the divergence count did not move); divergences 0 -> 0, attribution=code_only"
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

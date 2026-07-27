@@ -857,6 +857,9 @@ def record_complexity_ledger(
         metrics=metrics,
         ledger_input=ledger_input,
         previous=complexity_ledger.previous_entry(ledger),
+        # AC-04: the architecture-delta report is named relative to the ledger
+        # input document, the way every other per-ticket evidence path is.
+        input_dir=input_path.parent,
     )
     report = complexity_ledger.render_report(verdict)
     if verdict.rejected:

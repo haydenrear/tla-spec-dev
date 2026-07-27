@@ -1021,3 +1021,424 @@ def test_a_first_party_package_beside_the_code_root_is_a_blind_spot(tmp_path: Pa
     assert "first_party_outside_code_root" in spots
     report = check(tmp_path)
     assert report.verdict == VERDICT_UNMAPPABLE
+
+
+# --------------------------------------------------------------------------
+# AC-04 -- the before/after delta
+#
+# The delta is a number that makes people look good, so every test below is
+# about a way it could be made to look good without a refactor having happened:
+#
+# 1. **The drop is real and enumerated.** A divergence that disappears is named,
+#    with the site it used to sit at, and classified by WHY it disappeared.
+# 2. **A drop the edges do not explain is `unverified`.** MF-020 applied to
+#    structure: the count cannot tell a removed dependency from a module that
+#    stopped being looked at, so the count alone is never the answer.
+# 3. **A delta across two different maps is `unattributable`.** AC-02 recorded
+#    that any divergence disappears if the map moves the offending module into
+#    the component it reaches. If the map may move between the scans, the delta
+#    measures the map.
+# 4. **A rise is recorded, never refused.** Advisory doctrine, exit 0.
+# --------------------------------------------------------------------------
+
+
+from scripts.architecture_reflexion import (  # noqa: E402
+    ATTRIBUTION_CODE_ONLY,
+    ATTRIBUTION_PARTIAL,
+    ATTRIBUTION_UNATTRIBUTABLE,
+    DIRECTION_IMPROVED,
+    DIRECTION_UNATTRIBUTABLE,
+    DIRECTION_UNCHANGED,
+    DIRECTION_UNVERIFIED,
+    DIRECTION_WORSENED,
+    BaselineError,
+    load_baseline,
+    scan_basis,
+    structural_delta,
+)
+
+# A second module in the `deliver` component. Its only job is to keep that
+# component realized when `deliver.py` is dropped from the map or from the
+# tree, so those two scenarios can be measured WITHOUT also changing the
+# component set (which would be unattributable for a different reason).
+SHIPPER_PY = """\
+\"\"\"A second deliver-side module, so `deliver` survives losing deliver.py.\"\"\"
+
+
+def label():
+    return "shipped"
+"""
+
+MAP_WITH_SHIPPER = COHERENT_MAP.replace(
+    "        - deliver.py\n", "        - deliver.py\n        - shipper.py\n"
+)
+MAP_SHIPPER_ONLY = COHERENT_MAP.replace("        - deliver.py\n", "        - shipper.py\n")
+
+# The gaming move, written down: deliver.py is re-placed into `ingest`, so the
+# deliver -> ingest edge stops crossing a boundary. Not one line of code changes.
+MAP_DELIVER_MOVED_INTO_INGEST = """architecture_map:
+  language: python
+  components:
+    - component: ingest
+      modules:
+        - ingest.py
+        - deliver.py
+    - component: transform
+      modules:
+        - transform.py
+    - component: deliver
+      modules:
+        - shipper.py
+"""
+
+
+def payload_for(root: Path, **kwargs) -> dict:
+    return report_payload(check(root, **kwargs))
+
+
+def delta_between(before_root: Path, after_root: Path, **kwargs) -> dict:
+    """A delta from a scan of one tree to a scan of another."""
+    before_kwargs = {k[len("before_"):]: v for k, v in kwargs.items() if k.startswith("before_")}
+    after_kwargs = {k[len("after_"):]: v for k, v in kwargs.items() if k.startswith("after_")}
+    baseline = payload_for(before_root, **before_kwargs)
+    return structural_delta(baseline, check(after_root, **after_kwargs))
+
+
+@pytest.fixture()
+def divergent_project(tmp_path: Path) -> Path:
+    root = tmp_path / "before"
+    write_project(root, deliver=DELIVER_PY_DIVERGENT, extras={"shipper.py": SHIPPER_PY})
+    (root / "map.yaml").write_text(MAP_WITH_SHIPPER, encoding="utf-8")
+    return root
+
+
+@pytest.fixture()
+def repaired_project(tmp_path: Path) -> Path:
+    root = tmp_path / "after"
+    write_project(root, extras={"shipper.py": SHIPPER_PY})
+    (root / "map.yaml").write_text(MAP_WITH_SHIPPER, encoding="utf-8")
+    return root
+
+
+class TestARealRefactorIsMeasured:
+    def test_a_removed_divergence_is_improved_and_named(
+        self, divergent_project: Path, repaired_project: Path
+    ) -> None:
+        delta = delta_between(divergent_project, repaired_project)
+        assert delta["verdict"]["direction"] == DIRECTION_IMPROVED
+        # Two distinct dependencies, not one: deliver.py both IMPORTS and CALLS
+        # into ingest.py, and a refactor that removed only the call would leave
+        # the coupling in place. Each is enumerated separately.
+        assert delta["divergences"]["before"] == 2
+        assert delta["divergences"]["after"] == 0
+        assert delta["divergences"]["delta"] == -2
+        lost = delta["divergences"]["lost"]
+        assert {(row["from"], row["to"], row["kind"]) for row in lost} == {
+            ("deliver.py", "ingest.py", "import"),
+            ("deliver.py", "ingest.py", "call"),
+        }
+        for row in lost:
+            assert row["sites"], "the disappeared edge names where it used to be"
+            assert row["classification"]["reason"] == "dependency_removed"
+            assert row["classification"]["verifies_drop"] is True
+
+    def test_the_basis_is_recorded_as_unchanged(
+        self, divergent_project: Path, repaired_project: Path
+    ) -> None:
+        """The map's identity is part of the result, not context around it."""
+        delta = delta_between(divergent_project, repaired_project)
+        basis = delta["basis"]
+        assert basis["attribution"] == ATTRIBUTION_CODE_ONLY
+        assert basis["map_unchanged"] is True
+        assert basis["architecture_unchanged"] is True
+        assert basis["map_digest_before"] == basis["map_digest_after"]
+        assert basis["map_digest_before"].startswith("sha256:")
+
+    def test_a_new_divergence_is_recorded_never_refused(
+        self, divergent_project: Path, repaired_project: Path
+    ) -> None:
+        delta = delta_between(repaired_project, divergent_project)
+        assert delta["verdict"]["direction"] == DIRECTION_WORSENED
+        assert delta["divergences"]["delta"] == 2
+        assert len(delta["divergences"]["gained"]) == 2
+        assert delta["verdict"]["blocks_promotion"] is False
+        assert delta["advisory"]["suggests_moves"] is False
+
+    def test_moving_code_within_a_file_is_not_edge_churn(
+        self, repaired_project: Path, tmp_path: Path
+    ) -> None:
+        """The edge identity excludes the line number on purpose.
+
+        A refactor that shifts every line in a file must not report the whole
+        graph as lost and regained -- that noise would bury the one edge that
+        actually moved.
+        """
+        moved = tmp_path / "moved"
+        write_project(
+            moved,
+            deliver="\n\n\n# a comment that shifts every line below it\n" + DELIVER_PY,
+            extras={"shipper.py": SHIPPER_PY},
+        )
+        (moved / "map.yaml").write_text(MAP_WITH_SHIPPER, encoding="utf-8")
+        delta = delta_between(repaired_project, moved)
+        assert delta["verdict"]["direction"] == DIRECTION_UNCHANGED
+        assert delta["convergences"]["lost"] == []
+        assert delta["convergences"]["gained"] == []
+
+
+class TestTheMapCannotBeMovedBetweenTheScans:
+    def test_re_placing_the_offending_module_is_unattributable(
+        self, divergent_project: Path, tmp_path: Path
+    ) -> None:
+        """The exact gaming move AC-02 warned about, refused.
+
+        The code is byte-identical; only the map moved deliver.py into the
+        component it reaches. The divergence count goes 1 -> 0 and the tool
+        refuses to call that an improvement.
+        """
+        gamed = tmp_path / "gamed"
+        write_project(gamed, deliver=DELIVER_PY_DIVERGENT, extras={"shipper.py": SHIPPER_PY})
+        (gamed / "map.yaml").write_text(MAP_DELIVER_MOVED_INTO_INGEST, encoding="utf-8")
+        delta = delta_between(divergent_project, gamed)
+
+        assert delta["divergences"]["after"] == 0, "the number did improve"
+        assert delta["verdict"]["direction"] == DIRECTION_UNATTRIBUTABLE
+        assert delta["basis"]["attribution"] == ATTRIBUTION_UNATTRIBUTABLE
+        assert delta["basis"]["map_unchanged"] is False
+        reassigned = delta["basis"]["map_changes"]["reassigned"]
+        assert [row["module"] for row in reassigned] == ["deliver.py"]
+        assert reassigned[0]["from_component"] == "deliver"
+        assert reassigned[0]["to_component"] == "ingest"
+
+    def test_a_changed_model_side_is_unattributable(
+        self, divergent_project: Path, tmp_path: Path
+    ) -> None:
+        """Adding a port converts a divergence into a convergence for free.
+
+        Same forgery from the model end: the code is untouched and the map is
+        untouched, but `deliver <-> ingest` now has a port because a new action
+        touches both variables.
+        """
+        ported = tmp_path / "ported"
+        write_project(ported, deliver=DELIVER_PY_DIVERGENT, extras={"shipper.py": SHIPPER_PY})
+        (ported / "map.yaml").write_text(MAP_WITH_SHIPPER, encoding="utf-8")
+        (ported / "Pipeline.tla").write_text(
+            PIPELINE_TLA.replace(
+                "Next == Ingest \\/ Parse \\/ Ship \\/ Reset",
+                "Recycle ==\n"
+                "  /\\ shipped > 0\n"
+                "  /\\ shipped' = shipped - 1\n"
+                "  /\\ raw' = raw + 1\n"
+                "  /\\ UNCHANGED parsed\n\n"
+                "Next == Ingest \\/ Parse \\/ Ship \\/ Reset \\/ Recycle",
+            ),
+            encoding="utf-8",
+        )
+        delta = delta_between(divergent_project, ported)
+        assert delta["divergences"]["after"] == 0
+        assert delta["verdict"]["direction"] == DIRECTION_UNATTRIBUTABLE
+        assert delta["basis"]["architecture_unchanged"] is False
+        assert ["deliver", "ingest"] in delta["basis"]["architecture_changes"]["ports_added"]
+
+    def test_the_map_digest_is_content_not_bytes(
+        self, repaired_project: Path, tmp_path: Path
+    ) -> None:
+        """A reformatted or relocated map with the same placements is the same map.
+
+        Otherwise every comment edit would read as a boundary change and the
+        refusal above would fire constantly, which is how a real check gets
+        turned off.
+        """
+        reformatted = tmp_path / "reformatted"
+        write_project(reformatted, extras={"shipper.py": SHIPPER_PY})
+        (reformatted / "map.yaml").write_text(
+            "# a fresh comment\n" + MAP_WITH_SHIPPER.replace("  language: python\n", ""),
+            encoding="utf-8",
+        )
+        before = scan_basis(check(repaired_project))
+        after = scan_basis(check(reformatted))
+        assert before["map_digest"] == after["map_digest"]
+
+
+class TestADropTheEdgesDoNotExplain:
+    def test_unmapping_the_module_makes_the_drop_unverified(
+        self, divergent_project: Path, tmp_path: Path
+    ) -> None:
+        """MF-020, structurally.
+
+        deliver.py is still in the tree and still imports ingest.py. The map
+        simply stops placing it, so its edges stop being judged and the
+        divergence count falls to zero. The edge left the MEASUREMENT, not the
+        code, and the count alone cannot tell the difference.
+        """
+        unmapped = tmp_path / "unmapped"
+        write_project(unmapped, deliver=DELIVER_PY_DIVERGENT, extras={"shipper.py": SHIPPER_PY})
+        (unmapped / "map.yaml").write_text(MAP_SHIPPER_ONLY, encoding="utf-8")
+        delta = delta_between(divergent_project, unmapped)
+
+        assert delta["divergences"]["after"] == 0
+        assert delta["verdict"]["direction"] == DIRECTION_UNVERIFIED
+        classification = delta["divergences"]["lost"][0]["classification"]
+        assert classification["reason"] == "endpoint_unmapped"
+        assert classification["verifies_drop"] is False
+
+    def test_deleting_the_file_is_a_removal_not_a_re_representation(
+        self, divergent_project: Path, tmp_path: Path
+    ) -> None:
+        """The other MF-020 shape: the coupling is gone because the file is gone.
+
+        That is a true statement about the code, so the direction stays
+        `improved` -- but it is a DELETION, and the report says so rather than
+        letting it read as a boundary that was cleaned up.
+        """
+        deleted = tmp_path / "deleted"
+        write_project(deleted, extras={"shipper.py": SHIPPER_PY})
+        (deleted / "pkg" / "deliver.py").unlink()
+        (deleted / "map.yaml").write_text(MAP_SHIPPER_ONLY, encoding="utf-8")
+        delta = delta_between(divergent_project, deleted)
+
+        assert delta["verdict"]["direction"] == DIRECTION_IMPROVED
+        classification = delta["divergences"]["lost"][0]["classification"]
+        assert classification["reason"] == "endpoint_left_tree"
+        assert any("LEFT THE" in flag for flag in delta["verdict"]["red_flags"])
+
+    def test_the_module_set_changing_reports_a_stable_basis(
+        self, divergent_project: Path, tmp_path: Path
+    ) -> None:
+        added = tmp_path / "added"
+        write_project(
+            added,
+            deliver=DELIVER_PY_DIVERGENT,
+            extras={"shipper.py": SHIPPER_PY, "extra.py": "from ingest import read_raw\n"},
+        )
+        (added / "map.yaml").write_text(
+            MAP_WITH_SHIPPER.replace(
+                "        - shipper.py\n", "        - shipper.py\n        - extra.py\n"
+            ),
+            encoding="utf-8",
+        )
+        delta = delta_between(divergent_project, added)
+        assert delta["basis"]["attribution"] == ATTRIBUTION_PARTIAL
+        assert delta["basis"]["map_changes"]["added"] == ["extra.py"]
+        stable = delta["divergences"]["stable_basis"]
+        assert delta["divergences"]["after"] == 3, "extra.py adds a third divergence"
+        assert stable["before"] == 2 and stable["after"] == 2 and stable["delta"] == 0
+
+
+class TestABaselineThatCannotBeOne:
+    def test_a_text_report_is_refused(self, tmp_path: Path, repaired_project: Path) -> None:
+        path = tmp_path / "baseline.txt"
+        path.write_text("DIVERGENCES (3) -- a crossing edge NO port declares\n", encoding="utf-8")
+        with pytest.raises(BaselineError) as excinfo:
+            load_baseline(path)
+        assert "unverified by construction" in str(excinfo.value)
+
+    def test_a_payload_without_a_basis_is_refused(
+        self, tmp_path: Path, repaired_project: Path
+    ) -> None:
+        """A scan that did not record the map it measured cannot be compared to.
+
+        This is the whole anti-gaming design in one refusal: without the map's
+        identity, a delta cannot be shown to be a fact about the code.
+        """
+        payload = payload_for(repaired_project)
+        payload.pop("basis")
+        path = tmp_path / "old.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        with pytest.raises(BaselineError) as excinfo:
+            load_baseline(path)
+        assert "map_digest" in str(excinfo.value)
+
+    def test_a_scan_whose_comparison_never_ran_is_refused(
+        self, tmp_path: Path, repaired_project: Path
+    ) -> None:
+        """`unmappable` with no diff holds no findings -- not zero findings."""
+        payload = payload_for(repaired_project, declared=False)
+        path = tmp_path / "notrun.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        with pytest.raises(BaselineError) as excinfo:
+            load_baseline(path)
+        assert "never ran" in str(excinfo.value)
+
+    def test_a_current_scan_that_did_not_run_is_not_a_clean_sweep(
+        self, tmp_path: Path, divergent_project: Path
+    ) -> None:
+        """The refusal, one level up.
+
+        If THIS scan's comparison never ran, every baseline finding would read as
+        "disappeared" and the delta would report a clean sweep for a comparison
+        that did not happen.
+        """
+        baseline = payload_for(divergent_project)
+        report = check(divergent_project, declared=False)  # model has no architecture
+        delta = structural_delta(baseline, report)
+        assert delta["verdict"]["direction"] == DIRECTION_UNATTRIBUTABLE
+        assert any("DID NOT RUN" in reason for reason in delta["verdict"]["why"])
+
+    def test_a_nested_analyze_architecture_payload_is_accepted(
+        self, tmp_path: Path, repaired_project: Path
+    ) -> None:
+        """The artifact the command actually writes is a usable baseline."""
+        path = tmp_path / "nested.json"
+        path.write_text(
+            json.dumps({"schema": "x", "reflexion": payload_for(repaired_project)}),
+            encoding="utf-8",
+        )
+        assert load_baseline(path)["basis"]["map_digest"]
+
+
+class TestTheDeltaAdvisesAndNothingElse:
+    def test_the_cli_exits_zero_on_a_worsened_delta(
+        self, tmp_path: Path, repaired_project: Path, divergent_project: Path
+    ) -> None:
+        baseline = tmp_path / "baseline.json"
+        baseline.write_text(json.dumps(payload_for(repaired_project)), encoding="utf-8")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(REPO_ROOT / "scripts" / "architecture_reflexion.py"),
+                str(divergent_project / "Pipeline.tla"),
+                str(divergent_project / "Pipeline.cfg"),
+                "--components", str(divergent_project / "components.yaml"),
+                "--code", str(divergent_project / "pkg"),
+                "--map", str(divergent_project / "map.yaml"),
+                "--baseline", str(baseline),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == EXIT_PASS, result.stderr
+        assert "direction = worsened" in result.stdout
+        assert "Advisory: nothing here blocks" in result.stdout
+
+    def test_an_unusable_baseline_is_the_only_nonzero_exit(
+        self, tmp_path: Path, divergent_project: Path
+    ) -> None:
+        bad = tmp_path / "bad.json"
+        bad.write_text("not json at all", encoding="utf-8")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(REPO_ROOT / "scripts" / "architecture_reflexion.py"),
+                str(divergent_project / "Pipeline.tla"),
+                str(divergent_project / "Pipeline.cfg"),
+                "--components", str(divergent_project / "components.yaml"),
+                "--code", str(divergent_project / "pkg"),
+                "--map", str(divergent_project / "map.yaml"),
+                "--baseline", str(bad),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == EXIT_USAGE
+        assert "not usable as one" in result.stderr
+
+    def test_the_delta_never_says_where_a_module_should_live(
+        self, divergent_project: Path, repaired_project: Path
+    ) -> None:
+        """CD-01 binds the delta too: it reports what moved, never what to move."""
+        from scripts.architecture_reflexion import render_delta_text
+
+        text = render_delta_text(delta_between(divergent_project, repaired_project)).lower()
+        for banned in ("should move", "belongs in", "consider extracting", "recommend"):
+            assert banned not in text

@@ -1,0 +1,32 @@
+AC-04 -- BEFORE/AFTER DESCRIPTOR COMPARISON (CD-09 validated-refactor member)
+===========================================================================
+
+Model files, md5 across all three trees:
+  TlaSpecDevCli.tla
+    specs/current   44d87a077a41cf2afc50521c1ad0b5f1
+    ticket/current  44d87a077a41cf2afc50521c1ad0b5f1
+    ticket/desired  44d87a077a41cf2afc50521c1ad0b5f1
+  MC.cfg
+    specs/current   98e215c5adf6f4101a0cca68d1535966
+    ticket/current  98e215c5adf6f4101a0cca68d1535966
+    ticket/desired  98e215c5adf6f4101a0cca68d1535966
+  spec_manifest.yaml
+    specs/current   f86d07c37cc448e2182c14afb70df5c3
+    ticket/current  f86d07c37cc448e2182c14afb70df5c3
+    ticket/desired  f86d07c37cc448e2182c14afb70df5c3
+
+Measured ledger metrics, all three trees (scripts/complexity_ledger.collect_metrics):
+  specs/current                    {'variables': 10, 'actions': 16, 'bound': 2799360, 'modularity': 0.0}
+  specs/tickets/AC-04/current      {'variables': 10, 'actions': 16, 'bound': 2799360, 'modularity': 0.0}
+  specs/tickets/AC-04/desired      {'variables': 10, 'actions': 16, 'bound': 2799360, 'modularity': 0.0}
+
+  With this ticket's TLC run (specs/tickets/AC-04/results/tlc-current.txt):
+    {'variables': 10, 'actions': 16, 'bound': 2799360, 'distinct_states': 1292951, 'generated_states': 32122220, 'depth': 26}
+
+  PREVIOUS recorded ledger entry: ticket AC-03
+    {'variables': 10, 'actions': 16, 'bound': 2799360, 'distinct_states': None, 'generated_states': None, 'depth': None}
+
+  READING: variables, actions, bound and modularity are identical in all three
+  trees and identical to the previous entry -- this ticket changes no model file.
+  distinct/generated/depth move from null to measured only because AC-03 recorded
+  no TLC report and this ticket does; that is a new measurement, not a delta.
