@@ -1,0 +1,28 @@
+findings:
+  - id: AC-DF-01
+    filed_by: AC-01
+    filed_on: "2026-07-27"
+    status: deferred
+    severity: low
+    blocking: false
+    title: >
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts a doc phrase the c72d03a refresh removed
+    reproduction: >
+      uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget -q
+      -- fails at `assert "hard two-minute budget" in generation_modes`.
+      Reproduced on the epic branch at cb12fd1 with no AC-01 changes applied,
+      so it predates this ticket.
+    detail: >
+      The test asserts the literal phrase "hard two-minute budget" appears in
+      references/generation_modes.md. The c72d03a SKILL.md/reference refresh
+      rewrote that page and the phrase went with it. The SKILL.md half of the
+      same test still passes, so the budget itself is still documented; only the
+      reference-page phrasing assertion is stale. Either the phrase is restored
+      to generation_modes.md or the assertion is retargeted at whatever wording
+      now carries the budget.
+    outside_conflict_keys: true
+    owner_note: >
+      Named as already-red in the AC-01/AC-02/AC-03 work orders and explicitly
+      excluded from this ticket's scope.

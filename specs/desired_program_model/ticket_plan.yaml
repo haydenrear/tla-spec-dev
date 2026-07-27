@@ -226,7 +226,7 @@ tickets:
 
   - id: AC-01
     title: "Architecture descriptor: the structure the diagram implies"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/121"
     schedule_revision: 1
     depends_on: []
@@ -292,7 +292,37 @@ tickets:
         - "It exits nonzero only when it cannot analyze the model, never because the model is complex."
         - "A model whose structure resists clustering reports that explicitly instead of inventing a cut."
         - "TLC on specs/current is green and its distinct-state count is recorded against the epic's desired-model measurement."
-      evidence: []
+      evidence:
+        - specs/tickets/AC-01/results/tlc-current-after.txt
+        - specs/tickets/AC-01/results/architecture-self.txt
+        - specs/tickets/AC-01/results/architecture-self.json
+        - specs/tickets/AC-01/results/architecture-distributed-history-external.txt
+        - specs/tickets/AC-01/results/architecture-distributed-history-external.json
+        - specs/tickets/AC-01/results/architecture-self-declared-demo.txt
+        - specs/tickets/AC-01/results/declared-partition-demo.yaml
+        - specs/tickets/AC-01/results/complexity-current-after.txt
+        - specs/tickets/AC-01/results/repo-unit.txt
+        - specs/tickets/AC-01/results/spec-unit.txt
+        - specs/tickets/AC-01/results/complexity_ledger.yaml
+    model_delta_result: >
+      LANDED. architecture_scan (unknown | coherent | divergent | unmappable) and
+      AnalyzeArchitecture are in specs/current, and ticket current == desired.
+      TLC green: 32,122,220 generated / 1,292,951 distinct / depth 26 / 58s,
+      against the 6,209,780 / 283,805 / depth 25 / 12s baseline -- reproducing
+      the owner's pre-ticket measurement exactly. The 4.6x is recorded, not
+      negotiated: max_distinct_states was not raised and unmappable was not
+      merged into unknown.
+    finding: >
+      The emergent clustering does NOT yield a usable architecture on either real
+      model. specs/current: one component, Q = 0.000 (lastCommand and result are
+      written by all 15 commands). distributed_history External: two components,
+      Q = 0.047, but 9 of 12 actions cross the boundary and no variable is
+      single-writer. The descriptor refuses in both cases rather than reporting a
+      clean one-component architecture, and publishes
+      partition.consumable_as_architecture = false so AC-02 reports unmappable
+      instead of a false coherent. A DECLARED partition (architecture: in the
+      manifest, or --components) is the non-inventive way to get named components
+      on a model that does not decompose.
 
   - id: AC-02
     title: "Reflexion check: measure the production code against the model's architecture"

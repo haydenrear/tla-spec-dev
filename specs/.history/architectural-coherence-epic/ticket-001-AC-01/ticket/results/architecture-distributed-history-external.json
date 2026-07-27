@@ -1,0 +1,1007 @@
+{
+  "schema": "tla-spec-dev/architecture-descriptor",
+  "schema_version": 1,
+  "module": "External",
+  "spec": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/External.tla",
+  "cfg": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/External.cfg",
+  "manifest": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/spec_manifest.yaml",
+  "measured": {
+    "variables": [
+      "accounts",
+      "carts",
+      "orders",
+      "outbox",
+      "projections",
+      "lastInternalAction",
+      "responses",
+      "serviceHealth",
+      "lastServiceRoute",
+      "lastExternalAction"
+    ],
+    "actions": [
+      {
+        "name": "HiddenInternalProgress",
+        "reads": [
+          "accounts",
+          "carts",
+          "orders",
+          "outbox",
+          "projections"
+        ],
+        "writes": [
+          "accounts",
+          "carts",
+          "lastInternalAction",
+          "orders",
+          "outbox",
+          "projections"
+        ]
+      },
+      {
+        "name": "RunFulfillmentWorker",
+        "reads": [
+          "orders",
+          "outbox",
+          "projections",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastInternalAction",
+          "lastServiceRoute",
+          "outbox",
+          "projections"
+        ]
+      },
+      {
+        "name": "RunFulfillmentWorkerNoop",
+        "reads": [
+          "outbox",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute"
+        ]
+      },
+      {
+        "name": "SubmitAddCartItem",
+        "reads": [
+          "accounts",
+          "carts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "carts",
+          "lastExternalAction",
+          "lastInternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitAddCartItemMissingAccount",
+        "reads": [
+          "accounts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitCheckout",
+        "reads": [
+          "accounts",
+          "carts",
+          "orders",
+          "outbox",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastInternalAction",
+          "lastServiceRoute",
+          "orders",
+          "outbox",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitCheckoutEmptyCart",
+        "reads": [
+          "accounts",
+          "carts",
+          "orders",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitCheckoutMissingAccount",
+        "reads": [
+          "accounts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitCreateAccount",
+        "reads": [
+          "accounts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "accounts",
+          "lastExternalAction",
+          "lastInternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitDuplicateAddCartItem",
+        "reads": [
+          "accounts",
+          "carts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitDuplicateCheckout",
+        "reads": [
+          "accounts",
+          "orders",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      },
+      {
+        "name": "SubmitDuplicateCreateAccount",
+        "reads": [
+          "accounts",
+          "responses",
+          "serviceHealth"
+        ],
+        "writes": [
+          "lastExternalAction",
+          "lastServiceRoute",
+          "responses"
+        ]
+      }
+    ],
+    "action_attribution": "top-level disjuncts of the next-state relation ExternalNext, called-operator bodies expanded transitively; helpers are not actions",
+    "partition": {
+      "source": "emergent",
+      "origin": "computed by greedy modularity maximization over the variable interaction graph (the same method `analyze complexity` reports) -- a MEASUREMENT of what the matrix admits, not a declaration and not a proposal",
+      "modularity_q": 0.047219,
+      "newman_significant_q": 0.3,
+      "decomposes": false,
+      "consumable_as_architecture": false,
+      "criteria": [
+        {
+          "name": "component_count",
+          "measured": 2,
+          "rule": ">= 2",
+          "met": true,
+          "why": "a partition with one component separated nothing"
+        },
+        {
+          "name": "modularity_q",
+          "measured": 0.047219,
+          "rule": "> 0",
+          "met": true,
+          "why": "Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)"
+        },
+        {
+          "name": "crossing_action_fraction",
+          "measured": 0.75,
+          "rule": "<= 0.5",
+          "met": false,
+          "why": "a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)"
+        }
+      ],
+      "unassigned_variables": [],
+      "components": [
+        {
+          "id": "C1",
+          "name": "C1",
+          "variables": [
+            "accounts",
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses",
+            "serviceHealth"
+          ],
+          "owns": [],
+          "actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCheckoutMissingAccount",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout",
+            "SubmitDuplicateCreateAccount"
+          ],
+          "internal_actions": [
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckoutMissingAccount",
+            "SubmitDuplicateCreateAccount"
+          ],
+          "crossing_actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout"
+          ],
+          "writer_actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCheckoutMissingAccount",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout",
+            "SubmitDuplicateCreateAccount"
+          ],
+          "reaches": [
+            {
+              "component": "C2",
+              "name": "C2",
+              "via_actions": [
+                "HiddenInternalProgress",
+                "RunFulfillmentWorker",
+                "RunFulfillmentWorkerNoop",
+                "SubmitAddCartItem",
+                "SubmitCheckout",
+                "SubmitCheckoutEmptyCart",
+                "SubmitCreateAccount",
+                "SubmitDuplicateAddCartItem",
+                "SubmitDuplicateCheckout"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "C2",
+          "name": "C2",
+          "variables": [
+            "carts",
+            "lastInternalAction",
+            "orders",
+            "outbox",
+            "projections"
+          ],
+          "owns": [],
+          "actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout"
+          ],
+          "internal_actions": [],
+          "crossing_actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout"
+          ],
+          "writer_actions": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "SubmitAddCartItem",
+            "SubmitCheckout",
+            "SubmitCreateAccount"
+          ],
+          "reaches": [
+            {
+              "component": "C1",
+              "name": "C1",
+              "via_actions": [
+                "HiddenInternalProgress",
+                "RunFulfillmentWorker",
+                "RunFulfillmentWorkerNoop",
+                "SubmitAddCartItem",
+                "SubmitCheckout",
+                "SubmitCheckoutEmptyCart",
+                "SubmitCreateAccount",
+                "SubmitDuplicateAddCartItem",
+                "SubmitDuplicateCheckout"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ownership": {
+      "writers": {
+        "accounts": [
+          "HiddenInternalProgress",
+          "SubmitCreateAccount"
+        ],
+        "carts": [
+          "HiddenInternalProgress",
+          "SubmitAddCartItem"
+        ],
+        "orders": [
+          "HiddenInternalProgress",
+          "SubmitCheckout"
+        ],
+        "outbox": [
+          "HiddenInternalProgress",
+          "RunFulfillmentWorker",
+          "SubmitCheckout"
+        ],
+        "projections": [
+          "HiddenInternalProgress",
+          "RunFulfillmentWorker"
+        ],
+        "lastInternalAction": [
+          "HiddenInternalProgress",
+          "RunFulfillmentWorker",
+          "SubmitAddCartItem",
+          "SubmitCheckout",
+          "SubmitCreateAccount"
+        ],
+        "responses": [
+          "SubmitAddCartItem",
+          "SubmitAddCartItemMissingAccount",
+          "SubmitCheckout",
+          "SubmitCheckoutEmptyCart",
+          "SubmitCheckoutMissingAccount",
+          "SubmitCreateAccount",
+          "SubmitDuplicateAddCartItem",
+          "SubmitDuplicateCheckout",
+          "SubmitDuplicateCreateAccount"
+        ],
+        "serviceHealth": [],
+        "lastServiceRoute": [
+          "RunFulfillmentWorker",
+          "RunFulfillmentWorkerNoop",
+          "SubmitAddCartItem",
+          "SubmitAddCartItemMissingAccount",
+          "SubmitCheckout",
+          "SubmitCheckoutEmptyCart",
+          "SubmitCheckoutMissingAccount",
+          "SubmitCreateAccount",
+          "SubmitDuplicateAddCartItem",
+          "SubmitDuplicateCheckout",
+          "SubmitDuplicateCreateAccount"
+        ],
+        "lastExternalAction": [
+          "RunFulfillmentWorker",
+          "RunFulfillmentWorkerNoop",
+          "SubmitAddCartItem",
+          "SubmitAddCartItemMissingAccount",
+          "SubmitCheckout",
+          "SubmitCheckoutEmptyCart",
+          "SubmitCheckoutMissingAccount",
+          "SubmitCreateAccount",
+          "SubmitDuplicateAddCartItem",
+          "SubmitDuplicateCheckout",
+          "SubmitDuplicateCreateAccount"
+        ]
+      },
+      "single_writer_violations": [
+        {
+          "variable": "accounts",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "SubmitCreateAccount"
+          ]
+        },
+        {
+          "variable": "carts",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "SubmitAddCartItem"
+          ]
+        },
+        {
+          "variable": "lastExternalAction",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCheckoutMissingAccount",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout",
+            "SubmitDuplicateCreateAccount"
+          ]
+        },
+        {
+          "variable": "lastInternalAction",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "SubmitAddCartItem",
+            "SubmitCheckout",
+            "SubmitCreateAccount"
+          ]
+        },
+        {
+          "variable": "lastServiceRoute",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "RunFulfillmentWorker",
+            "RunFulfillmentWorkerNoop",
+            "SubmitAddCartItem",
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCheckoutMissingAccount",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout",
+            "SubmitDuplicateCreateAccount"
+          ]
+        },
+        {
+          "variable": "orders",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "SubmitCheckout"
+          ]
+        },
+        {
+          "variable": "outbox",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker",
+            "SubmitCheckout"
+          ]
+        },
+        {
+          "variable": "projections",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "HiddenInternalProgress",
+            "RunFulfillmentWorker"
+          ]
+        },
+        {
+          "variable": "responses",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "SubmitAddCartItem",
+            "SubmitAddCartItemMissingAccount",
+            "SubmitCheckout",
+            "SubmitCheckoutEmptyCart",
+            "SubmitCheckoutMissingAccount",
+            "SubmitCreateAccount",
+            "SubmitDuplicateAddCartItem",
+            "SubmitDuplicateCheckout",
+            "SubmitDuplicateCreateAccount"
+          ]
+        }
+      ],
+      "single_writer_basis": "the EMERGENT partition, which DOES NOT decompose the model (see the criteria table) -- these violations are relative to a cut the model does not actually have"
+    },
+    "ports": [
+      {
+        "id": "P1",
+        "between": [
+          "C1",
+          "C2"
+        ],
+        "actions": [
+          "HiddenInternalProgress",
+          "RunFulfillmentWorker",
+          "RunFulfillmentWorkerNoop",
+          "SubmitAddCartItem",
+          "SubmitCheckout",
+          "SubmitCheckoutEmptyCart",
+          "SubmitCreateAccount",
+          "SubmitDuplicateAddCartItem",
+          "SubmitDuplicateCheckout"
+        ]
+      }
+    ],
+    "crossing_actions": [
+      {
+        "action": "HiddenInternalProgress",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts"
+          ],
+          "C2": [
+            "carts",
+            "orders",
+            "outbox",
+            "projections"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "accounts"
+          ],
+          "C2": [
+            "carts",
+            "lastInternalAction",
+            "orders",
+            "outbox",
+            "projections"
+          ]
+        }
+      },
+      {
+        "action": "RunFulfillmentWorker",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "serviceHealth"
+          ],
+          "C2": [
+            "orders",
+            "outbox",
+            "projections"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute"
+          ],
+          "C2": [
+            "lastInternalAction",
+            "outbox",
+            "projections"
+          ]
+        }
+      },
+      {
+        "action": "RunFulfillmentWorkerNoop",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "serviceHealth"
+          ],
+          "C2": [
+            "outbox"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute"
+          ],
+          "C2": []
+        }
+      },
+      {
+        "action": "SubmitAddCartItem",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": [
+            "carts"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "carts",
+            "lastInternalAction"
+          ]
+        }
+      },
+      {
+        "action": "SubmitCheckout",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": [
+            "carts",
+            "orders",
+            "outbox"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "lastInternalAction",
+            "orders",
+            "outbox"
+          ]
+        }
+      },
+      {
+        "action": "SubmitCheckoutEmptyCart",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": [
+            "carts",
+            "orders"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": []
+        }
+      },
+      {
+        "action": "SubmitCreateAccount",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": []
+        },
+        "writes": {
+          "C1": [
+            "accounts",
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "lastInternalAction"
+          ]
+        }
+      },
+      {
+        "action": "SubmitDuplicateAddCartItem",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": [
+            "carts"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": []
+        }
+      },
+      {
+        "action": "SubmitDuplicateCheckout",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "responses",
+            "serviceHealth"
+          ],
+          "C2": [
+            "orders"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": []
+        }
+      }
+    ],
+    "spanning_actions": [
+      {
+        "action": "HiddenInternalProgress",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "accounts"
+          ],
+          "C2": [
+            "carts",
+            "lastInternalAction",
+            "orders",
+            "outbox",
+            "projections"
+          ]
+        },
+        "evidence": "HiddenInternalProgress writes C1: accounts; C2: carts, lastInternalAction, orders, outbox, projections in one step"
+      },
+      {
+        "action": "RunFulfillmentWorker",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute"
+          ],
+          "C2": [
+            "lastInternalAction",
+            "outbox",
+            "projections"
+          ]
+        },
+        "evidence": "RunFulfillmentWorker writes C1: lastExternalAction, lastServiceRoute; C2: lastInternalAction, outbox, projections in one step"
+      },
+      {
+        "action": "SubmitAddCartItem",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "carts",
+            "lastInternalAction"
+          ]
+        },
+        "evidence": "SubmitAddCartItem writes C1: lastExternalAction, lastServiceRoute, responses; C2: carts, lastInternalAction in one step"
+      },
+      {
+        "action": "SubmitCheckout",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "lastInternalAction",
+            "orders",
+            "outbox"
+          ]
+        },
+        "evidence": "SubmitCheckout writes C1: lastExternalAction, lastServiceRoute, responses; C2: lastInternalAction, orders, outbox in one step"
+      },
+      {
+        "action": "SubmitCreateAccount",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "accounts",
+            "lastExternalAction",
+            "lastServiceRoute",
+            "responses"
+          ],
+          "C2": [
+            "lastInternalAction"
+          ]
+        },
+        "evidence": "SubmitCreateAccount writes C1: accounts, lastExternalAction, lastServiceRoute, responses; C2: lastInternalAction in one step"
+      }
+    ]
+  },
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "the model's variable interaction graph does not decompose (the emergent partition fails: crossing_action_fraction) and the project declares no component partition, so there is no architecture here to measure code against",
+      "no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This descriptor states measured facts about the model's structure. It makes no recommendation, proposes no cut, and never refuses a close, a promotion, or a case generation."
+  }
+}

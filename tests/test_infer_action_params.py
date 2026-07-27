@@ -49,10 +49,10 @@ from infer_action_params import (  # noqa: E402
 _CURRENT = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
 LIVE_MODEL = _CURRENT if _CURRENT.exists() else REPO_ROOT / "specs" / "program_model" / "TlaSpecDevCli.tla"
 
-# The thirteen-plus-one action labels of TlaSpecDevCli, exhaustively. The issue
-# said "thirteen"; the module actually defines FOURTEEN parameterisable action
-# labels (plus Stutter, which produces no edge under [][Next]_vars). Auditing
-# the superset is the honest reading of "audit all the labels".
+# Every parameterisable action label of TlaSpecDevCli, exhaustively. The issue
+# said "thirteen"; the module defined FOURTEEN (plus Stutter, which produces no
+# edge under [][Next]_vars), and AC-01 added AnalyzeArchitecture for FIFTEEN.
+# Auditing the superset is the honest reading of "audit all the labels".
 ALL_ACTIONS = (
     "BuildSkillCli",
     "InstallLocalCli",
@@ -64,6 +64,7 @@ ALL_ACTIONS = (
     "UpdateTicketCurrent",
     "AnalyzeComplexity",
     "AnalyzeCorpus",
+    "AnalyzeArchitecture",
     "RunEffectConformance",
     "RunKillTest",
     "RunSpecUnitTests",
@@ -93,6 +94,7 @@ def state(
     corpus_gate: str = "unknown",
     effect_conformance: str = "unknown",
     kill_test: str = "unknown",
+    architecture_scan: str = "unknown",
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -106,6 +108,7 @@ def state(
         "corpus_gate": corpus_gate,
         "effect_conformance": effect_conformance,
         "kill_test": kill_test,
+        "architecture_scan": architecture_scan,
     }
 
 
@@ -164,6 +167,15 @@ def pair(action: str) -> tuple[dict, dict]:
             state(setup_phase=4, spec_root="default_specs"),
             state(setup_phase=4, spec_root="default_specs", corpus_gate="pass"),
         )
+    if action == "AnalyzeArchitecture":
+        return (
+            state(setup_phase=4, spec_root="default_specs"),
+            state(
+                setup_phase=4,
+                spec_root="default_specs",
+                architecture_scan="unmappable",
+            ),
+        )
     if action == "RunEffectConformance":
         return (
             state(setup_phase=4, spec_root="default_specs"),
@@ -213,6 +225,7 @@ EXPECTED = {
     "UpdateTicketCurrent": {"ticket": "cli_entrypoint"},
     "AnalyzeComplexity": {"root": "default_specs"},
     "AnalyzeCorpus": {"root": "default_specs"},
+    "AnalyzeArchitecture": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
     "RunKillTest": {"root": "default_specs"},
     # CD-09 (G2): the `override` parameter left the model with the withdrawn
@@ -236,6 +249,7 @@ NEGATIVE_CONTROLS = {
     "ScaffoldWorkflow": {"root": "default_specs"},
     "AnalyzeComplexity": {"root": "custom_specs"},
     "AnalyzeCorpus": {"root": "custom_specs"},
+    "AnalyzeArchitecture": {"root": "custom_specs"},
     "RunEffectConformance": {"root": "custom_specs"},
     "RunKillTest": {"root": "custom_specs"},
     # except-index: name a ticket that did not change.
@@ -529,8 +543,11 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert recipes["InstallLocalCli"].params == ()
 
 
-def test_all_fourteen_action_labels_are_audited(recipes):
-    """Completeness: every Next disjunct appears, none is silently skipped."""
+def test_all_fifteen_action_labels_are_audited(recipes):
+    """Completeness: every Next disjunct appears, none is silently skipped.
+
+    AC-01 added the fifteenth, AnalyzeArchitecture.
+    """
     audited = set(recipes) - {"Stutter"}
     assert audited == set(ALL_ACTIONS), f"unaudited: {audited ^ set(ALL_ACTIONS)}"
 

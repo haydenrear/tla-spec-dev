@@ -6042,6 +6042,162 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "AC-01",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-27T16:40:39.305411+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "complexity-descriptor-main-readiness",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 10,
+            "delta": 1,
+            "percent": 11.1
+          },
+          "actions": {
+            "before": 15,
+            "after": 16,
+            "delta": 1,
+            "percent": 6.7
+          },
+          "bound": {
+            "before": 699840,
+            "after": 2799360,
+            "delta": 2099520,
+            "percent": 300.0
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "increase"
+      },
+      "justification": "AC-01 adds one variable (`architecture_scan`) and one action (`AnalyzeArchitecture`) to represent a command the CLI now genuinely has. An unrepresented command is not modeled behavior, and the same reasoning has licensed every previous scanner variable in this model (MF-011 complexity_gate, MF-014 corpus_gate, MF-013/MF-027 effect_conformance, MF-016 kill_test). The domain is 4-valued: unknown | coherent | divergent | unmappable. It is NOT collapsed to shrink the state space. `unmappable` is distinct from `unknown` for exactly the reason MF-027 grew `unobservable` on the effect oracle: \"the scan has not run\" and \"the scan ran and could not see the target\" are different facts, and merging them deletes the one verdict this epic exists to report. `divergent` is distinct from `coherent` because it is the finding, and the two select distinct CLI next-steps. Measured cost, recorded rather than argued down: static bound        699,840 -> 2,799,360   (x4, the domain size) TLC distinct        283,805 -> 1,292,951   (x4.6) TLC generated     6,209,780 -> 32,122,220  (x5.2) depth                    25 -> 26 wall clock              12s -> 58s The static bound now exceeds max_state_space_bound 1,000,000 and the distinct count exceeds max_distinct_states 500,000. Both are ADVISORY thresholds (MF-036) and both were left as they are: `max_distinct_states` was NOT raised to make the number look compliant, and the domain was NOT shrunk to fit under it. The owner measured these same figures independently before the ticket opened (specs/results/tlc-desired-epic-ac.txt) and recorded the 4.6x as accepted. No action in the model guards on `architecture_scan`, and no close, promotion, or case-generation path reads it. The variable is a record, not a gate.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/results/tlc-baseline-epic-ac.txt (6,209,780 generated / 283,805 distinct / depth 25 / 12s)",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-01/results/tlc-current-after.txt (32,122,220 generated / 1,292,951 distinct / depth 26 / 58s)",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-01/results/repo-unit.txt (726 passed; 1 pre-existing failure deferred as AC-DF-01) + specs/tickets/AC-01/results/spec-unit.txt",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/AC-01/results/complexity-current-after.txt (bound 699,840 -> 2,799,360; 9 -> 10 variables; 14 -> 15 actions)",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Two reductions were considered and both rejected on fidelity grounds. (1) Merge `unmappable` into `unknown` (domain 4 -> 3, bound 2,799,360 -> 2,099,520): rejected -- it deletes the MF-027 distinction between \"not run\" and \"ran blind\", which is the verdict AC-02's refusal semantics depend on. (2) Drop `architecture_scan` and let AnalyzeArchitecture touch only lastCommand/result (bound back to 699,840): rejected -- the command's whole output is the verdict, so a model that cannot see the verdict cannot represent the command. Beyond this ticket's delta no reduction to the existing model was found: the model's own architecture descriptor (results/architecture-self.txt) reports one component at Q = 0.000, so there is no cut available to take. That non-decomposition is itself this ticket's headline finding.\n",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "AC-01 turned the structure `analyze complexity` computes internally into an addressable artifact: `tla-spec-dev analyze architecture`, with a text descriptor and a versioned JSON form (schema tla-spec-dev/architecture-descriptor v1) that AC-02 and AC-03 consume. The load-bearing finding is negative and is recorded as such. Run against the two real models available, the emergent clustering does NOT yield a usable architecture in either case: * specs/current/TlaSpecDevCli.tla -- ONE component, Q = 0.000. `lastCommand` and `result` are written by all 15 commands, so the variable interaction graph is effectively complete and greedy modularity finds nothing to separate. * examples/distributed_history/.../External.tla -- two components, Q = 0.047, but 9 of 12 actions cross the boundary and EVERY variable is written by some action that also writes into the other component. The reference example has no single-writer state at all. The descriptor reports that instead of presenting the one-component partition as an architecture. That refusal is the design decision this ticket most wanted to get right: with one component every variable is trivially \"written inside its component\", so a naive implementation reports zero single-writer violations and no ports -- a flawless architecture report for a model that has none, indistinguishable from the real thing. The ownership fields are `null` with a stated reason instead, and `partition.consumable_as_architecture` is published as the single field AC-02 must branch on to report `unmappable` rather than a false `coherent`. Because both real targets refuse, the descriptor would be vacuous without a second, non-inventive source of components. That source is a DECLARED partition (`architecture:` in spec_manifest.yaml, or --components), symmetric with AC-02's declared module map and justified by the same rule: a tool that picks its own boundary can define every finding out of existence. The tool measures the partition the project names and never writes one; an unreadable declaration is refused rather than silently replaced by the emergent clustering. Exercised against this repository's own model in results/architecture-self-declared-demo.txt, where a four-component declaration makes all 10 variables single-writer violations -- the measured cause of the non-decomposition, now expressed as ownership. CD-01 is honored: no proposed cut, no refactor, no target shape, no next step. The one judgment the tool makes -- \"this partition is not a cut\" -- ships with the criteria table that produced it (component_count >= 2, Q > 0, crossing fraction <= 0.5), so a reader can disagree with the rule rather than with a verdict handed down without one. The crossing-fraction rule reuses the R/W matrix's existing >half dense-row/dense-column convention rather than a threshold invented here, and Newman's Q >= 0.3 convention is reported beside the score but never applied as a criterion. Doctrine held throughout: exit 0 on any analyzable model however incoherent, nonzero only for the MF-030 unresolved-hierarchy fail-closed or an unreadable declaration; and `analyze architecture` on its own always reports `unmappable`, because it measures the model side and an unobserved target is never clean.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

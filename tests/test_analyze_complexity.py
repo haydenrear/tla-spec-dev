@@ -224,6 +224,22 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     depth 24 -> 25, and TLC 1,067,828 -> 5,619,356 generated / 49,875 ->
     231,621 distinct (46.3% of the negotiated max_distinct_states 500,000).
 
+    AC-01 then added `architecture_scan`, the architectural-coherence epic's
+    only model delta. It is 4-valued: "unknown", "coherent", "divergent", and
+    "unmappable". The last is kept distinct from "unknown" deliberately and by
+    owner direction: "unknown" is "the scan has not run", "unmappable" is "the
+    scan ran and could not see the target" -- the MF-027 distinction, which is
+    the entire reason the effect oracle grew "unobservable". Collapsing them to
+    shrink the domain would delete exactly the verdict the epic exists to
+    report. The factor is 4: 699,840 * 4 = 2,799,360, which is the first time
+    the STATIC bound has gone over `max_state_space_bound` 1,000,000 -- the
+    scanner now warns about this model, advisory as always. Measured alongside,
+    and recorded in specs/results/tlc-{baseline,desired}-epic-ac.txt: 9 -> 10
+    variables, depth 25 -> 26, and TLC 6,209,780 -> 32,122,220 generated /
+    283,805 -> 1,292,951 distinct. That 4.6x on reachable states is over the
+    negotiated max_distinct_states 500,000, and it is recorded rather than
+    negotiated away: the domain represents the reachable verdict set exactly.
+
     Asserting the current figure AND its relationship to each recorded
     predecessor keeps the calibration meaningful across every promotion.
     """
@@ -232,9 +248,12 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    assert result.bound == 699_840
-    # Divide out the MF-016 4-valued kill-test gate...
-    pre_mf016 = result.bound // 4
+    assert result.bound == 2_799_360
+    # Divide out the AC-01 4-valued architecture scan...
+    pre_ac01 = result.bound // 4
+    assert pre_ac01 == 699_840
+    # ...then the MF-016 4-valued kill-test gate...
+    pre_mf016 = pre_ac01 // 4
     assert pre_mf016 == 174_960
     # ...then the MF-027 5-valued effect gate to recover the MF-025 figure...
     pre_mf013 = pre_mf016 // 5
@@ -423,11 +442,11 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
         assert removed not in result.variables
     # MF-013 later multiplied the bound by 4 (effect_conformance), MF-027 took
     # that factor to 5 by adding the "unobservable" verdict, MF-016 multiplied
-    # by a further 4 (kill_test), and MF-025 divided the bound by 4096/216 (the
-    # per-ticket lifecycle collapse), so undo all of them
-    # before checking the setup-phase factor. A change to the setup-phase
-    # factor itself would still break this.
-    pre_mf025 = result.bound // 4 // 5 // 216 * 4096
+    # by a further 4 (kill_test), AC-01 by a further 4 (architecture_scan), and
+    # MF-025 divided the bound by 4096/216 (the per-ticket lifecycle collapse),
+    # so undo all of them before checking the setup-phase factor. A change to
+    # the setup-phase factor itself would still break this.
+    pre_mf025 = result.bound // 4 // 4 // 5 // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
     assert pre_mf025 % 221_184 == 0

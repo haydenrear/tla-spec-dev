@@ -1,0 +1,22 @@
+# DEMONSTRATION ONLY -- AC-01 evidence, not a design decision.
+#
+# This repository's model does not decompose on its own (see
+# architecture-self.txt: one component, Q = 0.000). The descriptor therefore
+# refuses to name a cut. This file shows the other half of the contract: what
+# the tool measures once a partition is DECLARED.
+#
+# It is deliberately NOT written into specs/current/spec_manifest.yaml.
+# Declaring this repository's architecture is the owner's design decision, and
+# AC-01's doctrine is that the tool never writes a partition for you. It is
+# kept here so the declared path is exercised against a real model rather than
+# only against test fixtures.
+architecture:
+  components:
+    - name: bootstrap
+      variables: [setup_phase, spec_root]
+    - name: ticket_lifecycle
+      variables: [ticket_state]
+    - name: scanners
+      variables: [complexity_gate, corpus_gate, effect_conformance, kill_test, architecture_scan]
+    - name: cli_surface
+      variables: [lastCommand, result]
