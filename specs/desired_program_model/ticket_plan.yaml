@@ -661,7 +661,7 @@ tickets:
 
   - id: EV-01
     title: "Eval fixtures: examples and predictions for both levers"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/125"
     schedule_revision: 1
     depends_on: [CM-01, AC-03, AC-04]
@@ -712,8 +712,32 @@ tickets:
         - "PREDICTIONS.md is committed before any dispatch and names the degenerate paths, not only the success paths."
         - "The incoherent fixture's divergences are enumerated by the epic owner in advance, so the reflexion check is scored against a known answer key."
         - "Existing examples run green against the shipped surface, or their breakage is FILED as a finding rather than patched away."
-      evidence: []
+      evidence:
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/EV-01-summary.md"
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/tlc-current.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/spec-unit-tests.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/repository-unit-tests.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/zero-model-delta.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/twin-integrity.txt"
+        - "examples/validation/PREDICTIONS.md"
+        - "examples/validation/ex4_pipeline_coherent/README.md"
+        - "examples/validation/ex4_pipeline_coherent/seeded_faults.toml"
+        - "examples/validation/ex4_pipeline_coherent/evidence/"
+        - "examples/validation/ex5_pipeline_divergent/README.md"
+        - "examples/validation/ex5_pipeline_divergent/evidence/"
+        - "examples/validation/ex5_pipeline_divergent/gamed/"
+        - "examples/validation/ex6_jenga/README.md"
+        - "examples/validation/ex6_jenga/evidence/"
     model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+    model_delta_result: >
+      ZERO, as planned and verified: `diff -r specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/current
+      specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/desired` is empty
+      (specs/.history/architectural-coherence-epic/ticket-005-EV-01/ticket/results/zero-model-delta.txt), TLC green on ticket
+      current (32,122,220 generated / 1,292,951 distinct / depth 26, 0 left on
+      queue), spec-unit tests pass for both targets. No action was invented to
+      produce a delta: EV-01 builds the instrument that will judge this epic,
+      and changing the program the instrument measures would have made the
+      fixtures a measurement of EV-01's own edits.
 
   - id: EV-02
     title: "Run the evals as a fact-finding mission; write the follow-up self-improvement charter"

@@ -1,0 +1,23 @@
+[adapters.Accept]
+adapter = "specs.program_model.adapters:AcceptAdapter"
+kind = "pipeline-internal"
+
+[adapters.Enqueue]
+adapter = "specs.program_model.adapters:EnqueueAdapter"
+kind = "pipeline-internal"
+
+[adapters.Deliver]
+adapter = "specs.program_model.adapters:DeliverAdapter"
+kind = "pipeline-internal"
+
+[adapters.Fail]
+adapter = "specs.program_model.adapters:FailAdapter"
+kind = "pipeline-internal"
+
+[adapters.Record]
+adapter = "specs.program_model.adapters:RecordAdapter"
+kind = "pipeline-internal"
+
+# ARM B -- corpus + content-asserting provider (the ex1-run4 instrument).
+[effect_providers.LedgerStorePort]
+provider = "specs.program_model.providers:ledger_store_provider"

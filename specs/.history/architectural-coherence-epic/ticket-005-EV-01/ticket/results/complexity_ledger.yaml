@@ -1,0 +1,83 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# EV-01 is a ZERO-MODEL-DELTA ticket. `diff -r specs/tickets/EV-01/current
+# specs/tickets/EV-01/desired` is empty, and the measured complexity delta is
+# `direction=zero (vs AC-04)`. Nothing was refactored, so nothing here licenses
+# a decrease; the entries below record what was actually measured.
+
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "AC-04, this ticket's promotion predecessor, closed TLC-green on the same model; EV-01 inherited it byte-identical (specs/tickets/EV-01/results/zero-model-delta.txt)"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/EV-01/results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct / depth 26, 0 states left on queue"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/EV-01/results/repository-unit-tests.txt -- 864 passed, 1 failed (test_skill_requires_two_minute_case_generation_budget, a documentation-content guard already filed as CM-01-DF-01 and explicitly outside this ticket); specs/tickets/EV-01/results/spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "no before/after comparison is possible or meaningful: the model is byte-identical before and after, and the ledger's own delta computation reports direction=zero against AC-04. Recorded as the no-op it is rather than left blank."
+
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: >-
+      DELIBERATE. EV-01 built a six-fault catalog
+      (examples/validation/ex4_pipeline_coherent/seeded_faults.toml) with a
+      predicted detector and a predicted measurement arm per fault, and ran the
+      CONTROL only -- both arms green on the unmutated program, 330 cases, exit
+      0. Measuring the mutants is EV-02's job. A fixture author who scores his
+      own instrument has deleted the measurement, so `not_run` is the honest
+      value here and the catalog is the deliverable.
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+architecture_delta:
+  report: ""
+  claim: ""
+
+justification: ""
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none applicable to this ticket's model delta, because there
+    is no model delta: specs/tickets/EV-01/current == desired, byte for byte.
+    The refinement search WAS run against the fixtures, which is where this
+    ticket's representation decisions live, and it produced three recorded
+    outcomes rather than a model change. (1) The decomposable fixture was
+    almost built on the owner's two-component probe model; a two-component
+    partition has exactly one component pair, that pair is ported, and
+    `unfalsifiable_coherence` fires on every run over it -- a fixture that
+    cannot produce a divergence cannot be the positive test for a divergence
+    check. One variable and one action were added so that ingest <-> ledger is
+    unported. Measured: Q = 0.133, all three criteria met, divergence
+    detectable, and the twin's four divergences are therefore findable.
+    (2) The corpus arm was almost built as one adapter mapping with the
+    provider assertion behind a flag; that is a suppression key with better
+    manners, so it was built as TWO declared mappings instead, and a reader of
+    the mapping can now see which instrument produced a number. (3) A synthetic
+    Jenga was almost dropped in favour of this repository's own model, which IS
+    one; it was kept because the real one refuses at the model stage and so can
+    never exercise the `unfalsifiable_coherence` refusal against a code side.
+    Each of the three is written down in the fixture READMEs rather than left
+    as an unexplained shape.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: "specs/tickets/EV-01/results/EV-01-summary.md"

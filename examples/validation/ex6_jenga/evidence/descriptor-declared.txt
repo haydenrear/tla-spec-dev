@@ -1,0 +1,108 @@
+wrote evidence: evidence/descriptor-declared.txt
+analyze architecture -- Jenga (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/Jenga.tla
+  config:   /Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/Jenga.cfg
+  manifest: (none)
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: DECLARED
+  declared by the project in /Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/architecture_components.yaml
+  actions: top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions
+
+  C1 (orders)
+    variables:         status
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  Bill, Close, Notify, Place
+    reaches C2 via: Bill, Close, Notify, Place
+    reaches C3 via: Bill, Close, Notify, Place
+
+  C2 (billing)
+    variables:         auditLog
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  Bill, Close, Notify, Place
+    reaches C1 via: Bill, Close, Notify, Place
+    reaches C3 via: Bill, Close, Notify, Place
+
+  C3 (notify)
+    variables:         dirty, lastCommand
+    owns (writes confined here): (none)
+    internal actions:  Poll
+    crossing actions:  Bill, Close, Notify, Place
+    reaches C1 via: Bill, Close, Notify, Place
+    reaches C2 via: Bill, Close, Notify, Place
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = -0.186
+  [OK  ] component_count: measured 3, rule >= 2
+         a partition with one component separated nothing
+  [FAIL] modularity_q: measured -0.1856, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [FAIL] crossing_action_fraction: measured 0.8, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition.
+  The descriptor states that rather than presenting a cut the model does
+  not have. It does not propose a different one: naming a boundary the
+  matrix does not show is the CD-01 failure mode, and a clean-looking
+  architecture derived from an invented cut is worse than none.
+
+[MEASURED] State ownership -- which actions write each variable
+  status       Bill, Close, Notify, Place
+  auditLog     Bill, Close, Notify, Place
+  dirty        Bill, Close, Notify, Place, Poll
+  lastCommand  Bill, Close, Notify, Place, Poll
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  basis: the DECLARED partition (/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex6_jenga/specs/program_model/architecture_components.yaml)
+  auditLog: written from C1, C2, C3 by Bill, Close, Notify, Place
+  dirty: written from C1, C2, C3 by Bill, Close, Notify, Place, Poll
+  lastCommand: written from C1, C2, C3 by Bill, Close, Notify, Place, Poll
+  status: written from C1, C2, C3 by Bill, Close, Notify, Place
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  P1  C1 <-> C2
+      crossed by: Bill, Close, Notify, Place
+  P2  C1 <-> C3
+      crossed by: Bill, Close, Notify, Place
+  P3  C2 <-> C3
+      crossed by: Bill, Close, Notify, Place
+
+  per crossing action:
+    Bill crosses C1, C2, C3 (P1, P2, P3)
+      C1: reads status | writes status
+      C2: reads auditLog | writes auditLog
+      C3: reads - | writes dirty, lastCommand
+    Close crosses C1, C2, C3 (P1, P2, P3)
+      C1: reads status | writes status
+      C2: reads auditLog | writes auditLog
+      C3: reads - | writes dirty, lastCommand
+    Notify crosses C1, C2, C3 (P1, P2, P3)
+      C1: reads status | writes status
+      C2: reads auditLog | writes auditLog
+      C3: reads - | writes dirty, lastCommand
+    Place crosses C1, C2, C3 (P1, P2, P3)
+      C1: reads status | writes status
+      C2: reads auditLog | writes auditLog
+      C3: reads - | writes dirty, lastCommand
+
+[MEASURED] Spanning actions -- write sets that span components
+  Bill writes C1: status; C2: auditLog; C3: dirty, lastCommand in one step
+  Close writes C1: status; C2: auditLog; C3: dirty, lastCommand in one step
+  Notify writes C1: status; C2: auditLog; C3: dirty, lastCommand in one step
+  Place writes C1: status; C2: auditLog; C3: dirty, lastCommand in one step
+
+[MEASURED] Architecture scan verdict
+  architecture_scan = unmappable
+    - no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved
+
+  `analyze architecture` exits 0 whenever it can analyze the model. A model
+  with no architecture is a FINDING, not a failure. It exits nonzero ONLY
+  when the model cannot be analyzed at all (an unresolved module hierarchy),
+  which is 'I could not measure this'. Nothing here blocks a close, a
+  promotion, or a case generation.

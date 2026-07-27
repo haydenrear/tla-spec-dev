@@ -1,0 +1,31 @@
+{
+  "actions": {
+    "Fail": 4,
+    "Record": 2
+  },
+  "case_module": {
+    "actions": [
+      "Record",
+      "Fail"
+    ],
+    "claim": "Recording a delivered item in the ledger is independent of how the item reached `delivered` -- of which other items are in the inbox, accepted, or queued. The Given asserts one pre-state (i1 delivered, i2 still in the inbox) instead of enumerating every reachable configuration that has a delivered item. What it claims is irrelevant to Record: upstream ingest state. If Record ever reads inbox, accepted, or queue, the claim is false and this Given must go.",
+    "extends": "Pipeline",
+    "form": "given",
+    "name": "Scenario_RecordAfterDelivery",
+    "view": "internal"
+  },
+  "cases": 6,
+  "declared_view_actions": [
+    "Accept",
+    "Deliver",
+    "Enqueue",
+    "Fail",
+    "Record"
+  ],
+  "generated_outside_declared_scope": [],
+  "module": "Scenario_RecordAfterDelivery",
+  "scope_actions_not_declared_for_view": [],
+  "source": "/private/tmp/ev01cm/spec-unit/Scenario_RecordAfterDelivery_cases",
+  "view": "internal",
+  "zero_case_actions_in_scope": []
+}
