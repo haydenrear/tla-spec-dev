@@ -40,7 +40,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 1
+  schedule_revision: 2
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -59,6 +59,16 @@ epic:
     test_skill_requires_two_minute_case_generation_budget is RED on main
     (asserts phrases the c72d03a docs refresh removed) -- a pre-existing
     failure, not yours; file it, do not fix it inside a ticket.
+    2026-07-27 AMENDMENT (schedule_revision 2, pre-dispatch, no assignment
+    identities changed): (a) EXECUTION IS LOCAL-ONLY by owner direction --
+    ticket agents push NOTHING, open no PR, and edit no GitHub issue; they
+    commit on their feature branch in their worktree and stop. The epic owner
+    merges each ticket branch into epic/architectural-coherence locally and
+    verifies post-merge. The remote epic branch and issues #120-#126 stay as
+    they were pushed on 2026-07-26. (b) The EV-01/EV-02 validation scope is
+    widened by the owner's stated aims -- see eval_aims below -- which is why
+    the revision moved; ticket IDs, dependencies, waves, promotion order, and
+    conflict keys are unchanged.
   model_delta: >
     Unlike the complexity-descriptor epic, this one is NOT zero-model-delta.
     specs/desired_program_model adds the architecture_scan variable (unknown |
@@ -83,6 +93,27 @@ epic:
     architecture_scan and no close/promotion path may read it. A gate is earned
     per check on real-app evidence, exactly as
     references/architecture_tractability.md, "Advisory, Not Blocking" requires.
+
+eval_aims: >
+  Owner direction 2026-07-27, binding on EV-01's predictions and EV-02's
+  scoring. The evals are not a formality at the end of this epic; they are the
+  point of it. What the levers are being tested FOR, in the owner's order:
+  (1) CATCH HARDER BUGS -- the MF-038 class and worse. A generated corpus that
+  exercises the program without detecting its faults is the failure this epic
+  must not repeat; score bug-detection directly, with seeded faults whose
+  content differs subtly, not merely case counts.
+  (2) BE A SUBSTRATE FOR MANUAL TEST STARTERS -- a person writes one aspect
+  (a Given plus an entry point) and the toolchain expands it into many cases
+  that fuzz the bug out. Score how much a human has to write versus how many
+  distinct behaviors come back, and whether an aspect written by a
+  non-author of the model produces a usable corpus.
+  (3) BE RERUNNABLE AND DETERMINISTIC -- the same aspect, rerun, produces the
+  same corpus and the same verdict; a failure replays exactly (the ex1-run4
+  replay-command property). Score determinism by rerunning, not by asserting
+  it. A nondeterministic corpus is a finding, however good its first run.
+  These aims are what the predictions must be written against, and they
+  outrank tidiness: an honest negative on any of the three is the most
+  valuable output available from EV-02.
 
 deferment_policy:
   mode: batch
