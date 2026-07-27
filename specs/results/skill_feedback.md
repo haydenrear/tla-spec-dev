@@ -1365,5 +1365,14 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - summary: (none given)
 - feedback_status: unreviewed
 
+## Close-out ticket AC-03
+
+- close_scope: ticket
+- close_id: AC-03
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T17:20:19+00:00
+- summary: AC-03: the ask -- prompts/implementation_brief.md + templates/implementation_brief.md and prompts/aspect_decomposition.md. Zero TLA+ model delta (ticket current == desired, TLC green, figures identical to AC-01). Four end-to-end renders kept as evidence: two DEGRADED briefs from this repository's own model under a declared partition, one REFUSAL from the emergent one-component partition, one FULL brief from the worked example's Internal view. consumable_as_architecture is necessary but not sufficient for a non-vacuous brief; the prompt adds three per-render vacuity tests. Two deferred findings filed (AC-03-DF-01, AC-03-DF-02).
+- feedback_status: unreviewed
+
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

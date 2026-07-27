@@ -222,3 +222,121 @@ findings:
       advisory doctrine warns against. Raised for EV-01/EV-02 to score against,
       since "the toolchain cannot measure its own repository" is a fact those
       evals should carry.
+  - id: AC-03-DF-01
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The architecture descriptor encodes "not measurable with one component"
+      two different ways in the same JSON payload, and one of them is
+      indistinguishable from a real measurement. For a single-component
+      partition, `measured.ownership.single_writer_violations` is `null` and
+      `measured.ownership.single_writer_basis` carries the reason -- correct,
+      and exactly the MF-027 discipline. But
+      `measured.partition.components[0].owns` is the empty list `[]`, with no
+      accompanying reason anywhere in the JSON. The TEXT renderer prints
+      `owns: NOT MEASURABLE with one component -- every variable would be
+      trivially owned`; the JSON does not. A consumer that branches on `owns`
+      reads `[]` as "this component owns nothing", which is a plausible
+      architectural fact, when the field means "the question is undefined
+      here". That is the false-clean shape the whole command exists to refuse,
+      surviving in the machine-readable half of the contract that AC-02 and
+      AC-03 actually read.
+    reproduction: >-
+      python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/current/TlaSpecDevCli.tla specs/current/MC.cfg --format json |
+      python3 -c "import json,sys; d=json.load(sys.stdin)['measured'];
+      print('owns      =', d['partition']['components'][0]['owns']);
+      print('violations=', d['ownership']['single_writer_violations']);
+      print('basis     =', d['ownership']['single_writer_basis'])".
+      Observed at e73b7d1: `owns = []`, `violations = None`,
+      `basis = 'NOT MEASURABLE: ...'`. Compare the same run with
+      `--format text`, which prints the NOT MEASURABLE sentence for `owns`.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_descriptor_emergent.json"
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_REFUSED_emergent.md"
+    why_out_of_scope: >-
+      scripts/analyze_architecture.py is AC-01's production surface and AC-02's
+      live conflict key; AC-03's keys are prompts/, templates/,
+      references/case_modules.md and SKILL.md. AC-03 defends against it in the
+      consumer instead: Gate A of prompts/implementation_brief.md refuses to
+      render before the field can be read, and the prompt names this field
+      explicitly as one that lies.
+    suggested_fix: >-
+      Emit `owns: null` (not `[]`) whenever ownership is undefined for the
+      partition, and add a sibling reason field the way `single_writer_basis`
+      does for violations. Do not fix it by documenting the convention -- a
+      consumer that must read prose to interpret a field is the problem.
+    blast_radius: >-
+      AC-02's reflexion check reads the same payload. Any consumer branching on
+      a truthiness test over `owns` is affected.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: AC-03-DF-02
+    found_by: "AC-03"
+    found_at_commit: "e73b7d1"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/analyze_architecture.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      "This model does not decompose" is a statement about the SEARCH, not
+      about the model, and the descriptor states it as though it were about the
+      model. The emergent partition comes from greedy modularity maximization,
+      which on specs/current/TlaSpecDevCli.tla terminates at the trivial
+      one-component partition (Q = 0.000) and produces the report "this model
+      DOES NOT DECOMPOSE ... There is no cut to name". Exhaustive enumeration
+      of all 115,975 set partitions of that model's 10 variables, scored with
+      the SHIPPED `analyze_complexity.modularity` and the SHIPPED three
+      criteria, finds **2 partitions that meet all three criteria** -- the best
+      at Q = 0.0029 with a crossing-action fraction of 0.188 (versus the 0.5
+      rule). The shipped tool confirms it when the partition is handed back as
+      a declaration: `--components` on
+      `[corpus_gate, effect_conformance] | [the rest]` prints "MEASURED RESULT:
+      the partition is a cut -- every criterion above is met." This matters
+      beyond one number: references/architecture_coherence.md calls the
+      non-decomposition of this repository's two real targets "the epic's most
+      load-bearing measurement", and AC-03's non-vacuity precondition, AC-02's
+      `unmappable` verdict, and the case for declared partitions all rest on
+      it. The finding does not overturn the refusal doctrine -- refusing to
+      invent a cut is still right, and a Q of 0.003 is negligible structure --
+      but the wording claims more than greedy search establishes.
+    reproduction: >-
+      python3 specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.py
+      (checked in, ~40s, no dependencies beyond the repository). Observed at
+      e73b7d1: "partitions examined: 115975 / partitions meeting ALL THREE
+      criteria: 2 / shipped emergent partition: 1 component(s), Q = 0.000000,
+      decomposes = False". Then confirm with the shipped CLI using the
+      `--components` file printed in that script's docstring.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.py"
+      - "specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.txt"
+    why_out_of_scope: >-
+      Both scanner scripts are outside AC-03's conflict keys, and
+      references/architecture_coherence.md is AC-02's key. AC-03 touches
+      neither; its prompts consume whatever the descriptor reports.
+    suggested_fix: >-
+      Say what was searched. "Greedy modularity maximization found no partition
+      meeting the criteria" is true and checkable; "this model does not
+      decompose" is neither. Exhaustive search is tractable at this variable
+      count and intractable in general, so the honest fix is the wording plus a
+      named search method in `partition.origin`, not a better search. Do NOT
+      fix it by adopting the exhaustive search and proposing the partition it
+      finds -- naming a cut the project did not declare is the CD-01 failure
+      this command exists to avoid.
+    blast_radius: >-
+      Wording only in the tool; but references/architecture_coherence.md,
+      SKILL.md's architecture-descriptor paragraph, and AC-01's and AC-03's
+      close-out summaries all repeat the stronger claim.
+    disposition: pending
+    disposition_ticket: null

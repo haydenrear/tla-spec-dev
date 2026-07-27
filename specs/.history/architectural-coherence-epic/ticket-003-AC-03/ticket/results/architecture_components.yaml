@@ -1,0 +1,30 @@
+# DECLARED component partition for specs/current/TlaSpecDevCli.tla.
+#
+# WHY THIS FILE EXISTS. AC-01 measured this repository's own model as ONE
+# component at Q = 0.000: `lastCommand` and `result` are written by all fifteen
+# commands, so the variable interaction graph is effectively complete and the
+# EMERGENT partition does not decompose. A brief rendered from that descriptor
+# is vacuous ("C1 owns everything, reaches nothing"), and AC-01's documented
+# answer is to DECLARE a partition instead.
+#
+# This is one, written by hand from the CLI's own structure -- workflow
+# lifecycle state and its command surface on one side, the scanner verdicts on
+# the other -- so that AC-03 can demonstrate `prompts/implementation_brief.md`
+# end-to-end against a descriptor whose `consumable_as_architecture` is true.
+#
+# It is a DECLARATION, not a proposal. The tool measures what is written here
+# and never writes one for you (CD-01). It is AC-03 ticket evidence, not a
+# project-wide architecture: it is deliberately NOT installed into
+# specs/current/spec_manifest.yaml, because declaring a partition for the whole
+# project is an owner decision, not a ticket's.
+#
+# MEASURED under this partition (2026-07-27): 2 components, crossing action
+# fraction 0.375, modularity Q = -0.018 -- so `decomposes` is FALSE on the
+# modularity_q criterion, and briefs rendered from it are DEGRADED, not FULL.
+# That is recorded rather than tuned away; see AC-03's rendered briefs.
+architecture:
+  components:
+    - name: workflow
+      variables: [setup_phase, spec_root, ticket_state, lastCommand, result]
+    - name: scanners
+      variables: [complexity_gate, corpus_gate, effect_conformance, kill_test, architecture_scan]

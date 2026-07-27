@@ -1,0 +1,385 @@
+{
+  "schema": "tla-spec-dev/architecture-descriptor",
+  "schema_version": 1,
+  "module": "Internal",
+  "spec": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/examples/distributed_history/specs/program_model/Internal.tla",
+  "cfg": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/examples/distributed_history/specs/program_model/Internal.cfg",
+  "manifest": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/examples/distributed_history/specs/program_model/spec_manifest.yaml",
+  "measured": {
+    "variables": [
+      "accounts",
+      "carts",
+      "orders",
+      "outbox",
+      "projections",
+      "lastInternalAction"
+    ],
+    "actions": [
+      {
+        "name": "AddCartItem",
+        "reads": [
+          "accounts",
+          "carts"
+        ],
+        "writes": [
+          "carts",
+          "lastInternalAction"
+        ]
+      },
+      {
+        "name": "Checkout",
+        "reads": [
+          "accounts",
+          "carts",
+          "orders",
+          "outbox"
+        ],
+        "writes": [
+          "lastInternalAction",
+          "orders",
+          "outbox"
+        ]
+      },
+      {
+        "name": "CreateAccount",
+        "reads": [
+          "accounts"
+        ],
+        "writes": [
+          "accounts",
+          "lastInternalAction"
+        ]
+      },
+      {
+        "name": "ProjectOrder",
+        "reads": [
+          "outbox",
+          "projections"
+        ],
+        "writes": [
+          "lastInternalAction",
+          "outbox",
+          "projections"
+        ]
+      }
+    ],
+    "action_attribution": "top-level disjuncts of the next-state relation InternalNext, called-operator bodies expanded transitively; helpers are not actions",
+    "partition": {
+      "source": "emergent",
+      "origin": "computed by greedy modularity maximization over the variable interaction graph (the same method `analyze complexity` reports) -- a MEASUREMENT of what the matrix admits, not a declaration and not a proposal",
+      "modularity_q": 0.00692,
+      "newman_significant_q": 0.3,
+      "decomposes": true,
+      "consumable_as_architecture": true,
+      "criteria": [
+        {
+          "name": "component_count",
+          "measured": 2,
+          "rule": ">= 2",
+          "met": true,
+          "why": "a partition with one component separated nothing"
+        },
+        {
+          "name": "modularity_q",
+          "measured": 0.00692,
+          "rule": "> 0",
+          "met": true,
+          "why": "Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)"
+        },
+        {
+          "name": "crossing_action_fraction",
+          "measured": 0.5,
+          "rule": "<= 0.5",
+          "met": true,
+          "why": "a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)"
+        }
+      ],
+      "unassigned_variables": [],
+      "components": [
+        {
+          "id": "C1",
+          "name": "C1",
+          "variables": [
+            "accounts",
+            "carts",
+            "lastInternalAction",
+            "orders"
+          ],
+          "owns": [
+            "accounts",
+            "carts"
+          ],
+          "actions": [
+            "AddCartItem",
+            "Checkout",
+            "CreateAccount",
+            "ProjectOrder"
+          ],
+          "internal_actions": [
+            "AddCartItem",
+            "CreateAccount"
+          ],
+          "crossing_actions": [
+            "Checkout",
+            "ProjectOrder"
+          ],
+          "writer_actions": [
+            "AddCartItem",
+            "Checkout",
+            "CreateAccount",
+            "ProjectOrder"
+          ],
+          "reaches": [
+            {
+              "component": "C2",
+              "name": "C2",
+              "via_actions": [
+                "Checkout",
+                "ProjectOrder"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "C2",
+          "name": "C2",
+          "variables": [
+            "outbox",
+            "projections"
+          ],
+          "owns": [],
+          "actions": [
+            "Checkout",
+            "ProjectOrder"
+          ],
+          "internal_actions": [],
+          "crossing_actions": [
+            "Checkout",
+            "ProjectOrder"
+          ],
+          "writer_actions": [
+            "Checkout",
+            "ProjectOrder"
+          ],
+          "reaches": [
+            {
+              "component": "C1",
+              "name": "C1",
+              "via_actions": [
+                "Checkout",
+                "ProjectOrder"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ownership": {
+      "writers": {
+        "accounts": [
+          "CreateAccount"
+        ],
+        "carts": [
+          "AddCartItem"
+        ],
+        "orders": [
+          "Checkout"
+        ],
+        "outbox": [
+          "Checkout",
+          "ProjectOrder"
+        ],
+        "projections": [
+          "ProjectOrder"
+        ],
+        "lastInternalAction": [
+          "AddCartItem",
+          "Checkout",
+          "CreateAccount",
+          "ProjectOrder"
+        ]
+      },
+      "single_writer_violations": [
+        {
+          "variable": "lastInternalAction",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "AddCartItem",
+            "Checkout",
+            "CreateAccount",
+            "ProjectOrder"
+          ]
+        },
+        {
+          "variable": "orders",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "Checkout"
+          ]
+        },
+        {
+          "variable": "outbox",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "Checkout",
+            "ProjectOrder"
+          ]
+        },
+        {
+          "variable": "projections",
+          "components": [
+            "C1",
+            "C2"
+          ],
+          "component_names": [
+            "C1",
+            "C2"
+          ],
+          "writers": [
+            "ProjectOrder"
+          ]
+        }
+      ],
+      "single_writer_basis": "the EMERGENT partition, which meets every decomposition criterion"
+    },
+    "ports": [
+      {
+        "id": "P1",
+        "between": [
+          "C1",
+          "C2"
+        ],
+        "actions": [
+          "Checkout",
+          "ProjectOrder"
+        ]
+      }
+    ],
+    "crossing_actions": [
+      {
+        "action": "Checkout",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [
+            "accounts",
+            "carts",
+            "orders"
+          ],
+          "C2": [
+            "outbox"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastInternalAction",
+            "orders"
+          ],
+          "C2": [
+            "outbox"
+          ]
+        }
+      },
+      {
+        "action": "ProjectOrder",
+        "components": [
+          "C1",
+          "C2"
+        ],
+        "ports": [
+          "P1"
+        ],
+        "reads": {
+          "C1": [],
+          "C2": [
+            "outbox",
+            "projections"
+          ]
+        },
+        "writes": {
+          "C1": [
+            "lastInternalAction"
+          ],
+          "C2": [
+            "outbox",
+            "projections"
+          ]
+        }
+      }
+    ],
+    "spanning_actions": [
+      {
+        "action": "Checkout",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "lastInternalAction",
+            "orders"
+          ],
+          "C2": [
+            "outbox"
+          ]
+        },
+        "evidence": "Checkout writes C1: lastInternalAction, orders; C2: outbox in one step"
+      },
+      {
+        "action": "ProjectOrder",
+        "write_components": [
+          "C1",
+          "C2"
+        ],
+        "writes": {
+          "C1": [
+            "lastInternalAction"
+          ],
+          "C2": [
+            "outbox",
+            "projections"
+          ]
+        },
+        "evidence": "ProjectOrder writes C1: lastInternalAction; C2: outbox, projections in one step"
+      }
+    ]
+  },
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This descriptor states measured facts about the model's structure. It makes no recommendation, proposes no cut, and never refuses a close, a promotion, or a case generation."
+  }
+}
