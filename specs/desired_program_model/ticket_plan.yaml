@@ -382,7 +382,7 @@ tickets:
 
   - id: AC-03
     title: "The ask: implementation-brief and aspect-decomposition prompts"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/123"
     schedule_revision: 1
     depends_on: [AC-01]
@@ -438,8 +438,58 @@ tickets:
         - "The implementation brief is derivable from a real architecture descriptor: demonstrate it end-to-end on this repository's own model and keep the rendered brief as evidence."
         - "Neither prompt proposes an architectural move the descriptor did not measure (CD-01)."
         - "SKILL.md states the case-module/feature-module distinction in one place and the Program Spec Rule is not weakened."
-      evidence: []
+      evidence:
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_OpenTicket.md
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_AnalyzeComplexity.md
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_CreateAccount.md
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/implementation_brief_REFUSED_emergent.md
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_components.yaml
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_descriptor_declared.json
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_descriptor_emergent.json
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/architecture_descriptor_example_internal.json
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.py
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/ac03_df02_exhaustive_partition_search.txt
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/model-delta.txt
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/tlc-ticket-current.txt
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/repo-unit.txt
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/spec-unit.txt
+        - specs/.history/architectural-coherence-epic/ticket-003-AC-03/ticket/results/complexity_ledger.yaml
     model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+    model_delta_result: >
+      ZERO, as expected. AC-03 adds no state variable, no action, and no
+      invariant: prompts/implementation_brief.md,
+      prompts/aspect_decomposition.md, templates/implementation_brief.md,
+      references/case_modules.md and SKILL.md only. `diff -r` of ticket
+      current/ against desired/ is empty, and both still equal the project
+      baseline (10 variables, 16 actions, 1 emergent component, Q = 0.000 for
+      all three). TLC on ticket current is green and reproduces AC-01's post-
+      ticket figures exactly: 32,122,220 generated / 1,292,951 distinct /
+      depth 26 / 57s. Evidence: results/model-delta.txt,
+      results/tlc-ticket-current.txt.
+    finding: >
+      The brief renders mechanically, and it renders honestly only because it
+      is allowed to refuse. Four end-to-end renders: this repository's own
+      model under a hand-declared 2-component partition produced a DEGRADED
+      brief for an internal action (OpenTicket) and a DEGRADED brief for a
+      spanning action (AnalyzeComplexity); the same model under the emergent
+      partition produced a REFUSAL; and
+      examples/distributed_history/.../Internal.tla produced the only FULL
+      brief, from an EMERGENT partition that is a cut (2 components,
+      Q = 0.0069, crossing fraction exactly 0.50). Two corrections to the
+      epic's working assumptions fall out. (1) AC-01's
+      `consumable_as_architecture` is necessary but NOT sufficient for a
+      non-vacuous brief -- it is true for ANY declared partition, including one
+      where the subject component owns nothing and has no internal action, so
+      the prompt adds three per-render vacuity tests on top of it. (2) The
+      claim that no real model here decomposes is a claim about greedy search,
+      not about the models: Internal.tla decomposes emergently, and exhaustive
+      enumeration of all 115,975 partitions of specs/current finds 2 that meet
+      all three shipped criteria (filed as AC-03-DF-02, with a checked-in
+      reproduction). Neither prompt proposes a move; the implementation brief
+      states measured ownership, ports, declared effect ports and measured
+      atomicity spans, and the aspect prompt refuses to infer aspects the model
+      author did not name. What remains unmeasured, and is stated in both
+      prompts: nothing here shows a brief changes what a coding agent produces.
 
   - id: AC-04
     title: "Refactor capability: before/after architecture and the behavior-preserving loop"

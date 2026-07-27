@@ -1,0 +1,223 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/.history/architectural-coherence-epic/ticket-001-AC-01/results/tlc-current-after.txt (AC-01 post-ticket = AC-03 pre-ticket: 32,122,220 generated / 1,292,951 distinct / depth 26 / 58s)"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/AC-03/results/tlc-ticket-current.txt (32,122,220 generated / 1,292,951 distinct / depth 26 / 57s -- identical, as a zero-delta ticket requires)"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/AC-03/results/repo-unit.txt (756 passed; 1 pre-existing failure already deferred as CM-01-DF-01 / AC-DF-01) + specs/tickets/AC-03/results/spec-unit.txt (2 targets, 139 passed)"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/AC-03/results/model-delta.txt (specs/current, ticket current and ticket desired all measure variables=10 actions=16 components=1 Q=0.000000; bound 2,799,360 unchanged from AC-01)"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >
+  Not applicable: complexity did not increase. The ledger's own delta line reads
+  `direction=zero (vs AC-01)`. AC-03 ships prose artifacts only --
+  prompts/implementation_brief.md, prompts/aspect_decomposition.md,
+  templates/implementation_brief.md, references/case_modules.md, SKILL.md -- and
+  adds no variable, no action and no invariant. The static bound stays at
+  2,799,360 and the OVER-CAP report against max_state_space_bound 1,000,000 is
+  inherited unchanged from AC-01, where it was measured, justified and
+  deliberately not negotiated away. It is advisory (MF-036) and nothing here
+  raised a budget to make it look compliant.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >
+    Searched and found none that this ticket may take. AC-03 has no model delta
+    to refine, so the search ran against the standing model, and it produced a
+    result worth recording rather than a reduction.
+
+    The obvious candidate is the one AC-01 named: specs/current has ONE emergent
+    component at Q = 0.000, because lastCommand and result are written by all 15
+    commands. Splitting that god-pair would cut the interaction graph. It is not
+    available here -- it is a production refactor of the CLI, outside AC-03's
+    conflict keys (prompts/, templates/, references/case_modules.md, SKILL.md),
+    and Move 3 requires explicit user approval besides.
+
+    While rendering the brief this ticket measured something that sharpens the
+    question for whoever does take it. The claim "this model does not decompose"
+    is a claim about GREEDY modularity maximization, not about the model.
+    Exhaustive enumeration of all 115,975 set partitions of the model's 10
+    variables, scored with the SHIPPED modularity function and the SHIPPED three
+    criteria, finds TWO partitions that meet all three -- the best at Q = 0.0029
+    with a crossing-action fraction of 0.188 -- and the shipped CLI confirms it
+    when the partition is handed back via --components ("the partition is a cut
+    -- every criterion above is met"). Reproduction is checked in at
+    results/ac03_df02_exhaustive_partition_search.py and the finding is filed as
+    AC-03-DF-02.
+
+    That is NOT a refinement to apply, and this ticket deliberately does not
+    apply it. Q = 0.003 is negligible structure, and adopting the exhaustive
+    search would have the tool NAME a cut the project never declared -- the
+    exact CD-01 failure the refusal doctrine exists to prevent. What it changes
+    is the wording of a claim the epic leans on, which is why it is a deferred
+    finding for the owner and not a change here.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >
+  AC-03 is the generation-time half of the epic: a descriptor is advice until it
+  constrains the request. It ships prompts/implementation_brief.md (with
+  templates/implementation_brief.md as the rendered shape) and
+  prompts/aspect_decomposition.md, in the form prompts/coverage_audit.md
+  established, plus the case-module/feature-module distinction stated once in
+  SKILL.md under the Program Spec Rule.
+
+  ZERO model delta, as the plan expected: ticket current == desired byte for
+  byte, TLC green reproducing AC-01's figures exactly, and all three of
+  specs/current, ticket current and ticket desired measuring 10 variables / 16
+  actions / 1 component / Q = 0.000. See results/model-delta.txt.
+
+  THE DEMONSTRATION. Four briefs were rendered end-to-end by following the
+  prompt, and they are kept as evidence because the interesting result is the
+  spread, not any one of them:
+
+    * OpenTicket, specs/current under a DECLARED 2-component partition
+      (workflow | scanners) -- DEGRADED. Real constraints: writes only
+      ticket_state/lastCommand/result, internal to workflow so it may not touch
+      the scanner component at all, one declared effect port
+      (spec_tree: filesystem.write **/specs/**), does not span so one commit
+      point, and three of the variables it writes flagged as not single-writer.
+    * AnalyzeComplexity, same descriptor, subject component named by the caller
+      -- DEGRADED on two counts. Same partition, but the subject component owns
+      nothing and has no internal action, so "this work belongs to scanners"
+      restricts nothing by itself. The strongest clause in that brief is the
+      measured SPAN: the action commits lastCommand/result in workflow and
+      complexity_gate in scanners in one step, and the brief says the model
+      asserts those land atomically -- honor it or report the model wrong.
+    * OpenTicket, specs/current under the EMERGENT partition -- REFUSED, and the
+      refusal artifact records verbatim what the vacuous brief would have said
+      ("component C1, 10 of 10 variables, reaches nothing, zero violations"), so
+      the failure mode is legible rather than theoretical.
+    * CreateAccount, examples/distributed_history/.../Internal.tla, EMERGENT --
+      the only FULL brief, and it clears crossing_action_fraction by exactly
+      zero.
+
+  TWO CORRECTIONS TO THE EPIC'S WORKING ASSUMPTIONS, both measured here.
+
+  (1) AC-01's `consumable_as_architecture` is necessary but NOT sufficient for a
+  non-vacuous brief. It is `partition_source == "declared" or decomposes`, which
+  is right for AC-02 -- whose question is whether the project named a boundary
+  to compare code against -- and wrong as AC-03's only gate, because it is true
+  for ANY declared partition including a deliberately useless one. The prompt
+  therefore layers three per-render vacuity tests on top of it: V1 (one
+  component) refuses; V2 (the subject component owns nothing AND has no internal
+  action) and V3 (crossing fraction > 0.5) degrade rather than refuse, because
+  the write-set, effect-port and atomicity clauses are measured PER ACTION and
+  survive a bad partition intact. The two DEGRADED renders above differ by
+  exactly V2, from the same descriptor -- whether a brief constrains anything
+  depends on which component the work lands in, not only on the partition score.
+
+  (2) "Neither real model decomposes" is not what was measured. Internal.tla
+  decomposes EMERGENTLY (2 components, Q = 0.0069, crossing fraction 0.50), and
+  exhaustive search finds decomposing partitions of specs/current itself. See
+  `refinement:` above and AC-03-DF-02. The refusal doctrine survives intact --
+  refusing to invent a cut is still right -- but the wording claims more than a
+  greedy search establishes.
+
+  A THIRD, SMALLER FINDING, filed as AC-03-DF-01 and defended against in the
+  prompt: for a one-component partition the JSON reports
+  ownership.single_writer_violations as null WITH a stated reason, but
+  components[0].owns as the bare empty list []. A consumer reads that as "owns
+  nothing" -- a plausible architectural fact -- when it means "undefined here".
+  The text renderer says NOT MEASURABLE; the machine-readable contract that
+  AC-02 and AC-03 actually read does not. Gate A refuses before the field can be
+  reached, which is why the guard is a gate and not a caveat.
+
+  DOCTRINE. CD-01 holds: neither prompt proposes a cut, a refactor, a target
+  shape or a next step. Move 3's shapes are the vocabulary the measured facts
+  are STATED in -- the brief says "these are your declared ports", not "push
+  effects to the edges"; "the model says these commit together", not "introduce
+  a commit point". Both are advisory and gate nothing. The Program Spec Rule is
+  not weakened: the aspect prompt forbids a case module from declaring any
+  state, constant or action, requires EXTENDS over INSTANCE/LOCAL, and keeps the
+  removal test (delete every case module and the program is still fully
+  represented) as the rule rather than a note.
+
+  WHAT IS NOT SHOWN, and both prompts say so in their own validation sections:
+  nothing here measures whether a brief changes what a coding agent produces.
+  The prompts make the ask derivable and checkable field by field. Whether a
+  derivable ask yields more coherent code is an empirical question this ticket
+  did not answer and could not -- it belongs to the epic's evaluation tickets.
+  Until then a brief is a hypothesis with good provenance, not a result.

@@ -85,6 +85,28 @@ partition may be **declared** by the project (`architecture:` in
 name and never writes one. A machine-readable form (`--format json`) is the
 contract downstream consumers read. See `references/architecture_coherence.md`.
 
+**SHIPPED — the descriptor as a constrained ask (`prompts/implementation_brief.md`).**
+The generation-time half (AC-03). A descriptor is advice until it constrains
+the request: "implement checkout" and "implement this action inside the
+component that owns `orders` and `outbox`, reaching cart only through its
+declared port, with effects at the boundary and one externally visible
+commitment" are different asks, and only the second is derivable from a model
+the project already has. The prompt renders one descriptor + one action into
+`templates/implementation_brief.md` — a self-contained page for a coding agent
+that will not open the model, naming the component and what it owns, the ports
+it may reach through, the declared effect ports for that action, the atomicity
+the model asserts, and an explicit list of what may **not** be done. It
+proposes nothing (CD-01) and gates nothing. Its precondition is load-bearing:
+a brief rendered from a partition that does not decompose is vacuous, so the
+prompt refuses rather than emitting a flawless-looking brief about a model with
+no architecture. Its companion `prompts/aspect_decomposition.md` is the BDD ask
+from the user's side — enumerate the public surface, name each aspect's Given
+and what the Given asserts is irrelevant, and emit the `case_modules:` block.
+
+Neither prompt is validated for changing what a coding agent produces; that is
+an evaluation question, not a shipped claim. Each carries its own measured
+validation status at the bottom of the file — read it before trusting it.
+
 **SHIPPED — the agent-authored effect-provider interface.** The framework
 generates repository-specific typed ports, resolves one project provider per
 declared port, scopes it around one generated case/iteration, supplies stable
@@ -333,15 +355,39 @@ Small tutorial specs are acceptable for examples, but production repositories
 should avoid accumulating twenty unrelated TLA+ modules that each describe one
 feature and disagree about shared state.
 
-**Case modules are an option, and they do not weaken this rule.** A case module
-EXTENDS a view and declares no state, no constants, and no actions — it only
-restricts the next-state relation to the entry points one aspect exercises, or
-replaces `Init` with an asserted Given. It adds nothing to the semantic
-authority, so removing every case module leaves the program fully represented;
-a module that fails that test has behavior in the wrong file. Nothing requires
-them, they are additive to a view's own corpus rather than a replacement for it,
-and the trade is measured rather than assumed:
-`references/case_modules.md`, evidence in `examples/case_modules/`.
+### Case module vs feature module — the distinction, stated once
+
+**Case modules are an option, and they do not weaken this rule.** This is the
+one place the distinction is defined; everything else points here.
+
+| | Program spec (`Core` / `Internal` / `External`) | Case module (`Scenario_*`) |
+|---|---|---|
+| Declares | state, constants, actions, invariants | **none of them** |
+| Role | where behavior is *added* | where existing behavior is *entered* |
+| Reviewed as | the model of the program | a test-design decision |
+| Deleting it | loses program meaning | loses only a corpus |
+
+A case module `EXTENDS` a view — never `INSTANCE`, never `LOCAL` — and does
+only one or both of: restrict the next-state relation to the entry points one
+aspect exercises (a **slice**), or replace `Init` with an asserted pre-state (a
+**Given**, which must record in prose the claim it makes about what is
+irrelevant).
+
+**The test, and it is the whole rule:** *remove every case module and the
+program is still fully represented.* A module that fails it has behavior in the
+wrong file — move that behavior into the view. A `Scenario_` module that
+declares a variable or defines an operator with a state update in it is a
+feature module wearing a scenario's name, and the Program Spec Rule above
+forbids it exactly as before.
+
+Nothing requires case modules; they are **additive** to a view's own corpus,
+never a replacement for it, and writing them until every corpus fits under a
+budget cap is trimming with extra steps. The trade is measured rather than
+assumed: `references/case_modules.md`, evidence in `examples/case_modules/`.
+To produce a set of them for a view, dispatch `prompts/aspect_decomposition.md`
+— it enumerates the surface mechanically, requires the *aspects* to be named by
+the model author rather than inferred from the model, and emits the validated
+`case_modules:` manifest block.
 
 ## First Project Onboarding Workflow
 
@@ -1209,6 +1255,8 @@ current change.
   whether a partition is a cut at all; the refusal a model that does not
   decompose gets instead of an invented cut; the `architecture_scan` values
   (`unmappable` is not `unknown`); and the JSON contract its consumers read.
+  Rendering it into a constrained implementation ask is
+  `prompts/implementation_brief.md` + `templates/implementation_brief.md`.
 - `references/complexity_intuition.md`: how to read a complexity descriptor
   as refactoring input — good vs bad descriptor shapes with worked real-run
   examples, how complex a program should be (proportional to essential
@@ -1227,6 +1275,9 @@ current change.
   modules that EXTEND a view to slice its next-state relation or assert a
   Given, the measured cost/coverage trade, the integrity line between an
   upstream Given and downstream case-dropping, and the known frictions.
+  Procedure for producing a set: `prompts/aspect_decomposition.md`. The
+  case-module/feature-module distinction is defined once, under "Program Spec
+  Rule".
 - `references/ai_retrieval.md`: AI context selection.
 - `references/maintenance.md`: review and regeneration rules.
 - `references/examples.md`: checked-in examples and when to use them.

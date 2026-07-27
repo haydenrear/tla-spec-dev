@@ -58,6 +58,10 @@ The test: **remove every case module and the program is still fully
 represented.** If removing one loses a behavior, that behavior was written in
 the wrong file — move it into the view.
 
+SKILL.md's "Program Spec Rule" states this distinction once and is the
+authority; the table above is the same claim in this reference's terms, not a
+second version of it.
+
 The doctrine this extends is already in
 `references/architecture_tractability.md`, "Irreducible Pieces: Creative
 Representations": *many small lenses instead of one big mirror* and *temporal
@@ -320,6 +324,26 @@ how rule 1 stays visible.
 **It gates nothing and always exits 0** when it could be produced. A nonzero
 exit means "I could not measure this" — an unreadable manifest, a corpus with no
 coverage record. Uncovered actions are a finding to read.
+
+### The prompt that produces a set (AC-03)
+
+`prompts/aspect_decomposition.md` is the procedure for going from a view to a
+validated `case_modules:` block: it enumerates the view's action set by command
+(the same discipline `prompts/coverage_audit.md` uses — the row set comes from
+a command, not from the agent's attention), reconciles that set against
+`actions.yml` in both directions, requires every `form: given` row to state its
+claim as *"X is independent of Y"* with Y named, and runs `validate` and
+`coverage` above rather than self-reporting them.
+
+Its load-bearing rule is a limit, not a capability: **the action set is
+mechanical, the grouping into aspects is not.** Which actions belong to the
+same user-facing aspect is a fact about what the program is *for*, and nothing
+in the TLA+ says so. An agent that clusters by name prefix, shared variables, or
+modularity is inventing product structure out of syntax, and the output is
+indistinguishable from a real decomposition. The prompt therefore requires the
+aspect list to come from the model author and to record who supplied it; with
+no author, its correct output is "the aspects of this surface are not derivable
+from the model", not a plausible list.
 
 ## What is still not mechanized
 
