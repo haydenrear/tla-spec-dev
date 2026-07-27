@@ -1,0 +1,38 @@
+[
+  {
+    "mutant": "F1-wrong-value",
+    "arm": "A",
+    "case": "case_0020_record",
+    "batch_error": "adapter after-state mismatch for case_0020_record: ledger: expected ['i1'], actual ['I1']",
+    "replay1_exit": 1,
+    "replay2_exit": 1,
+    "replay1_error": "adapter after-state mismatch for case_0020_record: ledger: expected ['i1'], actual ['I1']",
+    "replay2_error": "adapter after-state mismatch for case_0020_record: ledger: expected ['i1'], actual ['I1']",
+    "replay_reproduces_batch_failure": true,
+    "replay_identical_across_two_runs": true
+  },
+  {
+    "mutant": "F3-off-by-one-durable",
+    "arm": "B",
+    "case": "case_0020_record",
+    "batch_error": "DETECTOR[provider_content_assertion] persisted ledger [] != modeled after-state ['i1'] (action=Record, case=case_0020_record)",
+    "replay1_exit": 1,
+    "replay2_exit": 1,
+    "replay1_error": "DETECTOR[provider_content_assertion] persisted ledger [] != modeled after-state ['i1'] (action=Record, case=case_0020_record)",
+    "replay2_error": "DETECTOR[provider_content_assertion] persisted ledger [] != modeled after-state ['i1'] (action=Record, case=case_0020_record)",
+    "replay_reproduces_batch_failure": true,
+    "replay_identical_across_two_runs": true
+  },
+  {
+    "mutant": "F4-wrong-status",
+    "arm": "A",
+    "case": "case_0001_accept",
+    "batch_error": "adapter output mismatch for case_0001_accept: {'action': 'Accept', 'status': 'rejected', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 0} != {'action': 'Accept', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}",
+    "replay1_exit": 1,
+    "replay2_exit": 1,
+    "replay1_error": "adapter output mismatch for case_0001_accept: {'action': 'Accept', 'status': 'rejected', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 0} != {'action': 'Accept', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}",
+    "replay2_error": "adapter output mismatch for case_0001_accept: {'action': 'Accept', 'status': 'rejected', 'ledger_size': 0, 'queue_size': 0, 'delivered_size': 0} != {'action': 'Accept', 'delivered_size': 0, 'ledger_size': 0, 'queue_size': 0, 'status': 'applied'}",
+    "replay_reproduces_batch_failure": true,
+    "replay_identical_across_two_runs": true
+  }
+]

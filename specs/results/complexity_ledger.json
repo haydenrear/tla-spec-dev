@@ -7408,6 +7408,194 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EV-02",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-27T19:23:28.499367+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/tickets/EV-02/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-01",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": 1292951,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": 32122220,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 26,
+            "after": 26,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No complexity change to justify: this ticket is zero-model-delta by design. EV-02 measures the shipped surface and fixes nothing -- a fix during a measurement destroys the measurement. Five findings were filed to specs/desired_program_model/deferred_findings.yaml (EV-02-DF-01..05), at the deferment budget of 5 and not over it, and the highest-severity one (EV-02-DF-01: a declared one-component partition makes a codebase with four real divergences report `coherent`) was left in place deliberately so that NEXT-EPIC.md's NE-01 has an unaltered reproduction to fix against.",
+      "retention": {
+        "kill_rate": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "EV-01 built the six-fault catalog and ran the CONTROL only, deliberately, because a fixture author who scores his own instrument has deleted the measurement. EV-02 ran the mutants. Control GREEN on BOTH declared arms (330 cases, exit 0) before any mutant, per MF-016. Result, per fault class per arm, twice, over two independently generated corpora with identical outcomes: ARM A (corpus alone, the MF-038 instrument) 4 of 6 -- F3 and F5, both durable-side faults, SURVIVED exactly as predicted; ARM B (corpus + content-asserting provider, the ex1-run4 instrument) 6 of 6, with F3 and F5 killed by provider_content_assertion and by nothing else. Baseline MF-038: 0 of 9, kill rate 0.31. The number is recorded per arm and never in aggregate (DP-8). BOUND, recorded with the number: MF-029 recovers 0 of 5 parameters on this model, so the adapters take the action argument from the oracle (EV-01-DF-01) and ARM A's 4/6 is an UPPER BOUND on what a corpus with honestly recovered parameters would achieve; a blind agent confirmed this independently from the outside. Evidence: specs/tickets/EV-02/results/kill-matrix-run1.json, kill-matrix-run2.json, and examples/validation/runs/ex4-run1/scoring.md.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "clean",
+          "classification": "retained",
+          "evidence": "The LedgerStorePort effect boundary was exercised under both declared providers across 14 executions per run and two runs. Under ARM B the content assertion fired on exactly the two faults it exists for and stayed silent on the unmutated program; under ARM A the same real boundary was bound and asserted nothing. No provider mutated a generated case (oracle-integrity silent throughout), and every failure replayed exactly from the runner's own replay command -- 3 faults x 2 replays, 6 of 6 reproducing the originating error string. Evidence: specs/tickets/EV-02/results/replay.json and examples/validation/runs/ex4-run2/scoring.md.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=pass (retained)",
+        "effect_conformance=clean (retained)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "EV-01, this ticket's promotion predecessor, closed TLC-green on this model; EV-02 inherited it byte-identical (specs/tickets/EV-02/results/zero-model-delta.txt).",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/EV-02/results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct / depth 26, 0 states left on queue, no error found.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/EV-02/results/repository-unit-tests.txt -- 864 passed, 1 failed (test_skill_requires_two_minute_case_generation_budget, a documentation-content guard already filed as CM-01-DF-01 and explicitly outside this ticket); specs/tickets/EV-02/results/spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0. The EVAL FIXTURES' own behavior suites are green and unmodified: specs/tickets/EV-02/results/twin-integrity.txt (5 of 5 hashes match) and fixture-restored.txt (git status on examples/ clean after every seeded mutant was restored).",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "No before/after comparison is possible or meaningful: the model is byte-identical before and after, and the ledger's own delta computation reports direction=zero against EV-01. Recorded as the no-op it is rather than left blank. The architecture descriptors this ticket DID compare are comparisons between DECLARED PARTITIONS of a fixture, not between two states of this repository's model, and they live in examples/validation/runs/ex5-run2/ where they are a measurement rather than a refactor claim.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none applicable, because there is no model delta: specs/tickets/EV-02/current == desired, byte for byte. The search WAS run against this ticket's real representation decisions, which are measurement decisions, and it produced three recorded outcomes rather than a model change. (1) The aim-1 arms were almost run once each; they were run TWICE, over two INDEPENDENTLY GENERATED corpora rather than twice over one, so that a difference between runs could have come from either generation or execution -- and the failing half of determinism, which nobody had tested, is now measured across twelve failing executions rather than two clean ones. (2) EV-01-DF-02 was almost verified by re-running EV-01's own reproduction and stopping; instead the blast radius was ENUMERATED over all 203 set partitions of the fixture's variables, which turned a qualitative finding into 12-of-203 and revealed the sharper defect underneath it (the fully degenerate one-component case escapes the unfalsifiable_coherence guard entirely, because the guard reads len(names) >= 2). (3) The kill table was almost reported as killed/survived; the runner's own failing-case counts were kept as a second column, which is what exposes F6 as a PARTIAL kill (15 of 66 Deliver cases) that a binary table would have hidden.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "EV-02 ran the evals as a fact-finding mission and wrote the follow-up charter. Six run records under examples/validation/runs/ (ex4 x3, ex5 x2, ex6 x1), each scored against predictions committed before any dispatch. Aim 1: control green on both arms, then 4 of 6 for the corpus alone and 6 of 6 with the content-asserting provider, per fault class, per arm, against MF-038's 0 of 9 -- with the parameter-recovery bound stated so the comparison is not overclaimed. Aim 2: EV-01's ratios reproduce exactly, and a blind agent's Given-form aspect turned 60 authored lines into 38 cases that killed exactly what the 330-case whole-view corpus killed. Aim 3: generation byte-identical again, execution byte-identical across 14 executions including twelve failing ones, and seeded failures replaying exactly -- the half EV-01 could not do. The architecture half scored precision 1.000 and recall 1.000 against the owner's enumerated answer key, with zero false positives on the coherent twin, and every refusal held on both real models. The centrepiece experiment passed: a blind agent handed a divergent codebase and an editable map fixed the code and left all four declarations byte-identical. Against that, the unflattering half, which is the half worth having: `coherent` is obtainable on that same divergent codebase for about six lines of YAML, 12 of 203 partitions do it, every one of them fails the model's own decomposition criteria, none records a blind spot, and the mitigation for it already exists -- in a prompt rather than in the program. The check measures import topology and not interaction, anything outside --code is free, a generated corpus cannot see guard relaxation by construction, and ordering is invisible at every oracle layer. Five findings filed, none fixed. And the single most valuable result came from neither lever: authoring an aspect from the public surface revealed that the public surface is FALSE of the model -- a failed item can never reach the ledger, though the README promises it -- which no corpus could ever catch, because a case module may not add an action and there is no action to enter. NEXT-EPIC.md carries all of it forward, including what not to re-litigate.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

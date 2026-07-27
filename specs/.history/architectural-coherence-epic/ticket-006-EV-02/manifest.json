@@ -1,0 +1,776 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/EV-02",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/architectural-coherence-epic/ticket-006-EV-02 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for EV-02'",
+    "message": "It is recommended to commit this history directory now: specs/.history/architectural-coherence-epic/ticket-006-EV-02"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 2799360,
+        "before": 2799360,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 26,
+        "before": 26,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 1292951,
+        "before": 1292951,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 32122220,
+        "before": 32122220,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 10,
+        "before": 10,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "EV-01"
+  },
+  "complexity_ledger": {
+    "architecture_delta": {
+      "architecture_digest_after": "",
+      "architecture_digest_before": "",
+      "attribution": "",
+      "claim": "",
+      "divergences_after": null,
+      "divergences_before": null,
+      "divergences_delta": null,
+      "divergent_edges_gained": [],
+      "divergent_edges_lost": [],
+      "gates": false,
+      "map_digest_after": "",
+      "map_digest_before": "",
+      "problems": [],
+      "recorded": false,
+      "red_flags": [],
+      "report": "",
+      "resolved_report": "",
+      "status": "not_run",
+      "why": []
+    },
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 2799360,
+          "before": 2799360,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 26,
+          "before": 26,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 1292951,
+          "before": 1292951,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 32122220,
+          "before": 32122220,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 10,
+          "before": 10,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "EV-01"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/EV-02/results/complexity_ledger.yaml",
+    "justification": "No complexity change to justify: this ticket is zero-model-delta by design. EV-02 measures the shipped surface and fixes nothing -- a fix during a measurement destroys the measurement. Five findings were filed to specs/desired_program_model/deferred_findings.yaml (EV-02-DF-01..05), at the deferment budget of 5 and not over it, and the highest-severity one (EV-02-DF-01: a declared one-component partition makes a codebase with four real divergences report `coherent`) was left in place deliberately so that NEXT-EPIC.md's NE-01 has an unaltered reproduction to fix against.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "actions": 16,
+      "bound": 2799360,
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 258.6,
+          "used": 1292951,
+          "within_cap": false
+        },
+        "max_state_space_bound": {
+          "cap": 1000000,
+          "percent": 279.9,
+          "used": 2799360,
+          "within_cap": false
+        }
+      },
+      "depth": 26,
+      "distinct_states": 1292951,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+        "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 32122220,
+      "modularity": 0.0,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/tickets/EV-02/results/tlc-current.txt",
+      "variables": 10
+    },
+    "narrative": "EV-02 ran the evals as a fact-finding mission and wrote the follow-up charter. Six run records under examples/validation/runs/ (ex4 x3, ex5 x2, ex6 x1), each scored against predictions committed before any dispatch. Aim 1: control green on both arms, then 4 of 6 for the corpus alone and 6 of 6 with the content-asserting provider, per fault class, per arm, against MF-038's 0 of 9 -- with the parameter-recovery bound stated so the comparison is not overclaimed. Aim 2: EV-01's ratios reproduce exactly, and a blind agent's Given-form aspect turned 60 authored lines into 38 cases that killed exactly what the 330-case whole-view corpus killed. Aim 3: generation byte-identical again, execution byte-identical across 14 executions including twelve failing ones, and seeded failures replaying exactly -- the half EV-01 could not do. The architecture half scored precision 1.000 and recall 1.000 against the owner's enumerated answer key, with zero false positives on the coherent twin, and every refusal held on both real models. The centrepiece experiment passed: a blind agent handed a divergent codebase and an editable map fixed the code and left all four declarations byte-identical. Against that, the unflattering half, which is the half worth having: `coherent` is obtainable on that same divergent codebase for about six lines of YAML, 12 of 203 partitions do it, every one of them fails the model's own decomposition criteria, none records a blind spot, and the mitigation for it already exists -- in a prompt rather than in the program. The check measures import topology and not interaction, anything outside --code is free, a generated corpus cannot see guard relaxation by construction, and ordering is invisible at every oracle layer. Five findings filed, none fixed. And the single most valuable result came from neither lever: authoring an aspect from the public surface revealed that the public surface is FALSE of the model -- a failed item can never reach the ledger, though the README promises it -- which no corpus could ever catch, because a case module may not add an action and there is no action to enter. NEXT-EPIC.md carries all of it forward, including what not to re-litigate.",
+    "notes": [
+      "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+      "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+    ],
+    "recorded_at_utc": "2026-07-27T19:23:28.499367+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, found none applicable, because there is no model delta: specs/tickets/EV-02/current == desired, byte for byte. The search WAS run against this ticket's real representation decisions, which are measurement decisions, and it produced three recorded outcomes rather than a model change. (1) The aim-1 arms were almost run once each; they were run TWICE, over two INDEPENDENTLY GENERATED corpora rather than twice over one, so that a difference between runs could have come from either generation or execution -- and the failing half of determinism, which nobody had tested, is now measured across twelve failing executions rather than two clean ones. (2) EV-01-DF-02 was almost verified by re-running EV-01's own reproduction and stopping; instead the blast radius was ENUMERATED over all 203 set partitions of the fixture's variables, which turned a qualitative finding into 12-of-203 and revealed the sharper defect underneath it (the fully degenerate one-component case escapes the unfalsifiable_coherence guard entirely, because the guard reads len(names) >= 2). (3) The kill table was almost reported as killed/survived; the runner's own failing-case counts were kept as a second column, which is what exposes F6 as a PARTIAL kill (15 of 66 Deliver cases) that a binary table would have hidden.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "retained",
+        "evidence": "The LedgerStorePort effect boundary was exercised under both declared providers across 14 executions per run and two runs. Under ARM B the content assertion fired on exactly the two faults it exists for and stayed silent on the unmutated program; under ARM A the same real boundary was bound and asserted nothing. No provider mutated a generated case (oracle-integrity silent throughout), and every failure replayed exactly from the runner's own replay command -- 3 faults x 2 replays, 6 of 6 reproducing the originating error string. Evidence: specs/tickets/EV-02/results/replay.json and examples/validation/runs/ex4-run2/scoring.md.",
+        "status": "clean",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "retained",
+        "evidence": "EV-01 built the six-fault catalog and ran the CONTROL only, deliberately, because a fixture author who scores his own instrument has deleted the measurement. EV-02 ran the mutants. Control GREEN on BOTH declared arms (330 cases, exit 0) before any mutant, per MF-016. Result, per fault class per arm, twice, over two independently generated corpora with identical outcomes: ARM A (corpus alone, the MF-038 instrument) 4 of 6 -- F3 and F5, both durable-side faults, SURVIVED exactly as predicted; ARM B (corpus + content-asserting provider, the ex1-run4 instrument) 6 of 6, with F3 and F5 killed by provider_content_assertion and by nothing else. Baseline MF-038: 0 of 9, kill rate 0.31. The number is recorded per arm and never in aggregate (DP-8). BOUND, recorded with the number: MF-029 recovers 0 of 5 parameters on this model, so the adapters take the action argument from the oracle (EV-01-DF-01) and ARM A's 4/6 is an UPPER BOUND on what a corpus with honestly recovered parameters would achieve; a blind agent confirmed this independently from the outside. Evidence: specs/tickets/EV-02/results/kill-matrix-run1.json, kill-matrix-run2.json, and examples/validation/runs/ex4-run1/scoring.md.",
+        "status": "pass",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=pass (retained)",
+      "effect_conformance=clean (retained)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "EV-02",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/EV-02/results/repository-unit-tests.txt -- 864 passed, 1 failed (test_skill_requires_two_minute_case_generation_budget, a documentation-content guard already filed as CM-01-DF-01 and explicitly outside this ticket); specs/tickets/EV-02/results/spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0. The EVAL FIXTURES' own behavior suites are green and unmodified: specs/tickets/EV-02/results/twin-integrity.txt (5 of 5 hashes match) and fixture-restored.txt (git status on examples/ clean after every seeded mutant was restored).",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "No before/after comparison is possible or meaningful: the model is byte-identical before and after, and the ledger's own delta computation reports direction=zero against EV-01. Recorded as the no-op it is rather than left blank. The architecture descriptors this ticket DID compare are comparisons between DECLARED PARTITIONS of a fixture, not between two states of this repository's model, and they live in examples/validation/runs/ex5-run2/ where they are a measurement rather than a refactor claim.",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/EV-02/results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct / depth 26, 0 states left on queue, no error found.",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "EV-01, this ticket's promotion predecessor, closed TLC-green on this model; EV-02 inherited it byte-identical (specs/tickets/EV-02/results/zero-model-delta.txt).",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "architectural-coherence-epic"
+  },
+  "created_at_utc": "2026-07-27T19:23:28.543332+00:00",
+  "entry_name": "ticket-006-EV-02",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/126-ev02-fact-finding",
+    "commit": "60d4a51",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/EV-02/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/EV-02/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/EV-02/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/EV-02/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/EV-02/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/EV-02/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/EV-02/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/EV-02/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/EV-02/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/EV-02/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/EV-02/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/EV-02"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, found none applicable, because there is no model delta: specs/tickets/EV-02/current == desired, byte for byte. The search WAS run against this ticket's real representation decisions, which are measurement decisions, and it produced three recorded outcomes rather than a model change. (1) The aim-1 arms were almost run once each; they were run TWICE, over two INDEPENDENTLY GENERATED corpora rather than twice over one, so that a difference between runs could have come from either generation or execution -- and the failing half of determinism, which nobody had tested, is now measured across twelve failing executions rather than two clean ones. (2) EV-01-DF-02 was almost verified by re-running EV-01's own reproduction and stopping; instead the blast radius was ENUMERATED over all 203 set partitions of the fixture's variables, which turned a qualitative finding into 12-of-203 and revealed the sharper defect underneath it (the fully degenerate one-component case escapes the unfalsifiable_coherence guard entirely, because the guard reads len(names) >= 2). (3) The kill table was almost reported as killed/survived; the runner's own failing-case counts were kept as a second column, which is what exposes F6 as a PARTIAL kill (15 of 66 Deliver cases) that a binary table would have hidden.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "retained",
+      "evidence": "The LedgerStorePort effect boundary was exercised under both declared providers across 14 executions per run and two runs. Under ARM B the content assertion fired on exactly the two faults it exists for and stayed silent on the unmutated program; under ARM A the same real boundary was bound and asserted nothing. No provider mutated a generated case (oracle-integrity silent throughout), and every failure replayed exactly from the runner's own replay command -- 3 faults x 2 replays, 6 of 6 reproducing the originating error string. Evidence: specs/tickets/EV-02/results/replay.json and examples/validation/runs/ex4-run2/scoring.md.",
+      "status": "clean",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "retained",
+      "evidence": "EV-01 built the six-fault catalog and ran the CONTROL only, deliberately, because a fixture author who scores his own instrument has deleted the measurement. EV-02 ran the mutants. Control GREEN on BOTH declared arms (330 cases, exit 0) before any mutant, per MF-016. Result, per fault class per arm, twice, over two independently generated corpora with identical outcomes: ARM A (corpus alone, the MF-038 instrument) 4 of 6 -- F3 and F5, both durable-side faults, SURVIVED exactly as predicted; ARM B (corpus + content-asserting provider, the ex1-run4 instrument) 6 of 6, with F3 and F5 killed by provider_content_assertion and by nothing else. Baseline MF-038: 0 of 9, kill rate 0.31. The number is recorded per arm and never in aggregate (DP-8). BOUND, recorded with the number: MF-029 recovers 0 of 5 parameters on this model, so the adapters take the action argument from the oracle (EV-01-DF-01) and ARM A's 4/6 is an UPPER BOUND on what a corpus with honestly recovered parameters would achieve; a blind agent confirmed this independently from the outside. Evidence: specs/tickets/EV-02/results/kill-matrix-run1.json, kill-matrix-run2.json, and examples/validation/runs/ex4-run1/scoring.md.",
+      "status": "pass",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 62,
+    "close_out_entry": "Close-out ticket EV-02",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 14,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-006-EV-02/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-006-EV-02/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-006-EV-02/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-006-EV-02/ticket",
+      "source": "specs/tickets/EV-02"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Every example runs at least twice; divergence between runs is itself recorded as a finding about instruction determinism.",
+        "Each run is scored against PREDICTIONS.md with artifacts kept under examples/validation/runs/<run>/.",
+        "Findings are filed, never fixed inline.",
+        "NEXT-EPIC.md states what the evidence killed, what survived, and what the next epic should build, with the same do-not-re-litigate section the last two starters carried."
+      ],
+      "commands": [
+        "(per-run commands recorded in each examples/validation/runs/<run>/scoring.md)"
+      ],
+      "evidence": [
+        "specs/tickets/EV-02/results/EV-02-summary.md",
+        "specs/tickets/EV-02/results/zero-model-delta.txt",
+        "specs/tickets/EV-02/results/tlc-current.txt",
+        "specs/tickets/EV-02/results/spec-unit-tests.txt",
+        "specs/tickets/EV-02/results/repository-unit-tests.txt",
+        "specs/tickets/EV-02/results/twin-integrity.txt",
+        "specs/tickets/EV-02/results/fixture-restored.txt",
+        "specs/tickets/EV-02/results/kill-matrix-run1.json",
+        "specs/tickets/EV-02/results/kill-matrix-run2.json",
+        "specs/tickets/EV-02/results/determinism-run1-vs-run2.json",
+        "specs/tickets/EV-02/results/replay.json",
+        "specs/tickets/EV-02/results/df02-blast-radius.json",
+        "specs/tickets/EV-02/results/complexity_ledger.yaml",
+        "examples/validation/runs/ex4-run1/scoring.md",
+        "examples/validation/runs/ex4-run2/scoring.md",
+        "examples/validation/runs/ex4-run3/scoring.md",
+        "examples/validation/runs/ex5-run1/scoring.md",
+        "examples/validation/runs/ex5-run2/scoring.md",
+        "examples/validation/runs/ex6-run1/scoring.md",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/runs/",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": []
+    },
+    "depends_on": [
+      "EV-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/126",
+    "id": "EV-02",
+    "implementation_scope": [
+      "examples/validation/runs/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op model result with evidence.",
+    "objective": "The last ticket, and its deliverable is FINDINGS, not fixes. Run the evals across multiple examples, score each against the committed predictions, and write the follow-up self-improvement charter -- the starter document for the next epic, in the shape of COMPLEXITY-DESCRIPTOR-EPIC.md: what the evidence killed, what survived, what to build next, and what not to re-litigate. A low or unflattering result is a VALID and preferred outcome; the complexity-descriptor epic exists because a validation agent was told exactly that and then found the suggested moves were wrong. Findings are FILED, never fixed inline -- fixing inline destroys the measurement.\n",
+    "promotion_order": 70,
+    "promotion_predecessor": "EV-01",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Run the evals as a fact-finding mission; write the follow-up self-improvement charter",
+    "wave": 5
+  },
+  "ticket_id": "EV-02",
+  "ticket_index": 6,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/architectural-coherence-epic/ticket-006-EV-02/ticket",
+    "source": "specs/tickets/EV-02"
+  },
+  "workflow_name": "architectural-coherence-epic"
+}

@@ -1,0 +1,20 @@
+case-module coverage -- view: internal
+  manifest: specs/program_model/spec_manifest.yaml
+  declared case modules: 2 (1 slice, 1 given)
+  view action set: 5 actions, from the supplied actions metadata
+
+This is a REPORT. It states per-action coverage and gates nothing (references/architecture_tractability.md, 'Advisory, Not Blocking').
+
+action   view corpus  Scenario_DeliveryPath  Scenario_RecordAfterDelivery  modules total
+-------  -----------  ---------------------  ----------------------------  -------------
+Accept   22           10                     0                             10
+Deliver  66           20                     0                             20
+Enqueue  110          20                     0                             20
+Fail     88           0                      4                             4
+Record   44           0                      2                             2
+
+view corpus: Pipeline (330 cases)
+
+UNCOVERED: none -- every view action is entered by a measured module or covered by the view's own corpus.
+
+Cross-aspect interleaving is not in this table. Slices do not enumerate the interleavings between aspects; only a whole-view run does. Do not report the union of modules as equivalent to the view's corpus (references/case_modules.md, Integrity rule 4).

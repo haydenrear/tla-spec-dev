@@ -1,0 +1,81 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev02/df02b/one_map.yaml",
+  "code_root": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex5_pipeline_divergent/pipeline",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 7,
+    "component_pairs": 0,
+    "ported_pairs": [],
+    "unported_pairs": [],
+    "divergence_detectable": false,
+    "internal_edges": 7,
+    "external_imports": {
+      "__future__": [
+        "pipeline/dispatch/delivery.py:8",
+        "pipeline/dispatch/failures.py:7",
+        "pipeline/ingest/inbox.py:9",
+        "pipeline/ingest/queue.py:9",
+        "pipeline/ledger/journal.py:17"
+      ],
+      "pipeline_contract": [
+        "pipeline/ledger/journal.py:19"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev02/df02b/one_map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:a37ee07c03789dc7865da5e7b3087ea3e128f5f6eccac55887b3caaee23927c1",
+    "placements": {
+      "dispatch/__init__.py": "theapp",
+      "dispatch/delivery.py": "theapp",
+      "dispatch/failures.py": "theapp",
+      "ingest/__init__.py": "theapp",
+      "ingest/inbox.py": "theapp",
+      "ingest/queue.py": "theapp",
+      "ledger/__init__.py": "theapp",
+      "ledger/journal.py": "theapp"
+    },
+    "code_root": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex5_pipeline_divergent/pipeline",
+    "scanned_modules": [
+      "dispatch/__init__.py",
+      "dispatch/delivery.py",
+      "dispatch/failures.py",
+      "ingest/__init__.py",
+      "ingest/inbox.py",
+      "ingest/queue.py",
+      "ledger/__init__.py",
+      "ledger/journal.py"
+    ],
+    "architecture_digest": "sha256:a17c3f1bed24527e2f8816db3c5ef4e042a7b1d40db4b14c88899cf83391dac5",
+    "architecture_components": [
+      "theapp"
+    ],
+    "architecture_ports": [],
+    "architecture_port_actions": {},
+    "comparison_ran": true
+  },
+  "convergences": [],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "coherent",
+    "reasons": [
+      "every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

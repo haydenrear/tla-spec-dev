@@ -1,0 +1,104 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket EV-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Every example runs at least twice; divergence between runs is itself recorded as a finding about instruction determinism.",
+        "Each run is scored against PREDICTIONS.md with artifacts kept under examples/validation/runs/<run>/.",
+        "Findings are filed, never fixed inline.",
+        "NEXT-EPIC.md states what the evidence killed, what survived, and what the next epic should build, with the same do-not-re-litigate section the last two starters carried."
+      ],
+      "commands": [
+        "(per-run commands recorded in each examples/validation/runs/<run>/scoring.md)"
+      ],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/runs/",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": []
+    },
+    "depends_on": [
+      "EV-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/126",
+    "id": "EV-02",
+    "implementation_scope": [
+      "examples/validation/runs/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op model result with evidence.",
+    "objective": "The last ticket, and its deliverable is FINDINGS, not fixes. Run the evals across multiple examples, score each against the committed predictions, and write the follow-up self-improvement charter -- the starter document for the next epic, in the shape of COMPLEXITY-DESCRIPTOR-EPIC.md: what the evidence killed, what survived, what to build next, and what not to re-litigate. A low or unflattering result is a VALID and preferred outcome; the complexity-descriptor epic exists because a validation agent was told exactly that and then found the suggested moves were wrong. Findings are FILED, never fixed inline -- fixing inline destroys the measurement.\n",
+    "promotion_order": 70,
+    "promotion_predecessor": "EV-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Run the evals as a fact-finding mission; write the follow-up self-improvement charter",
+    "wave": 5
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/tickets/EV-02",
+  "ticket_id": "EV-02",
+  "ticket_index": 6,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/specs/tickets"
+}
