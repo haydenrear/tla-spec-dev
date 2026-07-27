@@ -529,6 +529,244 @@ def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
     }
 
 
+# The accepted baseline layout, outermost view first. External EXTENDS
+# Internal EXTENDS Core, so External is the module whose cfg configures the
+# whole program; measuring Core measures a module with no actions at all.
+BASELINE_VIEW_PREFERENCE = ("External", "Internal", "Core")
+MODEL_DECLARATION_KEY = "model"
+# TLC config keywords, used only to recognise a keyword line that a lenient cfg
+# reader handed back as an identifier. See CM-01-DF-02.
+CFG_KEYWORDS = frozenset(
+    {
+        "SPECIFICATION",
+        "INIT",
+        "NEXT",
+        "INVARIANT",
+        "INVARIANTS",
+        "PROPERTY",
+        "PROPERTIES",
+        "CONSTANT",
+        "CONSTANTS",
+        "CONSTRAINT",
+        "CONSTRAINTS",
+        "ACTION_CONSTRAINT",
+        "ACTION_CONSTRAINTS",
+        "SYMMETRY",
+        "VIEW",
+        "ALIAS",
+        "POSTCONDITION",
+        "CHECK_DEADLOCK",
+    }
+)
+
+
+class ModelSelectionError(Exception):
+    """The measured model could not be identified, or the pair does not match.
+
+    Raised instead of returning a model the ledger would silently mis-measure.
+    "I could not measure this" is the only honest outcome here (CM-F1): the
+    alternative -- pairing an arbitrary module with an arbitrary cfg -- reports
+    ``bound = None, modularity = 0.0`` and looks like a measurement.
+    """
+
+
+@dataclass(frozen=True)
+class ModelSelection:
+    """The model the ledger measures, and why that one."""
+
+    tla: Path
+    cfg: Path
+    manifest: Path | None
+    source: str
+
+    def describe(self) -> str:
+        return f"{self.tla.name} + {self.cfg.name} ({self.source})"
+
+
+def _model_candidates(model_dir: Path) -> list[Path]:
+    """Non-MC ``*.tla`` files in a model directory, alphabetically."""
+    return sorted(p for p in model_dir.glob("*.tla") if not p.name.startswith("MC"))
+
+
+def _resolve_cfg(model_dir: Path, tla_path: Path, *, source: str) -> Path:
+    """The cfg belonging to ``tla_path``: same stem, then MC.cfg, then a unique one."""
+    stem_cfg = model_dir / f"{tla_path.stem}.cfg"
+    if stem_cfg.is_file():
+        return stem_cfg
+    mc_cfg = model_dir / "MC.cfg"
+    if mc_cfg.is_file():
+        return mc_cfg
+    candidates = sorted(model_dir.glob("*.cfg"))
+    if len(candidates) == 1:
+        return candidates[0]
+    if not candidates:
+        raise ModelSelectionError(
+            f"no TLC config found beside {tla_path.name} in {rel(model_dir)} "
+            f"(selected by {source}). Expected {tla_path.stem}.cfg or MC.cfg."
+        )
+    raise ModelSelectionError(
+        f"cannot tell which config belongs to {tla_path.name} in {rel(model_dir)} "
+        f"(selected by {source}): found "
+        + ", ".join(path.name for path in candidates)
+        + f", and neither {tla_path.stem}.cfg nor MC.cfg is among them. "
+        "Declare the pair explicitly in spec_manifest.yaml:\n"
+        "  model:\n"
+        f"    tla: {tla_path.name}\n"
+        "    cfg: <the config that configures it>"
+    )
+
+
+def select_model_files(model_dir: Path) -> ModelSelection | None:
+    """Identify the model a ledger measures, DECLARED before discovered (CM-F1).
+
+    Resolution order, most explicit first:
+
+    1. ``model: {tla: ..., cfg: ...}`` in ``spec_manifest.yaml``.
+    2. The accepted three-module baseline: the outermost view present
+       (External, else Internal, else Core) with its own cfg.
+    3. A legacy single-module spec: ``<manifest module:>.tla``, else the only
+       non-``MC*`` module in the directory.
+
+    Returns None only when the directory holds no model at all. Ambiguity --
+    several candidate modules and nothing declaring which one is measured --
+    raises :class:`ModelSelectionError` rather than picking alphabetically,
+    which is the defect this function replaces: on every Core/Internal/External
+    baseline the alphabetical pick resolved to ``Core.tla`` paired with
+    ``External.cfg`` and the ledger reported ``bound = None``.
+    """
+    model_dir = Path(model_dir)
+    if not model_dir.is_dir():
+        return None
+    manifest_path = model_dir / "spec_manifest.yaml"
+    manifest = _load_yaml(manifest_path) if manifest_path.is_file() else {}
+    manifest_arg = manifest_path if manifest_path.is_file() else None
+
+    declared = manifest.get(MODEL_DECLARATION_KEY)
+    if isinstance(declared, dict) and declared:
+        tla_name = str(declared.get("tla") or "").strip()
+        cfg_name = str(declared.get("cfg") or "").strip()
+        if not tla_name or not cfg_name:
+            raise ModelSelectionError(
+                f"spec_manifest.yaml in {rel(model_dir)} declares a `model:` block "
+                "without both `tla:` and `cfg:`. A half-declared model is not a "
+                "measurement; give both filenames."
+            )
+        tla_path = model_dir / tla_name
+        cfg_path = model_dir / cfg_name
+        missing = [path.name for path in (tla_path, cfg_path) if not path.is_file()]
+        if missing:
+            raise ModelSelectionError(
+                f"spec_manifest.yaml in {rel(model_dir)} declares model "
+                f"{tla_name} + {cfg_name}, but " + ", ".join(missing) + " is not there."
+            )
+        return ModelSelection(tla_path, cfg_path, manifest_arg, "declared in spec_manifest.yaml")
+
+    candidates = _model_candidates(model_dir)
+    if not candidates:
+        return None
+
+    by_name = {path.stem: path for path in candidates}
+    if "Internal" in by_name:
+        # The accepted baseline. Case modules and other satellites in the same
+        # directory no longer change which model is measured.
+        for view in BASELINE_VIEW_PREFERENCE:
+            if view in by_name:
+                tla_path = by_name[view]
+                source = "accepted Core/Internal/External baseline (outermost view)"
+                return ModelSelection(
+                    tla_path, _resolve_cfg(model_dir, tla_path, source=source), manifest_arg, source
+                )
+
+    module_name = str(manifest.get("module") or "").strip()
+    if module_name and module_name in by_name:
+        tla_path = by_name[module_name]
+        source = "spec_manifest.yaml `module:`"
+        return ModelSelection(
+            tla_path, _resolve_cfg(model_dir, tla_path, source=source), manifest_arg, source
+        )
+
+    if len(candidates) == 1:
+        tla_path = candidates[0]
+        source = "the only module in the directory"
+        return ModelSelection(
+            tla_path, _resolve_cfg(model_dir, tla_path, source=source), manifest_arg, source
+        )
+
+    raise ModelSelectionError(
+        f"cannot tell which model the ledger measures in {rel(model_dir)}: found "
+        + ", ".join(path.name for path in candidates)
+        + ". Picking the alphabetically first one is how a ledger ends up measuring "
+        "a module with no variables and no actions (CM-F1). Declare it:\n"
+        "  model:\n"
+        "    tla: <module>.tla\n"
+        "    cfg: <config>.cfg"
+    )
+
+
+def validate_model_pair(selection: ModelSelection) -> list[str]:
+    """Reasons the cfg does not configure the module, or [] when the pair matches.
+
+    A cfg naming a SPECIFICATION, INIT/NEXT, invariant, or constant the module
+    hierarchy does not declare is not a model -- it is two files in the same
+    directory. Every finding here is "I could not measure this", never a
+    complexity judgement.
+    """
+    skill_root = str(SKILL_ROOT)
+    if skill_root not in sys.path:
+        sys.path.insert(0, skill_root)
+    from scripts import analyze_complexity
+
+    try:
+        resolved = analyze_complexity.resolve_module(selection.tla)
+    except analyze_complexity.ModuleResolutionError as error:
+        return [f"{selection.tla.name} cannot be resolved: {error}"]
+
+    cfg_text = selection.cfg.read_text(encoding="utf-8")
+    defined = {definition.name for definition in resolved.defs}
+    problems: list[str] = []
+
+    behavior_keys = [
+        (key, analyze_complexity._parse_cfg_named_entry(cfg_text, key))
+        for key in ("SPECIFICATION", "INIT", "NEXT")
+    ]
+    named = [(key, name) for key, name in behavior_keys if name]
+    for key, name in named:
+        if name not in defined:
+            problems.append(
+                f"{selection.cfg.name} configures {key} {name}, which "
+                f"{selection.tla.name} (with everything it EXTENDS) does not define"
+            )
+    if not named:
+        problems.append(
+            f"{selection.cfg.name} names no SPECIFICATION, INIT, or NEXT, so there is "
+            f"no behavior for {selection.tla.name} to be measured against"
+        )
+
+    for invariant in analyze_complexity.parse_cfg_invariants(cfg_text):
+        if invariant in CFG_KEYWORDS:
+            # CM-01-DF-02 (deferred): parse_cfg_invariants returns the bare
+            # keyword line that ENDS the INVARIANT block ("INVARIANT Inv"
+            # followed by a bare "CONSTANTS") as if it were another invariant
+            # name. Harmless where it is only used to look up a definition;
+            # here it would manufacture a mismatch on a pair that matches.
+            continue
+        if invariant not in defined:
+            problems.append(
+                f"{selection.cfg.name} configures INVARIANT {invariant}, which "
+                f"{selection.tla.name} does not define"
+            )
+
+    declared_constants = set(resolved.constants)
+    for constant in analyze_complexity.parse_cfg_constants(cfg_text):
+        if constant not in declared_constants:
+            problems.append(
+                f"{selection.cfg.name} assigns CONSTANT {constant}, which "
+                f"{selection.tla.name} does not declare"
+            )
+
+    return problems
+
+
 def find_model_files(model_dir: Path) -> tuple[Path, Path, Path | None] | None:
     """Locate (tla, cfg, manifest) inside a model tree, or None when absent.
 
@@ -536,21 +774,10 @@ def find_model_files(model_dir: Path) -> tuple[Path, Path, Path | None] | None:
     failure of the complexity ledger; the separation exists so the error message
     can name the directory it searched.
     """
-    model_dir = Path(model_dir)
-    if not model_dir.is_dir():
+    selection = select_model_files(model_dir)
+    if selection is None:
         return None
-    tla_files = sorted(p for p in model_dir.glob("*.tla") if not p.name.startswith("MC"))
-    if not tla_files:
-        return None
-    tla_path = tla_files[0]
-    cfg_path = model_dir / "MC.cfg"
-    if not cfg_path.exists():
-        candidates = sorted(model_dir.glob("*.cfg"))
-        if not candidates:
-            return None
-        cfg_path = candidates[0]
-    manifest_path = model_dir / "spec_manifest.yaml"
-    return tla_path, cfg_path, manifest_path if manifest_path.exists() else None
+    return selection.tla, selection.cfg, selection.manifest
 
 
 def complexity_ledger_input_path(specs_dir: Path, active_dir: Path | None, scope: str) -> Path:
@@ -579,14 +806,31 @@ def record_complexity_ledger(
     Called BEFORE the history entry is created and before promotion, so a
     refused close leaves the tree untouched.
     """
-    located = find_model_files(model_dir)
-    if located is None:
+    try:
+        selection = select_model_files(model_dir)
+    except ModelSelectionError as error:
+        raise SystemExit(
+            f"ERROR: complexity ledger could not identify the model to measure in "
+            f"{rel(model_dir)}.\n{error}"
+        ) from error
+    if selection is None:
         raise SystemExit(
             f"ERROR: complexity ledger cannot find a model to measure in {rel(model_dir)}.\n"
             "The ledger records measured complexity; it does not estimate and it does "
             "not skip. Point the close at a tree containing <module>.tla and MC.cfg."
         )
-    tla_path, cfg_path, manifest_path = located
+    mismatches = validate_model_pair(selection)
+    if mismatches:
+        raise SystemExit(
+            f"ERROR: complexity ledger could not measure {selection.describe()} in "
+            f"{rel(model_dir)}:\n"
+            + "\n".join(f"- {problem}" for problem in mismatches)
+            + "\n\nA config that does not configure the module is not a measurement. "
+            "Declare the pair in spec_manifest.yaml:\n  model:\n    tla: <module>.tla\n"
+            "    cfg: <config>.cfg"
+        )
+    print(f"complexity ledger model: {selection.describe()}")
+    tla_path, cfg_path, manifest_path = selection.tla, selection.cfg, selection.manifest
     try:
         ledger_input = complexity_ledger.load_input(input_path)
     except complexity_ledger.LedgerError as error:

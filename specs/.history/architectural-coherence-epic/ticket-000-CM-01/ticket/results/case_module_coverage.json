@@ -1,0 +1,193 @@
+{
+  "declarations": {
+    "Scenario_CheckoutHappyPath": {
+      "actions": [
+        "SubmitCreateAccount",
+        "SubmitAddCartItem",
+        "SubmitCheckout",
+        "RunFulfillmentWorker"
+      ],
+      "claim": null,
+      "extends": "External",
+      "form": "slice",
+      "name": "Scenario_CheckoutHappyPath",
+      "view": "external"
+    },
+    "Scenario_IdempotentResubmit": {
+      "actions": [
+        "SubmitDuplicateCreateAccount",
+        "SubmitDuplicateAddCartItem",
+        "SubmitDuplicateCheckout",
+        "RunFulfillmentWorker",
+        "RunFulfillmentWorkerNoop"
+      ],
+      "claim": "Resubmitting an already-applied command is independent of the reachable configuration it is replayed from. The Given asserts one pre-state (the account exists, the cart holds sku-1, order-1 is accepted and queued) instead of enumerating the 504 distinct projected before-states the whole view reaches, and that assertion IS the 504 -> 12 reduction. What it claims is irrelevant to duplicate handling: cart contents and order fan-out. If duplicate handling ever reads either, the claim is false and the Given must go.",
+      "extends": "External",
+      "form": "given",
+      "name": "Scenario_IdempotentResubmit",
+      "view": "external"
+    },
+    "Scenario_RejectedRequests": {
+      "actions": [
+        "SubmitCreateAccount",
+        "SubmitAddCartItemMissingAccount",
+        "SubmitCheckoutMissingAccount",
+        "SubmitCheckoutEmptyCart"
+      ],
+      "claim": null,
+      "extends": "External",
+      "form": "slice",
+      "name": "Scenario_RejectedRequests",
+      "view": "external"
+    }
+  },
+  "gates": "none -- this report blocks nothing and always exits 0",
+  "manifest": "specs/program_model/spec_manifest.yaml",
+  "measured_modules": [
+    "Scenario_CheckoutHappyPath",
+    "Scenario_IdempotentResubmit",
+    "Scenario_RejectedRequests"
+  ],
+  "per_action": {
+    "RunFulfillmentWorker": {
+      "entered_by": [
+        "Scenario_CheckoutHappyPath",
+        "Scenario_IdempotentResubmit"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 66,
+        "Scenario_IdempotentResubmit": 2,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 74
+    },
+    "RunFulfillmentWorkerNoop": {
+      "entered_by": [
+        "Scenario_IdempotentResubmit"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 2,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 48
+    },
+    "SubmitAddCartItem": {
+      "entered_by": [
+        "Scenario_CheckoutHappyPath"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 40,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 40
+    },
+    "SubmitAddCartItemMissingAccount": {
+      "entered_by": [
+        "Scenario_RejectedRequests"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 4
+      },
+      "view_corpus": 4
+    },
+    "SubmitCheckout": {
+      "entered_by": [
+        "Scenario_CheckoutHappyPath"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 52,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 52
+    },
+    "SubmitCheckoutEmptyCart": {
+      "entered_by": [
+        "Scenario_RejectedRequests"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 4
+      },
+      "view_corpus": 4
+    },
+    "SubmitCheckoutMissingAccount": {
+      "entered_by": [
+        "Scenario_RejectedRequests"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 4
+      },
+      "view_corpus": 4
+    },
+    "SubmitCreateAccount": {
+      "entered_by": [
+        "Scenario_CheckoutHappyPath",
+        "Scenario_RejectedRequests"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 2,
+        "Scenario_IdempotentResubmit": 0,
+        "Scenario_RejectedRequests": 2
+      },
+      "view_corpus": 2
+    },
+    "SubmitDuplicateAddCartItem": {
+      "entered_by": [
+        "Scenario_IdempotentResubmit"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 4,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 200
+    },
+    "SubmitDuplicateCheckout": {
+      "entered_by": [
+        "Scenario_IdempotentResubmit"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 4,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 184
+    },
+    "SubmitDuplicateCreateAccount": {
+      "entered_by": [
+        "Scenario_IdempotentResubmit"
+      ],
+      "modules": {
+        "Scenario_CheckoutHappyPath": 0,
+        "Scenario_IdempotentResubmit": 4,
+        "Scenario_RejectedRequests": 0
+      },
+      "view_corpus": 120
+    }
+  },
+  "uncovered_actions": [],
+  "unmeasured_modules": [],
+  "view": "external",
+  "view_action_source": "the supplied actions metadata",
+  "view_actions": [
+    "RunFulfillmentWorker",
+    "RunFulfillmentWorkerNoop",
+    "SubmitAddCartItem",
+    "SubmitAddCartItemMissingAccount",
+    "SubmitCheckout",
+    "SubmitCheckoutEmptyCart",
+    "SubmitCheckoutMissingAccount",
+    "SubmitCreateAccount",
+    "SubmitDuplicateAddCartItem",
+    "SubmitDuplicateCheckout",
+    "SubmitDuplicateCreateAccount"
+  ]
+}

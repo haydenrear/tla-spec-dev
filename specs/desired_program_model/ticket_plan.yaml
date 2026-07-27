@@ -32,6 +32,11 @@ status:
   workflow: architectural-coherence-epic
   active_ticket: null
   active_ticket_title: null
+  # CM-01 closed 2026-07-27: CM-F1 fixed (declared model discovery), the
+  # case_modules: manifest block, per-module action scope, and the coverage
+  # aggregation report. Zero TLA+ model delta, documented at
+  # specs/tickets/CM-01/results/zero-model-delta.txt. Two findings deferred:
+  # CM-01-DF-01, CM-01-DF-02, CM-01-DF-03.
   desired_module: TlaSpecDevCli
   phase: dispatch
 
@@ -141,7 +146,7 @@ service_catalog:
 tickets:
   - id: CM-01
     title: "Case modules: declared model discovery, manifest block, per-module action scope, corpus aggregation"
-    status: next
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/120"
     schedule_revision: 1
     depends_on: []
@@ -202,7 +207,17 @@ tickets:
         - "A case module declared in the manifest generates without spurious zero-case warnings for actions outside its scope."
         - "The aggregation report names every view action entered by no module and not covered by the view's own corpus, and blocks nothing."
         - "The probe's three modules (examples/case_modules/) still reproduce their recorded case counts: 160 / 16 / 14."
-      evidence: []
+      evidence:
+        - "specs/tickets/CM-01/results/cm-f1-model-discovery.txt"
+        - "specs/tickets/CM-01/results/cm-f2-action-scope.txt"
+        - "specs/tickets/CM-01/results/case_module_coverage.txt"
+        - "specs/tickets/CM-01/results/case_module_coverage.json"
+        - "specs/tickets/CM-01/results/zero-model-delta.txt"
+        - "specs/tickets/CM-01/results/tlc-current.txt"
+        - "specs/tickets/CM-01/results/descriptors-before-after.txt"
+        - "specs/tickets/CM-01/results/pytest-full.txt"
+        - "specs/tickets/CM-01/results/spec-unit-tests.txt"
+        - "specs/tickets/CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"
     model_delta_expectation: >
       ZERO. Case-module generation lives in generate_cases_from_tlc_dump.py,
       which the CLI lifecycle model does not represent. Document the no-op

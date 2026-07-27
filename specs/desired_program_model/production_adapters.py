@@ -598,12 +598,39 @@ def fill_complexity_ledger(target_repo: Path, spec_root: str, ticket_id: str) ->
 #: baseline so that a later one-variable model is a genuine DECREASE. Variable
 #: count is one of the direction metrics, so this works without depending on
 #: the analyzer inferring domain cardinality for a throwaway module.
-BASELINE_FIXTURE_MODEL = "---- MODULE Fixture ----\nVARIABLES a, b, c\n====\n"
-SHRUNK_FIXTURE_MODEL = "---- MODULE Fixture ----\nVARIABLES a\n====\n"
+#:
+#: CM-01: these are COMPLETE modules that FIXTURE_CFG actually configures.
+#: They used to be a single VARIABLES line dropped on top of a scaffolded
+#: three-module baseline, leaving `MODULE Fixture` paired with the baseline's
+#: External.cfg -- exactly the CM-F1 shape the ledger now refuses to measure
+#: ("I could not measure this"). A fixture that only worked because nothing
+#: checked the pair is not a fixture worth keeping.
+def _fixture_model(variables: str) -> str:
+    names = [name.strip() for name in variables.split(",")]
+    vars_tuple = "<< " + ", ".join(names) + " >>"
+    init = " /\\ ".join(f"{name} = 0" for name in names)
+    return (
+        "---- MODULE Fixture ----\n"
+        f"VARIABLES {variables}\n"
+        f"vars == {vars_tuple}\n"
+        f"Init == {init}\n"
+        "Next == UNCHANGED vars\n"
+        "Spec == Init /\\ [][Next]_vars\n"
+        "====\n"
+    )
+
+
+BASELINE_FIXTURE_MODEL = _fixture_model("a, b, c")
+SHRUNK_FIXTURE_MODEL = _fixture_model("a")
+FIXTURE_CFG = "SPECIFICATION Spec\n"
+#: CM-01: the measured model is declared, not discovered. Without this the
+#: ledger would pick the outermost view of the scaffolded baseline and find the
+#: fixture module under a name that does not match its cfg.
+FIXTURE_MODEL_DECLARATION = "\nmodel:\n  tla: External.tla\n  cfg: MC.cfg\n"
 
 
 def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: str) -> None:
-    """Write a fixture model into BOTH ticket trees.
+    """Write a fixture model into BOTH ticket trees, with a cfg that configures it.
 
     Both trees, because ticket current and desired must stay equal -- otherwise
     the close is refused by the equality gate and a test asserting on the
@@ -614,6 +641,12 @@ def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: st
         for tla in model_dir.glob("*.tla"):
             if not tla.name.startswith("MC"):
                 tla.write_text(text, encoding="utf-8")
+        (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+        manifest = model_dir / "spec_manifest.yaml"
+        if manifest.is_file():
+            current = manifest.read_text(encoding="utf-8")
+            if "\nmodel:\n" not in current:
+                manifest.write_text(current + FIXTURE_MODEL_DECLARATION, encoding="utf-8")
 
 
 

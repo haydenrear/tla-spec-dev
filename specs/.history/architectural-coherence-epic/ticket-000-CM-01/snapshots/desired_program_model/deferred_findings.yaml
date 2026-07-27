@@ -1,0 +1,92 @@
+findings:
+  - id: CM-01-DF-01
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["references/generation_modes.md", "tests/test_new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      asserts three phrases in references/generation_modes.md -- "hard
+      two-minute budget", "Distinguish compressible modeling detail from",
+      "concrete options for lowering" -- that the c72d03a documentation refresh
+      removed from that file. The first assertion fails. The test is a
+      documentation-content guard; nothing in the toolchain's behavior is
+      broken. Either the refresh dropped guidance it should have kept (fix the
+      doc) or the guard outlived the wording it guards (fix the test); that
+      decision belongs to whoever owns the refresh, not to a ticket that
+      happens to run pytest.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml -m pytest
+      tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+      -q`. Observed on main at c72d03a, on epic/architectural-coherence at
+      cb12fd1, and on feature/120-cm01-case-modules before and after every CM-01
+      change: 1 failed. Failure text: AssertionError: assert 'hard two-minute
+      budget' in '# Generation Modes\n\nSpec Double Compiler has two related
+      generation paths...'.
+    evidence: ["specs/tickets/CM-01/results/pytest-full.txt"]
+    why_out_of_scope: >-
+      Pre-existing and explicitly excluded by the CM-01 work order and the
+      epic plan's dispatch note. Neither references/generation_modes.md nor
+      this test is in CM-01's conflict keys.
+    suggested_fix: >-
+      Decide whether the three phrases are guidance the refresh should have
+      kept. If yes, restore them to references/generation_modes.md; if no,
+      delete the three assertions. Do not "fix" it by weakening the assertion
+      to a substring that happens to still be present.
+    blast_radius: "None. No other ticket in this epic touches either file."
+    disposition: pending
+    disposition_ticket: null
+
+  - id: CM-01-DF-02
+    found_by: "CM-01"
+    found_at_commit: "cb12fd1"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: ["scripts/analyze_complexity.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      analyze_complexity.parse_cfg_invariants returns the bare TLC keyword line
+      that TERMINATES an INVARIANT block as if it were another invariant name.
+      A cfg reading "INVARIANT Invariant" followed by a bare "CONSTANTS" line
+      yields ['Invariant', 'CONSTANTS']. The line that is supposed to close the
+      block (scripts/analyze_complexity.py:1629) tests `re.match("^[A-Z]+\\b")
+      and not re.fullmatch(identifier)`, and every all-caps keyword also
+      fullmatches the identifier pattern, so the guard never fires and the
+      keyword falls through to the in-block branch. Harmless where the result is
+      only used to look up a definition (a keyword resolves to nothing and is
+      skipped), which is why it survived. It is not harmless for any caller that
+      treats an unresolvable invariant name as a finding: CM-01's model-pair
+      validator had to skip TLC keywords explicitly
+      (scripts/spec_evolution.py CFG_KEYWORDS) to avoid manufacturing a
+      mismatch on the shipped example, whose External.cfg has exactly this
+      shape.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from
+      scripts.analyze_complexity import parse_cfg_invariants as p;
+      print(p('SPECIFICATION Spec\\nINVARIANT Inv\\nCONSTANT\\n  X = 1\\n'))".
+      Observed: ['Inv', 'CONSTANT']. Expected: ['Inv']. Also reproduces on
+      examples/distributed_history/specs/program_model/External.cfg, which
+      yields ['Invariant', 'CONSTANTS'].
+    evidence: ["specs/tickets/CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is outside CM-01's conflict keys and inside
+      AC-01's, which is in the same wave.
+    suggested_fix: >-
+      Close the block on a recognised TLC config keyword rather than on
+      "all-caps but not an identifier". A keyword list is the honest test; the
+      current shape cannot distinguish CONSTANTS from an invariant named
+      CONSTANTS, and neither can any regex over the same input.
+    blast_radius: >-
+      AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
+      let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
+      commented with this finding's id.
+    disposition: pending
+    disposition_ticket: null

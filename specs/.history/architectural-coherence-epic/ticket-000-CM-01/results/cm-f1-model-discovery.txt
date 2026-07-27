@@ -1,0 +1,19 @@
+CM-F1 -- declared model discovery, before/after, on the shipped three-module example
+directory: examples/distributed_history/specs/program_model
+modules present: Core.tla, External.tla, Internal.tla, Scenario_CheckoutHappyPath.tla, Scenario_IdempotentResubmit.tla, Scenario_RejectedRequests.tla
+
+BEFORE (the shipped behaviour: alphabetically first *.tla excluding MC*, paired
+with MC.cfg or the alphabetically first *.cfg):
+  selected: Core.tla + External.cfg
+  metrics: {'variables': 0, 'actions': 0, 'bound': None, 'modularity': 0.0}
+  -> the standing-objective ledger measured a module with no variables and no actions.
+
+AFTER (declared model discovery):
+  selected: External.tla + External.cfg (declared in spec_manifest.yaml)
+  pair validation: matches
+  metrics: {'variables': 10, 'actions': 12, 'bound': 4, 'modularity': 0.04721893491124263}
+
+AFTER, on the pre-fix pair, asked explicitly (the mismatch is now named, not silent):
+  - External.cfg configures SPECIFICATION Spec, which Core.tla (with everything it EXTENDS) does not define
+  - External.cfg configures INVARIANT Invariant, which Core.tla does not define
+  - External.cfg assigns CONSTANT Clients, which Core.tla does not declare
