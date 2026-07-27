@@ -29,3 +29,25 @@ Protocol:
    PREDICTIONS.md. The example projects stay pristine fixtures; providers
    are authored by the agents in their scratch copies, per the product's
    own design.
+
+## Architectural-coherence epic (EV-01, 2026-07-27)
+
+Three fixtures added for the architecture / case-module / effect-provider
+surface the three examples above never exercised. `PREDICTIONS.md` carries a
+new section for them, committed before any dispatch.
+
+| Example | Project | Tests |
+| --- | --- | --- |
+| ex4 pipeline coherent | `ex4_pipeline_coherent` — decomposable model, matching code, corpus, one effect port | the POSITIVE test the epic lacked: `coherent` with a detectable divergence; 6 seeded content faults across two measurement arms; two authored aspects; determinism |
+| ex5 pipeline divergent | `ex5_pipeline_divergent` — the twin | 4 enumerated divergences + 1 absence with `file:line`; the worked map-gaming example and AC-04's refusal |
+| ex6 jenga | `ex6_jenga` — synthetic god-state model + code | the `unfalsifiable_coherence` refusal, with 0 divergences that are NOT a clean result |
+
+The **primary** incoherent example is not in this directory: it is this
+repository's own `specs/program_model/TlaSpecDevCli.tla` (one component,
+Q = 0.000, `lastCommand`/`result` written by all fifteen commands). `ex6_jenga`
+is the control, and its README states exactly what it adds and does not add.
+
+Fixture integrity: `python3 examples/validation/check_twins.py` asserts that
+ex4 and ex5 still share one experiment — the four architecture inputs and the
+behavioral suite must be byte-identical. Run it before and after every EV-02
+run on either twin.

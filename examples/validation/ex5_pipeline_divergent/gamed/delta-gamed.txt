@@ -1,0 +1,82 @@
+wrote evidence: gamed/delta-gamed.txt
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       gamed/architecture_map.gamed.yaml
+  code root: pipeline
+  scanned 8 Python module(s); the map places 8 of them in 3 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  2 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    dispatch<->ingest, dispatch<->ledger
+    component pairs with NO port:   ingest<->ledger
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (2) -- a crossing edge the model declares a port for
+    dispatch -> ingest  (P1) ingest/queue.py -> ingest/inbox.py  [import pipeline.ingest.inbox.Inbox]  pipeline/ingest/queue.py:11
+    dispatch -> ledger  (P2) ingest/queue.py -> ledger/journal.py  [import pipeline.ledger.journal.Journal]  pipeline/ingest/queue.py:12
+
+  DIVERGENCES (3) -- a crossing edge NO port declares
+    pipeline/ingest/inbox.py:11  ingest -> ledger: ingest/inbox.py imports pipeline.ledger.journal.format_entry from ledger/journal.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+    pipeline/ingest/inbox.py:39  ingest -> ledger: ingest/inbox.py calls format_entry from ledger/journal.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+    pipeline/ledger/journal.py:55  ledger -> ingest: ledger/journal.py imports pipeline.ingest.inbox.Inbox from ingest/inbox.py
+      no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 2 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, pipeline_contract
+
+[MEASURED] Reflexion verdict
+  architecture_scan = divergent
+    - 3 code edge(s) cross a component boundary the model declares no port for
+
+  DIVERGENT is a FINDING, not a failure. This command exits 0. It names the
+  edges and the ports; it does not say which module should move (CD-01).
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
+
+[MEASURED] Architecture delta -- this scan against a recorded baseline
+  baseline map:  specs/program_model/architecture_map.yaml
+    digest:      sha256:51fc63424ef4a24eebf4123b7cd59dd673e6035a443807b1bce3917ed58f4cc9
+  current map:   gamed/architecture_map.gamed.yaml
+    digest:      sha256:748ed05e0b6e9d4e3ab773ea0e9d79d21d2bc95d36144696f3626544f7ff7367
+  model side:    architecture digest CHANGED (sha256:96e32621b635a59a5f1da47f51ab29c243572e79ff13e4b3afac7b52343d964f -> sha256:fbe0f1f11aa49eb18db1d4b1e71811902e80a756acbf6cd8e33aa6664f4eb3d1)
+  attribution:   unattributable
+    - the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change.
+    - 1 module(s) present in both scans were RE-PLACED by the map: ingest/queue.py (ingest -> dispatch). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+
+  DIVERGENCES: 4 -> 3 (-1 distinct dependenc(ies); 4 -> 3 sites)
+    LOST (1):
+      - ingest/queue.py -import-> ledger/journal.py  [pipeline.ledger.journal.Journal]  was at pipeline/ingest/queue.py:12
+        endpoint_reassigned: `ingest/queue.py` was re-placed by the map (ingest -> dispatch). The edge did not go away; the boundary it crossed did.
+    stable-basis only (modules in both scans, same component): 3 -> 3 (+0)
+
+  CONVERGENCES: 1 -> 2 (+1 distinct dependenc(ies); 1 -> 2 sites)
+    LOST (1):
+      - dispatch/delivery.py -import-> ingest/queue.py  [pipeline.ingest.queue.WorkQueue]  was at pipeline/dispatch/delivery.py:10
+    GAINED (2):
+      + ingest/queue.py -import-> ingest/inbox.py  [pipeline.ingest.inbox.Inbox]  at pipeline/ingest/queue.py:11
+      + ingest/queue.py -import-> ledger/journal.py  [pipeline.ledger.journal.Journal]  at pipeline/ingest/queue.py:12
+    stable-basis only (modules in both scans, same component): 0 -> 0 (+0)
+
+  ABSENCES: 1 -> 0 (-1)
+      - P2  dispatch <-> ledger
+
+[MEASURED] Delta verdict
+  direction = unattributable
+    - the two scans were not measured against the same declared basis, so this is not a refactor result. The numbers below are real; what they are a fact ABOUT is undetermined.
+    - the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change.
+    - 1 module(s) present in both scans were RE-PLACED by the map: ingest/queue.py (ingest -> dispatch). Re-placing a module moves the boundary, not the code -- it is the one edit that makes any divergence disappear for free.
+
+  UNATTRIBUTABLE is not a bad result and not a good one. The two scans do not
+  share a basis, so no number here is a fact about the refactor. Re-run the
+  baseline against the current map to get a comparison, and say in the record
+  that the map changed.
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

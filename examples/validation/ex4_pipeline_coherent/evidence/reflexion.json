@@ -1,0 +1,152 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex4_pipeline_coherent/specs/program_model/architecture_map.yaml",
+  "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex4_pipeline_coherent/pipeline",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 4,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "dispatch",
+        "ingest"
+      ],
+      [
+        "dispatch",
+        "ledger"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "ingest",
+        "ledger"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 2,
+    "external_imports": {
+      "__future__": [
+        "pipeline/dispatch/delivery.py:8",
+        "pipeline/dispatch/failures.py:7",
+        "pipeline/ingest/inbox.py:6",
+        "pipeline/ingest/queue.py:8",
+        "pipeline/ledger/journal.py:9"
+      ],
+      "pipeline_contract": [
+        "pipeline/ledger/journal.py:11"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex4_pipeline_coherent/specs/program_model/architecture_map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:51fc63424ef4a24eebf4123b7cd59dd673e6035a443807b1bce3917ed58f4cc9",
+    "placements": {
+      "dispatch/__init__.py": "dispatch",
+      "dispatch/delivery.py": "dispatch",
+      "dispatch/failures.py": "dispatch",
+      "ingest/__init__.py": "ingest",
+      "ingest/inbox.py": "ingest",
+      "ingest/queue.py": "ingest",
+      "ledger/__init__.py": "ledger",
+      "ledger/journal.py": "ledger"
+    },
+    "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex4_pipeline_coherent/pipeline",
+    "scanned_modules": [
+      "dispatch/__init__.py",
+      "dispatch/delivery.py",
+      "dispatch/failures.py",
+      "ingest/__init__.py",
+      "ingest/inbox.py",
+      "ingest/queue.py",
+      "ledger/__init__.py",
+      "ledger/journal.py"
+    ],
+    "architecture_digest": "sha256:96e32621b635a59a5f1da47f51ab29c243572e79ff13e4b3afac7b52343d964f",
+    "architecture_components": [
+      "dispatch",
+      "ingest",
+      "ledger"
+    ],
+    "architecture_ports": [
+      [
+        "dispatch",
+        "ingest"
+      ],
+      [
+        "dispatch",
+        "ledger"
+      ]
+    ],
+    "architecture_port_actions": {
+      "dispatch|ingest": [
+        "Deliver"
+      ],
+      "dispatch|ledger": [
+        "Record"
+      ]
+    },
+    "comparison_ran": true
+  },
+  "convergences": [
+    {
+      "from": "dispatch/delivery.py",
+      "to": "ingest/queue.py",
+      "kind": "import",
+      "symbol": "pipeline.ingest.queue.WorkQueue",
+      "file": "pipeline/dispatch/delivery.py",
+      "line": 10,
+      "site": "pipeline/dispatch/delivery.py:10",
+      "from_component": "dispatch",
+      "to_component": "ingest",
+      "pair": [
+        "dispatch",
+        "ingest"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Deliver"
+      ]
+    },
+    {
+      "from": "ledger/journal.py",
+      "to": "dispatch/delivery.py",
+      "kind": "import",
+      "symbol": "pipeline.dispatch.delivery.Dispatcher",
+      "file": "pipeline/ledger/journal.py",
+      "line": 13,
+      "site": "pipeline/ledger/journal.py:13",
+      "from_component": "ledger",
+      "to_component": "dispatch",
+      "pair": [
+        "dispatch",
+        "ledger"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Record"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "coherent",
+    "reasons": [
+      "every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

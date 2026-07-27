@@ -1,0 +1,104 @@
+# EV-01 decomposable fixture -- spec manifest.
+#
+# The corpus half of the fixture lives here only. ex5_pipeline_divergent is the
+# ARCHITECTURE twin and ships exactly four spec files, each BYTE-IDENTICAL to
+# this directory's: Pipeline.tla, Pipeline.cfg, architecture_components.yaml,
+# architecture_map.yaml. Those four are the whole input to the architecture
+# experiment, so `diff` over them must be empty; if it is not, the twins are two
+# different experiments and whatever EV-02 measured across them is void.
+# `python3 check_twins.py` from examples/validation/ checks it.
+module: Pipeline
+package: pipeline_contract
+
+# CM-F1: the measured model is DECLARED, never discovered.
+model:
+  tla: Pipeline.tla
+  cfg: Pipeline.cfg
+
+# AC-01 declared partition: `specs/program_model/architecture_components.yaml`.
+# It is a SEPARATE file, not an `architecture:` block here, so that the four
+# inputs to the architecture experiment -- Pipeline.tla, Pipeline.cfg,
+# architecture_components.yaml, architecture_map.yaml -- are byte-identical
+# across the coherent fixture and its divergent twin and can be checked with a
+# plain `diff`. See the fixture README, "The twins are the same model".
+
+# CM-01: the case modules this fixture runs.
+# Scenario_DeliveryPath is the MANUAL-TEST-STARTER artifact (aim 2). It was
+# written against the public surface only -- see the fixture README's
+# "Manual-test starter" section for the exact authored line count and the
+# behaviors it produced.
+case_modules:
+  Scenario_DeliveryPath:
+    extends: Pipeline
+    view: internal
+    form: slice
+    actions:
+      - Accept
+      - Enqueue
+      - Deliver
+  Scenario_RecordAfterDelivery:
+    extends: Pipeline
+    view: internal
+    form: given
+    actions:
+      - Record
+      - Fail
+    claim: >-
+      Recording a delivered item in the ledger is independent of how the item
+      reached `delivered` -- of which other items are in the inbox, accepted,
+      or queued. The Given asserts one pre-state (i1 delivered, i2 still in the
+      inbox) instead of enumerating every reachable configuration that has a
+      delivered item. What it claims is irrelevant to Record: upstream ingest
+      state. If Record ever reads inbox, accepted, or queue, the claim is false
+      and this Given must go.
+
+types: {}
+
+state:
+  PipelineState:
+    fields:
+      ledger:
+        type: str
+        tla: ledger
+
+results: {}
+
+ports:
+  LedgerStorePort:
+    role: effect
+    methods:
+      persist:
+        command: PersistLedger
+        result: str
+
+commands:
+  PersistLedger:
+    fields:
+      entries:
+        type: str
+
+budgets:
+  tlc_seconds: 120
+  max_distinct_states: 50000
+  max_state_space_bound: 1000000
+  max_internal_cases_per_component: 330
+  max_external_cases_per_action: 200
+  kill_rate_floor: 0.8
+  max_component_variables: 6
+  max_component_actions: 8
+  max_symmetric_instances: 2
+  source: negotiated
+  rationale:
+    # The ACCEPT PATH, taken deliberately and recorded, because the alternative
+    # the gate offers -- REDESIGN -- would be redesigning the fixture to make
+    # the tool comfortable, which is the exact contortion this ticket was told
+    # to report rather than perform. 330 is the whole measured corpus over 121
+    # reachable states; nothing is trimmed, and the cap is set to the measured
+    # number exactly so any model change re-triggers the gate.
+    max_internal_cases_per_component: >
+      Measured pristine corpus: 330 internal transition cases from 121 distinct
+      reachable states (114 distinct + initial-state fan-in), one component of
+      six variables. Cap set to the measured corpus size, exactly, with no
+      headroom.
+
+adapters: case_adapters.toml

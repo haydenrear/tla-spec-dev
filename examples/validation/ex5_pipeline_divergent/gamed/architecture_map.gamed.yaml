@@ -1,0 +1,9 @@
+architecture_map:
+  language: python
+  components:
+    - component: ingest
+      modules: [ingest/__init__.py, ingest/inbox.py]
+    - component: dispatch
+      modules: [dispatch, ingest/queue.py]
+    - component: ledger
+      modules: [ledger]
