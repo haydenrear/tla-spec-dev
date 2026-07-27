@@ -1,0 +1,135 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket AC-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The descriptor names components, per-variable writers, single-writer violations, and crossing actions, each labeled [MEASURED].",
+        "It emits no suggested move and no verdict on the code (CD-01).",
+        "It exits nonzero only when it cannot analyze the model, never because the model is complex.",
+        "A model whose structure resists clustering reports that explicitly instead of inventing a cut.",
+        "TLC on specs/current is green and its distinct-state count is recorded against the epic's desired-model measurement."
+      ],
+      "commands": [
+        "bash scripts/run_tlc.sh specs/current/TlaSpecDevCli.tla specs/current/MC.cfg",
+        "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg",
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "AC-02",
+      "AC-03"
+    ],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/tests/test_tla_spec_dev_analyze_adapter.py"
+      ],
+      "production": [
+        "scripts/analyze_architecture.py",
+        "scripts/analyze_complexity.py",
+        "scripts/tla_spec_dev.py",
+        "tests/test_analyze_architecture.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "specs/current/TlaSpecDevCli.tla",
+        "specs/current/MC.cfg"
+      ],
+      "workflow": [
+        "references/architecture_coherence.md",
+        "SKILL.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [
+        "TlaSpecDevAnalyzeArchitectureAdapter"
+      ],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [
+        "AnalyzeArchitecture"
+      ],
+      "model_state": [
+        "architecture_scan"
+      ],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket AC-01"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [
+      "AnalyzeArchitecture"
+    ],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/121",
+    "id": "AC-01",
+    "implementation_scope": [
+      "scripts/analyze_architecture.py",
+      "scripts/tla_spec_dev.py",
+      "specs/current/TlaSpecDevCli.tla",
+      "specs/current/MC.cfg",
+      "specs/current/tests/",
+      "references/architecture_coherence.md",
+      "SKILL.md"
+    ],
+    "objective": "Turn the structure analyze complexity already computes internally into a first-class, addressable artifact: components (variable clusters), the single writer of each variable and every violation of single-writer ownership, the crossing actions that are the ports between components, and the actions whose write set spans components. Emit it as `tla-spec-dev analyze architecture` with a text descriptor and a machine-readable form the later tickets consume. It states facts and makes no suggestions -- the CD-01 precedent binds: a chooser that is confidently wrong on standard TLA+ is worse than no chooser.\n",
+    "promotion_order": 20,
+    "promotion_predecessor": "CM-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Architecture descriptor: the structure the diagram implies",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/tickets/AC-01",
+  "ticket_id": "AC-01",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/tickets"
+}

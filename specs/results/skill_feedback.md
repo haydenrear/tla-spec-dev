@@ -1334,3 +1334,15 @@ Finalization review 2026-07-23 (epic owner): SF-001..SF-007 filed as issues #105
 - closed_at: 2026-07-23T21:22:33+00:00
 - summary: Main-readiness workflow closed: CD-04..08 removed every validated negative side effect (redesign question, descriptor accuracy, advisory language, example repair); effect-provider epic merged with zero host-model delta and the composed surface validated by run-4 kill probes; coverage audit close-2 PASS (0 gaps); SF findings filed #105-#111, backlog carried #112-#115; promotion gate for main
 - feedback_status: none-found  # finalization review 2026-07-23: no NEW findings at this close; all prior SF findings are status: filed with issue references (#105-#111)
+
+## Close-out ticket AC-01
+
+- close_scope: ticket
+- close_id: AC-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-27T16:40:39+00:00
+- summary: AC-01: analyze architecture -- components, per-variable writers and single-writer violations, ports, spanning actions; JSON descriptor (schema v1) for AC-02/AC-03; architecture_scan + AnalyzeArchitecture landed in current. Both real models measured DO NOT DECOMPOSE and the descriptor refuses rather than inventing a cut.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

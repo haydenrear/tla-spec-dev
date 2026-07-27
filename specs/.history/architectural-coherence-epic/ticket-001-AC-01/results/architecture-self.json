@@ -1,0 +1,405 @@
+{
+  "schema": "tla-spec-dev/architecture-descriptor",
+  "schema_version": 1,
+  "module": "TlaSpecDevCli",
+  "spec": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/TlaSpecDevCli.tla",
+  "cfg": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/MC.cfg",
+  "manifest": "/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/spec_manifest.yaml",
+  "measured": {
+    "variables": [
+      "setup_phase",
+      "spec_root",
+      "ticket_state",
+      "lastCommand",
+      "result",
+      "complexity_gate",
+      "corpus_gate",
+      "effect_conformance",
+      "kill_test",
+      "architecture_scan"
+    ],
+    "actions": [
+      {
+        "name": "AnalyzeArchitecture",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "architecture_scan",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "AnalyzeComplexity",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "complexity_gate",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "AnalyzeCorpus",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "corpus_gate",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "BuildSkillCli",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "CloseTicket",
+        "reads": [
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "InstallLocalCli",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "OpenTicket",
+        "reads": [
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "RecordBudgets",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "RunEffectConformance",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "effect_conformance",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunKillTest",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "kill_test",
+          "lastCommand",
+          "result"
+        ]
+      },
+      {
+        "name": "RunSpecUnitTests",
+        "reads": [
+          "setup_phase",
+          "spec_root",
+          "ticket_state"
+        ],
+        "writes": [
+          "corpus_gate",
+          "effect_conformance",
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "ScaffoldProject",
+        "reads": [
+          "setup_phase"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase",
+          "spec_root"
+        ]
+      },
+      {
+        "name": "ScaffoldWorkflow",
+        "reads": [
+          "setup_phase",
+          "spec_root"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "setup_phase"
+        ]
+      },
+      {
+        "name": "Stutter",
+        "reads": [],
+        "writes": []
+      },
+      {
+        "name": "UpdateTicketCurrent",
+        "reads": [
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      },
+      {
+        "name": "UpdateTicketDesired",
+        "reads": [
+          "ticket_state"
+        ],
+        "writes": [
+          "lastCommand",
+          "result",
+          "ticket_state"
+        ]
+      }
+    ],
+    "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+    "partition": {
+      "source": "emergent",
+      "origin": "computed by greedy modularity maximization over the variable interaction graph (the same method `analyze complexity` reports) -- a MEASUREMENT of what the matrix admits, not a declaration and not a proposal",
+      "modularity_q": 0.0,
+      "newman_significant_q": 0.3,
+      "decomposes": false,
+      "consumable_as_architecture": false,
+      "criteria": [
+        {
+          "name": "component_count",
+          "measured": 1,
+          "rule": ">= 2",
+          "met": false,
+          "why": "a partition with one component separated nothing"
+        },
+        {
+          "name": "modularity_q",
+          "measured": 0.0,
+          "rule": "> 0",
+          "met": false,
+          "why": "Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)"
+        },
+        {
+          "name": "crossing_action_fraction",
+          "measured": 0.0,
+          "rule": "<= 0.5",
+          "met": true,
+          "why": "a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)"
+        }
+      ],
+      "unassigned_variables": [],
+      "components": [
+        {
+          "id": "C1",
+          "name": "C1",
+          "variables": [
+            "architecture_scan",
+            "complexity_gate",
+            "corpus_gate",
+            "effect_conformance",
+            "kill_test",
+            "lastCommand",
+            "result",
+            "setup_phase",
+            "spec_root",
+            "ticket_state"
+          ],
+          "owns": [],
+          "actions": [
+            "AnalyzeArchitecture",
+            "AnalyzeComplexity",
+            "AnalyzeCorpus",
+            "BuildSkillCli",
+            "CloseTicket",
+            "InstallLocalCli",
+            "OpenTicket",
+            "RecordBudgets",
+            "RunEffectConformance",
+            "RunKillTest",
+            "RunSpecUnitTests",
+            "ScaffoldProject",
+            "ScaffoldWorkflow",
+            "UpdateTicketCurrent",
+            "UpdateTicketDesired"
+          ],
+          "internal_actions": [
+            "AnalyzeArchitecture",
+            "AnalyzeComplexity",
+            "AnalyzeCorpus",
+            "BuildSkillCli",
+            "CloseTicket",
+            "InstallLocalCli",
+            "OpenTicket",
+            "RecordBudgets",
+            "RunEffectConformance",
+            "RunKillTest",
+            "RunSpecUnitTests",
+            "ScaffoldProject",
+            "ScaffoldWorkflow",
+            "UpdateTicketCurrent",
+            "UpdateTicketDesired"
+          ],
+          "crossing_actions": [],
+          "writer_actions": [
+            "AnalyzeArchitecture",
+            "AnalyzeComplexity",
+            "AnalyzeCorpus",
+            "BuildSkillCli",
+            "CloseTicket",
+            "InstallLocalCli",
+            "OpenTicket",
+            "RecordBudgets",
+            "RunEffectConformance",
+            "RunKillTest",
+            "RunSpecUnitTests",
+            "ScaffoldProject",
+            "ScaffoldWorkflow",
+            "UpdateTicketCurrent",
+            "UpdateTicketDesired"
+          ],
+          "reaches": []
+        }
+      ]
+    },
+    "ownership": {
+      "writers": {
+        "setup_phase": [
+          "BuildSkillCli",
+          "InstallLocalCli",
+          "RecordBudgets",
+          "ScaffoldProject",
+          "ScaffoldWorkflow"
+        ],
+        "spec_root": [
+          "ScaffoldProject"
+        ],
+        "ticket_state": [
+          "CloseTicket",
+          "OpenTicket",
+          "RunSpecUnitTests",
+          "UpdateTicketCurrent",
+          "UpdateTicketDesired"
+        ],
+        "lastCommand": [
+          "AnalyzeArchitecture",
+          "AnalyzeComplexity",
+          "AnalyzeCorpus",
+          "BuildSkillCli",
+          "CloseTicket",
+          "InstallLocalCli",
+          "OpenTicket",
+          "RecordBudgets",
+          "RunEffectConformance",
+          "RunKillTest",
+          "RunSpecUnitTests",
+          "ScaffoldProject",
+          "ScaffoldWorkflow",
+          "UpdateTicketCurrent",
+          "UpdateTicketDesired"
+        ],
+        "result": [
+          "AnalyzeArchitecture",
+          "AnalyzeComplexity",
+          "AnalyzeCorpus",
+          "BuildSkillCli",
+          "CloseTicket",
+          "InstallLocalCli",
+          "OpenTicket",
+          "RecordBudgets",
+          "RunEffectConformance",
+          "RunKillTest",
+          "RunSpecUnitTests",
+          "ScaffoldProject",
+          "ScaffoldWorkflow",
+          "UpdateTicketCurrent",
+          "UpdateTicketDesired"
+        ],
+        "complexity_gate": [
+          "AnalyzeComplexity"
+        ],
+        "corpus_gate": [
+          "AnalyzeCorpus",
+          "RunSpecUnitTests"
+        ],
+        "effect_conformance": [
+          "RunEffectConformance",
+          "RunSpecUnitTests"
+        ],
+        "kill_test": [
+          "RunKillTest"
+        ],
+        "architecture_scan": [
+          "AnalyzeArchitecture"
+        ]
+      },
+      "single_writer_violations": null,
+      "single_writer_basis": "NOT MEASURABLE: single-writer ownership is defined against a component partition, and this model has only one component. Reporting zero violations here would be a clean result for a model with no architecture."
+    },
+    "ports": [],
+    "crossing_actions": [],
+    "spanning_actions": []
+  },
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "the model's variable interaction graph does not decompose (the emergent partition fails: component_count, modularity_q) and the project declares no component partition, so there is no architecture here to measure code against",
+      "no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This descriptor states measured facts about the model's structure. It makes no recommendation, proposes no cut, and never refuses a close, a promotion, or a case generation."
+  }
+}

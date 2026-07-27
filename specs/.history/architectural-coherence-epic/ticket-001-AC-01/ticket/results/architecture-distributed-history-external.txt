@@ -1,0 +1,122 @@
+analyze architecture -- External (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/External.tla
+  config:   /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/External.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/examples/distributed_history/specs/program_model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: EMERGENT
+  computed by greedy modularity maximization over the variable interaction graph (the same method `analyze complexity` reports) -- a MEASUREMENT of what the matrix admits, not a declaration and not a proposal
+  actions: top-level disjuncts of the next-state relation ExternalNext, called-operator bodies expanded transitively; helpers are not actions
+
+  C1
+    variables:         accounts, lastExternalAction, lastServiceRoute, responses, serviceHealth
+    owns (writes confined here): (none)
+    internal actions:  SubmitAddCartItemMissingAccount, SubmitCheckoutMissingAccount, SubmitDuplicateCreateAccount
+    crossing actions:  HiddenInternalProgress, RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout
+    reaches C2 via: HiddenInternalProgress, RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout
+
+  C2
+    variables:         carts, lastInternalAction, orders, outbox, projections
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  HiddenInternalProgress, RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout
+    reaches C1 via: HiddenInternalProgress, RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = 0.047
+  [OK  ] component_count: measured 2, rule >= 2
+         a partition with one component separated nothing
+  [OK  ] modularity_q: measured 0.047219, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [FAIL] crossing_action_fraction: measured 0.75, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition.
+  The descriptor states that rather than presenting a cut the model does
+  not have. It does not propose a different one: naming a boundary the
+  matrix does not show is the CD-01 failure mode, and a clean-looking
+  architecture derived from an invented cut is worse than none.
+
+  Consumers (the reflexion check, the implementation brief) must treat
+  this as UNMAPPABLE. To have an architecture measured here, DECLARE one
+  (`architecture:` in spec_manifest.yaml, or --components) -- the tool
+  measures a declared partition; it never writes one for you.
+
+[MEASURED] State ownership -- which actions write each variable
+  accounts            HiddenInternalProgress, SubmitCreateAccount
+  carts               HiddenInternalProgress, SubmitAddCartItem
+  orders              HiddenInternalProgress, SubmitCheckout
+  outbox              HiddenInternalProgress, RunFulfillmentWorker, SubmitCheckout
+  projections         HiddenInternalProgress, RunFulfillmentWorker
+  lastInternalAction  HiddenInternalProgress, RunFulfillmentWorker, SubmitAddCartItem, SubmitCheckout, SubmitCreateAccount
+  responses           SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+  serviceHealth       (written by no action)
+  lastServiceRoute    RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+  lastExternalAction  RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  basis: the EMERGENT partition, which DOES NOT decompose the model (see the criteria table) -- these violations are relative to a cut the model does not actually have
+  accounts: written from C1, C2 by HiddenInternalProgress, SubmitCreateAccount
+  carts: written from C1, C2 by HiddenInternalProgress, SubmitAddCartItem
+  lastExternalAction: written from C1, C2 by RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+  lastInternalAction: written from C1, C2 by HiddenInternalProgress, RunFulfillmentWorker, SubmitAddCartItem, SubmitCheckout, SubmitCreateAccount
+  lastServiceRoute: written from C1, C2 by RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+  orders: written from C1, C2 by HiddenInternalProgress, SubmitCheckout
+  outbox: written from C1, C2 by HiddenInternalProgress, RunFulfillmentWorker, SubmitCheckout
+  projections: written from C1, C2 by HiddenInternalProgress, RunFulfillmentWorker
+  responses: written from C1, C2 by SubmitAddCartItem, SubmitAddCartItemMissingAccount, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCheckoutMissingAccount, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout, SubmitDuplicateCreateAccount
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  P1  C1 <-> C2
+      crossed by: HiddenInternalProgress, RunFulfillmentWorker, RunFulfillmentWorkerNoop, SubmitAddCartItem, SubmitCheckout, SubmitCheckoutEmptyCart, SubmitCreateAccount, SubmitDuplicateAddCartItem, SubmitDuplicateCheckout
+
+  per crossing action:
+    HiddenInternalProgress crosses C1, C2 (P1)
+      C1: reads accounts | writes accounts
+      C2: reads carts, orders, outbox, projections | writes carts, lastInternalAction, orders, outbox, projections
+    RunFulfillmentWorker crosses C1, C2 (P1)
+      C1: reads serviceHealth | writes lastExternalAction, lastServiceRoute
+      C2: reads orders, outbox, projections | writes lastInternalAction, outbox, projections
+    RunFulfillmentWorkerNoop crosses C1, C2 (P1)
+      C1: reads serviceHealth | writes lastExternalAction, lastServiceRoute
+      C2: reads outbox | writes -
+    SubmitAddCartItem crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes lastExternalAction, lastServiceRoute, responses
+      C2: reads carts | writes carts, lastInternalAction
+    SubmitCheckout crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes lastExternalAction, lastServiceRoute, responses
+      C2: reads carts, orders, outbox | writes lastInternalAction, orders, outbox
+    SubmitCheckoutEmptyCart crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes lastExternalAction, lastServiceRoute, responses
+      C2: reads carts, orders | writes -
+    SubmitCreateAccount crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes accounts, lastExternalAction, lastServiceRoute, responses
+      C2: reads - | writes lastInternalAction
+    SubmitDuplicateAddCartItem crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes lastExternalAction, lastServiceRoute, responses
+      C2: reads carts | writes -
+    SubmitDuplicateCheckout crosses C1, C2 (P1)
+      C1: reads accounts, responses, serviceHealth | writes lastExternalAction, lastServiceRoute, responses
+      C2: reads orders | writes -
+
+[MEASURED] Spanning actions -- write sets that span components
+  HiddenInternalProgress writes C1: accounts; C2: carts, lastInternalAction, orders, outbox, projections in one step
+  RunFulfillmentWorker writes C1: lastExternalAction, lastServiceRoute; C2: lastInternalAction, outbox, projections in one step
+  SubmitAddCartItem writes C1: lastExternalAction, lastServiceRoute, responses; C2: carts, lastInternalAction in one step
+  SubmitCheckout writes C1: lastExternalAction, lastServiceRoute, responses; C2: lastInternalAction, orders, outbox in one step
+  SubmitCreateAccount writes C1: accounts, lastExternalAction, lastServiceRoute, responses; C2: lastInternalAction in one step
+
+[MEASURED] Architecture scan verdict
+  architecture_scan = unmappable
+    - the model's variable interaction graph does not decompose (the emergent partition fails: crossing_action_fraction) and the project declares no component partition, so there is no architecture here to measure code against
+    - no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved
+
+  `analyze architecture` exits 0 whenever it can analyze the model. A model
+  with no architecture is a FINDING, not a failure. It exits nonzero ONLY
+  when the model cannot be analyzed at all (an unresolved module hierarchy),
+  which is 'I could not measure this'. Nothing here blocks a close, a
+  promotion, or a case generation.

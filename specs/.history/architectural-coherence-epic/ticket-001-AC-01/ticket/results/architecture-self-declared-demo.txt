@@ -1,0 +1,186 @@
+analyze architecture -- TlaSpecDevCli (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: DECLARED
+  declared by the project in /Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/tickets/AC-01/results/declared-partition-demo.yaml
+  actions: top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions
+
+  C1 (bootstrap)
+    variables:         setup_phase, spec_root
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow
+    reaches C2 via: CloseTicket, OpenTicket, RunSpecUnitTests
+    reaches C3 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+    reaches C4 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow
+
+  C2 (ticket_lifecycle)
+    variables:         ticket_state
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C1 via: CloseTicket, OpenTicket, RunSpecUnitTests
+    reaches C3 via: RunSpecUnitTests
+    reaches C4 via: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+
+  C3 (scanners)
+    variables:         architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+    reaches C1 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+    reaches C2 via: RunSpecUnitTests
+    reaches C4 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+
+  C4 (cli_surface)
+    variables:         lastCommand, result
+    owns (writes confined here): (none)
+    internal actions:  (none)
+    crossing actions:  AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C1 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow
+    reaches C2 via: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+    reaches C3 via: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = -0.116
+  [OK  ] component_count: measured 4, rule >= 2
+         a partition with one component separated nothing
+  [FAIL] modularity_q: measured -0.115839, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [FAIL] crossing_action_fraction: measured 0.9375, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition.
+  The descriptor states that rather than presenting a cut the model does
+  not have. It does not propose a different one: naming a boundary the
+  matrix does not show is the CD-01 failure mode, and a clean-looking
+  architecture derived from an invented cut is worse than none.
+
+[MEASURED] State ownership -- which actions write each variable
+  setup_phase         BuildSkillCli, InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow
+  spec_root           ScaffoldProject
+  ticket_state        CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+  lastCommand         AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  result              AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  complexity_gate     AnalyzeComplexity
+  corpus_gate         AnalyzeCorpus, RunSpecUnitTests
+  effect_conformance  RunEffectConformance, RunSpecUnitTests
+  kill_test           RunKillTest
+  architecture_scan   AnalyzeArchitecture
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  basis: the DECLARED partition (/Users/hayde/IdeaProjects/wt-121-ac01-architecture-descriptor/specs/tickets/AC-01/results/declared-partition-demo.yaml)
+  architecture_scan: written from C3, C4 by AnalyzeArchitecture
+  complexity_gate: written from C3, C4 by AnalyzeComplexity
+  corpus_gate: written from C2, C3, C4 by AnalyzeCorpus, RunSpecUnitTests
+  effect_conformance: written from C2, C3, C4 by RunEffectConformance, RunSpecUnitTests
+  kill_test: written from C3, C4 by RunKillTest
+  lastCommand: written from C1, C2, C3, C4 by AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  result: written from C1, C2, C3, C4 by AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  setup_phase: written from C1, C4 by BuildSkillCli, InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow
+  spec_root: written from C1, C4 by ScaffoldProject
+  ticket_state: written from C2, C3, C4 by CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  P1  C1 <-> C2
+      crossed by: CloseTicket, OpenTicket, RunSpecUnitTests
+  P2  C1 <-> C3
+      crossed by: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+  P3  C1 <-> C4
+      crossed by: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow
+  P4  C2 <-> C3
+      crossed by: RunSpecUnitTests
+  P5  C2 <-> C4
+      crossed by: CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+  P6  C3 <-> C4
+      crossed by: AnalyzeArchitecture, AnalyzeComplexity, AnalyzeCorpus, RunEffectConformance, RunKillTest, RunSpecUnitTests
+
+  per crossing action:
+    AnalyzeArchitecture crosses C1, C3, C4 (P2, P3, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C3: reads - | writes architecture_scan
+      C4: reads - | writes lastCommand, result
+    AnalyzeComplexity crosses C1, C3, C4 (P2, P3, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C3: reads - | writes complexity_gate
+      C4: reads - | writes lastCommand, result
+    AnalyzeCorpus crosses C1, C3, C4 (P2, P3, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C3: reads - | writes corpus_gate
+      C4: reads - | writes lastCommand, result
+    BuildSkillCli crosses C1, C4 (P3)
+      C1: reads setup_phase | writes setup_phase
+      C4: reads - | writes lastCommand, result
+    CloseTicket crosses C1, C2, C4 (P1, P3, P5)
+      C1: reads setup_phase, spec_root | writes -
+      C2: reads ticket_state | writes ticket_state
+      C4: reads - | writes lastCommand, result
+    InstallLocalCli crosses C1, C4 (P3)
+      C1: reads setup_phase | writes setup_phase
+      C4: reads - | writes lastCommand, result
+    OpenTicket crosses C1, C2, C4 (P1, P3, P5)
+      C1: reads setup_phase, spec_root | writes -
+      C2: reads ticket_state | writes ticket_state
+      C4: reads - | writes lastCommand, result
+    RecordBudgets crosses C1, C4 (P3)
+      C1: reads setup_phase, spec_root | writes setup_phase
+      C4: reads - | writes lastCommand, result
+    RunEffectConformance crosses C1, C3, C4 (P2, P3, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C3: reads - | writes effect_conformance
+      C4: reads - | writes lastCommand, result
+    RunKillTest crosses C1, C3, C4 (P2, P3, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C3: reads - | writes kill_test
+      C4: reads - | writes lastCommand, result
+    RunSpecUnitTests crosses C1, C2, C3, C4 (P1, P2, P3, P4, P5, P6)
+      C1: reads setup_phase, spec_root | writes -
+      C2: reads ticket_state | writes ticket_state
+      C3: reads - | writes corpus_gate, effect_conformance
+      C4: reads - | writes lastCommand, result
+    ScaffoldProject crosses C1, C4 (P3)
+      C1: reads setup_phase | writes setup_phase, spec_root
+      C4: reads - | writes lastCommand, result
+    ScaffoldWorkflow crosses C1, C4 (P3)
+      C1: reads setup_phase, spec_root | writes setup_phase
+      C4: reads - | writes lastCommand, result
+    UpdateTicketCurrent crosses C2, C4 (P5)
+      C2: reads ticket_state | writes ticket_state
+      C4: reads - | writes lastCommand, result
+    UpdateTicketDesired crosses C2, C4 (P5)
+      C2: reads ticket_state | writes ticket_state
+      C4: reads - | writes lastCommand, result
+
+[MEASURED] Spanning actions -- write sets that span components
+  AnalyzeArchitecture writes C3: architecture_scan; C4: lastCommand, result in one step
+  AnalyzeComplexity writes C3: complexity_gate; C4: lastCommand, result in one step
+  AnalyzeCorpus writes C3: corpus_gate; C4: lastCommand, result in one step
+  BuildSkillCli writes C1: setup_phase; C4: lastCommand, result in one step
+  CloseTicket writes C2: ticket_state; C4: lastCommand, result in one step
+  InstallLocalCli writes C1: setup_phase; C4: lastCommand, result in one step
+  OpenTicket writes C2: ticket_state; C4: lastCommand, result in one step
+  RecordBudgets writes C1: setup_phase; C4: lastCommand, result in one step
+  RunEffectConformance writes C3: effect_conformance; C4: lastCommand, result in one step
+  RunKillTest writes C3: kill_test; C4: lastCommand, result in one step
+  RunSpecUnitTests writes C2: ticket_state; C3: corpus_gate, effect_conformance; C4: lastCommand, result in one step
+  ScaffoldProject writes C1: setup_phase, spec_root; C4: lastCommand, result in one step
+  ScaffoldWorkflow writes C1: setup_phase; C4: lastCommand, result in one step
+  UpdateTicketCurrent writes C2: ticket_state; C4: lastCommand, result in one step
+  UpdateTicketDesired writes C2: ticket_state; C4: lastCommand, result in one step
+
+[MEASURED] Architecture scan verdict
+  architecture_scan = unmappable
+    - no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved
+
+  `analyze architecture` exits 0 whenever it can analyze the model. A model
+  with no architecture is a FINDING, not a failure. It exits nonzero ONLY
+  when the model cannot be analyzed at all (an unresolved module hierarchy),
+  which is 'I could not measure this'. Nothing here blocks a close, a
+  promotion, or a case generation.

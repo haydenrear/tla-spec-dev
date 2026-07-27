@@ -64,6 +64,27 @@ rule that does not hold on a scan FIRES as a notification to future agents —
 advisory, never blocking, and there are no built-in rules. See
 `references/fitness_functions.md`.
 
+**SHIPPED — the architecture descriptor (`analyze architecture`).** The same
+structure, named and made addressable (AC-01). From the model alone it reports
+the **components** (variable clusters, with the actions internal to each and
+the actions that cross), the **ownership** of every variable (which actions
+write it, and every single-writer violation — a variable whose writes are not
+confined to one component), the **ports** (the component pairs actions cross:
+what would have to become an interface if the cut were taken), and the
+**spanning actions** whose write set commits in more than one component in one
+step. Same stance as the complexity descriptor: every figure is `[MEASURED]`,
+it makes no suggestions, and it exits nonzero only when it cannot analyze the
+model. Two things distinguish it. First, it **refuses rather than invents**: a
+model whose interaction graph does not decompose gets the criteria that failed
+and a `null` where the ownership figures would be, not a one-component
+partition reporting zero violations — a flawless architecture report for a
+model with no architecture is indistinguishable from the real thing. Both of
+this repository's own real targets currently land there. Second, its component
+partition may be **declared** by the project (`architecture:` in
+`spec_manifest.yaml`, or `--components`); the tool measures the partition you
+name and never writes one. A machine-readable form (`--format json`) is the
+contract downstream consumers read. See `references/architecture_coherence.md`.
+
 **SHIPPED — the agent-authored effect-provider interface.** The framework
 generates repository-specific typed ports, resolves one project provider per
 declared port, scopes it around one generated case/iteration, supplies stable
@@ -1182,6 +1203,12 @@ current change.
   when the descriptor shows a squeeze (the descriptor itself suggests
   nothing), user-approval rules, creative representations for irreducible
   pieces, and the grow-by-evidence modeling loop.
+- `references/architecture_coherence.md`: the architecture descriptor
+  (`analyze architecture`) — components, per-variable writers and
+  single-writer violations, ports, spanning actions; the criteria that decide
+  whether a partition is a cut at all; the refusal a model that does not
+  decompose gets instead of an invented cut; the `architecture_scan` values
+  (`unmappable` is not `unknown`); and the JSON contract its consumers read.
 - `references/complexity_intuition.md`: how to read a complexity descriptor
   as refactoring input — good vs bad descriptor shapes with worked real-run
   examples, how complex a program should be (proportional to essential
