@@ -139,7 +139,32 @@ decomposes:
 
 That is a finding about the models, not a defect in the tool, and it is the
 epic's most load-bearing measurement: the descriptor's first two real targets
-have no architecture to describe.
+have no architecture worth describing.
+
+**Precisely what that claim is, and is not (AC-03-DF-02, owner-verified).**
+The emergent partition comes from *greedy* community detection, so "the model
+does not decompose" states **what greedy search found**, not a proof about the
+model. Exhaustive enumeration of all 115,975 partitions of
+`TlaSpecDevCli.tla`'s 10 variables — scored with this tool's own modularity
+function and its own three criteria — finds **two** that meet all three, the
+best at `Q = 0.0029`, crossing fraction `0.188`. Hand either back via
+`--components` and the shipped CLI agrees: *the partition is a cut*.
+
+Both things are true, and neither cancels the other:
+
+- The doctrine stands. `Q = 0.003` is negligible structure — two orders of
+  magnitude under Newman's conventional 0.3 — so refusing to invent a cut is
+  still right, and *proposing* one of those partitions would be exactly the
+  confidently-wrong automation CD-01 removed. This tool does not adopt
+  exhaustive search and does not offer those partitions.
+- The wording was overclaiming, and the fix is to report the search method
+  with the result: a negative from greedy search reads "greedy community
+  detection found no cut", never "no cut exists".
+
+The same distinction applies within one project: `External.tla` does not
+decompose under greedy search, while the same example's **`Internal.tla` does**
+(2 components, `Q = 0.0069`, crossing fraction exactly `0.50`). A per-model
+claim is not a per-project claim.
 
 ## Advisory, Never Blocking
 
