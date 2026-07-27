@@ -28,7 +28,7 @@ findings:
       change: 1 failed. Failure text: AssertionError: assert 'hard two-minute
       budget' in '# Generation Modes\n\nSpec Double Compiler has two related
       generation paths...'.
-    evidence: ["specs/tickets/CM-01/results/pytest-full.txt"]
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/pytest-full.txt"]
     why_out_of_scope: >-
       Pre-existing and explicitly excluded by the CM-01 work order and the
       epic plan's dispatch note. Neither references/generation_modes.md nor
@@ -75,7 +75,7 @@ findings:
       Observed: ['Inv', 'CONSTANT']. Expected: ['Inv']. Also reproduces on
       examples/distributed_history/specs/program_model/External.cfg, which
       yields ['Invariant', 'CONSTANTS'].
-    evidence: ["specs/tickets/CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"]
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-02-parse-cfg-invariants.txt"]
     why_out_of_scope: >-
       scripts/analyze_complexity.py is outside CM-01's conflict keys and inside
       AC-01's, which is in the same wave.
@@ -88,5 +88,62 @@ findings:
       AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
       let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
       commented with this finding's id.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: CM-01-DF-03
+    found_by: "CM-01"
+    found_at_commit: "3503e58"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: ["scripts/analyze_complexity.py", "scripts/complexity_ledger.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A PARTIALLY resolved state-space bound is compared against
+      max_state_space_bound as if it were complete, while a FULLY unresolved one
+      is correctly refused. On the shipped example's External view, 9 of 10
+      variables have no resolvable domain; the descriptor says so plainly under
+      "excluded (no resolvable domain)", but the resulting bound of 4 is then
+      carried into the ledger's budget_utilization as "used 4, percent 0.0,
+      within_cap true" against a 1,000,000 cap -- for a model TLC measures at
+      49,386 distinct states. An "upper bound" four orders of magnitude below a
+      measured reachable count is not an upper bound, and 0.0%-of-cap is a
+      comfort claim derived from one variable. With ZERO resolvable variables
+      the same code path emits "state-space upper bound UNKNOWN ... cannot be
+      compared against max_state_space_bound" and records no utilization. The
+      asymmetry is the defect: partial resolution is treated as full, and only
+      total failure is treated as unknown. Found while verifying that the CM-F1
+      fix made the ledger measure the right model -- it does, and the number it
+      now measures is itself misleading on any model without a TypeInvariant.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from pathlib import Path;
+      from scripts import complexity_ledger as cl; d =
+      Path('examples/distributed_history/specs/program_model');
+      m=cl.collect_metrics(d/'External.tla', d/'External.cfg',
+      d/'spec_manifest.yaml', None); print(m['bound'],
+      m['budget_utilization'])". Observed: 4 {'max_state_space_bound': {'cap':
+      1000000, 'used': 4, 'percent': 0.0, 'within_cap': True}}. Same call with
+      Core.tla yields bound None, no utilization, and an explicit UNKNOWN
+      violation. TLC on External.tla/External.cfg: 49,386 distinct states
+      (reproduced 2026-07-27, examples/case_modules/MEASUREMENTS.md).
+    evidence: ["specs/.history/architectural-coherence-epic/ticket-000-CM-01/results/cm-01-df-03-partial-bound.txt"]
+    why_out_of_scope: >-
+      scripts/analyze_complexity.py is in AC-01's and AC-04's conflict keys and
+      scripts/complexity_ledger.py is in AC-04's; neither is in CM-01's.
+    suggested_fix: >-
+      Carry the resolved/excluded variable counts alongside the bound and refuse
+      the cap comparison whenever any variable is excluded, with the same
+      "cannot be compared" wording the zero case already uses -- a partial
+      product is a lower bound on an upper bound, which is not a thing a cap can
+      be checked against. Reporting the partial product as a fact is fine;
+      comparing it is not.
+    blast_radius: >-
+      The repository's own model resolves every variable (bound 699,840 at
+      CM-01's close), so no ledger entry in this epic is affected. Any project
+      whose model has no TypeInvariant/TypeOK is -- including the shipped
+      worked example.
     disposition: pending
     disposition_ticket: null

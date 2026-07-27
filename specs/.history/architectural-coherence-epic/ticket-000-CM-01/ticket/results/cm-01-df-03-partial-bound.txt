@@ -1,0 +1,21 @@
+CM-01-DF-03 reproduction -- a PARTIALLY resolved state-space bound is compared
+against the cap as if it were complete, while a fully unresolved one is not.
+
+model: examples/distributed_history/specs/program_model/External.tla + External.cfg
+  variables: 10 (9 of 10 have no resolvable domain -- the
+             descriptor says so under 'excluded (no resolvable domain)')
+  bound: 4
+  budget_utilization: {'max_state_space_bound': {'cap': 1000000, 'used': 4, 'percent': 0.0, 'within_cap': True}}
+  gate violations mentioning the bound: []
+
+TLC on the same model (examples/case_modules/MEASUREMENTS.md, reproduced
+2026-07-27): 49,386 distinct states, 632,658 generated, depth 11. The
+recorded 'state-space upper bound' is 4 -- four orders of magnitude BELOW
+the measured reachable count -- and is recorded as 0.0% of a 1,000,000 cap,
+within_cap true.
+
+Contrast: with ZERO resolvable variables the same code path refuses to
+compare, and says so. Core.tla + External.cfg:
+  bound: None
+  budget_utilization: {}
+  violation: state-space upper bound UNKNOWN: no variable domain could be resolved from a TypeInvariant/TypeOK or from the configured invariants, so the bound cannot be compared against max_state_space_bound
