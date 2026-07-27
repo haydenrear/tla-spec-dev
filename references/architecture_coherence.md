@@ -1,7 +1,8 @@
 # Architecture Coherence
 
-*(AC-01. The reference for `tla-spec-dev analyze architecture`: what the
-architecture descriptor measures, what it cannot see, and the reading order.)*
+*(AC-01 + AC-02. The reference for `tla-spec-dev analyze architecture`: what the
+architecture descriptor measures, what the reflexion check adds when production
+code is supplied, what neither can see, and the reading order.)*
 
 `analyze complexity` already computed the structure. It printed it. This
 reference covers the command that gives that structure a name, a schema, and
@@ -161,8 +162,8 @@ The model's `architecture_scan` variable ranges over
 | value | meaning |
 |---|---|
 | `unknown` | the scan has not run |
-| `coherent` | every code edge has a declared port |
-| `divergent` | a code edge exists that no port declares — a finding, not a failure |
+| `coherent` | every crossing code edge has a declared port, and every port is realized |
+| `divergent` | a code edge exists that no port declares, or a port exists that no code edge realizes — a finding, not a failure |
 | `unmappable` | **the scan ran and could not see the target** |
 
 `unmappable` is deliberately distinct from `unknown` — the same distinction
@@ -174,7 +175,7 @@ delete the verdict this epic exists to report.
 the model; with no production code supplied there is nothing for the code to be
 coherent *with*, and a clean report on a target that was never observed is
 indistinguishable from a clean report on one that was. AC-02 supplies the code
-side.
+side, below.
 
 ## The Machine-Readable Contract
 
@@ -248,11 +249,226 @@ Per component, the brief's clauses map directly:
 A brief must not be rendered from a descriptor whose
 `consumable_as_architecture` is `false`: there is no component to belong to.
 
+# The Reflexion Check (AC-02)
+
+*(`analyze architecture <spec> <cfg> --code <tree> --map <map.yaml>`, or
+`scripts/architecture_reflexion.py` with the same flags.)*
+
+The reflexion model (Murphy, Notkin & Sullivan): put a **declared** map from
+production modules to model components next to the **extracted** dependency
+graph of the real code, and report the difference.
+
+| category | what it is |
+|---|---|
+| **convergence** | a code edge between two components that a port declares |
+| **divergence** | a code edge between two components **no port declares** — the block pulled out from under three others |
+| **absence** | a **declared port no code edge realizes** — dead architecture |
+| *(internal)* | an edge that stays inside one component. Counted, never checked: it crossed no boundary, so no port was needed. **Internal edges are not convergences** — treating them as such is how a one-component map reports a perfect score |
+
+Every divergence carries `file:line` at the **site** of the dependency — the
+import statement or the call, not the file it points at. A finding a reader
+cannot navigate to is an opinion.
+
+Both `--code` and `--map` are required together. Half a reflexion check is a
+usage error (exit 2): scanning code with no map would make the *tool* choose the
+boundary, and a map with no code reports every port absent.
+
+## The Declared Map
+
+```yaml
+architecture_map:
+  language: python
+  components:
+    - component: lifecycle       # a component NAME the descriptor has
+      modules:
+        - scripts/start_ticket.py
+        - scripts/close_ticket.py
+    - component: scanners
+      modules:
+        - scripts/analyze_complexity.py
+```
+
+Module entries resolve relative to the code root or to the working directory,
+and must land inside the code root. A directory entry expands to every `*.py`
+beneath it. The component names must be names the descriptor's partition
+has — declared under `architecture:` or emergent (`C1`, `C2`, …).
+
+The map is **read, never computed**, for the reason AC-01 gives for the
+component partition: a tool that picks its own boundary picks the one the code
+already has, and every edge is then legal by construction.
+
+Five map shapes are **refused** (exit 2 — unusable input, not a finding about
+the code): a component the model does not have; an entry naming no file; a
+module placed in two components; a `language:` with no extractor in this build;
+and a code root with no Python in it.
+
+## What Makes The Verdict `unmappable`
+
+Each of these means part of the target was not observed, so a clean report on
+it would be indistinguishable from a clean report on a target that was:
+
+| blind spot | what it means |
+|---|---|
+| `model_has_no_architecture` | `partition.consumable_as_architecture` is false. **The reason names the model, not the code.** With one component every code edge is internal, so the diff would otherwise report a flawless codebase for a model with no boundary in it |
+| `unmapped_module` | a module in the scanned tree the map places nowhere. A map cannot cover the tidy half of a tree and report it clean |
+| `unrealized_component` | a declared component the map places no module in. Whether the code respects a boundary whose other side does not exist is not observable |
+| `unfalsifiable_coherence` | **every component pair has a port**, so no code edge *could* have diverged. "No divergences" is then a property of the declared architecture, not a measurement of the code. Note the limit: this catches the fully degenerate case only. A partition that is merely *coarse* — one where the specific pair a bad edge would cross happens to be ported — still reports a real-looking clean |
+| `dynamic_import` / `dynamic_attribute` / `star_import` | an edge reached through a computed name. Not an absence — an unknown |
+| `unparsed_file` | a `.py` file the parser could not read |
+| `non_python_file` | a file in the tree with no extractor in this build |
+| `first_party_outside_code_root` | the tree imports a package that sits **beside** the code root in the same project. Its edges are not in the graph, and narrowing `--code` would otherwise delete real dependencies with nothing recorded |
+
+**`unmappable` is not "clean with caveats" and not "nothing found."** Findings
+are still reported under it: a divergence discovered next to a blind spot is a
+real divergence. The verdict says only that the check will not certify what it
+did not observe.
+
+**Nothing downgrades it.** There is no flag, key, annotation, or environment
+variable that turns `unmappable` into `coherent`. Suppression-shaped keys in the
+map (`assume_coherent`, `allow_unmapped`, `waived`, `justification`,
+`accepted_divergences`, `ignore`, `exclude`, …) are **scanned, reported under
+`ignored_suppression_keys`, and never honored** — the shape
+`scripts/effect_conformance.py` uses, for the reason stated there: a silently
+ignored key is nearly as bad as an honored one, because the author believes the
+finding was waived. The verdict property reads nothing but the report itself,
+and `tests/test_architecture_reflexion.py::TestNothingDowngradesAnUnobservableVerdict`
+holds that shut from four directions (map keys, environment variables,
+command-line flags, and the source of the verdict property).
+
+## What The Map Cannot Stop
+
+Stated plainly because the dogfood proved it, and because a reader who does not
+know this will over-trust a `coherent`:
+
+1. **The map is where the lying would happen.** Placement is the author's
+   judgment. Any divergence can be made to disappear by moving the offending
+   module into the component it reaches — no code changes, the verdict flips.
+   The tool measures the map the project declares and cannot audit the
+   declaration. What it *can* do, and does, is refuse a map that covers only
+   part of the tree, and publish the placements so the argument is about a
+   written-down claim rather than an impression.
+2. **A model whose actions all touch the same variables has no architecture to
+   violate.** Under *any* partition of such a model, every component pair gets a
+   port, and `unfalsifiable_coherence` fires. This is not a corner case: it is
+   what this repository's own model does (see below).
+3. **Only in-tree edges are edges.** A component that reaches a database, a
+   socket, or a subprocess directly is invisible here. The external import
+   targets are listed in the report, but they are not measured against
+   anything. (`scripts/effect_conformance.py` is the tool that watches *that*
+   axis.)
+4. **Python only.** Any other language reports refused-or-blind, never clean.
+
+## Measured On This Repository (AC-02, 2026-07-27)
+
+The dogfood is the acceptance test, and it produced a finding rather than a
+score. Three runs, none of them `coherent`, all exit 0. Full report:
+`specs/.history/architectural-coherence-epic/ticket-002-AC-02/results/dogfood-findings.txt`.
+
+**1. `--code scripts --map specs/program_model/architecture_map.yaml`** —
+`unmappable`, and the comparison **does not run at all**. The model has one
+component (Q = 0.000; `lastCommand` and `result` are written by all fifteen
+commands), so `consumable_as_architecture` is false. The report prints "NOT
+RUN" instead of three zeroes, because "zero divergences" for a comparison that
+never happened is the false clean in its purest form. Had the diff run anyway,
+all 258 code edges would have been internal to the single component: 0
+divergences, 0 absences, `coherent`. **This is the recorded acceptance result.**
+
+**2. the same, plus the declared four-component partition**
+(`--components specs/program_model/architecture_components.yaml`: `surface`
+{`lastCommand`, `result`, `setup_phase`, `spec_root`} / `tickets`
+{`ticket_state`} / `corpus` {`complexity_gate`, `corpus_gate`,
+`effect_conformance`} / `kill` {`kill_test`}) — the check runs:
+
+```
+34 modules, all mapped, 4 components, all realized
+258 edges: 140 internal, 118 convergences, 0 divergences, 0 absences
+ports:     corpus<->surface, corpus<->tickets, kill<->surface, surface<->tickets
+NO port:   corpus<->kill, kill<->tickets
+```
+
+The two unported pairs are real — no action touches `kill_test` together with
+`ticket_state` or with a corpus verdict — so an edge across either **would**
+have been a divergence. There is none: the two kill-test scripts reach only
+`budgets.py`, which is in `surface` and ported. That is a genuine falsifiable
+negative result about this codebase. The verdict is nevertheless `unmappable`,
+for five extraction blind spots: three computed-name
+`importlib.import_module` calls, `scripts/run_tlc.sh` (no extractor), and
+`spec_double_compiler/` (first-party, beside the code root, outside the scan).
+
+The honest sentence: *over the edges the extractor can resolve, the code
+respects both boundaries the model draws — and it cannot resolve all of them,
+so the check will not certify it.*
+
+**3. the coarser partition this ticket wrote first** (fold `kill_test` in with
+the other scanner verdicts: `surface` / `tickets` / `scanners`) — **every** one
+of the three pairs then has a port, because `RunSpecUnitTests` touches
+`ticket_state` and two corpus verdicts while every command writes `lastCommand`
+and `result`. No code edge could diverge; `unfalsifiable_coherence` fires.
+
+**The reading.** The tool works, and the thing it measures is fragile. Without
+a declared partition this repository cannot be measured at all, and the
+obstacle is the *model*. With one, whether the check can falsify anything
+depends on how fine the partition is — and runs 2 and 3 are both defensible
+readings of the same model, separated by one variable's placement. The tool
+reports which partition it was handed and whether that one *could* have failed.
+It does not tell you the finer cut is the better one, and does not try (CD-01).
+Expect `unmappable` far more often than `coherent` on any real Python tree;
+that is the design working. All three results are pinned by tests so they
+cannot be quietly lost.
+
+## The Reflexion Machine-Readable Contract
+
+`--format json` adds a `reflexion` block to the descriptor payload and moves
+`verdict.architecture_scan` off `unmappable` **only because a code side was
+actually observed**. Standalone,
+`scripts/architecture_reflexion.py --format json` emits the same block as the
+document root, with `schema: "tla-spec-dev/architecture-reflexion"`,
+`schema_version: 1`.
+
+```
+measured.modules_scanned          int
+measured.modules_mapped           int
+measured.edges_extracted          int
+measured.ported_pairs             [[componentA, componentB]]
+measured.unported_pairs           [[componentA, componentB]]
+measured.divergence_detectable    bool   <-- false means a clean result is vacuous
+measured.internal_edges           int
+measured.external_imports         {top_level_name: ["file:line"]}
+convergences[]                    {from, to, from_component, to_component, pair[2],
+                                   kind, symbol, file, line, site, port, port_actions[]}
+divergences[]                     {... same, port: null, why}
+absences[]                        {port, between[2], actions[], why}
+unmapped_modules                  [str]
+unrealized_components             [str]
+blind_spots[]                     {kind, detail, where}
+ignored_suppression_keys          [str]
+verdict.architecture_scan         "coherent" | "divergent" | "unmappable"
+verdict.reasons                   [str]
+verdict.blocks_promotion          false
+advisory.suggests_moves           false
+```
+
+## Exit Codes
+
+| code | when |
+|---|---|
+| `0` | the check ran — **including `divergent` and `unmappable`**. A divergent codebase is a finding |
+| `2` | the map or the code tree is unusable: "I could not measure this" |
+
+No close, promotion, or case-generation path reads `architecture_scan`. A gate
+is *earned*, per check, only once real-app validation shows it is trustworthy
+enough to block on — and the dogfood above is the argument for why this one has
+not earned it yet.
+
 ## What This Is Not
 
 - Not a gate. Nothing here refuses anything.
 - Not a suggestion engine. No proposed cut, no refactor, no target shape, no
-  next step. CD-01 binds.
-- Not a code analysis. That is AC-02.
+  next step, and no "this module belongs over there". CD-01 binds on both
+  halves.
 - Not a source of an architecture. The tool measures the partition the project
-  declares, or the one the matrix admits. It never writes one.
+  declares, or the one the matrix admits, and the module map the project writes.
+  It never writes either one.
+- Not a semantic check. The reflexion half compares *dependency structure*. It
+  says nothing about whether a component does what the model's actions say it
+  does.

@@ -702,9 +702,17 @@ def _load_yaml(path: Path) -> Any:
 # --------------------------------------------------------------------------
 
 
-def descriptor_payload(descriptor: ArchitectureDescriptor) -> dict[str, Any]:
-    """The machine-readable descriptor. Field contract: references/architecture_coherence.md."""
-    return {
+def descriptor_payload(
+    descriptor: ArchitectureDescriptor, reflexion_report: Any = None
+) -> dict[str, Any]:
+    """The machine-readable descriptor. Field contract: references/architecture_coherence.md.
+
+    ``reflexion_report`` is AC-02's :class:`~scripts.architecture_reflexion.ReflexionReport`
+    when ``--code``/``--map`` were supplied. It is ADDITIVE: the descriptor
+    fields are identical with and without it, and ``verdict.architecture_scan``
+    moves off ``unmappable`` only because a code side was actually observed.
+    """
+    payload = {
         "schema": SCHEMA,
         "schema_version": SCHEMA_VERSION,
         "module": descriptor.module,
@@ -770,10 +778,20 @@ def descriptor_payload(descriptor: ArchitectureDescriptor) -> dict[str, Any]:
             ),
         },
     }
+    if reflexion_report is not None:
+        from scripts.architecture_reflexion import report_payload
+
+        payload["reflexion"] = report_payload(reflexion_report)
+        payload["verdict"]["architecture_scan"] = reflexion_report.verdict
+        payload["verdict"]["reasons"] = reflexion_report.reasons
+    return payload
 
 
-def render_json(descriptor: ArchitectureDescriptor) -> str:
-    return json.dumps(descriptor_payload(descriptor), indent=2, sort_keys=False) + "\n"
+def render_json(descriptor: ArchitectureDescriptor, reflexion_report: Any = None) -> str:
+    return (
+        json.dumps(descriptor_payload(descriptor, reflexion_report), indent=2, sort_keys=False)
+        + "\n"
+    )
 
 
 # --------------------------------------------------------------------------
@@ -786,7 +804,7 @@ def _wrap(prefix: str, items: Iterable[str]) -> str:
     return f"{prefix}{', '.join(values) if values else '(none)'}"
 
 
-def render_text(descriptor: ArchitectureDescriptor) -> str:
+def render_text(descriptor: ArchitectureDescriptor, reflexion_report: Any = None) -> str:
     out: list[str] = []
     add = out.append
     add(f"analyze architecture -- {descriptor.module} (architecture descriptor)")
@@ -903,6 +921,12 @@ def render_text(descriptor: ArchitectureDescriptor) -> str:
         add(f"  {row['evidence']}")
     add("")
 
+    if reflexion_report is not None:
+        from scripts.architecture_reflexion import render_report_text
+
+        out.append(render_report_text(reflexion_report).rstrip("\n"))
+        return "\n".join(out) + "\n"
+
     add("[MEASURED] Architecture scan verdict")
     add(f"  architecture_scan = {descriptor.architecture_scan}")
     for reason in descriptor.scan_reasons:
@@ -954,6 +978,20 @@ def run(args: argparse.Namespace) -> int:
         print(f"ERROR: declared components file not found: {components_path}", file=sys.stderr)
         return EXIT_USAGE
 
+    code = getattr(args, "code", None)
+    map_path = getattr(args, "map_path", None)
+    if bool(code) != bool(map_path):
+        # Half a reflexion check is not a reflexion check. Scanning code with no
+        # map would make the tool choose the boundary; a map with no code would
+        # report every port absent. Both are measurements of nothing that look
+        # like measurements.
+        missing = "--map" if code else "--code"
+        print(
+            f"ERROR: the reflexion check needs both --code and --map; {missing} is missing.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+
     try:
         descriptor = analyze(tla_path, cfg_path, manifest_path, components_path=components_path)
     except ModuleResolutionError as exc:
@@ -973,7 +1011,29 @@ def run(args: argparse.Namespace) -> int:
         print(f"ERROR: declared component partition is unusable:\n  {exc}", file=sys.stderr)
         return EXIT_USAGE
 
-    rendered = render_json(descriptor) if args.format == "json" else render_text(descriptor)
+    report = None
+    if code and map_path:
+        # Imported here, not at module scope: AC-02's module reads this one, and
+        # the descriptor must stay usable (and importable) with no code side.
+        from scripts.architecture_reflexion import (
+            CodeExtractionError,
+            ReflexionMapError,
+            run_reflexion,
+        )
+
+        try:
+            report = run_reflexion(descriptor, code, map_path)
+        except (ReflexionMapError, CodeExtractionError) as exc:
+            # "I could not measure this": unusable INPUT, the one nonzero exit
+            # the reflexion check has. A divergent codebase exits 0.
+            print(f"ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
+            return EXIT_USAGE
+
+    rendered = (
+        render_json(descriptor, report)
+        if args.format == "json"
+        else render_text(descriptor, report)
+    )
     sys.stdout.write(rendered)
     if args.out:
         out_path = Path(args.out)
@@ -996,6 +1056,21 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
             "YAML file declaring the component partition (architecture: components:). "
             "DECLARED by the project, never inferred -- the tool measures the partition "
             "you name and never proposes one."
+        ),
+    )
+    parser.add_argument(
+        "--code",
+        help=(
+            "AC-02 reflexion check: root of the production tree to measure against this "
+            "model's architecture. Requires --map."
+        ),
+    )
+    parser.add_argument(
+        "--map",
+        dest="map_path",
+        help=(
+            "AC-02 reflexion check: YAML file declaring the production module -> model "
+            "component map. DECLARED by the project, never inferred. Requires --code."
         ),
     )
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")

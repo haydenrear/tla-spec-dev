@@ -1,0 +1,172 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 1,
+  "map": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-unmappable-unmapped-module/map.yaml",
+  "code_root": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/fixtures/fixture-unmappable-unmapped-module/pkg",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 4,
+    "modules_mapped": 3,
+    "edges_extracted": 7,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "deliver",
+        "transform"
+      ],
+      [
+        "ingest",
+        "transform"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "deliver",
+        "ingest"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 0,
+    "external_imports": {}
+  },
+  "convergences": [
+    {
+      "from": "deliver.py",
+      "to": "transform.py",
+      "kind": "import",
+      "symbol": "transform.parse",
+      "file": "pkg/deliver.py",
+      "line": 2,
+      "site": "pkg/deliver.py:2",
+      "from_component": "deliver",
+      "to_component": "transform",
+      "pair": [
+        "deliver",
+        "transform"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Ship"
+      ]
+    },
+    {
+      "from": "deliver.py",
+      "to": "transform.py",
+      "kind": "call",
+      "symbol": "parse",
+      "file": "pkg/deliver.py",
+      "line": 7,
+      "site": "pkg/deliver.py:7",
+      "from_component": "deliver",
+      "to_component": "transform",
+      "pair": [
+        "deliver",
+        "transform"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Ship"
+      ]
+    },
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "import",
+      "symbol": "ingest.read_raw",
+      "file": "pkg/transform.py",
+      "line": 2,
+      "site": "pkg/transform.py:2",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    },
+    {
+      "from": "transform.py",
+      "to": "ingest.py",
+      "kind": "call",
+      "symbol": "read_raw",
+      "file": "pkg/transform.py",
+      "line": 6,
+      "site": "pkg/transform.py:6",
+      "from_component": "transform",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "transform"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Parse"
+      ]
+    }
+  ],
+  "divergences": [
+    {
+      "from": "deliver.py",
+      "to": "ingest.py",
+      "kind": "import",
+      "symbol": "ingest.read_raw",
+      "file": "pkg/deliver.py",
+      "line": 3,
+      "site": "pkg/deliver.py:3",
+      "from_component": "deliver",
+      "to_component": "ingest",
+      "pair": [
+        "deliver",
+        "ingest"
+      ],
+      "port": null,
+      "why": "no port between `deliver` and `ingest`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    },
+    {
+      "from": "deliver.py",
+      "to": "ingest.py",
+      "kind": "call",
+      "symbol": "read_raw",
+      "file": "pkg/deliver.py",
+      "line": 11,
+      "site": "pkg/deliver.py:11",
+      "from_component": "deliver",
+      "to_component": "ingest",
+      "pair": [
+        "deliver",
+        "ingest"
+      ],
+      "port": null,
+      "why": "no port between `deliver` and `ingest`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    }
+  ],
+  "absences": [],
+  "unmapped_modules": [
+    "pkg/stray.py"
+  ],
+  "unrealized_components": [],
+  "blind_spots": [
+    {
+      "kind": "unmapped_module",
+      "detail": "1 module(s) in the scanned tree are placed in no component by the map, so their edges cannot be judged: pkg/stray.py",
+      "where": null
+    }
+  ],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "unmappable",
+    "reasons": [
+      "[unmapped_module] 1 module(s) in the scanned tree are placed in no component by the map, so their edges cannot be judged: pkg/stray.py",
+      "2 code edge(s) cross a component boundary the model declares no port for"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}
