@@ -72,6 +72,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import sys
 from dataclasses import dataclass, field
@@ -95,7 +96,11 @@ from scripts.analyze_architecture import (  # noqa: E402
 from scripts.analyze_complexity import ModuleResolutionError  # noqa: E402
 
 SCHEMA = "tla-spec-dev/architecture-reflexion"
-SCHEMA_VERSION = 1
+#: Bumped to 2 by AC-04, additively: every v1 field is present and unchanged,
+#: and a ``basis`` block was added. The bump is not cosmetic -- ``basis`` is what
+#: makes a v2 payload usable as a ``--baseline``, and a consumer must be able to
+#: tell a payload that records the map it measured from one that does not.
+SCHEMA_VERSION = 2
 
 #: The four verdict values ``architecture_scan`` ranges over. ``unknown`` is
 #: the CLI's "not run" and is never produced here.
@@ -980,6 +985,717 @@ def reflexion(
 
 
 # --------------------------------------------------------------------------
+# AC-04 -- the BASIS: what a delta is computed against
+# --------------------------------------------------------------------------
+#
+# The divergence delta is a number that makes people look good, and it is
+# trivially forgeable: AC-02 recorded that any divergence disappears if the map
+# moves the offending module into the component it reaches -- no code change,
+# verdict flips. If the map may differ between the before scan and the after
+# scan, the delta measures the MAP, not the refactor.
+#
+# So a scan records the identity of everything the comparison was made against,
+# and the delta refuses to attribute a change to the code unless that identity
+# held:
+#
+#   map_digest           the DECLARED placements (module -> component) and the
+#                        language. Not the file's bytes and not its path: a
+#                        reformatted or relocated map with identical placements
+#                        is the same map, and a comment change must not read as
+#                        a boundary change.
+#   architecture_digest  the MODEL side -- the component names, the port pairs,
+#                        and the actions that cross each port. A port added to
+#                        the model turns a divergence into a convergence with no
+#                        code change at all, which is the same forgery from the
+#                        other end.
+#   scanned_modules      the files the extractor actually read. Needed to tell
+#                        "this module was deleted" from "this module stopped
+#                        being mapped" when an edge disappears -- see
+#                        ``_classify_lost``.
+
+
+DELTA_SCHEMA = "tla-spec-dev/architecture-delta"
+DELTA_SCHEMA_VERSION = 1
+
+#: The delta's headline verdict. ``improved``/``worsened``/``unchanged`` are
+#: measurements of the code; the other two are refusals to call the number a
+#: refactor result.
+DIRECTION_IMPROVED = "improved"
+DIRECTION_WORSENED = "worsened"
+DIRECTION_UNCHANGED = "unchanged"
+DIRECTION_UNVERIFIED = "unverified"
+DIRECTION_UNATTRIBUTABLE = "unattributable"
+
+#: How a before/after pair is related. ``code_only`` is the only one under which
+#: the headline delta is a fact about the code alone.
+ATTRIBUTION_CODE_ONLY = "code_only"
+ATTRIBUTION_PARTIAL = "partial"
+ATTRIBUTION_UNATTRIBUTABLE = "unattributable"
+
+
+class BaselineError(Exception):
+    """A baseline that cannot serve as one.
+
+    Unusable INPUT, like :class:`ReflexionMapError` -- exits nonzero. Computing
+    a delta against a scan whose map is unknown, or against a scan whose
+    comparison never ran, would print an improvement derived from nothing.
+    """
+
+
+def _digest(payload: Any) -> str:
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return "sha256:" + hashlib.sha256(blob).hexdigest()
+
+
+def scan_basis(report: ReflexionReport) -> dict[str, Any]:
+    """Everything this scan was measured AGAINST, recorded with the scan.
+
+    Emitted into every report payload so that a later run can prove the two
+    scans were measured against the same declared boundary -- or say plainly
+    that they were not.
+    """
+    mapping = report.mapping
+    graph = report.graph
+    descriptor = report.descriptor
+
+    id_to_name = {c.cid: c.name for c in descriptor.components}
+    port_actions: dict[str, list[str]] = {}
+    for port in descriptor.ports:
+        left, right = port.between
+        if left in id_to_name and right in id_to_name:
+            key = "|".join(sorted((id_to_name[left], id_to_name[right])))
+            port_actions[key] = sorted(port.actions)
+    architecture = {
+        "components": sorted(id_to_name.values()),
+        "ports": {key: port_actions[key] for key in sorted(port_actions)},
+    }
+
+    placements: dict[str, str] = {}
+    map_digest: str | None = None
+    if mapping is not None:
+        placements = {key: mapping.modules[key] for key in sorted(mapping.modules)}
+        map_digest = _digest({"language": mapping.language, "placements": placements})
+
+    return {
+        "map_origin": mapping.origin if mapping else None,
+        "map_language": mapping.language if mapping else None,
+        "map_digest": map_digest,
+        "placements": placements,
+        "code_root": str(graph.root) if graph else None,
+        "scanned_modules": sorted(graph.modules) if graph else [],
+        "architecture_digest": _digest(architecture),
+        "architecture_components": architecture["components"],
+        "architecture_ports": [key.split("|") for key in sorted(port_actions)],
+        "architecture_port_actions": architecture["ports"],
+        "comparison_ran": mapping is not None and graph is not None,
+    }
+
+
+# --------------------------------------------------------------------------
+# AC-04 -- the before/after delta
+# --------------------------------------------------------------------------
+#
+# MF-020, applied to structure. A projected complexity reduction once turned out
+# to be a DELETED TRANSITION rather than a re-representation, and the
+# distinct-state count was structurally blind to it. The same blindness has an
+# exact structural twin: a divergence count can fall because the offending edge
+# was removed, because the file was deleted, or because the module stopped being
+# mapped and its edges stopped being looked at. The count cannot tell those
+# apart. So this delta reports the SPECIFIC EDGES that disappeared, classifies
+# each one, and a drop it cannot enumerate is ``unverified`` -- never an
+# improvement.
+#
+# The unit of the delta is a DISTINCT DEPENDENCY: (from, to, kind, symbol). The
+# line number is deliberately not part of the identity -- a refactor that moves
+# code within a file shifts every line, and an edge set keyed by line would
+# report the entire graph as lost and regained. Every site of a dependency is
+# still listed on its row, so a reader can navigate to all of them.
+
+
+def _edge_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (
+        str(row.get("from", "")),
+        str(row.get("to", "")),
+        str(row.get("kind", "")),
+        str(row.get("symbol", "")),
+    )
+
+
+def _group_edges(rows: Sequence[dict[str, Any]]) -> dict[tuple[str, str, str, str], dict[str, Any]]:
+    """Collapse per-site rows into one row per distinct dependency."""
+    grouped: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        key = _edge_key(row)
+        entry = grouped.get(key)
+        if entry is None:
+            entry = {
+                "from": row.get("from"),
+                "to": row.get("to"),
+                "kind": row.get("kind"),
+                "symbol": row.get("symbol"),
+                "from_component": row.get("from_component"),
+                "to_component": row.get("to_component"),
+                "pair": row.get("pair"),
+                "port": row.get("port"),
+                "sites": [],
+            }
+            grouped[key] = entry
+        site = row.get("site") or f"{row.get('file')}:{row.get('line')}"
+        if site not in entry["sites"]:
+            entry["sites"].append(site)
+    return grouped
+
+
+def _absence_key(row: dict[str, Any]) -> tuple[str, str]:
+    between = row.get("between") or []
+    pair = sorted(str(x) for x in between)
+    while len(pair) < 2:
+        pair.append("")
+    return (pair[0], pair[1])
+
+
+def _basis_of(payload: dict[str, Any]) -> dict[str, Any]:
+    """The reflexion block of a scan payload, whichever way it was written.
+
+    ``analyze architecture --format json`` nests the reflexion report under
+    ``reflexion``; the standalone script emits it as the document root.
+    """
+    if isinstance(payload.get("reflexion"), dict):
+        return payload["reflexion"]
+    return payload
+
+
+def load_baseline(path: Path) -> dict[str, Any]:
+    """Read a previous scan as the baseline. Refuses anything that cannot be one.
+
+    Each refusal below exists because the alternative is a printed improvement
+    that no measurement supports:
+
+    * a text report -- readable, but it does not enumerate the edges, so a drop
+      measured against it is unverified by construction (the MF-020 rule);
+    * a payload from a scan whose comparison NEVER RAN -- "0 divergences" was
+      never measured there, so a later 0 is not a delta of anything;
+    * a payload with no ``basis`` -- the map it was measured against is
+      unrecoverable, and a delta across two unknown maps measures the maps.
+    """
+    path = Path(path)
+    if not path.is_file():
+        raise BaselineError(f"baseline scan not found: {path}")
+    text = path.read_text(encoding="utf-8")
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise BaselineError(
+            f"{path}: not a JSON scan payload ({exc}). The baseline must be the output of "
+            "`analyze architecture --format json`. A text report does not enumerate the "
+            "edges, and a divergence drop measured against counts alone is unverified by "
+            "construction -- the exact blindness MF-020 found in the distinct-state count."
+        ) from exc
+    if not isinstance(payload, dict):
+        raise BaselineError(f"{path}: not a JSON object")
+    block = _basis_of(payload)
+    if block.get("schema") not in (SCHEMA, None):
+        raise BaselineError(
+            f"{path}: schema `{block.get('schema')}` is not `{SCHEMA}`; this is not an "
+            "architecture scan"
+        )
+    basis = block.get("basis")
+    if isinstance(basis, dict) and not basis.get("comparison_ran"):
+        # Checked before the digest, because this scan has a legitimate reason to
+        # carry no map: the diff never happened. "Zero divergences" was never
+        # measured there, so a later zero is not a delta of anything.
+        raise BaselineError(
+            f"{path}: the baseline scan's comparison never ran (verdict "
+            f"`{(block.get('verdict') or {}).get('architecture_scan')}`), so it holds no "
+            "convergences, divergences, or absences -- not zero of them. There is nothing "
+            "to compare against."
+        )
+    if not isinstance(basis, dict) or not basis.get("map_digest"):
+        raise BaselineError(
+            f"{path}: carries no `basis.map_digest`, so the map it was measured against "
+            "cannot be identified. A delta across two maps that cannot be shown to be the "
+            "same map measures the MAP, not the refactor. Re-run the baseline scan with a "
+            f"build that emits schema_version {SCHEMA_VERSION}."
+        )
+    for key in ("convergences", "divergences", "absences"):
+        if not isinstance(block.get(key), list):
+            raise BaselineError(
+                f"{path}: `{key}` is not an enumerated list. A drop reported without the "
+                "edges that disappeared is unverified by construction (MF-020)."
+            )
+    return block
+
+
+def _compare_basis(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+    """How the two scans' declared basis differ, and what that costs the delta."""
+    before_placements = before.get("placements") or {}
+    after_placements = after.get("placements") or {}
+    shared = sorted(set(before_placements) & set(after_placements))
+
+    reassigned = [
+        {
+            "module": module,
+            "from_component": before_placements[module],
+            "to_component": after_placements[module],
+        }
+        for module in shared
+        if before_placements[module] != after_placements[module]
+    ]
+    added = sorted(set(after_placements) - set(before_placements))
+    removed = sorted(set(before_placements) - set(after_placements))
+
+    before_components = sorted(set(before_placements.values()))
+    after_components = sorted(set(after_placements.values()))
+
+    architecture_changed = before.get("architecture_digest") != after.get("architecture_digest")
+    before_ports = {tuple(p) for p in (before.get("architecture_ports") or [])}
+    after_ports = {tuple(p) for p in (after.get("architecture_ports") or [])}
+
+    reasons: list[str] = []
+    if architecture_changed:
+        reasons.append(
+            "the MODEL side changed between the two scans (components or ports differ), so "
+            "the two runs do not share a definition of what a divergence IS. Adding a port "
+            "converts a divergence into a convergence with no code change."
+        )
+    if reassigned:
+        listed = ", ".join(
+            f"{row['module']} ({row['from_component']} -> {row['to_component']})"
+            for row in reassigned[:8]
+        )
+        if len(reassigned) > 8:
+            listed += f", ... (+{len(reassigned) - 8} more)"
+        reasons.append(
+            f"{len(reassigned)} module(s) present in both scans were RE-PLACED by the map: "
+            f"{listed}. Re-placing a module moves the boundary, not the code -- it is the "
+            "one edit that makes any divergence disappear for free."
+        )
+    if set(before_components) != set(after_components):
+        reasons.append(
+            "the map's component set changed "
+            f"({', '.join(before_components)} -> {', '.join(after_components)})"
+        )
+
+    if reasons:
+        attribution = ATTRIBUTION_UNATTRIBUTABLE
+    elif added or removed:
+        attribution = ATTRIBUTION_PARTIAL
+    else:
+        attribution = ATTRIBUTION_CODE_ONLY
+
+    if attribution == ATTRIBUTION_PARTIAL:
+        reasons.append(
+            f"the map gained {len(added)} module placement(s) and lost {len(removed)}. No "
+            "surviving module was re-placed, so the boundary held -- but where a NEW module "
+            "was placed was declared by this change, and edges touching one are not a "
+            "measurement of the code alone. The `stable_basis` figures below exclude them."
+        )
+
+    return {
+        "attribution": attribution,
+        "reasons": reasons,
+        "map_digest_before": before.get("map_digest"),
+        "map_digest_after": after.get("map_digest"),
+        "map_unchanged": before.get("map_digest") == after.get("map_digest"),
+        "architecture_digest_before": before.get("architecture_digest"),
+        "architecture_digest_after": after.get("architecture_digest"),
+        "architecture_unchanged": not architecture_changed,
+        "map_changes": {
+            "reassigned": reassigned,
+            "added": added,
+            "removed": removed,
+            "components_before": before_components,
+            "components_after": after_components,
+        },
+        "architecture_changes": {
+            "ports_added": [list(p) for p in sorted(after_ports - before_ports)],
+            "ports_removed": [list(p) for p in sorted(before_ports - after_ports)],
+            "components_before": before.get("architecture_components") or [],
+            "components_after": after.get("architecture_components") or [],
+        },
+        "stable_modules": [
+            module for module in shared if before_placements[module] == after_placements[module]
+        ],
+    }
+
+
+def _classify_lost(
+    row: dict[str, Any], before: dict[str, Any], after: dict[str, Any]
+) -> dict[str, Any]:
+    """Why one edge is no longer reported. The MF-020 question, per edge.
+
+    A count cannot distinguish these four. Whether the delta is evidence of
+    anything depends entirely on which one each disappearance was.
+    """
+    after_placements = after.get("placements") or {}
+    after_scanned = set(after.get("scanned_modules") or [])
+    before_placements = before.get("placements") or {}
+
+    for endpoint in ("from", "to"):
+        module = str(row.get(endpoint) or "")
+        if module in after_placements:
+            if before_placements.get(module) != after_placements.get(module):
+                return {
+                    "reason": "endpoint_reassigned",
+                    "module": module,
+                    "detail": (
+                        f"`{module}` was re-placed by the map "
+                        f"({before_placements.get(module)} -> {after_placements[module]}). The "
+                        "edge did not go away; the boundary it crossed did."
+                    ),
+                    "verifies_drop": False,
+                }
+            continue
+        if module in after_scanned:
+            return {
+                "reason": "endpoint_unmapped",
+                "module": module,
+                "detail": (
+                    f"`{module}` is still in the scanned tree but the map no longer places "
+                    "it, so its edges are no longer judged at all. The edge left the "
+                    "MEASUREMENT, not the code -- the structural twin of MF-020's deleted "
+                    "self-loop, and it is why this drop is not an improvement."
+                ),
+                "verifies_drop": False,
+            }
+        return {
+            "reason": "endpoint_left_tree",
+            "module": module,
+            "detail": (
+                f"`{module}` is no longer in the scanned tree (deleted, renamed, or moved "
+                "out of --code). The coupling is gone because the file is gone -- a "
+                "deletion, which is a different fact from a re-representation."
+            ),
+            "verifies_drop": True,
+        }
+    return {
+        "reason": "dependency_removed",
+        "module": None,
+        "detail": (
+            "both endpoints are still scanned and still placed in the same components, and "
+            "the dependency between them is gone. This is the disappearance a refactor "
+            "produces."
+        ),
+        "verifies_drop": True,
+    }
+
+
+def _delta_block(
+    before_rows: Sequence[dict[str, Any]],
+    after_rows: Sequence[dict[str, Any]],
+    before_basis: dict[str, Any],
+    after_basis: dict[str, Any],
+    stable: set[str] | None = None,
+) -> dict[str, Any]:
+    before_edges = _group_edges(before_rows)
+    after_edges = _group_edges(after_rows)
+    lost_keys = sorted(set(before_edges) - set(after_edges))
+    gained_keys = sorted(set(after_edges) - set(before_edges))
+
+    lost = []
+    for key in lost_keys:
+        row = dict(before_edges[key])
+        row["classification"] = _classify_lost(row, before_basis, after_basis)
+        lost.append(row)
+    gained = [dict(after_edges[key]) for key in gained_keys]
+
+    block: dict[str, Any] = {
+        "before": len(before_edges),
+        "after": len(after_edges),
+        "delta": len(after_edges) - len(before_edges),
+        "before_sites": len(before_rows),
+        "after_sites": len(after_rows),
+        "unchanged": len(set(before_edges) & set(after_edges)),
+        "lost": lost,
+        "gained": gained,
+        # A self-check on the arithmetic. It can only fail on a hand-edited
+        # payload -- the counts are DERIVED from the enumeration here, which is
+        # precisely why "a drop with no edges" is not expressible.
+        "accounted": (len(after_edges) - len(before_edges)) == (len(gained) - len(lost)),
+    }
+    if stable is not None:
+        def _stable(rows: dict[tuple[str, str, str, str], dict[str, Any]]) -> set[Any]:
+            return {
+                key
+                for key, row in rows.items()
+                if str(row.get("from")) in stable and str(row.get("to")) in stable
+            }
+
+        stable_before = _stable(before_edges)
+        stable_after = _stable(after_edges)
+        block["stable_basis"] = {
+            "before": len(stable_before),
+            "after": len(stable_after),
+            "delta": len(stable_after) - len(stable_before),
+            "lost": [dict(before_edges[k]) for k in sorted(stable_before - stable_after)],
+            "gained": [dict(after_edges[k]) for k in sorted(stable_after - stable_before)],
+            "note": (
+                "restricted to modules present in BOTH scans with the same declared "
+                "component. This subset is the part of the delta the map did not touch."
+            ),
+        }
+    return block
+
+
+def _absence_delta(
+    before_rows: Sequence[dict[str, Any]], after_rows: Sequence[dict[str, Any]]
+) -> dict[str, Any]:
+    before_map = {_absence_key(r): r for r in before_rows if isinstance(r, dict)}
+    after_map = {_absence_key(r): r for r in after_rows if isinstance(r, dict)}
+    return {
+        "before": len(before_map),
+        "after": len(after_map),
+        "delta": len(after_map) - len(before_map),
+        "lost": [before_map[k] for k in sorted(set(before_map) - set(after_map))],
+        "gained": [after_map[k] for k in sorted(set(after_map) - set(before_map))],
+    }
+
+
+def structural_delta(baseline: dict[str, Any], report: ReflexionReport) -> dict[str, Any]:
+    """The before/after comparison. Advisory: it gates nothing and suggests nothing.
+
+    The headline is the DIVERGENCE delta, because a divergence is the only one of
+    the three categories that names a coupling the architecture does not admit.
+    Absences and convergences are reported beside it, never folded into it: a
+    port that stopped being realized is a different finding from a boundary that
+    started being crossed, and averaging them would hide both.
+    """
+    after_basis = scan_basis(report)
+    before_basis = baseline.get("basis") or {}
+    basis = _compare_basis(before_basis, after_basis)
+    stable = set(basis["stable_modules"])
+
+    current = report_payload(report)
+    divergences = _delta_block(
+        baseline.get("divergences") or [], current["divergences"], before_basis, after_basis, stable
+    )
+    convergences = _delta_block(
+        baseline.get("convergences") or [], current["convergences"], before_basis, after_basis, stable
+    )
+    absences = _absence_delta(baseline.get("absences") or [], current["absences"])
+
+    unverifying = [
+        row
+        for row in divergences["lost"]
+        if not row["classification"]["verifies_drop"]
+    ]
+    removal_only = bool(divergences["lost"]) and all(
+        row["classification"]["reason"] == "endpoint_left_tree" for row in divergences["lost"]
+    )
+
+    why: list[str] = []
+    red_flags: list[str] = []
+
+    if not after_basis.get("comparison_ran"):
+        # THIS scan's diff never ran (the model has no architecture to measure
+        # against). Its zeroes were never measured, so every baseline finding
+        # would read as "disappeared" and the delta would report a clean sweep
+        # for a comparison that did not happen -- the false clean the whole
+        # check exists to refuse, one level up.
+        direction = DIRECTION_UNATTRIBUTABLE
+        basis["attribution"] = ATTRIBUTION_UNATTRIBUTABLE
+        why.append(
+            "this scan's comparison DID NOT RUN, so it holds no convergences, divergences, "
+            "or absences -- not zero of them. Nothing here disappeared; it was never "
+            "measured. See the reflexion verdict above for why."
+        )
+    elif basis["attribution"] == ATTRIBUTION_UNATTRIBUTABLE:
+        direction = DIRECTION_UNATTRIBUTABLE
+        why.append(
+            "the two scans were not measured against the same declared basis, so this is "
+            "not a refactor result. The numbers below are real; what they are a fact ABOUT "
+            "is undetermined."
+        )
+        why.extend(basis["reasons"])
+    elif divergences["delta"] < 0 and unverifying:
+        direction = DIRECTION_UNVERIFIED
+        why.append(
+            f"{len(unverifying)} of the {len(divergences['lost'])} disappeared divergence(s) "
+            "left the MEASUREMENT rather than the code. A drop that is not accounted for by "
+            "edges that actually went away is unverified by construction -- the structural "
+            "form of MF-020, where a projected reduction turned out to be a deleted "
+            "transition the distinct-state count could not see."
+        )
+        why.extend(row["classification"]["detail"] for row in unverifying[:5])
+    elif not divergences["accounted"]:
+        direction = DIRECTION_UNVERIFIED
+        why.append(
+            "the enumerated edges do not account for the change in the count. The payload "
+            "was edited by hand; the delta is not usable."
+        )
+    elif divergences["delta"] < 0:
+        direction = DIRECTION_IMPROVED
+        why.append(
+            f"{-divergences['delta']} fewer distinct divergent dependenc(ies), each one "
+            "enumerated below with the site it used to sit at."
+        )
+    elif divergences["delta"] > 0:
+        direction = DIRECTION_WORSENED
+        why.append(
+            f"{divergences['delta']} more distinct divergent dependenc(ies). Recorded, not "
+            "refused: this delta gates nothing."
+        )
+    else:
+        direction = DIRECTION_UNCHANGED
+        why.append(
+            f"the divergence count did not change ({divergences['before']} -> "
+            f"{divergences['after']})."
+            + (
+                f" {len(divergences['lost'])} disappeared and {len(divergences['gained'])} "
+                "appeared, so 'unchanged' is a count, not a claim that nothing moved."
+                if divergences["lost"] or divergences["gained"]
+                else ""
+            )
+        )
+
+    if removal_only and direction == DIRECTION_IMPROVED:
+        red_flags.append(
+            "every disappeared divergence is accounted for by a module that LEFT THE "
+            "SCANNED TREE. Deleting the file removes the coupling; it does not show the "
+            "responsibility was re-represented somewhere legal. MF-020 is the precedent: "
+            "record where the behavior went, or say it was deleted."
+        )
+    if absences["delta"] > 0:
+        red_flags.append(
+            f"{absences['delta']} more declared port(s) are now realized by no code edge. A "
+            "refactor that lowers divergences by severing a declared interaction has moved "
+            "the finding, not removed it."
+        )
+    if basis["attribution"] == ATTRIBUTION_PARTIAL:
+        red_flags.append(
+            "the module set changed between the scans; read `stable_basis` for the part of "
+            "the delta the map did not touch."
+        )
+
+    return {
+        "schema": DELTA_SCHEMA,
+        "schema_version": DELTA_SCHEMA_VERSION,
+        "baseline": {
+            "map_origin": before_basis.get("map_origin"),
+            "map_digest": before_basis.get("map_digest"),
+            "architecture_digest": before_basis.get("architecture_digest"),
+            "code_root": before_basis.get("code_root"),
+            "verdict": (baseline.get("verdict") or {}).get("architecture_scan"),
+            "modules_scanned": len(before_basis.get("scanned_modules") or []),
+        },
+        "current": {
+            "map_origin": after_basis.get("map_origin"),
+            "map_digest": after_basis.get("map_digest"),
+            "architecture_digest": after_basis.get("architecture_digest"),
+            "code_root": after_basis.get("code_root"),
+            "verdict": report.verdict,
+            "modules_scanned": len(after_basis.get("scanned_modules") or []),
+        },
+        "basis": {
+            key: value for key, value in basis.items() if key != "stable_modules"
+        },
+        "divergences": divergences,
+        "convergences": convergences,
+        "absences": absences,
+        "verdict": {
+            "direction": direction,
+            "why": why,
+            "red_flags": red_flags,
+            "blocks_promotion": False,
+        },
+        "advisory": {
+            "blocks_promotion": False,
+            "suggests_moves": False,
+            "note": (
+                "The delta is EVIDENCE FOR A PERSON. A rise is recorded, never refused; a "
+                "drop is recorded with the edges that disappeared, or it is not called an "
+                "improvement. Nothing here names a module that should move (CD-01)."
+            ),
+        },
+    }
+
+
+def render_delta_text(delta: dict[str, Any]) -> str:
+    out: list[str] = []
+    add = out.append
+    verdict = delta["verdict"]
+    basis = delta["basis"]
+
+    add("[MEASURED] Architecture delta -- this scan against a recorded baseline")
+    add(f"  baseline map:  {_relative(delta['baseline']['map_origin'])}")
+    add(f"    digest:      {delta['baseline']['map_digest']}")
+    add(f"  current map:   {_relative(delta['current']['map_origin'])}")
+    add(f"    digest:      {delta['current']['map_digest']}")
+    add(
+        f"  model side:    architecture digest "
+        f"{'UNCHANGED' if basis['architecture_unchanged'] else 'CHANGED'} "
+        f"({delta['baseline']['architecture_digest']} -> "
+        f"{delta['current']['architecture_digest']})"
+    )
+    add(f"  attribution:   {basis['attribution']}")
+    for reason in basis["reasons"]:
+        add(f"    - {reason}")
+    add("")
+
+    for name in ("divergences", "convergences"):
+        block = delta[name]
+        add(
+            f"  {name.upper()}: {block['before']} -> {block['after']} "
+            f"({block['delta']:+d} distinct dependenc(ies); "
+            f"{block['before_sites']} -> {block['after_sites']} sites)"
+        )
+        if block["lost"]:
+            add(f"    LOST ({len(block['lost'])}):")
+            for row in block["lost"]:
+                add(
+                    f"      - {row['from']} -{row['kind']}-> {row['to']}  "
+                    f"[{row['symbol']}]  was at {', '.join(row['sites'])}"
+                )
+                if name == "divergences":
+                    add(f"        {row['classification']['reason']}: {row['classification']['detail']}")
+        if block["gained"]:
+            add(f"    GAINED ({len(block['gained'])}):")
+            for row in block["gained"]:
+                add(
+                    f"      + {row['from']} -{row['kind']}-> {row['to']}  "
+                    f"[{row['symbol']}]  at {', '.join(row['sites'])}"
+                )
+        if not block["lost"] and not block["gained"]:
+            add("    no dependency appeared or disappeared.")
+        if "stable_basis" in block and basis["attribution"] != ATTRIBUTION_CODE_ONLY:
+            stable = block["stable_basis"]
+            add(
+                f"    stable-basis only (modules in both scans, same component): "
+                f"{stable['before']} -> {stable['after']} ({stable['delta']:+d})"
+            )
+        add("")
+
+    absences = delta["absences"]
+    add(f"  ABSENCES: {absences['before']} -> {absences['after']} ({absences['delta']:+d})")
+    for row in absences["gained"]:
+        add(f"      + {row.get('port')}  {' <-> '.join(row.get('between') or [])}")
+    for row in absences["lost"]:
+        add(f"      - {row.get('port')}  {' <-> '.join(row.get('between') or [])}")
+    add("")
+
+    add("[MEASURED] Delta verdict")
+    add(f"  direction = {verdict['direction']}")
+    for reason in verdict["why"]:
+        add(f"    - {reason}")
+    for flag in verdict["red_flags"]:
+        add(f"    RED FLAG: {flag}")
+    add("")
+    if verdict["direction"] == DIRECTION_UNATTRIBUTABLE:
+        add("  UNATTRIBUTABLE is not a bad result and not a good one. The two scans do not")
+        add("  share a basis, so no number here is a fact about the refactor. Re-run the")
+        add("  baseline against the current map to get a comparison, and say in the record")
+        add("  that the map changed.")
+    elif verdict["direction"] == DIRECTION_UNVERIFIED:
+        add("  UNVERIFIED: the count fell and the edges do not explain why. This is the")
+        add("  structural MF-020. It is reported as unverified rather than as an")
+        add("  improvement, and nothing downgrades that.")
+    add("  Advisory: nothing here blocks a close, a promotion, or a case generation.")
+    return "\n".join(out) + "\n"
+
+
+# --------------------------------------------------------------------------
 # Rendering
 # --------------------------------------------------------------------------
 
@@ -1008,6 +1724,10 @@ def report_payload(report: ReflexionReport) -> dict[str, Any]:
                 else {}
             ),
         },
+        # AC-04: what this scan was measured AGAINST, recorded WITH the scan so
+        # that a later delta can prove -- or deny -- that the two runs shared a
+        # boundary. Without this a delta measures the map.
+        "basis": scan_basis(report),
         "convergences": report.convergences,
         "divergences": report.divergences,
         "absences": report.absences,
@@ -1217,6 +1937,15 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
             "every edge legal by construction."
         ),
     )
+    parser.add_argument(
+        "--baseline",
+        help=(
+            "AC-04 refactor delta: a previous `--format json` scan to compare this one "
+            "against. Reports the divergence delta with the specific edges gained and "
+            "lost, and refuses to call a drop an improvement when the two scans were not "
+            "measured against the same declared map and model."
+        ),
+    )
     parser.add_argument("--format", choices=["text", "json"], default="text")
     parser.add_argument("--out", help="Also write the report here (ticket results/ evidence).")
 
@@ -1257,11 +1986,23 @@ def run(args: argparse.Namespace) -> int:
         print(f"ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
         return EXIT_USAGE
 
-    rendered = (
-        json.dumps(report_payload(report), indent=2, sort_keys=False) + "\n"
-        if args.format == "json"
-        else render_report_text(report)
-    )
+    delta = None
+    if getattr(args, "baseline", None):
+        try:
+            delta = structural_delta(load_baseline(Path(args.baseline)), report)
+        except BaselineError as exc:
+            print(f"ERROR: the baseline scan is not usable as one:\n  {exc}", file=sys.stderr)
+            return EXIT_USAGE
+
+    if args.format == "json":
+        payload = report_payload(report)
+        if delta is not None:
+            payload["delta"] = delta
+        rendered = json.dumps(payload, indent=2, sort_keys=False) + "\n"
+    else:
+        rendered = render_report_text(report)
+        if delta is not None:
+            rendered += "\n" + render_delta_text(delta)
     sys.stdout.write(rendered)
     if args.out:
         out_path = Path(args.out)

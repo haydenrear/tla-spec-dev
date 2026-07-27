@@ -448,7 +448,8 @@ cannot be quietly lost.
 actually observed**. Standalone,
 `scripts/architecture_reflexion.py --format json` emits the same block as the
 document root, with `schema: "tla-spec-dev/architecture-reflexion"`,
-`schema_version: 1`.
+`schema_version: 2` (AC-04 bumped it additively to add `basis`; every v1 field
+is unchanged).
 
 ```
 measured.modules_scanned          int
@@ -471,7 +472,67 @@ verdict.architecture_scan         "coherent" | "divergent" | "unmappable"
 verdict.reasons                   [str]
 verdict.blocks_promotion          false
 advisory.suggests_moves           false
+basis.map_digest                  sha256 over language + module->component placements
+basis.placements                  {module: component}   <-- the declared map, verbatim
+basis.scanned_modules             [str]
+basis.architecture_digest         sha256 over component names + port pairs + port actions
+basis.architecture_ports          [[componentA, componentB]]
+basis.comparison_ran              bool   <-- false means this scan holds no findings at all
 ```
+
+## The Delta: Comparing Two Scans (AC-04)
+
+`--baseline <a previous --format json scan>` adds a `delta` block. It answers
+one question — *did this change move the code toward or away from the
+boundaries the model draws* — and it answers it in edges, not in a score.
+
+The unit is a **distinct dependency**, `(from, to, kind, symbol)`. The line
+number is deliberately excluded from that identity: a refactor that shifts every
+line in a file would otherwise report the whole graph as lost and regained, and
+the one edge that actually moved would be buried. Every site is still listed on
+its row.
+
+```
+basis.attribution        "code_only" | "partial" | "unattributable"
+basis.map_unchanged      bool          <-- both digests, before and after
+basis.map_changes        {reassigned[{module,from_component,to_component}], added[], removed[]}
+basis.architecture_changes {ports_added[], ports_removed[], ...}
+divergences.before/after/delta        int
+divergences.lost[]       {from,to,kind,symbol,sites[],classification{reason,detail,verifies_drop}}
+divergences.gained[]     {from,to,kind,symbol,sites[]}
+divergences.stable_basis {before,after,delta,...}  <-- modules in BOTH scans, same component
+convergences / absences  the same shape
+verdict.direction        "improved" | "worsened" | "unchanged" | "unverified" | "unattributable"
+verdict.red_flags        [str]
+verdict.blocks_promotion false
+```
+
+Three refusals, and each exists because the alternative is a printed improvement
+that nothing supports:
+
+1. **`unattributable`** — the two scans did not share a declared map (a module
+   present in both was re-placed, or the component set changed) or did not share
+   a model (a port was added or removed). "What The Map Cannot Stop" above is not
+   a caveat here; it is the mechanism. A one-line re-placement of
+   `scripts/budgets.py` from `surface` to `kill` in this repository's own map
+   moves the divergence count from 0 to 6 with no code change, and the delta
+   across that pair reports `unattributable` with the re-placement named, rather
+   than a 6-edge improvement.
+2. **`unverified`** — the count fell and the disappeared edges do not explain it.
+   Each lost edge is classified: `dependency_removed` (both endpoints still
+   scanned and still placed the same way — the disappearance a refactor
+   produces), `endpoint_left_tree` (the file is gone: a deletion, red-flagged),
+   `endpoint_unmapped` (the file is still there and the map stopped placing it —
+   the edge left the *measurement*, not the code), `endpoint_reassigned`. This is
+   MF-020 applied to structure.
+3. **A baseline that cannot be one** is the only nonzero exit: a text report (it
+   does not enumerate the edges), a scan whose comparison never ran (it holds no
+   findings — not zero findings), or a payload with no `basis` (the map it was
+   measured against is unrecoverable).
+
+The delta is **recorded in the complexity ledger and gates nothing**. A rise is
+recorded, not refused. See `references/architecture_tractability.md`, "The
+Validated-Refactor Basis Has A Structure Half".
 
 ## Exit Codes
 

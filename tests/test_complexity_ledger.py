@@ -931,3 +931,231 @@ class TestValidatedRefactorBasis:
         parsed = cl._load_structured(cl.TEMPLATE)
         members = cl.parse_validated_refactor(parsed["validated_refactor"])
         assert all(m.unverified for m in members.values())
+
+
+# ---------------------------------------------------------------------------
+# AC-04 -- the architecture delta member
+#
+# Three properties, in the order of how much damage their absence would do:
+#
+# 1. It NEVER gates. A ticket that raised structural divergence records that and
+#    closes. A member that could refuse a close would be answered by not
+#    running the scan, and then nothing is recorded at all.
+# 2. It is DERIVED, not typed. The direction comes from the report file. The
+#    only authored field is `claim:`, and it exists so a wrong one is caught.
+# 3. It carries the map's identity. A delta across two different maps is not a
+#    refactor result, and the entry has to still say that years later.
+# ---------------------------------------------------------------------------
+
+
+import json  # noqa: E402
+
+
+def delta_report(tmp_path, **overrides):
+    """A measured architecture-delta report, as `--baseline` writes one."""
+    payload = {
+        "schema": cl.ARCHITECTURE_DELTA_SCHEMA,
+        "schema_version": 1,
+        "divergences": {
+            "before": 2,
+            "after": 0,
+            "delta": -2,
+            "lost": [
+                {
+                    "from": "deliver.py",
+                    "to": "ingest.py",
+                    "kind": "import",
+                    "symbol": "ingest.read_raw",
+                    "sites": ["pkg/deliver.py:3"],
+                }
+            ],
+            "gained": [],
+        },
+        "basis": {
+            "attribution": "code_only",
+            "map_digest_before": "sha256:aaa",
+            "map_digest_after": "sha256:aaa",
+            "architecture_digest_before": "sha256:bbb",
+            "architecture_digest_after": "sha256:bbb",
+        },
+        "verdict": {"direction": "improved", "why": ["two fewer"], "red_flags": []},
+    }
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(payload.get(key), dict):
+            payload[key] = {**payload[key], **value}
+        else:
+            payload[key] = value
+    path = tmp_path / "architecture-delta.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def evaluate_with_delta(tmp_path, architecture_delta, **input_overrides):
+    ledger_input = make_input(architecture_delta=architecture_delta, **input_overrides)
+    return cl.evaluate(
+        scope="ticket",
+        scope_id="AC-TEST",
+        workflow="wf",
+        metrics=metrics(),
+        ledger_input=ledger_input,
+        previous=previous(),
+        input_dir=tmp_path,
+    )
+
+
+class TestArchitectureDeltaIsRecordedAndNeverGates:
+    def test_a_worsened_delta_is_recorded_and_the_close_proceeds(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            divergences={
+                "before": 0,
+                "after": 2,
+                "delta": 2,
+                "lost": [],
+                "gained": [
+                    {
+                        "from": "deliver.py",
+                        "to": "ingest.py",
+                        "kind": "import",
+                        "symbol": "ingest.read_raw",
+                        "sites": ["pkg/deliver.py:3"],
+                    }
+                ],
+            },
+            verdict={"direction": "worsened", "why": ["two more"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert not verdict.rejected, verdict.errors
+        entry = verdict.entry["architecture_delta"]
+        assert entry["status"] == "worsened"
+        assert entry["gates"] is False
+        assert entry["divergent_edges_gained"], "the edges that appeared are enumerated"
+        assert any("ROSE" in note for note in verdict.entry["notes"])
+
+    def test_an_absent_delta_is_recorded_as_not_run_not_dropped(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {})
+        assert not verdict.rejected
+        assert verdict.entry["architecture_delta"]["status"] == "not_run"
+        assert any("architecture delta not_run" in n for n in verdict.entry["notes"])
+
+    def test_an_unreadable_report_does_not_refuse_a_close_but_is_visible(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {"report": "no-such-file.json"})
+        assert not verdict.rejected
+        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
+        assert verdict.entry["architecture_delta"]["problems"]
+
+    def test_a_hand_written_summary_is_not_a_delta(self, tmp_path):
+        path = tmp_path / "architecture-delta.json"
+        path.write_text(json.dumps({"divergences": {"before": 9, "after": 0}}), encoding="utf-8")
+        verdict = evaluate_with_delta(tmp_path, {"report": path.name})
+        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
+        assert not verdict.rejected
+
+
+class TestTheDeltaIsDerivedNotTyped:
+    def test_the_direction_comes_from_the_report(self, tmp_path):
+        report = delta_report(tmp_path)
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        entry = verdict.entry["architecture_delta"]
+        assert entry["status"] == "improved"
+        assert entry["divergences_before"] == 2 and entry["divergences_after"] == 0
+        assert entry["divergent_edges_lost"] == [
+            "deliver.py -import-> ingest.py [ingest.read_raw] pkg/deliver.py:3"
+        ]
+
+    def test_a_claim_the_measurement_contradicts_refuses_the_close(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            verdict={"direction": "unattributable", "why": ["the map moved"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(
+            tmp_path, {"report": report.name, "claim": "improved"}
+        )
+        assert verdict.rejected
+        assert any("claims the architecture delta" in e for e in verdict.errors)
+
+    def test_a_claim_with_no_report_at_all_refuses(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {"claim": "improved"})
+        assert verdict.rejected
+        assert any("unverified by construction" in e for e in verdict.errors)
+
+    def test_a_true_claim_is_recorded_as_verified(self, tmp_path):
+        report = delta_report(tmp_path)
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
+        assert not verdict.rejected, verdict.errors
+        assert any("VERIFIED against the recorded delta" in n for n in verdict.entry["notes"])
+
+
+class TestTheMF020RuleAppliedToStructure:
+    def test_a_drop_with_no_enumerated_edges_is_downgraded_to_unverified(self, tmp_path):
+        """MF-020: a projected reduction that was really a deleted transition.
+
+        The report says `improved` and names no dependency that disappeared. The
+        ledger does not take the direction on trust -- a drop the edges do not
+        explain is unverified by construction, and a report from another build,
+        or edited afterwards, cannot smuggle one in.
+        """
+        report = delta_report(
+            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert verdict.entry["architecture_delta"]["status"] == "unverified"
+        assert not verdict.rejected, "unverified is recorded, not refused"
+
+    def test_claiming_that_unverified_drop_as_an_improvement_refuses(self, tmp_path):
+        report = delta_report(
+            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
+        assert verdict.rejected
+        assert any("MF-020" in e for e in verdict.errors)
+
+    def test_red_flags_from_the_report_are_carried_into_the_notes(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            verdict={
+                "direction": "improved",
+                "why": [],
+                "red_flags": ["every disappeared divergence LEFT THE SCANNED TREE"],
+            },
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert any("RED FLAG" in note for note in verdict.entry["notes"])
+
+
+class TestTheMapIdentityIsPartOfTheRecord:
+    def test_both_digests_land_in_the_entry(self, tmp_path):
+        report = delta_report(tmp_path)
+        entry = evaluate_with_delta(tmp_path, {"report": report.name}).entry
+        delta = entry["architecture_delta"]
+        assert delta["map_digest_before"] == delta["map_digest_after"] == "sha256:aaa"
+        assert delta["architecture_digest_before"] == "sha256:bbb"
+        assert delta["attribution"] == "code_only"
+
+    def test_the_report_says_when_the_map_moved_between_the_scans(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            basis={"attribution": "unattributable", "map_digest_after": "sha256:zzz"},
+            verdict={"direction": "unattributable", "why": ["re-placed"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        text = cl.render_report(verdict)
+        assert "architecture delta (structure, AC-04): unattributable" in text
+        assert "CHANGED between the scans -- this is not a refactor result" in text
+
+    def test_the_report_prints_the_structure_block_next_to_the_complexity_delta(self, tmp_path):
+        report = delta_report(tmp_path)
+        text = cl.render_report(evaluate_with_delta(tmp_path, {"report": report.name}))
+        assert "architecture delta (structure, AC-04): improved (recorded, never gating)" in text
+        assert "map identity: UNCHANGED across both scans" in text
+        assert "- lost:   deliver.py -import-> ingest.py" in text
+
+
+class TestTheTemplateCarriesTheDeltaBlock:
+    def test_the_scaffolded_template_records_an_honest_not_run(self, tmp_path):
+        path = tmp_path / "complexity_ledger.yaml"
+        cl.write_template(path)
+        assert "architecture_delta:" in path.read_text(encoding="utf-8")
+        record = cl.parse_architecture_delta({"report": "", "claim": ""}, tmp_path)
+        assert record.normalized == "not_run"
+        assert record.recorded is False
