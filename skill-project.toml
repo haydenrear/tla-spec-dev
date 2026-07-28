@@ -1,0 +1,77 @@
+# Skill project manifest for spec-double-compiler.
+#
+# What this declares: the units this repository's own agents and its validation
+# surfaces need, and the paths in the working tree whose content belongs to one
+# of those units.
+#
+# How the home is produced — read this before running `project resolve`
+# ---------------------------------------------------------------------
+# `project resolve` writes into whatever `SKILL_MANAGER_HOME` names. Run it
+# before this checkout has its own home and it mutates the operator's global
+# ~/.skill-manager. Create the local home first, point `SKILL_MANAGER_HOME` at
+# it, and only then resolve:
+#
+#   mkdir -p .skill-manager/skills
+#   SKILL_MANAGER_CLI=<epic skill-manager> \
+#     bash <git-integration-repo>/scripts/bootstrap-home.sh --root "$PWD" --force
+#   export SKILL_MANAGER_HOME="$PWD/.skill-manager"
+#   skill-manager project resolve --skip-gateway
+#
+# Coords are git-only (no registry is configured) and they name the REPO, not
+# the installed unit — see skill-publisher's references/coords-and-distribution.md.
+# The table key is the installed unit name, which is what `[[vendored]]`
+# `from_unit` and `.skill-manager/skills/<name>` both use.
+#
+# This repository IS the spec-double-compiler unit, so it does not declare
+# itself: `specs/program_model/production_adapters.py` and the pytest suite
+# import `spec_double_compiler` from this working tree, and the spec lifecycle
+# runs `python3 scripts/tla_spec_dev.py`, never the installed clone.
+
+[project]
+name = "spec-double-compiler"
+version = "0.1.0"
+description = "Generate and maintain Python spec doubles from constrained, annotated TLA+ specifications, validated by a Test Graph project and the specs/program_model adapters."
+
+# --- validation: the test_graph project at test_graph/ is composed from this
+#     unit's Gradle SDK and build-logic, vendored below. Its three graphs
+#     (specWorkflow, cliWorkflow, effectProviderExamples) are the repository's
+#     integration surface ---
+
+[skills.test-graph]
+source = "github:haydenrear/test_graph_skill"
+
+# --- required BY this unit's own SKILL.md, not chosen here. Its `skill-imports`
+#     name both units (skill-manager references/cli.md for how the declared
+#     tlc2/pytest/jinja2 CLI tools are exposed; skill-publisher
+#     references/skills.md for installable-unit layout), and `project resolve`
+#     refuses the whole resolve with "references missing unit" until they are
+#     declared. Unit `skill_references` are followed automatically —
+#     skill-manager.toml here declares none — but `skill-imports` are not ---
+
+[skills.skill-manager]
+source = "github:haydenrear/skill-manager-skill"
+
+[skills.skill-publisher]
+source = "github:haydenrear/skill-publisher-skill"
+
+# --- vendored: paths under test_graph/ whose content is the test-graph unit's
+#     Gradle SDK. They were scaffolded against whatever SKILL_MANAGER_HOME
+#     happened to be set at the time, so git stored one developer's absolute
+#     home path in the blob. Declaring them lets `project resolve` check, by
+#     RESOLVED PHYSICAL path, that each one still lands in this project's own
+#     home rather than a foreign one.
+#
+#     The check must resolve rather than read link text: a link whose text is
+#     relative (`sdk/../standard-nodes`) matches no string test yet can resolve
+#     through a sibling absolute link into the operator's home.
+#
+#     These paths are now produced by test-graph's managed provider bindings
+#     (test_graph/provider-bindings.json); they are generated and gitignored,
+#     not tracked. This block stays as the validator that says what must hold. ---
+
+[[vendored]]
+name = "test-graph-sdk"
+paths = ["test_graph/sdk", "test_graph/build-logic", "test_graph/standard-nodes"]
+from_unit = "test-graph"
+from_subpath = "project_sdk_sources"
+on_invalid = "error"
