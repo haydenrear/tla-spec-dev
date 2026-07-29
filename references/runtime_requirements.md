@@ -60,11 +60,10 @@ skill-manager home drift               # refuses a launch while a unit moved unr
 
 ### How a scaffolded module finds this skill
 
-`tla-spec-dev` puts the installed skill on `PYTHONPATH` before it runs anything,
-so under the CLI `import spec_double_compiler` already works. A Test Graph node,
-a bare `pytest`, or an IDE imports the same `specs/program_model/adapters.py`
-with none of that. The scaffold therefore emits a resolver into `adapters.py` and
-`providers.py`, and its order is load-bearing:
+`tla-spec-dev` puts the installed skill on `PYTHONPATH` before it runs anything.
+A Test Graph node, a bare `pytest`, or an IDE imports the same
+`specs/program_model/adapters.py` with none of that. So the scaffold emits a
+resolver into `adapters.py` and `providers.py`, and its order is load-bearing:
 
 1. `SPEC_DOUBLE_COMPILER_HOME` — explicit override, names the skill directory
    itself. Set but wrong **refuses**; it does not fall through.
@@ -74,6 +73,23 @@ with none of that. The scaffold therefore emits a resolver into `adapters.py` an
    walking up from the module — so a project or worktree home is still found from
    a bare shell that exported nothing.
 4. `~/.skill-manager/skills/spec-double-compiler` — **last**.
+5. an inherited `PYTHONPATH` — only when **none** of the four above answered.
+
+That order holds **unconditionally**, including when `spec_double_compiler` is
+already importable. This is not a detail: the resolver originally ran only in an
+`except ModuleNotFoundError` branch, which made every guarantee above void in the
+one environment the paragraph names. Measured with two homes planted and distinct
+markers — `PYTHONPATH` naming the operator's home, `SKILL_MANAGER_HOME` naming the
+project's, and `SPEC_DOUBLE_COMPILER_HOME` deliberately pointing at nothing — the
+operator's global home answered, exit 0, empty stderr, and the invalid override
+was never even looked at.
+
+Item 5 being last has one consequence worth stating plainly: when
+`SKILL_MANAGER_HOME` and the `tla-spec-dev` you invoked name **different** builds
+of this skill, the bound home wins. In the ordinary case they are the same
+directory and this is a no-op. When they differ — a CLI wrapper pinned to another
+home, an exported `PYTHONPATH` — the home the checkout is bound to is treated as
+the authority, and `SPEC_DOUBLE_COMPILER_HOME` is how you override that.
 
 `Path.home()` last is the whole point. A repository that resolves the global home
 first reads a different build of this skill than the checkout was resolved

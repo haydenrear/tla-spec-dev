@@ -46,7 +46,14 @@ A Test Graph node runs `adapters.py` as a plain module — no `tla-spec-dev`, so
 `PYTHONPATH` carrying the installed skill. Something has to find it, and *which
 home it finds it in* decides which build of this skill your cases run against.
 The order is: `SPEC_DOUBLE_COMPILER_HOME`, then `$SKILL_MANAGER_HOME`, then the
-nearest enclosing `<checkout>/.skill-manager`, then `~/.skill-manager` **last**.
+nearest enclosing `<checkout>/.skill-manager`, then `~/.skill-manager`, and an
+inherited `PYTHONPATH` only if none of those answered.
+
+Do not move the resolver inside a `try`/`except ModuleNotFoundError` either. That
+is where it started, and it made the whole order conditional on nothing else
+having already answered — so under `tla-spec-dev` (which *does* set `PYTHONPATH`)
+the bound home was skipped and an invalid `SPEC_DOUBLE_COMPILER_HOME` did not
+refuse. It resolves first and imports second, on purpose.
 
 Putting `Path.home()` earlier is the specific defect this replaced. A machine has
 three tiers of Skill Manager home — root `~/.skill-manager`, project

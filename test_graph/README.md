@@ -6,8 +6,12 @@ repository created under `test_graph/build/validation-reports/<runId>/`.
 Run it from the repository root with the Test Graph skill wrappers:
 
 ```bash
-/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
-/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+# NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
+# bound to (a project or worktree `.skill-manager`), and only that copy matches
+# the units this checkout was resolved against. See
+# references/runtime_requirements.md, "Which Skill Manager home those tools come from".
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
 ```
 
 The `specWorkflow` graph performs the workflow end to end:

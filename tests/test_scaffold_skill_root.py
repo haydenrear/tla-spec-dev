@@ -85,13 +85,16 @@ def planted(tmp_path: Path) -> dict[str, Path]:
 
 
 def _run(module: Path, *, user_home: Path, bound_home: Path | None = None,
-         explicit: Path | None = None) -> subprocess.CompletedProcess[str]:
+         explicit: Path | None = None,
+         pythonpath: Path | None = None) -> subprocess.CompletedProcess[str]:
     env = {
         k: v
         for k, v in os.environ.items()
-        # PYTHONPATH is how the CLI hands the skill over; clearing it is what
-        # makes this the no-CLI case the resolution order exists for. The other
-        # two would let the test pass without exercising the resolver at all.
+        # Inherit none of these three: each one, left in place, would let a test
+        # pass without exercising the resolver. `pythonpath=` puts PYTHONPATH
+        # back DELIBERATELY — leaving it always-stripped is what hid the bug that
+        # the resolution order was void whenever the module was already
+        # importable.
         if k not in {"PYTHONPATH", "SKILL_MANAGER_HOME", "SPEC_DOUBLE_COMPILER_HOME"}
     }
     env["HOME"] = str(user_home)          # Path.home() honours $HOME on POSIX
@@ -99,10 +102,17 @@ def _run(module: Path, *, user_home: Path, bound_home: Path | None = None,
         env["SKILL_MANAGER_HOME"] = str(bound_home)
     if explicit is not None:
         env["SPEC_DOUBLE_COMPILER_HOME"] = str(explicit)
+    if pythonpath is not None:
+        env["PYTHONPATH"] = str(pythonpath)
     return subprocess.run(
         [sys.executable, "-c", _PROBE, str(module)],
         capture_output=True, text=True, env=env, cwd=str(module.parent),
     )
+
+
+def _skill_root(home: Path) -> Path:
+    """The importable root inside a home — what PYTHONPATH would name."""
+    return home / "skills" / "spec-double-compiler"
 
 
 @pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])
@@ -158,6 +168,79 @@ def test_the_global_home_is_still_reachable_when_nothing_else_answers(
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout.strip().splitlines()[-1])
     assert payload["marker"] == "global-home"
+
+
+@pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])
+def test_the_bound_home_wins_over_an_inherited_pythonpath(
+    planted: dict[str, Path], module_name: str
+) -> None:
+    """The precedence must hold when the module is ALREADY importable.
+
+    `tla-spec-dev` hands the skill over on PYTHONPATH, so this is not an exotic
+    environment — it is the documented one. While the resolver lived inside
+    `except ModuleNotFoundError`, none of the four candidates was consulted here
+    and the operator's global home won: measured exit 0, marker "global-home",
+    empty stderr. Every other test in this file passed throughout, because they
+    stripped PYTHONPATH unconditionally.
+    """
+    result = _run(
+        planted["target"] / module_name,
+        user_home=planted["user_home"],
+        bound_home=planted["project"] / ".skill-manager",
+        pythonpath=_skill_root(planted["user_home"] / ".skill-manager"),
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout.strip().splitlines()[-1])
+    assert payload["marker"] == "project-home", (
+        f"{module_name} resolved the skill from {payload['file']}"
+    )
+
+
+@pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])
+def test_an_inherited_pythonpath_answers_only_when_no_home_does(
+    planted: dict[str, Path], module_name: str
+) -> None:
+    """Negative control for the rule above.
+
+    Without it, "the bound home wins over PYTHONPATH" would also be satisfied by
+    a resolver that ignores PYTHONPATH entirely and cannot fall back to it — a
+    strictly worse module that passes the same assertion.
+    """
+    (planted["project"] / ".skill-manager").rename(planted["project"] / ".skill-manager-off")
+    (planted["user_home"] / ".skill-manager").rename(planted["user_home"] / ".skill-manager-off")
+    result = _run(
+        planted["target"] / module_name,
+        user_home=planted["user_home"],
+        pythonpath=_skill_root(planted["user_home"] / ".skill-manager-off"),
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout.strip().splitlines()[-1])
+    assert payload["marker"] == "global-home"
+    assert ".skill-manager-off" in payload["file"]
+
+
+@pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])
+def test_a_wrong_explicit_override_refuses_even_when_the_module_is_importable(
+    planted: dict[str, Path], module_name: str
+) -> None:
+    """A misdirected override must refuse, not be bypassed by an inherited path.
+
+    This is the same failure as the previous test in a sharper form: the refusal
+    lived inside `except ModuleNotFoundError`, so a satisfied PYTHONPATH meant
+    the override was never even looked at. Measured before the fix: exit 0,
+    marker "global-home", empty stderr, with SPEC_DOUBLE_COMPILER_HOME pointing
+    at a directory that does not exist.
+    """
+    result = _run(
+        planted["target"] / module_name,
+        user_home=planted["user_home"],
+        bound_home=planted["project"] / ".skill-manager",
+        explicit=planted["project"] / "nowhere-at-all",
+        pythonpath=_skill_root(planted["user_home"] / ".skill-manager"),
+    )
+    assert result.returncode != 0
+    assert "SPEC_DOUBLE_COMPILER_HOME" in result.stderr
+    assert "global-home" not in result.stdout
 
 
 @pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])
