@@ -102,8 +102,11 @@ tla-spec-dev repository validates this CLI flow with its parent Test
 Graph:
 
 ```bash
-/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
-/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+# NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
+# bound to (a project or worktree `.skill-manager`), and only that copy matches
+# the units this checkout was resolved against. See references/runtime_requirements.md.
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
 ```
 
 ## Complete A Spec Workflow

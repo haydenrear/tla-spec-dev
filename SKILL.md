@@ -856,8 +856,11 @@ commands, verifies promotion and history movement, and removes the temporary
 repo:
 
 ```bash
-/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
-/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+# NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
+# bound to (a project or worktree `.skill-manager`), and only that copy matches
+# the units this checkout was resolved against. See references/runtime_requirements.md.
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
 ```
 
 ## Generated Artifacts
@@ -1147,8 +1150,10 @@ current change.
   promotion, and closeout.
 - `references/generation_modes.md`: manifest-driven generation vs TLC
   state-graph cases.
-- `references/runtime_requirements.md`: CLI dependencies, TLC wrapper, and
-  local runtime expectations.
+- `references/runtime_requirements.md`: CLI dependencies, TLC wrapper, local
+  runtime expectations, **which of the three Skill Manager homes those tools and
+  this skill are resolved from**, and how to get a home-resident skill edit out
+  of a ticket worktree before it is deleted.
 - `references/tla_profile.md`: constrained TLA+ subset.
 - `references/codegen_contract.md`: manifest schema and generator behavior.
 - `references/conformance_testing.md`: production adapter conformance.

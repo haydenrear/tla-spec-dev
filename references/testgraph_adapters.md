@@ -36,6 +36,30 @@ before calling it done.
 The External view, the bindings, and the skeleton adapters are **onboarding
 deliverables**. Tickets own per-slice adapter implementations, not the structure.
 
+### Do not rewrite how `adapters.py` finds this skill
+
+`adapters.py` and `providers.py` are emitted with a resolver above their
+`from spec_double_compiler.runtime import ...` line. It is not boilerplate to
+tidy away, and its order is not arbitrary.
+
+A Test Graph node runs `adapters.py` as a plain module — no `tla-spec-dev`, so no
+`PYTHONPATH` carrying the installed skill. Something has to find it, and *which
+home it finds it in* decides which build of this skill your cases run against.
+The order is: `SPEC_DOUBLE_COMPILER_HOME`, then `$SKILL_MANAGER_HOME`, then the
+nearest enclosing `<checkout>/.skill-manager`, then `~/.skill-manager` **last**.
+
+Putting `Path.home()` earlier is the specific defect this replaced. A machine has
+three tiers of Skill Manager home — root `~/.skill-manager`, project
+`<repo>/.skill-manager`, worktree `<worktree>/.skill-manager` — each a real copy,
+so that two ticket worktrees do not edit each other's units. Resolving the global
+home first means your graph loads a copy nobody in this checkout is bound to, and
+from a ticket worktree a copy another agent is editing while you read it. It fails
+by giving the wrong answer, not by erroring, which is why the resolution order is
+tested (`tests/test_scaffold_skill_root.py`) rather than merely commented.
+
+`references/runtime_requirements.md` has the full tier model and the two commands
+that get a home-resident edit back out of a worktree before it is deleted.
+
 ## Views
 
 The workflow uses one semantic authority with two executable views:
