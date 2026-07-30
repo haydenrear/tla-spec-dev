@@ -1,0 +1,25 @@
+RP-04 -- the new regression tests against the PRE-FIX modules (epic tip 506e0e0)
+===============================================================================
+
+tests/test_complexity_ledger.py (imports no new symbol, so it collects):
+
+tests/test_complexity_ledger.py:720: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_incomplete_bound_under_the_cap_refuses_the_within_cap_claim
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_incomplete_bound_over_the_cap_keeps_the_sound_direction
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_unrecorded_completeness_is_not_a_licence_to_claim_within_cap
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_collect_metrics_publishes_bound_completeness
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_report_never_prints_an_incomplete_bound_without_saying_so
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_bound_delta_across_a_completeness_change_is_marked_not_comparable
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_bound_delta_between_two_complete_bounds_is_comparable
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_an_unfinished_tlc_run_does_not_claim_within_cap_either
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_collect_metrics_records_whether_the_tlc_run_finished
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_a_fallback_action_count_carries_its_attribution
+FAILED tests/test_complexity_ledger.py::TestBoundCompleteness::test_bound_delta_over_pre_rp04_entries_is_marked_unknown
+11 failed, 2 passed, 76 deselected in 0.19s
+
+tests/test_analyze_complexity.py imports bound_completeness and parse_cfg_invariants,
+which the pre-fix module does not export, so the whole module fails to collect:
+ImportError while importing test module '/Users/hayde/IdeaProjects/wt-rp04-descriptor-honesty/tests/test_analyze_complexity.py'.
+E   ImportError: cannot import name 'bound_completeness' from 'scripts.analyze_complexity' (/Users/hayde/IdeaProjects/wt-rp04-descriptor-honesty/scripts/analyze_complexity.py)
+1 error in 0.07s

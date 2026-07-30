@@ -1,0 +1,42 @@
+RP-04 -- CM-01-DF-03 / CM-01-DF-02 before-and-after on the shipped example
+===========================================================================
+
+REPRODUCTION (verbatim from the ticket):
+  python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity \
+    examples/distributed_history/specs/program_model/External.tla \
+    examples/distributed_history/specs/program_model/External.cfg
+
+--- BEFORE (epic tip 506e0e0, pre-fix module) -----------------------------
+  descriptor TEXT (scrupulous):
+    bound = 4  (product of 1 bounded dimensions; ...)
+    excluded (no resolvable domain): accounts, carts, orders, projections,
+      lastInternalAction, responses, serviceHealth, lastServiceRoute, lastExternalAction
+  advisory warning kinds: ['component_actions', 'component_actions']
+  JSON bound keys: ['state_space_upper_bound', 'state_space_bound_known', 'state_space_bound_source', 'unbounded_variables']
+  LEDGER budget_utilization: {'max_state_space_bound': {'cap': 1000000, 'used': 4, 'percent': 0.0, 'within_cap': True}}
+  parse_cfg_invariants(External.cfg): ['Invariant', 'CONSTANTS']
+  parse_cfg_invariants('SPECIFICATION Spec/INVARIANT Inv/CONSTANT/  X = 1'): ['Inv', 'CONSTANT']
+
+--- AFTER (this branch) ---------------------------------------------------
+  descriptor TEXT:
+    bound = 4  [INCOMPLETE: product over 1 of 10 declared variables; ...]
+    this number is a LOWER BOUND on the declared-representation bound,
+    not the bound: it cannot be read as a percent of max_state_space_bound, and
+    'within cap' is NOT a claim this scan can make about it.
+  advisory warning kinds: ['state_space_bound_partial', 'component_actions', 'component_actions']
+  JSON bound keys: ['state_space_upper_bound', 'state_space_bound_known', 'state_space_bound_source', 'state_space_bound_complete', 'state_space_bound_resolved_variables', 'state_space_bound_total_variables', 'state_space_bound_caveat', 'state_space_bound_within_cap', 'unbounded_variables']
+  JSON state_space_bound_within_cap: None
+  LEDGER budget_utilization:
+{
+    "max_state_space_bound": {
+        "cap": 1000000,
+        "used": 4,
+        "bound_complete": false,
+        "percent_lower_bound": 0.0,
+        "percent": null,
+        "within_cap": null,
+        "caveat": "the bound is a product over 1 of 10 declared variables (9 unresolved: accounts, carts, orders, projections, lastInternalAction, responses, serviceHealth, lastServiceRoute, lastExternalAction), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+    }
+}
+  parse_cfg_invariants(External.cfg): ['Invariant']
+  parse_cfg_invariants('SPECIFICATION Spec/INVARIANT Inv/CONSTANT/  X = 1'): ['Inv']

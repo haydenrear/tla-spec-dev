@@ -1,0 +1,23 @@
+RP-04 -- zero TLA+ model delta
+==============================
+
+$ diff -r specs/tickets/RP-04/current specs/tickets/RP-04/desired
+(no output -- identical)
+
+$ git diff --stat 506e0e0 -- specs/current specs/program_model
+(no output -- the project model is byte-identical to the epic tip)
+
+TLC on specs/tickets/RP-04/current (MC.cfg -- results/tlc-current.txt,
+120s budget, finished in 62s):
+Model checking completed. No error has been found.
+32122220 states generated, 1292951 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 26.
+
+TLC on specs/tickets/RP-04/current (MCsmall.cfg -- results/tlc-current-mcsmall.txt):
+Model checking completed. No error has been found.
+363841 states generated, 20269 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 16.
+
+The full-config figures are IDENTICAL to the ones AC-01 recorded
+(32,122,220 / 1,292,951 / depth 26), which is the check that the model did
+not move: RP-04 changed only scripts/ and tests/.

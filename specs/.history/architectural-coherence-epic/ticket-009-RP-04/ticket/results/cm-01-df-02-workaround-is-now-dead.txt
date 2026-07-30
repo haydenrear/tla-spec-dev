@@ -1,0 +1,28 @@
+RP-04 -- CM-01-DF-02: the scripts/spec_evolution.py CFG_KEYWORDS workaround
+===========================================================================
+
+NOTE ON OWNERSHIP. The RP-04 brief says the workaround lives in RP-03's file
+(scripts/case_modules.py). It does not: it is in scripts/spec_evolution.py,
+lines 745-753, which is CM-01's conflict key (CM-01 is done). No open ticket
+in the plan owns that file. RP-04 therefore leaves it in place, as briefed,
+and records the two experiments that show it is now dead code.
+
+EXPERIMENT A -- workaround removed, RP-04 parser fix present:
+=========================== short test summary info ============================
+FAILED tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+1 failed, 897 passed in 15.64s
+  (897 rather than 901: the scratch tree has no open specs/tickets/RP-04, so
+   test_spec_yaml_valid.py collects four fewer parameterized YAML cases)
+
+EXPERIMENT B -- workaround removed, PRE-FIX parser (proves it was load-bearing):
+=========================== short test summary info ============================
+FAILED tests/test_new_ticket_workflow.py::test_skill_requires_two_minute_case_generation_budget
+FAILED tests/test_spec_evolution.py::test_three_module_baseline_measures_the_outermost_view_not_core
+FAILED tests/test_spec_evolution.py::test_declared_model_block_wins_over_every_convention
+FAILED tests/test_spec_evolution.py::test_close_records_the_declared_model_it_measured
+4 failed, 857 passed in 16.04s
+
+Conclusion: with the RP-04 parser fix, deleting the CFG_KEYWORDS skip in
+scripts/spec_evolution.py is a no-op -- the same single known-red test fails
+and nothing else. Without it, three model-pair validator tests fail because
+the parser hands the validator the bare CONSTANTS line as an invariant name.

@@ -416,10 +416,28 @@ def collect_metrics(
     otherwise -- never estimated, never carried forward from a previous entry.
     """
     analysis = analyze_complexity.analyze(tla_path, cfg_path, manifest_path)
+    completeness = analysis.completeness
     metrics: dict[str, Any] = {
         "variables": len(analysis.variables),
         "actions": len(analysis.actions),
+        # RP-04, same class again: `actions` is a DELTA_METRIC, and the
+        # descriptor says in prose when the count came from the FALLBACK primes
+        # heuristic ("helper operators may be listed as actions and composed
+        # actions may be missing") rather than from the next-state relation's
+        # disjuncts. The ledger recorded the bare count. Carry the attribution.
+        "action_attribution": analysis.action_attribution,
+        "actions_from_fallback_heuristic": analysis.action_attribution.startswith(
+            "FALLBACK"
+        ),
         "bound": analysis.bound,
+        # CM-01-DF-03: the bound above is a product over the variables whose
+        # domain resolved. Recording it without these three fields is how the
+        # ledger came to record "0.0% of 1,000,000, within cap" for a model TLC
+        # measures at 49,386 distinct states -- the descriptor TEXT named the
+        # nine excluded variables and the JSON threw the caveat away.
+        "bound_complete": completeness.complete,
+        "bound_resolved_variables": completeness.resolved,
+        "bound_unresolved_variables": list(completeness.unresolved),
         "modularity": analysis.modularity_score,
         "distinct_states": None,
         "generated_states": None,
@@ -433,13 +451,36 @@ def collect_metrics(
         metrics["generated_states"] = report.generated
         metrics["depth"] = report.depth
         metrics["tlc_report"] = str(tlc_report)
+        # RP-04, the same class as CM-01-DF-03 found one file over: a TLC run
+        # that did not finish still prints a distinct-state count, and
+        # `analyze` is careful to check `max_distinct_states` only when
+        # `report.complete` -- while the ledger recorded the count with no such
+        # flag and compared it against the cap regardless. Publish the flag.
+        metrics["tlc_run_complete"] = report.complete
     budgets = analysis.budgets or {}
     metrics["budget_utilization"] = _budget_utilization(metrics, budgets)
     return metrics
 
 
 def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dict[str, Any]:
-    """Percent-of-cap for each hard cap, in the form the manual ledgers used."""
+    """Percent-of-cap for each hard cap, in the form the manual ledgers used.
+
+    CM-01-DF-03: the state-space entry additionally reads
+    ``metrics['bound_complete']``. A bound that is a product over a SUBSET of
+    the declared variables supports one comparison and not the other:
+
+    * over the cap  -- recorded as ``within_cap: false``. Sound: every
+      unresolved variable has at least one value, so the complete bound is at
+      least the recorded one.
+    * at or under the cap -- recorded as ``within_cap: null`` with a
+      ``caveat``, and ``percent`` becomes ``percent_lower_bound``. "0.0% of
+      1,000,000, within cap" over one resolved variable of ten is not a
+      measurement, and a null here is the only honest value.
+
+    A missing ``bound_complete`` key (every ledger entry written before this
+    fix) is treated as UNKNOWN completeness, which is also not a licence to
+    claim "within cap" -- it is recorded as null with a caveat naming the gap.
+    """
     utilization: dict[str, Any] = {}
     pairs = (
         ("max_state_space_bound", "bound"),
@@ -450,13 +491,80 @@ def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dic
         used = metrics.get(metric_key)
         if not isinstance(cap, int) or cap <= 0 or not isinstance(used, int):
             continue
-        utilization[budget_key] = {
-            "cap": cap,
-            "used": used,
-            "percent": round(used / cap * 100, 1),
-            "within_cap": used <= cap,
-        }
+        entry: dict[str, Any] = {"cap": cap, "used": used}
+        percent = round(used / cap * 100, 1)
+        if metric_key != "bound":
+            # max_distinct_states caps ACTUAL states counted by TLC. There is no
+            # partial-RESOLUTION question to ask of a measured count -- but
+            # there is a partial-RUN one, and it has the same shape (RP-04): a
+            # TLC run that did not finish reports a count that is a floor.
+            # `tlc_run_complete` absent means no TLC report was supplied at
+            # all, in which case `used` came from a caller's own dict and is
+            # taken at face value, as before.
+            if metrics.get("tlc_run_complete") is False:
+                entry["tlc_run_complete"] = False
+                entry["percent_lower_bound"] = percent
+                entry["percent"] = None
+                entry["within_cap"] = False if used > cap else None
+                entry["caveat"] = (
+                    "the TLC run that produced this count did not finish, so the "
+                    "count is a LOWER BOUND on the reachable states"
+                    + (
+                        "; over the cap is still over the cap"
+                        if used > cap
+                        else " and 'within cap' is UNKNOWN"
+                    )
+                )
+            else:
+                entry["percent"] = percent
+                entry["within_cap"] = used <= cap
+            utilization[budget_key] = entry
+            continue
+        complete = metrics.get("bound_complete")
+        entry["bound_complete"] = complete
+        if complete is True:
+            entry["percent"] = percent
+            entry["within_cap"] = used <= cap
+        elif used > cap:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = False
+            entry["caveat"] = _bound_caveat(metrics, over_cap=True)
+        else:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = None
+            entry["caveat"] = _bound_caveat(metrics, over_cap=False)
+        utilization[budget_key] = entry
     return utilization
+
+
+def _bound_caveat(metrics: dict[str, Any], *, over_cap: bool) -> str:
+    """Why the state-space cap comparison is qualified or refused."""
+    resolved = metrics.get("bound_resolved_variables")
+    total = metrics.get("variables")
+    unresolved = metrics.get("bound_unresolved_variables") or []
+    if metrics.get("bound_complete") is None:
+        basis = (
+            "bound completeness was not recorded for this entry (written before "
+            "CM-01-DF-03 was fixed), so it is unknown whether the bound is a "
+            "product over every declared variable"
+        )
+    else:
+        basis = (
+            f"the bound is a product over {resolved} of {total} declared variables"
+            + (f" ({len(unresolved)} unresolved: {', '.join(unresolved)})" if unresolved else "")
+        )
+    if over_cap:
+        return (
+            f"{basis}, so the recorded figure is a LOWER BOUND; over the cap is "
+            "still over the cap, but the percent is a floor, not the percent"
+        )
+    return (
+        f"{basis}, so percent-of-cap is not a measurement and within_cap is "
+        "UNKNOWN -- an incomplete bound at or under the cap is not evidence of "
+        "anything"
+    )
 
 
 # --------------------------------------------------------------------------
@@ -553,6 +661,16 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
         entry: dict[str, Any] = {"before": before, "after": after, "delta": change}
         if before:
             entry["percent"] = round(change / before * 100, 1)
+        if key == "bound":
+            # CM-01-DF-03: a bound delta is only like-for-like when BOTH sides
+            # are products over the whole representation. Two incomplete bounds
+            # differ partly because the resolver saw different amounts of the
+            # model, and a bound that changed completeness is not a comparison
+            # at all. Recorded here rather than silently folded into the
+            # direction; the direction rules are unchanged, because relaxing
+            # them is a policy call for the owner, not a side effect of a
+            # reporting fix. Read the note before reading the number.
+            entry.update(_bound_delta_comparability(previous_metrics, current))
         delta["metrics"][key] = entry
         if key in DIRECTION_METRICS and change:
             directions.append("increase" if change > 0 else "decrease")
@@ -563,6 +681,41 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
     else:
         delta["direction"] = directions[0]
     return delta
+
+
+def _bound_delta_comparability(
+    previous_metrics: dict[str, Any], current: dict[str, Any]
+) -> dict[str, Any]:
+    """Whether a bound before/after pair is a like-for-like comparison."""
+    before = previous_metrics.get("bound_complete")
+    after = current.get("bound_complete")
+    fields: dict[str, Any] = {
+        "bound_complete_before": before,
+        "bound_complete_after": after,
+    }
+    if before is True and after is True:
+        fields["comparable"] = True
+        return fields
+    fields["comparable"] = False
+    if before is None or after is None:
+        fields["note"] = (
+            "bound completeness is unrecorded on at least one side of this "
+            "comparison (entries written before CM-01-DF-03 was fixed do not "
+            "carry it), so this delta is NOT known to be like-for-like"
+        )
+    elif before != after:
+        fields["note"] = (
+            f"bound completeness CHANGED across this comparison "
+            f"(complete={before} -> complete={after}): the two numbers are "
+            "products over different subsets of the representation, so the "
+            "delta is not a measurement of the model getting bigger or smaller"
+        )
+    else:
+        fields["note"] = (
+            "both bounds are products over a SUBSET of the declared variables, "
+            "so this delta measures the resolved subset, not the model"
+        )
+    return fields
 
 
 def _tlc_reports(previous: dict[str, Any] | None, current: dict[str, Any]) -> tuple[Any, Any]:
@@ -1131,6 +1284,17 @@ def render_report(verdict: LedgerVerdict) -> str:
     # an explicit unknown, rendered as such, never a silent 1.
     bound = metrics.get("bound")
     bound_text = f"{bound:,}" if isinstance(bound, int) else "unknown"
+    # CM-01-DF-03: the bound never appears in this report without saying how
+    # much of the representation it covers. "bound=4" beside "variables=10"
+    # read as a small model; "bound=4 (INCOMPLETE: 1/10 variables)" reads as
+    # what it is.
+    if isinstance(bound, int) and metrics.get("bound_complete") is False:
+        bound_text += " (INCOMPLETE: {resolved}/{total} variables resolved)".format(
+            resolved=metrics.get("bound_resolved_variables"),
+            total=metrics.get("variables"),
+        )
+    elif isinstance(bound, int) and metrics.get("bound_complete") is None:
+        bound_text += " (completeness not recorded)"
     lines.append(
         "  measured: variables={variables} actions={actions} bound={bound}".format(
             variables=metrics.get("variables"),
@@ -1138,14 +1302,38 @@ def render_report(verdict: LedgerVerdict) -> str:
             bound=bound_text,
         )
     )
+    if metrics.get("actions_from_fallback_heuristic"):
+        lines.append(
+            "            actions counted by the FALLBACK primes heuristic (no "
+            "next-state relation found): helpers may be counted and composed "
+            "actions may be missing"
+        )
     if isinstance(metrics.get("distinct_states"), int):
         lines.append(
             "            distinct={distinct_states:,} generated={generated_states:,} "
             "depth={depth}".format(**metrics)
         )
     for key, util in (metrics.get("budget_utilization") or {}).items():
-        flag = "within cap" if util["within_cap"] else "OVER CAP"
-        lines.append(f"            {key}: {util['used']:,} / {util['cap']:,} ({util['percent']}%, {flag})")
+        # CM-01-DF-03: `within_cap: None` is a REFUSAL to make the comparison,
+        # and it must not render as "OVER CAP" (a claim) or as "within cap"
+        # (the claim this ticket exists to stop).
+        within = util.get("within_cap")
+        if within is None:
+            flag = "cap comparison UNKNOWN -- incomplete bound"
+        else:
+            flag = "within cap" if within else "OVER CAP"
+        percent = util.get("percent")
+        if percent is None and util.get("percent_lower_bound") is not None:
+            percent_text = f">= {util['percent_lower_bound']}%"
+        elif percent is None:
+            percent_text = "percent unknown"
+        else:
+            percent_text = f"{percent}%"
+        lines.append(
+            f"            {key}: {util['used']:,} / {util['cap']:,} ({percent_text}, {flag})"
+        )
+        if util.get("caveat"):
+            lines.append(f"              caveat: {util['caveat']}")
 
     delta = entry["delta"]
     lines.append(f"  delta:    direction={delta['direction']} (vs {delta.get('previous_scope_id') or 'baseline'})")
@@ -1153,6 +1341,10 @@ def render_report(verdict: LedgerVerdict) -> str:
         if isinstance(change.get("delta"), int) and change["delta"]:
             percent = f" ({change['percent']:+}%)" if "percent" in change else ""
             lines.append(f"            {key}: {change['before']:,} -> {change['after']:,} = {change['delta']:+,}{percent}")
+            # CM-01-DF-03: a bound delta that is not like-for-like says so on
+            # the line under the number, never only in the JSON.
+            if change.get("note") and change.get("comparable") is False:
+                lines.append(f"              NOT LIKE-FOR-LIKE: {change['note']}")
 
     # The licensing basis is printed next to the delta, never separately. The
     # adjacency is the point: a delta read without it is the number the

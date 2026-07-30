@@ -40,6 +40,7 @@ from scripts.analyze_complexity import (  # noqa: E402
     UnresolvedExtendsError,
     UnsupportedModuleConstructError,
     analyze,
+    bound_completeness,
     compare_tlc_reports,
     gate_report,
     main,
@@ -49,6 +50,7 @@ from scripts.analyze_complexity import (  # noqa: E402
     interaction_graph,
     split_top_level_disjuncts,
     parse_cfg_constants,
+    parse_cfg_invariants,
     parse_definitions,
     parse_tlc_report,
     resolve_definition_body,
@@ -167,6 +169,184 @@ def test_variables_unconstrained_by_type_invariant_are_excluded_not_guessed(
     assert "unconstrained" in note
 
 
+# ---------------------------------------------------------------------------
+# RP-04 / CM-01-DF-03 -- a PARTIALLY resolved bound compared against the cap
+# ---------------------------------------------------------------------------
+#
+# The fully unresolved case (bound is None) was already refused loudly: an
+# explicit UNKNOWN with its own advisory. The partially resolved case was not.
+# `examples/distributed_history` resolves 1 of 10 variables, so the bound is 4,
+# and the scan compared that 4 against max_state_space_bound 1,000,000 as if it
+# were the bound -- "0.0%, within cap", for a model TLC measures at 49,386
+# distinct states. The descriptor TEXT named the nine excluded variables the
+# whole time; the JSON and the ledger threw the caveat away.
+
+
+PARTIAL_TLA = """\
+---- MODULE Partial ----
+VARIABLES flag, free
+
+TypeInvariant ==
+  /\\ flag \\in BOOLEAN
+
+Init ==
+  /\\ flag = FALSE
+  /\\ free = 0
+
+Toggle ==
+  /\\ flag' = ~flag
+  /\\ free' = free + 1
+
+Next == Toggle
+=============================================================================
+"""
+
+PARTIAL_CFG = "INIT Init\nNEXT Next\nINVARIANT TypeInvariant\n"
+
+
+def write_partial_model(tmp_path: Path, budgets: str | None = None):
+    tla = tmp_path / "Partial.tla"
+    tla.write_text(PARTIAL_TLA, encoding="utf-8")
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text(PARTIAL_CFG, encoding="utf-8")
+    manifest = None
+    if budgets is not None:
+        manifest = tmp_path / "spec_manifest.yaml"
+        manifest.write_text(budgets, encoding="utf-8")
+    return tla, cfg, manifest
+
+
+def test_rp04_partially_resolved_bound_is_published_as_incomplete(
+    tmp_path: Path,
+) -> None:
+    tla, cfg, _ = write_partial_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    assert result.bound == 2
+    completeness = result.completeness
+    assert completeness.complete is False
+    assert completeness.resolved == 1
+    assert completeness.total == 2
+    assert completeness.unresolved == ["free"]
+    assert "1 of 2 declared variables" in completeness.caveat()
+    assert "LOWER BOUND" in completeness.caveat()
+
+
+def test_rp04_an_incomplete_bound_under_the_cap_is_never_within_cap(
+    tmp_path: Path,
+) -> None:
+    """The whole defect in one assertion: `bound <= cap` is not a measurement."""
+    tla, cfg, _ = write_partial_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    assert result.bound is not None and result.bound < result.budgets["max_state_space_bound"]
+    assert result.completeness.comparable_to_cap(result.bound, 1_000_000) is None
+    warning = next(
+        (w for w in result.warnings if w.kind == "state_space_bound_partial"), None
+    )
+    assert warning is not None, "an incomplete bound must be a stated finding"
+    assert "INCOMPLETE" in warning.finding
+    assert "not a measurement" in warning.finding
+    # Advisory, not blocking: this is a finding, not a build failure.
+    assert main([str(tla), str(cfg)]) == EXIT_PASS
+
+
+def test_rp04_an_incomplete_bound_over_the_cap_keeps_the_sound_claim(
+    tmp_path: Path,
+) -> None:
+    """Over the cap survives incompleteness -- the complete bound is larger."""
+    tla, cfg, manifest = write_partial_model(
+        tmp_path,
+        "budgets:\n"
+        "  max_state_space_bound: 1\n"
+        "  max_distinct_states: 500000\n"
+        "  max_component_variables: 8\n"
+        "  max_component_actions: 8\n",
+    )
+    result = analyze(tla, cfg, manifest)
+    assert result.completeness.comparable_to_cap(result.bound, 1) is False
+    over = next((w for w in result.warnings if w.kind == "state_space_bound"), None)
+    assert over is not None
+    assert "LOWER bound" in over.finding
+    # One claim, not two: the sound over-cap finding replaces the refusal.
+    assert not any(w.kind == "state_space_bound_partial" for w in result.warnings)
+
+
+def test_rp04_completeness_travels_in_the_json_payload(tmp_path: Path, capsys) -> None:
+    import json
+
+    tla, cfg, _ = write_partial_model(tmp_path)
+    main([str(tla), str(cfg), "--format", "json"])
+    measured = json.loads(capsys.readouterr().out)["measured"]
+    assert measured["state_space_upper_bound"] == 2
+    # Pre-RP-04 the payload published `known` and the excluded names and left a
+    # reader to infer -- or not infer -- that the two are related.
+    assert measured["state_space_bound_known"] is True
+    assert measured["state_space_bound_complete"] is False
+    assert measured["state_space_bound_resolved_variables"] == 1
+    assert measured["state_space_bound_total_variables"] == 2
+    assert measured["state_space_bound_within_cap"] is None
+    assert "LOWER BOUND" in measured["state_space_bound_caveat"]
+
+
+def test_rp04_a_complete_bound_still_reads_as_a_measurement(tmp_path: Path) -> None:
+    """The fix must not turn every bound into a caveat."""
+    tla, cfg, _ = write_small_model(tmp_path)
+    result = analyze(tla, cfg, None)
+    assert result.completeness.complete is True
+    assert result.completeness.caveat() == ""
+    assert result.completeness.comparable_to_cap(result.bound, 1_000_000) is True
+    assert not any(w.kind == "state_space_bound_partial" for w in result.warnings)
+
+
+def test_rp04_descriptor_text_states_the_consequence_next_to_the_number(
+    tmp_path: Path, capsys
+) -> None:
+    tla, cfg, _ = write_partial_model(tmp_path)
+    assert main([str(tla), str(cfg)]) == EXIT_PASS
+    out = capsys.readouterr().out
+    assert "[INCOMPLETE: product over 1 of 2 declared variables" in out
+    assert "LOWER BOUND" in out
+    assert "'within cap' is NOT a claim this scan can make" in out
+
+
+def test_rp04_gate_report_clean_message_only_over_a_complete_bound(
+    tmp_path: Path,
+) -> None:
+    tla, cfg, _ = write_partial_model(tmp_path)
+    clean, message = gate_report(tla, cfg, None)
+    assert clean is False
+    assert "within max_state_space_bound" not in message
+    small_dir = tmp_path / "small"
+    small_dir.mkdir()
+    small_tla, small_cfg, _ = write_small_model(small_dir)
+    clean, message = gate_report(small_tla, small_cfg, None)
+    assert clean is True
+    assert "complete: all 3 declared variables resolved" in message
+
+
+def test_rp04_shipped_example_no_longer_reports_a_partial_bound_within_cap() -> None:
+    """The exact reproduction from the ticket, on the checked-in example."""
+    root = REPO_ROOT / "examples" / "distributed_history" / "specs" / "program_model"
+    tla = root / "External.tla"
+    if not tla.is_file():
+        return
+    result = analyze(tla, root / "External.cfg", root / "spec_manifest.yaml")
+    assert result.bound == 4
+    assert len(result.variables) == 10
+    completeness = result.completeness
+    assert completeness.resolved == 1 and completeness.total == 10
+    assert completeness.comparable_to_cap(4, result.budgets["max_state_space_bound"]) is None
+    assert any(w.kind == "state_space_bound_partial" for w in result.warnings)
+
+
+def test_bound_completeness_of_an_empty_dimension_table_is_not_complete() -> None:
+    """A model with no variables at all is UNKNOWN, not vacuously complete."""
+    empty = bound_completeness([])
+    assert empty.complete is False
+    assert empty.known is False
+    assert empty.comparable_to_cap(None, 1_000_000) is None
+    assert "no bound to compare" in empty.caveat()
+
+
 def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> None:
     r"""Calibration against the figures this epic has actually recorded.
 
@@ -240,6 +420,21 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     negotiated max_distinct_states 500,000, and it is recorded rather than
     negotiated away: the domain represents the reachable verdict set exactly.
 
+    RP-04 (CM-01-DF-03) then changed nothing about this number and everything
+    about what may be said with it. The chain above has ALWAYS been a product
+    over 8 of this model's 10 variables -- `lastCommand` and `result` have no
+    resolvable domain and the last line of this test has asserted that since
+    MF-020. What was never published is the consequence: 2,799,360 is a LOWER
+    BOUND on the declared-representation bound, not the bound. Every recorded
+    figure in the chain above carries the same caveat, and every multiplication
+    in it is still valid, because each ticket's factor multiplied the SAME
+    resolved subset -- the two unresolved variables were unresolved before and
+    after every one of them. The completeness assertions below fix that
+    property in place: if a future ticket resolves `lastCommand` or `result`,
+    or loses a domain the resolver used to see, the chain stops being a
+    like-for-like comparison and this test says so rather than silently
+    multiplying through it.
+
     Asserting the current figure AND its relationship to each recorded
     predecessor keeps the calibration meaningful across every promotion.
     """
@@ -269,10 +464,106 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     assert (pre_mf025 // 3 // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
+    # RP-04: the chain is a product over 8 of 10 variables, and says so.
+    completeness = result.completeness
+    assert completeness.resolved == 8
+    assert completeness.total == 10
+    assert completeness.complete is False
+    assert completeness.unresolved == ["lastCommand", "result"]
+    # Over the cap on an incomplete bound is still over the cap -- the two
+    # unresolved variables can only make the complete bound larger. That is the
+    # one direction the comparison survives, and this model is on that side of
+    # it, which is why RP-04 moved no figure recorded for this repository.
+    assert completeness.comparable_to_cap(result.bound, 1_000_000) is False
+    assert any(w.kind == "state_space_bound" for w in result.warnings)
+    assert not any(w.kind == "state_space_bound_partial" for w in result.warnings)
+
 
 def test_cfg_constant_sets_drive_cardinality() -> None:
     constants = parse_cfg_constants(SMALL_CFG)
     assert constants["Items"] == ["a", "b"]
+
+
+# ---------------------------------------------------------------------------
+# RP-04 / CM-01-DF-02 -- the keyword line that ENDS an INVARIANT block
+# ---------------------------------------------------------------------------
+#
+# The old terminator tested `re.match("^[A-Z]+\\b") and not
+# re.fullmatch(identifier)`. Every all-caps keyword ALSO fullmatches the
+# identifier pattern, so the guard never fired on a bare keyword line and the
+# keyword fell through to the in-block branch as if it were another invariant.
+# Harmless for the caller that only looks a name up in a definition table; it
+# manufactured a model-pair mismatch for the caller that treats an unresolvable
+# invariant name as a finding.
+
+
+def test_cm01df02_bare_keyword_line_terminating_the_block_is_not_an_invariant() -> None:
+    assert parse_cfg_invariants(
+        "SPECIFICATION Spec\nINVARIANT Inv\nCONSTANT\n  X = 1\n"
+    ) == ["Inv"]
+
+
+def test_cm01df02_shipped_example_cfg_yields_only_its_invariant() -> None:
+    cfg = (
+        REPO_ROOT
+        / "examples"
+        / "distributed_history"
+        / "specs"
+        / "program_model"
+        / "External.cfg"
+    )
+    if not cfg.is_file():
+        return
+    # Pre-fix: ['Invariant', 'CONSTANTS'].
+    assert parse_cfg_invariants(cfg.read_text(encoding="utf-8")) == ["Invariant"]
+
+
+@pytest.mark.parametrize(
+    "keyword",
+    ["CONSTANT", "CONSTANTS", "PROPERTY", "PROPERTIES", "SYMMETRY", "VIEW", "ALIAS"],
+)
+def test_cm01df02_every_section_keyword_closes_the_block(keyword: str) -> None:
+    text = f"INVARIANTS\n  Inv\n{keyword}\n  Later\n"
+    assert parse_cfg_invariants(text) == ["Inv"]
+
+
+def test_cm01df02_a_keyword_carrying_a_value_also_closes_the_block() -> None:
+    assert parse_cfg_invariants("INVARIANT Inv\nPROPERTY Live\n  Trailing\n") == ["Inv"]
+
+
+def test_cm01df02_a_multi_line_invariant_block_still_reads_every_name() -> None:
+    assert parse_cfg_invariants("INVARIANTS\n  A\n  B\n  C\nCONSTANTS\n  N = 3\n") == [
+        "A",
+        "B",
+        "C",
+    ]
+
+
+def test_cm01df02_an_invariant_named_like_a_keyword_is_not_swallowed() -> None:
+    """Case-sensitive: TLC keywords are uppercase, definitions need not be."""
+    assert parse_cfg_invariants("INVARIANTS\n  Alias\n  View\nCONSTANTS\n  N = 3\n") == [
+        "Alias",
+        "View",
+    ]
+
+
+def test_cm01df02_a_constant_named_like_a_keyword_still_parses() -> None:
+    constants = parse_cfg_constants("CONSTANTS\n  Alias = {a, b}\n  View = 3\n")
+    assert constants == {"Alias": ["a", "b"], "View": "3"}
+
+
+def test_cm01df02_a_keyword_with_a_value_closes_the_constants_block() -> None:
+    constants = parse_cfg_constants("CONSTANTS\n  N = 3\nALIAS Debug\n  M = 4\n")
+    assert constants == {"N": "3"}
+
+
+def test_cm01df02_the_repository_own_cfg_is_unchanged_by_the_fix() -> None:
+    cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
+    if not cfg.is_file():
+        return
+    names = parse_cfg_invariants(cfg.read_text(encoding="utf-8"))
+    assert names[0] == "TypeInvariant"
+    assert not any(n.isupper() for n in names), names
 
 
 # ---------------------------------------------------------------------------

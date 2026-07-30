@@ -7596,6 +7596,210 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-04",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T20:55:30.103653+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 2799360,
+        "bound_complete": false,
+        "bound_resolved_variables": 8,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-rp04-descriptor-honesty/specs/tickets/RP-04/results/tlc-current.txt",
+        "tlc_run_complete": true,
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "bound_complete": false,
+            "percent_lower_bound": 279.9,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-02",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": null,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like"
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": 1292951,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": 32122220,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 26,
+            "after": 26,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No complexity increase to justify: RP-04 is zero-model-delta by design and the measured bound is unchanged at 2,799,360. The ledger's own delta computation reports direction=zero. RP-04 changed what may be SAID about that number, not the number.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "The model RP-04 started from is the epic tip 506e0e0, byte-identical to the one AC-01 promoted TLC-green; RP-04 inherited it unchanged (specs/tickets/RP-04/results/zero-model-delta.txt shows `git diff --stat 506e0e0 -- specs/current specs/program_model` empty).",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-04/results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct / depth 26, 0 states left on queue, no error found, finished in 62s inside the 120s budget. Identical to AC-01's recorded figures, which is the check that the model did not move. Also specs/tickets/RP-04/results/tlc-current-mcsmall.txt on MCsmall.cfg: 363,841 / 20,269 / depth 16, green.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-04/results/repo_unit_tests.txt -- 901 passed, 1 failed (test_skill_requires_two_minute_case_generation_budget, the documentation-content guard filed as CM-01-DF-01 and owned by RP-05, explicitly outside this ticket). specs/tickets/RP-04/results/ spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-04/results/rp04-remeasurement.txt records the before/after on THIS repository's own descriptor and ledger figures, and cm-01-df-03-before-after.txt records it on the shipped example. On this model the bound, variables, actions, modularity and the within_cap verdict are all unchanged; what changed is that the record now says the bound is a product over 8 of 10 variables and publishes 279.9% as a LOWER bound rather than as the percent. The model itself is byte-identical, so there is no model refactor to attribute.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none applicable to the MODEL: specs/tickets/RP-04/current == desired byte for byte, and no representation decision in TlaSpecDevCli.tla is touched by this ticket. The search was run instead against RP-04's own representation decision -- how to represent bound completeness -- and produced three recorded outcomes rather than a model change. (1) Completeness was almost recorded as a ratio with a threshold (\"mostly complete\"); it is a BOOLEAN over the product's own definition (the product is over every declared variable or it is not), with the spectrum published beside it as resolved/total plus the per-variable notes, because no threshold on that ratio would be a measurement either. (2) The cap comparison was almost refused in both directions; it is refused in ONE, because an incomplete bound OVER the cap is sound (every unresolved variable has at least one value, so the complete bound is only larger) and refusing it would have thrown away a true finding about this very repository. (3) `completeness` was almost stored as a field on Analysis; it is a derived property over the dimension table, so it cannot fall out of step with the bound and every holder of an Analysis has it one attribute away from the number it qualifies.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "RP-04 fixed CM-01-DF-03 and CM-01-DF-02 and changed no TLA+. DF-03 was the epic's recurring defect wearing its clearest costume: on the shipped example the descriptor TEXT named all nine variables it could not size, and the ledger JSON recorded \"used 4, percent 0.0, within_cap true\" against a 1,000,000 cap for a model TLC measures at 49,386 distinct states. Bound COMPLETENESS is now a published fact -- BoundCompleteness on the descriptor, five keys in the JSON payload the CD-03 fitness rules read, three metrics keys plus a caveat in the ledger, and a line under the number in both renderers. The cap comparison is made only in the direction it is sound: over the cap survives incompleteness, at-or-under does not and is recorded as null with the reason. An incomplete bound is an advisory finding (state_space_bound_partial), never a block; the CLI still exits 0. RE-MEASUREMENT, and the part worth reading twice: CM-01-DF-03's own blast_radius claimed \"the repository's own model resolves every variable\". It does not, and never has -- lastCommand and result have had no resolvable domain since MF-020, and tests/test_analyze_complexity.py has asserted exactly that across the nine-ticket calibration chain. So every bound this repository has recorded, 2,799,360 included, is a product over an 8-variable subset. The consequence is small only because this model is OVER its cap, which is the one comparison that survives: bound, variables, actions, modularity and within_cap are all unchanged, and 279.9% is now published as percent_lower_bound with percent null. That is recorded, not smoothed, and the false claim in the deferred-findings entry is corrected in place. The calibration chain was extended in its established style with the completeness facts, since a chain of multiplications over a subset is only meaningful while the subset holds still. DF-02 was a five-line parser fix: a bare TLC keyword line closes an INVARIANT block, tested against a keyword set case-SENSITIVELY so an invariant named `Alias` is not swallowed; the same set now closes a CONSTANTS block, replacing an ad-hoc prefix tuple. The CFG_KEYWORDS workaround is left in scripts/spec_evolution.py -- it is CM-01's file, not RP-04's and not RP-03's -- with both experiments recorded showing it is now dead code. Two more instances of the same honest-prose / misleading-artifact pattern were found inside the two files RP-04 owns and fixed in the same pass: the ledger recorded a TLC distinct-state count with no flag for a run that did not finish (while analyze() is careful to check max_distinct_states only when report.complete), and it recorded an action count with no flag when the count came from the FALLBACK primes heuristic (while the descriptor says so in prose). One limit was chosen and filed rather than crossed: a non-comparable bound delta still feeds the ledger's DIRECTION, which is a real gate, and RP-04 records `comparable: false` with a printed NOT LIKE-FOR-LIKE note instead of changing what refuses a close (RP-04-DF-01). One process note, recorded because this ticket is about flattering numbers: the first close of RP-04 read results/tlc-current.txt, which at that moment held the MCsmall.cfg run, and computed a 98.4% distinct-state DECREASE against EV-02's full-config figures -- a comparison between two different configs wearing the costume of a reduction. It was caught before the entry was committed, the entry was discarded rather than annotated, the full-config run was put at the conventional path, and the ticket was re-closed. The corrected entry reports direction=zero. This is also a small finding about the convention: `close ticket` takes the first of results/tlc-current.txt, tlc.txt, tlc-baseline.txt with no check that the report it found was produced from the cfg the ledger measures.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

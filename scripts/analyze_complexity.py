@@ -399,9 +399,16 @@ def parse_cfg_constants(cfg_text: str) -> dict[str, Any]:
             line = re.sub(r"^CONSTANTS?\s*", "", line, flags=re.IGNORECASE).strip()
             if not line:
                 continue
-        elif re.match(r"^[A-Z_]+$", line) or upper.startswith(
-            ("SPECIFICATION", "INVARIANT", "PROPERT", "INIT", "NEXT", "SYMMETRY", "VIEW", "CONSTRAINT")
+        elif line.split(None, 1)[0] in CFG_SECTION_KEYWORDS or re.match(
+            r"^[A-Z_]+$", line
         ):
+            # RP-04: the same keyword set that terminates an INVARIANT block
+            # terminates a CONSTANTS block. The ad-hoc prefix tuple this
+            # replaces missed ACTION_CONSTRAINT, ALIAS, POSTCONDITION and
+            # CHECK_DEADLOCK when they carried a value on the same line. The
+            # comparison is case-SENSITIVE on purpose: TLC's keywords are
+            # uppercase, and matching case-insensitively would make a constant
+            # named `Alias` or `View` close the block.
             in_block = False
             continue
         if not in_block:
@@ -971,6 +978,11 @@ def state_space_bound(dimensions: Iterable[Dimension]) -> int | None:
     CD-01 (F3): with no resolvable domain the old code returned a silent 1 --
     a meaningless headline number. ``None`` means UNKNOWN and is rendered as
     such, never as 1.
+
+    CM-01-DF-03: the product is over the *bounded* dimensions only. When some
+    variable has no resolvable domain the number returned is a product over a
+    SUBSET of the declared representation -- see ``bound_completeness`` for the
+    fact that says so, and read it before comparing this number to anything.
     """
     bounded = [d for d in dimensions if d.bounded]
     if not bounded:
@@ -979,6 +991,87 @@ def state_space_bound(dimensions: Iterable[Dimension]) -> int | None:
     for dimension in bounded:
         bound *= int(dimension.cardinality or 1)
     return bound
+
+
+@dataclass
+class BoundCompleteness:
+    """How much of the declared representation the state-space bound covers.
+
+    CM-01-DF-03. The bound is a product over the variables whose domain the
+    resolver could size. When it could not size all of them the product is over
+    a SUBSET, and the number it yields is a LOWER BOUND on the
+    declared-representation bound, not the bound itself. Every consumer that
+    compares the bound to something must read this first, because the two
+    comparisons are not symmetric:
+
+    * incomplete bound > cap  -- SOUND. Every unresolved variable has at least
+      one value, so the complete bound is >= this one; over the cap stays over
+      the cap.
+    * incomplete bound <= cap -- UNSOUND, and this is the defect. The nine
+      unresolved variables of the shipped example carry the whole model; the
+      surviving factor of 4 said "0.0% of 1,000,000, within cap" for a model
+      TLC measures at 49,386 distinct states.
+
+    ``complete`` is deliberately a boolean over the product's own definition --
+    the product is over every declared variable or it is not. Partial
+    resolution IS a spectrum, and the spectrum is published as ``resolved`` /
+    ``total`` plus the per-variable notes in the dimension table; it is not
+    collapsed into a "mostly complete" verdict, because no threshold on that
+    ratio would be a measurement either.
+    """
+
+    resolved: int
+    total: int
+    unresolved: list[str]
+
+    @property
+    def complete(self) -> bool:
+        return self.total > 0 and not self.unresolved
+
+    @property
+    def known(self) -> bool:
+        """True when a bound could be computed at all (>= 1 variable sized)."""
+        return self.resolved > 0
+
+    def comparable_to_cap(self, bound: int | None, cap: int) -> bool | None:
+        """``bound <= cap``, or ``None`` when that claim cannot be made.
+
+        Returns ``False`` for an incomplete bound that already exceeds the cap:
+        that claim is sound in the direction it is made. Returns ``None`` for an
+        incomplete bound at or under the cap -- "within cap" is exactly the
+        sentence this class exists to refuse.
+        """
+        if bound is None or not isinstance(cap, int) or cap <= 0:
+            return None
+        if bound > cap:
+            return False
+        if not self.complete:
+            return None
+        return True
+
+    def caveat(self) -> str:
+        """One sentence naming the incompleteness, or '' when complete."""
+        if self.complete:
+            return ""
+        if not self.known:
+            return (
+                "no variable domain resolved, so there is no bound to compare"
+            )
+        return (
+            f"product over {self.resolved} of {self.total} declared variables "
+            f"({len(self.unresolved)} unresolved: {', '.join(self.unresolved)}) "
+            "-- a LOWER BOUND on the declared-representation bound, not the bound"
+        )
+
+
+def bound_completeness(dimensions: Sequence[Dimension]) -> BoundCompleteness:
+    """Measure how much of the declared representation the bound covers."""
+    unresolved = [d.variable for d in dimensions if not d.bounded]
+    return BoundCompleteness(
+        resolved=sum(1 for d in dimensions if d.bounded),
+        total=len(dimensions),
+        unresolved=unresolved,
+    )
 
 
 # --------------------------------------------------------------------------
@@ -1292,6 +1385,17 @@ class Analysis:
     fitness: Any = None
 
     @property
+    def completeness(self) -> BoundCompleteness:
+        """CM-01-DF-03: how much of the representation ``bound`` is a product over.
+
+        Derived from the dimension table rather than stored, so it cannot fall
+        out of step with the bound and so EVERY holder of an ``Analysis`` has
+        it -- there is no way to read the bound from this object without the
+        fact that qualifies it being one attribute away.
+        """
+        return bound_completeness(self.dimensions)
+
+    @property
     def violations(self) -> list[str]:
         """The advisory finding strings.
 
@@ -1480,13 +1584,44 @@ def analyze(
     # after the fact. Comparing the two is a category error: on this
     # repository the bound over-approximated reachable states by ~400x, on a
     # model that was 17x under its own reachable-state budget.
+    #
+    # CM-01-DF-03: the comparison is only made in the direction it is sound.
+    # A bound that is a product over a SUBSET of the declared variables is a
+    # LOWER bound, so "over the cap" still holds (every unresolved variable has
+    # at least one value) but "within the cap" says nothing at all. The old
+    # code made both claims; the second one reported the shipped example's
+    # bound = 4 over 1 of 10 variables as 0.0% of 1,000,000, within cap.
+    completeness = bound_completeness(dimensions)
     if bound is not None and bound > budgets["max_state_space_bound"]:
+        qualifier = (
+            ""
+            if completeness.complete
+            else (
+                f" (and that is a LOWER bound: product over "
+                f"{completeness.resolved} of {completeness.total} declared "
+                f"variables, so the complete bound is at least this large)"
+            )
+        )
         warnings.append(
             Advisory(
                 kind="state_space_bound",
                 finding=(
                     f"state-space upper bound {bound:,} exceeds max_state_space_bound "
-                    f"{budgets['max_state_space_bound']:,}"
+                    f"{budgets['max_state_space_bound']:,}{qualifier}"
+                ),
+            )
+        )
+    elif bound is not None and not completeness.complete:
+        warnings.append(
+            Advisory(
+                kind="state_space_bound_partial",
+                finding=(
+                    f"state-space upper bound {bound:,} is INCOMPLETE and CANNOT be "
+                    f"compared against max_state_space_bound "
+                    f"{budgets['max_state_space_bound']:,}: {completeness.caveat()}. "
+                    "Percent-of-cap over an incomplete bound is not a measurement, "
+                    "so this scan reports the cap comparison as unknown rather than "
+                    "as within cap"
                 ),
             )
         )
@@ -1612,7 +1747,49 @@ def analyze(
     return analysis
 
 
+#: The TLC config keywords that open a section. CM-01-DF-02: a bare keyword
+#: line is what CLOSES an INVARIANT block, and it is the ONLY honest way to
+#: recognise one -- no regex over the same input can tell the keyword
+#: `CONSTANTS` from an invariant that happens to be named `CONSTANTS`, because
+#: the two are the same characters. TLC resolves the ambiguity the same way:
+#: these words are reserved, so a definition cannot be called one.
+CFG_SECTION_KEYWORDS = frozenset(
+    {
+        "SPECIFICATION",
+        "INIT",
+        "NEXT",
+        "INVARIANT",
+        "INVARIANTS",
+        "PROPERTY",
+        "PROPERTIES",
+        "CONSTANT",
+        "CONSTANTS",
+        "CONSTRAINT",
+        "CONSTRAINTS",
+        "ACTION_CONSTRAINT",
+        "ACTION_CONSTRAINTS",
+        "SYMMETRY",
+        "VIEW",
+        "ALIAS",
+        "POSTCONDITION",
+        "CHECK_DEADLOCK",
+    }
+)
+
+
 def parse_cfg_invariants(cfg_text: str) -> list[str]:
+    """The invariant names an INVARIANT/INVARIANTS block configures.
+
+    CM-01-DF-02: the old block terminator tested ``re.match("^[A-Z]+\\b") and
+    not re.fullmatch(identifier)``, and every all-caps keyword ALSO fullmatches
+    the identifier pattern -- so the guard never fired on a bare keyword line
+    and `INVARIANT Invariant` followed by `CONSTANTS` yielded
+    ``['Invariant', 'CONSTANTS']``. Harmless for the caller that only looks the
+    name up in a definition table (a keyword resolves to nothing and is
+    skipped); NOT harmless for a caller that treats an unresolvable invariant
+    name as a finding, which is how it manufactured a model-pair mismatch on
+    the shipped example. Recognise the keyword instead.
+    """
     text = strip_comments(cfg_text)
     names: list[str] = []
     in_block = False
@@ -1620,11 +1797,19 @@ def parse_cfg_invariants(cfg_text: str) -> list[str]:
         line = raw.strip()
         if not line:
             continue
-        if re.match(r"^INVARIANTS?\b", line, flags=re.IGNORECASE):
+        first = line.split(None, 1)[0]
+        if first.upper() in ("INVARIANT", "INVARIANTS"):
             in_block = True
-            rest = re.sub(r"^INVARIANTS?\s*", "", line, flags=re.IGNORECASE).strip()
+            rest = line[len(first) :].strip()
             if rest:
                 names.append(rest)
+            continue
+        if first in CFG_SECTION_KEYWORDS:
+            # Any other section keyword ENDS the invariant block, whether or
+            # not it carries a value on the same line. Case-SENSITIVE: TLC's
+            # keywords are uppercase, and an invariant legitimately named
+            # `Alias` or `View` must not be swallowed by this branch.
+            in_block = False
             continue
         if re.match(r"^[A-Z]+\b", line) and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", line):
             in_block = False
@@ -1693,11 +1878,25 @@ def render_text(analysis: Analysis) -> str:
         add("  references/architecture_tractability.md, 'What The Domain Resolver")
         add("  Can And Cannot See'.)")
     else:
+        completeness = analysis.completeness
+        label = "COMPLETE" if completeness.complete else "INCOMPLETE"
         add(
-            f"  bound = {analysis.bound:,}  (product of "
-            f"{len(analysis.variables) - len(analysis.unbounded)} bounded dimensions; "
-            f"domains from {analysis.bound_source})"
+            f"  bound = {analysis.bound:,}  [{label}: product over "
+            f"{completeness.resolved} of {completeness.total} declared variables; "
+            f"domains from {analysis.bound_source}]"
         )
+        if not completeness.complete:
+            # CM-01-DF-03: the exclusions below were always printed; what was
+            # missing is the consequence of them, said next to the number and
+            # published as a fact the JSON and the ledger read too.
+            add(
+                "  this number is a LOWER BOUND on the declared-representation bound,"
+            )
+            add(
+                "  not the bound: it cannot be read as a percent of "
+                "max_state_space_bound, and"
+            )
+            add("  'within cap' is NOT a claim this scan can make about it.")
     if analysis.unbounded:
         add(f"  excluded (no resolvable domain): {', '.join(analysis.unbounded)}")
     dominant = sorted(
@@ -1873,6 +2072,17 @@ def descriptor_payload(analysis: Analysis) -> dict[str, Any]:
             "state_space_upper_bound": analysis.bound,
             "state_space_bound_known": analysis.bound is not None,
             "state_space_bound_source": analysis.bound_source,
+            # CM-01-DF-03: completeness travels with the number, in the same
+            # payload the ledger and the CD-03 fitness rules read. A rule or a
+            # ledger entry that quotes state_space_upper_bound without this is
+            # quoting a product over a subset of the representation.
+            "state_space_bound_complete": analysis.completeness.complete,
+            "state_space_bound_resolved_variables": analysis.completeness.resolved,
+            "state_space_bound_total_variables": analysis.completeness.total,
+            "state_space_bound_caveat": analysis.completeness.caveat() or None,
+            "state_space_bound_within_cap": analysis.completeness.comparable_to_cap(
+                analysis.bound, analysis.budgets["max_state_space_bound"]
+            ),
             "unbounded_variables": analysis.unbounded,
             "actions": [
                 {"name": a.name, "reads": sorted(a.reads), "writes": sorted(a.writes)}
@@ -1965,9 +2175,15 @@ def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> t
             "case generation still proceeds."
         )
     if analysis.gate_passed:
+        # CM-01-DF-03: gate_passed is only reachable here with a COMPLETE bound
+        # at or under the cap -- an incomplete bound raises the
+        # state_space_bound_partial advisory, so this sentence can no longer be
+        # printed over a product taken across a subset of the variables.
         return True, (
-            f"complexity scan clean: state-space upper bound {analysis.bound:,} within "
-            f"max_state_space_bound {analysis.budgets['max_state_space_bound']:,}, and "
+            f"complexity scan clean: state-space upper bound {analysis.bound:,} "
+            f"(complete: all {analysis.completeness.total} declared variables "
+            f"resolved) within max_state_space_bound "
+            f"{analysis.budgets['max_state_space_bound']:,}, and "
             "every component within its advisory thresholds"
         )
     lines = [

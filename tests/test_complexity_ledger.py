@@ -66,6 +66,30 @@ def previous(**overrides):
     return {"scope_id": "PREV", "verdict": "recorded", "metrics": metrics(**overrides)}
 
 
+def _write_partially_resolved_model(tmp_path: Path) -> tuple[Path, Path]:
+    """A two-variable model where the TypeInvariant sizes only one of them.
+
+    RP-04 / CM-01-DF-03: the smallest shape that reproduces the defect the
+    shipped example hit at 1-of-10 -- a bound of 2 that is a product over half
+    the representation.
+    """
+    tla = tmp_path / "Partial.tla"
+    tla.write_text(
+        "---- MODULE Partial ----\n"
+        "VARIABLES flag, free\n"
+        "TypeInvariant ==\n"
+        "  /\\ flag \\in BOOLEAN\n"
+        "Init == /\\ flag = FALSE /\\ free = 0\n"
+        "Step == /\\ flag' = ~flag /\\ free' = free + 1\n"
+        "Next == Step\n"
+        "====\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text("INIT Init\nNEXT Next\nINVARIANT TypeInvariant\n", encoding="utf-8")
+    return tla, cfg
+
+
 def evaluate(current, prev, ledger_input):
     return cl.evaluate(
         scope="ticket",
@@ -493,12 +517,211 @@ class TestPersistence:
 
     def test_budget_utilization_is_recorded_as_percent_of_cap(self):
         util = cl._budget_utilization(
-            {"bound": 699840, "distinct_states": 231621},
+            {
+                "bound": 699840,
+                "bound_complete": True,
+                "bound_resolved_variables": 9,
+                "variables": 9,
+                "distinct_states": 231621,
+            },
             {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
         )
         assert util["max_state_space_bound"]["percent"] == 70.0
+        assert util["max_state_space_bound"]["within_cap"] is True
         assert util["max_distinct_states"]["percent"] == 46.3
         assert util["max_distinct_states"]["within_cap"] is True
+
+
+# ---------------------------------------------------------------------------
+# RP-04 / CM-01-DF-03 -- a percent-of-cap over an INCOMPLETE bound
+# ---------------------------------------------------------------------------
+#
+# The percent above is a measurement only when the bound is a product over the
+# WHOLE declared representation. Before RP-04 the ledger computed `within_cap`
+# as a plain `used <= cap` regardless, which is how a bound of 4 taken over 1
+# of 10 variables was recorded as "0.0% of 1,000,000, within cap" for a model
+# TLC measures at 49,386 distinct states -- while the descriptor TEXT beside it
+# correctly named the nine excluded variables.
+
+
+class TestBoundCompleteness:
+    def test_incomplete_bound_under_the_cap_refuses_the_within_cap_claim(self):
+        util = cl._budget_utilization(
+            {
+                "bound": 4,
+                "bound_complete": False,
+                "bound_resolved_variables": 1,
+                "bound_unresolved_variables": ["accounts", "carts"],
+                "variables": 10,
+                "distinct_states": None,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None, "an incomplete bound is not 'within cap'"
+        assert entry["percent"] is None, "percent-of-cap over an incomplete bound"
+        assert entry["percent_lower_bound"] == 0.0
+        assert entry["bound_complete"] is False
+        assert "1 of 10 declared variables" in entry["caveat"]
+        assert "not a measurement" in entry["caveat"]
+
+    def test_incomplete_bound_over_the_cap_keeps_the_sound_direction(self):
+        """Over the cap stays over the cap: the complete bound is only larger."""
+        util = cl._budget_utilization(
+            {
+                "bound": 2799360,
+                "bound_complete": False,
+                "bound_resolved_variables": 8,
+                "bound_unresolved_variables": ["lastCommand", "result"],
+                "variables": 10,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is False
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 279.9
+        assert "LOWER BOUND" in entry["caveat"]
+
+    def test_unrecorded_completeness_is_not_a_licence_to_claim_within_cap(self):
+        """Pre-RP-04 entries carry no completeness; unknown is not complete."""
+        util = cl._budget_utilization(
+            {"bound": 699840, "variables": 9},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert "not recorded" in entry["caveat"]
+
+    def test_measured_distinct_states_are_unaffected_by_bound_completeness(self):
+        """TLC counted them; there is no partial-resolution question to ask."""
+        util = cl._budget_utilization(
+            {"bound": 4, "bound_complete": False, "distinct_states": 49386},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["percent"] == 9.9
+        assert util["max_distinct_states"]["within_cap"] is True
+
+    def test_collect_metrics_publishes_bound_completeness(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["bound_complete"] is False
+        assert collected["bound_resolved_variables"] == 1
+        assert collected["bound_unresolved_variables"] == ["free"]
+        assert (
+            collected["budget_utilization"]["max_state_space_bound"]["within_cap"] is None
+        )
+
+    def test_report_never_prints_an_incomplete_bound_without_saying_so(self):
+        verdict = evaluate(
+            metrics(
+                bound=4,
+                bound_complete=False,
+                bound_resolved_variables=1,
+                bound_unresolved_variables=["carts"],
+                variables=10,
+                budget_utilization=cl._budget_utilization(
+                    {
+                        "bound": 4,
+                        "bound_complete": False,
+                        "bound_resolved_variables": 1,
+                        "bound_unresolved_variables": ["carts"],
+                        "variables": 10,
+                    },
+                    {"max_state_space_bound": 1000000},
+                ),
+            ),
+            None,
+            make_input(),
+        )
+        rendered = cl.render_report(verdict)
+        assert "INCOMPLETE: 1/10 variables resolved" in rendered
+        assert "cap comparison UNKNOWN -- incomplete bound" in rendered
+        assert "within cap)" not in rendered
+
+    def test_bound_delta_across_a_completeness_change_is_marked_not_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 4, "bound_complete": False},
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["delta"] == -996
+        assert bound["comparable"] is False
+        assert "completeness CHANGED" in bound["note"]
+
+    def test_bound_delta_between_two_complete_bounds_is_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 500, "bound_complete": True},
+        )
+        assert delta["metrics"]["bound"]["comparable"] is True
+        assert "note" not in delta["metrics"]["bound"]
+
+    # -- the same pattern, two rows over ---------------------------------
+    # Found while auditing the two files RP-04 owns for other places where the
+    # descriptor's prose is scrupulous and the recorded artifact is not.
+
+    def test_an_unfinished_tlc_run_does_not_claim_within_cap_either(self, tmp_path):
+        """`analyze` checks max_distinct_states only when report.complete."""
+        util = cl._budget_utilization(
+            {"distinct_states": 49386, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        entry = util["max_distinct_states"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 9.9
+        assert "did not finish" in entry["caveat"]
+
+    def test_an_unfinished_tlc_run_over_the_cap_keeps_the_sound_claim(self):
+        util = cl._budget_utilization(
+            {"distinct_states": 900000, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["within_cap"] is False
+
+    def test_collect_metrics_records_whether_the_tlc_run_finished(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        truncated = tmp_path / "tlc.txt"
+        truncated.write_text(
+            "1,234 states generated, 567 distinct states found, 89 states left on queue.\n",
+            encoding="utf-8",
+        )
+        collected = cl.collect_metrics(tla, cfg, None, tlc_report=truncated)
+        assert collected["distinct_states"] == 567
+        assert collected["tlc_run_complete"] is False
+
+    def test_a_fallback_action_count_carries_its_attribution(self, tmp_path):
+        """The descriptor says FALLBACK in prose; the ledger recorded a count."""
+        tla = tmp_path / "NoNext.tla"
+        tla.write_text(
+            "---- MODULE NoNext ----\n"
+            "VARIABLES flag\n"
+            "TypeInvariant == flag \\in BOOLEAN\n"
+            "Toggle == flag' = ~flag\n"
+            "====\n",
+            encoding="utf-8",
+        )
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text("INVARIANT TypeInvariant\n", encoding="utf-8")
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["actions_from_fallback_heuristic"] is True
+        assert collected["action_attribution"].startswith("FALLBACK")
+        verdict = evaluate(metrics(**collected), None, make_input())
+        assert "FALLBACK primes heuristic" in cl.render_report(verdict)
+
+    def test_bound_delta_over_pre_rp04_entries_is_marked_unknown(self):
+        """Every historical entry lacks completeness; the delta says so."""
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 699840}}, {"bound": 2799360}
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["comparable"] is False
+        assert "unrecorded" in bound["note"]
+        # The direction rules are deliberately UNCHANGED: relaxing a gate is a
+        # policy call for the owner, not a side effect of a reporting fix.
+        assert delta["direction"] == "increase"
 
 
 # ---------------------------------------------------------------------------
