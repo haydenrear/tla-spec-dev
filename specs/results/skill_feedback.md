@@ -1462,3 +1462,100 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket EV-03
+
+- close_scope: ticket
+- close_id: EV-03
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T22:24:24+00:00
+- summary: EV-03: re-ran the eval suite against the repaired tree and re-scored against the same committed predictions. RP-01 measured (203-partition sweep: 12 false cleans -> 0, zero true findings lost, 20 released). RP-02's honest negative confirmed on a second instrument (parameter recovery 0/5 -> 5/5, mutant matrix unchanged in every cell). RP-03 measured (modules generate in place, corpora carry arguments, a Given's corpus executes); CM-F5 still open and sharper. Two blind runs, both DP-1 PASS, one of which found a major new false clean (EV-03-DF-03) that the DP-1 scoring rule cannot detect. Five findings filed, none fixed. Zero model delta.
+- feedback_status: items-recorded
+
+EV-03 is a MEASUREMENT ticket and this is where its toolchain findings belong.
+All five are recorded in full in `specs/desired_program_model/deferred_findings.yaml`
+with a reproduction command, a suggested fix and a measured blast radius. This
+epic is LOCAL-ONLY by owner direction (schedule_revision 3 amendment (a)): ticket
+agents push nothing and open no issue, so `recommendation:` carries the local
+finding id rather than a URL and `status` is `recorded-local` rather than
+`filed`. Filing them upstream is the epic owner's call, not this ticket's.
+
+### SF-101
+
+- surface: scripts/architecture_reflexion.py
+- severity: major
+- summary: First-party-outside---code detection tests exactly one path
+  (`code_root.parent / name`), so a first-party package nested at `generated/pkg`,
+  `src/pkg`, `gen/pkg` or `vendor/pkg` is silently filed as third-party. Every
+  divergence is then erasable by re-exporting through it -- `coherent` on a
+  codebase with four real divergences for a 41-line diff, both digests unchanged,
+  `blind_spots: []`, `basis_limits: []`, behavioural suite green, runtime coupling
+  intact. Conversely the coherent fixture's verdict flips to `unmappable` when its
+  generated package moves up one directory with zero Python changed.
+- found_by: blind agent under EV-03, reproduced independently by the scorer
+- evidence: examples/validation/runs/ex5-run4/artifacts/reexport_attack/
+- recommendation: EV-03-DF-03 -- resolve first-party-ness against the project root
+  and the sys.path the project installs; the fix is entirely in the detection and
+  changes no verdict rule.
+- status: recorded-local
+
+### SF-102
+
+- surface: scripts/run_generated_case_adapters.py
+- severity: minor
+- summary: A slice narrower than its view orphans the view's effect providers and
+  the runner refuses its corpus. Both mappings the ex4 fixture ships bind the
+  port, so a slice excluding the effect-carrying action has ZERO working
+  configurations and the documented workaround needs a third file that exists
+  nowhere -- and the file you write has no durable-write oracle, so the resulting
+  instrument is strictly weaker than it looks. (CM-F5, sharpened.)
+- found_by: EV-03 mechanical arm and, independently, the blind aspect agent
+- evidence: examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt
+- recommendation: EV-03-DF-02 -- a lever that treats an unused provider on a
+  declared case module as a fact rather than a misconfiguration.
+- status: recorded-local
+
+### SF-103
+
+- surface: scripts/run_generated_case_adapters.py
+- severity: minor
+- summary: `--effect-report PATH` accepts a path and silently writes nothing, with
+  no warning and exit 0, on a project that declares effect ports through `ports:`
+  + `effect_ports:` rather than an `effects:` block. The code comment two lines
+  above the gate claims the report is written unconditionally.
+- found_by: blind agent under EV-03, verified by the scorer
+- evidence: examples/validation/runs/ex4-run6/scoring.md
+- recommendation: EV-03-DF-04 -- write the report with an explicit "no effect
+  declarations found" body, or refuse naming the files searched. Silence is the
+  one option that is wrong.
+- status: recorded-local
+
+### SF-104
+
+- surface: scripts/analyze_architecture.py, prompts/aspect_decomposition.md
+- severity: minor
+- summary: `analyze architecture` without `--components` silently substitutes an
+  emergent partition for the one the project declares, and the shipped prompt's
+  Step 1 tells a first-day engineer to run it that way. On the ex4 fixture the
+  default run erases the deliberate `Deliver` spanning action and attributes the
+  boundary crossing to a different action.
+- found_by: blind agent under EV-03, verified by the scorer
+- evidence: examples/validation/runs/ex4-run6/scoring.md
+- recommendation: EV-03-DF-05 -- name a declaration the run did not use (a fact,
+  not a suggestion, so CD-01 is not engaged), and fix the prompt.
+- status: recorded-local
+
+### SF-105
+
+- surface: references/, examples/validation/README.md
+- severity: minor
+- summary: EV-02-DF-05 re-scored STILL OPEN. No `python3` on the eval machine's
+  PATH carries `yaml`, `pytest` and `tomllib` together, and no document states an
+  interpreter requirement. Both round-2 blind agents hit it independently. EV-03
+  solved it for itself with a pinned uv venv and documented that in the validation
+  README; the toolchain docs still do not.
+- found_by: EV-03 and both blind agents
+- evidence: examples/validation/runs/ex4-run4/scoring.md
+- recommendation: EV-02-DF-05 -- state an absolute interpreter path, or declare
+  the dependency set the published commands need.
+- status: recorded-local

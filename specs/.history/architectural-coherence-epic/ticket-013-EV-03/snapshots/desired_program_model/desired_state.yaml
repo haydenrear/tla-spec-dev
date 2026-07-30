@@ -1,0 +1,44 @@
+version: 1
+name: desired-program-model
+canonical_tla_module: TlaSpecDevCli
+# NOTE: this repository is still a legacy SINGLE-MODULE baseline
+# (TlaSpecDevCli.tla + MC.cfg); the Internal/External split it mandates for the
+# projects it onboards is tickets/023, not this epic. The scaffold's two-view
+# block would be a template lie here, so the real layout is recorded instead.
+views:
+  single_module:
+    module: TlaSpecDevCli.tla
+    config: MC.cfg
+    generates: spec_unit
+    adapter_mapping: case_adapters.toml
+manifest: spec_manifest.yaml
+ticket_plan: ticket_plan.yaml
+
+relationship:
+  extends_current_program_model: ../program_model/TlaSpecDevCli.tla
+  purpose: desired whole-program model for ticket workflow
+  generation_status: planned
+
+implementation_status:
+  updated: "2026-07-26"
+  policy: specs/current is the executable state of landed work; this file summarizes the desired destination.
+  active_ticket: CM-01
+  active_ticket_title: "Architectural coherence and case modules"
+  summary:
+    desired_model_scaffolded: true
+    ticket_breakdown: scaffolded
+    current_model: scaffolded
+    generated_desired_cases: pending
+    adapters: pending
+
+modeled_boundary_status:
+  ticket_plan:
+    status: scaffolded
+    artifact: ticket_plan.yaml
+    next_ticket: CM-01
+
+program_domains: []
+implementation_sources: {}
+adapter_plan:
+  desired_new_ports: []
+guardrails: {}

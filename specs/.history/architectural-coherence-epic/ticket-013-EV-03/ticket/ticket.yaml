@@ -1,0 +1,108 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket EV-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Every arm re-scored against the round-1 predictions, with a round-1 vs round-2 delta table.",
+        "A repair that did not work is reported as not working -- an honest negative is the preferred outcome.",
+        "NEXT-EPIC.md states what was repaired here and what genuinely remains for the next epic."
+      ],
+      "commands": [
+        "(per-run commands recorded in each examples/validation/runs/<run>/scoring.md)"
+      ],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": []
+    },
+    "depends_on": [
+      "RP-01",
+      "RP-02",
+      "RP-03",
+      "RP-04",
+      "RP-05",
+      "RP-07"
+    ],
+    "desired_actions": [],
+    "github_issue": null,
+    "id": "EV-03",
+    "implementation_scope": [
+      "examples/validation/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op with evidence.",
+    "objective": "Re-run the eval suite against the repaired tree and re-score against the SAME committed predictions, so the comparison is like-for-like. The repairs must be measured, not assumed: RP-01's false-`coherent` sweep rerun over all 203 partitions, RP-02's mutant catalog rerun to see whether guard relaxation became killable, RP-03's reproduce-in-place claim exercised by generating from the documented location, and both blind runs redone on FRESH scratch copies with new agents. Two protocol corrections the owner recorded from round 1: the fixtures must carry purpose-written neutral text rather than redaction stubs (an agent noticed the `\\* --` scars and said so), and DP-1 scoring compares the ARCHITECTURE digest as well as the map digest, because round 1's own run named editing the model as the cheapest path to a clean report. Amend NEXT-EPIC.md to record what this epic repaired instead of deferred.\n",
+    "promotion_order": 140,
+    "promotion_predecessor": "RP-07",
+    "schedule_revision": 3,
+    "status": "planned",
+    "title": "Re-run the evals against the repaired tree and re-score against the same predictions",
+    "wave": 8
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/tickets/EV-03",
+  "ticket_id": "EV-03",
+  "ticket_index": 13,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-ev03-rerun/specs/tickets"
+}
