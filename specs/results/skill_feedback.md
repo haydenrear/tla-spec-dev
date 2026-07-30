@@ -1433,6 +1433,12 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - close_id: RP-04
 - workflow: architectural-coherence-epic
 - closed_at: 2026-07-30T20:55:30+00:00
+## Close-out ticket RP-05
+
+- close_scope: ticket
+- close_id: RP-05
+- workflow: architectural-coherence-epic
+- closed_at: 2026-07-30T20:37:59+00:00
 - summary: (none given)
 - feedback_status: unreviewed
 

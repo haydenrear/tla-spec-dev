@@ -49,7 +49,15 @@ def test_skill_requires_two_minute_case_generation_budget() -> None:
     assert "accidental complexity" in skill
     assert "Provide concrete recommendations" in skill
     assert "discuss the tradeoff with the user" in skill
-    assert "hard two-minute budget" in generation_modes
+    # RP-05 (CM-01-DF-01/AC-DF-01): this used to assert the literal prose
+    # "hard two-minute budget", which the c72d03a docs refresh rewrote to
+    # "hard wall-time budget: `budgets.tlc_seconds` ... default 120 seconds" --
+    # naming the actual config knob instead of hardcoding a sentence that
+    # drifts the moment someone rewords the page. Assert the durable fact the
+    # budget is documented as (the config key and its value), not exact prose.
+    assert "budgets.tlc_seconds" in generation_modes
+    assert "hard wall-time budget" in generation_modes
+    assert "120 seconds" in generation_modes
     assert "Distinguish compressible modeling detail from" in generation_modes
     assert "concrete options for lowering" in generation_modes
 
