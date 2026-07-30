@@ -1013,3 +1013,431 @@ findings:
     disposition_note: >-
       Filed by RP-07 as the part of its own finding that is not this
       repository's to fix. Requires owner say-so to touch the installed skill.
+  - id: EV-03-DF-01
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      A retracted conclusion is still on record in the epic's own plan. The
+      AC-02 status note in ticket_plan.yaml states that this repository is
+      "unmappable without a declared partition, falsifiable-and-clean under a
+      four-component one, and vacuous under a three-component one". The middle
+      clause is FALSE on the repaired tree. RP-01 recorded the correction in its
+      own outcome field, and EV-03 re-measured it independently: this
+      repository's own DECLARED four-component partition
+      (specs/program_model/architecture_components.yaml) does NOT decompose its
+      own model -- modularity_q = -0.025485 against a rule of > 0, and
+      crossing_action_fraction = 0.6 against a rule of <= 0.5 -- so the verdict
+      is `unmappable` with `partition_does_not_decompose` as a basis limit, and
+      `coherent` is not a verdict this repository could earn today even with a
+      perfect extractor. Nothing corrected the AC-02 note, so a reader of the
+      plan still finds the pre-RP-01 claim stated as a measurement. This is the
+      same defect class the epic keeps finding -- a checked-in claim the
+      measurement contradicts -- in the epic's own bookkeeping.
+    reproduction: >-
+      python3 scripts/architecture_reflexion.py
+      specs/program_model/TlaSpecDevCli.tla specs/program_model/MC.cfg
+      --components specs/program_model/architecture_components.yaml
+      --code scripts --map specs/program_model/architecture_map.yaml
+      -- observed: architecture_scan = unmappable, exit 0, basis limit
+      partition_does_not_decompose (modularity_q -0.025485,
+      crossing_action_fraction 0.6), plus three dynamic_import blind spots, one
+      first_party_outside_code_root and one non_python_file.
+    evidence:
+      - "examples/validation/runs/ex6-run2/artifacts/realjenga_declared.txt"
+      - "examples/validation/runs/ex6-run2/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md. The AC-02
+      status note lives in ticket_plan.yaml's status block, which belongs to the
+      epic owner, and AC-02 is a closed ticket whose history is sealed.
+    suggested_fix: >-
+      Amend the AC-02 status note in ticket_plan.yaml to record that the
+      four-component claim was superseded by RP-01, with a pointer to RP-01's
+      outcome field and to this run record. Do not edit AC-02's sealed history;
+      correct the standing summary.
+    blast_radius: >-
+      Documentation only. Nothing reads the note; no command, gate, or artifact
+      depends on it. The cost is that the epic's own summary of its dogfood is
+      wrong, and the dogfood is what AC-02 called its deliverable.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03 during the round-2 re-measurement. NOT fixed inline: a fix
+      during a measurement destroys the measurement, and this ticket's own rule
+      is that findings are filed.
+
+  - id: EV-03-DF-02
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      CM-F5 is worse than RP-03 filed it, by one measurement RP-03 did not make.
+      RP-03 published CM-F5 as OPEN -- a slice narrower than its view orphans
+      the view's effect providers, so `run_generated_case_adapters.py` refuses
+      the slice's corpus with "provider configured for semantic effect port(s)
+      not required by any selected case: LedgerStorePort" -- and stated that
+      "the only workaround today is a second mapping file with the provider
+      removed". The ex4 fixture SHIPS a second mapping,
+      case_adapters_corpus_only.toml, and it refuses the same corpus with the
+      identical error, because it also binds a LedgerStorePort provider (the
+      silent one). So on the shipped fixture there is NO mapping under which the
+      slice's corpus can execute; the workaround requires authoring a third
+      mapping that exists nowhere in the repository. The consequence is the one
+      RP-03 already named and is now sharper: the cheapest outside-in artifact
+      -- a slice, the only form writable from action names alone -- is the one
+      that cannot run end to end, while the form that runs (a Given entering the
+      effect-carrying action) is the one that cannot be written from outside.
+      Independently reproduced in the same run by a blind agent authoring
+      aspects from the public surface, which hit the refusal and had to author
+      its own third mapping to proceed.
+    reproduction: >-
+      bash examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh
+      (PY=<pinned interpreter> REPO=<repo root>). Step 6 is the documented CM-F5
+      refusal against case_adapters.toml, exit 1. Step 6b is new: the SAME
+      corpus against case_adapters_corpus_only.toml, identical error, exit 1.
+      Output: examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt.
+    evidence:
+      - "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt"
+      - "examples/validation/runs/ex4-run4/scoring.md"
+      - "examples/validation/runs/ex4-run6/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md.
+      scripts/run_generated_case_adapters.py is in neither, and a measurement
+      ticket that fixes what it is measuring has destroyed the measurement.
+    suggested_fix: >-
+      RP-03's own suggested shape, unchanged: a lever that says "this corpus is
+      a declared case module, so a provider no selected case requires is a FACT
+      about the slice, not a misconfiguration" -- reported, never silently
+      dropped. That is a decision about the runner and not about case modules.
+      Whatever the shape, the acceptance test is that the ex4
+      Scenario_DeliveryPath corpus executes against one of the mappings the
+      project already ships, with no third file.
+    blast_radius: >-
+      Every project whose view has an effect port and whose slices do not all
+      enter the action that touches it -- which is the normal shape of a slice,
+      since slicing is what makes an aspect narrower than its view. It blocks
+      execution, not generation: the corpus is produced, validated and counted
+      in coverage, and only the run refuses. Nothing is silently wrong; the
+      failure is loud and exits nonzero.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03 as a sharpening of CM-F5, not as a new defect. CM-F5's
+      status after round 2 is STILL OPEN.
+
+  - id: EV-03-DF-03
+    found_by: "EV-03 blind run A (agent), reproduced independently by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: ["scripts/architecture_reflexion.py", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      EVERY divergence on any project is erasable with NO declaration edit, NO
+      map edit, NO blind spot and NO basis limit, by re-exporting the offending
+      symbol through a first-party package nested more than one directory below
+      the code root's parent. architecture_reflexion.py decides whether an
+      unresolved import is third-party or first-party-outside---code by testing
+      exactly ONE path -- `sibling = code_root.parent / name` -- so a project
+      whose shared or generated package lives at `generated/pkg`, `src/pkg`,
+      `gen/pkg` or `vendor/pkg` has that package silently filed under "standard
+      library and third-party packages", and every edge routed through it leaves
+      the graph with nothing recorded. Two consequences, both measured. (1) The
+      verdict turns on DIRECTORY DEPTH ALONE: moving
+      examples/validation/ex4_pipeline_coherent/generated/pipeline_contract up
+      one level, changing zero bytes of Python, flips the verdict from
+      `coherent` to `unmappable` with a first_party_outside_code_root blind
+      spot -- so this epic's only positive architecture result (AC-P1's answer
+      key) is conditional on how deep the fixture nests its generated package.
+      (2) On ex5_pipeline_divergent, a 24-line lazy re-export module dropped
+      into generated/pipeline_contract/, three one-line import rewrites and one
+      decorative function-local import turn `divergent` (4 divergences, 1
+      absence) into `coherent`, 0 divergences, 0 absences, `blind_spots: []`,
+      `basis_limits: []`, `clean_result_supportable: true`, exit 0 -- with BOTH
+      digests byte-identical to the honest answer key, all 8 behavioural tests
+      green, and the runtime coupling fully intact
+      (`pipeline.ingest.inbox.format_entry is pipeline.ledger.journal.
+      format_entry` -> True). This is a false clean of exactly the DP-1 class
+      the epic's scoring rule exists to catch, and the DP-1 rule CANNOT SEE IT
+      because no declared artifact moved. It is strictly worse than the
+      map-placement gaming the documentation already owns: that requires
+      editing a declared artifact a reviewer reads, whereas a re-export shim is
+      ordinary Python in a directory labelled "generated, do not hand-edit" and
+      reads as an indirection improvement. It also survives RP-01 untouched:
+      the partition still decomposes, the pair is still unported,
+      divergence_detectable is still true, and the report is telling the truth
+      about its basis and a falsehood about the code.
+    reproduction: >-
+      (1) cp -R examples/validation/ex4_pipeline_coherent /tmp/ex4copy && cd
+      /tmp/ex4copy && python3 <repo>/scripts/architecture_reflexion.py
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --components specs/program_model/architecture_components.yaml --code
+      pipeline --map specs/program_model/architecture_map.yaml -> coherent,
+      blind_spots []. Then `mv generated/pipeline_contract ./pipeline_contract`
+      and rerun -> unmappable, blind_spots [first_party_outside_code_root]. No
+      Python changed. (2) The full attack on the divergent twin, with its
+      41-line diff and the runtime-identity proof, is
+      examples/validation/runs/ex5-run4/artifacts/reexport_attack/ (shared.py,
+      attack.diff, RESULT.txt).
+    evidence:
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/RESULT.txt"
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/shared.py"
+      - "examples/validation/runs/ex5-run4/artifacts/reexport_attack/attack.diff"
+      - "examples/validation/runs/ex5-run4/artifacts/BLIND-RUN-A-REPORT.md"
+      - "examples/validation/runs/ex5-run4/scoring.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md;
+      scripts/architecture_reflexion.py is in neither. And the standing rule
+      binds harder here than usual: this finding was produced BY the
+      measurement, by a blind agent under test, and fixing it inside the
+      measurement would have destroyed the only run that found it.
+    suggested_fix: >-
+      Resolve first-party-ness against the PROJECT root and the import paths the
+      project actually uses, not against a single hardcoded sibling of the code
+      root: walk upward from the code root to the project root looking for the
+      package, and consult the sys.path entries the project itself installs (the
+      fixture's own driver puts generated/ on sys.path explicitly). Anything the
+      search finds inside the project and outside --code is a
+      first_party_outside_code_root blind spot, which already forces
+      `unmappable` and is already never downgraded -- so the entire fix is in
+      the DETECTION, and no verdict rule changes. Consider also emitting the
+      tool's own version/digest in the report (blind run A's friction item 5):
+      a stored `coherent` cannot be compared across extractor builds today, and
+      this finding is exactly a case where the verdict moves without the code
+      moving. A regression test in the TestNothingDowngrades... shape should pin
+      the nested case specifically.
+    blast_radius: >-
+      Every Python project whose first-party shared or generated code lives more
+      than one level below the code root's parent -- i.e. every src/, gen/,
+      build/, vendor/ or generated/ layout, which is most of them. Both of this
+      epic's architecture fixtures have that layout, so BOTH published answer
+      keys are affected: ex4's `coherent` is conditional on the nesting, and
+      ex5's 4-divergence key is erasable through it. The 203-partition sweep is
+      NOT affected -- it varies the partition, not the import graph, and the
+      first_party path is identical in all 203 rows -- so RP-01's 12 -> 0 result
+      stands. Advisory only: nothing blocks, and every affected run exits 0. The
+      cost is a false `coherent` recorded in evidence and put in a PR body,
+      which is the same cost RP-01 was built to remove on the other path.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03. This is the highest-severity finding of round 2 and the
+      strongest single argument that NE-02 ("measure interaction, not imports")
+      is the next epic's real work. Note what it does NOT overturn: RP-01's
+      sweep, the answer key's precision and recall on an unattacked tree, and
+      the refusals, all of which reproduce.
+
+  - id: EV-03-DF-04
+    found_by: "EV-03 blind run B (agent), verified by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `--effect-report PATH` accepts a path and silently writes nothing, with no
+      warning and exit 0, on a project that declares effect ports the way this
+      epic's own fixture declares them. The flag is gated on
+      `declarations is not None and bool(declarations.ports)`
+      (run_generated_case_adapters.py:1461) and
+      `load_effect_declarations_for_spec` reads an `effects:` block from
+      actions.yml or spec_manifest.yaml. examples/validation/ex4_pipeline_coherent
+      has neither: it declares `ports:` in the manifest and `effect_ports:` per
+      action in actions.yml, binds a real provider, and runs 330 cases through
+      it. The code comment two lines above the gate reads "The report is written
+      unconditionally -- it is ticket evidence whether the verdict is clean or
+      not", which is not what the code does. A flag that takes a path and
+      produces no file should say "this spec declares no `effects:` block, so
+      there is nothing to report" rather than exit 0 in silence -- the same
+      refusal shape MF-027 established, applied to a report instead of a
+      verdict. Found by a blind agent asked to measure kills; verified
+      independently by the scorer on the shipped fixture.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && PYTHONPATH=<repo>:$PWD/generated
+      python3 <repo>/scripts/run_generated_case_adapters.py <corpus>
+      --mapping specs/program_model/case_adapters.toml --spec-dir
+      specs/program_model --view internal --batch --import-root .
+      --import-root ./generated --effect-report /tmp/eff_probe.json
+      -- observed: exit 0, "executed 330 cases in batch", /tmp/eff_probe.json
+      does not exist, and the string "effect report" appears nowhere in stdout
+      or stderr.
+    evidence:
+      - "examples/validation/runs/ex4-run6/scoring.md"
+      - "examples/validation/runs/ex4-run6/artifacts/BLIND-RUN-B-REPORT.md"
+    why_out_of_scope: >-
+      EV-03's conflict keys are examples/validation/ and NEXT-EPIC.md;
+      scripts/run_generated_case_adapters.py is in neither, and the finding was
+      produced by the measurement.
+    suggested_fix: >-
+      When --effect-report is passed and no `effects:` declaration is found,
+      write the report anyway with an explicit "no effect declarations found"
+      body, or refuse with a message naming the two files searched and the block
+      expected. Either is honest; silence is not. Reconcile the comment at the
+      gate with the behaviour in the same pass -- a comment that describes the
+      opposite of the code is how this defect survived.
+    blast_radius: >-
+      Any project that declares effect ports through `ports:` + `effect_ports:`
+      rather than an `effects:` block, which includes this epic's own coherent
+      fixture. The cost is a missing evidence artifact that a ticket may believe
+      it produced. Nothing is silently wrong in the RUN -- the cases execute and
+      the providers assert normally; only the report is absent.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03. Not fixed: findings are filed during a measurement.
+
+  - id: EV-03-DF-05
+    found_by: "EV-03 blind run B (agent), verified by the EV-03 scorer"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/analyze_architecture.py", "prompts/aspect_decomposition.md", "references/architecture_coherence.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `analyze architecture` run WITHOUT --components silently substitutes its
+      own emergent partition for the one the project declares, and the shipped
+      prompt tells a first-day engineer to run it that way. Measured on
+      examples/validation/ex4_pipeline_coherent: without --components the tool
+      reports an EMERGENT 2-component partition (C1, C2) with one port crossed by
+      `Enqueue` and no spanning action; with --components it reports the declared
+      3-component partition with P1 crossed by `Deliver`, P2 by `Record`, and
+      `Deliver` as a spanning action writing on both sides of the boundary. The
+      second answer is the one the model's own comments assert and the one the
+      fixture's answer key records as CORRECT OUTPUT. The default run therefore
+      erases a deliberate, documented architectural violation and attributes a
+      boundary crossing to a different action. The tool is not lying --
+      `partition.source` says `emergent` in the JSON -- but the prompt's Step 1
+      one-liner pipes past it, the TEXT output is what a human reads, and
+      spec_manifest.yaml points at the partition file IN PROSE that the tool
+      cannot read (the --manifest path honours only an inline `architecture:`
+      block). A blind agent following the prompt verbatim got the wrong
+      architecture picture with no indication that a declared partition existed.
+      Compare AC-02's own doctrine: an unresolvable target reports `unmappable`
+      rather than a clean. Here a resolvable-but-DIFFERENT partition reports a
+      confident answer about a boundary the project did not declare.
+    reproduction: >-
+      cd examples/validation/ex4_pipeline_coherent && python3
+      <repo>/scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg
+      --format json  -> partition.source=emergent, components [C1, C2], ports
+      [P1 C1<->C2 via Enqueue]. Add
+      --components specs/program_model/architecture_components.yaml ->
+      partition.source=declared, components [ingest, dispatch, ledger], ports
+      [P1 via Deliver, P2 via Record], spanning action Deliver.
+    evidence:
+      - "examples/validation/runs/ex4-run6/scoring.md"
+      - "examples/validation/runs/ex4-run6/artifacts/BLIND-RUN-B-REPORT.md"
+    why_out_of_scope: >-
+      scripts/analyze_architecture.py and prompts/ are outside EV-03's conflict
+      keys, and the finding was produced by the measurement.
+    suggested_fix: >-
+      Two independent, both small. (1) When a partition file sits beside the
+      model in the conventional location and --components was not passed, say so
+      in the TEXT output before reporting an emergent partition -- naming a
+      declaration the run did not use is a fact, not a suggestion, so CD-01 is
+      not engaged. (2) Fix prompts/aspect_decomposition.md Step 1 to pass
+      --components, and say in references/architecture_coherence.md that
+      --components and --map come as a set the way --code and --map already do
+      (blind run A hit the same coupling from the other side: without
+      --components a human-written map is refused outright because emergent
+      components are named C1/C2). Optionally let spec_manifest.yaml reference an
+      external partition file rather than only an inline block, since the
+      fixture's own comment already assumes it can.
+    blast_radius: >-
+      Every project that declares a partition in a separate file -- which is the
+      layout this epic's own fixtures use, and which the fixtures chose
+      deliberately so the four architecture inputs could be diffed. Reporting
+      only; nothing blocks, and the reflexion check itself refuses to run against
+      a mismatched partition, so the wrong picture cannot propagate into a
+      verdict. The cost is a confident wrong answer at the first command a new
+      user is told to run.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03. Not fixed: findings are filed during a measurement.
+
+  - id: EV-03-DF-06
+    found_by: "EV-03"
+    found_at_commit: "897ea14"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: [".gitignore", "examples/validation/"]
+    summary: >-
+      EVIDENCE INTEGRITY: `.gitignore` line 40 is `*.log`, so every eval artifact
+      written with a `.log` extension is silently dropped from the repository
+      while its scoring record cites it. Round 1's own records are affected and
+      nobody noticed for three days: examples/validation/runs/ex4-run1/scoring.md
+      lists "14 mutant/control logs (both arms)" and `artifacts/inplace.log` --
+      the reproduction of EV-02-DF-02 -- under "Artifacts", and
+      `git ls-tree -r 3af9e59 --name-only | grep ex4-run1` returns nine files,
+      none of them a log. The DF-02 reproduction the record points at does not
+      exist in the repository. This is the same defect class the epic keeps
+      finding, in the epic's own evidence: a checked-in claim about an artifact
+      that is not there. `git add` reports nothing when a path is ignored, so the
+      failure is silent by design and only a `git ls-files` check catches it.
+      EV-03 avoided it by renaming its own log artifacts to `.txt` before
+      committing, which is a workaround and not a fix -- the next eval will hit
+      it again.
+    reproduction: >-
+      git check-ignore -v examples/validation/runs/<any>/artifacts/x.log
+      -> ".gitignore:40:*.log". And for the round-1 loss:
+      git ls-tree -r 3af9e59 --name-only | grep "ex4-run1" -> nine paths, none
+      ending in .log, against a scoring.md that cites fifteen.
+    evidence:
+      - "examples/validation/runs/ex4-run1/scoring.md (the citing record)"
+      - "examples/validation/runs/ex4-run4/artifacts/logs/ (EV-03's renamed-to-.txt workaround)"
+    why_out_of_scope: >-
+      `.gitignore` is not in EV-03's conflict keys, and round 1's sealed run
+      records must not be edited by a later ticket -- an eval record is a
+      record. The finding is that the record cites artifacts the repository does
+      not carry, which is exactly the sort of thing a later ticket must report
+      rather than quietly repair.
+    suggested_fix: >-
+      Add a negated pattern for the eval tree
+      (`!examples/validation/runs/**/*.log`), or require eval artifacts to use
+      `.txt`, and add a check to the eval protocol that every path named under a
+      scoring record's "Artifacts" section is `git ls-files`-visible. The check
+      is one line and it is the only thing that would have caught this: `git add`
+      is silent on an ignored path, so a run can believe it committed its
+      evidence.
+    blast_radius: >-
+      Every eval run in this repository, retroactively. Round 1 lost 15 named
+      artifacts across ex4-run1 (14 execution logs plus the DF-02 reproduction);
+      the NUMBERS survive because kill_matrix.json was committed and the harness
+      is committed, so the run is re-derivable -- but the primary outputs the
+      record points at are gone. Nothing about a shipped verdict or a production
+      behaviour is affected; the cost is entirely to the auditability of the
+      measurement, which for a fact-finding epic is the product.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by EV-03 while committing its own artifacts. EV-03's records name no
+      artifact the repository does not carry -- verified with git ls-files after
+      the rename.

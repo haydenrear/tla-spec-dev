@@ -1,0 +1,37 @@
+EV-03 model delta: ZERO, verified.
+
+$ git diff --stat HEAD -- specs/current specs/program_model
+(empty above == no model change)
+
+$ git status --porcelain specs/current specs/program_model
+(empty above == no model change)
+
+$ diff -rq specs/current specs/desired_program_model  -- expected: the ticket-plan/findings/README files only
+Files specs/current/README.md and specs/desired_program_model/README.md differ
+Files specs/current/case_adapters.toml and specs/desired_program_model/case_adapters.toml differ
+Only in specs/desired_program_model: deferred_findings.yaml
+Only in specs/desired_program_model: desired_state.yaml
+Files specs/current/production_adapters.py and specs/desired_program_model/production_adapters.py differ
+Files specs/current/spec_manifest.yaml and specs/desired_program_model/spec_manifest.yaml differ
+Files specs/current/tests/test_tla_spec_dev_analyze_adapter.py and specs/desired_program_model/tests/test_tla_spec_dev_analyze_adapter.py differ
+Files specs/current/tests/test_tla_spec_dev_binding_reconciliation.py and specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py differ
+Only in specs/desired_program_model: ticket_plan.yaml
+
+EV-03 touched only its declared keys: examples/validation/ and NEXT-EPIC.md,
+plus specs/desired_program_model/deferred_findings.yaml (the declared backlog)
+and this evidence directory. No production script, no TLA+ module, no adapter,
+no test was modified. $ git status --porcelain:
+ M NEXT-EPIC.md
+ M examples/validation/README.md
+ M specs/desired_program_model/deferred_findings.yaml
+?? examples/validation/runs/ROUND-2-DELTA.md
+?? examples/validation/runs/ex4-run4/
+?? examples/validation/runs/ex4-run5/
+?? examples/validation/runs/ex4-run6/
+?? examples/validation/runs/ex5-run3/
+?? examples/validation/runs/ex5-run4/
+?? examples/validation/runs/ex6-run2/
+?? specs/tickets/EV-03/
+
+$ find . -name __pycache__ -not -path ./.git/* | wc -l
+       0

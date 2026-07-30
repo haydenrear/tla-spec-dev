@@ -1,0 +1,1130 @@
+{
+  "label": "run5-gen2",
+  "interpreter": "3.13.14",
+  "corpus": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/gen2/spec-unit/pipeline_cases",
+  "control": {
+    "armA": {
+      "exit": 0,
+      "killed": false,
+      "points": 0,
+      "detectors": [],
+      "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+      "failing_cases": []
+    },
+    "armB": {
+      "exit": 0,
+      "killed": false,
+      "points": 0,
+      "detectors": [],
+      "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+      "failing_cases": []
+    },
+    "pytest": {
+      "exit": 0,
+      "killed": false
+    }
+  },
+  "seeded_faults": {
+    "F1-wrong-value": {
+      "fault_class": "wrong value",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 44,
+          "detectors": [
+            "tla_projected_state"
+          ],
+          "stdout_sha256": "4c8f7416cc17742e184f721c001bdd0372d3b5be4feb576846f25546dd87a59f",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record",
+            "case_0185_record",
+            "case_0190_record",
+            "case_0195_record",
+            "case_0200_record",
+            "case_0203_record",
+            "case_0208_record",
+            "case_0213_record",
+            "case_0225_record",
+            "case_0233_record",
+            "case_0237_record",
+            "case_0240_record",
+            "case_0245_record",
+            "case_0250_record",
+            "case_0259_record",
+            "case_0267_record",
+            "case_0277_record",
+            "case_0284_record",
+            "case_0301_record",
+            "case_0308_record"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "provider_content_assertion",
+            "tla_projected_state"
+          ],
+          "stdout_sha256": "f82849a0dc86c486a3053cd69bea943560397fcc66b6747445dc826a689f54ab",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record"
+          ]
+        }
+      }
+    },
+    "F2-wrong-field": {
+      "fault_class": "wrong field",
+      "predicted_arm": "A and B",
+      "path": "pipeline/dispatch/failures.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "c1f9c8877c04e4938cfe4f664f4b533664cdc67fab96edb10f57a6222dc3f685",
+          "failing_cases": [
+            "case_0019_fail",
+            "case_0023_fail",
+            "case_0029_fail",
+            "case_0033_fail",
+            "case_0037_fail",
+            "case_0043_fail",
+            "case_0046_fail",
+            "case_0052_fail",
+            "case_0055_fail",
+            "case_0059_fail",
+            "case_0063_fail",
+            "case_0069_fail",
+            "case_0072_fail",
+            "case_0078_fail",
+            "case_0082_fail",
+            "case_0088_fail",
+            "case_0093_fail",
+            "case_0097_fail",
+            "case_0098_fail",
+            "case_0105_fail",
+            "case_0108_fail",
+            "case_0114_fail",
+            "case_0118_fail",
+            "case_0124_fail",
+            "case_0131_fail",
+            "case_0132_fail",
+            "case_0138_fail",
+            "case_0141_fail",
+            "case_0142_fail",
+            "case_0147_fail",
+            "case_0151_fail",
+            "case_0155_fail",
+            "case_0156_fail",
+            "case_0160_fail",
+            "case_0161_fail",
+            "case_0168_fail",
+            "case_0175_fail",
+            "case_0176_fail",
+            "case_0180_fail",
+            "case_0184_fail",
+            "case_0188_fail",
+            "case_0189_fail",
+            "case_0193_fail",
+            "case_0194_fail",
+            "case_0199_fail",
+            "case_0202_fail",
+            "case_0206_fail",
+            "case_0207_fail",
+            "case_0211_fail",
+            "case_0212_fail"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "5b065920a0123a852b3c2409c8463c68ff1ee7e5b371f668fac955910675f4b4",
+          "failing_cases": [
+            "case_0019_fail",
+            "case_0023_fail",
+            "case_0029_fail",
+            "case_0033_fail",
+            "case_0037_fail",
+            "case_0043_fail",
+            "case_0046_fail",
+            "case_0052_fail",
+            "case_0055_fail",
+            "case_0059_fail",
+            "case_0063_fail",
+            "case_0069_fail",
+            "case_0072_fail",
+            "case_0078_fail",
+            "case_0082_fail",
+            "case_0088_fail",
+            "case_0093_fail",
+            "case_0097_fail",
+            "case_0098_fail",
+            "case_0105_fail",
+            "case_0108_fail",
+            "case_0114_fail",
+            "case_0118_fail",
+            "case_0124_fail",
+            "case_0131_fail",
+            "case_0132_fail",
+            "case_0138_fail",
+            "case_0141_fail",
+            "case_0142_fail",
+            "case_0147_fail",
+            "case_0151_fail",
+            "case_0155_fail",
+            "case_0156_fail",
+            "case_0160_fail",
+            "case_0161_fail",
+            "case_0168_fail",
+            "case_0175_fail",
+            "case_0176_fail",
+            "case_0180_fail",
+            "case_0184_fail",
+            "case_0188_fail",
+            "case_0189_fail",
+            "case_0193_fail",
+            "case_0194_fail",
+            "case_0199_fail",
+            "case_0202_fail",
+            "case_0206_fail",
+            "case_0207_fail",
+            "case_0211_fail",
+            "case_0212_fail"
+          ]
+        }
+      }
+    },
+    "F3-off-by-one-durable": {
+      "fault_class": "off-by-one count",
+      "predicted_arm": "B only",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 44,
+          "detectors": [
+            "provider_content_assertion"
+          ],
+          "stdout_sha256": "8f31561c09d0fd120cb402057471a4aec581113393860c722e2fd99f56100002",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record",
+            "case_0185_record",
+            "case_0190_record",
+            "case_0195_record",
+            "case_0200_record",
+            "case_0203_record",
+            "case_0208_record",
+            "case_0213_record",
+            "case_0225_record",
+            "case_0233_record",
+            "case_0237_record",
+            "case_0240_record",
+            "case_0245_record",
+            "case_0250_record",
+            "case_0259_record",
+            "case_0267_record",
+            "case_0277_record",
+            "case_0284_record",
+            "case_0301_record",
+            "case_0308_record"
+          ]
+        }
+      }
+    },
+    "F4-wrong-status": {
+      "fault_class": "wrong status",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ingest/inbox.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 22,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "f19ffc13e56a3e818b97baad125e67486aff8cc28d12f8ad677c009a53c5b402",
+          "failing_cases": [
+            "case_0001_accept",
+            "case_0002_accept",
+            "case_0003_accept",
+            "case_0005_accept",
+            "case_0009_accept",
+            "case_0011_accept",
+            "case_0017_accept",
+            "case_0021_accept",
+            "case_0035_accept",
+            "case_0039_accept",
+            "case_0041_accept",
+            "case_0044_accept",
+            "case_0048_accept",
+            "case_0050_accept",
+            "case_0079_accept",
+            "case_0080_accept",
+            "case_0083_accept",
+            "case_0085_accept",
+            "case_0086_accept",
+            "case_0089_accept",
+            "case_0127_accept",
+            "case_0128_accept"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 22,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "f9e29afad38f841db36236a61de595bb94823d3cf8fc1f6cc17892522e2cfd85",
+          "failing_cases": [
+            "case_0001_accept",
+            "case_0002_accept",
+            "case_0003_accept",
+            "case_0005_accept",
+            "case_0009_accept",
+            "case_0011_accept",
+            "case_0017_accept",
+            "case_0021_accept",
+            "case_0035_accept",
+            "case_0039_accept",
+            "case_0041_accept",
+            "case_0044_accept",
+            "case_0048_accept",
+            "case_0050_accept",
+            "case_0079_accept",
+            "case_0080_accept",
+            "case_0083_accept",
+            "case_0085_accept",
+            "case_0086_accept",
+            "case_0089_accept",
+            "case_0127_accept",
+            "case_0128_accept"
+          ]
+        }
+      }
+    },
+    "F5-swallowed-error": {
+      "fault_class": "silently-swallowed error",
+      "predicted_arm": "B only",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 44,
+          "detectors": [
+            "provider_content_assertion"
+          ],
+          "stdout_sha256": "af99d28df731f3fd3e37ad65410dbded5f5c6001fa528bf82b659e2659d31088",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record",
+            "case_0185_record",
+            "case_0190_record",
+            "case_0195_record",
+            "case_0200_record",
+            "case_0203_record",
+            "case_0208_record",
+            "case_0213_record",
+            "case_0225_record",
+            "case_0233_record",
+            "case_0237_record",
+            "case_0240_record",
+            "case_0245_record",
+            "case_0250_record",
+            "case_0259_record",
+            "case_0267_record",
+            "case_0277_record",
+            "case_0284_record",
+            "case_0301_record",
+            "case_0308_record"
+          ]
+        }
+      }
+    },
+    "F6-off-by-one-in-memory": {
+      "fault_class": "off-by-one count",
+      "predicted_arm": "A and B",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 15,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "708972755fcdcd336972febef3ecec834bad7c3fb97d4e4f7fd69b5bee51f4d8",
+          "failing_cases": [
+            "case_0025_deliver",
+            "case_0091_deliver",
+            "case_0106_deliver",
+            "case_0136_deliver",
+            "case_0165_deliver",
+            "case_0166_deliver",
+            "case_0173_deliver",
+            "case_0234_deliver",
+            "case_0238_deliver",
+            "case_0241_deliver",
+            "case_0246_deliver",
+            "case_0297_deliver",
+            "case_0302_deliver",
+            "case_0306_deliver",
+            "case_0327_deliver"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 15,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "0d4c9ccf4c8e8f3290a605a96a235fc8cc3da943a2aa5369036b7b1155c3bec1",
+          "failing_cases": [
+            "case_0025_deliver",
+            "case_0091_deliver",
+            "case_0106_deliver",
+            "case_0136_deliver",
+            "case_0165_deliver",
+            "case_0166_deliver",
+            "case_0173_deliver",
+            "case_0234_deliver",
+            "case_0238_deliver",
+            "case_0241_deliver",
+            "case_0246_deliver",
+            "case_0297_deliver",
+            "case_0302_deliver",
+            "case_0306_deliver",
+            "case_0327_deliver"
+          ]
+        }
+      }
+    }
+  },
+  "catalog12": {
+    "M1": {
+      "fault_class": "guard relaxation",
+      "path": "pipeline/ingest/inbox.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M2": {
+      "fault_class": "guard relaxation",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M3": {
+      "fault_class": "guard relaxation",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M4": {
+      "fault_class": "equivalent",
+      "path": "pipeline/ingest/inbox.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    },
+    "M5": {
+      "fault_class": "wrong write",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 44,
+          "detectors": [
+            "tla_projected_state"
+          ],
+          "stdout_sha256": "4c8f7416cc17742e184f721c001bdd0372d3b5be4feb576846f25546dd87a59f",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record",
+            "case_0185_record",
+            "case_0190_record",
+            "case_0195_record",
+            "case_0200_record",
+            "case_0203_record",
+            "case_0208_record",
+            "case_0213_record",
+            "case_0225_record",
+            "case_0233_record",
+            "case_0237_record",
+            "case_0240_record",
+            "case_0245_record",
+            "case_0250_record",
+            "case_0259_record",
+            "case_0267_record",
+            "case_0277_record",
+            "case_0284_record",
+            "case_0301_record",
+            "case_0308_record"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "provider_content_assertion",
+            "tla_projected_state"
+          ],
+          "stdout_sha256": "f82849a0dc86c486a3053cd69bea943560397fcc66b6747445dc826a689f54ab",
+          "failing_cases": [
+            "case_0020_record",
+            "case_0024_record",
+            "case_0030_record",
+            "case_0034_record",
+            "case_0038_record",
+            "case_0047_record",
+            "case_0056_record",
+            "case_0060_record",
+            "case_0064_record",
+            "case_0073_record",
+            "case_0094_record",
+            "case_0099_record",
+            "case_0100_record",
+            "case_0109_record",
+            "case_0133_record",
+            "case_0134_record",
+            "case_0143_record",
+            "case_0144_record",
+            "case_0148_record",
+            "case_0152_record",
+            "case_0157_record",
+            "case_0162_record",
+            "case_0177_record",
+            "case_0178_record",
+            "case_0181_record"
+          ]
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M6": {
+      "fault_class": "wrong write",
+      "path": "pipeline/dispatch/failures.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "c1f9c8877c04e4938cfe4f664f4b533664cdc67fab96edb10f57a6222dc3f685",
+          "failing_cases": [
+            "case_0019_fail",
+            "case_0023_fail",
+            "case_0029_fail",
+            "case_0033_fail",
+            "case_0037_fail",
+            "case_0043_fail",
+            "case_0046_fail",
+            "case_0052_fail",
+            "case_0055_fail",
+            "case_0059_fail",
+            "case_0063_fail",
+            "case_0069_fail",
+            "case_0072_fail",
+            "case_0078_fail",
+            "case_0082_fail",
+            "case_0088_fail",
+            "case_0093_fail",
+            "case_0097_fail",
+            "case_0098_fail",
+            "case_0105_fail",
+            "case_0108_fail",
+            "case_0114_fail",
+            "case_0118_fail",
+            "case_0124_fail",
+            "case_0131_fail",
+            "case_0132_fail",
+            "case_0138_fail",
+            "case_0141_fail",
+            "case_0142_fail",
+            "case_0147_fail",
+            "case_0151_fail",
+            "case_0155_fail",
+            "case_0156_fail",
+            "case_0160_fail",
+            "case_0161_fail",
+            "case_0168_fail",
+            "case_0175_fail",
+            "case_0176_fail",
+            "case_0180_fail",
+            "case_0184_fail",
+            "case_0188_fail",
+            "case_0189_fail",
+            "case_0193_fail",
+            "case_0194_fail",
+            "case_0199_fail",
+            "case_0202_fail",
+            "case_0206_fail",
+            "case_0207_fail",
+            "case_0211_fail",
+            "case_0212_fail"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 88,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "5b065920a0123a852b3c2409c8463c68ff1ee7e5b371f668fac955910675f4b4",
+          "failing_cases": [
+            "case_0019_fail",
+            "case_0023_fail",
+            "case_0029_fail",
+            "case_0033_fail",
+            "case_0037_fail",
+            "case_0043_fail",
+            "case_0046_fail",
+            "case_0052_fail",
+            "case_0055_fail",
+            "case_0059_fail",
+            "case_0063_fail",
+            "case_0069_fail",
+            "case_0072_fail",
+            "case_0078_fail",
+            "case_0082_fail",
+            "case_0088_fail",
+            "case_0093_fail",
+            "case_0097_fail",
+            "case_0098_fail",
+            "case_0105_fail",
+            "case_0108_fail",
+            "case_0114_fail",
+            "case_0118_fail",
+            "case_0124_fail",
+            "case_0131_fail",
+            "case_0132_fail",
+            "case_0138_fail",
+            "case_0141_fail",
+            "case_0142_fail",
+            "case_0147_fail",
+            "case_0151_fail",
+            "case_0155_fail",
+            "case_0156_fail",
+            "case_0160_fail",
+            "case_0161_fail",
+            "case_0168_fail",
+            "case_0175_fail",
+            "case_0176_fail",
+            "case_0180_fail",
+            "case_0184_fail",
+            "case_0188_fail",
+            "case_0189_fail",
+            "case_0193_fail",
+            "case_0194_fail",
+            "case_0199_fail",
+            "case_0202_fail",
+            "case_0206_fail",
+            "case_0207_fail",
+            "case_0211_fail",
+            "case_0212_fail"
+          ]
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M7": {
+      "fault_class": "wrong write",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 15,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "708972755fcdcd336972febef3ecec834bad7c3fb97d4e4f7fd69b5bee51f4d8",
+          "failing_cases": [
+            "case_0025_deliver",
+            "case_0091_deliver",
+            "case_0106_deliver",
+            "case_0136_deliver",
+            "case_0165_deliver",
+            "case_0166_deliver",
+            "case_0173_deliver",
+            "case_0234_deliver",
+            "case_0238_deliver",
+            "case_0241_deliver",
+            "case_0246_deliver",
+            "case_0297_deliver",
+            "case_0302_deliver",
+            "case_0306_deliver",
+            "case_0327_deliver"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 15,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "0d4c9ccf4c8e8f3290a605a96a235fc8cc3da943a2aa5369036b7b1155c3bec1",
+          "failing_cases": [
+            "case_0025_deliver",
+            "case_0091_deliver",
+            "case_0106_deliver",
+            "case_0136_deliver",
+            "case_0165_deliver",
+            "case_0166_deliver",
+            "case_0173_deliver",
+            "case_0234_deliver",
+            "case_0238_deliver",
+            "case_0241_deliver",
+            "case_0246_deliver",
+            "case_0297_deliver",
+            "case_0302_deliver",
+            "case_0306_deliver",
+            "case_0327_deliver"
+          ]
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    },
+    "M8": {
+      "fault_class": "wrong write",
+      "path": "pipeline/ingest/inbox.py",
+      "arms": {
+        "A": {
+          "exit": 1,
+          "killed": true,
+          "points": 22,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "f19ffc13e56a3e818b97baad125e67486aff8cc28d12f8ad677c009a53c5b402",
+          "failing_cases": [
+            "case_0001_accept",
+            "case_0002_accept",
+            "case_0003_accept",
+            "case_0005_accept",
+            "case_0009_accept",
+            "case_0011_accept",
+            "case_0017_accept",
+            "case_0021_accept",
+            "case_0035_accept",
+            "case_0039_accept",
+            "case_0041_accept",
+            "case_0044_accept",
+            "case_0048_accept",
+            "case_0050_accept",
+            "case_0079_accept",
+            "case_0080_accept",
+            "case_0083_accept",
+            "case_0085_accept",
+            "case_0086_accept",
+            "case_0089_accept",
+            "case_0127_accept",
+            "case_0128_accept"
+          ]
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 22,
+          "detectors": [
+            "tla_output"
+          ],
+          "stdout_sha256": "f9e29afad38f841db36236a61de595bb94823d3cf8fc1f6cc17892522e2cfd85",
+          "failing_cases": [
+            "case_0001_accept",
+            "case_0002_accept",
+            "case_0003_accept",
+            "case_0005_accept",
+            "case_0009_accept",
+            "case_0011_accept",
+            "case_0017_accept",
+            "case_0021_accept",
+            "case_0035_accept",
+            "case_0039_accept",
+            "case_0041_accept",
+            "case_0044_accept",
+            "case_0048_accept",
+            "case_0050_accept",
+            "case_0079_accept",
+            "case_0080_accept",
+            "case_0083_accept",
+            "case_0085_accept",
+            "case_0086_accept",
+            "case_0089_accept",
+            "case_0127_accept",
+            "case_0128_accept"
+          ]
+        }
+      },
+      "pytest": {
+        "exit": 1,
+        "killed": true
+      }
+    },
+    "M9": {
+      "fault_class": "ordering",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    },
+    "M10": {
+      "fault_class": "wrong write, durable side",
+      "path": "pipeline/ledger/journal.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 1,
+          "killed": true,
+          "points": 16,
+          "detectors": [
+            "provider_content_assertion"
+          ],
+          "stdout_sha256": "574453cd7b6e0700a0279461300ade44490d00103be27c1d588e0f30a9c207ac",
+          "failing_cases": [
+            "case_0157_record",
+            "case_0162_record",
+            "case_0190_record",
+            "case_0195_record",
+            "case_0208_record",
+            "case_0213_record",
+            "case_0225_record",
+            "case_0233_record",
+            "case_0245_record",
+            "case_0250_record",
+            "case_0259_record",
+            "case_0267_record",
+            "case_0277_record",
+            "case_0284_record",
+            "case_0301_record",
+            "case_0308_record"
+          ]
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    },
+    "M11": {
+      "fault_class": "ordering",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    },
+    "M12": {
+      "fault_class": "ordering",
+      "path": "pipeline/ingest/queue.py",
+      "arms": {
+        "A": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        },
+        "B": {
+          "exit": 0,
+          "killed": false,
+          "points": 0,
+          "detectors": [],
+          "stdout_sha256": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+          "failing_cases": []
+        }
+      },
+      "pytest": {
+        "exit": 0,
+        "killed": false
+      }
+    }
+  }
+}

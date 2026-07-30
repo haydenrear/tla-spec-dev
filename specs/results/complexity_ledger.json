@@ -9727,6 +9727,395 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EV-03",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T22:23:06.942431+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 2799360,
+        "bound_complete": false,
+        "bound_resolved_variables": 8,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "bound_complete": false,
+            "percent_lower_bound": 279.9,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "RP-07",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "EV-03",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T22:24:24.353403+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 2799360,
+        "bound_complete": false,
+        "bound_resolved_variables": 8,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "bound_complete": false,
+            "percent_lower_bound": 279.9,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "RP-07",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none, and the search is a no-op by construction: EV-03 is a MEASUREMENT ticket whose declared conflict keys are examples/validation/ and NEXT-EPIC.md. It added no model state, no action, no production code and no test; `git diff --stat HEAD -- specs/current specs/program_model` is empty and ticket current == ticket desired (results/zero-model-delta.txt). There is no representation this ticket introduced that could be refined away. The refinement opportunities this ticket DID find are in the tool it was measuring, not in the model, and every one of them was FILED rather than applied -- EV-03-DF-01..05 in specs/desired_program_model/deferred_findings.yaml -- because a fix during a measurement destroys the measurement. The largest, EV-03-DF-03, has a suggested fix that is entirely in the detection path and changes no verdict rule.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "EV-03 re-ran the whole eval suite against the repaired tree (RP-01..RP-05, RP-07 merged) and re-scored it against the SAME committed predictions in examples/validation/PREDICTIONS.md, which was not edited. The headline artifact is examples/validation/runs/ROUND-2-DELTA.md; the per-arm records are runs/ex4-run4..6, runs/ex5-run3..4 and runs/ex6-run2.\nMEASURED, NOT ASSUMED -- what worked. RP-01: the 203-partition sweep of the divergent fixture reports 0 `coherent`, down from 12, with all 203 exiting 0. The number that had to be checked separately is that it removed no TRUE findings: zero of round 1's 71 divergence verdicts were lost, and 20 previously-suppressed ones were released (71 -> 91). RP-01's basis_limits vs blind_spots distinction was verified independently -- 67 of round 1's 71 divergence verdicts carry partition_does_not_decompose, so filing that as a blind spot would have suppressed 67 real findings to remove the same 12 false cleans. DP-2 re-scored MISSED -> CAUGHT, DP-2b CONFIRMED -> CLOSED on the measured path. RP-03: case modules generate from the documented location (round 1: exit 150), their corpora carry 50/50 and 6/6 recovered arguments (round 1: 0/50 and 0/6), and a Given's corpus EXECUTES against the project's unchanged adapters -- a capability that did not exist in round 1.\nTHE HONEST NEGATIVE. RP-02 took parameter recovery from 0 of 5 to 5 of 5, removed the oracle leak completely, and made the audit render from the corpus it audits. THE MUTANT MATRIX DID NOT MOVE A SINGLE CELL: ARM A 4/6, ARM B 6/6, guard relaxation 0/3, ordering 0/3, identical to round 1 on both catalogues and on the pytest column, and re-confirmed a third time by a blind agent on a fresh 16-mutant catalogue (0 of 4 guard-accepts on five corpus instruments). Round 1's own conclusion that parameter recovery was part of the reason guard relaxation is unkillable is FALSIFIED, and NEXT-EPIC.md retracts it in place.\nTHE FINDING OF THE ROUND, which is about the tool this ticket was measuring. Blind run A -- an agent with no epic context, told only to make the architecture report clean -- reported, and the scorer reproduced independently from scratch, that every divergence is erasable with NO declaration edit, no map edit, no blind spot and no basis limit, by re-exporting the offending symbol through a first-party package nested one directory deeper than architecture_reflexion.py's single-path first-party check. Measured: `coherent` on the divergent twin for a 41-line diff, both digests byte-identical to the answer key, blind_spots [], basis_limits [], 8/8 behavioural tests green, and the runtime coupling fully intact. The same defect the other way round flips the COHERENT fixture to `unmappable` when its generated package moves up one directory with zero Python changed -- so this epic's only positive architecture result was conditional on directory depth. EV-03-DF-03, major, FILED NOT FIXED. It is a false clean of exactly the DP-1 class the epic's scoring rule exists to catch, and the rule cannot see it because no declared artifact moved.\nWHAT THIS TICKET DID NOT MEASURE, so a silence is not read as a result. RP-04's partial-bound honesty and RP-05's suite repair were exercised only through the 954-passing repository suite; this ticket built no independent instrument for either. DP-7 was not re-exercised -- no --baseline architecture delta was taken in round 2, which is why architecture_delta below is an honest not_run. The sweep varies the PARTITION and not the MAP, so the map-gaming space is unenumerated. Everything is still one model, six variables, and two fixtures that share a layout the finding above turns out to depend on.\nCOMPLEXITY. Zero model delta, verified three ways in results/zero-model-delta.txt. The ledger's `direction=zero` against RP-07 is correct and the bound is unchanged at 2,799,360 (INCOMPLETE, 8/10 variables resolved, over cap) -- the same figure RP-07 recorded, carried forward unmodified. The over-cap state is inherited, not introduced: this ticket touched no TLA+ module. The `bound` percent is a floor and the ledger says so, which is RP-04's repair working on this ticket's own close.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

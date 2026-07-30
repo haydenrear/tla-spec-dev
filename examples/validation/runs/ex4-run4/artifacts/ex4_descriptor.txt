@@ -1,0 +1,86 @@
+analyze architecture -- Pipeline (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+  config:   /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex4_pipeline_coherent/specs/program_model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: DECLARED
+  declared by the project in /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex4_pipeline_coherent/specs/program_model/architecture_components.yaml
+  actions: top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions
+
+  C1 (ingest)
+    variables:         accepted, inbox, queue
+    owns (writes confined here): accepted, inbox
+    internal actions:  Accept, Enqueue
+    crossing actions:  Deliver
+    reaches C2 via: Deliver
+
+  C2 (dispatch)
+    variables:         delivered, failed
+    owns (writes confined here): failed
+    internal actions:  Fail
+    crossing actions:  Deliver, Record
+    reaches C1 via: Deliver
+    reaches C3 via: Record
+
+  C3 (ledger)
+    variables:         ledger
+    owns (writes confined here): ledger
+    internal actions:  (none)
+    crossing actions:  Record
+    reaches C2 via: Record
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = 0.133
+  [OK  ] component_count: measured 3, rule >= 2
+         a partition with one component separated nothing
+  [OK  ] modularity_q: measured 0.132653, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [OK  ] crossing_action_fraction: measured 0.4, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: the partition is a cut -- every criterion above is met.
+
+[MEASURED] State ownership -- which actions write each variable
+  inbox      Accept
+  accepted   Accept
+  queue      Deliver, Enqueue
+  delivered  Deliver, Fail
+  failed     Fail
+  ledger     Record
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  basis: the DECLARED partition (/Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex4_pipeline_coherent/specs/program_model/architecture_components.yaml)
+  delivered: written from C1, C2 by Deliver, Fail
+  queue: written from C1, C2 by Deliver, Enqueue
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  P1  C1 <-> C2
+      crossed by: Deliver
+  P2  C2 <-> C3
+      crossed by: Record
+
+  per crossing action:
+    Deliver crosses C1, C2 (P1)
+      C1: reads queue | writes queue
+      C2: reads delivered, failed | writes delivered
+    Record crosses C2, C3 (P2)
+      C2: reads delivered | writes -
+      C3: reads ledger | writes ledger
+
+[MEASURED] Spanning actions -- write sets that span components
+  Deliver writes C1: queue; C2: delivered in one step
+
+[MEASURED] Architecture scan verdict
+  architecture_scan = unmappable
+    - no production code was supplied: `analyze architecture` on its own measures only the model side. The code comparison (--code/--map, the reflexion check) is AC-02; until it runs, coherence is unobserved
+
+  `analyze architecture` exits 0 whenever it can analyze the model. A model
+  with no architecture is a FINDING, not a failure. It exits nonzero ONLY
+  when the model cannot be analyzed at all (an unresolved module hierarchy),
+  which is 'I could not measure this'. Nothing here blocks a close, a
+  promotion, or a case generation.

@@ -1,0 +1,30 @@
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runB-pristine/specs/program_model/spec_manifest.yaml	2026-07-30 17:55:15
++++ /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runB/specs/program_model/spec_manifest.yaml	2026-07-30 17:58:24
+@@ -13,6 +13,27 @@
+ # The component partition lives in its own file,
+ # specs/program_model/architecture_components.yaml.
+ 
++# Declared case modules. The files live in specs/case_modules/ and generate
++# from there in place; this block is what the coverage report reads.
++# Case modules are ADDITIVE: Pipeline.tla keeps generating its own 330-case
++# corpus, and the union of these modules is NOT equivalent to it.
++case_modules:
++  Scenario_IntakeToDelivery:
++    extends: Pipeline
++    view: internal
++    form: slice
++    actions: [Accept, Enqueue, Deliver]
++  Scenario_DurableOutcome:
++    extends: Pipeline
++    view: internal
++    form: given
++    actions: [Fail, Record]
++    claim: >-
++      What happens to a delivered item -- whether it fails, whether it reaches
++      the ledger, and what the durable store ends up holding -- is independent
++      of the intake path the item took to become delivered, i.e. of which
++      reachable (inbox, accepted, queue) configuration it was delivered from.
++
+ types: {}
+ 
+ state:

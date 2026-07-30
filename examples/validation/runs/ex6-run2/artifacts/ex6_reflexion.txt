@@ -1,0 +1,71 @@
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       specs/program_model/architecture_map.yaml
+  code root: hub
+  scanned 6 Python module(s); the map places 6 of them in 3 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  0 edge(s) stay inside one component and were not checked against a port
+
+  Measured against this partition -- the basis of every figure below:
+    source:  DECLARED
+    origin:  declared by the project in /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex6_jenga/specs/program_model/architecture_components.yaml
+    components: billing, notify, orders
+    does this partition decompose the model?
+      [OK  ] component_count: measured 3, rule >= 2
+      [FAIL] modularity_q: measured -0.1856, rule > 0
+      [FAIL] crossing_action_fraction: measured 0.8, rule <= 0.5
+      -> DOES NOT DECOMPOSE (modularity_q, crossing_action_fraction). The comparison still runs and every finding
+         below is real, but this program's own rule says this is not a cut, so a
+         clean result measured against it is not a clean result about the code.
+
+  Is a divergence even detectable here?
+    component pairs with a port:    billing<->notify, billing<->orders, notify<->orders
+    component pairs with NO port:   (none)
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+    divergence_detectable = false
+
+  CONVERGENCES (7) -- a crossing edge the model declares a port for
+    billing -> notify  (P3) billing/audit.py -> notify/flags.py  [import hub.notify.flags.DirtyFlags]  hub/billing/audit.py:5
+    billing -> orders  (P1) billing/audit.py -> orders/lifecycle.py  [import hub.orders.lifecycle.Lifecycle]  hub/billing/audit.py:20
+    billing -> orders  (P1) billing/audit.py -> orders/lifecycle.py  [call Lifecycle.__dict__.get]  hub/billing/audit.py:22
+    notify -> billing  (P3) notify/flags.py -> billing/audit.py  [import hub.billing.audit.AuditTrail]  hub/notify/flags.py:17
+    notify -> orders  (P2) notify/flags.py -> orders/lifecycle.py  [import hub.orders.lifecycle.Lifecycle]  hub/notify/flags.py:18
+    orders -> billing  (P1) orders/lifecycle.py -> billing/audit.py  [import hub.billing.audit.AuditTrail]  hub/orders/lifecycle.py:5
+    orders -> notify  (P2) orders/lifecycle.py -> notify/flags.py  [import hub.notify.flags.DirtyFlags]  hub/orders/lifecycle.py:6
+
+  DIVERGENCES (0) -- a crossing edge NO port declares
+    none.
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 1 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__
+
+[MEASURED] Reflexion verdict
+  architecture_scan = unmappable
+    - [unfalsifiable_coherence] every one of the 3 component pair(s) in this architecture has a port, so no code edge could have been a divergence. 'No divergences' here is a property of the declared architecture, not a measurement of the code, and a coherent verdict would be true by construction. (This is what a model whose actions all touch the same variables produces under any partition.) (/Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex6_jenga/specs/program_model/Jenga.tla)
+    - [partition_does_not_decompose] the DECLARED partition fails 2 of 3 decomposition criteria (modularity_q measured -0.1856, rule > 0; crossing_action_fraction measured 0.8, rule <= 0.5), so this program's own published rule says it is not a cut of this model. The findings below are real and are reported in full -- what is withheld is the clean: `coherent` measured against a partition the model does not support is a different claim from `coherent` measured against one it does, and the verdict may not spend the same word on both. Declaring a coarser partition is the cheapest way to make every divergence vanish with no code change. (declared by the project in /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex6_jenga/specs/program_model/architecture_components.yaml)
+
+  measured against:
+    partition:              DECLARED, 3 component(s)
+    partition decomposes:   NO -- fails modularity_q, crossing_action_fraction
+    divergence_detectable:  FALSE -- no code edge could have been a divergence
+    a clean result is       NOT SUPPORTABLE on this basis
+
+  UNMAPPABLE is not 'clean with caveats' and not 'nothing found'. Any finding
+  listed above is real; the verdict says the check could not see the whole
+  target, so it will not certify what it did not observe. Nothing downgrades
+  this: there is no flag, key, annotation, or environment variable that turns
+  it into `coherent`.
+
+  Here it is the BASIS, not the extractor, that withholds the clean. The
+  partition is not refused and the comparison was not skipped: everything
+  above was measured, this command exits 0, and nothing is blocked. What
+  is withheld is the word `coherent`, which is a claim about the CODE --
+  and it cannot be bought by declaring a coarser boundary.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
