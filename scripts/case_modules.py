@@ -30,10 +30,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Sequence
 
 try:  # package import
     from .extract_spec_manifest import load_manifest
@@ -45,6 +46,10 @@ except ImportError:  # pragma: no cover - direct script execution
 CASE_MODULES_KEY = "case_modules"
 COVERAGE_FILENAME = "case_coverage.json"
 FORMS = ("slice", "given")
+
+#: The system property SANY reads as its module search path. TLC has no
+#: command-line equivalent (there is no ``-lib``), so it is set on the JVM.
+TLA_LIBRARY_PROPERTY = "TLA-Library"
 
 
 class CaseModuleError(Exception):
@@ -71,6 +76,240 @@ class CaseModuleDeclaration:
             "claim": self.claim,
             "view": self.view,
         }
+
+
+# --------------------------------------------------------------------------
+# Module search path (EV-02-DF-02)
+# --------------------------------------------------------------------------
+
+
+class ModuleSearchError(CaseModuleError):
+    """An ``EXTENDS`` could not be resolved to a file, or resolved ambiguously.
+
+    Raised BEFORE TLC is started, because TLC's own failure for this is a
+    ``tla2sany.semantic.AbortException`` stack thirty lines below the sentence
+    that names the missing module, and it is preceded by the complexity
+    scanner's fail-closed paragraph. Both are true and neither says "the view
+    you EXTENDS is in another directory".
+    """
+
+
+@dataclass(frozen=True)
+class ModuleSearchPath:
+    """Where the modules of one ``EXTENDS`` hierarchy were found.
+
+    ``directories`` is the search path in precedence order, starting with the
+    module's own directory. It is what SANY is given as ``TLA-Library`` and what
+    the static analyzer is given as its lookup path, so the two can never
+    resolve the same ``EXTENDS`` to different files.
+    """
+
+    root: Path
+    directories: tuple[Path, ...]
+    resolved: tuple[tuple[str, Path], ...]
+    searched: tuple[tuple[Path, str], ...]
+
+    @property
+    def is_self_contained(self) -> bool:
+        """True when every EXTENDS resolved inside the module's own directory."""
+        return len(self.directories) == 1
+
+    @property
+    def elsewhere(self) -> tuple[tuple[str, Path], ...]:
+        """The modules that resolved OUTSIDE the module's own directory."""
+        root = self.root.parent
+        return tuple((name, path) for name, path in self.resolved if path.parent != root)
+
+    @property
+    def files_base_first(self) -> tuple[Path, ...]:
+        """Every file of the hierarchy, base modules first, root module last.
+
+        ``resolved`` is in discovery order (the root's own EXTENDS, then
+        theirs), so reversing it puts the deepest base module first. That is the
+        order a reader of the concatenated text needs: an extending module's
+        definitions must come after the ones they extend.
+        """
+        return tuple(path for _, path in reversed(self.resolved)) + (self.root,)
+
+    def tla_library(self) -> str:
+        """The value for the ``TLA-Library`` system property."""
+        return os.pathsep.join(str(directory) for directory in self.directories)
+
+    def describe(self) -> str:
+        parts = [
+            f"{name} -> {path}" for name, path in self.elsewhere
+        ]
+        return "; ".join(parts)
+
+
+def _analyzer() -> Any:
+    """The static TLA+ reader, imported lazily to keep this module cycle-free."""
+    try:  # package import
+        from . import analyze_complexity  # type: ignore[attr-defined]
+    except ImportError:  # pragma: no cover - direct script execution
+        import analyze_complexity  # type: ignore[no-redef]
+    return analyze_complexity
+
+
+def candidate_module_directories(
+    tla_path: Path, extra_roots: Sequence[Path] = ()
+) -> list[tuple[Path, str]]:
+    """Directories searched for the modules ``tla_path`` EXTENDS, in order.
+
+    Three kinds, and the precedence between them is the whole rule:
+
+    1. ``module`` -- the module's own directory. A view sitting beside the case
+       module always wins, which is what TLC itself does.
+    2. ``explicit`` -- every ``--module-path`` the operator passed, in order.
+    3. ``sibling`` -- directories beside the module's own that contain at least
+       one ``.tla``. This is what makes the documented layout
+       (``specs/case_modules/`` extending ``specs/program_model/``) work without
+       a flag. It is one level, never recursive, and a module found in two
+       siblings is an ERROR rather than a coin flip.
+    """
+    root = Path(tla_path).resolve().parent
+    directories: list[tuple[Path, str]] = [(root, "module")]
+    seen = {root}
+    for extra in extra_roots:
+        resolved = Path(extra).resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        directories.append((resolved, "explicit"))
+    parent = root.parent
+    if parent != root and parent.is_dir():
+        for sibling in sorted(parent.iterdir()):
+            resolved = sibling.resolve()
+            if resolved in seen or not sibling.is_dir():
+                continue
+            if not any(sibling.glob("*.tla")):
+                continue
+            seen.add(resolved)
+            directories.append((resolved, "sibling"))
+    return directories
+
+
+def resolve_search_path(
+    tla_path: Path, extra_roots: Sequence[Path] = ()
+) -> ModuleSearchPath:
+    """Resolve every non-standard ``EXTENDS`` of ``tla_path``, transitively.
+
+    Raises :class:`ModuleSearchError` naming the module, the directories that
+    were searched, and the flag that fixes it. Nothing here inspects the
+    contents of a module beyond its ``EXTENDS`` clause: this answers "which
+    files does TLC need to read", not "what do they declare".
+    """
+    analyzer = _analyzer()
+    tla_path = Path(tla_path).resolve()
+    candidates = candidate_module_directories(tla_path, extra_roots)
+    root_dir = tla_path.parent
+
+    resolved: dict[str, Path] = {}
+    used: list[Path] = [root_dir]
+    queue: list[Path] = [tla_path]
+    visited: set[Path] = {tla_path}
+
+    while queue:
+        current = queue.pop(0)
+        try:
+            text = analyzer.strip_comments(current.read_text(encoding="utf-8"))
+        except OSError as error:
+            raise ModuleSearchError(f"could not read {current}: {error}") from error
+        for name in analyzer.parse_extends(text):
+            if name in analyzer.STANDARD_MODULES or name in resolved:
+                continue
+            hits = [
+                (directory / f"{name}.tla", kind)
+                for directory, kind in candidates
+                if (directory / f"{name}.tla").is_file()
+            ]
+            if not hits:
+                searched = "\n".join(
+                    f"    {directory}  ({kind})" for directory, kind in candidates
+                )
+                raise ModuleSearchError(
+                    f"module {current.stem} EXTENDS {name}, but {name}.tla is in none of "
+                    f"the directories on the module search path:\n{searched}\n"
+                    f"  TLC resolves EXTENDS against the directory of the .tla it is given "
+                    f"and the TLA-Library search path -- never against the current "
+                    f"directory. Put {name}.tla on the path with "
+                    f"--module-path <dir containing {name}.tla>, or move the module beside "
+                    f"it. (If {name} is a standard library module this toolchain does not "
+                    "know, add it to analyze_complexity.STANDARD_MODULES once verified.)"
+                )
+            ambiguous = [path for path, kind in hits if kind == "sibling"]
+            if hits[0][1] == "sibling" and len(ambiguous) > 1:
+                raise ModuleSearchError(
+                    f"module {current.stem} EXTENDS {name}, and {name}.tla exists in more "
+                    "than one directory beside "
+                    f"{root_dir}:\n"
+                    + "\n".join(f"    {path}" for path in ambiguous)
+                    + "\n  Refusing to guess which one the model means. Name it with "
+                    "--module-path <dir>, which takes precedence over the siblings."
+                )
+            chosen = hits[0][0]
+            resolved[name] = chosen
+            if chosen.parent not in used:
+                used.append(chosen.parent)
+            if chosen not in visited:
+                visited.add(chosen)
+                queue.append(chosen)
+
+    return ModuleSearchPath(
+        root=tla_path,
+        directories=tuple(used),
+        resolved=tuple(resolved.items()),
+        searched=tuple(candidates),
+    )
+
+
+MANIFEST_FILENAME = "spec_manifest.yaml"
+
+
+def resolve_manifest_path(
+    spec_dir: Path, search_path: ModuleSearchPath | None = None
+) -> Path:
+    """The manifest that governs a generation, following the module search path.
+
+    A case module in ``specs/case_modules/`` has no manifest beside it -- the
+    manifest belongs to the VIEW it extends, in ``specs/program_model/``. Before
+    EV-02-DF-02 the module had to be copied beside the view to generate at all,
+    so the two directories were the same one and this never came up. Looking
+    along the same path TLC reads keeps the declaration, the budgets and the
+    corpus talking about one project.
+
+    Returns the path beside ``spec_dir`` when nothing is found, so the caller
+    still reports a missing manifest against the directory it expected.
+    """
+    local = Path(spec_dir) / MANIFEST_FILENAME
+    if local.is_file() or search_path is None:
+        return local
+    for directory in search_path.directories:
+        candidate = Path(directory) / MANIFEST_FILENAME
+        if candidate.is_file():
+            return candidate
+    return local
+
+
+def tlc_environment(
+    search_path: ModuleSearchPath | None, env: dict[str, str] | None = None
+) -> dict[str, str]:
+    """A process environment that gives SANY ``search_path`` as its module path.
+
+    TLC exposes no ``-lib`` flag; SANY reads the ``TLA-Library`` **system
+    property**, so the only way through a ``tlc2`` launcher script is the JVM's
+    own ``JAVA_TOOL_OPTIONS``. The JVM prints one "Picked up JAVA_TOOL_OPTIONS"
+    line to stderr when it does this; that line is the receipt for the search
+    path and is expected. Nothing is set when every module resolved locally, so
+    the common case is byte-identical to before.
+    """
+    base = dict(os.environ if env is None else env)
+    if search_path is None or search_path.is_self_contained:
+        return base
+    option = f"-D{TLA_LIBRARY_PROPERTY}={search_path.tla_library()}"
+    existing = base.get("JAVA_TOOL_OPTIONS", "").strip()
+    base["JAVA_TOOL_OPTIONS"] = f"{existing} {option}".strip()
+    return base
 
 
 def _as_str_list(value: Any) -> list[str] | None:

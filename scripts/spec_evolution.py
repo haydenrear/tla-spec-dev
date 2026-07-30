@@ -534,30 +534,6 @@ def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
 # whole program; measuring Core measures a module with no actions at all.
 BASELINE_VIEW_PREFERENCE = ("External", "Internal", "Core")
 MODEL_DECLARATION_KEY = "model"
-# TLC config keywords, used only to recognise a keyword line that a lenient cfg
-# reader handed back as an identifier. See CM-01-DF-02.
-CFG_KEYWORDS = frozenset(
-    {
-        "SPECIFICATION",
-        "INIT",
-        "NEXT",
-        "INVARIANT",
-        "INVARIANTS",
-        "PROPERTY",
-        "PROPERTIES",
-        "CONSTANT",
-        "CONSTANTS",
-        "CONSTRAINT",
-        "CONSTRAINTS",
-        "ACTION_CONSTRAINT",
-        "ACTION_CONSTRAINTS",
-        "SYMMETRY",
-        "VIEW",
-        "ALIAS",
-        "POSTCONDITION",
-        "CHECK_DEADLOCK",
-    }
-)
 
 
 class ModelSelectionError(Exception):
@@ -742,14 +718,14 @@ def validate_model_pair(selection: ModelSelection) -> list[str]:
             f"no behavior for {selection.tla.name} to be measured against"
         )
 
+    # CM-01-DF-02 was a workaround here: parse_cfg_invariants used to hand back
+    # the bare keyword line that ENDS an INVARIANT block ("INVARIANT Inv"
+    # followed by a bare "CONSTANTS") as if it were another invariant name, so
+    # this loop skipped TLC config keywords or it manufactured a mismatch on a
+    # pair that matches. RP-04 fixed the parser and measured the skip as dead
+    # code; RP-03 deleted it. The proof is
+    # specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt
     for invariant in analyze_complexity.parse_cfg_invariants(cfg_text):
-        if invariant in CFG_KEYWORDS:
-            # CM-01-DF-02 (deferred): parse_cfg_invariants returns the bare
-            # keyword line that ENDS the INVARIANT block ("INVARIANT Inv"
-            # followed by a bare "CONSTANTS") as if it were another invariant
-            # name. Harmless where it is only used to look up a definition;
-            # here it would manufacture a mismatch on a pair that matches.
-            continue
         if invariant not in defined:
             problems.append(
                 f"{selection.cfg.name} configures INVARIANT {invariant}, which "

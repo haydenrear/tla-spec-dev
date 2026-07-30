@@ -86,6 +86,46 @@ A BDD "Given" is naturally form 2. Writing the Given as a replay of the setup
 actions instead (`Next` containing the whole happy path plus the aspect's
 actions) puts the enumeration back and buys almost nothing.
 
+## The authoring asymmetry: a slice comes from outside, a Given cannot
+
+This is the real limit on the "manual test starter" use of case modules, and it
+was measured (EV-02-DF-04). An agent who had never seen the fixture, given only
+its public surface — the README and `actions.yml` — authored a working slice and
+a working Given for it, and reported the difference between the two experiences:
+
+> the aspect came from the outside; the Given could only be written from the
+> inside.
+
+Concretely:
+
+| | what you must know to write it | where that knowledge lives |
+|---|---|---|
+| **slice** (restrict `Next`) | the action *names* you want to enter, and their arities | `actions.yml`, the README, the public surface |
+| **Given** (replace `Init`) | **every state variable of the view**, its type, and enough of each action's guard to write a pre-state the aspect can actually run from | the model itself |
+
+A slice is `\/ \E i \in Items : Deliver(i)` repeated — copy the names out of
+`actions.yml` and you are done. A Given is
+`inbox = Items \ {i} /\ accepted = {i} /\ queue = {} /\ delivered = {i} /\ ...`
+over *all six* variables, because rule 1 of Step 3 in
+`prompts/aspect_decomposition.md` is not a style preference: leave one variable
+unconstrained and TLC enumerates its whole domain from the initial state, and
+you get neither the reduction nor the situation you described. You cannot write
+that from a README. You cannot even discover the *variable list* from a README.
+
+So plan the work accordingly:
+
+- **A slice is an outside-in artifact.** It can be commissioned from someone who
+  knows the product and not the model, and it is the cheap on-ramp.
+- **A Given is an inside-out artifact.** It needs the model open. What an
+  outsider can contribute is the *claim* — "resubmission is independent of cart
+  contents" — which is the part that actually needs product knowledge; someone
+  with the model then writes the predicate that encodes it.
+
+Splitting a Given that way is fine and arguably correct: the claim is the
+reviewable half. What is not fine is pretending the predicate was authored from
+the outside. `form: given` modules are where a decomposition silently stops
+being an outside-in artifact, and no tool can tell the difference afterwards.
+
 ## Measured evidence (one probe, `examples/case_modules/`)
 
 Against the shipped worked example `examples/distributed_history`, three case
@@ -193,6 +233,11 @@ python3 scripts/run_generated_case_adapters.py generated/testgraph/checkout_happ
   --mapping specs/program_model/testgraph_bindings.yml --view external --batch --validate-only
 ```
 
+Those commands are for an **external** view. An internal-only project has no
+`--view external`, no `generated/testgraph/`, and no `testgraph_bindings.yml`;
+see "Worked example: an internal-only project" below, whose commands run as
+written.
+
 The last command reported `external channel enforcement passed for 4 binding(s)`
 and `validated 11 adapter mappings for 5 labels` on a case-module package with
 no adapter changes at all. That is the property that makes the option cheap: a
@@ -203,7 +248,185 @@ The module resolver follows `EXTENDS` transitively and fails closed on
 that instantiates its view is unanalyzable, and the failure is an exit-nonzero
 "I could not measure this", not a warning.
 
-## Known frictions (measured in the probe, filed as CM-F1..F4)
+### Where a case module may live, and how EXTENDS is resolved (EV-02-DF-02)
+
+**A case module generates from wherever you keep it.** It does not have to sit
+beside the view it extends, and it never has to be copied there.
+
+TLC has no `-lib` flag and does not search the current directory: SANY resolves
+`EXTENDS` against the directory of the `.tla` it was handed, plus the
+`TLA-Library` system property. Generation therefore resolves the whole `EXTENDS`
+hierarchy first and hands SANY the directories it found, in this order:
+
+1. the module's own directory — a view sitting beside it always wins;
+2. every `--module-path DIR` you passed, in order;
+3. **directories beside the module's own that contain `.tla` files.** This is
+   what makes the documented layout work with no flag at all: a module in
+   `specs/case_modules/` finds a view in `specs/program_model/`. One level,
+   never recursive, and a module found in two siblings is an error rather than a
+   coin flip — name the one you mean with `--module-path`.
+
+The same path is given to the static complexity/architecture scanner, so the
+scan and the corpus can never be reading different files. When anything resolves
+outside the module's own directory the run says so before it starts:
+
+```
+module search path: .../specs/case_modules, .../specs/program_model
+  EXTENDS resolved outside .../specs/case_modules: Pipeline -> .../specs/program_model/Pipeline.tla
+```
+
+and a module that cannot be found is one sentence *before* TLC runs, naming the
+module, every directory searched, and the flag that fixes it — not a
+`tla2sany.semantic.AbortException` thirty lines under a complexity paragraph.
+
+Two consequences of living in a different directory, both handled:
+
+- **the manifest.** `spec_manifest.yaml` belongs to the *view*, not to the case
+  module. It is looked up along the same search path, so the `case_modules:`
+  declaration, the budgets and the corpus all still describe one project.
+- **parameter recovery.** A case module declares no actions — they are all in
+  the view — so the MF-029 recipes are built from the whole hierarchy, base
+  modules first. Reading only the module's own text recovered arguments for
+  nothing and left every case with no argument at all, which the adapters then
+  refuse with ``no usable argument for `i```.
+
+### `--out` is resolved against the spec directory
+
+A **relative** `--out` is resolved against the **spec directory** (the `.tla`'s
+own directory), not the current directory — unless it already points inside the
+spec directory. `--out generated`, run from a repo root, writes
+`<spec dir>/generated`, which is rarely what was meant. The rule keeps generated
+corpora beside the spec they came from; it is a surprise exactly once, so the
+run now prints where the path landed:
+
+```
+note: --out generated resolved to .../specs/program_model/generated -- a relative
+--out is resolved against the SPEC DIRECTORY (...), not the current directory (...).
+Pass an absolute path to control it.
+```
+
+**Pass an absolute path when you want cwd-relative behavior.** The worked
+example below does.
+
+## Worked example: an internal-only project
+
+Every command in this section was run verbatim on the shipped fixture
+`examples/validation/ex4_pipeline_coherent`, whose two case modules live in
+`specs/case_modules/` and extend a view in `specs/program_model/`. Nothing is
+copied and nothing is edited. The recorded output is
+`specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/internal-view-worked-example.txt`.
+
+This is the shape most projects actually have: one `Pipeline.tla`, every action
+`layer: internal`, no External view, no `testgraph_bindings.yml`.
+
+```bash
+export REPO=$(git rev-parse --show-toplevel)
+cd "$REPO/examples/validation/ex4_pipeline_coherent"
+export OUT=$(mktemp -d)          # absolute --out: resolved as given
+```
+
+**1 — the action set comes from a command, not from your attention.**
+
+```bash
+python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze architecture \
+  specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg \
+  --format json | python3 -c \
+  "import json,sys; [print(a['name']) for a in sorted(json.load(sys.stdin)['measured']['actions'], key=lambda a: a['name'])]"
+# Accept Deliver Enqueue Fail Record
+```
+
+**2 — the view's own corpus. Case modules are additive; this keeps running.**
+
+```bash
+PYTHONPATH=$PWD python3 "$REPO/scripts/generate_cases_from_tlc_dump.py" \
+  specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg \
+  --out "$OUT" --package Pipeline_cases --view internal \
+  --actions-metadata specs/program_model/actions.yml \
+  --state-projector specs.program_model.tlc_projection:project_visible_state \
+  --output-projector specs.program_model.tlc_projection:project_adapter_output \
+  --dedupe projected
+# -> 330 cases from 121 states; 330/330 carry recovered arguments
+```
+
+**3 — the slice and the Given, generated from `specs/case_modules/` in place.**
+
+```bash
+PYTHONPATH=$PWD python3 "$REPO/scripts/generate_cases_from_tlc_dump.py" \
+  specs/case_modules/Scenario_DeliveryPath.tla specs/case_modules/Scenario_DeliveryPath.cfg \
+  --out "$OUT" --package Scenario_DeliveryPath_cases --view internal \
+  --actions-metadata specs/program_model/actions.yml \
+  --state-projector specs.program_model.tlc_projection:project_visible_state \
+  --output-projector specs.program_model.tlc_projection:project_adapter_output \
+  --dedupe projected
+# -> 50 cases from 25 states; 50/50 carry recovered arguments
+
+PYTHONPATH=$PWD python3 "$REPO/scripts/generate_cases_from_tlc_dump.py" \
+  specs/case_modules/Scenario_RecordAfterDelivery.tla specs/case_modules/Scenario_RecordAfterDelivery.cfg \
+  --out "$OUT" --package Scenario_RecordAfterDelivery_cases --view internal \
+  --actions-metadata specs/program_model/actions.yml \
+  --state-projector specs.program_model.tlc_projection:project_visible_state \
+  --output-projector specs.program_model.tlc_projection:project_adapter_output \
+  --dedupe projected
+# -> 6 cases from 8 states; 6/6 carry recovered arguments
+```
+
+**4 — the declaration, and the coverage report over all three corpora.**
+
+```bash
+python3 "$REPO/scripts/case_modules.py" validate \
+  --manifest specs/program_model/spec_manifest.yaml
+
+python3 "$REPO/scripts/case_modules.py" coverage \
+  --manifest specs/program_model/spec_manifest.yaml \
+  --actions-metadata specs/program_model/actions.yml --view internal \
+  --corpus "$OUT/spec-unit/Scenario_DeliveryPath_cases" \
+  --corpus "$OUT/spec-unit/Scenario_RecordAfterDelivery_cases" \
+  --corpus "$OUT/spec-unit/Pipeline_cases"
+```
+
+```
+action   view corpus  Scenario_DeliveryPath  Scenario_RecordAfterDelivery  modules total
+-------  -----------  ---------------------  ----------------------------  -------------
+Accept   22           10                     0                             10
+Deliver  66           20                     0                             20
+Enqueue  110          20                     0                             20
+Fail     88           0                      4                             4
+Record   44           0                      2                             2
+
+UNCOVERED: none -- every view action is entered by a measured module or covered
+by the view's own corpus.
+```
+
+**5 — run a case-module corpus against the project's existing adapters.** Two
+`--import-root`: one for the project, one for the parent of the generated
+contract package. This is the whole point of the option — no adapter changed.
+
+```bash
+python3 "$REPO/scripts/run_generated_case_adapters.py" \
+  "$OUT/spec-unit/Scenario_RecordAfterDelivery_cases" \
+  --mapping specs/program_model/case_adapters.toml \
+  --spec-dir specs/program_model --view internal --batch \
+  --import-root . --import-root ./generated
+# validated 5 adapter mappings for 3 labels
+# executed 6 cases in batch
+```
+
+**6 — the same command on the slice refuses, and the refusal is CM-F5.** It is
+published here because it is what actually happens, not to be worked around:
+
+```bash
+python3 "$REPO/scripts/run_generated_case_adapters.py" \
+  "$OUT/spec-unit/Scenario_DeliveryPath_cases" \
+  --mapping specs/program_model/case_adapters.toml \
+  --spec-dir specs/program_model --view internal --batch \
+  --import-root . --import-root ./generated
+# ERROR: invalid semantic effect provider configuration: provider configured for
+#        semantic effect port(s) not required by any selected case: LedgerStorePort
+```
+
+See CM-F5 below.
+
+## Known frictions (measured in the probe, filed as CM-F1..F5)
 
 - **CM-F1 — model discovery collides (pre-existing). FIXED in CM-01.** The
   complexity ledger used to locate its model as the alphabetically first `*.tla`
@@ -243,6 +466,23 @@ that instantiates its view is unanalyzable, and the failure is an exit-nonzero
   with `incomplete_catalog`. That coupling is arguably correct — a new checked
   property should need a fault seeded at it — but it is a surprise. `--cfg`
   scoping is the existing lever.
+- **CM-F5 — a slice narrower than the view orphans the view's effect providers.
+  OPEN, measured in RP-03.** `run_generated_case_adapters.py` refuses a mapping
+  that configures a semantic effect provider no *selected* case requires:
+  `provider configured for semantic effect port(s) not required by any selected
+  case: LedgerStorePort`. On the whole view that check is right — an orphan
+  provider is a misconfiguration. On a **slice** it is normal: the ex4
+  `Scenario_DeliveryPath` slice deliberately excludes `Record`, the only action
+  that touches `LedgerStorePort`, so the project's own `case_adapters.toml`
+  cannot run its corpus at all. There is no `--cfg`-style lever here, and the
+  only workaround today is a second mapping file with the provider removed —
+  which pushes back against "a case module needs no adapter of its own". A
+  `form: given` module that *does* enter the effect-carrying action runs against
+  the unmodified mapping (`executed 6 cases in batch`), so this hits slices
+  specifically. It is filed, not fixed: the honest fix is a lever that says
+  "this corpus is a declared case module, so an unused provider is a fact, not a
+  misconfiguration", and that is a decision about the runner, not about case
+  modules.
 
 ## What is mechanized (CM-01)
 
@@ -279,8 +519,10 @@ case_modules:
 made checkable-by-a-human, not by a parser. A `form: given` entry without one
 is a schema error, because an unexplained Given is unreviewable. The module
 file itself does not have to live beside the manifest — the block declares the
-set the project runs, and the probe's modules are kept in
-`examples/case_modules/` and copied in.
+set the project runs, and a module in `specs/case_modules/` generates from
+there, in place (see "Where a case module may live"). The manifest is found
+along the same module search path, so it is the *view's* manifest that governs
+the case module's declaration, budgets and coverage record.
 
 ```bash
 python3 scripts/case_modules.py validate --manifest specs/program_model/spec_manifest.yaml
@@ -314,6 +556,9 @@ python3 scripts/case_modules.py coverage \
   --corpus generated/testgraph/External_cases
 ```
 
+(That is the **external** shape. For an internal view the packages are under
+`<out>/spec-unit/` and the flag is `--view internal` — see the worked example.)
+
 It prints per-action coverage across every declared module beside the view's own
 corpus, and names every view action **entered by no measured module and not
 covered by the view's own corpus** — rule 2 above, mechanized. A module that is
@@ -344,6 +589,15 @@ indistinguishable from a real decomposition. The prompt therefore requires the
 aspect list to come from the model author and to record who supplied it; with
 no author, its correct output is "the aspects of this surface are not derivable
 from the model", not a plausible list.
+
+**That requirement is not enforceable by a program, and the prompt now says so
+where it states it.** The `Source` column is free text checked against nothing;
+an eval agent following the prompt produced a complete, schema-valid,
+coverage-clean decomposition with no author in the loop and had to flag its own
+violation (EV-02-DF-04). Everything downstream of the grouping is measured —
+the action set, the schema, per-action coverage — and the grouping itself is
+measured by nobody. Treat an undeclared or self-declared `Source` as an
+**unreviewed** decomposition, not a validated one.
 
 ## What is still not mechanized
 

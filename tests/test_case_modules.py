@@ -293,3 +293,271 @@ def test_the_shipped_example_declares_its_case_modules() -> None:
     given = declarations["Scenario_IdempotentResubmit"]
     assert given.form == "given"
     assert given.claim and "independent of the reachable" in given.claim
+
+
+# --------------------------------------------------------------------------
+# RP-03 / EV-02-DF-02: a case module generates from where the docs put it
+# --------------------------------------------------------------------------
+
+
+def build_split_layout(tmp_path: Path) -> tuple[Path, Path]:
+    """The documented layout: a view in program_model/, a case module beside it.
+
+    Returns ``(case module .tla, view .tla)``.
+    """
+    view_dir = tmp_path / "specs" / "program_model"
+    module_dir = tmp_path / "specs" / "case_modules"
+    view_dir.mkdir(parents=True)
+    module_dir.mkdir(parents=True)
+    (view_dir / "Pipeline.tla").write_text(
+        "---- MODULE Pipeline ----\n"
+        "EXTENDS Naturals, FiniteSets\n"
+        "CONSTANTS Items\n"
+        "VARIABLES inbox, done\n"
+        "vars == << inbox, done >>\n"
+        "Init ==\n"
+        "  /\\ inbox = Items\n"
+        "  /\\ done = {}\n"
+        "Accept(i) ==\n"
+        "  /\\ i \\in inbox\n"
+        "  /\\ inbox' = inbox \\ {i}\n"
+        "  /\\ done' = done \\cup {i}\n"
+        "Next == \\E i \\in inbox : Accept(i)\n"
+        "====\n",
+        encoding="utf-8",
+    )
+    (view_dir / "spec_manifest.yaml").write_text(MANIFEST, encoding="utf-8")
+    (module_dir / "Scenario_Accept.tla").write_text(
+        "---- MODULE Scenario_Accept ----\n"
+        "EXTENDS Pipeline\n"
+        "AcceptNext == \\E i \\in inbox : Accept(i)\n"
+        "AcceptSpec == Init /\\ [][AcceptNext]_vars\n"
+        "====\n",
+        encoding="utf-8",
+    )
+    return module_dir / "Scenario_Accept.tla", view_dir / "Pipeline.tla"
+
+
+def test_a_case_module_resolves_its_view_from_a_sibling_directory(tmp_path: Path) -> None:
+    """EV-02-DF-02, the acceptance property: reproducible IN PLACE, no copying."""
+    module, view = build_split_layout(tmp_path)
+
+    search_path = case_modules.resolve_search_path(module)
+
+    assert not search_path.is_self_contained
+    assert search_path.directories == (module.parent, view.parent)
+    assert dict(search_path.resolved) == {"Pipeline": view}
+    assert "Pipeline" in search_path.describe()
+
+
+def test_the_search_path_reaches_tlc_as_the_tla_library_property(tmp_path: Path) -> None:
+    module, view = build_split_layout(tmp_path)
+
+    env = case_modules.tlc_environment(case_modules.resolve_search_path(module), {})
+
+    option = env["JAVA_TOOL_OPTIONS"]
+    assert option.startswith(f"-D{case_modules.TLA_LIBRARY_PROPERTY}=")
+    assert str(view.parent) in option
+
+
+def test_a_self_contained_module_sets_no_java_options(tmp_path: Path) -> None:
+    """The common case must be byte-identical to before: no property, no JVM noise."""
+    (tmp_path / "Solo.tla").write_text(
+        "---- MODULE Solo ----\nEXTENDS Naturals\nVARIABLES x\nInit == x = 0\n====\n",
+        encoding="utf-8",
+    )
+
+    search_path = case_modules.resolve_search_path(tmp_path / "Solo.tla")
+
+    assert search_path.is_self_contained
+    assert case_modules.tlc_environment(search_path, {}) == {}
+
+
+def test_an_unresolvable_extends_names_the_module_and_every_directory(tmp_path: Path) -> None:
+    module, _ = build_split_layout(tmp_path)
+    module.write_text(
+        "---- MODULE Scenario_Accept ----\nEXTENDS Nowhere\n====\n", encoding="utf-8"
+    )
+
+    with pytest.raises(case_modules.ModuleSearchError) as error:
+        case_modules.resolve_search_path(module)
+
+    message = str(error.value)
+    assert "EXTENDS Nowhere" in message
+    assert "Nowhere.tla is in none of the directories" in message
+    assert str(module.parent) in message
+    assert "--module-path" in message
+    # It must not be the old symptom: a TLC AbortException the caller has to read.
+    assert "AbortException" not in message
+
+
+def test_two_siblings_defining_the_same_module_is_an_error_not_a_coin_flip(
+    tmp_path: Path,
+) -> None:
+    module, view = build_split_layout(tmp_path)
+    twin = tmp_path / "specs" / "desired_program_model"
+    twin.mkdir()
+    (twin / "Pipeline.tla").write_text(view.read_text(encoding="utf-8"), encoding="utf-8")
+
+    with pytest.raises(case_modules.ModuleSearchError) as error:
+        case_modules.resolve_search_path(module)
+
+    message = str(error.value)
+    assert "more than one directory" in message
+    assert str(twin) in message and str(view.parent) in message
+
+
+def test_an_explicit_module_path_wins_over_the_ambiguous_siblings(tmp_path: Path) -> None:
+    module, view = build_split_layout(tmp_path)
+    twin = tmp_path / "specs" / "desired_program_model"
+    twin.mkdir()
+    (twin / "Pipeline.tla").write_text(view.read_text(encoding="utf-8"), encoding="utf-8")
+
+    search_path = case_modules.resolve_search_path(module, [view.parent])
+
+    assert dict(search_path.resolved) == {"Pipeline": view}
+
+
+def test_a_module_beside_the_case_module_wins_over_a_sibling(tmp_path: Path) -> None:
+    module, view = build_split_layout(tmp_path)
+    local = module.parent / "Pipeline.tla"
+    local.write_text(view.read_text(encoding="utf-8"), encoding="utf-8")
+
+    search_path = case_modules.resolve_search_path(module)
+
+    assert search_path.is_self_contained
+    assert dict(search_path.resolved) == {"Pipeline": local}
+
+
+def test_the_manifest_is_found_along_the_search_path_not_beside_the_module(
+    tmp_path: Path,
+) -> None:
+    """A case module has no manifest of its own; the VIEW's manifest governs it."""
+    module, view = build_split_layout(tmp_path)
+    search_path = case_modules.resolve_search_path(module)
+
+    resolved = case_modules.resolve_manifest_path(module.parent, search_path)
+
+    assert resolved == view.parent / "spec_manifest.yaml"
+    assert resolved.is_file()
+
+
+def test_the_hierarchy_is_ordered_base_module_first(tmp_path: Path) -> None:
+    """Recipes and any other text union must read base modules before extenders."""
+    module, view = build_split_layout(tmp_path)
+
+    search_path = case_modules.resolve_search_path(module)
+
+    assert search_path.files_base_first == (view, module)
+
+
+def test_the_shipped_internal_fixture_generates_from_its_documented_location() -> None:
+    """The ex4 modules live in specs/case_modules/ and must resolve from there."""
+    fixture = ROOT / "examples/validation/ex4_pipeline_coherent"
+    module = fixture / "specs/case_modules/Scenario_DeliveryPath.tla"
+
+    search_path = case_modules.resolve_search_path(module)
+
+    assert dict(search_path.resolved) == {
+        "Pipeline": fixture / "specs/program_model/Pipeline.tla"
+    }
+    assert case_modules.resolve_manifest_path(module.parent, search_path) == (
+        fixture / "specs/program_model/spec_manifest.yaml"
+    )
+
+
+# --------------------------------------------------------------------------
+# RP-03: the generator side of the same defect
+# --------------------------------------------------------------------------
+
+
+def test_the_complexity_scanner_reads_the_same_search_path(tmp_path: Path) -> None:
+    """The scan and the corpus must never resolve EXTENDS to different files."""
+    from scripts.analyze_complexity import UnresolvedExtendsError, resolve_module
+
+    module, view = build_split_layout(tmp_path)
+    search_path = case_modules.resolve_search_path(module)
+
+    with pytest.raises(UnresolvedExtendsError):
+        resolve_module(module)
+
+    resolved = resolve_module(module, search_path=list(search_path.directories))
+
+    assert resolved.variables == ["inbox", "done"]
+    assert "Pipeline" in resolved.modules
+
+
+def test_param_recipes_come_from_the_whole_hierarchy(tmp_path: Path) -> None:
+    """A case module declares no actions; reading only its text recovers nothing.
+
+    Measured on ex4 before the fix: the view's corpus recovered 330/330 arguments
+    and its two case modules recovered 0/50 and 0/6, so the adapters refused the
+    case-module corpora outright with ``no usable argument for `i```.
+    """
+    from scripts.generate_cases_from_tlc_dump import build_recipes_for_hierarchy
+
+    module, _ = build_split_layout(tmp_path)
+    search_path = case_modules.resolve_search_path(module)
+
+    assert build_recipes_for_hierarchy(module, None) == {}
+    assert "Accept" in build_recipes_for_hierarchy(module, search_path)
+
+
+def test_a_relative_out_says_where_it_landed(tmp_path: Path, capsys, monkeypatch) -> None:
+    """EV-02: `--out generated` silently created a directory in the spec dir."""
+    from scripts.generate_cases_from_tlc_dump import report_out_resolution
+
+    spec_dir = tmp_path / "specs" / "program_model"
+    spec_dir.mkdir(parents=True)
+    monkeypatch.chdir(tmp_path)
+
+    report_out_resolution(Path("generated"), spec_dir / "generated", spec_dir)
+
+    out = capsys.readouterr().out
+    assert "resolved to" in out and str(spec_dir / "generated") in out
+    assert "SPEC DIRECTORY" in out
+
+    capsys.readouterr()
+    report_out_resolution(
+        Path("generated"), (tmp_path / "generated").resolve(), spec_dir
+    )
+    assert capsys.readouterr().out == ""
+
+
+def test_generation_refuses_before_tlc_when_a_module_is_missing(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    """The failure arrives BEFORE the JVM starts, so it is not behind TLC's stack."""
+    import scripts.generate_cases_from_tlc_dump as generator
+
+    module, _ = build_split_layout(tmp_path)
+    module.write_text(
+        "---- MODULE Scenario_Accept ----\nEXTENDS Nowhere\n====\n", encoding="utf-8"
+    )
+    (module.parent / "Scenario_Accept.cfg").write_text(
+        "SPECIFICATION AcceptSpec\n", encoding="utf-8"
+    )
+
+    def explode(*args, **kwargs):  # pragma: no cover - must never be reached
+        raise AssertionError("TLC was started for a hierarchy that cannot resolve")
+
+    monkeypatch.setattr(generator, "run_tlc_dump", explode)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "generate_cases_from_tlc_dump.py",
+            str(module),
+            str(module.parent / "Scenario_Accept.cfg"),
+            "--out",
+            str(tmp_path / "out"),
+            "--view",
+            "internal",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exit_info:
+        generator.main()
+
+    assert "EXTENDS Nowhere" in str(exit_info.value)
+    assert "--module-path" in str(exit_info.value)

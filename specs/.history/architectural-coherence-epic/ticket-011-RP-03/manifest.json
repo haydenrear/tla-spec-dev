@@ -1,0 +1,799 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/RP-03",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/architectural-coherence-epic/ticket-011-RP-03 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for RP-03'",
+    "message": "It is recommended to commit this history directory now: specs/.history/architectural-coherence-epic/ticket-011-RP-03"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 2799360,
+        "before": 2799360,
+        "bound_complete_after": false,
+        "bound_complete_before": null,
+        "comparable": false,
+        "delta": 0,
+        "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 26,
+        "before": 26,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 1292951,
+        "before": 1292951,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 32122220,
+        "before": 32122220,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 10,
+        "before": 10,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "RP-05"
+  },
+  "complexity_ledger": {
+    "architecture_delta": {
+      "architecture_digest_after": "",
+      "architecture_digest_before": "",
+      "attribution": "",
+      "claim": "",
+      "divergences_after": null,
+      "divergences_before": null,
+      "divergences_delta": null,
+      "divergent_edges_gained": [],
+      "divergent_edges_lost": [],
+      "gates": false,
+      "map_digest_after": "",
+      "map_digest_before": "",
+      "problems": [],
+      "recorded": false,
+      "red_flags": [],
+      "report": "",
+      "resolved_report": "",
+      "status": "not_run",
+      "why": []
+    },
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 2799360,
+          "before": 2799360,
+          "bound_complete_after": false,
+          "bound_complete_before": null,
+          "comparable": false,
+          "delta": 0,
+          "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 26,
+          "before": 26,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 1292951,
+          "before": 1292951,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 32122220,
+          "before": 32122220,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 10,
+          "before": 10,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "RP-05"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/RP-03/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 2799360,
+      "bound_complete": false,
+      "bound_resolved_variables": 8,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 258.6,
+          "used": 1292951,
+          "within_cap": false
+        },
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent",
+          "percent": null,
+          "percent_lower_bound": 279.9,
+          "used": 2799360,
+          "within_cap": false
+        }
+      },
+      "depth": 26,
+      "distinct_states": 1292951,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+        "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": 32122220,
+      "modularity": 0.0,
+      "tlc_report": "/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/specs/tickets/RP-03/results/tlc-current.txt",
+      "tlc_run_complete": true,
+      "variables": 10
+    },
+    "narrative": "specs/tickets/RP-03/results/narrative.md",
+    "notes": [
+      "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+      "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+    ],
+    "recorded_at_utc": "2026-07-30T21:35:17.522142+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, found none. RP-03 changed no TLA+ model: ticket current and desired are identical and equal specs/current, and the ledger's own delta reports direction=zero versus RP-05. There is nothing in the representation to refine because nothing in the representation moved. The refinement that WAS available in the code was taken and is recorded in the narrative: the module search path is one resolver shared by TLC, the complexity scanner and the parameter-recovery recipes, rather than three lookups that could disagree about which file a case module extends.",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "RP-03",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the behavior-test output",
+        "status": "",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the before/after descriptor comparison",
+        "status": "",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the post-change TLC output",
+        "status": "",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the pre-change TLC output",
+        "status": "",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=(absent) (UNVERIFIED)",
+      "tlc_after=(absent) (UNVERIFIED)",
+      "behavior_tests=(absent) (UNVERIFIED)",
+      "descriptor_comparison=(absent) (UNVERIFIED)"
+    ],
+    "verdict": "recorded",
+    "workflow": "architectural-coherence-epic"
+  },
+  "created_at_utc": "2026-07-30T21:35:17.575025+00:00",
+  "entry_name": "ticket-011-RP-03",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/rp03-case-module-usability",
+    "commit": "b2d3a35",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/RP-03/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/RP-03/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/RP-03/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/RP-03/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/RP-03/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/RP-03/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/RP-03/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/RP-03/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/RP-03/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/RP-03/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/RP-03/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/RP-03"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, found none. RP-03 changed no TLA+ model: ticket current and desired are identical and equal specs/current, and the ledger's own delta reports direction=zero versus RP-05. There is nothing in the representation to refine because nothing in the representation moved. The refinement that WAS available in the code was taken and is recorded in the narrative: the module search path is one resolver shared by TLC, the complexity scanner and the parameter-recovery recipes, rather than three lookups that could disagree about which file a case module extends.",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 67,
+    "close_out_entry": "Close-out ticket RP-03",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 14,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-011-RP-03/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-011-RP-03/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-011-RP-03/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket",
+      "source": "specs/tickets/RP-03"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "MET. Generation resolves the EXTENDS closure before TLC runs and gives SANY the directories it found as TLA-Library (TLC 2.19 has no -lib flag, and it does not search the current directory -- both verified). The module's own directory wins, then --module-path, then sibling directories holding .tla files, which is what makes specs/case_modules/ -> specs/program_model/ work with no flag; two siblings defining the same module is an error naming both. The view's spec_manifest.yaml is found along the same path, so the declaration, budgets and coverage record still describe one project. Both ex4 modules regenerate in place with cases/actions/declared_view_actions/case_module byte-equal to the committed copy-and-delete evidence. An unresolvable EXTENDS is now one sentence BEFORE the JVM starts, naming the module, every directory searched and --module-path, instead of a SANY AbortException under a fail-closed complexity paragraph. 11 regression tests, one of which pins the shipped ex4 layout.",
+        "MET, and one command in it fails on purpose. references/case_modules.md, 'Worked example: an internal-only project', was run verbatim end to end on examples/validation/ex4_pipeline_coherent (internal view, no testgraph, no bindings): enumerate the action set, generate the view corpus (330 cases), generate the slice and the Given in place (50 and 6), validate, aggregate coverage (UNCOVERED: none), and execute the Given's corpus against the project's UNCHANGED adapters with two --import-root ('executed 6 cases in batch'). Step 6 is the slice against the same mapping, which refuses -- that is CM-F5, published as a refusal rather than hidden. Two smaller frictions fixed on the way: --out now says where a relative path landed, and the --import-root error names both roots. Recorded in results/internal-view-worked-example.{sh,txt}.",
+        "MET. references/case_modules.md, 'The authoring asymmetry: a slice comes from outside, a Given cannot', states it as a table of what each form requires and where that knowledge lives, and names the split that makes a Given commissionable from outside (the outsider supplies the CLAIM, someone with the model writes the predicate). prompts/aspect_decomposition.md Step 3 says the same at the point of authoring.",
+        "MET as LABELLED UNENFORCEABLE, deliberately, inside Step 0 where the requirement is made. Two candidate checks -- require a non-empty Source, reject 'the model'/'derived' -- are named and rejected in the text as guards a determined agent walks around, which this epic has already shipped once. The honest contract replaces them: provenance is an unverified claim, an authorless decomposition must be labelled unreviewed, and a consumer asks the named source directly.",
+        "ADJACENT, FIXED: parameter recovery did not follow EXTENDS. Found while running the worked example, not in the brief. A case module declares no actions, so recipes read from its own text alone recovered nothing: the view's corpus carried 330/330 arguments while its two case modules carried 0/50 and 0/6, and the adapters refused those corpora case by case with 'no usable argument for `i`'. Recipes are now built over the whole hierarchy, base modules first -- 50/50 and 6/6, and the Given's corpus executes. Single-file specs are unaffected; examples/distributed_history's committed corpora are now stale with respect to this and were not regenerated.",
+        "NEGATIVE: the brief's 'Step 1's jq pipeline assumes JSON-only stdout' did not reproduce -- that command writes 6,703 bytes to stdout and 0 to stderr, and every error path prints to stderr. What did reproduce is fixed: --spec-root does not resolve the positional .tla/.cfg, and Step 1(b) required PyYAML, which this toolchain deliberately does not depend on.",
+        "OWNER-AUTHORIZED DELETION: scripts/spec_evolution.py CFG_KEYWORDS and its skip are gone, no reference remains anywhere, and the three model-pair validator tests RP-04 measured as load-bearing on it are green."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": [
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/ev-02-df-02-reproducible-in-place.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/internal-view-worked-example.sh",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/internal-view-worked-example.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/cm-01-df-02-workaround-deleted.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/deferred-and-negative-findings.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/zero-model-delta.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/tlc-current.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/repo_unit_tests.txt",
+        "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/spec-unit-tests.txt"
+      ]
+    },
+    "blocks": [
+      "EV-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/case_modules.py",
+        "scripts/generate_cases_from_tlc_dump.py",
+        "tests/test_case_modules.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/case_modules.md",
+        "prompts/aspect_decomposition.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "RP-02"
+    ],
+    "desired_actions": [],
+    "github_issue": null,
+    "id": "RP-03",
+    "implementation_scope": [
+      "scripts/case_modules.py",
+      "scripts/generate_cases_from_tlc_dump.py",
+      "references/case_modules.md",
+      "prompts/aspect_decomposition.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "ZERO. Documented in results/zero-model-delta.txt: ticket current and desired are identical, and current equals specs/current. Scripts, tests, references and prompts only.",
+    "objective": "Everything the outside-in eval run hit while trying to use case modules for real. (a) EV-02-DF-02: a case module CANNOT generate from where the docs put it -- TLC runs with cwd = the .tla's directory and no module search path, so a module in specs/case_modules/ cannot EXTENDS a view in specs/program_model/. The agent had to copy the module beside the view, generate, and delete the copy, so the checked-in module is NOT reproducible in place, and the failure surfaces as a 30-line TLC AbortException behind a misleading fail-closed paragraph. (b) EV-02-DF-05: every published command assumes an EXTERNAL view (`--view external`, `generated/testgraph/`, `testgraph_bindings.yml`); an internal-only project has no worked example anywhere, and this is X-P3 failing again. Also fix the smaller friction the run recorded: `--out` resolving against the .tla's directory rather than cwd undocumented, the `--import-root` error naming one root when two are needed, and Step 1's command in the aspect prompt not running as written. (c) EV-02-DF-04, the methodological half: a SLICE is writable from action names alone, but a GIVEN must constrain every variable of the view, so it can only be written from the inside -- the aspect came from outside and the Given could not. Neither doc says so. State the limit, and make Step 0's author-provenance requirement either checkable or honestly labelled unenforceable (an eval agent produced a schema-valid, coverage-clean decomposition with no author in the loop and had to flag its own violation).\n",
+    "promotion_order": 120,
+    "promotion_predecessor": "RP-05",
+    "schedule_revision": 3,
+    "status": "done",
+    "title": "Case modules: reproducible in place, internal-view docs, and the authoring method (EV-02-DF-02, DF-04, DF-05)",
+    "wave": 7
+  },
+  "ticket_id": "RP-03",
+  "ticket_index": 11,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket",
+    "source": "specs/tickets/RP-03"
+  },
+  "workflow_name": "architectural-coherence-epic"
+}
