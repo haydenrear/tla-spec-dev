@@ -60,45 +60,76 @@ from scripts.architecture_reflexion import (  # noqa: E402
 
 # Three components in a line. `Parse` touches ingest+transform and `Ship`
 # touches transform+deliver, so there are ports for those two pairs -- and NO
-# action touches raw and shipped, so `ingest <-> deliver` has no port. That
-# third pair is what makes a divergence detectable at all: without an unported
-# pair, "no divergences" would be a property of the architecture rather than a
-# measurement of the code.
+# action touches an ingest variable together with a deliver variable, so
+# `ingest <-> deliver` has no port. That third pair is what makes a divergence
+# detectable at all: without an unported pair, "no divergences" would be a
+# property of the architecture rather than a measurement of the code.
+#
+# RP-01 gave every component a SECOND variable and an action that interacts
+# within it (`Stage`, `Check`, `Archive`). That is not decoration. Before this
+# ticket the fixture partitioned three variables into three singletons, and a
+# singleton partition has no intra-community weight at all, so its modularity Q
+# is negative BY CONSTRUCTION (it measured -0.375): the model's own criteria
+# said this was not a cut, while the fixture was the suite's only positive case
+# for `coherent`. The positive case was therefore an instance of the very
+# defect this ticket closes. It now measures Q = +0.260 with 2 of 7 actions
+# crossing, and every criterion is met.
 PIPELINE_TLA = """----------------------------- MODULE Pipeline -----------------------------
 EXTENDS Naturals
 
-VARIABLES raw, parsed, shipped
+VARIABLES raw, staged, parsed, checked, shipped, archived
 
-vars == << raw, parsed, shipped >>
+vars == << raw, staged, parsed, checked, shipped, archived >>
 
 Init ==
   /\\ raw = 0
+  /\\ staged = 0
   /\\ parsed = 0
+  /\\ checked = 0
   /\\ shipped = 0
+  /\\ archived = 0
 
 Ingest ==
   /\\ raw < 2
   /\\ raw' = raw + 1
-  /\\ UNCHANGED << parsed, shipped >>
+  /\\ UNCHANGED << staged, parsed, checked, shipped, archived >>
 
-Parse ==
+Stage ==
   /\\ raw > 0
   /\\ raw' = raw - 1
-  /\\ parsed' = parsed + 1
-  /\\ UNCHANGED shipped
+  /\\ staged' = staged + 1
+  /\\ UNCHANGED << parsed, checked, shipped, archived >>
 
-Ship ==
+Parse ==
+  /\\ staged > 0
+  /\\ staged' = staged - 1
+  /\\ parsed' = parsed + 1
+  /\\ UNCHANGED << raw, checked, shipped, archived >>
+
+Check ==
   /\\ parsed > 0
   /\\ parsed' = parsed - 1
+  /\\ checked' = checked + 1
+  /\\ UNCHANGED << raw, staged, shipped, archived >>
+
+Ship ==
+  /\\ checked > 0
+  /\\ checked' = checked - 1
   /\\ shipped' = shipped + 1
-  /\\ UNCHANGED raw
+  /\\ UNCHANGED << raw, staged, parsed, archived >>
+
+Archive ==
+  /\\ shipped > 0
+  /\\ shipped' = shipped - 1
+  /\\ archived' = archived + 1
+  /\\ UNCHANGED << raw, staged, parsed, checked >>
 
 Reset ==
-  /\\ shipped > 1
-  /\\ shipped' = 0
-  /\\ UNCHANGED << raw, parsed >>
+  /\\ archived > 1
+  /\\ archived' = 0
+  /\\ UNCHANGED << raw, staged, parsed, checked, shipped >>
 
-Next == Ingest \\/ Parse \\/ Ship \\/ Reset
+Next == Ingest \\/ Stage \\/ Parse \\/ Check \\/ Ship \\/ Archive \\/ Reset
 
 Spec == Init /\\ [][Next]_vars
 ===========================================================================
@@ -113,12 +144,60 @@ PIPELINE_COMPONENTS = """architecture:
     - name: ingest
       variables:
         - raw
+        - staged
     - name: transform
       variables:
         - parsed
+        - checked
     - name: deliver
       variables:
         - shipped
+        - archived
+"""
+
+# The same six variables and the same module name, with no structure at all:
+# every action touches every variable, so greedy modularity maximization returns
+# ONE component and `consumable_as_architecture` is false. RP-01 introduced it
+# because the repaired PIPELINE_TLA above now decomposes emergently as well as
+# under the declared partition -- which is the point of the repair, and left the
+# "model with no architecture" branch without a model that has none.
+BLOB_TLA = """----------------------------- MODULE Pipeline -----------------------------
+EXTENDS Naturals
+
+VARIABLES raw, staged, parsed, checked, shipped, archived
+
+vars == << raw, staged, parsed, checked, shipped, archived >>
+
+Init ==
+  /\\ raw = 0
+  /\\ staged = 0
+  /\\ parsed = 0
+  /\\ checked = 0
+  /\\ shipped = 0
+  /\\ archived = 0
+
+Churn ==
+  /\\ raw < 2
+  /\\ raw' = raw + 1
+  /\\ staged' = raw + staged
+  /\\ parsed' = staged + parsed
+  /\\ checked' = parsed + checked
+  /\\ shipped' = checked + shipped
+  /\\ archived' = shipped + archived
+
+Drain ==
+  /\\ raw > 0
+  /\\ raw' = raw - 1
+  /\\ staged' = staged + raw
+  /\\ parsed' = parsed + staged
+  /\\ checked' = checked + parsed
+  /\\ shipped' = shipped + checked
+  /\\ archived' = archived + shipped
+
+Next == Churn \\/ Drain
+
+Spec == Init /\\ [][Next]_vars
+===========================================================================
 """
 
 COHERENT_MAP = """architecture_map:
@@ -178,10 +257,20 @@ def peek():
 """
 
 
-def write_project(root: Path, *, deliver: str = DELIVER_PY, extras: dict[str, str] | None = None) -> Path:
-    """Write the fixture spec, declared partition, map, and code tree."""
+def write_project(
+    root: Path,
+    *,
+    deliver: str = DELIVER_PY,
+    extras: dict[str, str] | None = None,
+    blob: bool = False,
+) -> Path:
+    """Write the fixture spec, declared partition, map, and code tree.
+
+    ``blob=True`` writes the structureless model instead: same variables, same
+    module name, same code tree, but no partition the clustering can find.
+    """
     root.mkdir(parents=True, exist_ok=True)
-    (root / "Pipeline.tla").write_text(PIPELINE_TLA, encoding="utf-8")
+    (root / "Pipeline.tla").write_text(BLOB_TLA if blob else PIPELINE_TLA, encoding="utf-8")
     (root / "Pipeline.cfg").write_text(PIPELINE_CFG, encoding="utf-8")
     (root / "components.yaml").write_text(PIPELINE_COMPONENTS, encoding="utf-8")
     (root / "map.yaml").write_text(COHERENT_MAP, encoding="utf-8")
@@ -367,15 +456,18 @@ class TestDeadArchitecture:
 
 class TestARefusalBeatsAFalseClean:
     def test_a_model_with_no_architecture_is_unmappable_not_coherent(
-        self, project: Path
+        self, tmp_path: Path
     ) -> None:
         """The branch AC-01 published `consumable_as_architecture` for.
 
-        Run without the declared partition the Pipeline model clusters into one
-        component. Every code edge is then internal to it, so the diff would
-        find zero divergences and zero absences -- a flawless reflexion report
-        for a model with no boundary in it.
+        Run without a declared partition, a model whose every action touches
+        every variable clusters into one component. Every code edge is then
+        internal to it, so the diff would find zero divergences and zero
+        absences -- a flawless reflexion report for a model with no boundary in
+        it.
         """
+        write_project(tmp_path, blob=True)
+        project = tmp_path
         descriptor = descriptor_for(project, declared=False)
         assert descriptor.consumable_as_architecture is False
         report = reflexion(descriptor, {}, project / "pkg", "unused")
@@ -478,10 +570,13 @@ class TestARefusalBeatsAFalseClean:
             "    - name: front\n"
             "      variables:\n"
             "        - raw\n"
+            "        - staged\n"
             "        - parsed\n"
+            "        - checked\n"
             "    - name: back\n"
             "      variables:\n"
-            "        - shipped\n",
+            "        - shipped\n"
+            "        - archived\n",
             encoding="utf-8",
         )
         (tmp_path / "two_map.yaml").write_text(
@@ -509,7 +604,12 @@ class TestARefusalBeatsAFalseClean:
         assert report.divergences == []
         assert report.divergence_detectable is False
         assert report.verdict == VERDICT_UNMAPPABLE
-        assert "unfalsifiable_coherence" in {s.kind for s in report.blind_spots}
+        # RP-01 moved this out of `blind_spots`: the extractor saw everything
+        # here, so it is a limit of the BASIS, not of the observation.
+        assert "unfalsifiable_coherence" in {
+            limit.kind for limit in report.unsupported_clean()
+        }
+        assert "unfalsifiable_coherence" not in {s.kind for s in report.blind_spots}
 
     def test_findings_are_still_reported_under_an_unmappable_verdict(
         self, tmp_path: Path
@@ -644,6 +744,328 @@ class TestNothingDowngradesAnUnobservableVerdict:
         source = inspect.getsource(ReflexionReport.verdict.fget)
         for banned in ("os.environ", "getenv", "config", "options", "args", "allow", "assume"):
             assert banned not in source, f"the verdict consults {banned!r}"
+
+
+# --------------------------------------------------------------------------
+# 5b. RP-01 -- nothing DECLARED downgrades it either
+# --------------------------------------------------------------------------
+
+# The one-component declared partition. Six lines of YAML that used to certify
+# the divergent fixture and every other codebase (EV-02-DF-01).
+ONE_COMPONENT = """architecture:
+  components:
+    - name: everything
+      variables:
+        - raw
+        - staged
+        - parsed
+        - checked
+        - shipped
+        - archived
+"""
+
+ONE_COMPONENT_MAP = """architecture_map:
+  language: python
+  components:
+    - component: everything
+      modules:
+        - ingest.py
+        - transform.py
+        - deliver.py
+"""
+
+# The NON-DEGENERATE shape, and the majority of EV-02's twelve false cleans.
+# Same three components, same unported `ingest <-> deliver` pair, so a
+# divergence is still fully detectable and this is nothing like the one-blob
+# case. Three actions are added that reach across the boundary while also
+# interacting inside a component, and `Reset` is dropped: 5 of 9 actions now
+# cross, so `crossing_action_fraction` fails at 0.556 -- while Q stays POSITIVE
+# and `component_count` passes. A boundary crossed by most of the program is
+# not a boundary, and a clean measured against it is a fact about the boundary.
+NON_DECOMPOSING_TLA = PIPELINE_TLA.replace(
+    "Next == Ingest \\/ Stage \\/ Parse \\/ Check \\/ Ship \\/ Archive \\/ Reset",
+    "Sweep ==\n"
+    "  /\\ raw > 0\n"
+    "  /\\ raw' = raw - 1\n"
+    "  /\\ staged' = staged + 1\n"
+    "  /\\ parsed' = parsed + 1\n"
+    "  /\\ UNCHANGED << checked, shipped, archived >>\n\n"
+    "Flush ==\n"
+    "  /\\ parsed > 0\n"
+    "  /\\ parsed' = parsed - 1\n"
+    "  /\\ checked' = checked + 1\n"
+    "  /\\ shipped' = shipped + 1\n"
+    "  /\\ UNCHANGED << raw, staged, archived >>\n\n"
+    "Purge ==\n"
+    "  /\\ shipped > 0\n"
+    "  /\\ shipped' = shipped - 1\n"
+    "  /\\ archived' = archived + 1\n"
+    "  /\\ checked' = checked + 1\n"
+    "  /\\ UNCHANGED << raw, staged, parsed >>\n\n"
+    "Next == Ingest \\/ Stage \\/ Parse \\/ Check \\/ Ship \\/ Archive "
+    "\\/ Sweep \\/ Flush \\/ Purge",
+)
+
+
+class TestNoDeclaredPartitionBuysACleanTheBasisCannotSupport:
+    """RP-01. The same discipline as the class above, against a different lever.
+
+    ``TestNothingDowngradesAnUnobservableVerdict`` proved that no FLAG, KEY,
+    ANNOTATION or ENVIRONMENT VARIABLE turns an unmappable verdict into a clean
+    one. It missed the cheapest lever of all, which is not an opt-out at all:
+    the project simply declares a boundary that cannot express a divergence,
+    and the check certifies the code against it. Six lines of YAML did what
+    sixteen suppression keys could not.
+
+    Every test here asserts the NEGATIVE, and each one FAILS on the pre-RP-01
+    code -- the guard read ``if not unported_pairs and len(names) >= 2``,
+    ``divergence_detectable`` was computed and read by nothing, and the failed
+    decomposition criteria appeared in neither artifact.
+    """
+
+    def _one_component(self, tmp_path: Path, deliver: str = DELIVER_PY_DIVERGENT):
+        write_project(tmp_path, deliver=deliver)
+        (tmp_path / "one.yaml").write_text(ONE_COMPONENT, encoding="utf-8")
+        (tmp_path / "one_map.yaml").write_text(ONE_COMPONENT_MAP, encoding="utf-8")
+        return run_reflexion(
+            analyze(
+                tmp_path / "Pipeline.tla",
+                tmp_path / "Pipeline.cfg",
+                None,
+                components_path=tmp_path / "one.yaml",
+            ),
+            str(tmp_path / "pkg"),
+            str(tmp_path / "one_map.yaml"),
+        )
+
+    # -- hole 1: the one-component bypass -----------------------------------
+
+    def test_a_one_component_partition_cannot_certify_a_divergent_tree(
+        self, tmp_path: Path
+    ) -> None:
+        """THE defect. Pre-fix this returned `coherent`, exit 0, blind_spots []."""
+        report = self._one_component(tmp_path)
+        assert report.divergence_detectable is False
+        assert report.verdict == VERDICT_UNMAPPABLE
+        assert "unfalsifiable_coherence" in {
+            limit.kind for limit in report.unsupported_clean()
+        }
+        # And it is NOT filed as something the extractor could not see: the
+        # tree was scanned in full. The distinction is what keeps a real
+        # divergence from being suppressed by a coarse boundary.
+        assert report.blind_spots == []
+
+    def test_a_one_component_partition_cannot_certify_a_matching_tree_either(
+        self, tmp_path: Path
+    ) -> None:
+        """The refusal is about the BASIS, so the code underneath is irrelevant.
+
+        A check that refused only when there happened to be a hidden divergence
+        would be reading the answer key.
+        """
+        report = self._one_component(tmp_path, deliver=DELIVER_PY)
+        assert report.divergences == []
+        assert report.verdict == VERDICT_UNMAPPABLE
+
+    def test_the_one_component_reason_says_no_pair_exists(self, tmp_path: Path) -> None:
+        """Not the 'every pair has a port' sentence: there are no pairs at all."""
+        report = self._one_component(tmp_path)
+        limit = next(
+            l for l in report.unsupported_clean() if l.kind == "unfalsifiable_coherence"
+        )
+        assert "NO component pair at all" in limit.detail
+        assert "1 component(s)" in limit.detail
+
+    def test_divergence_detectable_is_read_by_the_verdict_not_merely_published(
+        self, tmp_path: Path
+    ) -> None:
+        """The specific defect: computed, emitted, and consulted by nobody.
+
+        Emptying every mutable finding list is the most plausible way a later
+        edit resurrects the false clean. The verdict must survive it, because
+        it is derived rather than accumulated.
+        """
+        report = self._one_component(tmp_path)
+        report.blind_spots.clear()
+        report.divergences.clear()
+        report.absences.clear()
+        assert report.divergence_detectable is False
+        assert report.verdict == VERDICT_UNMAPPABLE
+        assert any("unfalsifiable_coherence" in reason for reason in report.reasons)
+
+    # -- hole 2: a declared partition that fails the criteria ---------------
+
+    def test_a_partition_that_fails_the_criteria_cannot_yield_an_unqualified_clean(
+        self, tmp_path: Path
+    ) -> None:
+        """EV-02's other eleven false cleans: a real cut in shape, not in fact."""
+        write_project(tmp_path)
+        (tmp_path / "Pipeline.tla").write_text(NON_DECOMPOSING_TLA, encoding="utf-8")
+        descriptor = descriptor_for(tmp_path)
+        assert descriptor.decomposes is False
+        met = {c["name"]: c["met"] for c in descriptor.criteria}
+        assert met == {
+            "component_count": True,
+            "modularity_q": True,
+            "crossing_action_fraction": False,
+        }, "only the crossing fraction fails: this cut is not degenerate"
+        report = check(tmp_path)
+        # A divergence WAS expressible here -- this is not the degenerate case.
+        assert report.divergence_detectable is True
+        assert report.divergences == []
+        assert report.verdict == VERDICT_UNMAPPABLE
+        assert "partition_does_not_decompose" in {
+            limit.kind for limit in report.unsupported_clean()
+        }
+        assert report.blind_spots == [], "the extractor saw everything: this is a basis limit"
+
+    def test_the_failed_criteria_travel_with_the_verdict_in_the_text(
+        self, tmp_path: Path
+    ) -> None:
+        """Pre-fix they appeared NOWHERE in the reflexion report."""
+        from scripts.architecture_reflexion import render_report_text
+
+        write_project(tmp_path)
+        (tmp_path / "Pipeline.tla").write_text(NON_DECOMPOSING_TLA, encoding="utf-8")
+        text = render_report_text(check(tmp_path))
+        assert "DOES NOT DECOMPOSE" in text
+        assert "crossing_action_fraction" in text
+        assert "measured against:" in text
+        assert "NOT SUPPORTABLE on this basis" in text
+
+    def test_the_failed_criteria_travel_with_the_verdict_in_the_json(
+        self, tmp_path: Path
+    ) -> None:
+        """Pre-fix nothing in the payload carried the criteria at all."""
+        write_project(tmp_path)
+        (tmp_path / "Pipeline.tla").write_text(NON_DECOMPOSING_TLA, encoding="utf-8")
+        payload = report_payload(check(tmp_path))
+        against = payload["verdict"]["measured_against"]
+        assert against["partition_decomposes"] is False
+        assert against["partition_failed_criteria"] == ["crossing_action_fraction"]
+        assert {c["name"] for c in against["partition_criteria"]} == {
+            "component_count",
+            "modularity_q",
+            "crossing_action_fraction",
+        }
+        for criterion in against["partition_criteria"]:
+            assert "measured" in criterion and "rule" in criterion
+        assert payload["verdict"]["clean_result_supportable"] is False
+        assert payload["verdict"]["unsupported_clean_reasons"]
+        assert payload["basis"]["partition_decomposes"] is False
+        assert [limit["kind"] for limit in payload["basis_limits"]] == [
+            "partition_does_not_decompose"
+        ], "recorded beside blind_spots, not inside them"
+        assert payload["blind_spots"] == []
+
+    def test_a_partition_that_decomposes_still_earns_its_clean(
+        self, project: Path
+    ) -> None:
+        """The false-positive control, at unit scale.
+
+        Without this the whole ticket could be passed by refusing everything,
+        and `architecture_scan` would have three usable values instead of four.
+        """
+        report = check(project)
+        assert report.descriptor.decomposes is True
+        assert report.divergence_detectable is True
+        assert report.unsupported_clean() == []
+        assert report.verdict == VERDICT_COHERENT
+        payload = report_payload(report)
+        assert payload["verdict"]["clean_result_supportable"] is True
+        assert payload["verdict"]["unsupported_clean_reasons"] == []
+
+    def test_the_partition_is_not_refused_only_the_certificate_is(
+        self, tmp_path: Path
+    ) -> None:
+        """NEXT-EPIC NE-01(3): carry the fact, not the judgment.
+
+        The comparison still runs against the declared partition, every finding
+        still carries its `file:line`, and the command still exits 0. A project
+        may have reasons for a boundary the modularity metric dislikes; it may
+        not have them silently.
+
+        The verdict here is DIVERGENT, not `unmappable`, and that is the point
+        of separating a basis limit from a blind spot. Collapsing this to
+        `unmappable` was measured on EV-02's 203-partition sweep: it suppresses
+        67 of the 71 real divergence verdicts and removes no false clean that
+        withholding the word `coherent` does not already remove.
+        """
+        write_project(tmp_path, deliver=DELIVER_PY_DIVERGENT)
+        (tmp_path / "Pipeline.tla").write_text(NON_DECOMPOSING_TLA, encoding="utf-8")
+        report = check(tmp_path)
+        assert report.verdict == VERDICT_DIVERGENT
+        assert report.unsupported_clean(), "and the weak basis is reported anyway"
+        assert report.divergences, "the finding survives the withheld certificate"
+        assert all(row["file"] and row["line"] for row in report.divergences)
+        assert any(
+            "partition_does_not_decompose" in reason for reason in report.reasons
+        ), "a reader acting on these findings is told what they were measured against"
+        result = cli(
+            str(tmp_path / "Pipeline.tla"),
+            str(tmp_path / "Pipeline.cfg"),
+            "--components",
+            str(tmp_path / "components.yaml"),
+            "--code",
+            str(tmp_path / "pkg"),
+            "--map",
+            str(tmp_path / "map.yaml"),
+        )
+        assert result.returncode == EXIT_PASS, result.stderr
+
+    def test_the_unsupported_clean_check_reads_nothing_but_the_report(self) -> None:
+        """Structural guard, as for `verdict`: no input to game."""
+        import inspect
+
+        from scripts.architecture_reflexion import ReflexionReport
+
+        source = inspect.getsource(ReflexionReport.unsupported_clean)
+        for banned in ("os.environ", "getenv", "config", "options", "args", "allow", "assume"):
+            assert banned not in source, f"the check consults {banned!r}"
+
+    # -- hole 3: `[]` where the text says NOT MEASURABLE --------------------
+
+    def test_no_finding_list_is_empty_where_the_text_says_not_measured(
+        self, tmp_path: Path
+    ) -> None:
+        """AC-03-DF-01, one field over.
+
+        The text has always said "not zero of them" when the comparison did not
+        run. The JSON said `[]` and `0`, which is what a consumer reads.
+        """
+        write_project(tmp_path, blob=True)
+        payload = report_payload(check(tmp_path, declared=False))
+        assert payload["verdict"]["architecture_scan"] == VERDICT_UNMAPPABLE
+        for key in (
+            "convergences",
+            "divergences",
+            "absences",
+            "unmapped_modules",
+            "unrealized_components",
+        ):
+            assert payload[key] is None, f"{key} is undefined here, not empty"
+        measured = payload["measured"]
+        for key in (
+            "modules_scanned",
+            "edges_extracted",
+            "component_pairs",
+            "ported_pairs",
+            "unported_pairs",
+            "divergence_detectable",
+            "internal_edges",
+        ):
+            assert measured[key] is None, f"{key} is undefined here, not zero"
+        assert "NOT MEASURED" in measured["not_measured"]
+
+    def test_a_scan_that_ran_still_reports_real_empties_as_empty(
+        self, project: Path
+    ) -> None:
+        """`null` means undefined and `[]` means measured-and-empty. Both exist."""
+        payload = report_payload(check(project))
+        assert payload["divergences"] == []
+        assert payload["absences"] == []
+        assert payload["measured"]["not_measured"] is None
+        assert payload["measured"]["divergence_detectable"] is True
 
 
 def _strip_paths(payload: dict) -> dict:
@@ -924,11 +1346,20 @@ def test_a_declared_partition_of_this_repository_is_falsifiable_and_the_code_res
     across either pair WOULD have been a divergence. There is none: the two
     kill-test scripts reach only `budgets.py`, which is in `surface` and ported.
 
-    The verdict is still `unmappable`, and for a different reason: three
+    The verdict is still `unmappable`, and for three different reasons: three
     computed-name `importlib.import_module` calls, `scripts/run_tlc.sh`, and
     the first-party `spec_double_compiler/` package beside the code root. The
     code side is clean over what the extractor could resolve, and the check
     will not certify what it did not see.
+
+    RP-01 added a FOURTH, and it is about this repository rather than about the
+    extractor: the shipped partition does not decompose the shipped model
+    (Q = -0.025, and 60% of the actions cross the boundary because
+    `lastCommand` and `result` are written by all fifteen commands). The
+    partition is not refused -- every figure above was still measured against
+    it -- but no partition of this model that anyone has written is a cut of
+    it, so `coherent` is not currently a verdict this repository can earn even
+    with a perfect extractor. That is a fact worth pinning.
     """
     base = REPO_ROOT / "specs" / "program_model"
     descriptor = analyze(
@@ -948,7 +1379,14 @@ def test_a_declared_partition_of_this_repository_is_falsifiable_and_the_code_res
     assert report.unrealized_components == []
     kinds = {s.kind for s in report.blind_spots}
     assert kinds == {"dynamic_import", "first_party_outside_code_root", "non_python_file"}
-    assert "unfalsifiable_coherence" not in kinds
+    limits = {limit.kind for limit in report.unsupported_clean()}
+    assert limits == {"partition_does_not_decompose"}
+    assert "unfalsifiable_coherence" not in kinds | limits
+    assert descriptor.decomposes is False
+    assert {c["name"] for c in descriptor.criteria if not c["met"]} == {
+        "modularity_q",
+        "crossing_action_fraction",
+    }
     assert report.verdict == VERDICT_UNMAPPABLE
 
 
@@ -1096,6 +1534,17 @@ def payload_for(root: Path, **kwargs) -> dict:
     return report_payload(check(root, **kwargs))
 
 
+def make_structureless(root: Path) -> Path:
+    """Replace the model in place with one that has no architecture.
+
+    Used to reach the "the comparison never ran" branch, which requires an
+    emergent partition that does not decompose -- the repaired PIPELINE_TLA
+    decomposes on purpose.
+    """
+    (root / "Pipeline.tla").write_text(BLOB_TLA, encoding="utf-8")
+    return root
+
+
 def delta_between(before_root: Path, after_root: Path, **kwargs) -> dict:
     """A delta from a scan of one tree to a scan of another."""
     before_kwargs = {k[len("before_"):]: v for k, v in kwargs.items() if k.startswith("before_")}
@@ -1224,13 +1673,14 @@ class TestTheMapCannotBeMovedBetweenTheScans:
         (ported / "map.yaml").write_text(MAP_WITH_SHIPPER, encoding="utf-8")
         (ported / "Pipeline.tla").write_text(
             PIPELINE_TLA.replace(
-                "Next == Ingest \\/ Parse \\/ Ship \\/ Reset",
+                "Next == Ingest \\/ Stage \\/ Parse \\/ Check \\/ Ship \\/ Archive \\/ Reset",
                 "Recycle ==\n"
                 "  /\\ shipped > 0\n"
                 "  /\\ shipped' = shipped - 1\n"
                 "  /\\ raw' = raw + 1\n"
-                "  /\\ UNCHANGED parsed\n\n"
-                "Next == Ingest \\/ Parse \\/ Ship \\/ Reset \\/ Recycle",
+                "  /\\ UNCHANGED << staged, parsed, checked, archived >>\n\n"
+                "Next == Ingest \\/ Stage \\/ Parse \\/ Check \\/ Ship \\/ Archive \\/ Reset "
+                "\\/ Recycle",
             ),
             encoding="utf-8",
         )
@@ -1353,7 +1803,7 @@ class TestABaselineThatCannotBeOne:
         self, tmp_path: Path, repaired_project: Path
     ) -> None:
         """`unmappable` with no diff holds no findings -- not zero findings."""
-        payload = payload_for(repaired_project, declared=False)
+        payload = payload_for(make_structureless(repaired_project), declared=False)
         path = tmp_path / "notrun.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
         with pytest.raises(BaselineError) as excinfo:
@@ -1370,7 +1820,8 @@ class TestABaselineThatCannotBeOne:
         that did not happen.
         """
         baseline = payload_for(divergent_project)
-        report = check(divergent_project, declared=False)  # model has no architecture
+        # The model loses its architecture between the two scans.
+        report = check(make_structureless(divergent_project), declared=False)
         delta = structural_delta(baseline, report)
         assert delta["verdict"]["direction"] == DIRECTION_UNATTRIBUTABLE
         assert any("DID NOT RUN" in reason for reason in delta["verdict"]["why"])

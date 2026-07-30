@@ -1,0 +1,112 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RP-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A one-component declared partition on ex5_pipeline_divergent CANNOT report coherent; regression test asserts the pre-fix behavior fails.",
+        "A declared partition failing the criteria is reported as failing, in text AND JSON, next to the verdict.",
+        "The 203-partition sweep is rerun: zero partitions produce a clean the criteria do not support.",
+        "No field is `[]` where the text says NOT MEASURABLE; undefined is null with a reason, in JSON too."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EV-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/architecture_reflexion.py",
+        "scripts/analyze_architecture.py",
+        "tests/test_architecture_reflexion.py",
+        "tests/test_analyze_architecture.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/architecture_coherence.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": null,
+    "id": "RP-01",
+    "implementation_scope": [
+      "scripts/architecture_reflexion.py",
+      "scripts/analyze_architecture.py",
+      "tests/",
+      "references/architecture_coherence.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op with evidence.",
+    "objective": "THE severe one, owner-verified twice: six lines of YAML declaring a one-component partition make the divergent fixture -- four real divergences -- report `coherent`, exit 0. The refusal AC-01 built lives on the EMERGENT path and the DECLARED path walks around it: the guard reads `if not unported_pairs and len(names) >= 2`, `divergence_detectable` is computed and no consumer reads it, and a declared partition the descriptor itself prints as DOES NOT DECOMPOSE is consumed with the failed criteria appearing nowhere in the text or the JSON (`blind_spots: []`). Measured blast radius over all 203 partitions of the ex5 fixture: 12 report `coherent` and ALL 12 fail the criteria, while 0 of the honest partitions produce a clean. This is the MF-027 false-clean class, which this epic's own doctrine forbids outright. Fix: the basis travels with the verdict -- partition origin, every criterion with its measurement, and `divergence_detectable` -- in BOTH the text and the JSON; a partition that cannot express a divergence cannot yield `coherent` whatever its component count; and the `[]`-where-text-says- NOT-MEASURABLE JSON asymmetry (AC-03-DF-01) is closed in the same pass, since a consumer reading `[]` as \"owns nothing\" is the same defect one field over.\n",
+    "promotion_order": 80,
+    "promotion_predecessor": "EV-02",
+    "schedule_revision": 3,
+    "status": "next",
+    "title": "False `coherent`: the declared-partition bypass (EV-01-DF-02, EV-02-DF-01, AC-03-DF-01)",
+    "wave": 6
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/tickets/RP-01",
+  "ticket_id": "RP-01",
+  "ticket_index": 7,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-rp01-false-coherent/specs/tickets"
+}

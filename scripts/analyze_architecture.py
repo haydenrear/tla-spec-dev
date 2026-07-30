@@ -93,6 +93,26 @@ MAX_CROSSING_FRACTION = 0.5
 # explains more than chance").
 NEWMAN_SIGNIFICANT_Q = 0.3
 
+# AC-03-DF-01. `owns` used to be `[]` for a one-component partition, where the
+# text renderer said NOT MEASURABLE. A consumer reading `[]` sees "this
+# component owns nothing" -- a plausible architectural fact -- when the truth is
+# "the question is not defined here". Undefined is `null` and carries its
+# reason, in the JSON exactly as in the text; `[]` is reserved for the case that
+# was measured and came out empty (a real answer: see
+# `examples/distributed_history`, whose two components own nothing at all).
+OWNS_NOT_MEASURABLE = (
+    "NOT MEASURABLE: ownership is defined against a component partition and this "
+    "partition has one component -- every variable would be trivially owned, which "
+    "is a clean answer for a model with no architecture in it."
+)
+
+
+def _owns_basis(partition_source: str) -> str:
+    return (
+        "variables whose writing actions are confined to this component, under the "
+        f"{partition_source.upper()} partition"
+    )
+
 
 # --------------------------------------------------------------------------
 # Components
@@ -110,7 +130,10 @@ class Component:
     internal_actions: list[str] = field(default_factory=list)
     crossing_actions: list[str] = field(default_factory=list)
     writers: list[str] = field(default_factory=list)
-    owns: list[str] = field(default_factory=list)
+    #: Variables written only from here. ``None`` -- never ``[]`` -- when the
+    #: question is not defined (one component). ``owns_basis`` says which.
+    owns: list[str] | None = None
+    owns_basis: str | None = None
     reaches: list[dict[str, Any]] = field(default_factory=list)
 
 
@@ -225,7 +248,11 @@ def emergent_components(
     return components, score
 
 
-def attribute_actions(components: Sequence[Component], actions: Sequence[Action]) -> None:
+def attribute_actions(
+    components: Sequence[Component],
+    actions: Sequence[Action],
+    partition_source: str = "declared",
+) -> None:
     """Fill each component's action lists, owned variables, and reachable set."""
     for component in components:
         member = set(component.variables)
@@ -244,16 +271,23 @@ def attribute_actions(components: Sequence[Component], actions: Sequence[Action]
     # its writes are confined to. Ownership is a property of the write set, not
     # of cluster membership. With a single component the question is not
     # defined -- everything would be trivially "owned", which is a clean answer
-    # for a model with no components at all -- so it is left empty and the
-    # renderer says why.
+    # for a model with no components at all -- so it stays `None` (AC-03-DF-01:
+    # NOT `[]`, which reads as a measured "owns nothing") and every consumer,
+    # text or JSON, gets the reason next to the field.
     if len(components) >= 2:
         writer_components = component_writers(components, actions)
+        basis = _owns_basis(partition_source)
         for component in components:
             component.owns = sorted(
                 variable
                 for variable in component.variables
                 if writer_components.get(variable) == [component.cid]
             )
+            component.owns_basis = basis
+    else:
+        for component in components:
+            component.owns = None
+            component.owns_basis = OWNS_NOT_MEASURABLE
     by_id = {c.cid: c for c in components}
     for component in components:
         reaches: dict[str, list[str]] = {}
@@ -610,7 +644,7 @@ def analyze(
             "proposal"
         )
 
-    attribute_actions(components, actions)
+    attribute_actions(components, actions, partition_source)
     criteria = decomposition_criteria(components, actions, q)
     ports = ports_of(components, actions)
     crossings = crossing_actions_of(components, actions, ports)
@@ -740,7 +774,11 @@ def descriptor_payload(
                         "id": c.cid,
                         "name": c.name,
                         "variables": c.variables,
+                        # AC-03-DF-01: `null` when the question is not defined,
+                        # never `[]`. `owns_basis` is the same sentence the text
+                        # renderer prints, so the two artifacts cannot disagree.
                         "owns": c.owns,
+                        "owns_basis": c.owns_basis,
                         "actions": c.actions,
                         "internal_actions": c.internal_actions,
                         "crossing_actions": c.crossing_actions,
@@ -835,16 +873,14 @@ def render_text(
     if descriptor.unassigned_variables:
         add(_wrap("  variables in NO declared component: ", descriptor.unassigned_variables))
     add("")
-    single_component = len(descriptor.components) < 2
     for component in descriptor.components:
         label = component.cid if component.cid == component.name else f"{component.cid} ({component.name})"
         add(f"  {label}")
         add(_wrap("    variables:         ", component.variables))
-        if single_component:
-            add(
-                "    owns:              NOT MEASURABLE with one component -- every "
-                "variable would be trivially owned."
-            )
+        if component.owns is None:
+            # Byte-identical to the JSON's `owns_basis`, so a reader of either
+            # artifact learns the same thing (AC-03-DF-01).
+            add(f"    owns:              {component.owns_basis}")
         else:
             add(_wrap("    owns (writes confined here): ", component.owns))
         add(_wrap("    internal actions:  ", component.internal_actions))
