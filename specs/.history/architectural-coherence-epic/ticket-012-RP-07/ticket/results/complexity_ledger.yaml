@@ -1,0 +1,245 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "TODO"
+    evidence: "TODO -- path to the pre-change TLC output"
+  tlc_after:
+    status: "TODO"
+    evidence: "TODO -- path to the post-change TLC output"
+  behavior_tests:
+    status: "TODO"
+    evidence: "TODO -- path to the behavior-test output"
+  descriptor_comparison:
+    status: "TODO"
+    evidence: "TODO -- path to the before/after descriptor comparison"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
+  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >
+    RP-07 carries zero TLA+ model delta (results/zero-model-delta.txt; the
+    ledger header records direction=zero vs RP-05) and its whole diff is two
+    files under test_graph/. No variable, action or domain was added or
+    removed, so no reduction search over the representation applies.
+
+    The refinement search that does apply is over the FIX, and four
+    alternatives were considered against the reproduction in
+    results/diagnosis.md:
+
+    (1) Relax or delete the executor's descendant contract. REJECTED, and it
+    is also not reachable: test_graph/build-logic and test_graph/sdk are
+    symlinks into $SKILL_MANAGER_HOME, so editing them would edit the
+    installed skill for every repository. The contract was also correct -- the
+    surviving process was real, and the executor's reap of it reaches a daemon
+    shared with the outer build.
+
+    (2) Drain-and-tolerate: have the node wait for the daemon and pass anyway,
+    or exempt "known daemon" command lines. REJECTED as making a check pass by
+    weakening what it asserts. A 7200-second idle daemon does not exit inside
+    any bounded wait, so this is exemption dressed as patience.
+
+    (3) Stop recopying the probe project each run (retain build/), so the
+    nested build never compiles Kotlin and never forks the daemon. REJECTED:
+    the warm-project arm of the A/B does show 0 live descendants, but it wins
+    by not exercising the from-scratch path the probe exists to exercise, and
+    it makes the node's result depend on leftover state from a previous run.
+
+    (4) Pin kotlin.compiler.execution.strategy=in-process. CHOSEN. It removes
+    the fork rather than tolerating it, keeps the nested compile inside the
+    tree the node owns and can reap, changes no assertion, and is confined to
+    the node's own subprocess invocation. Measured against arms (2)/(3) in the
+    three-arm table in results/diagnosis.md.
+
+    The added assertion `nested probe build left no live descendants` is
+    additive representation in the NODE, not in the model, and it is
+    deliberately narrower than the executor's check (bounded drain, node-body
+    subtree only). It exists so a regression names the offending command lines
+    instead of bare PIDs. The executor's check remains the authority; the node
+    cannot make a violating run green.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >
+  Full diagnosis with the reproduction: specs/tickets/RP-07/results/diagnosis.md.
+
+  RP-07 diagnoses the one red node EV-02 escalated rather than filed. The
+  verdict is the first of the three offered outcomes: a REAL defect, in the
+  probe, fixed. Not flakiness, not a wrong assertion, not an unsatisfiable
+  environment assumption.
+
+  Reproduced twice on this worktree with the probe unmodified: `specWorkflow`
+  fails at `spec.workflow.failure_cleanup_probe` with "node launcher exited
+  with live descendants", different PIDs each run -- matching EV-02's report
+  exactly. A 0.4s `ps` sampler run alongside the second reproduction resolves
+  the reported PID and its full ancestry (results/descendant-ancestry.txt):
+  outer Gradle daemon -> SDK perl process-group supervisor -> `uv run` node
+  launcher -> node python -> nested gradlew -> nested single-use Gradle daemon
+  -> `org.jetbrains.kotlin.daemon.KotlinCompileDaemon
+  --daemon-autoshutdownIdleSeconds=7200`. The survivor is the Kotlin compile
+  daemon: a shared, user-scoped service with a two-hour idle lifetime, i.e. one
+  designed to outlive the build that started it.
+
+  It is forked on every single run because `copy_probe_project` recopies the
+  project with `ignore_patterns("build", ...)`, so the nested build always
+  compiles the `build-logic` Kotlin plugin from scratch, and the Kotlin Gradle
+  plugin's default execution strategy is `daemon`. A three-arm A/B on an
+  isolated copy, all Kotlin daemons killed before each arm, with a harness that
+  builds the same descendant inventory the executor builds
+  (results/descendant-contract-harness.py): warm project, no Kotlin compile ->
+  0 live after exit; fresh copy, as shipped -> 1 live, the KotlinCompileDaemon;
+  fresh copy plus in-process strategy -> 0 live. The warm-project arm is the
+  control that isolates the cause.
+
+  The contract was right to fail this. The executor does not merely report the
+  survivor, it TERMs then KILLs it -- and that daemon is keyed on
+  ~/Library/Application Support/kotlin/daemon and shared with the outer build,
+  so the reap reaches outside the node. A node that forks a machine-scoped
+  service into its own process tree is doing something the contract should
+  refuse.
+
+  Why it was green before, on this same machine: MF-027's green run of this
+  node is 2026-07-19, and at that commit `awaitWithTimeout` was a plain
+  `process.waitFor(timeout)` with no descendant inventory at all. Commit
+  0e3f00c (2026-07-23, "chore: upgrade test graph observability scaffold")
+  replaced test_graph/build-logic and test_graph/sdk with symlinks into
+  $SKILL_MANAGER_HOME and brought in the POSIX process-group supervisor and the
+  descendant contract. The probe's behavior did not change on 2026-07-23; the
+  instrument that can see it arrived. The leak was newly DETECTED, not newly
+  introduced -- which is the scaffold upgrade working as intended.
+
+  Fix: pin kotlin.compiler.execution.strategy=in-process on both channels --
+  `-P` on the command line, because command-line project properties propagate
+  into the `build-logic` included build where the compilation actually happens,
+  and `-D` in GRADLE_OPTS alongside the pre-existing
+  `-Dorg.gradle.daemon=false`. Confirmed the compile still happens (the run
+  populates build-logic/build/classes/kotlin/main/) rather than being skipped.
+  test_graph/README.md gains a section naming the requirement so a future edit
+  does not quietly drop the flags.
+
+  Evidence integrity: nothing was weakened. The seven pre-existing probe
+  assertions are unchanged and all still pass; one was added. The added
+  in-node check is strictly narrower than the executor's (it drains up to 20s
+  where the executor allows none, and inspects only the node body's subtree),
+  and it is a diagnostic that writes offending command lines to
+  node-logs/spec.workflow.failure_cleanup_probe.lingering-descendants.log --
+  not a replacement gate. The executor's ProcessContractViolation check is
+  untouched and still fails the node if the in-node check is ever wrong.
+  Nothing under $SKILL_MANAGER_HOME was edited.
+
+  Result: specWorkflow PASSED on three consecutive runs (results/
+  test-graphs.txt), repository unit tests 944 passed / 0 failed (940 on the
+  epic tip; the +4 are parametrized YAML-parse cases over this ticket's own
+  scaffolded files), spec-unit validation passed, zero TLA+ model delta.
+
+  One thing this ticket did NOT establish: whether any other repository using
+  this scaffold has nodes that spawn nested Gradle builds and would hit the
+  same contract. The `in-process` requirement is a general consequence of the
+  contract meeting the Kotlin plugin's default, not something specific to this
+  probe, and it currently lives only in this repository's test_graph/README.md.
+  Recorded in specs/desired_program_model/deferred_findings.yaml.

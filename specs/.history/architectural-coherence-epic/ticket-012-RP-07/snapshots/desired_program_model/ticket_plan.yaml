@@ -1161,7 +1161,7 @@ tickets:
 
   - id: RP-03
     title: "Case modules: reproducible in place, internal-view docs, and the authoring method (EV-02-DF-02, DF-04, DF-05)"
-    status: done
+    status: planned
     github_issue: null
     schedule_revision: 3
     depends_on: [RP-02]
@@ -1222,24 +1222,12 @@ tickets:
       commands:
         - "uv run --with pytest --with pyyaml -m pytest tests -q"
       assertions:
-        - "MET. Generation resolves the EXTENDS closure before TLC runs and gives SANY the directories it found as TLA-Library (TLC 2.19 has no -lib flag, and it does not search the current directory -- both verified). The module's own directory wins, then --module-path, then sibling directories holding .tla files, which is what makes specs/case_modules/ -> specs/program_model/ work with no flag; two siblings defining the same module is an error naming both. The view's spec_manifest.yaml is found along the same path, so the declaration, budgets and coverage record still describe one project. Both ex4 modules regenerate in place with cases/actions/declared_view_actions/case_module byte-equal to the committed copy-and-delete evidence. An unresolvable EXTENDS is now one sentence BEFORE the JVM starts, naming the module, every directory searched and --module-path, instead of a SANY AbortException under a fail-closed complexity paragraph. 11 regression tests, one of which pins the shipped ex4 layout."
-        - "MET, and one command in it fails on purpose. references/case_modules.md, 'Worked example: an internal-only project', was run verbatim end to end on examples/validation/ex4_pipeline_coherent (internal view, no testgraph, no bindings): enumerate the action set, generate the view corpus (330 cases), generate the slice and the Given in place (50 and 6), validate, aggregate coverage (UNCOVERED: none), and execute the Given's corpus against the project's UNCHANGED adapters with two --import-root ('executed 6 cases in batch'). Step 6 is the slice against the same mapping, which refuses -- that is CM-F5, published as a refusal rather than hidden. Two smaller frictions fixed on the way: --out now says where a relative path landed, and the --import-root error names both roots. Recorded in results/internal-view-worked-example.{sh,txt}."
-        - "MET. references/case_modules.md, 'The authoring asymmetry: a slice comes from outside, a Given cannot', states it as a table of what each form requires and where that knowledge lives, and names the split that makes a Given commissionable from outside (the outsider supplies the CLAIM, someone with the model writes the predicate). prompts/aspect_decomposition.md Step 3 says the same at the point of authoring."
-        - "MET as LABELLED UNENFORCEABLE, deliberately, inside Step 0 where the requirement is made. Two candidate checks -- require a non-empty Source, reject 'the model'/'derived' -- are named and rejected in the text as guards a determined agent walks around, which this epic has already shipped once. The honest contract replaces them: provenance is an unverified claim, an authorless decomposition must be labelled unreviewed, and a consumer asks the named source directly."
-        - "ADJACENT, FIXED: parameter recovery did not follow EXTENDS. Found while running the worked example, not in the brief. A case module declares no actions, so recipes read from its own text alone recovered nothing: the view's corpus carried 330/330 arguments while its two case modules carried 0/50 and 0/6, and the adapters refused those corpora case by case with 'no usable argument for `i`'. Recipes are now built over the whole hierarchy, base modules first -- 50/50 and 6/6, and the Given's corpus executes. Single-file specs are unaffected; examples/distributed_history's committed corpora are now stale with respect to this and were not regenerated."
-        - "NEGATIVE: the brief's 'Step 1's jq pipeline assumes JSON-only stdout' did not reproduce -- that command writes 6,703 bytes to stdout and 0 to stderr, and every error path prints to stderr. What did reproduce is fixed: --spec-root does not resolve the positional .tla/.cfg, and Step 1(b) required PyYAML, which this toolchain deliberately does not depend on."
-        - "OWNER-AUTHORIZED DELETION: scripts/spec_evolution.py CFG_KEYWORDS and its skip are gone, no reference remains anywhere, and the three model-pair validator tests RP-04 measured as load-bearing on it are green."
-      evidence:
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/ev-02-df-02-reproducible-in-place.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/internal-view-worked-example.sh"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/internal-view-worked-example.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/cm-01-df-02-workaround-deleted.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/deferred-and-negative-findings.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/zero-model-delta.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/tlc-current.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/repo_unit_tests.txt"
-        - "specs/.history/architectural-coherence-epic/ticket-011-RP-03/ticket/results/spec-unit-tests.txt"
-    model_delta_expectation: "ZERO. Documented in results/zero-model-delta.txt: ticket current and desired are identical, and current equals specs/current. Scripts, tests, references and prompts only."
+        - "A case module generates from the location the docs specify, with a regression test; the ex4 module is reproducible in place."
+        - "An internal-only worked example exists end to end, with commands that run as written."
+        - "references/case_modules.md states the slice-vs-Given authoring asymmetry explicitly."
+        - "Step 0 is either checkable or labelled unenforceable where it is stated, not only in a validation-status footnote."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
 
   - id: RP-07
     title: "specWorkflow graph is red at failure_cleanup_probe (pre-existing, escalated by EV-02)"
@@ -1279,13 +1267,7 @@ tickets:
         - specWorkflow
     acceptance:
       commands:
-        # As authored -- but `run` has no `test-graph` target; the CLI accepts
-        # only spec-unit-tests | effect-conformance | kill-test, so this line
-        # exits 2 with "invalid choice: 'test-graph'". Left as written rather
-        # than silently rewritten, with the commands actually used below.
         - "python3 scripts/tla_spec_dev.py --spec-root specs run test-graph specWorkflow"
-        - "python3 ~/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
-        - "cd test_graph && ./gradlew specWorkflow --console=plain"
       assertions:
         - "specWorkflow is green, or the probe is documented as measuring something it cannot measure here and is changed to say so."
         - "Whichever it is, the diagnosis is recorded with the reproduction."
