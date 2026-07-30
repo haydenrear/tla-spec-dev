@@ -403,7 +403,14 @@ def _load_generated_port_protocol(
     except (ImportError, AttributeError) as exc:
         raise EffectProviderConfigurationError(
             f"could not load generated port {port_name} from {module_name}; "
-            "generate the manifest package and add its parent with --import-root"
+            f"import {module_name!r} needs the PARENT of the {package!r} package on "
+            "sys.path, which is usually a SECOND --import-root rather than a "
+            "replacement for the first: one root for the project (the adapters, "
+            "providers and production packages, e.g. `--import-root .`) and one for "
+            "the generated contract package (e.g. `--import-root ./generated`). "
+            f"Roots currently on the path: "
+            + (", ".join(str(root) for root in import_roots) or "(none)")
+            + ". If the package has never been generated, run the manifest codegen first."
         ) from exc
     if not isinstance(protocol, type) or not getattr(protocol, "_is_protocol", False):
         raise EffectProviderConfigurationError(f"generated port {module_name}:{port_name} is not a Protocol")
@@ -2119,7 +2126,20 @@ def main() -> int:
     parser.add_argument("--label", action="append", default=[], help="Only generate/run cases with this label")
     parser.add_argument("--case", action="append", default=[], help="Only generate/run this case name")
     parser.add_argument("--limit", type=int)
-    parser.add_argument("--import-root", action="append", type=Path, default=[])
+    parser.add_argument(
+        "--import-root",
+        action="append",
+        type=Path,
+        default=[],
+        metavar="DIR",
+        help=(
+            "Directory to put on sys.path before importing adapters, providers and "
+            "generated packages. REPEATABLE, and a project normally needs two: the "
+            "project root (adapters, providers, production packages) and the parent "
+            "of the generated contract package. Passing only one is the common cause "
+            "of a ModuleNotFoundError on an otherwise correct mapping."
+        ),
+    )
     parser.add_argument("--python", action="append", default=[], help="Python command used to run generated programs")
     parser.add_argument("--validate-only", action="store_true")
     parser.add_argument("--validate-capabilities", action="store_true", help="Ask adapters whether they can run every selected case")

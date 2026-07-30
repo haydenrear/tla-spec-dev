@@ -1,0 +1,99 @@
+RP-03 -- findings the ticket did not fix, and one place the brief was wrong
+===========================================================================
+
+1. CM-F5 (NEW, OPEN) -- a slice orphans the view's effect providers
+-------------------------------------------------------------------
+`run_generated_case_adapters.py` refuses a mapping that configures a semantic
+effect provider no SELECTED case requires:
+
+  ERROR: invalid semantic effect provider configuration: provider configured for
+  semantic effect port(s) not required by any selected case: LedgerStorePort
+
+Reproduced on the ex4 fixture with BOTH shipped mappings (case_adapters.toml and
+case_adapters_corpus_only.toml), with --batch and with --validate-only. The
+Scenario_DeliveryPath SLICE deliberately excludes Record, the only action that
+touches LedgerStorePort, so the project's own adapter mapping cannot run the
+slice's corpus at all. The Scenario_RecordAfterDelivery GIVEN does enter the
+effect-carrying action and runs unmodified ("executed 6 cases in batch").
+
+There is no lever: `--label` selects cases, not providers, and no flag scopes the
+provider block. The only workaround today is a second mapping file with the
+provider removed, which pushes back against the doctrine that "a case module
+needs no adapter of its own".
+
+NOT FIXED HERE. scripts/run_generated_case_adapters.py is not this ticket's
+conflict key, and the fix is a decision about the runner: whether a corpus that
+is a declared case module should downgrade an orphan provider from an error to a
+reported fact. Filed as CM-F5 in references/case_modules.md, and published in the
+worked example as a refusal rather than hidden.
+
+2. Parameter recovery did not follow EXTENDS (FIXED, adjacent scope)
+--------------------------------------------------------------------
+Found while running the worked example, not in the brief. A case module declares
+no VARIABLES and no actions, and build_recipes_from_path() read only the module's
+own text, so:
+
+  Pipeline (view)                 330/330 cases carry recovered arguments
+  Scenario_DeliveryPath (slice)     0/50  -- every case carried no argument
+  Scenario_RecordAfterDelivery      0/6
+
+and the adapters then refused the whole corpus case by case with
+"no usable argument for `i` (got None)". The manual-test-starter path produced a
+corpus that could be generated and could not be executed.
+
+Fixed in scripts/generate_cases_from_tlc_dump.py (this ticket's conflict key)
+with build_recipes_for_hierarchy(): recipes are built from the concatenated
+hierarchy, base modules first, which is the same module set TLC explored. After:
+50/50 and 6/6, and the Given corpus executes.
+
+Blast radius: for a module whose EXTENDS are all standard library modules the
+text is unchanged, so single-file specs are unaffected. The behavior DOES change
+for any multi-module spec -- examples/distributed_history (External EXTENDS
+Internal EXTENDS Core) would now recover arguments for actions defined in the
+extended modules where it previously recovered none. Its committed corpora under
+examples/distributed_history/specs/generated/ were NOT regenerated here and are
+therefore stale with respect to this change; nothing in the test suite
+regenerates them.
+
+3. The brief's "Step 1's jq pipeline assumes JSON-only stdout" did not reproduce
+--------------------------------------------------------------------------------
+Measured: `tla_spec_dev.py --spec-root specs analyze architecture <tla> <cfg>
+--format json` writes 6,703 bytes to stdout and 0 bytes to stderr on the ex4
+fixture, and every error path in scripts/analyze_architecture.py prints to
+stderr. The jq pipeline works as written today.
+
+Two things about that command DO reproduce, and both are fixed in the prompt:
+  * `--spec-root specs` does not resolve the POSITIONAL .tla/.cfg. A bare
+    `<View>.tla` exits "ERROR: spec not found: <cwd>/<View>.tla". The prompt now
+    shows the path relative to cwd and says so.
+  * Step 1(b) required PyYAML: `python3 -c "import yaml"` is a
+    ModuleNotFoundError in this repository's default environment, which is why
+    the toolchain ships extract_spec_manifest.py. The prompt now uses that
+    reader. It also no longer depends on `jq` being installed.
+
+4. Step 0's provenance requirement: labelled, not mechanized
+-------------------------------------------------------------
+The brief allowed either. It cannot be mechanized honestly. The `Source` column
+is free text; requiring it to be non-empty, or rejecting "the model"/"derived",
+are both one word of work for an agent that wants to pass, and this epic has
+already shipped one guard that passed vacuously. prompts/aspect_decomposition.md
+now states the unenforceability INSIDE Step 0, where the requirement is made,
+names the two rejected checks and why, and defines the honest contract:
+provenance is an unverified claim, an authorless decomposition must be labelled
+"unreviewed", and a consumer should ask the named source directly.
+
+5. Still harder to use than it should be
+-----------------------------------------
+  * The generation command for one case module is 8 lines and repeats the two
+    projectors and the actions metadata for every module. There is no
+    `tla-spec-dev generate case-module <name>` that reads the case_modules: block
+    and fills those in, and the block already holds everything needed for it.
+  * Setting TLA-Library through JAVA_TOOL_OPTIONS makes the JVM print one
+    "Picked up JAVA_TOOL_OPTIONS: ..." line to stderr on every split-layout run.
+    Harmless, unsuppressable, and it will be mistaken for a warning at least once.
+  * `--out` staying spec-relative is now printed rather than silent, but it is
+    still a rule nobody guesses; every worked example in the repository passes an
+    absolute path, which is the tell.
+  * A slice cannot be executed against a mapping with a provider it does not
+    need (CM-F5 above), so the cheapest, most outside-in artifact -- the slice --
+    is the one that cannot be run end to end.

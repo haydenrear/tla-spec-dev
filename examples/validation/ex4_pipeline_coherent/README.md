@@ -298,10 +298,21 @@ PYTHONPATH=<repo-root>:$PWD/generated python3 $REPO/scripts/run_generated_case_a
   --mapping specs/program_model/case_adapters.toml \
   --spec-dir specs/program_model --view internal --batch --import-root .
 
-# 7. the case modules (they EXTEND Pipeline, so they must sit beside it)
-cp specs/case_modules/Scenario_*.tla specs/case_modules/Scenario_*.cfg specs/program_model/
-#   ... generate each as in step 5 with --package <name>_cases ...
-rm specs/program_model/Scenario_*.tla specs/program_model/Scenario_*.cfg
+# 7. the case modules -- generated FROM specs/case_modules/, in place.
+#    EV-01 had to copy them beside Pipeline.tla to generate at all; RP-03 fixed
+#    the module search path, so `cp`/`rm` are gone and the checked-in modules
+#    are reproducible where they live. Sibling directories of the .tla that hold
+#    .tla files are searched automatically, which is how Pipeline is found; use
+#    --module-path <dir> if the view lives somewhere else.
+PYTHONPATH=$PWD python3 $REPO/scripts/generate_cases_from_tlc_dump.py \
+  specs/case_modules/Scenario_DeliveryPath.tla specs/case_modules/Scenario_DeliveryPath.cfg \
+  --out /tmp/ev01cm --package Scenario_DeliveryPath_cases --view internal \
+  --actions-metadata specs/program_model/actions.yml \
+  --state-projector specs.program_model.tlc_projection:project_visible_state \
+  --output-projector specs.program_model.tlc_projection:project_adapter_output \
+  --dedupe projected
+#    -> 50 cases from 25 states  (same corpus the copy-and-delete run produced)
+#   ... and the same command for Scenario_RecordAfterDelivery -> 6 cases from 8 states
 
 python3 $REPO/scripts/case_modules.py validate  --manifest specs/program_model/spec_manifest.yaml
 python3 $REPO/scripts/case_modules.py coverage  --manifest specs/program_model/spec_manifest.yaml \
@@ -314,8 +325,11 @@ python3 $REPO/scripts/case_modules.py coverage  --manifest specs/program_model/s
 python3 -m pytest tests -q
 ```
 
-The case modules are kept in `specs/case_modules/` and copied in, the same
-convention `examples/case_modules/` uses: the accepted baseline keeps none.
+The case modules are kept in `specs/case_modules/` and generate from there, in
+place — the accepted baseline keeps none beside the view. The `spec_manifest.yaml`
+that declares them is the *view's*, found along the same module search path.
+`references/case_modules.md`, "Worked example: an internal-only project", runs
+this fixture end to end with commands that need no editing.
 
 ## Layout
 

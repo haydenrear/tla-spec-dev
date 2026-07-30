@@ -1,0 +1,218 @@
+++ git rev-parse --show-toplevel
++ export REPO=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability
++ REPO=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability
++ cd /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent
+++ mktemp -d
++ export OUT=/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr
++ OUT=/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg --format json
++ python3 -c 'import json,sys; [print(a['\''name'\'']) for a in sorted(json.load(sys.stdin)['\''measured'\'']['\''actions'\''], key=lambda a: a['\''name'\''])]'
+Accept
+Deliver
+Enqueue
+Fail
+Record
++ python3 -c '
+import sys
+sys.path.insert(0, sys.argv[3])
+from pathlib import Path
+from extract_spec_manifest import load_manifest
+actions = load_manifest(Path(sys.argv[1])).get('\''actions'\'') or {}
+for name in sorted(actions):
+    if (actions[name] or {}).get('\''layer'\'') == sys.argv[2]:
+        print(name)
+' specs/program_model/actions.yml internal /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts
+Accept
+Deliver
+Enqueue
+Fail
+Record
++ PYTHONPATH=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/generate_cases_from_tlc_dump.py specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg --out /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr --package Pipeline_cases --view internal --actions-metadata specs/program_model/actions.yml --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 4495658615680577774 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 37866] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Pipeline
+Starting... (2026-07-30 17:23:13)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-30 17:23:13.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.4E-15
+331 states generated, 121 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 13.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 5 and the 95th percentile is 3).
+Finished in 00s at (2026-07-30 17:23:13)
+complexity scan clean: state-space upper bound 4,096 (complete: all 6 declared variables resolved) within max_state_space_bound 1,000,000, and every component within its advisory thresholds
+spec directory: /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model
+generated internal transition cases from 121 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Pipeline_cases
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Pipeline_cases/case_coverage.json
+parameter recovery: 330/330 cases carry arguments, 330 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Pipeline_cases/param_recovery_audit.md
+corpus gate PASS: 330 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Pipeline_cases
+
+Distribution per (action, label class) -- 5 stratum/strata:
+  Enqueue / params:recovered     110   33.3%
+  Fail / params:recovered         88   26.7%
+  Deliver / params:recovered      66   20.0%
+  Record / params:recovered       44   13.3%
+  Accept / params:recovered       22    6.7%
+
+Strata that DOMINATE the corpus:
+  Enqueue / params:recovered     110   33.3%
+  Fail / params:recovered         88   26.7%
+  Deliver / params:recovered      66   20.0%
+
+Strata that are STARVED:
+  (none)
+
+Every component is within cap. Largest: component=330
+
+No case was dropped, filtered, sampled, or truncated.
++ PYTHONPATH=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/generate_cases_from_tlc_dump.py specs/case_modules/Scenario_DeliveryPath.tla specs/case_modules/Scenario_DeliveryPath.cfg --out /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr --package Scenario_DeliveryPath_cases --view internal --actions-metadata specs/program_model/actions.yml --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+Picked up JAVA_TOOL_OPTIONS: -DTLA-Library=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules:/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 4220402765767806869 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 37878] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules/Scenario_DeliveryPath.tla
+Parsing file /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Pipeline
+Semantic processing of module Scenario_DeliveryPath
+Starting... (2026-07-30 17:23:14)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-07-30 17:23:14.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 3.5E-17
+51 states generated, 25 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 9.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+Finished in 00s at (2026-07-30 17:23:14)
+module search path: /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules, /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model
+  EXTENDS resolved outside /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules: Pipeline -> /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+complexity scan clean: state-space upper bound 4,096 (complete: all 6 declared variables resolved) within max_state_space_bound 1,000,000, and every component within its advisory thresholds
+spec directory: /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules
+generated internal transition cases from 25 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases
+case module Scenario_DeliveryPath: declared slice of Pipeline with 3 action(s) in scope; 2 other declared internal action(s) are outside this aspect and are NOT reported as coverage holes (spec_manifest.yaml case_modules:)
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases/case_coverage.json
+parameter recovery: 50/50 cases carry arguments, 50 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases/param_recovery_audit.md
+corpus gate PASS: 50 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases
+
+Distribution per (action, label class) -- 3 stratum/strata:
+  Deliver / params:recovered      20   40.0%
+  Enqueue / params:recovered      20   40.0%
+  Accept / params:recovered       10   20.0%
+
+Strata that DOMINATE the corpus:
+  Deliver / params:recovered      20   40.0%
+  Enqueue / params:recovered      20   40.0%
+
+Strata that are STARVED:
+  (none)
+
+Every component is within cap. Largest: component=50
+
+No case was dropped, filtered, sampled, or truncated.
++ PYTHONPATH=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/generate_cases_from_tlc_dump.py specs/case_modules/Scenario_RecordAfterDelivery.tla specs/case_modules/Scenario_RecordAfterDelivery.cfg --out /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr --package Scenario_RecordAfterDelivery_cases --view internal --actions-metadata specs/program_model/actions.yml --state-projector specs.program_model.tlc_projection:project_visible_state --output-projector specs.program_model.tlc_projection:project_adapter_output --dedupe projected
+Picked up JAVA_TOOL_OPTIONS: -DTLA-Library=/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules:/Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 8918180193175974127 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 37918] (Mac OS X 26.5.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules/Scenario_RecordAfterDelivery.tla
+Parsing file /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Pipeline
+Semantic processing of module Scenario_RecordAfterDelivery
+Starting... (2026-07-30 17:23:14)
+Computing initial states...
+Finished computing initial states: 2 distinct states generated at 2026-07-30 17:23:14.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 0.0
+8 states generated, 8 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 3.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+Finished in 00s at (2026-07-30 17:23:14)
+module search path: /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules, /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model
+  EXTENDS resolved outside /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules: Pipeline -> /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/program_model/Pipeline.tla
+complexity scan clean: state-space upper bound 4,096 (complete: all 6 declared variables resolved) within max_state_space_bound 1,000,000, and every component within its advisory thresholds
+spec directory: /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/examples/validation/ex4_pipeline_coherent/specs/case_modules
+generated internal transition cases from 8 states into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases
+case module Scenario_RecordAfterDelivery: declared given of Pipeline with 2 action(s) in scope; 3 other declared internal action(s) are outside this aspect and are NOT reported as coverage holes (spec_manifest.yaml case_modules:)
+case module Scenario_RecordAfterDelivery: recorded Given claim -- Recording a delivered item in the ledger is independent of how the item reached `delivered` -- of which other items are in the inbox, accepted, or queued. The Given asserts one pre-state (i1 delivered, i2 still in the inbox) instead of enumerating every reachable configuration that has a delivered item. What it claims is irrelevant to Record: upstream ingest state. If Record ever reads inbox, accepted, or queue, the claim is false and this Given must go.
+per-action coverage recorded to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases/case_coverage.json
+parameter recovery: 6/6 cases carry arguments, 6 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases/param_recovery_audit.md
+corpus gate PASS: 6 internal case(s), cap max_internal_cases_per_component = 330 per component
+source: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases
+
+Distribution per (action, label class) -- 2 stratum/strata:
+  Fail / params:recovered         4   66.7%
+  Record / params:recovered       2   33.3%
+
+Strata that DOMINATE the corpus:
+  Fail / params:recovered       4   66.7%
+
+Strata that are STARVED:
+  (none)
+
+Every component is within cap. Largest: component=6
+
+No case was dropped, filtered, sampled, or truncated.
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/case_modules.py validate --manifest specs/program_model/spec_manifest.yaml
+Scenario_DeliveryPath: slice of Pipeline, 3 action(s)
+Scenario_RecordAfterDelivery: given of Pipeline, 2 action(s), claim recorded (458 chars)
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/case_modules.py coverage --manifest specs/program_model/spec_manifest.yaml --actions-metadata specs/program_model/actions.yml --view internal --corpus /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases --corpus /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases --corpus /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Pipeline_cases
+case-module coverage -- view: internal
+  manifest: specs/program_model/spec_manifest.yaml
+  declared case modules: 2 (1 slice, 1 given)
+  view action set: 5 actions, from the supplied actions metadata
+
+This is a REPORT. It states per-action coverage and gates nothing (references/architecture_tractability.md, 'Advisory, Not Blocking').
+
+action   view corpus  Scenario_DeliveryPath  Scenario_RecordAfterDelivery  modules total
+-------  -----------  ---------------------  ----------------------------  -------------
+Accept   22           10                     0                             10
+Deliver  66           20                     0                             20
+Enqueue  110          20                     0                             20
+Fail     88           0                      4                             4
+Record   44           0                      2                             2
+
+view corpus: Pipeline (330 cases)
+
+UNCOVERED: none -- every view action is entered by a measured module or covered by the view's own corpus.
+
+Cross-aspect interleaving is not in this table. Slices do not enumerate the interleavings between aspects; only a whole-view run does. Do not report the union of modules as equivalent to the view's corpus (references/case_modules.md, Integrity rule 4).
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_RecordAfterDelivery_cases --mapping specs/program_model/case_adapters.toml --spec-dir specs/program_model --view internal --batch --import-root . --import-root ./generated
+validated 5 adapter mappings for 3 labels
+executed 6 cases in batch
++ python3 /Users/hayde/IdeaProjects/wt-rp03-case-module-usability/scripts/run_generated_case_adapters.py /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.TZRjMj7JOr/spec-unit/Scenario_DeliveryPath_cases --mapping specs/program_model/case_adapters.toml --spec-dir specs/program_model --view internal --batch --import-root . --import-root ./generated
+ERROR: invalid semantic effect provider configuration: provider configured for semantic effect port(s) not required by any selected case: LedgerStorePort
++ echo 'worked example finished; step 7 is expected to have exited nonzero'
+worked example finished; step 7 is expected to have exited nonzero

@@ -293,12 +293,23 @@ class ResolvedModule:
 
 
 def resolve_module(
-    tla_path: Path, *, _seen: set[Path] | None = None
+    tla_path: Path,
+    *,
+    search_path: Sequence[Path] | None = None,
+    _seen: set[Path] | None = None,
 ) -> ResolvedModule:
     """Follow ``EXTENDS`` and union the declarations the analyzer reads.
 
     Raises :class:`ModuleResolutionError` (fails closed) on any construct it
     cannot model, rather than returning an under-reported view.
+
+    ``search_path`` is the module search path, in precedence order, for
+    ``EXTENDS`` targets that do not sit beside the extending module -- a case
+    module in ``specs/case_modules/`` extending a view in
+    ``specs/program_model/`` (EV-02-DF-02). The extending module's own directory
+    is always searched first, so a default of ``None`` is exactly the old
+    behavior. Callers that also run TLC must pass the SAME path they give SANY,
+    or the scan and the corpus can describe different files.
     """
     seen = _seen if _seen is not None else set()
     resolved_path = tla_path.resolve()
@@ -343,17 +354,33 @@ def resolve_module(
     for extended in parse_extends(text):
         if extended in STANDARD_MODULES:
             continue
-        candidate = resolved_path.parent / f"{extended}.tla"
-        if not candidate.is_file():
+        lookup = [resolved_path.parent, *(Path(p) for p in (search_path or ()))]
+        candidate = next(
+            (
+                directory / f"{extended}.tla"
+                for directory in lookup
+                if (directory / f"{extended}.tla").is_file()
+            ),
+            None,
+        )
+        if candidate is None:
+            where = (
+                str(resolved_path.parent)
+                if len(lookup) == 1
+                else "any of " + ", ".join(str(directory) for directory in lookup)
+            )
             raise UnresolvedExtendsError(
                 f"module {module_name} ({resolved_path.name}) EXTENDS "
-                f"{extended}, but {candidate.name} was not found in "
-                f"{resolved_path.parent}. The analyzer cannot union "
+                f"{extended}, but {extended}.tla was not found in "
+                f"{where}. The analyzer cannot union "
                 "declarations from a module it cannot read and FAILS CLOSED "
-                "rather than under-report the bound. If it is a library module "
-                "with no VARIABLES, add it to STANDARD_MODULES once verified."
+                "rather than under-report the bound. If the module it extends "
+                "lives in another directory, put that directory on the module "
+                "search path (--module-path for case generation). If it is a "
+                "library module with no VARIABLES, add it to STANDARD_MODULES "
+                "once verified."
             )
-        sub = resolve_module(candidate, _seen=seen)
+        sub = resolve_module(candidate, search_path=search_path, _seen=seen)
         merge(variables, sub.variables)
         merge(constants, sub.constants)
         for definition in sub.defs:
@@ -1454,6 +1481,7 @@ def analyze(
     baseline_tlc: Path | None = None,
     current_tlc: Path | None = None,
     warn_stream: Any = None,
+    search_path: Sequence[Path] | None = None,
 ) -> Analysis:
     from scripts.budgets import DEFAULT_BUDGETS, load_budgets
 
@@ -1465,7 +1493,7 @@ def analyze(
     # variables, TypeInvariant, and actions the extended modules contribute.
     # resolve_module raises ModuleResolutionError (fails closed) on any
     # construct it cannot model -- callers must not swallow it into a bound.
-    resolved = resolve_module(tla_path)
+    resolved = resolve_module(tla_path, search_path=search_path)
     module = resolved.root
     variables = resolved.variables
     constants = parse_cfg_constants(cfg_text)
@@ -2151,7 +2179,13 @@ def render_json(analysis: Analysis) -> str:
 # --------------------------------------------------------------------------
 
 
-def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> tuple[bool, str]:
+def gate_report(
+    tla_path: Path,
+    cfg_path: Path,
+    manifest_path: Path | None,
+    *,
+    search_path: Sequence[Path] | None = None,
+) -> tuple[bool, str]:
     """Advisory complexity report for case generation. Returns ``(clean, message)``.
 
     MF-036: this is a scanner, not a gate. ``clean`` is True when the scan
@@ -2165,7 +2199,7 @@ def gate_report(tla_path: Path, cfg_path: Path, manifest_path: Path | None) -> t
     scanner cannot.
     """
     try:
-        analysis = analyze(tla_path, cfg_path, manifest_path)
+        analysis = analyze(tla_path, cfg_path, manifest_path, search_path=search_path)
     except ModuleResolutionError as exc:
         return False, (
             "complexity scan could not analyze this model -- the module "

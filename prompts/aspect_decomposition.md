@@ -74,6 +74,33 @@ authored is not.
 What you may do unaided: enumerate, check coverage, check the schema, and
 challenge a supplied grouping against the measured action set.
 
+### This requirement is UNENFORCEABLE. Read that before you rely on it.
+
+**Nothing checks it, and nothing can.** The `Source` column below is free text.
+`case_modules.py validate` checks the schema; `case_modules.py coverage` counts
+cases; neither has any way to know whether a human named an aspect or you did.
+There is no artifact difference between the two outputs — that is the entire
+point of Step 0, and it applies to the check as much as to the carving.
+
+This is not hypothetical: an eval agent following this prompt produced a
+complete, schema-valid, coverage-clean decomposition of a real fixture with **no
+author in the loop at all**, and the only thing that surfaced the violation was
+the agent volunteering it (EV-02-DF-04).
+
+Two ideas were considered and rejected rather than shipped as theatre:
+
+- *requiring a non-empty `Source`* — an agent writes one. A guard a determined
+  agent walks around is worse than no guard, because it makes the next reader
+  believe the column was verified.
+- *rejecting `Source: the model` / `Source: derived`* — same, one word longer.
+
+So the honest contract is: **a decomposition carries the provenance its author
+claims, and a reader must treat provenance as an unverified claim.** If you
+produce a decomposition without an author, you must say so in your report
+(Step 6.1) and label the output *unreviewed*. That is a self-report, and a
+self-report is exactly as reliable as the agent making it. Anyone consuming an
+aspect list should ask the named source directly.
+
 ---
 
 ## Step 1 — Enumerate the surface. Do not curate it.
@@ -82,17 +109,36 @@ Same discipline as `prompts/coverage_audit.md`: **the row set is produced by a
 command, not by your attention.** Run these, record the raw counts, and carry
 exactly that many rows.
 
+Run these from the project root, with `$REPO` set to the checkout that holds
+`scripts/`. Both were run as written on
+`examples/validation/ex4_pipeline_coherent`; substitute your own paths and
+nothing else.
+
 ```bash
 # (a) the actions the toolchain sees in this view -- same coverage contract as
 #     the scanners: EXTENDS followed, INSTANCE/LOCAL fail closed, actions are
 #     the top-level disjuncts of the next-state relation.
-python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture \
-  <View>.tla <View>.cfg --format json | jq -r '.measured.actions[].name' | sort
+#
+#     NOTE: --spec-root does NOT resolve the positional .tla/.cfg. Give their
+#     path relative to your current directory (or absolute); a bare `<View>.tla`
+#     exits with "ERROR: spec not found".
+python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze architecture \
+  <spec dir>/<View>.tla <spec dir>/<View>.cfg --format json | python3 -c \
+  "import json,sys; [print(a['name']) for a in sorted(json.load(sys.stdin)['measured']['actions'], key=lambda a: a['name'])]"
 
-# (b) the actions the project DECLARES for this view, with their layer
-python3 -c "import yaml,sys; d=yaml.safe_load(open(sys.argv[1]))['actions']; \
-  [print(k) for k,v in sorted(d.items()) if v.get('layer')=='<external|internal>']" \
-  <spec dir>/actions.yml
+# (b) the actions the project DECLARES for this view, with their layer.
+#     Uses the toolchain's own manifest reader: this repository deliberately does
+#     not require PyYAML, and `import yaml` fails in its default environment.
+python3 -c "
+import sys
+sys.path.insert(0, sys.argv[3])
+from pathlib import Path
+from extract_spec_manifest import load_manifest
+actions = load_manifest(Path(sys.argv[1])).get('actions') or {}
+for name in sorted(actions):
+    if (actions[name] or {}).get('layer') == sys.argv[2]:
+        print(name)
+" <spec dir>/actions.yml <external|internal> "$REPO/scripts"
 ```
 
 **Reconcile (a) against (b) and report both directions.** An action in the
@@ -140,6 +186,15 @@ A `form: given` module replaces `Init` with an initial-state predicate over
 **every variable of the view**. That is where the reduction comes from — the
 probe measured three duplicate-command actions going 504 cases to 12 — and it
 is where the claim is made.
+
+**This is the step you cannot do from the outside.** A `slice` is writable from
+action names alone: `actions.yml` and a README are enough. A `Given` requires
+every state variable of the view, its type, and enough of each action's guard to
+land on a pre-state the aspect can actually run from — none of which a public
+surface tells you. If you are working from the outside, the honest split is that
+you supply the **claim** ("X is independent of Y") and someone with the model
+open writes the predicate. Say which of the two you did.
+`references/case_modules.md`, "The authoring asymmetry", is the authority.
 
 Two rules:
 
@@ -211,10 +266,19 @@ when you propose a new invariant. Do not decide it for them.
 ## Step 5 — Check coverage with the tool, not with your table
 
 ```bash
-python3 scripts/case_modules.py coverage \
-  --manifest <manifest> --actions-metadata <spec dir>/actions.yml --view <view> \
-  --corpus generated/testgraph/<each module>_cases \
-  --corpus generated/testgraph/<View>_cases
+# EXTERNAL view: packages land under <out>/testgraph/
+python3 "$REPO/scripts/case_modules.py" coverage \
+  --manifest <manifest> --actions-metadata <spec dir>/actions.yml --view external \
+  --corpus <out>/testgraph/<each module>_cases \
+  --corpus <out>/testgraph/<View>_cases
+
+# INTERNAL view: packages land under <out>/spec-unit/. An internal-only project
+# has no testgraph/ and no testgraph_bindings.yml at all; the end-to-end run is
+# worked in references/case_modules.md, "Worked example: an internal-only project".
+python3 "$REPO/scripts/case_modules.py" coverage \
+  --manifest <manifest> --actions-metadata <spec dir>/actions.yml --view internal \
+  --corpus <out>/spec-unit/<each module>_cases \
+  --corpus <out>/spec-unit/<View>_cases
 ```
 
 Read three things out of it and put them in your report:
@@ -237,7 +301,8 @@ It gates nothing and exits 0 whenever it could measure. A nonzero exit means
 In your report to the caller, not in the output:
 
 1. Who supplied the aspect list, verbatim? If the answer is "I derived it",
-   your output is invalid — go back to Step 0.
+   your output is invalid — go back to Step 0. Nothing checks this answer; it is
+   a self-report and Step 0 says so. Answer it anyway, and answer it first.
 2. `N == M` for Step 1, with both raw counts and the reconciliation of (a)
    against (b).
 3. Every `form: given` row: does its claim read as *"X is independent of Y"*
@@ -256,7 +321,11 @@ In your report to the caller, not in the output:
 1. The `case_modules:` block, pasted into the project's `spec_manifest.yaml`
    (beside `model:`), validating clean.
 2. The Step 2 table, as ticket evidence.
-3. One `Scenario_*.tla` per entry, each carrying its claim in prose.
+3. One `Scenario_*.tla` per entry, each carrying its claim in prose. They may
+   live in their own directory (`specs/case_modules/`) and generate from there
+   in place — nothing has to be copied beside the view.
+4. The provenance of the aspect list, stated plainly, including "no author" when
+   that is the truth (Step 0).
 
 ---
 
@@ -265,10 +334,20 @@ In your report to the caller, not in the output:
 **Not yet run end-to-end against a project whose aspects an author supplied.**
 The mechanized halves are exercised — CM-01 measured the shape on
 `examples/case_modules/` (three modules, 732 view cases versus 190 across
-slices) and shipped `validate` and `coverage`. Step 0's elicitation is the part
-with no evidence behind it, and it is the part everything else rests on.
+slices) and shipped `validate` and `coverage`; RP-03 ran Steps 1, 5 and the
+whole generation path verbatim on `examples/validation/ex4_pipeline_coherent`.
+Step 0's elicitation is the part with no evidence behind it, and it is the part
+everything else rests on.
 
 **Known-open:** this prompt can be followed perfectly and still produce a
 decomposition that is wrong about the product, because the only check on the
-aspect list is that a human authored it. Nothing here measures whether the
-aspects are the *right* aspects. Coverage is checkable; carving is not.
+aspect list is that a human authored it — and *that* is unenforceable too, which
+Step 0 now states where the requirement is made rather than only here. Nothing
+measures whether the aspects are the *right* aspects. Coverage is checkable;
+carving is not; provenance is a self-report.
+
+**Measured once (EV-02-DF-04):** an agent that had never seen the fixture
+authored a working slice from the public surface alone, and could not have
+written the Given the same way — Step 3 says why. If your report claims an
+outside-in decomposition that includes a `form: given` predicate, one of the two
+claims is wrong.

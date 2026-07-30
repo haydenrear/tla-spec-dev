@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib
+import os
 import re
 import shutil
 import subprocess
@@ -24,14 +25,14 @@ try:
     from . import case_modules
     from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
-    from .infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
-    from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from .infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
+    from .spec_paths import is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
     import case_modules  # type: ignore[no-redef]
     from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
-    from infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
-    from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
+    from spec_paths import is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 
 
 NODE_RE = re.compile(r'^\s*(-?\d+) \[label="(.*)"(?:,style = filled)?\];?$')
@@ -74,7 +75,23 @@ class PreparedCase:
     metadata: ActionMetadata
 
 
-def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> None:
+def run_tlc_dump(
+    tla_path: Path,
+    cfg_path: Path,
+    dot_path: Path,
+    tlc2: str,
+    search_path: "case_modules.ModuleSearchPath | None" = None,
+) -> None:
+    """Explore ``tla_path`` with TLC and dump the state graph.
+
+    EV-02-DF-02: TLC runs with cwd = the ``.tla``'s directory and resolves
+    ``EXTENDS`` against that directory and the ``TLA-Library`` search path --
+    never against the current directory. A module that extends a view in another
+    directory therefore needs the view's directory on that path, which
+    ``search_path`` supplies. Without it the failure is a
+    ``tla2sany.semantic.AbortException`` and a ``CalledProcessError`` traceback,
+    which is why the caller resolves the hierarchy BEFORE getting here.
+    """
     dot_path.parent.mkdir(parents=True, exist_ok=True)
     spec_dir = tla_path.parent.resolve()
     metadir = dot_path.parent / ".tlc-states" / tla_path.stem
@@ -93,8 +110,31 @@ def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> N
         str(dot_path.resolve()),
         str(tla_path.resolve()),
     ]
+    env = case_modules.tlc_environment(search_path)
     try:
-        subprocess.run(command, check=True, cwd=spec_dir)
+        subprocess.run(command, check=True, cwd=spec_dir, env=env)
+    except subprocess.CalledProcessError as error:
+        lines = [
+            f"ERROR: TLC exited {error.returncode} exploring {tla_path.name} "
+            f"(config {cfg_path.name}).",
+            f"  working directory: {spec_dir}",
+        ]
+        if search_path is not None and not search_path.is_self_contained:
+            lines.append(
+                "  module search path (TLA-Library): "
+                + ", ".join(str(directory) for directory in search_path.directories)
+            )
+            lines.append(f"  EXTENDS resolved elsewhere: {search_path.describe()}")
+        else:
+            lines.append(
+                "  module search path: the spec directory only -- every EXTENDS "
+                "resolved beside the module."
+            )
+        lines.append(
+            "  TLC's own message is above. It is not a case-generation failure: "
+            "nothing was written."
+        )
+        raise SystemExit("\n".join(lines)) from error
     finally:
         shutil.rmtree(metadir, ignore_errors=True)
 
@@ -842,10 +882,85 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def resolve_module_search_path(
+    tla_path: Path, extra_roots: list[Path]
+) -> "case_modules.ModuleSearchPath | None":
+    """Resolve the EXTENDS hierarchy and report where each module came from.
+
+    EV-02-DF-02. Returns None when the hierarchy cannot be resolved statically
+    AND the operator has already supplied a ``TLA-Library`` of their own -- in
+    that case this resolver is not the authority and generation proceeds with
+    whatever the environment says. In every other case an unresolvable EXTENDS
+    is fatal HERE, with the module named, because TLC will fail on it anyway and
+    its message is thirty lines lower.
+    """
+    try:
+        search_path = case_modules.resolve_search_path(tla_path, extra_roots)
+    except case_modules.ModuleSearchError as error:
+        if f"-D{case_modules.TLA_LIBRARY_PROPERTY}" in os.environ.get("JAVA_TOOL_OPTIONS", ""):
+            print(
+                f"warning: {error}\n"
+                f"  JAVA_TOOL_OPTIONS already sets {case_modules.TLA_LIBRARY_PROPERTY}, so "
+                "the environment is the authority here and generation proceeds.",
+                file=sys.stderr,
+            )
+            return None
+        raise SystemExit(f"ERROR: {error}") from error
+    if not search_path.is_self_contained:
+        print(
+            f"module search path: {', '.join(str(d) for d in search_path.directories)}\n"
+            f"  EXTENDS resolved outside {search_path.root.parent}: {search_path.describe()}"
+        )
+    return search_path
+
+
+def build_recipes_for_hierarchy(
+    tla_path: Path, search_path: "case_modules.ModuleSearchPath | None"
+) -> dict[str, "ActionRecipe"]:
+    """MF-029 recipes over the whole EXTENDS hierarchy, base modules first.
+
+    A case module declares no VARIABLES and no actions -- every action it enters
+    is defined in the view it EXTENDS -- so reading only its own text produced
+    recipes for nothing, every case carried no argument, and the adapters then
+    refused the entire corpus with ``no usable argument for `i```. Measured on
+    the ex4 fixture: the view's own corpus recovered 330/330 arguments while its
+    two case modules recovered 0/50 and 0/6 from the same actions.
+
+    The recipes must come from the same module set TLC explored, which is
+    exactly what the search path resolved. On a single-file spec that extends
+    only standard modules this is the module's own text and nothing changes.
+    """
+    files = search_path.files_base_first if search_path is not None else (Path(tla_path),)
+    return build_recipes(
+        "\n".join(Path(path).read_text(encoding="utf-8") for path in files)
+    )
+
+
+def report_out_resolution(requested: Path, resolved: Path, spec_dir: Path) -> None:
+    """Say out loud where a relative ``--out`` landed, when it is not obvious.
+
+    EV-02: `--out generated` from a repo root silently created
+    ``<spec dir>/generated``. The resolution rule is deliberate (a spec-relative
+    default keeps generated corpora beside their spec), but it is a surprise the
+    first time, and the run that hit it only found the directory afterwards.
+    """
+    if Path(requested).is_absolute():
+        return
+    cwd_candidate = (Path.cwd() / requested).resolve()
+    if cwd_candidate == resolved or is_relative_to(resolved, cwd_candidate):
+        return
+    print(
+        f"note: --out {requested} resolved to {resolved} -- a relative --out is "
+        f"resolved against the SPEC DIRECTORY ({spec_dir}), not the current "
+        f"directory ({Path.cwd()}). Pass an absolute path to control it."
+    )
+
+
 def advise_complexity(
     tla_path: Path,
     cfg_path: Path,
     spec_dir: Path,
+    search_path: "case_modules.ModuleSearchPath | None" = None,
 ) -> None:
     """Print the complexity scan as ADVICE before generating cases (MF-036).
 
@@ -858,7 +973,7 @@ def advise_complexity(
     reported, not refused -- because TLC may handle a model the static scanner
     cannot.
     """
-    manifest_path = spec_dir / "spec_manifest.yaml"
+    manifest_path = case_modules.resolve_manifest_path(spec_dir, search_path)
     try:
         from scripts.analyze_complexity import gate_report
     except ImportError:  # direct-script import, where sys.path[0] is scripts/
@@ -866,7 +981,10 @@ def advise_complexity(
 
     try:
         clean, message = gate_report(
-            tla_path, cfg_path, manifest_path if manifest_path.is_file() else None
+            tla_path,
+            cfg_path,
+            manifest_path if manifest_path.is_file() else None,
+            search_path=list(search_path.directories) if search_path is not None else None,
         )
     except Exception as exc:  # a scan that cannot parse must not block generation
         print(f"warning: complexity scan could not analyze {tla_path}: {exc}", file=sys.stderr)
@@ -1019,7 +1137,38 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tla", type=Path)
     parser.add_argument("cfg", type=Path)
-    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help=(
+            "Output ROOT for the generated package. An absolute path is used as "
+            "given. A RELATIVE path is resolved against the SPEC DIRECTORY (the "
+            ".tla's own directory), not the current directory -- unless it already "
+            "points inside the spec directory. `--out generated` run from a repo "
+            "root therefore writes <spec dir>/generated, which is rarely what was "
+            "meant; the resolved root is printed before generation starts. Pass an "
+            "absolute path when you want cwd-relative behavior."
+        ),
+    )
+    parser.add_argument(
+        "--module-path",
+        action="append",
+        type=Path,
+        default=[],
+        metavar="DIR",
+        help=(
+            "Directory to search for the modules this .tla EXTENDS, ahead of the "
+            "directories beside it. Repeatable. TLC resolves EXTENDS against the "
+            ".tla's own directory and the TLA-Library search path -- never against "
+            "the current directory -- so a case module in specs/case_modules/ that "
+            "extends a view in specs/program_model/ needs the view's directory on "
+            "this path. Sibling directories of the .tla that contain .tla files are "
+            "searched automatically, so the documented layout needs no flag; use "
+            "this when the view is somewhere else or when two siblings define the "
+            "same module."
+        ),
+    )
     parser.add_argument("--package", default="tlc_state_graph_cases")
     parser.add_argument("--view", choices=sorted(SUPPORTED_VIEWS), help="Generate a view-aware case package.")
     parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
@@ -1067,18 +1216,27 @@ def main() -> int:
     if args.view is not None:
         out_path = out_path / VIEW_OUTPUT_DIRS[view]
     dot_path = resolve_spec_relative_path(args.dot, spec_dir) if args.dot else out_path / f"{tla_path.stem}.dot"
+    report_out_resolution(args.out, out_path, spec_dir)
 
     for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:
         resolved = str(root.resolve())
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
 
+    # EV-02-DF-02: resolve the EXTENDS hierarchy BEFORE anything expensive runs,
+    # so a module that extends a view in another directory either gets that
+    # directory on the search path or gets one sentence saying which module is
+    # missing and where it was looked for -- not a SANY AbortException stack
+    # underneath a complexity paragraph about a bound that could not be measured.
+    search_path = resolve_module_search_path(tla_path, args.module_path)
+    manifest_path = case_modules.resolve_manifest_path(spec_dir, search_path)
+
     # Complexity scan (MF-011, made advisory in MF-036). Runs BEFORE
     # run_tlc_dump only so the warnings and recommendations print ahead of the
     # TLC exploration. It never refuses generation -- complexity is advisory.
-    advise_complexity(tla_path, cfg_path, spec_dir)
+    advise_complexity(tla_path, cfg_path, spec_dir, search_path)
 
-    run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
+    run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2, search_path)
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
@@ -1087,7 +1245,9 @@ def main() -> int:
     # MF-029: recover action arguments from each case's own state pair. The
     # recipes come from the SAME module TLC just explored, so the recovery and
     # the corpus can never describe different actions.
-    param_recipes = None if args.no_infer_params else build_recipes_from_path(tla_path)
+    param_recipes = (
+        None if args.no_infer_params else build_recipes_for_hierarchy(tla_path, search_path)
+    )
 
     prepared = render_python_package(
         module=tla_path.stem,
@@ -1111,7 +1271,7 @@ def main() -> int:
         view=view,
         action_metadata=action_metadata,
         package_dir=out_path / args.package,
-        manifest_path=spec_dir / "spec_manifest.yaml",
+        manifest_path=manifest_path,
     )
 
     if param_recipes is not None:
@@ -1125,7 +1285,7 @@ def main() -> int:
     enforce_case_cap(
         prepared,
         view=view,
-        manifest_path=spec_dir / "spec_manifest.yaml",
+        manifest_path=manifest_path,
         source=str(out_path / args.package),
     )
     return 0
