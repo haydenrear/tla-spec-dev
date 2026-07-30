@@ -24,13 +24,13 @@ try:
     from . import case_modules
     from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
-    from .infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
+    from .infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
     from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 except ImportError:  # pragma: no cover - direct script execution
     import case_modules  # type: ignore[no-redef]
     from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
-    from infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
+    from infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
     from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
 
 
@@ -884,6 +884,50 @@ def advise_complexity(
     )
 
 
+def report_param_recovery(
+    prepared: list[PreparedCase],
+    param_recipes: dict[str, ActionRecipe],
+    package_dir: Path,
+) -> CorpusMeasurement:
+    """Write the recoverability audit FROM THE CORPUS IT AUDITS, and report it.
+
+    RP-02. The audit used to be rendered from ``param_recipes`` alone -- a
+    reading of the module's syntax -- so it printed "Every parameter of every
+    action is recoverable from its state pair" over a run that had just
+    reported ``0/38 cases carry arguments`` (EV-02-DF-03). A mechanism NAMED is
+    not an argument RECOVERED, and only the corpus knows which happened.
+
+    Nothing here filters, samples or truncates: every prepared case is counted,
+    including the ones whose arguments failed to recover, because an
+    unrecovered argument is a finding to report and not a case to drop.
+    """
+    audit_path = package_dir / "param_recovery_audit.md"
+    measurement = measure_recovery((case.edge.action, case.params) for case in prepared)
+    write(audit_path, render_audit(param_recipes, measurement))
+    with_params = sum(1 for case in prepared if case.params)
+    recovered = sum(
+        1 for case in prepared if case.params and not unchecked_param_names(case.params)
+    )
+    unchecked = sum(1 for case in prepared if unchecked_param_names(case.params))
+    print(
+        f"parameter recovery: {with_params}/{len(prepared)} cases carry arguments, "
+        f"{recovered} carry a fully recovered argument set, "
+        f"{unchecked} carry at least one UNCHECKED argument (kept, never dropped); "
+        f"audit written to {audit_path}"
+    )
+    for item in measurement.unrecovered:
+        print(
+            f"  UNRECOVERABLE on this corpus: {item.action}({item.param}) -- "
+            f"0 of {item.cases} cases carry an argument"
+        )
+    for item in measurement.partial:
+        print(
+            f"  PARTIAL on this corpus: {item.action}({item.param}) -- "
+            f"{item.recovered} of {item.cases} cases carry an argument"
+        )
+    return measurement
+
+
 def report_action_coverage(
     prepared: list[PreparedCase],
     *,
@@ -1071,15 +1115,7 @@ def main() -> int:
     )
 
     if param_recipes is not None:
-        audit_path = out_path / args.package / "param_recovery_audit.md"
-        write(audit_path, render_audit(param_recipes))
-        with_params = sum(1 for case in prepared if case.params)
-        unchecked = sum(1 for case in prepared if unchecked_param_names(case.params))
-        print(
-            f"parameter recovery: {with_params}/{len(prepared)} cases carry arguments, "
-            f"{unchecked} carry at least one UNCHECKED argument (kept, never dropped); "
-            f"audit written to {audit_path}"
-        )
+        report_param_recovery(prepared, param_recipes, out_path / args.package)
 
     # Case-cap hard gate (MF-014). Runs AFTER the complete package is written:
     # the corpus is never trimmed to pass, so the artifacts on disk hold every

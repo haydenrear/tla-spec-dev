@@ -1,0 +1,16 @@
+# RP-02 zero-model-delta
+
+The ticket's own delta. RP-02 is a generator/adapter ticket; model_delta_expectation is ZERO.
+
+$ diff -r specs/tickets/RP-02/current specs/tickets/RP-02/desired
+exit=0  <- EMPTY: ticket current == ticket desired, byte for byte
+
+PRE-EXISTING, NOT THIS TICKET'S: specs/program_model (the accepted baseline)
+still lacks AC-01's architecture_scan, which lives in specs/current while the
+epic workflow is open. Recorded here so the delta is not mistaken for RP-02's.
+
+$ diff specs/program_model/TlaSpecDevCli.tla specs/current/TlaSpecDevCli.tla | wc -l
+     113
+
+$ git diff --stat HEAD -- specs/current specs/program_model
+exit=0 (empty stat: RP-02 changed no TLA+ file)

@@ -1,0 +1,184 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: >-
+      EV-02, the last close on this model, recorded 32,122,220 generated /
+      1,292,951 distinct / depth 26 with 0 states left on queue
+      (specs/.history/architectural-coherence-epic/ticket-006-EV-02/ticket/results/tlc-current.txt).
+      RP-02 starts from that same model byte for byte.
+  tlc_after:
+    status: "green"
+    evidence: >-
+      results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct /
+      depth 26, 0 left on queue, no error found. Identical to the before run,
+      which is the expected result for a ticket whose model delta is zero.
+  behavior_tests:
+    status: "pass"
+    evidence: >-
+      results/repository-unit-tests.txt -- 893 passed, 1 failed
+      (test_skill_requires_two_minute_case_generation_budget, the
+      documentation-content guard filed as CM-01-DF-01 and being fixed by RP-05
+      concurrently; explicitly not this ticket's).
+      results/spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0.
+      The ex4 fixture's own behavior suite is green and untouched (8 passed),
+      `examples/validation/check_twins.py` exits 0 with all 5 hashes matching,
+      and both declared adapter arms are GREEN on the unmutated program over
+      the regenerated 330-case corpus.
+  descriptor_comparison:
+    status: "recorded"
+    evidence: >-
+      No comparison is possible or meaningful: the model is byte-identical
+      before and after and the ledger's own delta computation reports
+      direction=zero. Recorded as the no-op it is rather than left blank.
+      The comparison this ticket DID make is a corpus comparison, not a
+      descriptor one: results/ex4-corpus-before-after.md holds the before and
+      after sha256 of every generated artifact, and determinism is re-verified
+      across two independent regenerations.
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
+  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  No complexity increase to justify: the model is unchanged. The added
+  representation is entirely Python in the generator -- one recovery mechanism,
+  one measurement type, and an audit renderer that now takes the corpus as an
+  argument -- and it REPLACES an unaudited derivation that had migrated into a
+  fixture adapter. Net movement is from a diff nobody could see, in a file
+  nobody re-read, into a mechanism with a per-action audit and nine regression
+  tests.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none applicable: RP-02's model delta is zero, so there is
+    no representation to refine. The search WAS run against the one place this
+    ticket could have reached for the model, and it was refused on the record
+    MF-029 already wrote. The obvious way to make an existentially quantified
+    argument recoverable is to have the model STATE it -- a `lastInternalAction`
+    marker, exactly the mechanism `params_from_action_marker` already reads.
+    Rejected twice over: the state pair already implies the element for every
+    `v' = v \cup {i}` / `v' = v \ {i}` conjunct, so the marker would add
+    representation to carry information the corpus already holds; and
+    max_state_space_bound is at 279.9% of cap on this model, where MF-019
+    measured that a single boolean variable breaches it. Recovery therefore
+    stays generator-side, which is also what keeps it cheaply revertible --
+    reverting is deleting a mechanism from one module, and nothing in the spec
+    moves.
+    Two representation choices inside the mechanism were made the cheaper way
+    and are recorded here rather than left implicit. (1) The recipe keeps EVERY
+    matching set conjunct as a cross-checking witness instead of picking one,
+    which costs a tuple per parameter and buys a real refusal: `Deliver(i)` is
+    witnessed by both `queue` and `delivered`, and witnesses that disagree
+    yield UNCHECKED rather than a silent winner. (2) `consumed_observations`
+    was added as a SEPARATE property rather than folded into
+    `unavailable_checks`, because the two claims are different strengths --
+    set-membership spends "which element moved in v", it does not make the
+    whole after-value of v tautological the way `written-through` does, and
+    collapsing them would have overstated the price of the recovery.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "results/RP-02-summary.md"

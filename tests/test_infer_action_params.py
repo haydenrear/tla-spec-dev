@@ -31,14 +31,18 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from infer_action_params import (  # noqa: E402
+    ENTERED,
     EXCEPT_INDEX,
     GUARD_PINNED,
+    LEFT,
+    SET_MEMBERSHIP,
     UNCHECKED,
     UNRECOVERABLE,
     WRITTEN_THROUGH,
     build_recipes,
     build_recipes_from_path,
     infer_params,
+    measure_recovery,
     render_audit,
 )
 
@@ -581,3 +585,358 @@ Tick ==
     recipes = build_recipes(source)
     assert recipes["Tick"].params == ()
     assert recipes["Tick"].fully_recoverable
+
+
+# ---------------------------------------------------------------------------
+# RP-02: set-membership recovery, and an audit that reports what a run measured
+# ---------------------------------------------------------------------------
+#
+# Two defects, one ticket. MF-029 recovered 0 of 5 parameters on a set-valued
+# model, so every case carried `params={'i': UNCHECKED}` and the ex4 adapter
+# re-derived the argument by diffing before against after -- from the ORACLE
+# (EV-01-DF-01). Meanwhile the audit printed "Every parameter of every action
+# is recoverable from its state pair" on a run that had just reported
+# `0/38 cases carry arguments`, because it was rendered from the module's
+# SYNTAX and never from the corpus (EV-02-DF-03).
+#
+# The same discipline as the rest of this file applies: every positive check
+# below is paired with a case that MUST make it fail. A recovery that cannot
+# return UNCHECKED is not a recovery, it is a fabricator.
+
+SET_MODEL = """
+VARIABLES inbox, accepted, queue, delivered, failed, ledger
+
+Init ==
+  /\\ inbox = Items
+  /\\ accepted = {}
+
+Accept(i) ==
+  /\\ i \\in inbox
+  /\\ inbox' = inbox \\ {i}
+  /\\ accepted' = accepted \\cup {i}
+  /\\ UNCHANGED << queue, delivered, failed, ledger >>
+
+Enqueue(i) ==
+  /\\ i \\in accepted
+  /\\ i \\notin queue
+  /\\ queue' = queue \\cup {i}
+  /\\ UNCHANGED << inbox, accepted, delivered, failed, ledger >>
+
+Deliver(i) ==
+  /\\ i \\in queue
+  /\\ queue' = queue \\ {i}
+  /\\ delivered' = delivered \\cup {i}
+  /\\ UNCHANGED << inbox, accepted, failed, ledger >>
+
+Record(i) ==
+  /\\ i \\in delivered
+  /\\ ledger' = {i} \\union ledger
+  /\\ UNCHANGED << inbox, accepted, queue, delivered, failed >>
+"""
+
+
+@pytest.fixture
+def set_recipes():
+    return build_recipes(SET_MODEL)
+
+
+def set_state(**overrides):
+    state = {
+        name: frozenset()
+        for name in ("inbox", "accepted", "queue", "delivered", "failed", "ledger")
+    }
+    state.update({name: frozenset(value) for name, value in overrides.items()})
+    return state
+
+
+@pytest.mark.parametrize(
+    "action, sources",
+    [
+        ("Accept", (("inbox", LEFT), ("accepted", ENTERED))),
+        ("Enqueue", (("queue", ENTERED),)),
+        ("Deliver", (("queue", LEFT), ("delivered", ENTERED))),
+        # `{i} \union ledger` -- the singleton on the left, the alternate spelling.
+        ("Record", (("ledger", ENTERED),)),
+    ],
+)
+def test_set_membership_is_classified_with_every_witness(set_recipes, action, sources):
+    recovery = set_recipes[action].params[0]
+    assert recovery.mechanism == SET_MEMBERSHIP
+    assert recovery.sources == sources
+    assert recovery.recoverable
+
+
+def test_the_whole_set_valued_model_recovers(set_recipes):
+    """The measured defect, inverted: MF-029 recovered 0 of 4 here."""
+    assert all(recipe.fully_recoverable for recipe in set_recipes.values())
+    assert not any(
+        param.mechanism == UNRECOVERABLE
+        for recipe in set_recipes.values()
+        for param in recipe.params
+    )
+
+
+@pytest.mark.parametrize(
+    "action, before, after, expected, wrong",
+    [
+        (
+            "Accept",
+            set_state(inbox=["i1", "i2"]),
+            set_state(inbox=["i1"], accepted=["i2"]),
+            "i2",
+            "i1",
+        ),
+        (
+            "Enqueue",
+            set_state(accepted=["i1", "i2"]),
+            set_state(accepted=["i1", "i2"], queue=["i1"]),
+            "i1",
+            "i2",
+        ),
+        (
+            "Deliver",
+            set_state(queue=["i1", "i2"]),
+            set_state(queue=["i2"], delivered=["i1"]),
+            "i1",
+            "i2",
+        ),
+        (
+            "Record",
+            set_state(delivered=["i1", "i2"]),
+            set_state(delivered=["i1", "i2"], ledger=["i2"]),
+            "i2",
+            "i1",
+        ),
+    ],
+)
+def test_set_membership_recovers_the_element_that_moved(
+    set_recipes, action, before, after, expected, wrong
+):
+    assert infer_params(action, before, after, set_recipes) == {"i": expected}
+    # NEGATIVE CONTROL. The check above is worthless unless it can fail, and a
+    # recovery that returned the wrong item would still be a `str`.
+    assert infer_params(action, before, after, set_recipes) != {"i": wrong}
+
+
+def test_two_elements_moving_at_once_is_unchecked(set_recipes):
+    """The soundness bound, stated as a test rather than as a comment."""
+    before = set_state(accepted=["i1", "i2", "i3"])
+    after = set_state(accepted=["i1", "i2", "i3"], queue=["i1", "i2"])
+    assert infer_params("Enqueue", before, after, set_recipes) == {"i": UNCHECKED}
+
+
+def test_witnesses_that_disagree_are_unchecked(set_recipes):
+    """`Deliver` has two witnesses; a state pair where they name different
+    elements does not determine the argument, and no witness gets to win."""
+    before = set_state(queue=["i1", "i2"])
+    after = set_state(queue=["i2"], delivered=["i3"])
+    assert infer_params("Deliver", before, after, set_recipes) == {"i": UNCHECKED}
+
+
+def test_a_witness_that_saw_nothing_move_does_not_veto_one_that_did(set_recipes):
+    """`delivered` gaining i1 while `queue` is unchanged still recovers i1.
+
+    An inapplicable witness is absent evidence, not contrary evidence.
+    """
+    before = set_state(queue=["i1"], delivered=["i9"])
+    after = set_state(queue=["i1"], delivered=["i9", "i1"])
+    assert infer_params("Deliver", before, after, set_recipes) == {"i": "i1"}
+
+
+def test_nothing_moving_anywhere_is_unchecked(set_recipes):
+    unchanged = set_state(inbox=["i1"], accepted=["i2"])
+    assert infer_params("Accept", unchanged, unchanged, set_recipes) == {"i": UNCHECKED}
+
+
+def test_non_set_values_are_unchecked_not_coerced(set_recipes):
+    before = {"queue": "not-a-set", "delivered": "not-a-set"}
+    after = {"queue": "not-a-set-either", "delivered": "still-not"}
+    assert infer_params("Deliver", before, after, set_recipes) == {"i": UNCHECKED}
+
+
+def test_set_difference_is_not_confused_with_set_union():
+    """`\\cup` and `\\` both start with a backslash; the directions must not swap."""
+    recipes = build_recipes(
+        """
+VARIABLES a
+
+Drop(i) ==
+  /\\ a' = a \\ {i}
+"""
+    )
+    assert recipes["Drop"].params[0].sources == (("a", LEFT),)
+    assert infer_params(
+        "Drop", {"a": frozenset({"x", "y"})}, {"a": frozenset({"y"})}, recipes
+    ) == {"i": "x"}
+    # NEGATIVE CONTROL: read as a union it would find nothing entering and
+    # report UNCHECKED, so this assertion fails if the direction ever flips.
+    assert infer_params(
+        "Drop", {"a": frozenset({"x", "y"})}, {"a": frozenset({"y"})}, recipes
+    ) != {"i": UNCHECKED}
+
+
+def test_a_before_state_pin_still_beats_a_set_conjunct():
+    """Preference order is unchanged: the mechanism reading the least of the
+    after-state wins, and guard-pinned reads none of it."""
+    recipes = build_recipes(
+        """
+VARIABLES root, seen
+
+Visit(p) ==
+  /\\ p = root
+  /\\ seen' = seen \\cup {p}
+"""
+    )
+    assert recipes["Visit"].params[0].mechanism == GUARD_PINNED
+    assert infer_params(
+        "Visit", {"root": "r", "seen": frozenset()}, {"root": "r", "seen": frozenset({"r"})}, recipes
+    ) == {"p": "r"}
+
+
+def test_a_set_conjunct_beats_a_written_through_conjunct():
+    recipes = build_recipes(
+        """
+VARIABLES seen, last
+
+Visit(p) ==
+  /\\ seen' = seen \\cup {p}
+  /\\ last' = p
+"""
+    )
+    recovery = recipes["Visit"].params[0]
+    assert recovery.mechanism == SET_MEMBERSHIP
+    # And therefore `last` is NOT declared tautological -- the recovery never
+    # read it, so an adapter may still check it.
+    assert recipes["Visit"].unavailable_checks == ()
+
+
+def test_set_membership_reports_the_observation_it_consumed(set_recipes):
+    assert set_recipes["Accept"].consumed_observations == (
+        "which element entered `accepted`",
+        "which element left `inbox`",
+    )
+    # It is NOT the stronger claim: no whole after-state field is tautological.
+    assert set_recipes["Accept"].unavailable_checks == ()
+
+
+# ---------------------------------------------------------------------------
+# The audit must agree with the corpus it audits (EV-02-DF-03)
+# ---------------------------------------------------------------------------
+
+BANNED_CLAIM = "Every parameter of every action is recoverable from its state pair."
+
+
+def measured(recipes, observations):
+    return render_audit(recipes, measure_recovery(observations))
+
+
+def test_measure_recovery_counts_cases_not_syntax():
+    measurement = measure_recovery(
+        [
+            ("Accept", {"i": "i1"}),
+            ("Accept", {"i": UNCHECKED}),
+            ("Enqueue", {"i": UNCHECKED}),
+        ]
+    )
+    assert measurement.total_cases == 3
+    assert measurement.action_cases == {"Accept": 2, "Enqueue": 1}
+    assert measurement.for_param("Accept", "i").recovered == 1
+    assert measurement.for_param("Accept", "i").verdict == "partial"
+    assert measurement.for_param("Enqueue", "i").verdict == "UNRECOVERABLE"
+    assert measurement.for_param("Deliver", "i").verdict == "not exercised"
+    assert not measurement.fully_recovered
+
+
+def test_the_audit_never_claims_recoverability_over_a_corpus_carrying_nothing(set_recipes):
+    """THE REGRESSION GUARD FOR EV-02-DF-03.
+
+    Statically every parameter here is recoverable. If the run recovered none,
+    the audit must say UNRECOVERABLE anyway -- the measurement is the finding.
+    """
+    audit = measured(
+        set_recipes,
+        [(action, {"i": UNCHECKED}) for action in ("Accept", "Enqueue", "Deliver", "Record")] * 10,
+    )
+    assert BANNED_CLAIM not in audit
+    assert "UNRECOVERABLE ON THIS CORPUS" in audit
+    for action in ("Accept", "Enqueue", "Deliver", "Record"):
+        assert f"`{action}(i)` -- 0 of 10 cases carry an argument" in audit
+    assert "recovered on every one of its cases" not in audit
+
+
+def test_the_audit_reports_a_partially_failing_run_as_partial(set_recipes):
+    """The ticket's own acceptance: an audit on a run where recovery PARTLY
+    fails must show the partial failure, per class, and claim nothing more."""
+    observations = [("Accept", {"i": "i1"})] * 7 + [("Accept", {"i": UNCHECKED})] * 3
+    observations += [("Enqueue", {"i": "i2"})] * 5
+    audit = measured(set_recipes, observations)
+
+    assert BANNED_CLAIM not in audit
+    assert "**PARTIAL -- 7 of 10 cases carry it**" in audit
+    assert "`Accept(i)` -- 7 of 10 cases carry an argument, 3 carry `UNCHECKED`" in audit
+    assert "recovered in 5 of 5 cases" in audit
+    # Deliver and Record were never entered, and the audit says so instead of
+    # counting them as either a success or a failure.
+    assert audit.count("*not exercised by this corpus (0 cases)*") == 2
+    assert "recovered on every one of its cases" not in audit
+
+
+def test_a_fully_recovered_run_scopes_its_claim_to_the_run(set_recipes):
+    audit = measured(
+        set_recipes,
+        [(action, {"i": "i1"}) for action in ("Accept", "Enqueue", "Deliver", "Record")],
+    )
+    assert BANNED_CLAIM not in audit
+    assert "THIS CORPUS EXERCISES" in audit
+    assert "it is not a claim about actions no case reached" in audit
+    assert "UNRECOVERABLE ON THIS CORPUS" not in audit
+
+
+def test_an_empty_corpus_makes_no_claim_at_all(set_recipes):
+    audit = measured(set_recipes, [])
+    assert BANNED_CLAIM not in audit
+    assert "The corpus is EMPTY (0 cases)" in audit
+    assert "no recoverability claim is made" in audit
+
+
+def test_an_unmeasured_audit_declares_itself_static(set_recipes):
+    audit = render_audit(set_recipes)
+    assert BANNED_CLAIM not in audit
+    assert "STATIC AUDIT -- NO CORPUS WAS MEASURED" in audit
+    assert "states NOTHING about how many cases carry an argument" in audit
+    assert "Measured on this corpus" not in audit
+
+
+def test_the_live_model_audit_carries_no_unmeasured_claim(recipes):
+    """The repository's own model, through the same guard."""
+    assert BANNED_CLAIM not in render_audit(recipes)
+
+
+def test_model_declared_arguments_are_not_credited_as_recovered():
+    """EV-02-DF-03 in its original shape: a NULLARY model, 7 cases with args.
+
+    `reminder_worker` declares no formal parameter anywhere and states its
+    arguments through an action marker instead. The old audit read the module,
+    found nothing unrecoverable, and printed "Every parameter of every action
+    is recoverable from its state pair" -- a vacuous universal over an empty
+    set, published next to a corpus this module had contributed nothing to.
+    """
+    recipes = build_recipes(
+        """
+VARIABLES status, lastInternalAction
+
+Process ==
+  /\\ status' = "done"
+  /\\ lastInternalAction' = [name |-> "Process"]
+"""
+    )
+    assert recipes["Process"].params == ()
+
+    audit = render_audit(
+        recipes, measure_recovery([("Process", {"scenario": "empty"})] * 7)
+    )
+    assert BANNED_CLAIM not in audit
+    assert "**Model-declared, not recovered.**" in audit
+    assert "`Process(scenario)` -- stated by the model on 7 of 7 cases" in audit
+    assert "this module recovered nothing and makes no recoverability claim" in audit
+    assert "was recovered on every one of its cases" not in audit

@@ -180,6 +180,29 @@ pick the argument by diffing before against after. The oracle tells them which
 item. Filed as **EV-01-DF-01**. No fault of that class is seeded, because its
 survival would say nothing about the corpus.
 
+> **RP-02 AMENDMENT — the paragraph above is superseded, and it was WRONG on
+> its second half.** RP-02 added a `set-membership` mechanism to the generator:
+> for `v' = v \cup {i}` / `v' = v \ {i}` the argument is the element that
+> entered or left the set, cross-checked across every such conjunct. All **5 of
+> 5** parameters now recover; all 330 cases carry `params={'i': 'i1'}` or
+> `{'i': 'i2'}`; the adapter reads the argument off the case and never touches
+> `case.after`. New corpus fingerprint in `evidence/corpus_fingerprint.txt`.
+>
+> The claim that this instrument *cannot measure* the wrong-item class was
+> never tested, and it is false. RP-02 seeded two wrong-item faults and both
+> are **KILLED — before the fix as well as after it** (the old adapter was
+> handed the correct argument by the diff and passed it in, so a program that
+> then ignored it still diverged in the projected after-state). The leak's real
+> cost was that the argument was not in the artifact, nothing audited it, and
+> the MF-028 vacuity trap was live. Measurement:
+> `specs/tickets/RP-02/results/mutant-catalog-rerun.md`.
+>
+> **What did NOT change: guard relaxation is still 0 of 3.** All 330 recovered
+> arguments are arguments the guard ACCEPTS (counted: 330 enabled, 0 rejected),
+> because a TLC state graph has no edge for a transition that did not fire.
+> That is the structural half of the two causes EV-02 named, and it is
+> untouched by parameter recovery.
+
 ---
 
 ## ANSWER KEY 3 — the manual-test starter (aim 2)

@@ -14,10 +14,13 @@ from scripts.generate_cases_from_tlc_dump import (
     parse_tlc_function,
     parse_state_label,
     parse_tlc_value,
+    prepare_cases,
     py_repr,
     render_python_package,
     report_action_coverage,
+    report_param_recovery,
 )
+from scripts.infer_action_params import UNCHECKED, build_recipes
 
 
 def test_parse_set_keeps_sequence_members_intact() -> None:
@@ -388,3 +391,144 @@ if __name__ == "__main__":
     test_parse_set_can_contain_function_members()
     test_py_repr_handles_nested_set_members_deterministically()
     test_labels_for_case_adds_labeler_output_after_action()
+
+
+# ---------------------------------------------------------------------------
+# RP-02: set-membership models carry their arguments end to end
+# ---------------------------------------------------------------------------
+#
+# Before this ticket a `\E i \in Items` model recovered nothing: every case
+# went out with `params={'i': UNCHECKED}` and the ex4 adapter re-derived the
+# argument by diffing `case.before` against `case.after` -- from the oracle
+# (EV-01-DF-01). These tests hold the whole path: model source -> recipe ->
+# emitted case -> label -> written audit.
+
+SET_MEMBERSHIP_MODULE = """
+VARIABLES inbox, accepted
+
+Accept(i) ==
+  /\\ i \\in inbox
+  /\\ inbox' = inbox \\ {i}
+  /\\ accepted' = accepted \\cup {i}
+"""
+
+
+def set_membership_graph():
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset({"i2"}), "accepted": frozenset({"i1"})},
+        "2": {"inbox": frozenset({"i1"}), "accepted": frozenset({"i2"})},
+    }
+    edges = [
+        Edge(source="0", target="1", action="Accept"),
+        Edge(source="0", target="2", action="Accept"),
+    ]
+    return states, edges
+
+
+def test_generated_cases_carry_the_recovered_set_member(tmp_path: Path) -> None:
+    states, edges = set_membership_graph()
+    render_python_package(
+        module="Pipeline",
+        states=states,
+        edges=edges,
+        package_dir=tmp_path / "member_cases",
+        view="internal",
+        action_metadata={"Accept": ActionMetadata("Accept", "internal", "unit_direct", ("spec_unit",))},
+        param_recipes=build_recipes(SET_MEMBERSHIP_MODULE),
+    )
+
+    cases_module = import_generated_cases(tmp_path, "member_cases")
+    params = [case.input.params for case in cases_module.CASES]
+
+    assert params == [{"i": "i1"}, {"i": "i2"}]
+    # NEGATIVE CONTROL: the two edges leave the SAME before-state, so a
+    # recovery that ignored the transition would give both cases one argument.
+    assert params[0] != params[1]
+    assert all("params:recovered" in case.labels for case in cases_module.CASES)
+    assert all("params:unchecked" not in case.labels for case in cases_module.CASES)
+
+
+def test_an_ambiguous_edge_is_marked_unchecked_and_still_emitted(tmp_path: Path) -> None:
+    """Evidence integrity: an unrecovered argument is labelled, never dropped."""
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset(), "accepted": frozenset({"i1", "i2"})},
+    }
+    prepared = prepare_cases(
+        states=states,
+        edges=[Edge(source="0", target="1", action="Accept")],
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=build_recipes(SET_MEMBERSHIP_MODULE),
+    )
+
+    assert len(prepared) == 1
+    assert prepared[0].params == {"i": UNCHECKED}
+    assert "params:unchecked:i" in prepared[0].labels
+
+
+def test_the_written_audit_reports_what_the_run_measured(tmp_path: Path) -> None:
+    """EV-02-DF-03: the audit beside a corpus must describe THAT corpus."""
+    states, edges = set_membership_graph()
+    recipes = build_recipes(SET_MEMBERSHIP_MODULE)
+    prepared = prepare_cases(
+        states=states,
+        edges=edges,
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=recipes,
+    )
+    package_dir = tmp_path / "member_cases"
+    package_dir.mkdir()
+
+    measurement = report_param_recovery(prepared, recipes, package_dir)
+    audit = (package_dir / "param_recovery_audit.md").read_text()
+
+    assert measurement.total_cases == 2
+    assert measurement.for_param("Accept", "i").recovered == 2
+    assert "Measured over the corpus this run generated: 2 cases." in audit
+    assert "recovered in 2 of 2 cases" in audit
+    assert "Every parameter of every action is recoverable from its state pair." not in audit
+
+
+def test_a_run_that_recovers_nothing_is_audited_as_unrecoverable(tmp_path: Path) -> None:
+    """The exact shape of the contradiction: a corpus carrying nothing.
+
+    `param_recovery_audit.md` used to claim universal recoverability here,
+    because it read the module and never the cases.
+    """
+    states = {
+        "0": {"inbox": frozenset({"i1", "i2"}), "accepted": frozenset()},
+        "1": {"inbox": frozenset(), "accepted": frozenset({"i1", "i2"})},
+    }
+    recipes = build_recipes(SET_MEMBERSHIP_MODULE)
+    prepared = prepare_cases(
+        states=states,
+        edges=[Edge(source="0", target="1", action="Accept")],
+        view="internal",
+        action_metadata={},
+        labelers=[],
+        state_projector=None,
+        output_projector=None,
+        dedupe="none",
+        param_recipes=recipes,
+    )
+    package_dir = tmp_path / "empty_args"
+    package_dir.mkdir()
+
+    measurement = report_param_recovery(prepared, recipes, package_dir)
+    audit = (package_dir / "param_recovery_audit.md").read_text()
+
+    assert [item.param for item in measurement.unrecovered] == ["i"]
+    assert "UNRECOVERABLE ON THIS CORPUS" in audit
+    assert "`Accept(i)` -- 0 of 1 cases carry an argument" in audit
+    assert "Every parameter of every action is recoverable from its state pair." not in audit
