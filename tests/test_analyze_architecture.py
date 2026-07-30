@@ -228,7 +228,14 @@ class TestAModelThatResistsClusteringSaysSo:
         ownership = payload["measured"]["ownership"]
         assert ownership["single_writer_violations"] is None
         assert "NOT MEASURABLE" in ownership["single_writer_basis"]
-        assert descriptor.components[0].owns == []
+        # AC-03-DF-01: `owns` is the same question one field over, and it used
+        # to answer `[]` -- "owns nothing", a plausible architectural fact --
+        # where the text renderer said NOT MEASURABLE. Undefined is `null` and
+        # carries its reason, in the JSON exactly as in the text.
+        assert descriptor.components[0].owns is None
+        component = payload["measured"]["partition"]["components"][0]
+        assert component["owns"] is None
+        assert "NOT MEASURABLE" in component["owns_basis"]
 
     def test_blob_verdict_is_unmappable_not_coherent(self, blob: tuple[Path, Path]) -> None:
         payload = descriptor_payload(analyze(*blob))

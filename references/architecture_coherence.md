@@ -218,8 +218,8 @@ measured.partition.decomposes                   bool
 measured.partition.consumable_as_architecture   bool   <-- BRANCH ON THIS
 measured.partition.criteria[]                   {name, measured, rule, met, why}
 measured.partition.unassigned_variables         [str]  (declared partitions only)
-measured.partition.components[]                 {id, name, variables[], owns[],
-                                                 actions[], internal_actions[],
+measured.partition.components[]                 {id, name, variables[], owns[] | null,
+                                                 owns_basis, actions[], internal_actions[],
                                                  crossing_actions[], writer_actions[],
                                                  reaches[{component, name, via_actions[]}]}
 measured.ownership.writers                      {variable: [action]}
@@ -261,7 +261,11 @@ Per component, the brief's clauses map directly:
 
 - *the component this work belongs to, and the variables it owns* —
   `components[].name`, `components[].owns` (note: `owns` is writes-confined,
-  not mere membership, and is empty when the partition has one component);
+  not mere membership. It is **`null`, with `components[].owns_basis` carrying
+  the reason**, when the partition has one component and the question is
+  therefore not defined. It was `[]` before RP-01, which reads as *owns
+  nothing* — a plausible architectural fact — where the text renderer said
+  `NOT MEASURABLE`. `[]` now means only what it says: measured, and empty);
 - *which other components it may reach, and through which port only* —
   `components[].reaches[]`, giving the target component and the exact action
   set that is allowed to reach it;
@@ -337,7 +341,6 @@ it would be indistinguishable from a clean report on a target that was:
 | `model_has_no_architecture` | `partition.consumable_as_architecture` is false. **The reason names the model, not the code.** With one component every code edge is internal, so the diff would otherwise report a flawless codebase for a model with no boundary in it |
 | `unmapped_module` | a module in the scanned tree the map places nowhere. A map cannot cover the tidy half of a tree and report it clean |
 | `unrealized_component` | a declared component the map places no module in. Whether the code respects a boundary whose other side does not exist is not observable |
-| `unfalsifiable_coherence` | **every component pair has a port**, so no code edge *could* have diverged. "No divergences" is then a property of the declared architecture, not a measurement of the code. Note the limit: this catches the fully degenerate case only. A partition that is merely *coarse* — one where the specific pair a bad edge would cross happens to be ported — still reports a real-looking clean |
 | `dynamic_import` / `dynamic_attribute` / `star_import` | an edge reached through a computed name. Not an absence — an unknown |
 | `unparsed_file` | a `.py` file the parser could not read |
 | `non_python_file` | a file in the tree with no extractor in this build |
@@ -348,17 +351,41 @@ are still reported under it: a divergence discovered next to a blind spot is a
 real divergence. The verdict says only that the check will not certify what it
 did not observe.
 
+### The second reason: the basis cannot support a clean (RP-01)
+
+A `coherent` verdict is also withheld — and the verdict is `unmappable` — when
+the *target* was seen in full but the *boundary it was measured against* cannot
+support the claim. These are recorded under `basis_limits`, never under
+`blind_spots`, and they withhold **only** a clean: a `divergent` verdict is
+unaffected, because an edge resolved to a `file:line` is a fact about the code
+whatever the standing of the partition it crossed.
+
+| basis limit | what it means |
+|---|---|
+| `unfalsifiable_coherence` | no code edge *could* have diverged, so "no divergences" is a property of the declared architecture rather than a measurement of the code. Fires when **every component pair has a port** — and equally when there is **no component pair at all**, which is what a one-component partition produces. The second case used to be excluded by a `len(names) >= 2` clause, so six lines of YAML declaring one component certified a codebase with four real divergences (EV-02-DF-01) |
+| `partition_does_not_decompose` | the declared partition fails one or more of the model's own decomposition criteria, published with their measurements in `verdict.measured_against.partition_criteria`. Declaring a coarser boundary is the cheapest way to make every divergence vanish with no code change, and it may not be done silently |
+
+**The partition itself is never refused.** The comparison still runs against
+it, every divergence and absence is still reported with its site, and the
+command still exits 0. A project may have good reasons for a boundary the
+modularity metric dislikes; it may not have them silently. What is withheld is
+the word `coherent`, which is a claim about the code.
+
 **Nothing downgrades it.** There is no flag, key, annotation, or environment
-variable that turns `unmappable` into `coherent`. Suppression-shaped keys in the
-map (`assume_coherent`, `allow_unmapped`, `waived`, `justification`,
-`accepted_divergences`, `ignore`, `exclude`, …) are **scanned, reported under
-`ignored_suppression_keys`, and never honored** — the shape
-`scripts/effect_conformance.py` uses, for the reason stated there: a silently
-ignored key is nearly as bad as an honored one, because the author believes the
-finding was waived. The verdict property reads nothing but the report itself,
-and `tests/test_architecture_reflexion.py::TestNothingDowngradesAnUnobservableVerdict`
-holds that shut from four directions (map keys, environment variables,
-command-line flags, and the source of the verdict property).
+variable that turns `unmappable` into `coherent`, and no *declaration* that
+does either. Suppression-shaped keys in the map (`assume_coherent`,
+`allow_unmapped`, `waived`, `justification`, `accepted_divergences`, `ignore`,
+`exclude`, …) are **scanned, reported under `ignored_suppression_keys`, and
+never honored** — the shape `scripts/effect_conformance.py` uses, for the
+reason stated there: a silently ignored key is nearly as bad as an honored one,
+because the author believes the finding was waived. The verdict property reads
+nothing but the report itself, `unsupported_clean()` is derived on every call
+from the descriptor rather than accumulated in a list anything could empty, and
+`tests/test_architecture_reflexion.py` holds both shut:
+`TestNothingDowngradesAnUnobservableVerdict` from four directions (map keys,
+environment variables, command-line flags, and the source of the verdict
+property) and `TestNoDeclaredPartitionBuysACleanTheBasisCannotSupport` from the
+fifth, which is the one that was open: the partition declaration itself.
 
 ## What The Map Cannot Stop
 
@@ -376,6 +403,15 @@ know this will over-trust a `coherent`:
    violate.** Under *any* partition of such a model, every component pair gets a
    port, and `unfalsifiable_coherence` fires. This is not a corner case: it is
    what this repository's own model does (see below).
+2b. **A coarse partition still hides real divergences, and this is only
+   *reported*, never fixed.** `unfalsifiable_coherence` catches the case where
+   *nothing* could diverge; `partition_does_not_decompose` catches a partition
+   the criteria reject. Between them sits a partition that passes every
+   criterion while the specific pair a bad edge would cross happens to be
+   ported — the edge is then a convergence and no basis limit fires. The
+   criteria are a **discriminator, not a proof**: on EV-02's 203-partition
+   sweep of the divergent fixture they separated all twelve false cleans
+   perfectly, and that is a measurement on one fixture, not a guarantee.
 3. **Only in-tree edges are edges.** A component that reaches a database, a
    socket, or a subprocess directly is invisible here. The external import
    targets are listed in the report, but they are not measured against
@@ -424,6 +460,16 @@ The honest sentence: *over the edges the extractor can resolve, the code
 respects both boundaries the model draws — and it cannot resolve all of them,
 so the check will not certify it.*
 
+**RP-01 added a sixth reason, and it is about this repository rather than about
+the extractor.** The shipped four-component partition does not decompose the
+shipped model: Q = −0.025 and 60% of the actions cross the boundary, because
+`lastCommand` and `result` are written by all fifteen commands. It is recorded
+as a `partition_does_not_decompose` basis limit, the run above is otherwise
+unchanged, and the honest reading is that **no partition of this model anyone
+has written is a cut of it** — so `coherent` is not a verdict this repository
+could earn today even with a perfect extractor. That is the same finding AC-01
+recorded on the model side, arriving at the reflexion check.
+
 **3. the coarser partition this ticket wrote first** (fold `kill_test` in with
 the other scanner verdicts: `surface` / `tickets` / `scanners`) — **every** one
 of the three pairs then has a port, because `RunSpecUnitTests` touches
@@ -452,25 +498,34 @@ document root, with `schema: "tla-spec-dev/architecture-reflexion"`,
 is unchanged).
 
 ```
-measured.modules_scanned          int
-measured.modules_mapped           int
-measured.edges_extracted          int
-measured.ported_pairs             [[componentA, componentB]]
-measured.unported_pairs           [[componentA, componentB]]
-measured.divergence_detectable    bool   <-- false means a clean result is vacuous
-measured.internal_edges           int
-measured.external_imports         {top_level_name: ["file:line"]}
+measured.not_measured             str | null  <-- non-null means EVERY figure below is null
+measured.modules_scanned          int | null
+measured.modules_mapped           int | null
+measured.edges_extracted          int | null
+measured.ported_pairs             [[componentA, componentB]] | null
+measured.unported_pairs           [[componentA, componentB]] | null
+measured.divergence_detectable    bool | null  <-- false means a clean result is vacuous
+measured.internal_edges           int | null
+measured.external_imports         {top_level_name: ["file:line"]} | null
 convergences[]                    {from, to, from_component, to_component, pair[2],
                                    kind, symbol, file, line, site, port, port_actions[]}
-divergences[]                     {... same, port: null, why}
-absences[]                        {port, between[2], actions[], why}
-unmapped_modules                  [str]
-unrealized_components             [str]
-blind_spots[]                     {kind, detail, where}
+                                  | null
+divergences[]                     {... same, port: null, why} | null
+absences[]                        {port, between[2], actions[], why} | null
+unmapped_modules                  [str] | null
+unrealized_components             [str] | null
+blind_spots[]                     {kind, detail, where}  <-- something NOT SEEN
+basis_limits[]                    {kind, detail, where}  <-- seen, but not certifiable
 ignored_suppression_keys          [str]
 verdict.architecture_scan         "coherent" | "divergent" | "unmappable"
 verdict.reasons                   [str]
 verdict.blocks_promotion          false
+verdict.measured_against          {partition_source, partition_origin, component_count,
+                                   partition_decomposes, partition_criteria[],
+                                   partition_failed_criteria[], divergence_detectable,
+                                   comparison_ran}
+verdict.clean_result_supportable  bool | null  <-- false means `coherent` was WITHHELD
+verdict.unsupported_clean_reasons [{kind, detail, where}]
 advisory.suggests_moves           false
 basis.map_digest                  sha256 over language + module->component placements
 basis.placements                  {module: component}   <-- the declared map, verbatim
@@ -478,7 +533,49 @@ basis.scanned_modules             [str]
 basis.architecture_digest         sha256 over component names + port pairs + port actions
 basis.architecture_ports          [[componentA, componentB]]
 basis.comparison_ran              bool   <-- false means this scan holds no findings at all
+basis.partition_source            "declared" | "emergent"
+basis.partition_origin            str
+basis.partition_decomposes        bool
+basis.partition_criteria[]        {name, measured, rule, met, why}
+basis.partition_failed_criteria   [str]
+basis.component_count             int
+basis.divergence_detectable       bool | null
+basis.clean_result_supportable    bool | null
+basis.unsupported_clean_reasons   [{kind, detail, where}]
 ```
+
+**`null` and `[]` mean different things here, deliberately (RP-01).** When
+`basis.comparison_ran` is false the finding lists are `null` and the counts are
+`null` — there are no convergences, divergences or absences in that report,
+*not zero of them* — and `measured.not_measured` carries the reason. `[]` and
+`0` are reserved for a comparison that ran and found nothing. The text renderer
+has always printed "not zero of them" on this path; before RP-01 the JSON said
+`[]` and `0`, and the JSON is what a consumer reads.
+
+### The basis travels with the verdict
+
+`verdict.measured_against` repeats the partition half of `basis` **inside the
+verdict object**, so a consumer that stops at `verdict.architecture_scan`
+cannot reach the word without the grounds. It carries the partition's source
+and origin, its component count, every decomposition criterion with its
+measurement, which criteria failed, and whether a divergence was expressible at
+all. `verdict.clean_result_supportable` is the single boolean that summarizes
+them, and `verdict.unsupported_clean_reasons` says why when it is false.
+
+### `blind_spots` and `basis_limits` are not the same list
+
+| | `blind_spots` | `basis_limits` |
+|---|---|---|
+| what it is | the extractor could not SEE part of the target | the target was seen in full, against a boundary that cannot support a clean |
+| effect on a would-be `coherent` | `unmappable` | `unmappable` |
+| effect on a would-be `divergent` | `unmappable` — nothing measured under a blind spot can be trusted | **unchanged.** An edge resolved to a `file:line` is a fact about the code whatever the standing of the partition it crossed |
+| kinds | `model_has_no_architecture`, `unmapped_module`, `unrealized_component`, `dynamic_import`, `unparsed_file`, `non_python_file`, `first_party_outside_code_root` | `unfalsifiable_coherence`, `partition_does_not_decompose` |
+
+The split is measured rather than argued. Filing the basis limits as blind
+spots — the first implementation of RP-01 — suppresses 67 of the 71 real
+divergence verdicts on EV-02's 203-partition sweep of the divergent fixture and
+removes no false clean that withholding the word `coherent` does not already
+remove. Withholding the clean alone removes all twelve.
 
 ## The Delta: Comparing Two Scans (AC-04)
 

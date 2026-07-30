@@ -365,6 +365,34 @@ class BlindSpot:
 
 
 @dataclass
+class BasisLimit:
+    """A reason the BASIS cannot support a ``coherent`` verdict (RP-01).
+
+    Deliberately NOT a :class:`BlindSpot`, and the distinction is the whole
+    design. A blind spot is something the extractor could not SEE: nothing it
+    might have found can be trusted, so every verdict collapses to
+    ``unmappable``. A basis limit is the opposite situation -- the target was
+    seen in full, every finding is real and is reported with its ``file:line``,
+    and what cannot be supported is only the CERTIFICATE. ``coherent`` is a
+    claim about the CODE, and a partition the model's own criteria reject
+    cannot establish one.
+
+    So a basis limit withholds a clean and never touches a finding. The
+    alternative was measured rather than argued: making these force
+    ``unmappable`` like a blind spot costs 67 of EV-02's 71 real divergence
+    verdicts on the 203-partition sweep and removes exactly zero additional
+    false cleans. Withholding the clean alone removes all twelve.
+    """
+
+    kind: str
+    detail: str
+    where: str | None = None
+
+    def payload(self) -> dict[str, Any]:
+        return {"kind": self.kind, "detail": self.detail, "where": self.where}
+
+
+@dataclass
 class CodeGraph:
     root: Path
     modules: list[str] = field(default_factory=list)
@@ -755,16 +783,106 @@ class ReflexionReport:
     ignored_suppression_keys: list[str] = field(default_factory=list)
 
     @property
+    def comparison_ran(self) -> bool:
+        """Whether the code side was observed at all.
+
+        When this is false the finding lists are not empty, they are
+        UNDEFINED -- there are no convergences, divergences or absences here,
+        not zero of them. Every renderer branches on it.
+        """
+        return self.graph is not None and self.mapping is not None
+
+    @property
     def divergence_detectable(self) -> bool:
         """Whether ANY code edge could have been a divergence.
 
-        False when every component pair has a port: then "no divergences" is a
-        property of the declared architecture, not a measurement of the code.
+        False when every component pair has a port -- and equally false when
+        there are no component pairs at all, which is what a ONE-component
+        partition produces: every code edge is internal by construction and
+        nothing the code does could be seen. In both cases "no divergences" is
+        a property of the declared architecture, not a measurement of the code.
         A ``coherent`` verdict on an architecture that permits everything is the
         structural twin of a clean effect report from a sandbox that observed
         nothing, and MF-027 governs both.
+
+        RP-01: this used to be computed, published in the JSON, and read by no
+        consumer, while the guard that should have read it was written
+        ``len(names) >= 2`` and excluded the one blob it existed for. It is now
+        the first thing :meth:`unsupported_clean` consults.
         """
         return bool(self.unported_pairs)
+
+    def unsupported_clean(self) -> list[BasisLimit]:
+        """Reasons a ``coherent`` verdict is not supportable under THIS basis.
+
+        Computed on every call from the descriptor and the pair sets ALONE. It
+        stores nothing and it never reads ``blind_spots`` or any other mutable
+        field, which is what makes the refusal undowngradable: there is no list
+        a caller, a later edit, or a test can empty to resurrect the clean.
+
+        This is deliberately NOT a refusal of the partition and NOT a blind
+        spot. The comparison still runs, every divergence and absence is still
+        named with its ``file:line``, a ``divergent`` verdict is unaffected,
+        and the command still exits 0. What is withheld is the CERTIFICATE --
+        see :class:`BasisLimit`.
+        """
+        out: list[BasisLimit] = []
+        if not self.comparison_ran:
+            return out
+        descriptor = self.descriptor
+        names = sorted(c.name for c in descriptor.components)
+        if not self.divergence_detectable:
+            if len(names) < 2:
+                detail = (
+                    f"this architecture has {len(names)} component(s), so it has NO "
+                    "component pair at all: every code edge is internal by "
+                    "construction and no code edge could have been a divergence. A "
+                    "clean result here is a property of the declared partition and "
+                    "says nothing whatever about the code -- six lines of YAML "
+                    "declaring one component would otherwise certify any codebase, "
+                    "however many boundaries it violates."
+                )
+            else:
+                total = len(self.port_pairs) + len(self.unported_pairs)
+                detail = (
+                    f"every one of the {total} component pair(s) in this "
+                    "architecture has a port, so no code edge could have been a "
+                    "divergence. 'No divergences' here is a property of the declared "
+                    "architecture, not a measurement of the code, and a coherent "
+                    "verdict would be true by construction. (This is what a model whose "
+                    "actions all touch the same variables produces under any partition.)"
+                )
+            out.append(
+                BasisLimit(
+                    kind="unfalsifiable_coherence",
+                    detail=detail,
+                    where=str(descriptor.tla_path),
+                )
+            )
+        if not descriptor.decomposes:
+            failed = [c for c in descriptor.criteria if not c["met"]]
+            measured = "; ".join(
+                f"{c['name']} measured {c['measured']}, rule {c['rule']}" for c in failed
+            )
+            out.append(
+                BasisLimit(
+                    kind="partition_does_not_decompose",
+                    detail=(
+                        f"the {descriptor.partition_source.upper()} partition fails "
+                        f"{len(failed)} of {len(descriptor.criteria)} decomposition "
+                        f"criteria ({measured}), so this program's own published rule "
+                        "says it is not a cut of this model. The findings below are "
+                        "real and are reported in full -- what is withheld is the "
+                        "clean: `coherent` measured against a partition the model does "
+                        "not support is a different claim from `coherent` measured "
+                        "against one it does, and the verdict may not spend the same "
+                        "word on both. Declaring a coarser partition is the cheapest "
+                        "way to make every divergence vanish with no code change."
+                    ),
+                    where=descriptor.partition_origin,
+                )
+            )
+        return out
 
     @property
     def verdict(self) -> str:
@@ -772,11 +890,25 @@ class ReflexionReport:
 
         Reads ``self`` only. No flag, key, annotation, or environment variable
         participates: there is nothing to pass in that could change the answer.
+
+        The order is the meaning. A blind spot or an unobserved code side beats
+        everything, because nothing measured under one can be trusted. A
+        FINDING beats a basis limit, because a divergence the extractor saw at
+        a `file:line` is a fact about the code whatever the standing of the
+        partition it crossed -- withholding it would trade twelve false cleans
+        for sixty-seven suppressed real findings. A basis limit beats only the
+        clean, which is the one verdict that claims the code was vindicated.
         """
         if self.blind_spots:
             return VERDICT_UNMAPPABLE
+        if not self.comparison_ran:
+            # No code side was observed. `divergences == []` is undefined here,
+            # not zero, so neither `coherent` nor `divergent` is sayable.
+            return VERDICT_UNMAPPABLE
         if self.divergences or self.absences:
             return VERDICT_DIVERGENT
+        if self.unsupported_clean():
+            return VERDICT_UNMAPPABLE
         return VERDICT_COHERENT
 
     @property
@@ -785,6 +917,12 @@ class ReflexionReport:
         for spot in self.blind_spots:
             where = f" ({spot.where})" if spot.where else ""
             out.append(f"[{spot.kind}] {spot.detail}{where}")
+        # Always listed, and listed under a DIVERGENT verdict too: a reader who
+        # is about to act on these findings must know what they were measured
+        # against, and a reader who sees none must know why that is not a clean.
+        for limit in self.unsupported_clean():
+            where = f" ({limit.where})" if limit.where else ""
+            out.append(f"[{limit.kind}] {limit.detail}{where}")
         if self.divergences:
             out.append(
                 f"{len(self.divergences)} code edge(s) cross a component boundary the "
@@ -918,21 +1056,16 @@ def reflexion(
     report.port_pairs = sorted(port_pairs)
     report.unported_pairs = sorted(all_pairs - port_pairs)
 
-    if not report.unported_pairs and len(names) >= 2:
-        report.blind_spots.append(
-            BlindSpot(
-                kind="unfalsifiable_coherence",
-                detail=(
-                    f"every one of the {len(all_pairs)} component pair(s) in this "
-                    "architecture has a port, so no code edge could have been a "
-                    "divergence. 'No divergences' here is a property of the declared "
-                    "architecture, not a measurement of the code, and a coherent "
-                    "verdict would be true by construction. (This is what a model whose "
-                    "actions all touch the same variables produces under any partition.)"
-                ),
-                where=str(descriptor.tla_path),
-            )
-        )
+    # RP-01. A guard used to sit here reading `if not report.unported_pairs and
+    # len(names) >= 2`, appending a blind spot. It excluded the strongest case
+    # of the very thing it was written to catch -- a ONE-component partition has
+    # no pairs at all, so it passed vacuously and six lines of YAML certified a
+    # codebase with four real divergences. There is now no guard here at all:
+    # the condition is DERIVED by `ReflexionReport.unsupported_clean()` from the
+    # descriptor and the pair sets, and read by the verdict itself. Nothing is
+    # appended to a list, so nothing can be forgotten, emptied, or ignored --
+    # which is exactly how `divergence_detectable` came to be computed,
+    # published in the JSON, and consulted by no consumer.
 
     realized: set[tuple[str, str]] = set()
     for edge in graph.edges:
@@ -1076,6 +1209,7 @@ def scan_basis(report: ReflexionReport) -> dict[str, Any]:
         placements = {key: mapping.modules[key] for key in sorted(mapping.modules)}
         map_digest = _digest({"language": mapping.language, "placements": placements})
 
+    unsupported = report.unsupported_clean()
     return {
         "map_origin": mapping.origin if mapping else None,
         "map_language": mapping.language if mapping else None,
@@ -1088,6 +1222,25 @@ def scan_basis(report: ReflexionReport) -> dict[str, Any]:
         "architecture_ports": [key.split("|") for key in sorted(port_actions)],
         "architecture_port_actions": architecture["ports"],
         "comparison_ran": mapping is not None and graph is not None,
+        # RP-01: the PARTITION half of the basis. A scan is measured against a
+        # cut somebody chose, and whether the model's own criteria call that
+        # choice a cut is the difference between a clean that means something
+        # and one that was bought with six lines of YAML. It travels with the
+        # scan, in this block and again under `verdict`, so no consumer can
+        # reach the verdict without passing the basis it rests on.
+        "partition_source": descriptor.partition_source,
+        "partition_origin": descriptor.partition_origin,
+        "partition_decomposes": descriptor.decomposes,
+        "partition_criteria": descriptor.criteria,
+        "partition_failed_criteria": [
+            c["name"] for c in descriptor.criteria if not c["met"]
+        ],
+        "component_count": len(descriptor.components),
+        "divergence_detectable": report.divergence_detectable
+        if report.comparison_ran
+        else None,
+        "clean_result_supportable": not unsupported if report.comparison_ran else None,
+        "unsupported_clean_reasons": [spot.payload() for spot in unsupported],
     }
 
 
@@ -1468,13 +1621,26 @@ def structural_delta(baseline: dict[str, Any], report: ReflexionReport) -> dict[
     stable = set(basis["stable_modules"])
 
     current = report_payload(report)
+    # `or []` on BOTH sides: a scan whose comparison never ran now carries
+    # `null` rather than `[]` for its finding lists (RP-01), and the delta must
+    # not read that as a measured zero. It does not -- `comparison_ran` is
+    # checked below and forces `unattributable` -- but the arithmetic that runs
+    # first needs a list, and the counts it produces are discarded there.
     divergences = _delta_block(
-        baseline.get("divergences") or [], current["divergences"], before_basis, after_basis, stable
+        baseline.get("divergences") or [],
+        current["divergences"] or [],
+        before_basis,
+        after_basis,
+        stable,
     )
     convergences = _delta_block(
-        baseline.get("convergences") or [], current["convergences"], before_basis, after_basis, stable
+        baseline.get("convergences") or [],
+        current["convergences"] or [],
+        before_basis,
+        after_basis,
+        stable,
     )
-    absences = _absence_delta(baseline.get("absences") or [], current["absences"])
+    absences = _absence_delta(baseline.get("absences") or [], current["absences"] or [])
 
     unverifying = [
         row
@@ -1703,6 +1869,25 @@ def render_delta_text(delta: dict[str, Any]) -> str:
 def report_payload(report: ReflexionReport) -> dict[str, Any]:
     graph = report.graph
     mapping = report.mapping
+    ran = report.comparison_ran
+    # RP-01, the AC-03-DF-01 rule applied one field over. When the comparison
+    # never ran there are no convergences, divergences or absences here -- NOT
+    # zero of them, which is what `[]` says to a consumer and what the text
+    # renderer has always refused to print. Undefined is `null` and carries its
+    # reason in `not_measured`.
+    not_measured = (
+        None
+        if ran
+        else (
+            "NOT MEASURED: the comparison never ran, so the finding lists and the "
+            "counts they summarize are undefined rather than empty. See "
+            "`verdict.reasons` for why. A consumer that reads a `0` or an `[]` here "
+            "as a measured result is reading a clean report on a target that was "
+            "never observed."
+        )
+    )
+    basis = scan_basis(report)
+    unsupported = report.unsupported_clean()
     return {
         "schema": SCHEMA,
         "schema_version": SCHEMA_VERSION,
@@ -1710,37 +1895,62 @@ def report_payload(report: ReflexionReport) -> dict[str, Any]:
         "code_root": str(graph.root) if graph else None,
         "language": mapping.language if mapping else None,
         "measured": {
-            "modules_scanned": len(graph.modules) if graph else 0,
-            "modules_mapped": len(mapping.modules) if mapping else 0,
-            "edges_extracted": len(graph.edges) if graph else 0,
-            "component_pairs": len(report.port_pairs) + len(report.unported_pairs),
-            "ported_pairs": [list(p) for p in report.port_pairs],
-            "unported_pairs": [list(p) for p in report.unported_pairs],
-            "divergence_detectable": report.divergence_detectable,
-            "internal_edges": len(report.internal_edges),
+            "not_measured": not_measured,
+            "modules_scanned": len(graph.modules) if ran else None,
+            "modules_mapped": len(mapping.modules) if ran else None,
+            "edges_extracted": len(graph.edges) if ran else None,
+            "component_pairs": (len(report.port_pairs) + len(report.unported_pairs))
+            if ran
+            else None,
+            "ported_pairs": [list(p) for p in report.port_pairs] if ran else None,
+            "unported_pairs": [list(p) for p in report.unported_pairs] if ran else None,
+            "divergence_detectable": report.divergence_detectable if ran else None,
+            "internal_edges": len(report.internal_edges) if ran else None,
             "external_imports": (
                 {name: sorted(set(sites)) for name, sites in sorted(graph.external_imports.items())}
-                if graph
-                else {}
+                if ran
+                else None
             ),
         },
         # AC-04: what this scan was measured AGAINST, recorded WITH the scan so
         # that a later delta can prove -- or deny -- that the two runs shared a
-        # boundary. Without this a delta measures the map.
-        "basis": scan_basis(report),
-        "convergences": report.convergences,
-        "divergences": report.divergences,
-        "absences": report.absences,
+        # boundary. Without this a delta measures the map. RP-01 added the
+        # partition half: the model side of the basis, with every decomposition
+        # criterion and its measurement.
+        "basis": basis,
+        "convergences": report.convergences if ran else None,
+        "divergences": report.divergences if ran else None,
+        "absences": report.absences if ran else None,
         "unmapped_modules": [graph.display(m) for m in sorted(report.unmapped_modules)]
-        if graph
-        else [],
-        "unrealized_components": report.unrealized_components,
+        if ran
+        else None,
+        "unrealized_components": report.unrealized_components if ran else None,
         "blind_spots": [spot.payload() for spot in report.blind_spots],
+        # RP-01. Beside `blind_spots`, never inside it: a blind spot is
+        # something the extractor could not see and forces `unmappable`; a
+        # basis limit is something it saw perfectly well against a boundary
+        # that cannot support a clean, and withholds only `coherent`.
+        "basis_limits": [limit.payload() for limit in unsupported],
         "ignored_suppression_keys": report.ignored_suppression_keys,
         "verdict": {
             "architecture_scan": report.verdict,
             "reasons": report.reasons,
             "blocks_promotion": False,
+            # RP-01: the basis travels WITH the verdict, not only in a sibling
+            # block a consumer may never open. Everything here is needed to
+            # decide whether this verdict's word can be taken at face value.
+            "measured_against": {
+                "partition_source": basis["partition_source"],
+                "partition_origin": basis["partition_origin"],
+                "component_count": basis["component_count"],
+                "partition_decomposes": basis["partition_decomposes"],
+                "partition_criteria": basis["partition_criteria"],
+                "partition_failed_criteria": basis["partition_failed_criteria"],
+                "divergence_detectable": basis["divergence_detectable"],
+                "comparison_ran": basis["comparison_ran"],
+            },
+            "clean_result_supportable": basis["clean_result_supportable"],
+            "unsupported_clean_reasons": [spot.payload() for spot in unsupported],
         },
         "advisory": {
             "blocks_promotion": False,
@@ -1811,6 +2021,39 @@ def render_report_text(report: ReflexionReport) -> str:
         add("    None of these changed any figure or the verdict below.")
         add("")
 
+    # RP-01: the BASIS, printed before the findings and again beside the
+    # verdict. A reader who sees only the counts cannot tell a clean that was
+    # measured from a clean that was declared.
+    descriptor = report.descriptor
+    add("  Measured against this partition -- the basis of every figure below:")
+    add(f"    source:  {descriptor.partition_source.upper()}")
+    add(f"    origin:  {descriptor.partition_origin}")
+    add(
+        "    components: "
+        + (", ".join(sorted(c.name for c in descriptor.components)) or "(none)")
+    )
+    add("    does this partition decompose the model?")
+    for criterion in descriptor.criteria:
+        mark = "OK  " if criterion["met"] else "FAIL"
+        add(
+            f"      [{mark}] {criterion['name']}: measured {criterion['measured']}, "
+            f"rule {criterion['rule']}"
+        )
+    if descriptor.decomposes:
+        add("      -> every criterion is met: this partition IS a cut of the model.")
+    else:
+        failed = ", ".join(c["name"] for c in descriptor.criteria if not c["met"])
+        add(
+            f"      -> DOES NOT DECOMPOSE ({failed}). The comparison still runs and "
+            "every finding"
+        )
+        add(
+            "         below is real, but this program's own rule says this is not a "
+            "cut, so a"
+        )
+        add("         clean result measured against it is not a clean result about the code.")
+    add("")
+
     if mapping:
         add("  Is a divergence even detectable here?")
         add(
@@ -1828,6 +2071,10 @@ def render_report_text(report: ReflexionReport) -> str:
         add(
             "    empty the architecture permits every pair and a clean result is true "
             "by construction."
+        )
+        add(
+            f"    divergence_detectable = "
+            f"{'true' if report.divergence_detectable else 'false'}"
         )
         add("")
 
@@ -1882,15 +2129,49 @@ def render_report_text(report: ReflexionReport) -> str:
     for reason in report.reasons:
         add(f"    - {reason}")
     add("")
+    # RP-01: the basis, restated where the verdict is read. A consumer that
+    # stops at the verdict line must still be told what it was measured against.
+    add("  measured against:")
+    add(
+        f"    partition:              {descriptor.partition_source.upper()}, "
+        f"{len(descriptor.components)} component(s)"
+    )
+    add(
+        f"    partition decomposes:   "
+        f"{'yes' if descriptor.decomposes else 'NO -- fails ' + ', '.join(c['name'] for c in descriptor.criteria if not c['met'])}"
+    )
+    add(
+        f"    divergence_detectable:  "
+        f"{'true' if report.divergence_detectable else 'FALSE -- no code edge could have been a divergence'}"
+    )
+    add(
+        f"    a clean result is       "
+        f"{'SUPPORTABLE on this basis' if not report.unsupported_clean() else 'NOT SUPPORTABLE on this basis'}"
+    )
+    add("")
     if report.verdict == VERDICT_UNMAPPABLE:
         add("  UNMAPPABLE is not 'clean with caveats' and not 'nothing found'. Any finding")
         add("  listed above is real; the verdict says the check could not see the whole")
         add("  target, so it will not certify what it did not observe. Nothing downgrades")
         add("  this: there is no flag, key, annotation, or environment variable that turns")
         add("  it into `coherent`.")
+        if report.unsupported_clean() and not report.blind_spots:
+            add("")
+            add("  Here it is the BASIS, not the extractor, that withholds the clean. The")
+            add("  partition is not refused and the comparison was not skipped: everything")
+            add("  above was measured, this command exits 0, and nothing is blocked. What")
+            add("  is withheld is the word `coherent`, which is a claim about the CODE --")
+            add("  and it cannot be bought by declaring a coarser boundary.")
     elif report.verdict == VERDICT_DIVERGENT:
         add("  DIVERGENT is a FINDING, not a failure. This command exits 0. It names the")
         add("  edges and the ports; it does not say which module should move (CD-01).")
+        if report.unsupported_clean():
+            add("")
+            add("  The findings stand on their own -- an edge the extractor resolved to a")
+            add("  file:line is a fact about the code. But the boundary they were measured")
+            add("  ACROSS is one this program's own criteria reject, so their number is not")
+            add("  a score: a coarser partition would report fewer of them with no code")
+            add("  change, and this basis could not have produced a `coherent` either way.")
     else:
         add("  COHERENT: over the edges this extractor can resolve, every boundary")
         add("  crossing in the code has a port in the model and every port is realized.")
