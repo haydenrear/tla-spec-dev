@@ -7596,6 +7596,375 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-05",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T20:35:44.340663+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-02",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 26,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-05",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T20:37:59.283372+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/tickets/RP-05/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-02",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": 1292951,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": 32122220,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 26,
+            "after": 26,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-05/results/tlc-current.txt (32,122,220 generated / 1,292,951 distinct / depth 26 / 60s -- no TLA+ model file touched by this ticket, so 'before' and 'after' are the same model)",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-05/results/tlc-current.txt (same run; RP-05's implementation_scope is tests/test_new_ticket_workflow.py, references/generation_modes.md, specs/program_model/architecture_components.yaml -- no .tla/.cfg delta)",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/RP-05/results/pytest-full.txt (865 passed, 0 failed -- the epic's first fully green run; test_skill_requires_two_minute_case_generation_budget now passes)",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "the ledger's own delta header at this close: variables=10 actions=16 bound=2,799,360, direction=zero (vs EV-02) -- ZERO model delta, no .tla/.cfg file in RP-05's implementation_scope",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "RP-05 is a doc/test-only ticket (a stale test assertion and a stale YAML comment); it carries zero TLA+ model delta and the complexity ledger's own header confirms direction=zero versus EV-02. There is no representation to refine here: no variable, action, or domain was added or removed, so no reduction search over the model applies. The refinement search that matters for this ticket is over the FIX, not the model: for the test, \"revert the doc to restore stale prose\" was considered and rejected (rehardcodes a literal that will drift the next time the page is reworded) in favor of retargeting the assertion at the durable fact (the `budgets.tlc_seconds` config key and its 120-second default are documented); for the YAML comment, \"state the current verdict word\" was considered and rejected per this ticket's own instruction (RP-01 is concurrently changing verdict reporting) in favor of recording the measured numbers (263 edges, 0 divergences, 0 absences) with a re-run command so the comment does not go stale the same way again.\n",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "RP-05 closes the two stale-record defects filed against this epic's own dogfooding: CM-01-DF-01/AC-DF-01 (the one red test every prior ticket in this epic was told to ignore) and EV-01-DF-03 (a comment contradicting the measurement beside it). 1. test_skill_requires_two_minute_case_generation_budget asserted the literal phrase \"hard two-minute budget\" in references/generation_modes.md. The c72d03a docs refresh reworded that sentence to \"hard wall-time budget: `budgets.tlc_seconds` in `spec_manifest.yaml`, default 120 seconds\" -- naming the actual config key instead of a fixed literal. Restoring the old phrase would have reverted a genuine accuracy improvement (the new wording points at the real, checked-in default: spec_manifest.yaml `tlc_seconds: 120`) purely to satisfy a test. Chosen instead: retarget the assertion at the durable fact -- that the budget's config key (`budgets.tlc_seconds`) and its value (120 seconds) are documented -- rather than an exact sentence. A test asserting doc prose verbatim is a maintenance tax with no compensating signal (it does not catch the budget being undocumented, only a paraphrase); asserting the key name and value is checked whenever it changes and survives copy-editing. 2. specs/program_model/architecture_components.yaml's comment claimed the AC-02 reflexion dogfood \"found edges across both\" of the two unported component pairs (`tickets<->kill`, `corpus<->kill`). The actual measured result, both at AC-02's original 2026-07-27 run (references/ architecture_coherence.md) and re-measured here 2026-07-30, is DIVERGENCES (0) -- the opposite claim. The edge count also drifted: 258 at AC-02's writing vs 263 now (143 internal, 120 crossing, all 120 convergences). Re-ran `analyze architecture ... --components architecture_components.yaml --code scripts --map architecture_map.yaml` (specs/tickets/RP-05/results/architecture-reflexion.txt) to confirm both numbers directly rather than trust the filed finding. The comment now states the measured counts (263 edges, 0 divergences, 0 absences) with the run date and a pointer to re-run the check for the current figure, and deliberately does NOT restate the verdict word (`unmappable`/`coherent`/ etc.) since RP-01 is concurrently changing how that command reports its verdict -- recording the verdict wording here would create the exact same staleness defect the moment RP-01 merges. Both fixes are documentation/test-only; RP-05 carries ZERO TLA+ model delta, confirmed by comparing specs/tickets/RP-05/current against specs/tickets/RP-05/desired after a clean __pycache__ (identical) and by the complexity ledger's own delta header (direction=zero vs EV-02). Full repository suite: `uv run --with pytest --with pyyaml -m pytest tests -q` -- 865 passed, 0 failed. This is the first fully green run of this epic; every prior ticket carried CM-01-DF-01/AC-DF-01 as a known, explicitly out-of-scope red test.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
