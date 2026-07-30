@@ -1,0 +1,34 @@
+RP-07 -- specWorkflow / spec.workflow.failure_cleanup_probe
+Test Graph evidence, worktree /Users/hayde/IdeaProjects/wt-rp07-specworkflow-probe
+branched from epic/architectural-coherence @ b2d3a35
+
+== BEFORE (unmodified probe, this worktree) ==
+
+$ cd test_graph && ./gradlew specWorkflow --console=plain
+  > node spec.workflow.failure_cleanup_probe errored: node launcher exited with live descendants: 15805,15831
+  BUILD FAILED in 55s
+
+$ cd test_graph && ./gradlew specWorkflow --console=plain    # second run
+  > node spec.workflow.failure_cleanup_probe errored: node launcher exited with live descendants: 16844
+  BUILD FAILED in 42s
+
+Different PID sets on each run; same node, same failure mode.
+
+== AFTER (probe pins kotlin.compiler.execution.strategy=in-process) ==
+
+$ cd test_graph && ./gradlew specWorkflow --console=plain    # run 1
+  BUILD SUCCESSFUL in 44s
+$ cd test_graph && ./gradlew specWorkflow --console=plain    # run 2
+  BUILD SUCCESSFUL in 43s
+$ cd test_graph && ./gradlew specWorkflow --console=plain    # run 3
+  BUILD SUCCESSFUL in 46s
+
+Reports (Overall / new ownership assertion):
+  20260730-210826  Overall: ERRORED  
+  20260730-211452  Overall: PASSED   nested probe build left no live descendants **PASS** 
+  20260730-211555  Overall: PASSED   nested probe build left no live descendants **PASS** 
+  20260730-211640  Overall: PASSED   nested probe build left no live descendants **PASS** 
+
+20260730-210826 is the last pre-fix run (ERRORED at the probe).
+All seven pre-existing probe assertions still PASS after the change;
+one assertion was ADDED, none was removed, relaxed or deleted.

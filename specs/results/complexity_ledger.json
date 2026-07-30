@@ -8927,6 +8927,395 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-07",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T21:21:40.358866+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 2799360,
+        "bound_complete": false,
+        "bound_resolved_variables": 8,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "bound_complete": false,
+            "percent_lower_bound": 279.9,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "RP-05",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": null,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like"
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 26,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-07",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T21:23:28.881090+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 2799360,
+        "bound_complete": false,
+        "bound_resolved_variables": 8,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.0,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "bound_complete": false,
+            "percent_lower_bound": 279.9,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "RP-05",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": null,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like"
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 26,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "RP-07 carries zero TLA+ model delta (results/zero-model-delta.txt; the ledger header records direction=zero vs RP-05) and its whole diff is two files under test_graph/. No variable, action or domain was added or removed, so no reduction search over the representation applies. The refinement search that does apply is over the FIX, and four alternatives were considered against the reproduction in results/diagnosis.md: (1) Relax or delete the executor's descendant contract. REJECTED, and it is also not reachable: test_graph/build-logic and test_graph/sdk are symlinks into $SKILL_MANAGER_HOME, so editing them would edit the installed skill for every repository. The contract was also correct -- the surviving process was real, and the executor's reap of it reaches a daemon shared with the outer build. (2) Drain-and-tolerate: have the node wait for the daemon and pass anyway, or exempt \"known daemon\" command lines. REJECTED as making a check pass by weakening what it asserts. A 7200-second idle daemon does not exit inside any bounded wait, so this is exemption dressed as patience. (3) Stop recopying the probe project each run (retain build/), so the nested build never compiles Kotlin and never forks the daemon. REJECTED: the warm-project arm of the A/B does show 0 live descendants, but it wins by not exercising the from-scratch path the probe exists to exercise, and it makes the node's result depend on leftover state from a previous run. (4) Pin kotlin.compiler.execution.strategy=in-process. CHOSEN. It removes the fork rather than tolerating it, keeps the nested compile inside the tree the node owns and can reap, changes no assertion, and is confined to the node's own subprocess invocation. Measured against arms (2)/(3) in the three-arm table in results/diagnosis.md. The added assertion `nested probe build left no live descendants` is additive representation in the NODE, not in the model, and it is deliberately narrower than the executor's check (bounded drain, node-body subtree only). It exists so a regression names the offending command lines instead of bare PIDs. The executor's check remains the authority; the node cannot make a violating run green.\n",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "Full diagnosis with the reproduction: specs/tickets/RP-07/results/diagnosis.md. RP-07 diagnoses the one red node EV-02 escalated rather than filed. The verdict is the first of the three offered outcomes: a REAL defect, in the probe, fixed. Not flakiness, not a wrong assertion, not an unsatisfiable environment assumption. Reproduced twice on this worktree with the probe unmodified: `specWorkflow` fails at `spec.workflow.failure_cleanup_probe` with \"node launcher exited with live descendants\", different PIDs each run -- matching EV-02's report exactly. A 0.4s `ps` sampler run alongside the second reproduction resolves the reported PID and its full ancestry (results/descendant-ancestry.txt): outer Gradle daemon -> SDK perl process-group supervisor -> `uv run` node launcher -> node python -> nested gradlew -> nested single-use Gradle daemon -> `org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200`. The survivor is the Kotlin compile daemon: a shared, user-scoped service with a two-hour idle lifetime, i.e. one designed to outlive the build that started it. It is forked on every single run because `copy_probe_project` recopies the project with `ignore_patterns(\"build\", ...)`, so the nested build always compiles the `build-logic` Kotlin plugin from scratch, and the Kotlin Gradle plugin's default execution strategy is `daemon`. A three-arm A/B on an isolated copy, all Kotlin daemons killed before each arm, with a harness that builds the same descendant inventory the executor builds (results/descendant-contract-harness.py): warm project, no Kotlin compile -> 0 live after exit; fresh copy, as shipped -> 1 live, the KotlinCompileDaemon; fresh copy plus in-process strategy -> 0 live. The warm-project arm is the control that isolates the cause. The contract was right to fail this. The executor does not merely report the survivor, it TERMs then KILLs it -- and that daemon is keyed on ~/Library/Application Support/kotlin/daemon and shared with the outer build, so the reap reaches outside the node. A node that forks a machine-scoped service into its own process tree is doing something the contract should refuse. Why it was green before, on this same machine: MF-027's green run of this node is 2026-07-19, and at that commit `awaitWithTimeout` was a plain `process.waitFor(timeout)` with no descendant inventory at all. Commit 0e3f00c (2026-07-23, \"chore: upgrade test graph observability scaffold\") replaced test_graph/build-logic and test_graph/sdk with symlinks into $SKILL_MANAGER_HOME and brought in the POSIX process-group supervisor and the descendant contract. The probe's behavior did not change on 2026-07-23; the instrument that can see it arrived. The leak was newly DETECTED, not newly introduced -- which is the scaffold upgrade working as intended. Fix: pin kotlin.compiler.execution.strategy=in-process on both channels -- `-P` on the command line, because command-line project properties propagate into the `build-logic` included build where the compilation actually happens, and `-D` in GRADLE_OPTS alongside the pre-existing `-Dorg.gradle.daemon=false`. Confirmed the compile still happens (the run populates build-logic/build/classes/kotlin/main/) rather than being skipped. test_graph/README.md gains a section naming the requirement so a future edit does not quietly drop the flags. Evidence integrity: nothing was weakened. The seven pre-existing probe assertions are unchanged and all still pass; one was added. The added in-node check is strictly narrower than the executor's (it drains up to 20s where the executor allows none, and inspects only the node body's subtree), and it is a diagnostic that writes offending command lines to node-logs/spec.workflow.failure_cleanup_probe.lingering-descendants.log -- not a replacement gate. The executor's ProcessContractViolation check is untouched and still fails the node if the in-node check is ever wrong. Nothing under $SKILL_MANAGER_HOME was edited. Result: specWorkflow PASSED on three consecutive runs (results/ test-graphs.txt), repository unit tests 944 passed / 0 failed (940 on the epic tip; the +4 are parametrized YAML-parse cases over this ticket's own scaffolded files), spec-unit validation passed, zero TLA+ model delta. One thing this ticket did NOT establish: whether any other repository using this scaffold has nodes that spawn nested Gradle builds and would hit the same contract. The `in-process` requirement is a general consequence of the contract meeting the Kotlin plugin's default, not something specific to this probe, and it currently lives only in this repository's test_graph/README.md. Recorded in specs/desired_program_model/deferred_findings.yaml.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

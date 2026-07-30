@@ -1,0 +1,25 @@
+$ diff -rq specs/tickets/RP-07/current specs/tickets/RP-07/desired
+exit=0  (ticket current == desired)
+
+$ git diff --stat b2d3a35 -- specs/current specs/desired_program_model specs/program_model
+(no output -- no project model change)
+
+$ for f in MC.cfg MCsmall.cfg TlaSpecDevCli.tla; do
+    diff -q specs/current/$f specs/tickets/RP-07/{current,desired}/$f; done
+  specs/current/MC.cfg == ticket current/MC.cfg
+  specs/current/MC.cfg == ticket desired/MC.cfg
+  specs/current/MCsmall.cfg == ticket current/MCsmall.cfg
+  specs/current/MCsmall.cfg == ticket desired/MCsmall.cfg
+  specs/current/TlaSpecDevCli.tla == ticket current/TlaSpecDevCli.tla
+  specs/current/TlaSpecDevCli.tla == ticket desired/TlaSpecDevCli.tla
+
+$ git status --porcelain -- test_graph specs/current specs/desired_program_model specs/program_model
+ M test_graph/README.md
+ M test_graph/sources/spec_workflow_failure_cleanup_probe.py
+
+ZERO TLA+ model delta, as the ticket plan requires. The only untracked .tla/.cfg
+files are the RP-07 ticket workspace copies that `open ticket` seeds, and they are
+byte-identical to specs/current. RP-07 changes only
+test_graph/sources/spec_workflow_failure_cleanup_probe.py and test_graph/README.md:
+the defect is in how one Test Graph node spawns a nested Gradle build, and no
+specified CLI behavior, state variable or action is involved.

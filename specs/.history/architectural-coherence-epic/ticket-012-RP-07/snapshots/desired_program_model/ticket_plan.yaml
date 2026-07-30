@@ -1267,13 +1267,7 @@ tickets:
         - specWorkflow
     acceptance:
       commands:
-        # As authored -- but `run` has no `test-graph` target; the CLI accepts
-        # only spec-unit-tests | effect-conformance | kill-test, so this line
-        # exits 2 with "invalid choice: 'test-graph'". Left as written rather
-        # than silently rewritten, with the commands actually used below.
         - "python3 scripts/tla_spec_dev.py --spec-root specs run test-graph specWorkflow"
-        - "python3 ~/.skill-manager/skills/test-graph/scripts/run.py specWorkflow"
-        - "cd test_graph && ./gradlew specWorkflow --console=plain"
       assertions:
         - "specWorkflow is green, or the probe is documented as measuring something it cannot measure here and is changed to say so."
         - "Whichever it is, the diagnosis is recorded with the reproduction."

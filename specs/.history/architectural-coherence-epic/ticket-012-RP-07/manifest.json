@@ -1,0 +1,768 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/RP-07",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/architectural-coherence-epic/ticket-012-RP-07 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for RP-07'",
+    "message": "It is recommended to commit this history directory now: specs/.history/architectural-coherence-epic/ticket-012-RP-07"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 16,
+        "before": 16,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 2799360,
+        "before": 2799360,
+        "bound_complete_after": false,
+        "bound_complete_before": null,
+        "comparable": false,
+        "delta": 0,
+        "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": 26,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": 1292951,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": 32122220,
+        "delta": null
+      },
+      "variables": {
+        "after": 10,
+        "before": 10,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "RP-05"
+  },
+  "complexity_ledger": {
+    "architecture_delta": {
+      "architecture_digest_after": "",
+      "architecture_digest_before": "",
+      "attribution": "",
+      "claim": "",
+      "divergences_after": null,
+      "divergences_before": null,
+      "divergences_delta": null,
+      "divergent_edges_gained": [],
+      "divergent_edges_lost": [],
+      "gates": false,
+      "map_digest_after": "",
+      "map_digest_before": "",
+      "problems": [],
+      "recorded": false,
+      "red_flags": [],
+      "report": "",
+      "resolved_report": "",
+      "status": "not_run",
+      "why": []
+    },
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 16,
+          "before": 16,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 2799360,
+          "before": 2799360,
+          "bound_complete_after": false,
+          "bound_complete_before": null,
+          "comparable": false,
+          "delta": 0,
+          "note": "bound completeness is unrecorded on at least one side of this comparison (entries written before CM-01-DF-03 was fixed do not carry it), so this delta is NOT known to be like-for-like",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": 26,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": 1292951,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": 32122220,
+          "delta": null
+        },
+        "variables": {
+          "after": 10,
+          "before": 10,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "RP-05"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/RP-07/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 16,
+      "actions_from_fallback_heuristic": false,
+      "bound": 2799360,
+      "bound_complete": false,
+      "bound_resolved_variables": 8,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent",
+          "percent": null,
+          "percent_lower_bound": 279.9,
+          "used": 2799360,
+          "within_cap": false
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 8 of 10 declared variables, so the complete bound is at least this large)",
+        "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.0,
+      "variables": 10
+    },
+    "narrative": "Full diagnosis with the reproduction: specs/tickets/RP-07/results/diagnosis.md. RP-07 diagnoses the one red node EV-02 escalated rather than filed. The verdict is the first of the three offered outcomes: a REAL defect, in the probe, fixed. Not flakiness, not a wrong assertion, not an unsatisfiable environment assumption. Reproduced twice on this worktree with the probe unmodified: `specWorkflow` fails at `spec.workflow.failure_cleanup_probe` with \"node launcher exited with live descendants\", different PIDs each run -- matching EV-02's report exactly. A 0.4s `ps` sampler run alongside the second reproduction resolves the reported PID and its full ancestry (results/descendant-ancestry.txt): outer Gradle daemon -> SDK perl process-group supervisor -> `uv run` node launcher -> node python -> nested gradlew -> nested single-use Gradle daemon -> `org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200`. The survivor is the Kotlin compile daemon: a shared, user-scoped service with a two-hour idle lifetime, i.e. one designed to outlive the build that started it. It is forked on every single run because `copy_probe_project` recopies the project with `ignore_patterns(\"build\", ...)`, so the nested build always compiles the `build-logic` Kotlin plugin from scratch, and the Kotlin Gradle plugin's default execution strategy is `daemon`. A three-arm A/B on an isolated copy, all Kotlin daemons killed before each arm, with a harness that builds the same descendant inventory the executor builds (results/descendant-contract-harness.py): warm project, no Kotlin compile -> 0 live after exit; fresh copy, as shipped -> 1 live, the KotlinCompileDaemon; fresh copy plus in-process strategy -> 0 live. The warm-project arm is the control that isolates the cause. The contract was right to fail this. The executor does not merely report the survivor, it TERMs then KILLs it -- and that daemon is keyed on ~/Library/Application Support/kotlin/daemon and shared with the outer build, so the reap reaches outside the node. A node that forks a machine-scoped service into its own process tree is doing something the contract should refuse. Why it was green before, on this same machine: MF-027's green run of this node is 2026-07-19, and at that commit `awaitWithTimeout` was a plain `process.waitFor(timeout)` with no descendant inventory at all. Commit 0e3f00c (2026-07-23, \"chore: upgrade test graph observability scaffold\") replaced test_graph/build-logic and test_graph/sdk with symlinks into $SKILL_MANAGER_HOME and brought in the POSIX process-group supervisor and the descendant contract. The probe's behavior did not change on 2026-07-23; the instrument that can see it arrived. The leak was newly DETECTED, not newly introduced -- which is the scaffold upgrade working as intended. Fix: pin kotlin.compiler.execution.strategy=in-process on both channels -- `-P` on the command line, because command-line project properties propagate into the `build-logic` included build where the compilation actually happens, and `-D` in GRADLE_OPTS alongside the pre-existing `-Dorg.gradle.daemon=false`. Confirmed the compile still happens (the run populates build-logic/build/classes/kotlin/main/) rather than being skipped. test_graph/README.md gains a section naming the requirement so a future edit does not quietly drop the flags. Evidence integrity: nothing was weakened. The seven pre-existing probe assertions are unchanged and all still pass; one was added. The added in-node check is strictly narrower than the executor's (it drains up to 20s where the executor allows none, and inspects only the node body's subtree), and it is a diagnostic that writes offending command lines to node-logs/spec.workflow.failure_cleanup_probe.lingering-descendants.log -- not a replacement gate. The executor's ProcessContractViolation check is untouched and still fails the node if the in-node check is ever wrong. Nothing under $SKILL_MANAGER_HOME was edited. Result: specWorkflow PASSED on three consecutive runs (results/ test-graphs.txt), repository unit tests 944 passed / 0 failed (940 on the epic tip; the +4 are parametrized YAML-parse cases over this ticket's own scaffolded files), spec-unit validation passed, zero TLA+ model delta. One thing this ticket did NOT establish: whether any other repository using this scaffold has nodes that spawn nested Gradle builds and would hit the same contract. The `in-process` requirement is a general consequence of the contract meeting the Kotlin plugin's default, not something specific to this probe, and it currently lives only in this repository's test_graph/README.md. Recorded in specs/desired_program_model/deferred_findings.yaml.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+      "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+    ],
+    "recorded_at_utc": "2026-07-30T21:23:28.881090+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "RP-07 carries zero TLA+ model delta (results/zero-model-delta.txt; the ledger header records direction=zero vs RP-05) and its whole diff is two files under test_graph/. No variable, action or domain was added or removed, so no reduction search over the representation applies. The refinement search that does apply is over the FIX, and four alternatives were considered against the reproduction in results/diagnosis.md: (1) Relax or delete the executor's descendant contract. REJECTED, and it is also not reachable: test_graph/build-logic and test_graph/sdk are symlinks into $SKILL_MANAGER_HOME, so editing them would edit the installed skill for every repository. The contract was also correct -- the surviving process was real, and the executor's reap of it reaches a daemon shared with the outer build. (2) Drain-and-tolerate: have the node wait for the daemon and pass anyway, or exempt \"known daemon\" command lines. REJECTED as making a check pass by weakening what it asserts. A 7200-second idle daemon does not exit inside any bounded wait, so this is exemption dressed as patience. (3) Stop recopying the probe project each run (retain build/), so the nested build never compiles Kotlin and never forks the daemon. REJECTED: the warm-project arm of the A/B does show 0 live descendants, but it wins by not exercising the from-scratch path the probe exists to exercise, and it makes the node's result depend on leftover state from a previous run. (4) Pin kotlin.compiler.execution.strategy=in-process. CHOSEN. It removes the fork rather than tolerating it, keeps the nested compile inside the tree the node owns and can reap, changes no assertion, and is confined to the node's own subprocess invocation. Measured against arms (2)/(3) in the three-arm table in results/diagnosis.md. The added assertion `nested probe build left no live descendants` is additive representation in the NODE, not in the model, and it is deliberately narrower than the executor's check (bounded drain, node-body subtree only). It exists so a regression names the offending command lines instead of bare PIDs. The executor's check remains the authority; the node cannot make a violating run green.\n",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "RP-07",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the behavior-test output",
+        "status": "",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the before/after descriptor comparison",
+        "status": "",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the post-change TLC output",
+        "status": "",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "unverified",
+        "evidence": "TODO -- path to the pre-change TLC output",
+        "status": "",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=(absent) (UNVERIFIED)",
+      "tlc_after=(absent) (UNVERIFIED)",
+      "behavior_tests=(absent) (UNVERIFIED)",
+      "descriptor_comparison=(absent) (UNVERIFIED)"
+    ],
+    "verdict": "recorded",
+    "workflow": "architectural-coherence-epic"
+  },
+  "created_at_utc": "2026-07-30T21:23:28.922213+00:00",
+  "entry_name": "ticket-012-RP-07",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/rp07-specworkflow-probe",
+    "commit": "b2d3a35",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/RP-07/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/RP-07/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/RP-07/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/RP-07/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/RP-07/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/RP-07/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/RP-07/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/RP-07/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/RP-07/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/RP-07/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/RP-07/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/RP-07"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "RP-07 carries zero TLA+ model delta (results/zero-model-delta.txt; the ledger header records direction=zero vs RP-05) and its whole diff is two files under test_graph/. No variable, action or domain was added or removed, so no reduction search over the representation applies. The refinement search that does apply is over the FIX, and four alternatives were considered against the reproduction in results/diagnosis.md: (1) Relax or delete the executor's descendant contract. REJECTED, and it is also not reachable: test_graph/build-logic and test_graph/sdk are symlinks into $SKILL_MANAGER_HOME, so editing them would edit the installed skill for every repository. The contract was also correct -- the surviving process was real, and the executor's reap of it reaches a daemon shared with the outer build. (2) Drain-and-tolerate: have the node wait for the daemon and pass anyway, or exempt \"known daemon\" command lines. REJECTED as making a check pass by weakening what it asserts. A 7200-second idle daemon does not exit inside any bounded wait, so this is exemption dressed as patience. (3) Stop recopying the probe project each run (retain build/), so the nested build never compiles Kotlin and never forks the daemon. REJECTED: the warm-project arm of the A/B does show 0 live descendants, but it wins by not exercising the from-scratch path the probe exists to exercise, and it makes the node's result depend on leftover state from a previous run. (4) Pin kotlin.compiler.execution.strategy=in-process. CHOSEN. It removes the fork rather than tolerating it, keeps the nested compile inside the tree the node owns and can reap, changes no assertion, and is confined to the node's own subprocess invocation. Measured against arms (2)/(3) in the three-arm table in results/diagnosis.md. The added assertion `nested probe build left no live descendants` is additive representation in the NODE, not in the model, and it is deliberately narrower than the executor's check (bounded drain, node-body subtree only). It exists so a regression names the offending command lines instead of bare PIDs. The executor's check remains the authority; the node cannot make a violating run green.\n",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 67,
+    "close_out_entry": "Close-out ticket RP-07",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 14,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-rp07-specworkflow-probe/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-012-RP-07/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-012-RP-07/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-012-RP-07/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-012-RP-07/ticket",
+      "source": "specs/tickets/RP-07"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "specWorkflow is green, or the probe is documented as measuring something it cannot measure here and is changed to say so.",
+        "Whichever it is, the diagnosis is recorded with the reproduction."
+      ],
+      "commands": [
+        "python3 scripts/tla_spec_dev.py --spec-root specs run test-graph specWorkflow"
+      ],
+      "evidence": [
+        "specs/tickets/RP-07/results/diagnosis.md",
+        "specs/tickets/RP-07/results/test-graphs.txt",
+        "specs/tickets/RP-07/results/descendant-ancestry.txt",
+        "specs/tickets/RP-07/results/descendant-contract-harness.py",
+        "specs/tickets/RP-07/results/repository-unit-tests.txt",
+        "specs/tickets/RP-07/results/spec-unit-tests.txt",
+        "specs/tickets/RP-07/results/zero-model-delta.txt"
+      ]
+    },
+    "blocks": [
+      "EV-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [
+        "test_graph/"
+      ],
+      "tla": [],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [
+        "specWorkflow"
+      ],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": []
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": null,
+    "id": "RP-07",
+    "implementation_scope": [
+      "test_graph/"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op with evidence.",
+    "objective": "EV-02 found `specWorkflow` red at `spec.workflow.failure_cleanup_probe` (\"node launcher exited with live descendants\") and reproduced it identically on the unmodified epic tip, so it is pre-existing and belongs to no shipped ticket. It was escalated rather than filed to stay inside the deferral budget. Diagnose it: a real cleanup defect, a flaky probe, or an environment assumption. A finding that the probe is wrong is as good an outcome as a fix -- but the graph must stop being red-with-a- shrug, because a permanently red graph trains everyone to ignore it.\n",
+    "outcome": "REAL DEFECT, IN THE PROBE, FIXED -- not flakiness, not a wrong assertion, not an unsatisfiable environment. The probe recopies its nested Test Graph project on every run, so the nested Gradle build always compiles `build-logic` from scratch, and the Kotlin Gradle plugin's default `daemon` strategy forks `KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200` -- a shared, user-scoped service designed to outlive its build -- as a descendant of the node launcher. The executor's process-ownership contract flagged that correctly, and its reap reached a daemon shared with the outer build. `ps` ancestry for the reported PID is recorded in results/descendant-ancestry.txt. The node was green under MF-027 (2026-07-19) only because `awaitWithTimeout` had no descendant inventory then; commit 0e3f00c (2026-07-23) symlinked test_graph/build-logic and test_graph/sdk into $SKILL_MANAGER_HOME and brought the contract in. The leak was newly DETECTED, not newly introduced. Fix: pin `kotlin.compiler.execution.strategy=in-process` on both the `-P` (propagates into the `build-logic` included build) and `-D` channels, so the nested compile stays in the tree the node owns. All seven pre-existing probe assertions are unchanged and still pass; one assertion was ADDED (`nested probe build left no live descendants`), and it is deliberately narrower than the executor's check, which remains the authority. Nothing under $SKILL_MANAGER_HOME was edited. specWorkflow green on three consecutive runs.\n",
+    "promotion_order": 130,
+    "promotion_predecessor": "RP-03",
+    "schedule_revision": 3,
+    "status": "done",
+    "title": "specWorkflow graph is red at failure_cleanup_probe (pre-existing, escalated by EV-02)",
+    "wave": 7
+  },
+  "ticket_id": "RP-07",
+  "ticket_index": 12,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/architectural-coherence-epic/ticket-012-RP-07/ticket",
+    "source": "specs/tickets/RP-07"
+  },
+  "workflow_name": "architectural-coherence-epic"
+}
