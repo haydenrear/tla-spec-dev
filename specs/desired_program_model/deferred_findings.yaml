@@ -88,8 +88,22 @@ findings:
       AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
       let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
       commented with this finding's id.
-    disposition: ticketed
+    disposition: fixed
     disposition_ticket: RP-04
+    fixed_by: "RP-04"
+    fix_note: >-
+      RP-04 took the suggested fix: CFG_SECTION_KEYWORDS in
+      scripts/analyze_complexity.py, compared case-SENSITIVELY so an invariant
+      legitimately named `Alias` or `View` is not swallowed by the terminator.
+      The CFG_KEYWORDS workaround is NOT deleted by RP-04. It lives in
+      scripts/spec_evolution.py:745-753, which is CM-01's conflict key, not
+      RP-04's -- and not RP-03's either, contrary to the RP-04 work order. It
+      is now dead code and is safe to delete: with the parser fixed, removing
+      it leaves the suite at the single known-red test; with the pre-fix
+      parser, removing it fails three model-pair validator tests. Whoever next
+      owns scripts/spec_evolution.py should delete it.
+    fix_evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt"
 
   - id: CM-01-DF-03
     found_by: "CM-01"
@@ -141,12 +155,31 @@ findings:
       be checked against. Reporting the partial product as a fact is fine;
       comparing it is not.
     blast_radius: >-
-      The repository's own model resolves every variable (bound 699,840 at
-      CM-01's close), so no ledger entry in this epic is affected. Any project
-      whose model has no TypeInvariant/TypeOK is -- including the shipped
-      worked example.
-    disposition: ticketed
+      CORRECTED BY RP-04, which fixed this finding and re-measured while doing
+      so. This entry claimed "the repository's own model resolves every
+      variable (bound 699,840 at CM-01's close), so no ledger entry in this
+      epic is affected". That is FALSE, and has been since MF-020:
+      specs/current/TlaSpecDevCli.tla resolves 8 of its 10 variables --
+      `lastCommand` and `result` have never had a resolvable domain, and
+      tests/test_analyze_complexity.py has asserted
+      set(result.unbounded) == {"lastCommand", "result"} across the whole
+      calibration chain. Every bound this repository has recorded, 2,799,360
+      included, is a product over that same 8-variable subset. The practical
+      consequence is small, and it is exactly the asymmetry this finding names:
+      this model is OVER its cap, and "over the cap" survives incompleteness
+      (the complete bound can only be larger), so the recorded within_cap
+      verdict does not move -- only the percent, which is now published as the
+      floor it always was. A project whose model has no TypeInvariant/TypeOK is
+      affected more, including the shipped worked example, where the verdict
+      flips from `true` to `unknown`. The correction is recorded here rather
+      than left standing because a checked-in claim the measurement contradicts
+      is the defect class this epic keeps finding.
+    disposition: fixed
     disposition_ticket: RP-04
+    fixed_by: "RP-04"
+    fix_evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-03-before-after.txt"
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/rp04-remeasurement.txt"
   - id: AC-DF-01
     filed_by: AC-01
     filed_on: "2026-07-27"
@@ -844,3 +877,65 @@ findings:
     disposition: ticketed
     disposition_ticket: RP-03
     disposition_note: ""
+
+  - id: RP-04-DF-01
+    found_by: "RP-04"
+    found_at_commit: "506e0e0"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["scripts/complexity_ledger.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      RP-04 made an incomplete state-space bound refuse the cap comparison, but
+      deliberately did NOT change how such a bound feeds the ledger's DELTA
+      DIRECTION, which is a real gate: `compute_delta` puts `bound` in
+      DIRECTION_METRICS, and direction drives three refusals in `evaluate`
+      (an unjustified increase, and a decrease with degraded or unverified
+      validated-refactor evidence). A bound delta between two products taken
+      over different resolved subsets is not a measurement of the model getting
+      bigger or smaller -- the same argument RP-04 used to refuse
+      percent-of-cap -- yet it can still refuse a close or license a decrease.
+      RP-04 records the fact (`comparable: false` plus a `note` on the bound
+      delta entry, printed as "NOT LIKE-FOR-LIKE" under the number) and stops
+      there, because both ways of acting on it are policy calls the owner
+      should make, not side effects of a reporting fix. Dropping a
+      non-comparable bound from the direction WEAKENS a gate and opens a
+      gaming vector (make a variable unresolvable, lose the increase);
+      hard-refusing on it turns an advisory finding into a build failure, which
+      the epic's standing doctrine forbids. Note also that EVERY ledger entry
+      written before RP-04 lacks `bound_complete`, so every delta against
+      history is `comparable: false` with the "unrecorded" note -- honest, and
+      noisy until a few entries accumulate.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'.'); from scripts import
+      complexity_ledger as cl; print(cl.compute_delta({'scope_id':'p',
+      'metrics':{'bound':1000,'bound_complete':True}},
+      {'bound':4,'bound_complete':False})['direction'])". Observed: decrease --
+      on a pair whose own recorded note says the two numbers are products over
+      different subsets of the representation.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-03-before-after.txt"
+    why_out_of_scope: >-
+      RP-04's brief is explicit that an incomplete bound is a FINDING, not a
+      build failure, and that the ticket must not become a gate. Changing the
+      direction rules in either direction changes what refuses a close, which
+      is the epic owner's call.
+    suggested_fix: >-
+      Decide, with the owner, what a non-comparable bound delta should do to
+      the direction. The narrowest defensible option is a third value --
+      direction `incomparable` for the bound term alone, recorded and printed,
+      leaving `variables` and `distinct_states` to decide the direction on
+      their own -- rather than silently counting it or silently dropping it.
+    blast_radius: >-
+      scripts/complexity_ledger.py only. No current entry is affected: this
+      repository's bound is over its cap and has been incomplete in the same
+      8-of-10 way across every recorded entry, so its deltas are like-for-like
+      in practice even though the flag now says they are not provably so.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by RP-04 as the limit it chose not to cross. Candidate for the
+      next epic alongside NE-01.

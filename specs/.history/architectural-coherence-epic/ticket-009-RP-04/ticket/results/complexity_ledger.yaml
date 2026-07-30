@@ -1,0 +1,226 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: >-
+      The model RP-04 started from is the epic tip 506e0e0, byte-identical to
+      the one AC-01 promoted TLC-green; RP-04 inherited it unchanged
+      (specs/tickets/RP-04/results/zero-model-delta.txt shows `git diff --stat
+      506e0e0 -- specs/current specs/program_model` empty).
+  tlc_after:
+    status: "green"
+    evidence: >-
+      specs/tickets/RP-04/results/tlc-current.txt -- 32,122,220 generated
+      / 1,292,951 distinct / depth 26, 0 states left on queue, no error found,
+      finished in 62s inside the 120s budget. Identical to AC-01's recorded
+      figures, which is the check that the model did not move. Also
+      specs/tickets/RP-04/results/tlc-current-mcsmall.txt on MCsmall.cfg: 363,841 /
+      20,269 / depth 16, green.
+  behavior_tests:
+    status: "pass"
+    evidence: >-
+      specs/tickets/RP-04/results/repo_unit_tests.txt -- 901 passed, 1 failed
+      (test_skill_requires_two_minute_case_generation_budget, the
+      documentation-content guard filed as CM-01-DF-01 and owned by RP-05,
+      explicitly outside this ticket). specs/tickets/RP-04/results/
+      spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0.
+  descriptor_comparison:
+    status: "recorded"
+    evidence: >-
+      specs/tickets/RP-04/results/rp04-remeasurement.txt records the
+      before/after on THIS repository's own descriptor and ledger figures, and
+      cm-01-df-03-before-after.txt records it on the shipped example. On this
+      model the bound, variables, actions, modularity and the within_cap
+      verdict are all unchanged; what changed is that the record now says the
+      bound is a product over 8 of 10 variables and publishes 279.9% as a
+      LOWER bound rather than as the percent. The model itself is
+      byte-identical, so there is no model refactor to attribute.
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
+  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  No complexity increase to justify: RP-04 is zero-model-delta by design and
+  the measured bound is unchanged at 2,799,360. The ledger's own delta
+  computation reports direction=zero. RP-04 changed what may be SAID about that
+  number, not the number.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none applicable to the MODEL: specs/tickets/RP-04/current
+    == desired byte for byte, and no representation decision in
+    TlaSpecDevCli.tla is touched by this ticket. The search was run instead
+    against RP-04's own representation decision -- how to represent bound
+    completeness -- and produced three recorded outcomes rather than a model
+    change. (1) Completeness was almost recorded as a ratio with a threshold
+    ("mostly complete"); it is a BOOLEAN over the product's own definition
+    (the product is over every declared variable or it is not), with the
+    spectrum published beside it as resolved/total plus the per-variable notes,
+    because no threshold on that ratio would be a measurement either. (2) The
+    cap comparison was almost refused in both directions; it is refused in ONE,
+    because an incomplete bound OVER the cap is sound (every unresolved
+    variable has at least one value, so the complete bound is only larger) and
+    refusing it would have thrown away a true finding about this very
+    repository. (3) `completeness` was almost stored as a field on Analysis; it
+    is a derived property over the dimension table, so it cannot fall out of
+    step with the bound and every holder of an Analysis has it one attribute
+    away from the number it qualifies.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  RP-04 fixed CM-01-DF-03 and CM-01-DF-02 and changed no TLA+. DF-03 was the
+  epic's recurring defect wearing its clearest costume: on the shipped example
+  the descriptor TEXT named all nine variables it could not size, and the
+  ledger JSON recorded "used 4, percent 0.0, within_cap true" against a
+  1,000,000 cap for a model TLC measures at 49,386 distinct states. Bound
+  COMPLETENESS is now a published fact -- BoundCompleteness on the descriptor,
+  five keys in the JSON payload the CD-03 fitness rules read, three metrics
+  keys plus a caveat in the ledger, and a line under the number in both
+  renderers. The cap comparison is made only in the direction it is sound:
+  over the cap survives incompleteness, at-or-under does not and is recorded
+  as null with the reason. An incomplete bound is an advisory finding
+  (state_space_bound_partial), never a block; the CLI still exits 0.
+  RE-MEASUREMENT, and the part worth reading twice: CM-01-DF-03's own
+  blast_radius claimed "the repository's own model resolves every variable".
+  It does not, and never has -- lastCommand and result have had no resolvable
+  domain since MF-020, and tests/test_analyze_complexity.py has asserted
+  exactly that across the nine-ticket calibration chain. So every bound this
+  repository has recorded, 2,799,360 included, is a product over an 8-variable
+  subset. The consequence is small only because this model is OVER its cap,
+  which is the one comparison that survives: bound, variables, actions,
+  modularity and within_cap are all unchanged, and 279.9% is now published as
+  percent_lower_bound with percent null. That is recorded, not smoothed, and
+  the false claim in the deferred-findings entry is corrected in place. The
+  calibration chain was extended in its established style with the
+  completeness facts, since a chain of multiplications over a subset is only
+  meaningful while the subset holds still. DF-02 was a five-line parser fix:
+  a bare TLC keyword line closes an INVARIANT block, tested against a keyword
+  set case-SENSITIVELY so an invariant named `Alias` is not swallowed; the
+  same set now closes a CONSTANTS block, replacing an ad-hoc prefix tuple.
+  The CFG_KEYWORDS workaround is left in scripts/spec_evolution.py -- it is
+  CM-01's file, not RP-04's and not RP-03's -- with both experiments recorded
+  showing it is now dead code. Two more instances of the same honest-prose /
+  misleading-artifact pattern were found inside the two files RP-04 owns and
+  fixed in the same pass: the ledger recorded a TLC distinct-state count with
+  no flag for a run that did not finish (while analyze() is careful to check
+  max_distinct_states only when report.complete), and it recorded an action
+  count with no flag when the count came from the FALLBACK primes heuristic
+  (while the descriptor says so in prose). One limit was chosen and filed
+  rather than crossed: a non-comparable bound delta still feeds the ledger's
+  DIRECTION, which is a real gate, and RP-04 records `comparable: false` with
+  a printed NOT LIKE-FOR-LIKE note instead of changing what refuses a close
+  (RP-04-DF-01). One process note, recorded because this ticket is about
+  flattering numbers: the first close of RP-04 read results/tlc-current.txt,
+  which at that moment held the MCsmall.cfg run, and computed a 98.4%
+  distinct-state DECREASE against EV-02's full-config figures -- a comparison
+  between two different configs wearing the costume of a reduction. It was
+  caught before the entry was committed, the entry was discarded rather than
+  annotated, the full-config run was put at the conventional path, and the
+  ticket was re-closed. The corrected entry reports direction=zero. This is
+  also a small finding about the convention: `close ticket` takes the first of
+  results/tlc-current.txt, tlc.txt, tlc-baseline.txt with no check that the
+  report it found was produced from the cfg the ledger measures.

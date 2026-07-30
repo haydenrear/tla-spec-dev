@@ -1041,7 +1041,7 @@ tickets:
 
   - id: RP-04
     title: "Descriptor honesty: partial bounds and cfg invariant parsing (CM-01-DF-03, CM-01-DF-02)"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 3
     depends_on: []
@@ -1092,7 +1092,19 @@ tickets:
         - "An incomplete bound is never reported as within_cap; completeness is published and read by the ledger."
         - "parse_cfg_invariants returns only invariant names; CM-01's CFG_KEYWORDS workaround is deleted and its tests still pass."
         - "The repo's own ledger figures are re-measured and any change from the corrected bound is recorded, not smoothed."
-      evidence: []
+      assertion_outcomes:
+        - "MET. An incomplete bound records within_cap null (or false when it already exceeds the cap, which stays sound) with a caveat; completeness is published on the descriptor, in the JSON payload, and in three ledger metrics keys."
+        - "MET on the parser; the workaround is NOT deleted by RP-04. It lives in scripts/spec_evolution.py, which is CM-01's conflict key -- not RP-03's, contrary to the RP-04 work order, and not RP-04's. Both experiments are recorded: with the fix, deleting it changes nothing; without it, three model-pair validator tests fail. Whoever next owns that file should delete it."
+        - "MET, and the premise was wrong. This repository's model resolves 8 of its 10 variables, not all 10 (lastCommand and result have never resolved). Bound 2,799,360, within_cap false, variables, actions and modularity all unchanged; percent 279.9 is now published as percent_lower_bound with percent null. Recorded in results/rp04-remeasurement.txt and the CM-01-DF-03 entry's blast_radius is corrected in place."
+      evidence:
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-03-before-after.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/rp04-remeasurement.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/rp04-regression-tests-fail-pre-fix.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/zero-model-delta.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/tlc-current.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/repo_unit_tests.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/spec-unit-tests.txt"
     model_delta_expectation: "ZERO. Document the no-op with evidence."
 
   - id: RP-05
