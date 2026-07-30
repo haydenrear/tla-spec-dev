@@ -7975,6 +7975,385 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-02",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T20:53:45.143903+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/specs/tickets/RP-02/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-02",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": 1292951,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": 32122220,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 26,
+            "after": 26,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RP-02",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-07-30T20:55:30.665059+00:00",
+      "metrics": {
+        "variables": 10,
+        "actions": 16,
+        "bound": 2799360,
+        "modularity": 0.0,
+        "distinct_states": 1292951,
+        "generated_states": 32122220,
+        "depth": 26,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 2,799,360 exceeds max_state_space_bound 1,000,000",
+          "component C1 has 10 variables (architecture_scan, complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 15 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/specs/tickets/RP-02/results/tlc-current.txt",
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 2799360,
+            "percent": 279.9,
+            "within_cap": false
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 1292951,
+            "percent": 258.6,
+            "within_cap": false
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-02",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 10,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 16,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 2799360,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "distinct_states": {
+            "before": 1292951,
+            "after": 1292951,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 32122220,
+            "after": 32122220,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 26,
+            "after": 26,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No complexity increase to justify: the model is unchanged. The added representation is entirely Python in the generator -- one recovery mechanism, one measurement type, and an audit renderer that now takes the corpus as an argument -- and it REPLACES an unaudited derivation that had migrated into a fixture adapter. Net movement is from a diff nobody could see, in a file nobody re-read, into a mechanism with a per-action audit and nine regression tests.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "EV-02, the last close on this model, recorded 32,122,220 generated / 1,292,951 distinct / depth 26 with 0 states left on queue (specs/.history/architectural-coherence-epic/ticket-006-EV-02/ticket/results/tlc-current.txt). RP-02 starts from that same model byte for byte.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "results/tlc-current.txt -- 32,122,220 generated / 1,292,951 distinct / depth 26, 0 left on queue, no error found. Identical to the before run, which is the expected result for a ticket whose model delta is zero.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "results/repository-unit-tests.txt -- 893 passed, 1 failed (test_skill_requires_two_minute_case_generation_budget, the documentation-content guard filed as CM-01-DF-01 and being fixed by RP-05 concurrently; explicitly not this ticket's). results/spec-unit-tests.txt -- 2 targets, 71 + 68, exit 0. The ex4 fixture's own behavior suite is green and untouched (8 passed), `examples/validation/check_twins.py` exits 0 with all 5 hashes matching, and both declared adapter arms are GREEN on the unmutated program over the regenerated 330-case corpus.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "No comparison is possible or meaningful: the model is byte-identical before and after and the ledger's own delta computation reports direction=zero. Recorded as the no-op it is rather than left blank. The comparison this ticket DID make is a corpus comparison, not a descriptor one: results/ex4-corpus-before-after.md holds the before and after sha256 of every generated artifact, and determinism is re-verified across two independent regenerations.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, found none applicable: RP-02's model delta is zero, so there is no representation to refine. The search WAS run against the one place this ticket could have reached for the model, and it was refused on the record MF-029 already wrote. The obvious way to make an existentially quantified argument recoverable is to have the model STATE it -- a `lastInternalAction` marker, exactly the mechanism `params_from_action_marker` already reads. Rejected twice over: the state pair already implies the element for every `v' = v \\cup {i}` / `v' = v \\ {i}` conjunct, so the marker would add representation to carry information the corpus already holds; and max_state_space_bound is at 279.9% of cap on this model, where MF-019 measured that a single boolean variable breaches it. Recovery therefore stays generator-side, which is also what keeps it cheaply revertible -- reverting is deleting a mechanism from one module, and nothing in the spec moves. Two representation choices inside the mechanism were made the cheaper way and are recorded here rather than left implicit. (1) The recipe keeps EVERY matching set conjunct as a cross-checking witness instead of picking one, which costs a tuple per parameter and buys a real refusal: `Deliver(i)` is witnessed by both `queue` and `delivered`, and witnesses that disagree yield UNCHECKED rather than a silent winner. (2) `consumed_observations` was added as a SEPARATE property rather than folded into `unavailable_checks`, because the two claims are different strengths -- set-membership spends \"which element moved in v\", it does not make the whole after-value of v tautological the way `written-through` does, and collapsing them would have overstated the price of the recovery.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "results/RP-02-summary.md",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 32122220 -> 32122220, distinct 1292951 -> 1292951, depth 26 -> 26. No self-loop-deletion signature.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

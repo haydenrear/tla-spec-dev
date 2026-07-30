@@ -924,7 +924,7 @@ tickets:
 
   - id: RP-02
     title: "Oracle leakage: parameter recovery on set-membership models (EV-01-DF-01, EV-02-DF-03)"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 3
     depends_on: []
@@ -980,8 +980,64 @@ tickets:
         - "param_recovery_audit.md agrees with the corpus it audits, on a run where recovery partially fails."
         - "The ex4 adapter no longer derives the argument from the after-state; the oracle-leakage comment is removed because the leak is gone, not because it was renamed."
         - "Re-run EV-01's mutant catalog: report whether any guard-relaxation mutant (M1-M3 class) is now killed. A HONEST NEGATIVE is acceptable -- record it."
-      evidence: []
+      evidence:
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/ex4-corpus-before-after.md"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/audit-contradiction-fixed.md"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/mutant-catalog-rerun.md"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/mutant-matrix-before.json"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/mutant-matrix-after.json"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/wrong-item-probe.json"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/harness/"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/tlc-current.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/spec-unit-tests.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/repository-unit-tests.txt"
+        - "specs/.history/architectural-coherence-epic/ticket-008-RP-02/ticket/results/zero-model-delta.txt"
+        - "examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit.md"
+        - "examples/validation/ex4_pipeline_coherent/evidence/param_recovery_audit_pre_rp02.md"
+        - "examples/validation/ex4_pipeline_coherent/evidence/corpus_fingerprint.txt"
+    result: >
+      A fourth recovery mechanism, `set-membership`, recovers the argument of an
+      action whose body is `v' = v \cup {i}` or `v' = v \ {i}` -- the element
+      that entered or left the set -- cross-checked across EVERY such conjunct
+      of the action, so `Accept(i)` is witnessed by both `inbox` and `accepted`
+      and a disagreement or a two-element move yields UNCHECKED rather than a
+      guess. ex4 goes from 0 of 5 parameters to 5 of 5: all 330 cases carry
+      `params={'i': 'i1'}` or `{'i': 'i2'}` where every one previously carried
+      UNCHECKED. The ex4 adapter now reads `case.input.params` and never touches
+      `case.after`; an unrecovered argument is a hard failure there rather than
+      a silent no-op. Determinism survives: two independent regenerations are
+      byte-identical, new `cases.py` sha256 944189052623960aea..., recorded in
+      the fixture's corpus_fingerprint.txt beside EV-01's.
+      The audit is now rendered FROM THE CORPUS IT AUDITS. The sentence "Every
+      parameter of every action is recoverable from its state pair" is gone and
+      nine tests assert it can never return; an unmeasured audit declares itself
+      STATIC, an empty corpus makes no claim, a class that recovered nothing is
+      UNRECOVERABLE ON THIS CORPUS whatever the syntax promised, and arguments a
+      model states through its own action marker are reported as model-declared
+      rather than credited as recovered (which is what made `reminder_worker`
+      print the universal claim over seven nullary actions).
+      THE HONEST NEGATIVE, measured on both instruments: the reconstructed
+      12-mutant catalog is identical before and after -- guard relaxation is
+      still 0 of 3 killed by the corpus and 3 of 3 by the hand-written suite.
+      Counted rather than asserted: all 330 recovered arguments are arguments
+      the guard ACCEPTS, 0 are rejected inputs, and 220 refusable
+      argument/before-state pairs exist in the state space that a state graph
+      can never emit. EV-02 named two compounding causes; RP-02 removes the
+      oracle-leakage half and the class does not move, so the whole of the
+      remaining failure is attributable to the structural half. Separately, the
+      wrong-item class that seeded_faults.toml declined to seed as unmeasurable
+      turns out to be killed on BOTH instruments -- that caveat was a prediction
+      never run, and it is amended in place without altering an answer-key row.
     model_delta_expectation: "ZERO. Document the no-op with evidence."
+    model_delta_result: >
+      ZERO, verified: `diff -r specs/tickets/RP-02/current specs/tickets/RP-02/desired`
+      is empty, `git diff --stat HEAD -- specs/current specs/program_model` is
+      empty, and TLC on ticket current is green with EV-02's exact numbers
+      (32,122,220 generated / 1,292,951 distinct / depth 26, 0 left on queue).
+      Nothing was added to the model: parameter recovery is generator-side by
+      construction, and MF-029 already recorded why a `lastInternalAction`
+      marker was rejected -- the state pair already implies the argument, and
+      max_state_space_bound cannot afford another variable.
 
   - id: RP-04
     title: "Descriptor honesty: partial bounds and cfg invariant parsing (CM-01-DF-03, CM-01-DF-02)"
