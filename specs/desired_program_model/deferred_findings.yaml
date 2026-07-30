@@ -39,8 +39,8 @@ findings:
       delete the three assertions. Do not "fix" it by weakening the assertion
       to a substring that happens to still be present.
     blast_radius: "None. No other ticket in this epic touches either file."
-    disposition: pending
-    disposition_ticket: null
+    disposition: ticketed
+    disposition_ticket: RP-05
 
   - id: CM-01-DF-02
     found_by: "CM-01"
@@ -88,8 +88,8 @@ findings:
       AC-01 and AC-04 both own scripts/analyze_complexity.py. Fixing it would
       let scripts/spec_evolution.py drop its CFG_KEYWORDS workaround, which is
       commented with this finding's id.
-    disposition: pending
-    disposition_ticket: null
+    disposition: ticketed
+    disposition_ticket: RP-04
 
   - id: CM-01-DF-03
     found_by: "CM-01"
@@ -145,8 +145,8 @@ findings:
       CM-01's close), so no ledger entry in this epic is affected. Any project
       whose model has no TypeInvariant/TypeOK is -- including the shipped
       worked example.
-    disposition: pending
-    disposition_ticket: null
+    disposition: ticketed
+    disposition_ticket: RP-04
   - id: AC-DF-01
     filed_by: AC-01
     filed_on: "2026-07-27"
@@ -175,6 +175,8 @@ findings:
       Named as already-red in the AC-01/AC-02/AC-03 work orders and explicitly
       excluded from this ticket's scope.
 
+    disposition: ticketed
+    disposition_ticket: RP-05
   - id: AC-02-DF-01
     filed_by: AC-02
     filed_on: "2026-07-27"
@@ -222,6 +224,15 @@ findings:
       advisory doctrine warns against. Raised for EV-01/EV-02 to score against,
       since "the toolchain cannot measure its own repository" is a fact those
       evals should carry.
+    disposition: carried
+    disposition_ticket: null
+    disposition_note: >
+      Carried, deliberately not ticketed. This is a statement about the
+      repository's OWN model (lastCommand/result written by every action),
+      not a defect in a shipped program. Fixing it means decomposing this
+      repository -- tickets/023 -- and doing that inside a repair wave would
+      change the very model every other measurement in this epic is baselined
+      against. Recorded in NEXT-EPIC.md for the next epic.
   - id: AC-03-DF-01
     found_by: "AC-03"
     found_at_commit: "e73b7d1"
@@ -276,8 +287,8 @@ findings:
     blast_radius: >-
       AC-02's reflexion check reads the same payload. Any consumer branching on
       a truthiness test over `owns` is affected.
-    disposition: pending
-    disposition_ticket: null
+    disposition: ticketed
+    disposition_ticket: RP-01
 
   - id: AC-03-DF-02
     found_by: "AC-03"
@@ -411,9 +422,9 @@ findings:
       Any project whose model uses set membership rather than function indexing
       -- which the constrained TLA+ profile encourages -- and every kill-rate
       number measured on such a project.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-02
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-01-DF-02
     found_by: "EV-01"
@@ -479,9 +490,9 @@ findings:
       emergent clustering is vacuous on real models -- i.e. the path every real
       user takes. It is the reflexion-map degeneracy one level up, and the most
       likely way this epic produces a green lie.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-01
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-01-DF-03
     found_by: "EV-01"
@@ -533,9 +544,9 @@ findings:
       Documentation only, but the affected sentence is about whether this
       repository's own code diverges from its own model -- the epic's headline
       dogfood result.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-05
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-02-DF-01
     found_by: "EV-02"
@@ -620,9 +631,9 @@ findings:
       emergent clustering is vacuous on real models, i.e. the path every real
       user takes. ~6% of arbitrary partitions of the eval model produce a false
       clean by accident and 100% do so on purpose, for about six lines of YAML.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-01
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-02-DF-02
     found_by: "EV-02"
@@ -672,9 +683,9 @@ findings:
       Every project following the documented case-module layout. The aspect is
       the manual-test starter's entire authoring surface, so this is the first
       command a new author runs and the first one that fails.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-03
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-02-DF-03
     found_by: "EV-02"
@@ -716,9 +727,9 @@ findings:
       Documentation, but load-bearing: it is the sizing document for the caveat
       that bounds ARM A's 4/6 result and every future number measured on this
       fixture.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-02
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-02-DF-04
     found_by: "EV-02"
@@ -775,9 +786,9 @@ findings:
       The entire aim-2 value proposition. The claim under test is "a person
       writes a few lines and gets a corpus"; it is true for the weaker form and
       unverified for the stronger one.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-03
     disposition_note: ""
-    disposition_ticket: null
 
   - id: EV-02-DF-05
     found_by: "EV-02"
@@ -830,6 +841,6 @@ findings:
       Every new adopter of the case-module path, and every future eval run's
       X-P3 score. Six of eight friction items in the first blind aspect run
       came from documentation, not from the tool.
-    disposition: open
+    disposition: ticketed
+    disposition_ticket: RP-03
     disposition_note: ""
-    disposition_ticket: null

@@ -53,7 +53,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 2
+  schedule_revision: 3
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -82,6 +82,16 @@ epic:
     widened by the owner's stated aims -- see eval_aims below -- which is why
     the revision moved; ticket IDs, dependencies, waves, promotion order, and
     conflict keys are unchanged.
+    2026-07-30 AMENDMENT (schedule_revision 3): the epic's own eval found 14
+    defects and the owner directed that they be REPAIRED INSIDE THIS EPIC
+    rather than carried to NEXT-EPIC.md. Seven repair tickets (RP-01..RP-07)
+    added in waves 6-7, and EV-03 added in wave 8 to re-run the evals against
+    the repaired tree. No dispatched identity, dependency, wave, promotion
+    order or conflict key of CM-01..EV-02 changed -- those tickets are closed
+    and their history is sealed. NEXT-EPIC.md's NE-01..NE-04 remain the
+    charter; where a repair ticket lands part of an NE item, the ticket says
+    so and NEXT-EPIC.md is amended at EV-03 to record what was done here
+    instead of deferred.
   model_delta: >
     Unlike the complexity-descriptor epic, this one is NOT zero-model-delta.
     specs/desired_program_model adds the architecture_scan variable (unknown |
@@ -809,3 +819,409 @@ tickets:
         - "examples/validation/runs/ex6-run1/scoring.md"
         - "NEXT-EPIC.md"
     model_delta_expectation: "ZERO. Document the no-op model result with evidence."
+
+  # ---------------------------------------------------------------- repairs
+  # Added 2026-07-30 (schedule_revision 3). Every ticket below repairs a
+  # finding this epic's own eval produced. Findings stay in
+  # deferred_findings.yaml with disposition: ticketed and the ticket ID.
+
+  - id: RP-01
+    title: "False `coherent`: the declared-partition bypass (EV-01-DF-02, EV-02-DF-01, AC-03-DF-01)"
+    status: next
+    github_issue: null
+    schedule_revision: 3
+    depends_on: []
+    blocks: [EV-03]
+    wave: 6
+    promotion_order: 80
+    promotion_predecessor: EV-02
+    conflict_keys:
+      production:
+        - scripts/architecture_reflexion.py
+        - scripts/analyze_architecture.py
+        - tests/test_architecture_reflexion.py
+        - tests/test_analyze_architecture.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/architecture_coherence.md
+    objective: >
+      THE severe one, owner-verified twice: six lines of YAML declaring a
+      one-component partition make the divergent fixture -- four real
+      divergences -- report `coherent`, exit 0. The refusal AC-01 built lives
+      on the EMERGENT path and the DECLARED path walks around it: the guard
+      reads `if not unported_pairs and len(names) >= 2`, `divergence_detectable`
+      is computed and no consumer reads it, and a declared partition the
+      descriptor itself prints as DOES NOT DECOMPOSE is consumed with the
+      failed criteria appearing nowhere in the text or the JSON
+      (`blind_spots: []`). Measured blast radius over all 203 partitions of the
+      ex5 fixture: 12 report `coherent` and ALL 12 fail the criteria, while 0
+      of the honest partitions produce a clean. This is the MF-027 false-clean
+      class, which this epic's own doctrine forbids outright. Fix: the basis
+      travels with the verdict -- partition origin, every criterion with its
+      measurement, and `divergence_detectable` -- in BOTH the text and the
+      JSON; a partition that cannot express a divergence cannot yield
+      `coherent` whatever its component count; and the `[]`-where-text-says-
+      NOT-MEASURABLE JSON asymmetry (AC-03-DF-01) is closed in the same pass,
+      since a consumer reading `[]` as "owns nothing" is the same defect one
+      field over.
+    desired_actions: []
+    implementation_scope:
+      - scripts/architecture_reflexion.py
+      - scripts/analyze_architecture.py
+      - tests/
+      - references/architecture_coherence.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "A one-component declared partition on ex5_pipeline_divergent CANNOT report coherent; regression test asserts the pre-fix behavior fails."
+        - "A declared partition failing the criteria is reported as failing, in text AND JSON, next to the verdict."
+        - "The 203-partition sweep is rerun: zero partitions produce a clean the criteria do not support."
+        - "No field is `[]` where the text says NOT MEASURABLE; undefined is null with a reason, in JSON too."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: RP-02
+    title: "Oracle leakage: parameter recovery on set-membership models (EV-01-DF-01, EV-02-DF-03)"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: []
+    blocks: [RP-03, EV-03]
+    wave: 6
+    promotion_order: 90
+    promotion_predecessor: RP-01
+    conflict_keys:
+      production:
+        - scripts/infer_action_params.py
+        - scripts/generate_cases_from_tlc_dump.py
+        - tests/test_infer_action_params.py
+        - tests/test_generate_cases_from_tlc_dump.py
+      tla: []
+      adapters:
+        - examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py
+      test_graph: []
+      workflow: []
+    objective: >
+      MF-029 recovers 0 of 5 parameters on a set-membership model, so every
+      generated case carries `params={'i': UNCHECKED}` (or `{}`) and the
+      adapter is forced to re-derive the action argument by diffing before
+      against after -- i.e. from the ORACLE. Two eval runs found this
+      independently, one from inside and one from outside. It is why guard
+      relaxation is unkillable in the measured catalog: the adapter only ever
+      calls the action with the argument that was going to succeed. Meanwhile
+      `param_recovery_audit.md` states "every parameter of every action is
+      recoverable from its state pair" on a run reporting 0/38 cases carrying
+      arguments -- the audit contradicts the corpus it audits, which is the
+      honest-in-prose/misleading-in-artifact class this epic keeps finding.
+      Fix the recovery for set-membership actions (the argument is the element
+      that entered or left the set), and make the audit report what the run
+      measured. If recovery genuinely cannot be done for a class, the audit
+      must say UNRECOVERABLE for it -- never "recoverable" over a corpus that
+      carries nothing.
+    desired_actions: []
+    implementation_scope:
+      - scripts/infer_action_params.py
+      - scripts/generate_cases_from_tlc_dump.py
+      - tests/
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "Set-membership actions recover their argument; ex4's corpus carries real params, not UNCHECKED."
+        - "param_recovery_audit.md agrees with the corpus it audits, on a run where recovery partially fails."
+        - "The ex4 adapter no longer derives the argument from the after-state; the oracle-leakage comment is removed because the leak is gone, not because it was renamed."
+        - "Re-run EV-01's mutant catalog: report whether any guard-relaxation mutant (M1-M3 class) is now killed. A HONEST NEGATIVE is acceptable -- record it."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: RP-04
+    title: "Descriptor honesty: partial bounds and cfg invariant parsing (CM-01-DF-03, CM-01-DF-02)"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: []
+    blocks: [EV-03]
+    wave: 6
+    promotion_order: 100
+    promotion_predecessor: RP-02
+    conflict_keys:
+      production:
+        - scripts/analyze_complexity.py
+        - scripts/complexity_ledger.py
+        - tests/test_analyze_complexity.py
+        - tests/test_complexity_ledger.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    objective: >
+      Two accuracy defects in the shipped scanner. CM-01-DF-03 (major): a
+      PARTIALLY resolved state-space bound is compared against the cap as if
+      complete, while a fully unresolved one is correctly refused -- the
+      example's External view reports `bound = 4`, `within_cap true`,
+      `0.0% of 1,000,000` for a model TLC measures at 49,386 distinct states.
+      The descriptor's TEXT is scrupulous about the exclusions and the ledger
+      JSON throws the caveat away. Publish bound completeness and make every
+      consumer read it; a percent-of-cap over an incomplete bound is not a
+      measurement. CM-01-DF-02 (minor): `parse_cfg_invariants` returns the
+      bare keyword line that TERMINATES an INVARIANT block as another
+      invariant name (`['Invariant', 'CONSTANTS']`), which forced a workaround
+      in CM-01's validator; remove the workaround in the same pass.
+    desired_actions: []
+    implementation_scope:
+      - scripts/analyze_complexity.py
+      - scripts/complexity_ledger.py
+      - tests/
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity examples/distributed_history/specs/program_model/External.tla examples/distributed_history/specs/program_model/External.cfg"
+      assertions:
+        - "An incomplete bound is never reported as within_cap; completeness is published and read by the ledger."
+        - "parse_cfg_invariants returns only invariant names; CM-01's CFG_KEYWORDS workaround is deleted and its tests still pass."
+        - "The repo's own ledger figures are re-measured and any change from the corrected bound is recorded, not smoothed."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: RP-05
+    title: "Stale assertions and contradicted records (CM-01-DF-01/AC-DF-01, EV-01-DF-03)"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: []
+    blocks: [EV-03]
+    wave: 6
+    promotion_order: 110
+    promotion_predecessor: RP-04
+    conflict_keys:
+      production:
+        - tests/test_new_ticket_workflow.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/generation_modes.md
+        - specs/program_model/architecture_components.yaml
+    objective: >
+      The red test that every ticket in this epic had to be told to ignore:
+      `test_skill_requires_two_minute_case_generation_budget` asserts the
+      literal phrase "hard two-minute budget" in references/generation_modes.md,
+      which the c72d03a docs refresh removed. Decide deliberately -- restore the
+      phrase or retarget the assertion at the wording that now carries the
+      budget -- and say which, because a test asserting doc prose is a
+      maintenance tax either way. Also EV-01-DF-03: the checked-in
+      architecture_components.yaml comment claims the dogfood "found edges
+      across both" unported pairs when the measurement is 0 divergences, and
+      the edge count has drifted 258 -> 263. A comment that contradicts the
+      measurement beside it is the same defect class as the audit in RP-02.
+    desired_actions: []
+    implementation_scope:
+      - tests/test_new_ticket_workflow.py
+      - references/generation_modes.md
+      - specs/program_model/architecture_components.yaml
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "The suite is FULLY green -- 0 failures -- for the first time in this epic."
+        - "The architecture_components.yaml comment states the measurement it actually has, with the current edge count."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: RP-03
+    title: "Case modules: reproducible in place, internal-view docs, and the authoring method (EV-02-DF-02, DF-04, DF-05)"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: [RP-02]
+    blocks: [EV-03]
+    wave: 7
+    promotion_order: 120
+    promotion_predecessor: RP-05
+    conflict_keys:
+      production:
+        - scripts/case_modules.py
+        - scripts/generate_cases_from_tlc_dump.py
+        - tests/test_case_modules.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - references/case_modules.md
+        - prompts/aspect_decomposition.md
+    objective: >
+      Everything the outside-in eval run hit while trying to use case modules
+      for real. (a) EV-02-DF-02: a case module CANNOT generate from where the
+      docs put it -- TLC runs with cwd = the .tla's directory and no module
+      search path, so a module in specs/case_modules/ cannot EXTENDS a view in
+      specs/program_model/. The agent had to copy the module beside the view,
+      generate, and delete the copy, so the checked-in module is NOT
+      reproducible in place, and the failure surfaces as a 30-line TLC
+      AbortException behind a misleading fail-closed paragraph. (b)
+      EV-02-DF-05: every published command assumes an EXTERNAL view
+      (`--view external`, `generated/testgraph/`, `testgraph_bindings.yml`);
+      an internal-only project has no worked example anywhere, and this is
+      X-P3 failing again. Also fix the smaller friction the run recorded:
+      `--out` resolving against the .tla's directory rather than cwd
+      undocumented, the `--import-root` error naming one root when two are
+      needed, and Step 1's command in the aspect prompt not running as written.
+      (c) EV-02-DF-04, the methodological half: a SLICE is writable from
+      action names alone, but a GIVEN must constrain every variable of the
+      view, so it can only be written from the inside -- the aspect came from
+      outside and the Given could not. Neither doc says so. State the limit,
+      and make Step 0's author-provenance requirement either checkable or
+      honestly labelled unenforceable (an eval agent produced a schema-valid,
+      coverage-clean decomposition with no author in the loop and had to flag
+      its own violation).
+    desired_actions: []
+    implementation_scope:
+      - scripts/case_modules.py
+      - scripts/generate_cases_from_tlc_dump.py
+      - references/case_modules.md
+      - prompts/aspect_decomposition.md
+      - tests/
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml -m pytest tests -q"
+      assertions:
+        - "A case module generates from the location the docs specify, with a regression test; the ex4 module is reproducible in place."
+        - "An internal-only worked example exists end to end, with commands that run as written."
+        - "references/case_modules.md states the slice-vs-Given authoring asymmetry explicitly."
+        - "Step 0 is either checkable or labelled unenforceable where it is stated, not only in a validation-status footnote."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: RP-07
+    title: "specWorkflow graph is red at failure_cleanup_probe (pre-existing, escalated by EV-02)"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: []
+    blocks: [EV-03]
+    wave: 7
+    promotion_order: 130
+    promotion_predecessor: RP-03
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - test_graph/
+      workflow: []
+    objective: >
+      EV-02 found `specWorkflow` red at `spec.workflow.failure_cleanup_probe`
+      ("node launcher exited with live descendants") and reproduced it
+      identically on the unmodified epic tip, so it is pre-existing and belongs
+      to no shipped ticket. It was escalated rather than filed to stay inside
+      the deferral budget. Diagnose it: a real cleanup defect, a flaky probe,
+      or an environment assumption. A finding that the probe is wrong is as
+      good an outcome as a fix -- but the graph must stop being red-with-a-
+      shrug, because a permanently red graph trains everyone to ignore it.
+    desired_actions: []
+    implementation_scope:
+      - test_graph/
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass:
+        - specWorkflow
+    acceptance:
+      commands:
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run test-graph specWorkflow"
+      assertions:
+        - "specWorkflow is green, or the probe is documented as measuring something it cannot measure here and is changed to say so."
+        - "Whichever it is, the diagnosis is recorded with the reproduction."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
+
+  - id: EV-03
+    title: "Re-run the evals against the repaired tree and re-score against the same predictions"
+    status: planned
+    github_issue: null
+    schedule_revision: 3
+    depends_on: [RP-01, RP-02, RP-03, RP-04, RP-05, RP-07]
+    blocks: []
+    wave: 8
+    promotion_order: 140
+    promotion_predecessor: RP-07
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - examples/validation/
+        - NEXT-EPIC.md
+    objective: >
+      Re-run the eval suite against the repaired tree and re-score against the
+      SAME committed predictions, so the comparison is like-for-like. The
+      repairs must be measured, not assumed: RP-01's false-`coherent` sweep
+      rerun over all 203 partitions, RP-02's mutant catalog rerun to see
+      whether guard relaxation became killable, RP-03's reproduce-in-place
+      claim exercised by generating from the documented location, and both
+      blind runs redone on FRESH scratch copies with new agents. Two protocol
+      corrections the owner recorded from round 1: the fixtures must carry
+      purpose-written neutral text rather than redaction stubs (an agent
+      noticed the `\* --` scars and said so), and DP-1 scoring compares the
+      ARCHITECTURE digest as well as the map digest, because round 1's own run
+      named editing the model as the cheapest path to a clean report. Amend
+      NEXT-EPIC.md to record what this epic repaired instead of deferred.
+    desired_actions: []
+    implementation_scope:
+      - examples/validation/
+      - NEXT-EPIC.md
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    acceptance:
+      commands:
+        - "(per-run commands recorded in each examples/validation/runs/<run>/scoring.md)"
+      assertions:
+        - "Every arm re-scored against the round-1 predictions, with a round-1 vs round-2 delta table."
+        - "A repair that did not work is reported as not working -- an honest negative is the preferred outcome."
+        - "NEXT-EPIC.md states what was repaired here and what genuinely remains for the next epic."
+      evidence: []
+    model_delta_expectation: "ZERO. Document the no-op with evidence."
