@@ -152,6 +152,188 @@ def resolve_runtime_path(path: Path, spec_dir: Path | None) -> Path:
     return resolve_existing_spec_input(path, spec_dir)
 
 
+# ---------------------------------------------------------------- spec inputs
+#
+# A RED RUN IS SUPPOSED TO MEAN "THE PROGRAM DISAGREES WITH THE MODEL".
+#
+# It can also mean "the tree you were reading was replaced while you read it".
+# A ticket close rewrites the spec tree IN PLACE while a batch imports adapters
+# from it, scenario by scenario, over minutes. Neither side notices. The
+# measured outcome was a red record with six failures, followed two minutes
+# later by a green run of the same cases at the same commit -- byte-identical
+# generated trees, opposite verdicts. Nothing in the failing artifact could
+# tell the two apart, so the record went into the repository as evidence of a
+# defect that did not exist.
+#
+# The obvious check does not work. Promotion copies with ``shutil.copy2``,
+# which PRESERVES the source mtime, so a file whose bytes arrived during the
+# run carries an mtime from before it started. A file mtime is not a promotion
+# timestamp and it reads exactly like one. Hence CONTENT hashes: they are the
+# only thing about a promoted file that a copy cannot backdate.
+
+SPEC_TREE_DIGEST_VERSION = "tla-spec-dev/spec-tree-digest/v1"
+
+# The sentinel a caller greps for. Mirrors the EFFECT_FUZZ_FAILURE convention
+# already in this file: a stable token survives log truncation and rewording in
+# a way that a prose message does not.
+INPUTS_CHANGED_SENTINEL = "SPEC_INPUTS_CHANGED_DURING_RUN"
+
+# Distinct from 1 so a node can separate "your inputs moved" from "cases
+# failed" without parsing anything.
+INPUTS_CHANGED_EXIT_CODE = 3
+
+_DIGEST_IGNORED_DIR_NAMES = {"__pycache__", ".git", ".hg", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+
+# The file types a run READS out of the spec tree: adapter and projector
+# modules, TLA models and their configs, bindings, manifests, generated case
+# packages and traces. An allowlist rather than a denylist because the spec
+# tree is not only inputs -- adapters legitimately leave scratch and effect logs
+# in it, and a guard that fired on the run's own side effects would be turned
+# off within a day. Everything MO-005 had rewritten underneath it
+# (``adapters.py``, ``testgraph_bindings.yml``, ``.tla``, ``.cfg``) is in here.
+_DIGEST_INPUT_SUFFIXES = {".py", ".tla", ".cfg", ".yml", ".yaml", ".toml", ".json"}
+
+
+def spec_tree_file_digests(root: Path, *, exclude: tuple[Path, ...] = ()) -> dict[str, str]:
+    """sha256 of every INPUT file under ``root``, keyed by posix path relative to it.
+
+    Per-file rather than one rolled-up hash because "your inputs changed" is
+    only actionable if it can name WHICH ones. The rolled-up digest is derived
+    from this mapping, so the two can never disagree.
+
+    Scoped by :data:`_DIGEST_INPUT_SUFFIXES`; caches and the run's own output
+    paths are excluded on top of that. A guard that fires on its own writes is
+    a guard nobody leaves switched on.
+    """
+    root = root.resolve()
+    excluded = tuple(path.resolve() for path in exclude)
+    digests: dict[str, str] = {}
+    for path in sorted(root.rglob("*")):
+        if not path.is_file() or path.is_symlink():
+            continue
+        if any(part in _DIGEST_IGNORED_DIR_NAMES for part in path.relative_to(root).parts):
+            continue
+        if path.suffix.lower() not in _DIGEST_INPUT_SUFFIXES:
+            continue
+        if any(path == item or item in path.parents for item in excluded):
+            continue
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            # Unreadable now is itself a change from readable a moment ago;
+            # recording it as a distinct value keeps that visible instead of
+            # silently dropping the file from both sides of the comparison.
+            digests[path.relative_to(root).as_posix()] = "unreadable"
+            continue
+        digests[path.relative_to(root).as_posix()] = hashlib.sha256(payload).hexdigest()
+    return digests
+
+
+def spec_tree_digest(root: Path, *, exclude: tuple[Path, ...] = ()) -> dict[str, Any]:
+    """A content digest of the spec tree the adapters are imported from."""
+    files = spec_tree_file_digests(root, exclude=exclude)
+    rolled = hashlib.sha256()
+    for relative in sorted(files):
+        rolled.update(relative.encode("utf-8"))
+        rolled.update(b"\0")
+        rolled.update(files[relative].encode("utf-8"))
+        rolled.update(b"\0")
+    return {
+        "version": SPEC_TREE_DIGEST_VERSION,
+        "algorithm": "sha256",
+        "root": str(root.resolve()),
+        "digest": rolled.hexdigest(),
+        "fileCount": len(files),
+        "files": files,
+    }
+
+
+def changed_spec_inputs(before: dict[str, Any], after: dict[str, Any]) -> list[str]:
+    """Paths whose CONTENT differs between two digests, added or removed included."""
+    before_files = before.get("files", {})
+    after_files = after.get("files", {})
+    changed = {
+        relative
+        for relative in set(before_files) | set(after_files)
+        if before_files.get(relative) != after_files.get(relative)
+    }
+    return sorted(changed)
+
+
+class SpecInputGuard:
+    """Bracket a batch with a digest of the tree it reads.
+
+    Deliberately checked on the FAILURE path as well as the success path, and
+    checked first. Case failures are the symptom a mid-run rewrite produces, so
+    a guard that only ran after a clean batch would never fire in exactly the
+    situation it exists for.
+    """
+
+    def __init__(
+        self,
+        spec_dir: Path | None,
+        *,
+        exclude: tuple[Path, ...] = (),
+        digest_out: Path | None = None,
+    ) -> None:
+        self.spec_dir = spec_dir
+        # Callers pass optional output paths straight through; dropping the
+        # unset ones here keeps every call site from having to.
+        self.exclude = tuple(path for path in exclude if path is not None)
+        self.digest_out = digest_out
+        self.before: dict[str, Any] | None = None
+        self.after: dict[str, Any] | None = None
+
+    def start(self) -> None:
+        if self.spec_dir is None:
+            return
+        self.before = spec_tree_digest(self.spec_dir, exclude=self.exclude)
+
+    def finish(self) -> list[str]:
+        """Re-read the tree, record the result, and return the changed paths."""
+        if self.spec_dir is None or self.before is None:
+            return []
+        self.after = spec_tree_digest(self.spec_dir, exclude=self.exclude)
+        changed = changed_spec_inputs(self.before, self.after)
+        self._write_record(changed)
+        return changed
+
+    def _write_record(self, changed: list[str]) -> None:
+        if self.digest_out is None or self.before is None or self.after is None:
+            return
+        record = {
+            "version": SPEC_TREE_DIGEST_VERSION,
+            "specDir": self.before["root"],
+            "algorithm": self.before["algorithm"],
+            "before": self.before["digest"],
+            "after": self.after["digest"],
+            "fileCount": self.before["fileCount"],
+            "stable": not changed,
+            "changed": changed,
+        }
+        self.digest_out.parent.mkdir(parents=True, exist_ok=True)
+        self.digest_out.write_text(
+            json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+    def report(self, changed: list[str]) -> str:
+        assert self.before is not None and self.after is not None
+        listed = "\n".join(f"  - {relative}" for relative in changed)
+        return (
+            f"{INPUTS_CHANGED_SENTINEL}: the spec tree changed while the cases that read it "
+            f"were running, so this run's verdict is about a tree that no longer exists.\n"
+            f"  spec dir: {self.before['root']}\n"
+            f"  digest before: {self.before['digest']}\n"
+            f"  digest after:  {self.after['digest']}\n"
+            f"changed inputs ({len(changed)}):\n{listed}\n"
+            "Case results from this run are not evidence about the program. Re-run against a "
+            "quiescent spec tree -- a ticket close rewrites it in place, so do not overlap the two.\n"
+            "Note that file mtimes will NOT show this: promotion copies with shutil.copy2, which "
+            "preserves the source mtime."
+        )
+
+
 def load_mappings(path: Path) -> dict[str, AdapterMapping]:
     loaded = load_mapping_data(path)
     mappings: dict[str, AdapterMapping] = {}
@@ -2130,6 +2312,15 @@ def main() -> int:
         help="Write the MF-013 effect conformance diff report (JSON) to this path.",
     )
     parser.add_argument(
+        "--input-digest-out",
+        type=Path,
+        help=(
+            "Write the spec-tree content digest taken before and after this run (JSON) to "
+            "this path, so a Test Graph node can carry it in its envelope. The guard itself "
+            "always runs; this only records what it saw."
+        ),
+    )
+    parser.add_argument(
         "--fuzz-runs",
         type=int,
         default=1,
@@ -2206,7 +2397,57 @@ def main() -> int:
 
     work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
     work_dir.mkdir(parents=True, exist_ok=True)
+
+    # ESC-MO005-03: bracket everything that reads the spec tree. Started after
+    # work_dir exists so the guard can exclude it, and before the first import
+    # of an adapter out of the tree.
+    guard = SpecInputGuard(
+        spec_dir,
+        exclude=(work_dir, args.effect_report, args.input_digest_out),
+        digest_out=args.input_digest_out,
+    )
+    guard.start()
+    try:
+        _run_selected_cases(
+            args=args,
+            spec_dir=spec_dir,
+            cases=cases,
+            runnable_cases=runnable_cases,
+            mappings=mappings,
+            effect_provider_plan=effect_provider_plan,
+            default_import_roots=default_import_roots,
+            work_dir=work_dir,
+        )
+    except BaseException:
+        # The digest is checked BEFORE the original failure is re-raised,
+        # because case failures are exactly what a mid-run rewrite looks like.
+        # Reporting them as a program/model disagreement is the defect.
+        changed = guard.finish()
+        if changed:
+            print(guard.report(changed), file=sys.stderr)
+            return INPUTS_CHANGED_EXIT_CODE
+        raise
+
+    changed = guard.finish()
+    if changed:
+        print(guard.report(changed), file=sys.stderr)
+        return INPUTS_CHANGED_EXIT_CODE
+    return 0
+
+
+def _run_selected_cases(
+    *,
+    args: argparse.Namespace,
+    spec_dir: Path | None,
+    cases: list[Any],
+    runnable_cases: list[Any],
+    mappings: dict[str, AdapterMapping],
+    effect_provider_plan: EffectProviderPlan,
+    default_import_roots: list[Path],
+    work_dir: Path,
+) -> None:
     print(f"validated {len(mappings)} adapter mappings for {len(case_labels(cases))} labels")
+    programs: list[Any] = []
     if args.batch:
         if not args.validate_only:
             try:
@@ -2247,7 +2488,6 @@ def main() -> int:
     if not args.validate_only and not args.batch:
         execute_programs(programs, args.python or [sys.executable])
         print(f"executed {len(programs)} case programs")
-    return 0
 
 
 if __name__ == "__main__":
