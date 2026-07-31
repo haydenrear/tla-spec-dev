@@ -63,6 +63,49 @@ Record the starting SHA (`commit_oid`). Never create ticket branches from the
 primary checkout or from the default branch once the epic exists. Never
 force-push `epic/<slug>`.
 
+### Skill Manager homes: what an epic is actually fanning out
+
+An epic is the first place the three-tier home model becomes a *scheduling*
+concern, so decide it here rather than discovering it at finalization.
+
+```
+root       ~/.skill-manager              where the operator installs
+   |  copy
+project    <repo>/.skill-manager         ONE per repository — the shared destination
+   |  copy                               for every worktree below
+worktree   <worktree>/.skill-manager     one per ticket, and one for the epic worktree
+```
+
+Each tier is a **real copy, not a symlink**, and that is the load-bearing part for
+you: an epic runs several ticket agents at once, and a symlink farm would make
+their homes one shared object, so two agents editing "their" copy of a skill would
+be editing each other's, last writer winning silently. Copies buy you the
+parallelism the whole scheduling model assumes.
+
+Give the epic worktree its own home before running anything that installs, syncs,
+binds, or resolves — those all write into whatever `SKILL_MANAGER_HOME` names, and
+before the local home exists that is the operator's global home:
+
+```bash
+<git-integration-repo-skill>/scripts/bootstrap-home.sh --root ../wt-epic-<slug>
+```
+
+Then note two things about the schedule you are about to write:
+
+- **`conflict_keys` do not cover units in a home.** They partition *tracked files*
+  — production, TLA, adapters, test_graph, workflow. A skill unit lives in a home,
+  which is gitignored, so two tickets in the same wave can have perfectly disjoint
+  conflict keys and still both improve `test-graph` in their own homes. Neither
+  edit is in either PR. Both will later try to reconcile into the one project home,
+  and the second one is **held back and reported** rather than overwritten — a
+  conflict a human resolves, not a silent loss. That is the designed outcome, but
+  it is work you scheduled without meaning to. If you expect a wave to touch the
+  same unit, say so in the assignment and have one ticket own it.
+- **Publishing beats chaining.** `home sync` only moves an edit up one tier. An
+  improvement that should reach other repositories has to go to the unit's own
+  git repo via `skill-manager unit publish`; a chain-only route would need the same
+  merge performed twice and would still never reach a sibling project.
+
 ## 3. Discover the whole change
 
 Use the `git-issue` discovery sequence once for the epic and then refine it per

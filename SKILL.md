@@ -77,6 +77,15 @@ This skill has three roles:
    with the user when the epic branch is created. Ticket agents report failure
    cases outside their declared slice to an append-only backlog instead of
    expanding scope to fix them. Read `references/deferment.md`.
+10. **A ticket's Skill Manager home is not carried by its PR.** Every worktree an
+    epic creates — the epic worktree and each ticket worktree — has its own
+    `<worktree>/.skill-manager`, a real copy of the project home. It is
+    gitignored, so nothing a ticket agent changed inside it appears in the ticket
+    PR, in the epic branch, or in the epic PR. It reaches the tier above only
+    through `skill-manager home sync`, and the unit's own repository only through
+    `skill-manager unit publish`. An epic cannot finalize until every ticket
+    worktree has been through `skill-manager home close-out` — see
+    `references/plan-and-schedule.md` §2 and `references/finalize.md` §1b.
 
 ## Preconditions
 

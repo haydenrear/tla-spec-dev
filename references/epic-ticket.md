@@ -69,6 +69,13 @@ overrides ordinary instructions to branch from or target the default branch.
   **deferred, not fixed**: record them in the backlog under the epic's
   deferment policy and keep working the assigned slice. Escalate blocking
   out-of-scope findings instead of widening scope.
+- Your worktree has its own Skill Manager home
+  (`<worktree>/.skill-manager`, gitignored, a real copy of the project home), and
+  **nothing you change inside it is in this PR**. Before stopping, run
+  `skill-manager home close-out --home <worktree>/.skill-manager --into <repo-root>/.skill-manager`
+  and state the verdict in the PR body. Clear any blocker with the remedy it
+  prints — `unit publish` for a skill improvement, `home sync --merge` to survive
+  the teardown. Leave the worktree standing; the finalizer removes it.
 - Push the sealed ticket branch and open its PR with base `epic/<slug>` and
   `Refs #<issue-number>`. Stop for external review; do not merge to the default
   branch or close the GitHub issue.
@@ -240,7 +247,11 @@ The PR body contains:
 - exact commands run and report/evidence paths;
 - the close-history path and resulting commit SHA;
 - a `## Deferred findings` section listing each backlog ID filed by this ticket
-  with its severity and one-line summary, or `None`.
+  with its severity and one-line summary, or `None`;
+- the `home close-out` verdict for this ticket's worktree, and — if it blocked —
+  which units were published with `unit publish` or lifted with
+  `home sync --merge`. The finalizer removes this worktree and cannot see inside
+  its home; this line is the only place that fact is recorded.
 
 Stop for external review. Do not self-merge, target the default branch, run
 whole-workflow promotion, sync the primary checkout to the default branch, or
