@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -25,6 +26,26 @@ SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
 PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml"}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+
+# Model directories that are also importable Python packages, so their names
+# can appear inside a dotted module reference such as
+# ``specs.current.adapters:StreamLiteFsAdapter``.  ``program_model`` is in the
+# set so the pattern describes the whole token rather than only the stale
+# halves of it; re-rooting it onto itself is a no-op.
+MODEL_PACKAGES = ("current", "desired_program_model", "program_model")
+
+# Text files under a promoted baseline that can carry one.  The bindings and
+# the spec-unit adapter table are the ones that MATTER -- their values are
+# imported at run time -- but a stale reference in a manifest or a README sends
+# a reader to the same deleted package, so the sweep is not narrowed to two
+# filenames.
+MODULE_REF_SUFFIXES = {".yml", ".yaml", ".toml", ".py", ".md", ".txt", ".cfg", ".json"}
+
+# The lookbehind keeps ``myspecs.current.`` and ``a.specs.current.`` out: only a
+# reference that starts at ``specs`` is one of ours to re-root.
+_MODEL_PACKAGE_RE = re.compile(
+    r"(?<![\w.])specs\.(" + "|".join(MODEL_PACKAGES) + r")\."
+)
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -134,6 +155,82 @@ def promote_semantic_files(src: Path, dst: Path) -> list[str]:
     return promoted
 
 
+def reroot_module_references(root: Path, package: str = "program_model") -> list[str]:
+    """Re-root dotted module references under ``root`` onto ``specs.<package>``.
+
+    THE CLOSE DELETES THE PACKAGE THE BINDINGS NAME.  A workflow is authored
+    against ``specs/current``, so ``testgraph_bindings.yml`` and
+    ``case_adapters.toml`` name ``specs.current.adapters:...`` -- correct while
+    the workflow is open.  Promotion copied those files into
+    ``specs/program_model`` verbatim and the close then removed
+    ``specs/current``, leaving every promoted binding pointing at a package
+    that no longer exists.  Nothing failed at close time: the next Test Graph
+    run over the promoted baseline is where it surfaces, as an import error
+    with no obvious connection to a workflow that closed cleanly weeks earlier.
+
+    Re-rooting is done here rather than inside :func:`promote_semantic_files`
+    on purpose.  ``--accept-new`` is only one of the two ways a baseline gets
+    promoted; the other is the by-hand promotion that
+    :func:`workflow_promotion_guidance` describes as Option A, which this
+    module never sees.  Running the sweep over the promoted tree at close time
+    covers both, and covers a baseline promoted by an older version of this
+    script.
+
+    Returns one line per rewritten file.  Nothing is changed silently: the
+    caller prints these, and a workflow that needed no rewriting says nothing.
+    """
+    if not root.exists():
+        return []
+    replacement = f"specs.{package}."
+    notes: list[str] = []
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        if path.suffix.lower() not in MODULE_REF_SUFFIXES:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        stale = {
+            match.group(0)
+            for match in _MODEL_PACKAGE_RE.finditer(text)
+            if match.group(1) != package
+        }
+        if not stale:
+            continue
+        rewritten, count = _MODEL_PACKAGE_RE.subn(replacement, text)
+        path.write_text(rewritten, encoding="utf-8")
+        notes.append(
+            f"re-rooted {', '.join(sorted(stale))} -> {replacement} "
+            f"in {path.relative_to(root).as_posix()} ({count} references)"
+        )
+    return notes
+
+
+def stale_module_references(root: Path, package: str = "program_model") -> list[str]:
+    """The rewrites :func:`reroot_module_references` would make, without making them."""
+    if not root.exists():
+        return []
+    notes: list[str] = []
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        if path.suffix.lower() not in MODULE_REF_SUFFIXES:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        stale = {
+            match.group(0)
+            for match in _MODEL_PACKAGE_RE.finditer(text)
+            if match.group(1) != package
+        }
+        if stale:
+            notes.append(
+                f"would re-root {', '.join(sorted(stale))} -> specs.{package}. "
+                f"in {path.relative_to(root).as_posix()}"
+            )
+    return notes
+
+
 def validate_ticket_plan_closed(ticket_plan: Path) -> list[str]:
     if not ticket_plan.exists():
         return [f"missing ticket plan: {ticket_plan}"]
@@ -199,6 +296,15 @@ def close_ticket_workflow(
                 + "\n\n"
                 + workflow_promotion_guidance()
             )
+
+    # Before the snapshot, so the history entry records the baseline that will
+    # still resolve after current/ and desired/ are removed just below.
+    if dry_run:
+        for note in stale_module_references(program_dir):
+            print(f"program_model: {note}")
+    else:
+        for note in reroot_module_references(program_dir):
+            print(f"program_model: {note}")
 
     if not dry_run:
         result = create_workflow_closed_snapshot(

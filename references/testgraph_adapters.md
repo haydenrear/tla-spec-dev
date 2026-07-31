@@ -115,6 +115,52 @@ In `examples/distributed_history/specs/program_model/adapters.py`:
 - `_HttpAdapter.teardown` resets state after the case.
 - `_HttpAdapter.teardown_all` resets state after the batch.
 
+## Spec Input Digest
+
+A red run is supposed to mean "the program disagrees with the model". It can
+also mean "the tree you were reading was replaced while you read it": a ticket
+close rewrites the spec tree in place, `--batch` imports adapters out of that
+tree scenario by scenario over minutes, and neither side notices. The measured
+outcome was a red record with six failures followed two minutes later by a
+green run of the same cases at the same commit — byte-identical generated
+trees, opposite verdicts.
+
+`scripts/run_generated_case_adapters.py` now brackets the run with a **content**
+digest of the spec directory. Content, not mtime: promotion copies with
+`shutil.copy2`, which preserves the source mtime, so a file whose bytes arrived
+during the run carries a timestamp from before it started. A file mtime is not
+a promotion timestamp and it reads exactly like one.
+
+- The guard always runs. There is no flag to enable it.
+- On a mismatch the run exits **3** — distinct from 1, so a caller can separate
+  "your inputs moved" from "cases failed" without parsing anything — and prints
+  `SPEC_INPUTS_CHANGED_DURING_RUN` with the changed paths.
+- The check happens on the FAILURE path first. Case failures are what a mid-run
+  rewrite looks like, so a guard that only ran after a clean batch would never
+  fire in the situation it exists for.
+- `--input-digest-out <path>` writes the before/after digests as JSON so a Test
+  Graph node can carry them in its envelope:
+
+```json
+{"specDir": "...", "before": "…", "after": "…", "stable": false, "changed": ["adapters.py"]}
+```
+
+`examples/distributed_history/test_graph/sources/run_external_cases.py` shows
+the node side: it passes `--input-digest-out`, publishes both digests, asserts
+`spec inputs unchanged during the run`, and reports the named reason *before*
+it looks at case counts. A missing digest record is treated as an unanswered
+question rather than as "stable".
+
+It watches the files a run READS out of the tree — `.py`, `.tla`, `.cfg`,
+`.yml`, `.yaml`, `.toml`, `.json` — and skips caches and the run's own
+`--work-dir`, `--effect-report` and `--input-digest-out` paths. An allowlist
+rather than a denylist, because adapters legitimately leave effect logs and
+scratch beside the spec they were loaded from, and a guard that fires on its
+own side effects is a guard nobody leaves switched on.
+
+This makes the condition **detectable**. It does not make it impossible: do not
+overlap `close ticket` with a graph run over the same spec root.
+
 ## External Channel Enforcement
 
 Added by MF-015. External-ness used to be asserted structurally and never

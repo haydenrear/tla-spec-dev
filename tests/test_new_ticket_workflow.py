@@ -7,7 +7,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.new_ticket_workflow import scaffold, scaffold_ticket_directory
-from scripts.close_tickets import close_ticket_workflow, validate_equivalent
+from scripts.close_tickets import (
+    close_ticket_workflow,
+    reroot_module_references,
+    validate_equivalent,
+)
 from scripts.spec_evolution import create_ticket_history_entry
 from conftest import write_ticket_ledger_input, write_workflow_ledger_input
 
@@ -623,3 +627,144 @@ def test_scaffold_workflow_carries_accepted_manifest_semantics(tmp_path, monkeyp
     assert "max_distinct_states: 50000\n" not in carried
     # no accepted manifest -> template unchanged
     assert carry_manifest_semantic_tail(template, tmp_path / "missing.yaml") == template
+
+
+BINDINGS_AGAINST_CURRENT = """\
+external:
+  production_package: streamlite
+  port_bindings:
+    StreamPort: real
+
+actions:
+  SubmitCreateLog:
+    view: external
+    channel: fs
+    layer: external
+    adapter: specs.current.adapters:StreamLiteFsAdapter
+    projector: specs.current.adapters:StreamsRootProjector
+    expected_projection: specs.current.adapters:ExpectedStreamsProjection
+    assertion: specs.current.adapters:ProjectedStateAssertion
+"""
+
+
+def _workflow_tree_bound_to_current(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """program/current/desired, converged, with bindings naming specs.current."""
+    program = tmp_path / "specs" / "program_model"
+    current = tmp_path / "specs" / "current"
+    desired = tmp_path / "specs" / "desired_program_model"
+    for directory in (program, current, desired):
+        directory.mkdir(parents=True)
+        (directory / "ProgramModel.tla").write_text(
+            "---- MODULE ProgramModel ----\n====\n", encoding="utf-8"
+        )
+        (directory / "MC.cfg").write_text("SPECIFICATION Spec\n", encoding="utf-8")
+        (directory / "testgraph_bindings.yml").write_text(
+            BINDINGS_AGAINST_CURRENT, encoding="utf-8"
+        )
+        # .toml is not a semantic suffix, so this one is never promoted or
+        # compared -- it is here because a real promoted baseline carries it,
+        # and the sweep has to reach it wherever it came from.
+        (directory / "case_adapters.toml").write_text(
+            '[adapters.CreateLog]\nadapter = "specs.current.adapters:StreamLiteInternalAdapter"\n',
+            encoding="utf-8",
+        )
+    (desired / "ticket_plan.yaml").write_text(
+        """tickets:
+  - id: SL-001
+    status: done
+""",
+        encoding="utf-8",
+    )
+    return program, current, desired
+
+
+def test_close_ticket_workflow_reroots_promoted_module_references(tmp_path: Path) -> None:
+    """The close deletes specs/current; the promoted baseline must stop naming it.
+
+    Without the re-root the workflow closes cleanly and the failure surfaces
+    later, as an import error from a Test Graph run over a baseline that points
+    at a package the close removed.
+    """
+    program, current, desired = _workflow_tree_bound_to_current(tmp_path)
+    write_workflow_ledger_input(tmp_path / "specs")
+
+    close_ticket_workflow(tmp_path, Path("specs"), dry_run=False)
+
+    # The package the bindings named is genuinely gone -- that is what makes a
+    # surviving `specs.current.` reference dangle rather than merely be untidy.
+    assert not current.exists()
+    assert not desired.exists()
+
+    bindings = (program / "testgraph_bindings.yml").read_text(encoding="utf-8")
+    assert "specs.current." not in bindings
+    assert "specs.program_model.adapters:StreamLiteFsAdapter" in bindings
+    assert "specs.program_model.adapters:StreamsRootProjector" in bindings
+    assert "specs.program_model.adapters:ExpectedStreamsProjection" in bindings
+    assert "specs.program_model.adapters:ProjectedStateAssertion" in bindings
+
+    adapters_toml = (program / "case_adapters.toml").read_text(encoding="utf-8")
+    assert "specs.program_model.adapters:StreamLiteInternalAdapter" in adapters_toml
+
+    survivors = [
+        path.relative_to(program).as_posix()
+        for path in program.rglob("*")
+        if path.is_file() and "specs.current." in path.read_text(encoding="utf-8", errors="ignore")
+    ]
+    assert survivors == []
+
+
+def test_close_ticket_workflow_accept_new_reroots_promoted_module_references(
+    tmp_path: Path,
+) -> None:
+    """--accept-new promotes desired verbatim, so it needs the same sweep."""
+    program, _, desired = _workflow_tree_bound_to_current(tmp_path)
+    (program / "testgraph_bindings.yml").write_text("actions: {}\n", encoding="utf-8")
+    write_workflow_ledger_input(tmp_path / "specs")
+
+    close_ticket_workflow(tmp_path, Path("specs"), dry_run=False, accept_new=True)
+
+    bindings = (program / "testgraph_bindings.yml").read_text(encoding="utf-8")
+    assert "specs.current." not in bindings
+    assert "specs.program_model.adapters:StreamLiteFsAdapter" in bindings
+
+
+def test_close_ticket_workflow_dry_run_reports_but_does_not_reroot(
+    tmp_path: Path, capsys
+) -> None:
+    """A dry run is a dry run: it names the rewrite and writes nothing."""
+    program, _, _ = _workflow_tree_bound_to_current(tmp_path)
+
+    close_ticket_workflow(tmp_path, Path("specs"), dry_run=True)
+
+    output = capsys.readouterr().out
+    assert "would re-root specs.current. -> specs.program_model." in output
+    assert "testgraph_bindings.yml" in output
+    assert "specs.current." in (program / "testgraph_bindings.yml").read_text(encoding="utf-8")
+
+
+def test_reroot_leaves_lookalike_tokens_and_already_rooted_refs_alone(
+    tmp_path: Path,
+) -> None:
+    """The negative control.
+
+    A sweep that rewrote every occurrence of "current" would pass the test
+    above while corrupting prose and unrelated identifiers, so the cases it
+    must NOT touch are asserted too -- including a file that is already
+    correctly rooted, which must not be reported as rewritten.
+    """
+    root = tmp_path / "program_model"
+    root.mkdir(parents=True)
+    untouched = (
+        "myspecs.current.adapters:Nope\n"
+        "vendor.specs.current.adapters:AlsoNope\n"
+        "specs.currently.adapters:StillNope\n"
+        "the current adapters live in specs/current/adapters.py\n"
+        "specs.program_model.adapters:AlreadyRooted\n"
+    )
+    (root / "notes.md").write_text(untouched, encoding="utf-8")
+    (root / "binary.bin").write_bytes(b"\x00\xff specs.current.adapters:Binary")
+
+    notes = reroot_module_references(root)
+
+    assert notes == []
+    assert (root / "notes.md").read_text(encoding="utf-8") == untouched
