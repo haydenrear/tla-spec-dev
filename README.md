@@ -153,8 +153,11 @@ The parent repository also has a Test Graph that exercises this workflow in a
 disposable git repository under the graph build directory:
 
 ```bash
-/Users/hayde/.skill-manager/skills/test-graph/scripts/discover.py specWorkflow
-/Users/hayde/.skill-manager/skills/test-graph/scripts/run.py specWorkflow
+# NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
+# bound to (a project or worktree `.skill-manager`), and only that copy matches
+# the units this checkout was resolved against. See references/runtime_requirements.md.
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
+"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
 ```
 
 At the end of a desired/current workflow:

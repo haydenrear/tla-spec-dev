@@ -55,6 +55,107 @@ def parse_views(value: str | None) -> set[str]:
     return set(DEFAULT_VIEWS | views)
 
 
+# Emitted verbatim into every scaffolded module that imports
+# ``spec_double_compiler`` (adapters.py, providers.py).
+#
+# WHY IT EXISTS. `tla-spec-dev` puts the installed skill on PYTHONPATH before it
+# runs anything, so under the CLI the plain import already works. A Test Graph
+# node, a bare `pytest`, or an IDE imports these modules WITHOUT that env, and
+# the scaffold used to emit a bare `from spec_double_compiler.runtime import ...`
+# that then died on ModuleNotFoundError. Every repository onboarded so far
+# hand-patched that the same way, and every one of them wrote
+# ``Path.home() / ".skill-manager"`` as the fallback.
+#
+# WHY `Path.home()` IS LAST. A checkout can have its own Skill Manager home:
+# `<repo>/.skill-manager` for a project, `<worktree>/.skill-manager` for a ticket
+# worktree. Those are real copies, not links, precisely so two worktrees do not
+# edit each other's units. A fallback that reaches `~/.skill-manager` first
+# silently reads a DIFFERENT build of this skill than the one the checkout was
+# resolved against — and, from a worktree, one that another agent is editing
+# right now. So: the explicit override, then the bound home, then the nearest
+# enclosing checkout home, and only then the operator's global home.
+#
+# An explicit-but-wrong `SPEC_DOUBLE_COMPILER_HOME` REFUSES rather than falling
+# through. Falling through would answer "which skill did I load?" with the global
+# home while the operator believes they redirected it — the fail-open shape this
+# resolution order exists to remove.
+#
+# WHY THE RESOLUTION IS NOT INSIDE `except ModuleNotFoundError`. It was, and that
+# made every guarantee above conditional on the module NOT already being
+# importable — including under `tla-spec-dev`, the one caller the comment names.
+# Measured with both homes planted: `PYTHONPATH=<operator home>` plus
+# `SKILL_MANAGER_HOME=<project home>` plus an explicit-but-WRONG
+# `SPEC_DOUBLE_COMPILER_HOME` resolved the operator's global home, exit 0, empty
+# stderr. Both documented properties were void, and the tests could not see it
+# because they stripped PYTHONPATH unconditionally — a one-sided assertion of
+# exactly the shape that let epic #1's always-127 CLI shim pass for weeks.
+#
+# So the resolver runs unconditionally and an inherited `PYTHONPATH` answers only
+# when none of the four candidates does. The consequence worth knowing: when
+# `SKILL_MANAGER_HOME` and the CLI on PATH name DIFFERENT builds of this skill,
+# the bound home wins. That is the intended direction — the home a checkout is
+# bound to is the authority, and `SPEC_DOUBLE_COMPILER_HOME` is the override for
+# when it is not.
+SKILL_ROOT_BOOTSTRAP = '''import os
+import sys
+
+
+def _spec_double_compiler_root() -> Path | None:
+    """Where the spec-double-compiler skill is, in decreasing authority.
+
+    `Path.home()` is deliberately LAST: a project home
+    (`<repo>/.skill-manager`) or a worktree home
+    (`<worktree>/.skill-manager`) must win over the operator's global
+    `~/.skill-manager`, or this module reads a different build of the skill
+    than the checkout was resolved against.
+
+    Returns None only when no candidate holds the package; an inherited
+    PYTHONPATH is then the last thing left to answer.
+    """
+    explicit = os.environ.get("SPEC_DOUBLE_COMPILER_HOME")
+    if explicit:
+        root = Path(explicit).expanduser()
+        if not (root / "spec_double_compiler").is_dir():
+            raise ModuleNotFoundError(
+                f"SPEC_DOUBLE_COMPILER_HOME={explicit} holds no spec_double_compiler "
+                "package. Point it at <home>/skills/spec-double-compiler, or unset it."
+            )
+        return root
+
+    homes = []
+    bound = os.environ.get("SKILL_MANAGER_HOME")
+    if bound:
+        homes.append(Path(bound).expanduser())
+    # Nearest enclosing checkout home, so a project or worktree home is still
+    # found from a bare shell that exported nothing.
+    homes.extend(parent / ".skill-manager" for parent in Path(__file__).resolve().parents)
+    homes.append(Path.home() / ".skill-manager")
+
+    for home in homes:
+        root = home / "skills" / "spec-double-compiler"
+        if (root / "spec_double_compiler").is_dir():
+            return root
+    return None
+
+
+def _ensure_spec_double_compiler() -> None:
+    """Resolve BEFORE importing, not only after the import fails.
+
+    Deciding this inside `except ModuleNotFoundError` would make the whole
+    resolution order conditional on nothing else having already answered, so
+    an inherited PYTHONPATH — or a CLI wrapper pinned to another home — would
+    silently outrank both the explicit override and the bound home.
+    """
+    root = _spec_double_compiler_root()
+    if root is not None:
+        sys.path.insert(0, str(root))
+    import spec_double_compiler  # noqa: F401
+
+
+_ensure_spec_double_compiler()
+'''
+
+
 CORE_TLA = """------------------------------- MODULE Core -------------------------------
 \\* Shared constants and operators. Internal.tla and External.tla both EXTEND
 \\* this module.
@@ -311,8 +412,10 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
+# @SKILL_ROOT_BOOTSTRAP@
 from spec_double_compiler.runtime import EffectProviderContext
 
 
@@ -423,6 +526,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+# @SKILL_ROOT_BOOTSTRAP@
 from spec_double_compiler.runtime import CaseRunResult
 
 
@@ -546,6 +650,27 @@ def _visible_projection(state: dict[str, Any]) -> dict[str, Any]:
     """
     return {"owned": {str(actor): sorted(items) for actor, items in dict(state.get("owned", {})).items()}}
 '''
+
+
+# Substituted, not templated with str.format: these bodies are full of braces.
+# Asserting the count is the point — a marker that matched zero sites would
+# leave the scaffold emitting the bare import again, and every test below would
+# still pass because the FALLBACK order is what they check, not its presence.
+_BOOTSTRAP_MARKER = "# @SKILL_ROOT_BOOTSTRAP@\n"
+_BOOTSTRAP_SITES = (("adapters.py", ADAPTERS_PY), ("providers.py", PROVIDERS_PY))
+# `raise`, not `assert`: `python -O` strips assert statements, so an assert here
+# would let a mis-typed marker emit the bare import again with the guard silently
+# gone — and the behaviour tests below would still pass, because they check the
+# resolution ORDER, not the presence of the resolver.
+_missing_bootstrap = [name for name, body in _BOOTSTRAP_SITES if _BOOTSTRAP_MARKER not in body]
+if _missing_bootstrap:
+    raise RuntimeError(
+        "every scaffolded module that imports spec_double_compiler must carry "
+        f"{_BOOTSTRAP_MARKER.strip()}; missing in: {', '.join(_missing_bootstrap)}"
+    )
+ADAPTERS_PY = ADAPTERS_PY.replace(_BOOTSTRAP_MARKER, SKILL_ROOT_BOOTSTRAP)
+PROVIDERS_PY = PROVIDERS_PY.replace(_BOOTSTRAP_MARKER, SKILL_ROOT_BOOTSTRAP)
+
 
 TLC_PROJECTION_PY = '''"""Project raw TLC states into the shapes the generated cases use.
 
