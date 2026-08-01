@@ -10116,6 +10116,202 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "RC-01",
+      "workflow": "architectural-coherence-epic",
+      "recorded_at_utc": "2026-08-01T23:37:54.696352+00:00",
+      "metrics": {
+        "variables": 11,
+        "actions": 18,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 26671680,
+        "bound_complete": false,
+        "bound_resolved_variables": 9,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.011604840309462296,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 26671680,
+            "bound_complete": false,
+            "percent_lower_bound": 2667.2,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "EV-03",
+        "metrics": {
+          "variables": {
+            "before": 10,
+            "after": 11,
+            "delta": 1,
+            "percent": 10.0
+          },
+          "actions": {
+            "before": 16,
+            "after": 18,
+            "delta": 2,
+            "percent": 12.5
+          },
+          "bound": {
+            "before": 2799360,
+            "after": 26671680,
+            "delta": 23872320,
+            "percent": 852.8,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "increase"
+      },
+      "justification": "Complexity increased 9.53x on the static bound and 7.99x on reachable states, and every part of the increase carries new EXTERNALLY OBSERVABLE behavior the model did not represent. `architecture_delta` (6-valued, the 6x factor): `analyze architecture --baseline` reports a direction verdict that the complexity ledger records as its own member and that no other variable determines. Two of its six values are REFUSALS about the before/after pair rather than measurements of the code -- `unattributable` is what this very ledger entry reports above, and `unverified` is the structural MF-020 rule. Modeling only the three measurements would have represented exactly the half of the command that can be gamed. `TicketClosedWeakened` (the 343/216 factor): a close taken under `--accept-new` or `--allow-open` bypasses the precondition `CloseTicket` guards on, and `ClosedTicketsPassedSpecUnitTests` is an invariant TLC proves over the whole state space. Before this stage existed the model proved an assurance the shipped program has two documented flags to violate, no state recorded their use, and no oracle in this toolchain could see the difference. The stage is what makes the two closes distinguishable; `scripts/spec_evolution.py` now writes the matching `guard_weakening` record so the distinction is observable outside the model too. `GenerateCases` and `CloseTicketWeakened` add NOTHING to the bound: both write only `lastCommand` and `result`, neither of which has a resolvable domain. Not essential-by-assertion: the increase is decomposed exactly into its two factors and that decomposition is asserted as a test (tests/test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound), so a future ticket cannot absorb an unexplained factor into this figure.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/results/rc01-tlc-baseline-d3eb851.txt",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/results/rc01-tlc-current.txt",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/rc01-pytest-full.txt (987 passed, 0 failed) and specs/results/rc01-spec-unit-tests.txt (71 passed)",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/results/rc01-model-delta.md, from specs/results/rc01-complexity-baseline.txt and specs/results/rc01-complexity-current.txt",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Two reductions were considered and both were rejected on the merits rather than on cost. (1) WIDEN `architecture_scan` INSTEAD OF ADDING `architecture_delta`. The audit explicitly permitted this and it is cheaper -- 9 values in one variable rather than 4 x 6 across two. Rejected: the scan verdict and the delta verdict are produced BY THE SAME RUN and are independent, so a merged domain would have to enumerate their product to stay faithful, or drop information to stay small. The plan's own AC-01 note forbids the analogous move (\"do not merge `unmappable` into `unknown` to shrink the domain\"), for the same reason. (2) RECORD THE WEAKENED CLOSE IN A SEPARATE VARIABLE rather than as a sixth ticket stage. Measured as strictly worse: a `[Tickets -> BOOLEAN]` companion is a 2^3 = 8x factor against the ordinal's 343/216 = 1.59x, for the same information. The ordinal was chosen because it is the cheaper faithful representation, not despite being cheaper. One reduction WAS applied and it is not visible as a saving because it prevented a cost: `architecture_delta` is constrained so that an `unmappable` scan admits only three of its six values, which is honest (with no comparable reflexion report there is no count to compare) rather than a packing trick. No reduction of the EXISTING model was found. The two unresolved variables (`lastCommand`, `result`) remain unresolved, as they have been since MF-020, so this ticket's chain is a like-for-like comparison with every recorded predecessor -- RP-04's completeness assertions check exactly that.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": "specs/desired_program_model/ticket_plan.yaml:220-240 (representation_scope), governed by :26-67 and :68-77"
+      },
+      "architecture_delta": {
+        "status": "unattributable",
+        "recorded": true,
+        "gates": false,
+        "report": "specs/results/rc01-architecture-delta.json",
+        "resolved_report": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/results/rc01-architecture-delta.json",
+        "claim": "unattributable",
+        "attribution": "unattributable",
+        "divergences_before": 0,
+        "divergences_after": 0,
+        "divergences_delta": 0,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+        "map_digest_after": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+        "architecture_digest_before": "sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c",
+        "architecture_digest_after": "sha256:12f4b9d0677ce6d11e1f93241526f104decb20e9866cb46d4bf6d60a029e24db",
+        "why": [
+          "the two scans were not measured against the same declared basis, so this is not a refactor result. The numbers below are real; what they are a fact ABOUT is undetermined.",
+          "the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change."
+        ],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "specs/results/rc01-model-delta.md (the delta and its cost), specs/results/rc01-gap-closure.md (the nine gaps, one by one, with the disposition for each), and specs/desired_program_model/deferred_findings.yaml entries RC-01-DF-01..03. The one thing a reader should not miss, stated here because it is the least flattering result of the ticket: this repository's own model FLIPPED OUT OF THE BLOB CASE as a side effect of the delta. `analyze architecture` reported one component at Q = 0 through AC-04 -- asserted as a test so the finding \"cannot quietly reverse\" -- and adding one variable beside its neighbour makes the same measurement report two components meeting all three shipped criteria at Q = 0.0116, 26x below the Newman threshold the tool prints and does not apply, while still listing the two god-variables as single-writer violations across the boundary it just drew. Nothing was tuned; no criterion changed. That is a measurement of the scanner, filed as RC-01-DF-01 rather than repaired, because a reconciliation ticket retuning a criterion while its own model delta was in flight could not be told apart from fitting the tool to the change it just made. The eval null result held where it was measurable: EV-03's worked-example arm re-run against this tree produces a BYTE-IDENTICAL corpus (same sha256, same 330/50/6 case counts, same 330/330 recovered arguments, CM-F5 still refusing). The ARM A/B and 12-mutant tables were not re-run by this ticket.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture_delta=unattributable (the two scans did not share a declared map and model); divergences 0 -> 0, attribution=unattributable"
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

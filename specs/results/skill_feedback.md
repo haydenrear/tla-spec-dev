@@ -1559,3 +1559,15 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - recommendation: EV-02-DF-05 -- state an absolute interpreter path, or declare
   the dependency set the published commands need.
 - status: recorded-local
+
+## Close-out ticket RC-01
+
+- close_scope: ticket
+- close_id: RC-01
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-01T23:37:54+00:00
+- summary: RC-01: all nine MF-026 in-scope gaps closed by modelling them or changing the program, plus the owner's guard-weakening decision. GenerateCases + CloseTicketWeakened + architecture_delta + TicketClosedWeakened; bound 9.53x, TLC green 7.99x distinct at unchanged depth 26.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
