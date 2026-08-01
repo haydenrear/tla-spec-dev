@@ -59,10 +59,26 @@ planning_rules:
     scripts/**/*.py and are classified by that line, not by this one.
 
     (3) Per-command refusal branches beyond the modeled gate verdicts, and
-    per-flag CLI variants (--accept-new, --allow-open, --no-promote-current,
-    --validate-only, --force, --dry-run), are OUT-OF-MODEL as a recorded
-    granularity limitation. Guard-weakening flags are governed by doctrine,
-    not modeled.
+    per-flag CLI variants, are OUT-OF-MODEL as a recorded granularity
+    limitation -- for 72 of the 78 options.
+
+    NARROWED 2026-08-01 by owner decision (MF-026 round-2 reservation). The
+    predecessor's ruling ended "guard-weakening flags are governed by doctrine,
+    not modeled." That sentence was doing more work than it can carry, and the
+    auditor put the cost on the record rather than deciding it: `CloseTicket`
+    guards on `TicketSpecUnitTestsPassed`, TLC proves
+    `ClosedTicketsPassedSpecUnitTests` over 1,292,951 states, and `--accept-new`
+    / `--allow-open` exist SPECIFICALLY to bypass that precondition -- while no
+    modeled state records their use and the kill test seeds only inside modeled
+    boundaries. No oracle can see the difference, so the strongest claim this
+    model makes has an unmeasured bypass.
+
+    THE SIX GUARD-WEAKENING FLAGS ARE THEREFORE MODELED: --accept-new,
+    --allow-open, --no-promote-current, --validate-only, --force, --dry-run. A
+    close taken under a weakening flag is a DIFFERENT STATE from one taken under
+    the guard. Six of 78 -- the granularity limitation the rest of this ruling is
+    about is untouched, and the remaining 72 options stay inventoried as
+    presentation.
 
     (4) Advisory tooling internals (fitness evaluation inside analyze,
     silent-degrade guards, runner env re-exec), the close/start/scaffold wrapper
@@ -117,7 +133,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 5
+  schedule_revision: 6
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -226,7 +242,7 @@ service_catalog:
     - "Neither lever has eval coverage before EV-01/EV-02. Until then every claim in this epic is a design claim, not a measurement."
     - "RESTORED 2026-08-01 (owner amendment, schedule_revision 4; MF-026 ESC-1): this repository's baseline remains a SINGLE TlaSpecDevCli.tla module without the Internal/External view split -- future work, unscoped. AC-03 measured 2 of 115,975 partitions meeting all three shipped criteria at Q = 0.0029, and the repository's own DECLARED four-component partition measures Q = -0.025 against a 0.6 criterion. The decision stands; the External view being unrepresented is an INVENTORY ROW under this line, not a gap."
     - "RESTORED 2026-08-01 (MF-026 ESC-1): `generate` is unmodeled -- recorded granularity limitation per semantic_model_rule; modeled if/when the experimental surface is promoted."
-    - "RESTORED 2026-08-01 (MF-026 ESC-1): per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model -- recorded granularity limitation per semantic_model_rule. This covers the five group subcommands' `incomplete command` exit-2 outcome and the 69 options / 9 positionals, INCLUDING the six guard-weakening flags, which are governed by doctrine rather than modeled."
+    - "RESTORED 2026-08-01, NARROWED SAME DAY (MF-026 ESC-1 and the round-2 reservation): per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model -- recorded granularity limitation per semantic_model_rule. This covers the five group subcommands' `incomplete command` exit-2 outcome and 72 of the 78 options. THE SIX GUARD-WEAKENING FLAGS ARE EXCLUDED FROM THIS GAP AND ARE MODELED: --accept-new and --allow-open bypass a precondition TLC proves over 1,292,951 states, and no oracle in this toolchain could see the difference while they were inventoried."
     - "RESTORED 2026-08-01 (MF-026 ESC-7): the effect-provider runtime -- scripts/run_generated_case_adapters.py provider machinery, spec_double_compiler/*, templates/python/ports.py.j2 -- is SHIPPED validation harness and toolchain plumbing, out-of-model, exactly as the spec-unit runner always was. This resolves the contradiction the audit found between that ruling and a ticket implementation_scope naming templates/: implementation_scope is edit permission and never a representation claim (representation_scope_rule)."
     - "NOT A GAP AND NOT A WAIVER (MF-026 ESC-6): skill-scripts/ is out-of-model plumbing, but install-tlc2.sh:37 performs a real network download on a MODELED action path with no network.* port declared anywhere. The file is out of model; the effect is not. Closing that port is scheduled work, not an answered escalation."
 
@@ -1427,7 +1443,7 @@ tickets:
     github_issue: null
     schedule_revision: 3
     depends_on: [RP-01, RP-02, RP-03, RP-04, RP-05, RP-07]
-    blocks: []
+    blocks: [RC-01]
     wave: 8
     promotion_order: 140
     promotion_predecessor: RP-07
@@ -1519,3 +1535,161 @@ tickets:
       deletions this round) and both independently reproduced the epic's
       structural blind spots; blind run A attacked RP-01's refusal without
       knowing it existed and it held. Five findings filed, none fixed.
+
+  - id: RC-01
+    title: "Reconciliation: model the nine MF-026 gaps, including case generation and the six guard-weakening flags"
+    status: planned
+    github_issue: null
+    schedule_revision: 6
+    depends_on: [EV-03]
+    blocks: []
+    wave: 9
+    promotion_order: 150
+    promotion_predecessor: EV-03
+    conflict_keys:
+      production:
+        - "scripts/tla_spec_dev.py"
+        - "scripts/analyze_architecture.py"
+        - "scripts/architecture_reflexion.py"
+        - "scripts/case_modules.py"
+      tla:
+        - "specs/current/TlaSpecDevCli.tla"
+        - "specs/desired_program_model/TlaSpecDevCli.tla"
+      adapters:
+        - "specs/current/production_adapters.py"
+        - "specs/desired_program_model/production_adapters.py"
+        - "specs/current/spec_manifest.yaml"
+        - "specs/desired_program_model/spec_manifest.yaml"
+      test_graph: []
+      workflow: []
+    objective: >-
+      The MF-026 coverage audit returned `fail` with nine in-scope gaps, each
+      anchored on a file `representation_scope` names IN MODEL, each closable
+      only by modeling it or changing the program. There is no third
+      disposition. This ticket closes all nine and the epic cannot promote until
+      it does.
+
+      The audit's own framing, which is the reason this ticket exists at all:
+      every oracle in this toolchain is bounded to what is already modeled, so
+      unmodeled surface is invisible to all four and all four report green. Two
+      eval rounds could not have caught any of this.
+
+      G-6 (the headline). CASE-MODULE GENERATION IS ENTIRELY UNREPRESENTED and
+      it is this epic's flagship feature. `scripts/case_modules.py` ships a
+      standalone main() unreachable from the parser, writing a coverage record
+      and a JSON report; `generate_cases_from_tlc_dump.py` spawns java/TLC,
+      rmtree's a metadir, and writes generated packages. No action, no port, no
+      CLI subcommand -- and CM-01 AND RP-03 BOTH CLOSED "ZERO MODEL DELTA"
+      against surface the model does not contain. Add a `GenerateCases` action
+      carrying corpus_process (spawn), spec_tree (write) and spec_tree_delete
+      (the metadir rmtree), reachable from the shipped parser. Fold in the
+      parameter-recovery audit write (infer_action_params.py:825-826) with
+      evidence_report; it is a generation-time artifact.
+
+      G-1. `AnalyzeArchitecture` -- the epic's only new action -- has no row in
+      `effects.actions` in any of the three manifests, and it is the only
+      non-stutter action without one. The manifest's own rule says an ABSENT row
+      claims "unmapped" while an EMPTY row claims "performs no distinct effect",
+      and TlaSpecDevCli.tla states that each action's @port lines mirror its row.
+      There is no row to mirror.
+
+      G-2 / G-3. `analyze architecture --out` and `architecture_reflexion --out`
+      perform unconstrained undeclared filesystem writes: the path is a bare
+      string, so a write can land anywhere, while the nearest candidate port
+      targets only **/results/**. Declare the port and constrain the path, or
+      drop --out and let callers redirect stdout (the descriptor already goes to
+      stdout).
+
+      G-4. TlaSpecDevCli.tla:649 reads "No @port: the scan reads the model and
+      the source tree and prints." It does not only print -- G-2 and G-3 are its
+      writes. This is the honest-in-prose / misleading-in-artifact class RP-02
+      was opened for, except the MODEL now carries the misleading record.
+
+      G-5. All three manifests state "9 variables and 15 actions" for a model
+      with 10 and 16. AC-01 added `architecture_scan` and `AnalyzeArchitecture`
+      and did not update the comment. Same class as EV-01-DF-03, which RP-05 was
+      opened to repair. Add the counts to whatever check RP-05 used for
+      architecture_components.yaml so the next variable cannot leave it stale.
+
+      G-7. Two manifest comments cite "the 2026-07-22 scope amendment" as their
+      authority; no such amendment exists in this plan, and the restored ruling
+      is dated 2026-08-01. One of them says case generation is "EXPERIMENTAL
+      surface, deliberately unmodeled" -- which becomes AFFIRMATIVELY FALSE the
+      moment G-6 lands. Both comments are edited by hand; classification cannot
+      fix a stale pointer.
+
+      G-8. AC-04's `architecture_delta` ledger member and its four attribution
+      verdicts (code_only, unattributable, unverified, improved-with-RED-FLAG)
+      are externally observable results of `analyze architecture --baseline` with
+      no modeled state. The refusals AC-04 shipped are exactly the ones a reader
+      would want the model to guarantee. Record the state-count cost the way
+      AC-01's 4.6x was recorded.
+
+      G-9. THE DEAD PORT, verified independently by the owner. `cli_artifact` is
+      the ONLY port declared for BuildSkillCli and InstallLocalCli and it targets
+      **/.venv/**, while `grep -rn '\.venv' scripts/*.py skill-scripts/*.sh`
+      returns ZERO hits. It is dead model surface by the manifest's own rule, and
+      `port-cli_artifact` is seeded in kill_mutants.toml and listed in
+      kill_tests -- SO THE KILL TEST HAS BEEN SEEDING A FAULT FOR A PORT NOTHING
+      EXERCISES. What the install path actually does: mkdir into
+      $SKILL_MANAGER_BIN_DIR / $SKILL_MANAGER_CACHE_DIR, cat > "$WRAPPER", spawn
+      "$WRAPPER" --help, mkdir "$JAR_DIR", curl -fL "$JAR_URL", mv the jar into
+      place. Declare what it does, INCLUDING the network port ESC-6 named -- the
+      standing proviso is that an out-of-model FILE does not make an out-of-model
+      EFFECT.
+
+      PLUS the owner decision that is not a numbered gap: MODEL THE SIX
+      GUARD-WEAKENING FLAGS (--accept-new, --allow-open, --no-promote-current,
+      --validate-only, --force, --dry-run) as a weakened-close transition, so a
+      close taken under one is a DIFFERENT STATE from one taken under the guard.
+      CloseTicket guards on TicketSpecUnitTestsPassed and TLC proves
+      ClosedTicketsPassedSpecUnitTests over 1,292,951 states, while --accept-new
+      and --allow-open exist specifically to bypass that precondition and no
+      oracle could see the difference. Six of 78; the granularity limitation
+      covering the other 72 is untouched.
+    desired_actions:
+      - "GenerateCases"
+      - "CloseTicketWeakened (or the equivalent weakened-close transition)"
+    implementation_scope:
+      - "scripts/"
+      - "specs/current/"
+      - "specs/desired_program_model/"
+      - "tests/"
+    current_increment:
+      model_state: ["architecture_delta or a widened architecture_scan domain"]
+      model_actions: ["GenerateCases", "the weakened-close transition"]
+      adapters: ["specs/*/production_adapters.py"]
+      unit_tests: ["uv run --with pytest --with pyyaml python -m pytest tests -q"]
+      graph_after_unit_pass: []
+    eval_relation:
+      eval_ticket: "the MF-026 re-audit, then EV-03's recorded numbers as the regression baseline"
+      measures: >-
+        Whether modeling previously-invisible surface CHANGES ANY MEASURED
+        NUMBER. It should not change the eval kill matrix at all -- these are
+        representation gaps, not behavior changes -- and if it does, that is a
+        finding about the previous rounds rather than about this ticket.
+      instrument: "the MF-026 re-audit for the gaps; EV-03's round-2 delta table for the regression"
+      null_result: >-
+        Nine gaps closed and every eval number identical to round 2. That is the
+        EXPECTED outcome and it is a real result: it would mean the model grew
+        to cover shipped surface without disturbing anything measured.
+      forbidden_to_tune: ["nothing -- but do not touch examples/validation/, and file any eval finding rather than fixing it"]
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <generated corpus>"
+      assertions:
+        - "All nine gaps closed by modeling or by changing the program. NO gap closed by a justification, an accepted risk, or a scope waiver -- those dispositions do not exist for an in-scope gap."
+        - "GenerateCases is reachable from the shipped parser and declares corpus_process, spec_tree and spec_tree_delete. Case-module generation is no longer invisible to all four oracles."
+        - "cli_artifact either matches a path the install flow actually writes, or is removed; if removed, port-cli_artifact stops being seeded in kill_mutants.toml. The install path's real effects, INCLUDING network, are declared."
+        - "A close under --accept-new or --allow-open is a distinguishable modeled state from a close under the guard, and ClosedTicketsPassedSpecUnitTests still holds where it should."
+        - "The three manifests say 10 variables and 16 actions, and no manifest comment cites an amendment that does not exist."
+        - "TlaSpecDevCli.tla:649 no longer claims the scan only prints."
+        - "specs/current and specs/desired_program_model remain semantically equal after the work."
+      evidence: "specs/results/rc01-*"
+    model_delta_expectation: >-
+      SUBSTANTIAL and deliberate: two new actions, at least one new variable or a
+      widened domain, and new effect ports on existing actions. Record the
+      state-space cost in the ledger the way AC-01's 4.6x was recorded. This is
+      the first ticket in the epic whose whole purpose is model delta.
