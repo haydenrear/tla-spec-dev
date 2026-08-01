@@ -23,7 +23,58 @@ planning_rules:
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
-  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions.
+  semantic_model_rule: >-
+    Do not add test graph nodes, pytest jobs, CI workflow steps, integration
+    harnesses, or validation scripts as TLA+ program state/actions. The modeled
+    program surface is the SHIPPED CLI lifecycle -- scaffold, open, run
+    spec-unit-tests, analyze (descriptor scan), close.
+
+    RESTORED 2026-08-01 by owner amendment (schedule_revision 4), answering
+    MF-026 ESC-1. These four rulings were folded into the PREDECESSOR plan on
+    2026-07-23 at the previous audit's request (ESC-C2-1) so that plan would be
+    self-contained; this plan truncated them away, and six of the twelve gaps
+    the architectural-coherence audit found exist because of that reversion.
+    They are restored here in this plan's own words, so this plan is
+    self-contained too and no future audit has to read them across from a sealed
+    snapshot:
+
+    (1) The experimental fuzzing surface -- corpus gate, effect conformance,
+    kill test -- remains MODELED as-is, a faithful representation of shipped
+    experimental commands.
+
+    (2) `generate` is UNMODELED: a recorded granularity limitation, modeled
+    if/when the experimental surface is promoted.
+
+    (3) Per-command refusal branches beyond the modeled gate verdicts, and
+    per-flag CLI variants (--accept-new, --allow-open, --no-promote-current,
+    --validate-only, --force, --dry-run), are OUT-OF-MODEL as a recorded
+    granularity limitation. Guard-weakening flags are governed by doctrine,
+    not modeled.
+
+    (4) Advisory tooling internals (fitness evaluation inside analyze,
+    silent-degrade guards, runner env re-exec), the close/start/scaffold wrapper
+    scripts, run_tlc.sh, clock/provenance reads on the close path, and the
+    effect-provider runtime are validation harness / toolchain plumbing:
+    OUT-OF-MODEL.
+
+    THE STANDING PROVISO, NOT WAIVED BY ANY OF THE FOUR: an out-of-model FILE
+    does not make an out-of-model EFFECT. Where a modeled action performs a real
+    effect, that effect MUST still be declared as a port. MF-026 ESC-6 is the
+    live counterexample -- skill-scripts/install-tlc2.sh:37 performs a real curl
+    download on the BuildSkillCli / InstallLocalCli path and no network.* port
+    is declared anywhere, although the effect sandbox observes network.connect.
+    Ruling the file out of model does NOT rule out the port; that port is a gap
+    to close, not an escalation to answer.
+  representation_scope_rule: >-
+    ADDED 2026-08-01 by owner amendment (schedule_revision 4), answering MF-026
+    ESC-2. `implementation_scope` on a ticket is an EDIT-PERMISSION list -- the
+    files that agent may touch. It is NOT a representation scope and must never
+    be read as one. Read as one it measures the wrong surface in both
+    directions: 325 example-fixture files land in scope for TlaSpecDevCli.tla
+    while 24 of the 34 files in scripts/ -- the program the model actually
+    represents -- are named by no plan line at all. The coverage audit reads
+    `representation_scope` below and nothing else. Neither list is derived from
+    the other.
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
   promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
@@ -53,7 +104,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 3
+  schedule_revision: 4
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -160,6 +211,33 @@ service_catalog:
   known_gaps:
     - "The reflexion extractor ships for Python only (AC-02). Non-Python targets report unmappable, never silently clean -- the MF-027 refusal shape."
     - "Neither lever has eval coverage before EV-01/EV-02. Until then every claim in this epic is a design claim, not a measurement."
+    - "RESTORED 2026-08-01 (owner amendment, schedule_revision 4; MF-026 ESC-1): this repository's baseline remains a SINGLE TlaSpecDevCli.tla module without the Internal/External view split -- future work, unscoped. AC-03 measured 2 of 115,975 partitions meeting all three shipped criteria at Q = 0.0029, and the repository's own DECLARED four-component partition measures Q = -0.025 against a 0.6 criterion. The decision stands; the External view being unrepresented is an INVENTORY ROW under this line, not a gap."
+    - "RESTORED 2026-08-01 (MF-026 ESC-1): `generate` is unmodeled -- recorded granularity limitation per semantic_model_rule; modeled if/when the experimental surface is promoted."
+    - "RESTORED 2026-08-01 (MF-026 ESC-1): per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model -- recorded granularity limitation per semantic_model_rule. This covers the five group subcommands' `incomplete command` exit-2 outcome and the 69 options / 9 positionals, INCLUDING the six guard-weakening flags, which are governed by doctrine rather than modeled."
+    - "RESTORED 2026-08-01 (MF-026 ESC-7): the effect-provider runtime -- scripts/run_generated_case_adapters.py provider machinery, spec_double_compiler/*, templates/python/ports.py.j2 -- is SHIPPED validation harness and toolchain plumbing, out-of-model, exactly as the spec-unit runner always was. This resolves the contradiction the audit found between that ruling and a ticket implementation_scope naming templates/: implementation_scope is edit permission and never a representation claim (representation_scope_rule)."
+    - "NOT A GAP AND NOT A WAIVER (MF-026 ESC-6): skill-scripts/ is out-of-model plumbing, but install-tlc2.sh:37 performs a real network download on a MODELED action path with no network.* port declared anywhere. The file is out of model; the effect is not. Closing that port is scheduled work, not an answered escalation."
+
+representation_scope:
+  note: >-
+    ADDED 2026-08-01 by owner amendment (schedule_revision 4), answering MF-026
+    ESC-2, ESC-3, ESC-4, ESC-5 and ESC-7. THIS is the surface the MF-026
+    coverage audit measures the model against -- one boundary decision, made
+    once and reviewed once, never waived per finding. Written with explicit
+    directory globs where a directory is meant, because the audit's closure rule
+    treats a bare file path as scoping that file alone and turns every unnamed
+    file into an escalation. The previous run produced 187 unclassifiable rows
+    of 596, including 24 of 34 files in scripts/, for exactly that reason.
+  in_model:
+    - "scripts/**/*.py -- the shipped CLI toolchain the program model represents. THE WHOLE DIRECTORY, closing the 24-of-34 unclassifiable hole; individual files inside it are governed by semantic_model_rule's four rulings, not by silence."
+    - "specs/current/spec_manifest.yaml, specs/desired_program_model/spec_manifest.yaml, specs/program_model/spec_manifest.yaml -- where every effect port is declared. Named by NO line of this plan before this amendment (ESC-4), which is why three model/manifest desync gaps had to be filed against an unrelated anchor."
+    - "specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg -- the model itself and its finite instances."
+  out_of_model:
+    - "tests/**, specs/*/tests/**, test_graph/** -- test and validation harnesses. ESC-3 found 62 rows with NO available disposition, in scope by an implementation_scope list and un-modelable by semantic_model_rule. semantic_model_rule wins; representation_scope_rule explains why there was never a real conflict."
+    - "examples/** -- fixtures, worked examples and eval subjects. They are what the toolchain is pointed AT, not surface of it. This is what put 325 fixture files in scope for TlaSpecDevCli.tla."
+    - "specs/.history/** -- sealed append-only snapshots, 5,402 files. Excluded by THIS PLAN LINE rather than by an auditor's own filter (ESC-5). Sealed history is a record of program surface, never program surface."
+    - "spec_double_compiler/**, templates/** -- generator templates and harness plumbing, per the restored known_gaps ruling (ESC-7)."
+    - "skill-scripts/**, *.sh wrappers, run_tlc.sh -- installer and wrapper shell, per semantic_model_rule (4). SUBJECT TO THE STANDING PROVISO: out-of-model files still owe ports for effects they perform on modeled action paths (ESC-6)."
+    - "prompts/**, references/**, templates/*.md, *.md -- documentation and sub-agent prompts. Shipped artifacts, not program state."
 
 tickets:
   - id: CM-01
