@@ -722,7 +722,16 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
         # CD-11 (R4-1): mutation_write and corpus_process joined it -- the kill
         # test's own production-source seed/restore writes and its per-mutant
         # user-supplied corpus spawn are now declared, each with a seeded fault.
-        assert len(required) == 22, "9 declared ports + 13 invariants"
+        # RC-01 (MF-026 G-9 + the guard-weakening decision): three install-path
+        # ports joined the declared surface (cli_download, cli_artifact_delete,
+        # cli_selftest_process) and one invariant did
+        # (WeakenedClosesCertifyNothing). Note what the audit found about the
+        # port this catalog ALREADY had: `cli_artifact` targeted `**/.venv/**`,
+        # which nothing in this repository writes, so `port-cli_artifact` spent
+        # a kill-test slot on a boundary no case could exercise. It is
+        # retargeted, not removed -- the install path really does write a CLI
+        # artifact -- and this count is the obligation recomputed, not promised.
+        assert len(required) == 26, "12 declared ports + 14 invariants"
         assert len(catalog) >= len(required)
 
     def test_the_real_catalog_declares_no_suppressions(self) -> None:
@@ -801,7 +810,7 @@ class TestCliSurface:
         result = self.run_cli("--target", str(TestThisRepositorysCatalogCoversItsOwnBoundaries.spec_dir.relative_to(REPO_ROOT)), "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
-        assert "22/22 declared boundaries carry a seeded fault." in result.stdout
+        assert "26/26 declared boundaries carry a seeded fault." in result.stdout
 
     def test_a_missing_corpus_command_is_refused_not_defaulted(self) -> None:
         """Without a corpus there is nothing to kill mutants with, so

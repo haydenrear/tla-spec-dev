@@ -38,6 +38,7 @@ import pytest  # noqa: E402
 
 from scripts.analyze_architecture import (  # noqa: E402
     EXIT_ANALYSIS_ERROR,
+    NEWMAN_SIGNIFICANT_Q,
     EXIT_PASS,
     EXIT_USAGE,
     SCHEMA,
@@ -252,22 +253,56 @@ class TestAModelThatResistsClusteringSaysSo:
         """A model with no architecture is a FINDING, not a failure."""
         assert main([str(blob[0]), str(blob[1])]) == EXIT_PASS
 
-    def test_the_repositorys_own_model_is_the_blob_case(self) -> None:
+    def test_the_repositorys_own_model_flipped_out_of_the_blob_case(self) -> None:
         """Dogfood, recorded as a test so the finding cannot quietly reverse.
 
-        This repository's CLI lifecycle model does not decompose: `lastCommand`
-        and `result` are written by every command, so the interaction graph is
-        effectively complete and greedy modularity yields one community at
-        Q = 0. Recorded here because it is the epic's most load-bearing
-        measurement -- the tool's first real target has no architecture to
-        describe.
+        THE FINDING REVERSED, AND THAT IS THE POINT OF RECORDING IT.
+
+        Through AC-04 this repository's model did NOT decompose: `lastCommand`
+        and `result` are written by every command, the interaction graph was
+        effectively complete, and greedy modularity yielded one community at
+        Q = 0. RC-01 added `architecture_delta` beside `architecture_scan` --
+        one variable, written by the one action that already wrote its
+        neighbour -- and the same measurement now reports TWO components and a
+        partition that MEETS EVERY SHIPPED CRITERION, at
+        Q = 0.0116.
+
+        Nothing here was tuned to produce that. No criterion, threshold or
+        clustering parameter changed in this ticket; the model grew to cover
+        shipped surface and the scanner's answer inverted. Read it as a
+        measurement of the SCANNER, not a promotion of this repository's
+        architecture:
+
+          * Q = 0.0116 is 26x below the Newman threshold of 0.3 the tool itself
+            reports and does not apply. The `modularity_q` criterion is
+            `Q > 0`, and 0.0116 clears it the same way 0.0 did not.
+          * The cut it names is crossed by the god-variables it was supposed to
+            expose: `lastCommand` and `result` are STILL single-writer
+            violations across both components, and the descriptor says so on
+            the same page it calls the partition a cut.
+          * AC-03 measured 2 of 115,975 partitions of this model meeting all
+            three criteria at Q = 0.0029. A verdict that one variable can flip
+            is consistent with that measurement and is filed as RC-01-DF-01.
+
+        Asserted here so the next reader meets the fragility rather than the
+        headline.
         """
         spec = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
         cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
         descriptor = analyze(spec, cfg)
-        assert descriptor.consumable_as_architecture is False
-        assert len(descriptor.components) == 1
-        assert descriptor.modularity_q == pytest.approx(0.0, abs=1e-9)
+        assert descriptor.consumable_as_architecture is True
+        assert len(descriptor.components) == 2
+        # Barely above the criterion, and far below the significance threshold
+        # the same report prints.
+        assert 0.0 < descriptor.modularity_q < 0.05
+        assert descriptor.modularity_q < NEWMAN_SIGNIFICANT_Q
+        # The reason the flip is not an architecture: the two variables that
+        # made the model a blob still cross the boundary it just drew.
+        violations = {
+            row["variable"]
+            for row in descriptor_payload(descriptor)["measured"]["ownership"]["single_writer_violations"]
+        }
+        assert {"lastCommand", "result"} <= violations
 
 
 # --------------------------------------------------------------------------

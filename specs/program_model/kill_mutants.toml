@@ -146,6 +146,47 @@ description = "the spawned corpus command silently loses its final argument"
 refine_variable = "kill_test"
 refine_action = "RunKillTest"
 
+# RC-01 (MF-026 G-9): three faults for the three ports the install path was
+# performing and not declaring. Note what the catalog looked like before: the
+# ONLY install-path port was `cli_artifact`, targeting `**/.venv/**`, which
+# nothing in this repository writes -- so `port-cli_artifact` below has been
+# seeding a fault for a boundary no case could exercise. The port is retargeted
+# rather than removed (the install path really does write a CLI artifact), and
+# its mutant still lands on a real site.
+
+[[mutants]]
+id = "port-cli_download"
+boundary_kind = "port"
+boundary_ref = "cli_download"
+path = "skill-scripts/install-tlc2.sh"
+find = 'curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"'
+replace = ': > "$JAR_TMP"  # MUTANT: the jar is never downloaded; an empty file takes its place'
+description = "the tla2tools download is replaced by an empty file, so tlc2 installs and every model check fails at class-load"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
+[[mutants]]
+id = "port-cli_artifact_delete"
+boundary_kind = "port"
+boundary_ref = "cli_artifact_delete"
+path = "skill-scripts/install-tlc2.sh"
+find = 'mv "$JAR_TMP" "$JAR_PATH"'
+replace = 'cp "$JAR_TMP" "$JAR_PATH"  # MUTANT: the download temporary is never unlinked'
+description = "the downloaded temporary is copied instead of moved, so every install leaves a full jar behind in the cache directory"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
+[[mutants]]
+id = "port-cli_selftest_process"
+boundary_kind = "port"
+boundary_ref = "cli_selftest_process"
+path = "skill-scripts/install-tla-spec-dev.sh"
+find = '"$WRAPPER" --help >/dev/null'
+replace = 'true  # MUTANT: the installed wrapper is never executed, so a broken install reports success'
+description = "the post-install self-test never runs the wrapper, so an install that produced an unrunnable CLI still reports success"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
 # ---------------------------------------------------------------------------
 # One fault per model invariant
 # ---------------------------------------------------------------------------

@@ -1441,3 +1441,225 @@ findings:
       Filed by EV-03 while committing its own artifacts. EV-03's records name no
       artifact the repository does not carry -- verified with git ls-files after
       the rename.
+
+  - id: RC-01-DF-01
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: ["scripts/analyze_architecture.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE ARCHITECTURE SCANNER'S DECOMPOSITION VERDICT FLIPPED ON THIS
+      REPOSITORY BECAUSE ONE VARIABLE WAS ADDED, AND NOTHING WAS TUNED TO MAKE
+      IT FLIP. Through AC-04 this repository's own model was the recorded blob
+      case: one component, Q = 0.0, `consumable_as_architecture` false, asserted
+      as a test so "the finding cannot quietly reverse". RC-01 added
+      `architecture_delta` beside `architecture_scan` -- one variable, written
+      by the one action that already wrote its neighbour -- and the same
+      measurement now reports TWO components meeting ALL THREE shipped criteria
+      at Q = 0.0116. No criterion, threshold or clustering parameter changed in
+      this ticket.
+
+      The flip is not an architecture. The report that calls the partition a cut
+      lists `lastCommand` and `result` as single-writer violations ACROSS THE
+      SAME BOUNDARY on the next page -- the two god-variables whose presence was
+      the entire reason the model was a blob. And Q = 0.0116 is 26x below the
+      Newman threshold of 0.3 that the tool itself prints and deliberately does
+      not apply; the `modularity_q` criterion is `Q > 0`, which 0.0116 clears
+      exactly as 0.0 did not.
+
+      This is a measurement of the SCANNER, not of the repository. AC-03
+      independently measured 2 of 115,975 partitions of this model meeting all
+      three criteria at Q = 0.0029, so a verdict a single variable can invert is
+      consistent with what AC-03 already recorded -- but AC-03 recorded it as a
+      property of the partition search, and this is the shipped default path a
+      user gets with no `--components` file at all.
+    reproduction: >-
+      At d3eb851 (before RC-01):
+      `python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture
+      specs/current/TlaSpecDevCli.tla specs/current/MC.cfg`
+      -> "MEASURED RESULT: does not decompose", one component, Q = 0.
+      After RC-01, the same command -> "MEASURED RESULT: the partition is a cut
+      -- every criterion above is met", C1/C2, Q = 0.011605,
+      crossing_action_fraction 0.0556.
+    evidence:
+      - "specs/results/rc01-architecture-current.txt (the post-change scan)"
+      - "tests/test_analyze_architecture.py::TestAModelThatResistsClusteringSaysSo::test_the_repositorys_own_model_flipped_out_of_the_blob_case"
+      - "specs/program_model/architecture_components.yaml (AC-03's 2-of-115,975 measurement)"
+    why_out_of_scope: >-
+      RC-01's slice is closing nine representation gaps the coverage audit
+      found. Changing what makes a partition a cut is a DOCTRINE decision on
+      AC-01/AC-03's surface -- it decides what `analyze architecture` reports to
+      every user of this skill, not just to this repository -- and a
+      reconciliation ticket that quietly retuned a criterion while its own model
+      delta was in flight would be indistinguishable from tuning the scanner to
+      like the change it just made. Filed instead, with the flip asserted in a
+      test so the next reader meets it.
+    suggested_fix: >-
+      Two candidates, and the choice is the owner's. (a) Add a fourth criterion
+      that the shipped report already computes and prints: a partition whose
+      SINGLE-WRITER VIOLATIONS include variables written from every component is
+      not a cut, whatever Q says. That is the criterion this case actually
+      fails. (b) Replace `Q > 0` with a stated floor and publish the number --
+      the report already prints Newman's 0.3 as "reported, not applied", which
+      is the current arrangement's weakest point: a threshold worth printing is
+      either a criterion or it is decoration. Do NOT simply raise Q until this
+      repository fails again; the fix has to be stated as a rule, not fitted to
+      an instance.
+    blast_radius: >-
+      Every consumer of `analyze architecture` with no declared `--components`
+      file, which is the default path. AC-02's reflexion check branches on
+      `consumable_as_architecture`, so this flip also changes whether the
+      reflexion check reports `unmappable` or attempts a real measurement
+      against a two-component map -- for this repository and for any user model
+      shaped like it. Nothing gates on it (the epic's coherence_doctrine keeps
+      the scanner advisory), so no close, promotion or generation changes
+      behaviour.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by RC-01 rather than fixed. RC-01 verified the flip is caused by the
+      model delta and not by any change to the scanner: `git stash` of the
+      TlaSpecDevCli.tla change alone restores the blob verdict.
+
+      NARROWING WORTH HAVING, measured after filing: the flip is confined to
+      the EMERGENT partition. Under this repository's DECLARED four-component
+      partition (specs/program_model/architecture_components.yaml) the model
+      still does not decompose -- 2 of 3 criteria fail, Q = -0.0228,
+      crossing_action_fraction 0.5556 -- and the reflexion verdict is still
+      `unmappable`, exactly as AC-02 and AC-03 recorded
+      (specs/results/rc01-architecture-reflexion.txt). So the fragile path is
+      the DEFAULT one, taken when no partition is declared, and a project that
+      declares its components is not exposed to it. That makes the finding
+      narrower and, if anything, sharper: the emergent clustering is the mode
+      whose answer nobody declared and nobody can review.
+
+  - id: RC-01-DF-02
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: ["specs/desired_program_model/production_adapters.py", "specs/desired_program_model/case_adapters.toml", "specs/desired_program_model/tests/"]
+      test_graph: []
+    summary: >-
+      `specs/desired_program_model`'s ADAPTER LAYER WAS A FULL TICKET BEHIND ITS
+      OWN MODEL, AND ITS OWN TEST SAID SO WITHOUT ANYONE HEARING IT. At d3eb851
+      the desired tree's TlaSpecDevCli.tla carried 15 @command actions
+      (AC-01 added AnalyzeArchitecture) while its `case_adapters.toml` bound 14,
+      its `production_adapters.py` had no `AnalyzeArchitectureAdapter`, and its
+      `tests/test_tla_spec_dev_binding_reconciliation.py` still asserted
+      "fourteen command actions".
+
+      The reason nobody noticed is the finding: `run spec-unit-tests --scope
+      project` targets `specs/current` ONLY, so the desired tree's spec-unit
+      tests -- a 17-file suite, including the binding reconciliation check
+      CD-09's gap G5 was opened to install -- HAVE NEVER BEEN EXECUTED. Had they
+      run, the desired tree's own test would have failed at AC-01 and this would
+      have been a one-line fix five tickets ago. This is the same shape as the
+      audit's central observation, one layer down: an oracle that is never
+      pointed at a surface reports nothing about it, which is not the same as
+      reporting that it is clean.
+    reproduction: >-
+      At d3eb851: `diff specs/current/case_adapters.toml
+      specs/desired_program_model/case_adapters.toml` -> the AnalyzeArchitecture
+      binding is present in one and absent in the other. And
+      `uv run --with pytest python -m pytest specs/desired_program_model/tests -q`
+      -> the binding reconciliation test asserts 14 against a 15-action module.
+    evidence:
+      - "specs/.history/architectural-coherence-epic/ticket-002-AC-01/ (the ticket that grew the model without the desired adapters)"
+      - "scripts/tla_spec_dev.py spec_unit_target_dirs (project scope resolves to specs/current only)"
+    why_out_of_scope: >-
+      The DESYNC is in scope and RC-01 fixed it -- `specs/*/production_adapters.py`
+      is in this ticket's conflict keys, the plan's representation_scope names
+      those files IN MODEL (round-2 ESC-9), and the ticket's own acceptance
+      requires current and desired to be semantically equal. What is deferred is
+      the MECHANISM: whether `run spec-unit-tests` should validate the desired
+      tree at all, and if so under which scope. That changes the shipped
+      command's target resolution for every user of this skill and is a
+      behaviour decision, not a reconciliation.
+    suggested_fix: >-
+      Either add a scope that includes `specs/desired_program_model` (so the
+      target model's own conformance suite runs), or delete the desired tree's
+      `tests/` and say plainly that the desired tree carries no executable
+      conformance -- but not the present arrangement, where 17 test files exist,
+      are copied forward at every ticket open, and are never run. The second
+      option is cheaper and may be the right one: the desired tree is a
+      specification, and a specification's tests belong to whatever implements
+      it.
+    blast_radius: >-
+      Confined to this repository's own spec workflow. No shipped behaviour
+      depends on it. The cost is that a class of desync -- model grows, adapters
+      do not -- is undetectable in the desired tree, which is precisely the tree
+      a ticket is supposed to author FIRST.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      The desync itself is repaired in RC-01 (desired's adapter layer, bindings
+      and tests are now byte-identical to current's, and the reconciliation test
+      asserts 17). Only the mechanism question is deferred.
+
+  - id: RC-01-DF-03
+    found_by: "RC-01"
+    found_at_commit: "d3eb851"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: ["scripts/tla_spec_dev.py"]
+      tla: ["specs/*/TlaSpecDevCli.tla"]
+      adapters: []
+      test_graph: []
+    summary: >-
+      THREE OF THE SIX GUARD-WEAKENING FLAGS CANNOT BE OBSERVED AT THE POINT THE
+      MODEL RECORDS THEM. The owner's decision models the six flags as a
+      weakened-close transition, and RC-01 lands it: `CloseTicketWeakened`, the
+      `TicketClosedWeakened` stage, and a `guard_weakening` block written into
+      the append-only close history. That block can name `--accept-new`,
+      `--allow-open` and `--no-promote-current`, because those three reach
+      `close ticket`. It cannot name the other three.
+
+      `--validate-only` belongs to `run spec-unit-tests` and produces a run that
+      reports success having executed no case body; `--force` and `--dry-run`
+      belong to `scaffold` and `open ticket`. Each weakens a PRECONDITION a
+      later close relies on, so a close that follows one of them is a weakened
+      close in fact -- and the close path has no way to know it happened. The
+      model represents the fact (this close did not pass the guarded
+      precondition) and the record names the flags it can name; the gap between
+      the two is recorded here rather than papered over.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests
+      --scope project --validate-only` prints "spec-unit validation passed" with
+      no case body executed, and the subsequent `close ticket` history entry
+      records `guard_weakening.weakened: false`.
+    evidence:
+      - "specs/current/TlaSpecDevCli.tla (CloseTicketWeakened, the recorded limit of observation)"
+      - "scripts/spec_evolution.py weakening_flags_record"
+    why_out_of_scope: >-
+      Closing it means either threading a weakening record forward through the
+      ticket workspace (new persisted state on the shipped CLI) or changing what
+      `--validate-only` reports. Both are behaviour changes to commands outside
+      this ticket's decision, and the owner's decision named the weakened CLOSE
+      as the thing to model.
+    suggested_fix: >-
+      The cheap and honest version: have `run spec-unit-tests --validate-only`
+      drop a marker into the ticket workspace, and have the close read it into
+      the same `guard_weakening` block. That makes all four close-relevant flags
+      observable in one record; `--force` / `--dry-run` on scaffold are further
+      out, since the workspace they weaken may not exist yet.
+    blast_radius: >-
+      The strongest claim in this model. `ClosedTicketsPassedSpecUnitTests` is
+      now narrowed to guarded closes and TLC proves it over 10,331,543 states,
+      but a close following a `--validate-only` run is recorded as a GUARDED
+      close, so the invariant's scope is slightly wider in the record than it is
+      in fact. Three flags of six are covered; before RC-01 it was zero of six.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Recorded on TlaSpecDevCli.tla's CloseTicketWeakened as a named limit of
+      OBSERVATION rather than of the model, so a reader of the model meets it.

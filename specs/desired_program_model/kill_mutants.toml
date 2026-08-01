@@ -146,6 +146,47 @@ description = "the spawned corpus command silently loses its final argument"
 refine_variable = "kill_test"
 refine_action = "RunKillTest"
 
+# RC-01 (MF-026 G-9): three faults for the three ports the install path was
+# performing and not declaring. Note what the catalog looked like before: the
+# ONLY install-path port was `cli_artifact`, targeting `**/.venv/**`, which
+# nothing in this repository writes -- so `port-cli_artifact` below has been
+# seeding a fault for a boundary no case could exercise. The port is retargeted
+# rather than removed (the install path really does write a CLI artifact), and
+# its mutant still lands on a real site.
+
+[[mutants]]
+id = "port-cli_download"
+boundary_kind = "port"
+boundary_ref = "cli_download"
+path = "skill-scripts/install-tlc2.sh"
+find = 'curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"'
+replace = ': > "$JAR_TMP"  # MUTANT: the jar is never downloaded; an empty file takes its place'
+description = "the tla2tools download is replaced by an empty file, so tlc2 installs and every model check fails at class-load"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
+[[mutants]]
+id = "port-cli_artifact_delete"
+boundary_kind = "port"
+boundary_ref = "cli_artifact_delete"
+path = "skill-scripts/install-tlc2.sh"
+find = 'mv "$JAR_TMP" "$JAR_PATH"'
+replace = 'cp "$JAR_TMP" "$JAR_PATH"  # MUTANT: the download temporary is never unlinked'
+description = "the downloaded temporary is copied instead of moved, so every install leaves a full jar behind in the cache directory"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
+[[mutants]]
+id = "port-cli_selftest_process"
+boundary_kind = "port"
+boundary_ref = "cli_selftest_process"
+path = "skill-scripts/install-tla-spec-dev.sh"
+find = '"$WRAPPER" --help >/dev/null'
+replace = 'true  # MUTANT: the installed wrapper is never executed, so a broken install reports success'
+description = "the post-install self-test never runs the wrapper, so an install that produced an unrunnable CLI still reports success"
+refine_variable = "setup_phase"
+refine_action = "InstallLocalCli"
+
 # ---------------------------------------------------------------------------
 # One fault per model invariant
 # ---------------------------------------------------------------------------
@@ -304,3 +345,19 @@ replace = "    if False:  # MUTANT: history entry created for a ticket that neve
 description = "close history is written for a ticket that never reached a closed status"
 refine_variable = "ticket_state"
 refine_action = "CloseTicket"
+
+# RC-01 (owner decision 2026-08-01): fault for the weakened-close property. The
+# history entry claims every close went through the guard, so a close taken
+# under --accept-new or --allow-open becomes indistinguishable in the record
+# from one that passed the precondition -- which is the state of affairs this
+# ticket exists to end.
+[[mutants]]
+id = "inv-WeakenedClosesCertifyNothing"
+boundary_kind = "invariant"
+boundary_ref = "WeakenedClosesCertifyNothing"
+path = "scripts/spec_evolution.py"
+find = '        "model_action": "CloseTicketWeakened" if used else "CloseTicket",'
+replace = '        "model_action": "CloseTicket",  # MUTANT: a weakened close is recorded as a guarded one'
+description = "the append-only history records every close as a guarded close, so a bypassed precondition leaves no trace"
+refine_variable = "ticket_state"
+refine_action = "CloseTicketWeakened"

@@ -81,6 +81,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.spec_paths import EvidencePathError, resolve_evidence_out  # noqa: E402
+
 # Exit codes.
 EXIT_PASS = 0
 # MF-036: this is the "I could not analyze this model" exit, NOT "this model is
@@ -2289,7 +2291,13 @@ def run(args: argparse.Namespace) -> int:
     rendered = render_json(analysis) if args.format == "json" else render_text(analysis)
     sys.stdout.write(rendered)
     if args.out:
-        out_path = Path(args.out)
+        # RC-01 (MF-026 G-3): the write is constrained to the surface the
+        # `evidence_report` port declares. It used to take a bare string.
+        try:
+            out_path = resolve_evidence_out(args.out)
+        except EvidencePathError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return EXIT_USAGE
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(rendered, encoding="utf-8")
         print(f"wrote evidence: {out_path}", file=sys.stderr)
@@ -2304,7 +2312,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("cfg", nargs="?", help="TLC config. Defaults to <module>.cfg or MC.cfg.")
     parser.add_argument("--manifest", help="spec_manifest.yaml carrying budgets: and justification:.")
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
-    parser.add_argument("--out", help="Also write the report here (ticket results/ evidence).")
+    parser.add_argument(
+        "--out",
+        help=(
+            "Also write the report here. RC-01: the path MUST resolve under a "
+            "`results/` directory -- that is the surface the `evidence_report` "
+            "effect port declares, and a write anywhere else is undeclared."
+        ),
+    )
     parser.add_argument("--tlc-report", help="TLC output for this model, for transition-level diagnostics.")
     parser.add_argument("--baseline-tlc", help="Baseline TLC output to compare against (self-loop check).")
 

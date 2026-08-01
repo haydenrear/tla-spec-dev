@@ -169,7 +169,8 @@ VARIABLES
   corpus_gate,
   effect_conformance,
   kill_test,
-  architecture_scan
+  architecture_scan,
+  architecture_delta
 
 vars ==
   << setup_phase,
@@ -181,7 +182,8 @@ vars ==
      corpus_gate,
      effect_conformance,
      kill_test,
-     architecture_scan >>
+     architecture_scan,
+     architecture_delta >>
 
 \* MF-025: the lifecycle stages by name. Guards and invariants below read as a
 \* lifecycle rather than as arithmetic on an integer.
@@ -191,10 +193,45 @@ TicketDesiredReady        == 2
 TicketCurrentReady        == 3
 TicketSpecUnitTestsPassed == 4
 TicketClosed              == 5
+\* RC-01 (MF-026, owner decision 2026-08-01): a close taken under one of the
+\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+\* --no-promote-current, --validate-only, --force, --dry-run -- is a DIFFERENT
+\* STATE from a close taken under the guard, and this is the stage that records
+\* it. Before this ticket the flags were inventoried as presentation under the
+\* per-flag granularity limitation, and the cost of that was specific rather
+\* than theoretical: CloseTicket guards on TicketSpecUnitTestsPassed and TLC
+\* proves ClosedTicketsPassedSpecUnitTests over 1,292,951 states, while
+\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+\* SPECIFICALLY to bypass that precondition -- so the model proved an invariant
+\* the shipped program has two documented flags to violate, no modeled state
+\* recorded their use, and NO ORACLE IN THIS TOOLCHAIN COULD SEE THE
+\* DIFFERENCE (the kill test seeds faults per declared port and per invariant,
+\* i.e. only inside modeled boundaries). Six of the 78 options; the granularity
+\* limitation covering the other 72 is untouched.
+TicketClosedWeakened      == 6
 
 \* MF-025: every site that meant "the set of active tickets" still says so.
 ActiveTickets == {t \in Tickets : ticket_state[t] \in TicketOpened..TicketSpecUnitTestsPassed}
-ClosedTickets == {t \in Tickets : ticket_state[t] = TicketClosed}
+\* RC-01: BOTH closes are closes -- the ticket is out of the active set either
+\* way, which is what NoOpenClosedOverlap is about. What differs is whether the
+\* close passed through the guard, and that is the distinction
+\* GuardedClosedTickets draws below.
+ClosedTickets == {t \in Tickets : ticket_state[t] \in {TicketClosed, TicketClosedWeakened}}
+\* RC-01: the closes that went through the precondition, and the ONLY ones any
+\* invariant here may claim passed spec-unit tests.
+GuardedClosedTickets  == {t \in Tickets : ticket_state[t] = TicketClosed}
+WeakenedClosedTickets == {t \in Tickets : ticket_state[t] = TicketClosedWeakened}
+
+\* RC-01: READ THE LIFECYCLE, NOT THE INTEGER. Every property below that used
+\* to say `ticket_state[t] >= <stage>` meant "this ticket has been through
+\* <stage> of the guarded lifecycle". TicketClosedWeakened is an ordinal ABOVE
+\* every guarded stage and certifies LESS than any of them, so `>=` silently
+\* answers TRUE for it -- and five invariants would have gone on holding, by
+\* accident of the encoding, about a ticket that passed nothing. That accident
+\* is exactly the class of defect the coverage audit opened this ticket for, so
+\* the reader is named once and used everywhere instead of being patched at each
+\* site.
+TicketReached(t, stage) == ticket_state[t] \in stage..TicketClosed
 
 CommandResult(ok, reason, nextStep) ==
   [accepted |-> ok, reason |-> reason, next |-> nextStep]
@@ -210,6 +247,7 @@ Init ==
   /\ effect_conformance = "unknown"
   /\ kill_test = "unknown"
   /\ architecture_scan = "unknown"
+  /\ architecture_delta = "unknown"
 
 \* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
 \* DECLARED EFFECT PORT -- an entry of
@@ -236,7 +274,8 @@ BuildSkillCli ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
 \* @command InstallLocalCli
@@ -253,7 +292,8 @@ InstallLocalCli ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold project`
 \* Creates the accepted `program_model` baseline only.
@@ -272,7 +312,8 @@ ScaffoldProject(root) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: scaffold emits a `budgets:` block into spec_manifest.yaml and
 \* instructs the agent to propose the documented defaults to the user, ask
@@ -295,7 +336,8 @@ RecordBudgets(root) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold workflow`
 \* Creates project `current/`, `desired_program_model/`, and ticket plan.
@@ -314,7 +356,8 @@ ScaffoldWorkflow(root) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
 \* Creates ticket-local current/desired/results/Test Graph workspace.
@@ -338,7 +381,8 @@ OpenTicket(root, ticket) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* Agent step: update ticket desired model, adapters, and Test Graph bindings.
 \* This is intentionally modeled because the CLI must print this instruction.
@@ -357,7 +401,8 @@ UpdateTicketDesired(ticket) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* Agent step: production implementation has landed and current matches desired.
 \* @command UpdateTicketCurrent
@@ -375,7 +420,8 @@ UpdateTicketCurrent(ticket) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze complexity <spec> <cfg>`
 \* MF-011, amended by CD-09 (G2): measures the model against the manifest
@@ -402,7 +448,8 @@ AnalyzeComplexity(root) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze corpus <cases-dir>`
 \* MF-014: measures the GENERATED CORPUS against the manifest case caps
@@ -436,7 +483,8 @@ AnalyzeCorpus(root) ==
                   complexity_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run effect-conformance`
 \* MF-013: executes component adapters in a sandbox (temp dirs, fake
@@ -482,7 +530,8 @@ RunEffectConformance(root) ==
                   complexity_gate,
                   corpus_gate,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run kill-test --corpus-command <cmd>`
 \* MF-016, oracle 4. Seeds one fault per declared port and one per invariant
@@ -536,7 +585,8 @@ RunKillTest(root) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
 \* Runs generated/adapted spec-unit validation for ticket current.
@@ -607,7 +657,8 @@ RunSpecUnitTests(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
 \* Closes ticket only after current == desired and spec-unit tests passed.
@@ -632,7 +683,72 @@ CloseTicket(root, ticket) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test,
-                  architecture_scan >>
+                  architecture_scan,
+                  architecture_delta >>
+
+\* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>` taken under
+\* one of the six GUARD-WEAKENING FLAGS.
+\* RC-01, owner decision 2026-08-01 (MF-026 round-2 reservation). This is the
+\* SAME shipped command as CloseTicket; what differs is that `--accept-new`
+\* skips the current == desired check and overwrites current/ from desired/,
+\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+\* Both bypass the precondition CloseTicket guards on, so the transition is
+\* modeled with the precondition REMOVED rather than with a flag input: a flag
+\* the guard ignores would be presentation, and presentation is what this
+\* action exists to stop representing.
+\*
+\* Note what the guard below says and does not say. It requires the ticket to
+\* be ACTIVE -- a ticket that was never opened cannot be closed by any flag --
+\* and nothing else. TicketOpened is reachable here, which is exactly the
+\* claim: a ticket can reach a closed stage having passed no spec-unit run.
+\* ClosedTicketsPassedSpecUnitTests is narrowed to GuardedClosedTickets for
+\* precisely this reason; see the tombstone on that invariant.
+\*
+\* Which of the six was used is NOT distinguished, and that is per-flag
+\* granularity rather than an omission -- the inventoried limitation covering
+\* the other 72 options is untouched. What each of them does, stated so the
+\* transition is not read as more uniform than it is:
+\*   --accept-new         (close ticket)        skips the current == desired
+\*                                              check and overwrites current/
+\*                                              from desired/;
+\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+\*                                              status is not closed/done;
+\*   --no-promote-current (close ticket)        closes without promoting ticket
+\*                                              desired/ into project current/;
+\*   --validate-only      (run spec-unit-tests) reports a passing run that
+\*                                              executed no case body;
+\*   --force / --dry-run  (scaffold, open)      overwrite, or write nothing at
+\*                                              all, under a command whose whole
+\*                                              contract is what it wrote.
+\*
+\* A RECORDED LIMIT OF OBSERVATION, not of this model: the first three reach the
+\* close path and are recorded there (scripts/spec_evolution.py writes
+\* `guard_weakening` into the append-only history entry, which is what makes
+\* this state externally observable at all). The last three weaken an EARLIER
+\* step, so a close that follows one of them is in fact one of these closes
+\* while the close path cannot see which flag did it. The model represents the
+\* fact -- this close did not pass the guarded precondition -- and the record
+\* names the flags it can name.
+\* @command CloseTicketWeakened
+\* @result CliWorkflowResult
+\* @port TlaSpecDevCliPort.spec_tree
+\* @port TlaSpecDevCliPort.spec_tree_delete
+\* @port TlaSpecDevCliPort.git_metadata
+CloseTicketWeakened(root, ticket) ==
+  /\ setup_phase >= 2
+  /\ root = spec_root
+  /\ ticket \in ActiveTickets
+  /\ ticket_state' = [ticket_state EXCEPT ![ticket] = TicketClosedWeakened]
+  /\ lastCommand' = "tla-spec-dev close ticket --accept-new"
+  /\ result' = CommandResult(TRUE, NoReason, "Closed under a guard-weakening flag -- the spec-unit precondition was not checked")
+  /\ UNCHANGED << setup_phase,
+                  spec_root,
+                  complexity_gate,
+                  corpus_gate,
+                  effect_conformance,
+                  kill_test,
+                  architecture_scan,
+                  architecture_delta >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze architecture`
 \* AC-01/AC-02: emits the ARCHITECTURE the diagram implies -- components as
@@ -644,13 +760,47 @@ CloseTicket(root, ticket) ==
 \* built at all, which is "I could not measure this" rather than a finding.
 \* No guard anywhere reads architecture_scan, deliberately: see
 \* references/architecture_tractability.md, "Advisory, Not Blocking".
+\*
+\* RC-01 (MF-026 G-8): `--baseline` compares this scan against a previous one
+\* and reports the DIVERGENCE DELTA. Its outcome is a second externally
+\* observable result of the same command and none of its values is derivable
+\* from architecture_scan, so it is its own variable rather than a widened scan
+\* domain: "the code moved toward the boundaries the model draws" and "this
+\* scan is coherent" are different facts, and the ledger records them
+\* separately (scripts/complexity_ledger.py ARCHITECTURE_DELTA_DIRECTIONS).
+\* The two refusals matter more than the three measurements: `unattributable`
+\* is what the tool returns when the two scans did not share a declared map and
+\* model -- the gaming move AC-04 demonstrated, where re-placing one module in
+\* the map alone moves the divergence count 0 -> 6 with no source change -- and
+\* `unverified` is the structural MF-020 rule, a count that fell without the
+\* edges that disappeared being enumerated. Modeling only `improved` /
+\* `worsened` / `unchanged` would represent exactly the half of this command
+\* that can be gamed.
 \* @command AnalyzeArchitecture
 \* @result CliWorkflowResult
-\* No @port: the scan reads the model and the source tree and prints.
+\* RC-01 (MF-026 G-1/G-2/G-4): this action's row in effects.actions was ABSENT
+\* in all three manifests -- the only non-stutter action with no row -- and the
+\* line that stood here read "No @port: the scan reads the model and the source
+\* tree and prints." It does not only print: `--out` writes the descriptor
+\* (analyze_architecture.py) and the reflexion report
+\* (architecture_reflexion.py). The write is now constrained to the
+\* `evidence_report` port's declared `**/results/**` target
+\* (scripts/spec_paths.py resolve_evidence_out), so the declaration below is
+\* true of every caller rather than of the documented one.
+\* @port TlaSpecDevCliPort.evidence_report
 AnalyzeArchitecture(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
   /\ architecture_scan' \in {"coherent", "divergent", "unmappable"}
+  \* An unmappable scan cannot yield a MEASURED delta: with no comparable
+  \* reflexion report the count that would be compared does not exist, so the
+  \* only honest outcomes are "no comparison was asked for" and the two
+  \* refusals. This is the same rule as the scan's own -- a refusal beats a
+  \* false clean -- applied one level up.
+  /\ architecture_delta' \in IF architecture_scan' = "unmappable"
+                              THEN {"unknown", "unverified", "unattributable"}
+                              ELSE {"unknown", "improved", "worsened", "unchanged",
+                                    "unverified", "unattributable"}
   /\ lastCommand' = "tla-spec-dev analyze architecture"
   /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev run spec-unit-tests")
   /\ UNCHANGED << setup_phase,
@@ -660,6 +810,49 @@ AnalyzeArchitecture(root) ==
                   corpus_gate,
                   effect_conformance,
                   kill_test >>
+
+\* CLI: `tla-spec-dev --spec-root <root> generate cases <spec.tla> <cfg> --out <dir>`
+\* RC-01 (MF-026 G-6), the headline gap: CASE-MODULE GENERATION -- this epic's
+\* flagship feature -- was ENTIRELY UNREPRESENTED. scripts/case_modules.py
+\* shipped a standalone main() unreachable from build_parser, and
+\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+\* metadir and wrote generated packages with no action, no port and no CLI
+\* subcommand anywhere in the model. CM-01 and RP-03 BOTH CLOSED "ZERO MODEL
+\* DELTA" against surface the model does not contain, and all four oracles
+\* reported green -- because every oracle in this toolchain is bounded to what
+\* is already modeled, so unmodeled surface is never generated into a case,
+\* never adapted and never mutated. That is the whole reason the coverage-audit
+\* gate exists.
+\*
+\* Guarded on setup_phase >= 4 for the same reason AnalyzeCorpus and
+\* RunKillTest are: generation measures the corpus against the manifest case
+\* caps at the end of the run, and reading a cap before budgets are recorded
+\* would silently measure against a default nobody negotiated.
+\*
+\* Records NO verdict. The command writes a corpus; it does not measure one.
+\* corpus_gate deliberately stays UNCHANGED here -- setting it back to
+\* "unknown" on every generation would falsify
+\* SpecUnitTestsRequireMeasuredCorpus for a ticket that legitimately passed
+\* earlier, which is asserting something the program does not do.
+\* @command GenerateCases
+\* @result CliWorkflowResult
+\* @port TlaSpecDevCliPort.corpus_process
+\* @port TlaSpecDevCliPort.spec_tree
+\* @port TlaSpecDevCliPort.spec_tree_delete
+GenerateCases(root) ==
+  /\ setup_phase >= 4
+  /\ root = spec_root
+  /\ lastCommand' = "tla-spec-dev generate cases"
+  /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev analyze corpus <cases-dir>")
+  /\ UNCHANGED << setup_phase,
+                  spec_root,
+                  ticket_state,
+                  complexity_gate,
+                  corpus_gate,
+                  effect_conformance,
+                  kill_test,
+                  architecture_scan,
+                  architecture_delta >>
 
 Stutter ==
   UNCHANGED vars
@@ -686,6 +879,8 @@ Next ==
   \/ \E root \in SpecRoots:
       AnalyzeArchitecture(root)
   \/ \E root \in SpecRoots:
+      GenerateCases(root)
+  \/ \E root \in SpecRoots:
       RunEffectConformance(root)
   \/ \E root \in SpecRoots:
       RunKillTest(root)
@@ -693,12 +888,15 @@ Next ==
       RunSpecUnitTests(root, ticket)
   \/ \E root \in SpecRoots, ticket \in Tickets:
       CloseTicket(root, ticket)
+  \/ \E root \in SpecRoots, ticket \in Tickets:
+      CloseTicketWeakened(root, ticket)
   \/ Stutter
 
 TypeInvariant ==
   /\ setup_phase \in 0..5
   /\ spec_root \in SpecRoots \cup {NoRoot}
-  /\ ticket_state \in [Tickets -> 0..5]
+  \* RC-01: 0..6 -- TicketClosedWeakened is the sixth stage.
+  /\ ticket_state \in [Tickets -> 0..6]
   \* MF-025: retained by name. Both are now structurally true, since
   \* ActiveTickets and ClosedTickets are defined by comprehension over
   \* Tickets, but a named safety property that is deleted is
@@ -712,6 +910,12 @@ TypeInvariant ==
   \* AC-01: an advisory RECORD, not a gate. No action guards on it and no
   \* value of it refuses anything -- "divergent" is a fact the owner reads.
   /\ architecture_scan \in {"unknown", "coherent", "divergent", "unmappable"}
+  \* RC-01 (G-8): the delta's domain is the shipped one -- the five direction
+  \* verdicts scripts/complexity_ledger.py records, plus "unknown" for a scan
+  \* that was not asked for a comparison. Like architecture_scan it is an
+  \* advisory RECORD: no action guards on it and no value of it refuses
+  \* anything. "worsened" is recorded, never refused.
+  /\ architecture_delta \in {"unknown", "improved", "worsened", "unchanged", "unverified", "unattributable"}
 
 \* MF-022: the four bootstrap ordering invariants below are retained by name
 \* even though the setup_phase ordinal now enforces them structurally, so each
@@ -747,15 +951,18 @@ ProjectChoosesKnownSpecRoot ==
 NoOpenClosedOverlap ==
   ActiveTickets \cap ClosedTickets = {}
 
+\* RC-01: TicketReached, not >=. See the tombstone on
+\* ClosedTicketsPassedSpecUnitTests -- a weakened close reached NEITHER of
+\* these stages, and `>=` would have claimed it reached both.
 CurrentRequiresDesired ==
   \A ticket \in Tickets:
-    ticket_state[ticket] >= TicketCurrentReady
-      => ticket_state[ticket] >= TicketDesiredReady
+    TicketReached(ticket, TicketCurrentReady)
+      => TicketReached(ticket, TicketDesiredReady)
 
 SpecUnitTestsRequireCurrent ==
   \A ticket \in Tickets:
-    ticket_state[ticket] >= TicketSpecUnitTestsPassed
-      => ticket_state[ticket] >= TicketCurrentReady
+    TicketReached(ticket, TicketSpecUnitTestsPassed)
+      => TicketReached(ticket, TicketCurrentReady)
 
 \* CD-09 (G2): SpecUnitTestsRequireAnalyzedGate REMOVED, deliberately and with
 \* this tombstone rather than silently -- a deleted safety property must be
@@ -779,8 +986,14 @@ SpecUnitTestsRequireCurrent ==
 \* passing ticket. The companion property, that a case is never removed to make
 \* the verdict "pass", is structural rather than checkable here: no action in
 \* this module reduces a case count, and no override input reaches the cap.
+\* RC-01: TicketReached. TLC FOUND THIS ONE -- with `>=` the first weakened
+\* close from TicketOpened violated it in 1,094 states, because a ticket sitting
+\* at TicketClosedWeakened satisfied `>= TicketSpecUnitTestsPassed` while no
+\* corpus had ever been measured. That violation is the property working: the
+\* invariant is about corpora behind PASSING tickets, and a weakened close is
+\* not a passing ticket.
 SpecUnitTestsRequireMeasuredCorpus ==
-  (\E ticket \in Tickets: ticket_state[ticket] >= TicketSpecUnitTestsPassed)
+  (\E ticket \in Tickets: TicketReached(ticket, TicketSpecUnitTestsPassed))
     => corpus_gate /= "unknown"
 
 \* MF-013: no ticket ever passes spec-unit tests while the representation is
@@ -814,15 +1027,47 @@ SpecUnitTestsRequireMeasuredCorpus ==
 \* matches SpecUnitTestsRequireMeasuredCorpus, which is weakened for exactly
 \* the same reason.
 SpecUnitTestsRequireMeasuredEffects ==
-  (\E ticket \in Tickets: ticket_state[ticket] >= TicketSpecUnitTestsPassed)
+  (\E ticket \in Tickets: TicketReached(ticket, TicketSpecUnitTestsPassed))
     => effect_conformance /= "unknown"
 
 \* MF-025: retained by name; now structurally true, since TicketClosed (5)
 \* is itself >= TicketSpecUnitTestsPassed (4) and the only way into it is
 \* through that stage.
+\*
+\* RC-01 NARROWING, recorded here rather than done silently -- a weakened
+\* safety property must be distinguishable at review from one that was lost
+\* (the MF-020/MF-022 retention precedent, applied to a weakening). The
+\* quantifier moved from ClosedTickets to GuardedClosedTickets. It had to.
+\* TicketClosedWeakened is 6, and 6 >= 4, so leaving the quantifier over
+\* ClosedTickets would have kept this invariant TRUE BY ACCIDENT OF THE ORDINAL
+\* ENCODING while a weakened close never passed a spec-unit run -- the model
+\* would read as an assurance that every closed ticket was validated, which is
+\* exactly what `--accept-new` and `--allow-open` exist to make false.
+\*
+\* What this invariant now claims is the whole of what TLC can prove: a close
+\* taken THROUGH THE GUARD passed spec-unit tests. What it deliberately no
+\* longer claims is anything about a close taken around the guard, and the
+\* absence of that claim is the finding. There is no companion invariant
+\* asserting the weakened path is safe, because it is not.
 ClosedTicketsPassedSpecUnitTests ==
-  \A ticket \in ClosedTickets:
-    ticket_state[ticket] >= TicketSpecUnitTestsPassed
+  \A ticket \in GuardedClosedTickets:
+    TicketReached(ticket, TicketSpecUnitTestsPassed)
+
+\* RC-01: the companion, and the only new named property this ticket adds. It
+\* states what a weakened close IS, positively, so the narrowing above cannot be
+\* read as the model simply having less to say: a ticket closed around the guard
+\* never reached the spec-unit stage, and no invariant in this module may be
+\* read as evidence that it did.
+\*
+\* It is deliberately NOT "weakened closes are forbidden". The shipped CLI
+\* offers the flags, they have legitimate uses, and an invariant asserting a
+\* refusal the program does not perform is precisely the defect CD-09's G2
+\* removed. What is asserted is that the record distinguishes the two, which is
+\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+\* precondition TLC proved over 1,292,951 states and no oracle could see it.
+WeakenedClosesCertifyNothing ==
+  \A ticket \in WeakenedClosedTickets:
+    ~TicketReached(ticket, TicketSpecUnitTestsPassed)
 
 \* MF-016: a kill-test verdict exists only after the workflow it measures.
 \* RunKillTest guards on setup_phase >= 4 (budgets recorded), because the floor

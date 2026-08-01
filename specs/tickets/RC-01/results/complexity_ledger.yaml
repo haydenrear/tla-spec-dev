@@ -1,0 +1,228 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/results/rc01-tlc-baseline-d3eb851.txt"
+  tlc_after:
+    status: "green"
+    evidence: "specs/results/rc01-tlc-current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/rc01-pytest-full.txt (987 passed, 0 failed) and specs/results/rc01-spec-unit-tests.txt (71 passed)"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/results/rc01-model-delta.md, from specs/results/rc01-complexity-baseline.txt and specs/results/rc01-complexity-current.txt"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+# RC-01: `not_run` is the correct value here and is NOT a claim that the gaps
+# are closed. This ticket CLOSED the nine in-scope gaps the last audit found
+# (specs/results/rc01-gap-closure.md), but a gate does not clear its own
+# verdict: only a re-run of MF-026 against this tree can say `pass`, and that is
+# an end-of-epic step. The last recorded verdict remains `fail` at
+# specs/results/coverage_audit_report_architectural_coherence.md until the
+# re-audit runs. Recording `pass` here would be the self-clearing move that
+# report explicitly refused to make.
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:220-240 (representation_scope), governed by :26-67 and :68-77"
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+# RC-01: measured, and the answer is a REFUSAL rather than a number -- which is
+# the correct answer and the one AC-04 built the machinery to give. The baseline
+# is d3eb851's tree scanned with d3eb851's own analyzer; the map digest is
+# IDENTICAL across the two scans, but the ARCHITECTURE digest is not, because
+# this ticket changed the model. Adding a port converts a divergence into a
+# convergence with no code change, so the two runs do not share a definition of
+# what a divergence IS, and the delta is `unattributable`. Divergences are 0 ->
+# 0 and both verdicts are `unmappable` under the declared partition (unchanged
+# from AC-02/AC-03), so nothing is being hidden by the refusal -- but the refusal
+# is the honest headline for a ticket whose whole purpose was model delta.
+architecture_delta:
+  report: "specs/results/rc01-architecture-delta.json"
+  claim: "unattributable"
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  Complexity increased 9.53x on the static bound and 7.99x on reachable states,
+  and every part of the increase carries new EXTERNALLY OBSERVABLE behavior the
+  model did not represent.
+
+  `architecture_delta` (6-valued, the 6x factor): `analyze architecture
+  --baseline` reports a direction verdict that the complexity ledger records as
+  its own member and that no other variable determines. Two of its six values
+  are REFUSALS about the before/after pair rather than measurements of the code
+  -- `unattributable` is what this very ledger entry reports above, and
+  `unverified` is the structural MF-020 rule. Modeling only the three
+  measurements would have represented exactly the half of the command that can
+  be gamed.
+
+  `TicketClosedWeakened` (the 343/216 factor): a close taken under
+  `--accept-new` or `--allow-open` bypasses the precondition `CloseTicket`
+  guards on, and `ClosedTicketsPassedSpecUnitTests` is an invariant TLC proves
+  over the whole state space. Before this stage existed the model proved an
+  assurance the shipped program has two documented flags to violate, no state
+  recorded their use, and no oracle in this toolchain could see the difference.
+  The stage is what makes the two closes distinguishable; `scripts/spec_evolution.py`
+  now writes the matching `guard_weakening` record so the distinction is
+  observable outside the model too.
+
+  `GenerateCases` and `CloseTicketWeakened` add NOTHING to the bound: both write
+  only `lastCommand` and `result`, neither of which has a resolvable domain.
+
+  Not essential-by-assertion: the increase is decomposed exactly into its two
+  factors and that decomposition is asserted as a test
+  (tests/test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound),
+  so a future ticket cannot absorb an unexplained factor into this figure.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Two reductions were considered and both were rejected on the merits rather
+    than on cost.
+
+    (1) WIDEN `architecture_scan` INSTEAD OF ADDING `architecture_delta`. The
+    audit explicitly permitted this and it is cheaper -- 9 values in one variable
+    rather than 4 x 6 across two. Rejected: the scan verdict and the delta
+    verdict are produced BY THE SAME RUN and are independent, so a merged domain
+    would have to enumerate their product to stay faithful, or drop information
+    to stay small. The plan's own AC-01 note forbids the analogous move ("do not
+    merge `unmappable` into `unknown` to shrink the domain"), for the same
+    reason.
+
+    (2) RECORD THE WEAKENED CLOSE IN A SEPARATE VARIABLE rather than as a sixth
+    ticket stage. Measured as strictly worse: a `[Tickets -> BOOLEAN]` companion
+    is a 2^3 = 8x factor against the ordinal's 343/216 = 1.59x, for the same
+    information. The ordinal was chosen because it is the cheaper faithful
+    representation, not despite being cheaper.
+
+    One reduction WAS applied and it is not visible as a saving because it
+    prevented a cost: `architecture_delta` is constrained so that an
+    `unmappable` scan admits only three of its six values, which is honest (with
+    no comparable reflexion report there is no count to compare) rather than a
+    packing trick.
+
+    No reduction of the EXISTING model was found. The two unresolved variables
+    (`lastCommand`, `result`) remain unresolved, as they have been since MF-020,
+    so this ticket's chain is a like-for-like comparison with every recorded
+    predecessor -- RP-04's completeness assertions check exactly that.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  specs/results/rc01-model-delta.md (the delta and its cost),
+  specs/results/rc01-gap-closure.md (the nine gaps, one by one, with the
+  disposition for each), and specs/desired_program_model/deferred_findings.yaml
+  entries RC-01-DF-01..03.
+
+  The one thing a reader should not miss, stated here because it is the least
+  flattering result of the ticket: this repository's own model FLIPPED OUT OF
+  THE BLOB CASE as a side effect of the delta. `analyze architecture` reported
+  one component at Q = 0 through AC-04 -- asserted as a test so the finding
+  "cannot quietly reverse" -- and adding one variable beside its neighbour makes
+  the same measurement report two components meeting all three shipped criteria
+  at Q = 0.0116, 26x below the Newman threshold the tool prints and does not
+  apply, while still listing the two god-variables as single-writer violations
+  across the boundary it just drew. Nothing was tuned; no criterion changed.
+  That is a measurement of the scanner, filed as RC-01-DF-01 rather than
+  repaired, because a reconciliation ticket retuning a criterion while its own
+  model delta was in flight could not be told apart from fitting the tool to the
+  change it just made.
+
+  The eval null result held where it was measurable: EV-03's worked-example arm
+  re-run against this tree produces a BYTE-IDENTICAL corpus (same sha256, same
+  330/50/6 case counts, same 330/330 recovered arguments, CM-F5 still refusing).
+  The ARM A/B and 12-mutant tables were not re-run by this ticket.

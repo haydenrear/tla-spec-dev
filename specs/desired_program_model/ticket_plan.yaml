@@ -112,6 +112,16 @@ status:
   workflow: architectural-coherence-epic
   active_ticket: null
   active_ticket_title: null
+  # RC-01 closed 2026-08-01: all nine MF-026 in-scope gaps closed by modelling
+  # them or by changing the program, plus the owner's guard-weakening decision.
+  # SUBSTANTIAL model delta -- the first in this epic whose purpose was model
+  # delta: 2 actions, 1 variable, 1 widened domain, 1 invariant, 4 install-path
+  # ports. Bound 2,799,360 -> 26,671,680 (9.53x); TLC green 1,292,951 ->
+  # 10,331,543 distinct at UNCHANGED depth 26 (7.99x). Records:
+  # specs/results/rc01-gap-closure.md, rc01-model-delta.md. Three findings
+  # deferred: RC-01-DF-01 (the architecture scanner's decomposition verdict
+  # flipped on this repository because one variable was added, nothing tuned),
+  # RC-01-DF-02, RC-01-DF-03.
   # AC-02 closed 2026-07-27: the reflexion check (scripts/architecture_reflexion.py,
   # schema tla-spec-dev/architecture-reflexion v1) wired into `analyze
   # architecture --code/--map`. Zero TLA+ model delta, documented at the
@@ -1538,7 +1548,7 @@ tickets:
 
   - id: RC-01
     title: "Reconciliation: model the nine MF-026 gaps, including case generation and the six guard-weakening flags"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 6
     depends_on: [EV-03]
@@ -1693,3 +1703,99 @@ tickets:
       widened domain, and new effect ports on existing actions. Record the
       state-space cost in the ledger the way AC-01's 4.6x was recorded. This is
       the first ticket in the epic whose whole purpose is model delta.
+    model_delta_result: >
+      SUBSTANTIAL, as expected. Two new actions (GenerateCases,
+      CloseTicketWeakened), one new variable (architecture_delta, 6-valued), one
+      widened domain (ticket_state [Tickets -> 0..5] -> 0..6 for
+      TicketClosedWeakened), one new invariant (WeakenedClosesCertifyNothing),
+      one new named operator (TicketReached), one new effects row on an existing
+      action (AnalyzeArchitecture: [evidence_report]), and four install-path
+      ports (cli_artifact RETARGETED off the dead **/.venv/**, plus cli_download,
+      cli_artifact_delete, cli_selftest_process).
+
+      COST, recorded the way AC-01's 4.6x was. Static bound 2,799,360 ->
+      26,671,680 = 9.53x, decomposing exactly as 6 (architecture_delta) x 343/216
+      (the sixth ticket stage) and asserted as a test. TLC green: 32,122,220
+      generated / 1,292,951 distinct / depth 26 / 59s -> 392,923,694 generated /
+      10,331,543 distinct / depth 26 / 11min 15s = 7.99x on distinct states.
+      DEPTH IS UNCHANGED at 26: the model got wider, not deeper -- no new
+      sequence of commands became possible. Both advisory budgets were already
+      exceeded before this ticket and are further exceeded now; neither is
+      renegotiated. FLAGGED FOR THE OWNER: budgets.tlc_seconds is 120 and this
+      model now takes 675s to check. Nothing enforces it (run_tlc.sh applies no
+      timeout), so nothing failed, but the epic's model growth has put the model
+      5.6x over its own declared TLC wall-time budget.
+
+      Full record: specs/results/rc01-model-delta.md.
+    result: >
+      All nine in-scope gaps closed, each by modelling it or by changing the
+      program. No gap closed by a justification, an accepted risk or a scope
+      waiver. Per-gap record with the disposition for each:
+      specs/results/rc01-gap-closure.md.
+
+      Two closed by CHANGING THE PROGRAM and then modelling: G-2/G-3 (the three
+      unconstrained `--out` writes now resolve through
+      spec_paths.resolve_evidence_out and are REFUSED outside `results/`, so the
+      evidence_report declaration is true of every caller rather than of the
+      documented one) and G-6 (`tla-spec-dev generate cases` is a shipped
+      subcommand; case generation had no CLI surface at all). One closed
+      differently from what the audit asked, and it is recorded rather than
+      quietly done: G-5 reported all three manifests as stale, but
+      specs/program_model is the ACCEPTED BASELINE, its module really has 9
+      variables and 15 disjuncts, and its figure was correct. Making it say 10/16
+      would have made a true record false to satisfy an assertion written from a
+      misclassification. Its comment now names the tree explicitly, and the
+      durable check parses the module beside EACH manifest rather than comparing
+      all three to one global figure.
+
+      THE GUARD-WEAKENING DECISION COST FIVE INVARIANTS, AND TLC FOUND THE
+      FIRST. TicketClosedWeakened is ordinal 6 and certifies the LEAST, so every
+      property written as `ticket_state[t] >= <stage>` answered TRUE for it.
+      SpecUnitTestsRequireMeasuredCorpus was violated in 1,094 states on the
+      first run: a ticket at stage 6 with corpus_gate = "unknown". All five now
+      read through TicketReached, and ClosedTicketsPassedSpecUnitTests is
+      narrowed to GuardedClosedTickets with a tombstone -- it would otherwise
+      have remained true BY ACCIDENT OF THE ENCODING while asserting exactly what
+      --accept-new exists to falsify.
+
+      EVAL REGRESSION: the null result held where it could be measured. EV-03's
+      worked-example arm was re-run verbatim against this tree and the generated
+      corpus is BYTE-IDENTICAL -- Pipeline_cases cases.py sha256
+      944189052623960aea..., the same fingerprint EV-03 recorded, with 330/50/6
+      cases and 330/330 recovered arguments, and CM-F5 still refusing at STEP 6.
+      Evidence: specs/results/rc01-eval-regression-worked-example.txt. The ARM
+      A/B seeded-fault and 12-mutant tables were NOT re-run by this ticket --
+      that is the MF-026 re-audit's and a later eval's instrument, and this
+      ticket did not touch examples/validation/.
+
+      SUITE: 987 passed, 0 failed (baseline 967 at d3eb851; the 20 new tests are
+      12 manifest-record checks, 4 CLI/--out checks, and 4 parametrised
+      parameter-recovery cases for the two new actions). Six existing tests
+      failed on the model delta and were updated with the new measurement rather
+      than relaxed. Project spec-unit tests: 71 passed.
+
+      ONE FINDING THE TICKET DID NOT EXPECT AND DID NOT FIX: this repository's
+      own model FLIPPED OUT OF THE BLOB CASE. Through AC-04 `analyze
+      architecture` reported one component at Q = 0 and
+      consumable_as_architecture false, asserted as a test so the finding "cannot
+      quietly reverse". Adding architecture_delta beside architecture_scan -- one
+      variable, written by the action that already wrote its neighbour -- makes
+      the same measurement report two components meeting ALL THREE shipped
+      criteria at Q = 0.0116, which is 26x below the Newman threshold the tool
+      prints and does not apply, while the report still lists lastCommand and
+      result as single-writer violations across the boundary it just drew.
+      Nothing was tuned. Filed as RC-01-DF-01 rather than repaired: changing what
+      makes a partition a cut is a doctrine decision on AC-01/AC-03's surface,
+      and a reconciliation ticket retuning a criterion while its own model delta
+      was in flight would be indistinguishable from fitting the scanner to the
+      change it just made. Narrowed after filing: the flip is confined to the
+      EMERGENT partition; under this repository's DECLARED four-component
+      partition the model still does not decompose and the reflexion verdict is
+      still `unmappable`, exactly as AC-02/AC-03 recorded.
+
+      Deferred findings filed: RC-01-DF-01 (major, the decomposition flip),
+      RC-01-DF-02 (minor, specs/desired_program_model's adapter layer was a
+      ticket behind its own model and its spec-unit suite has never been
+      executed -- the desync is repaired here, the mechanism question is
+      deferred), RC-01-DF-03 (minor, three of the six guard-weakening flags
+      cannot be observed at the close).

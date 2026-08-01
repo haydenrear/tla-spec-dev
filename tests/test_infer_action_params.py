@@ -69,10 +69,12 @@ ALL_ACTIONS = (
     "AnalyzeComplexity",
     "AnalyzeCorpus",
     "AnalyzeArchitecture",
+    "GenerateCases",
     "RunEffectConformance",
     "RunKillTest",
     "RunSpecUnitTests",
     "CloseTicket",
+    "CloseTicketWeakened",
 )
 
 
@@ -99,6 +101,7 @@ def state(
     effect_conformance: str = "unknown",
     kill_test: str = "unknown",
     architecture_scan: str = "unknown",
+    architecture_delta: str = "unknown",
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -113,6 +116,7 @@ def state(
         "effect_conformance": effect_conformance,
         "kill_test": kill_test,
         "architecture_scan": architecture_scan,
+        "architecture_delta": architecture_delta,
     }
 
 
@@ -180,6 +184,19 @@ def pair(action: str) -> tuple[dict, dict]:
                 architecture_scan="unmappable",
             ),
         )
+    if action == "GenerateCases":
+        # RC-01 (MF-026 G-6). Writes no verdict: generation produces the corpus,
+        # AnalyzeCorpus measures it. The only observable change is the command
+        # record, which is why `root` has to be recovered guard-pinned rather
+        # than read off a variable this action wrote.
+        return (
+            state(setup_phase=4, spec_root="default_specs"),
+            state(
+                setup_phase=4,
+                spec_root="default_specs",
+                last_command="tla-spec-dev generate cases",
+            ),
+        )
     if action == "RunEffectConformance":
         return (
             state(setup_phase=4, spec_root="default_specs"),
@@ -212,6 +229,17 @@ def pair(action: str) -> tuple[dict, dict]:
             state(setup_phase=5, spec_root="default_specs", ticket_state={"cli_validation": 4}),
             state(setup_phase=5, spec_root="default_specs", ticket_state={"cli_validation": 5}),
         )
+    if action == "CloseTicketWeakened":
+        # RC-01: the guard-weakening close. Note the BEFORE stage -- 1
+        # (TicketOpened), not 4. That is the whole point of the transition: the
+        # ticket never passed a spec-unit run, and `--accept-new` /
+        # `--allow-open` close it anyway. The after stage is 6,
+        # TicketClosedWeakened, which is a HIGHER ordinal than TicketClosed and
+        # certifies strictly less.
+        return (
+            state(setup_phase=5, spec_root="default_specs", ticket_state={"cli_entrypoint": 1}),
+            state(setup_phase=5, spec_root="default_specs", ticket_state={"cli_entrypoint": 6}),
+        )
     raise AssertionError(f"no fixture for {action}")
 
 
@@ -230,6 +258,7 @@ EXPECTED = {
     "AnalyzeComplexity": {"root": "default_specs"},
     "AnalyzeCorpus": {"root": "default_specs"},
     "AnalyzeArchitecture": {"root": "default_specs"},
+    "GenerateCases": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
     "RunKillTest": {"root": "default_specs"},
     # CD-09 (G2): the `override` parameter left the model with the withdrawn
@@ -239,6 +268,7 @@ EXPECTED = {
         "ticket": "cli_workflow",
     },
     "CloseTicket": {"root": "default_specs", "ticket": "cli_validation"},
+    "CloseTicketWeakened": {"root": "default_specs", "ticket": "cli_entrypoint"},
 }
 
 # A deliberately WRONG expectation per action. Each must make the check fail.
@@ -254,6 +284,7 @@ NEGATIVE_CONTROLS = {
     "AnalyzeComplexity": {"root": "custom_specs"},
     "AnalyzeCorpus": {"root": "custom_specs"},
     "AnalyzeArchitecture": {"root": "custom_specs"},
+    "GenerateCases": {"root": "custom_specs"},
     "RunEffectConformance": {"root": "custom_specs"},
     "RunKillTest": {"root": "custom_specs"},
     # except-index: name a ticket that did not change.
@@ -261,6 +292,7 @@ NEGATIVE_CONTROLS = {
     "UpdateTicketDesired": {"ticket": "cli_workflow"},
     "UpdateTicketCurrent": {"ticket": "cli_validation"},
     "CloseTicket": {"root": "default_specs", "ticket": "cli_entrypoint"},
+    "CloseTicketWeakened": {"root": "default_specs", "ticket": "cli_validation"},
     # CD-09: `override` no longer exists on this action, so claiming it is
     # claiming a phantom argument -- the check must fail rather than ignore
     # the extra key.
@@ -547,10 +579,13 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert recipes["InstallLocalCli"].params == ()
 
 
-def test_all_fifteen_action_labels_are_audited(recipes):
+def test_all_seventeen_action_labels_are_audited(recipes):
     """Completeness: every Next disjunct appears, none is silently skipped.
 
-    AC-01 added the fifteenth, AnalyzeArchitecture.
+    AC-01 added the fifteenth, AnalyzeArchitecture. RC-01 added the sixteenth
+    and seventeenth: GenerateCases (MF-026 G-6, case-module generation, which
+    the model did not contain at all) and CloseTicketWeakened (the close taken
+    around the precondition TLC proves over the whole state space).
     """
     audited = set(recipes) - {"Stutter"}
     assert audited == set(ALL_ACTIONS), f"unaudited: {audited ^ set(ALL_ACTIONS)}"

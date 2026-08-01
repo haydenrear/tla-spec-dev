@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib
+import json
 import os
 import re
 import shutil
@@ -1133,8 +1134,19 @@ def report_action_coverage(
     return record
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Register the generation arguments.
+
+    RC-01 (MF-026 G-6). Split out of ``main()`` so `tla-spec-dev generate
+    cases` can register the SAME arguments rather than a second, drifting copy.
+    Until this ticket the whole of case-module generation was reachable only by
+    running this file directly: `build_parser` in scripts/tla_spec_dev.py never
+    referenced it, so an import-closure walk of the shipped CLI never saw the
+    java spawn at :115, the metadir `rmtree` at :139, the package writes at
+    :881-882 or the parameter-recovery audit write. Nothing generated a case
+    for it, nothing adapted it, nothing mutated it, and all four oracles
+    reported green over surface the model did not contain.
+    """
     parser.add_argument("tla", type=Path)
     parser.add_argument("cfg", type=Path)
     parser.add_argument(
@@ -1204,8 +1216,20 @@ def main() -> int:
             "model or spec change."
         ),
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--coverage-json",
+        type=Path,
+        help=(
+            "Also write the aggregated case-module coverage report here, as JSON. "
+            "RC-01: the path MUST resolve inside the generated package root -- the "
+            "report is an artifact OF the corpus it describes, and the "
+            "`spec_tree` port that declares this action's writes covers the "
+            "generated tree, not an arbitrary destination."
+        ),
+    )
 
+
+def run(args: argparse.Namespace) -> int:
     tla_path = resolve_existing_from_cwd(args.tla)
     spec_dir = resolve_spec_dir(args.tla)
     cfg_path = resolve_existing_spec_input(args.cfg, spec_dir)
@@ -1265,7 +1289,7 @@ def main() -> int:
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
 
-    report_action_coverage(
+    coverage_record = report_action_coverage(
         prepared,
         module=tla_path.stem,
         view=view,
@@ -1273,6 +1297,16 @@ def main() -> int:
         package_dir=out_path / args.package,
         manifest_path=manifest_path,
     )
+
+    if getattr(args, "coverage_json", None) is not None:
+        write_case_module_coverage_report(
+            coverage_record,
+            manifest_path=manifest_path,
+            view=view,
+            action_metadata=action_metadata,
+            package_dir=out_path / args.package,
+            destination=args.coverage_json,
+        )
 
     if param_recipes is not None:
         report_param_recovery(prepared, param_recipes, out_path / args.package)
@@ -1289,6 +1323,62 @@ def main() -> int:
         source=str(out_path / args.package),
     )
     return 0
+
+
+def write_case_module_coverage_report(
+    coverage_record: dict[str, Any],
+    *,
+    manifest_path: Path,
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    package_dir: Path,
+    destination: Path,
+) -> Path:
+    """Aggregate the case-module coverage report for the corpus just written.
+
+    RC-01 (MF-026 G-6). ``scripts/case_modules.py`` shipped a standalone
+    ``main()`` whose ``coverage`` subcommand built this report and wrote it as
+    JSON, and NOTHING in `build_parser` reached it. The aggregation is the
+    epic's flagship reporting artifact, so it is reachable from the shipped CLI
+    here, on the generation path that produces the corpora it reads.
+
+    The destination is required to resolve inside the generated package root:
+    the `spec_tree` port declares this action's writes over the generated tree,
+    and an unconstrained destination would be the same undeclared-write defect
+    the audit filed as G-2/G-3 against the three `--out` flags.
+    """
+    package_dir = package_dir.resolve()
+    resolved = Path(destination).expanduser()
+    resolved = (
+        resolved.resolve() if resolved.is_absolute() else (Path.cwd() / resolved).resolve()
+    )
+    if not is_relative_to(resolved, package_dir):
+        raise SystemExit(
+            f"ERROR: --coverage-json must resolve inside the generated package "
+            f"({package_dir}); got {resolved}. The report describes that corpus and is "
+            "declared as a write to it."
+        )
+    declared_for_view = {
+        name for name, meta in action_metadata.items() if should_emit_action(meta, view)
+    }
+    report = case_modules.build_report(
+        manifest_path=manifest_path,
+        corpora=[coverage_record],
+        view=view,
+        view_actions=declared_for_view,
+    )
+    write(resolved, json.dumps(case_modules.report_payload(report), indent=2, sort_keys=True) + "\n")
+    print(f"case-module coverage report written to {resolved}")
+    return resolved
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="generate_cases_from_tlc_dump",
+        description="Generate a view-aware spec-unit case package from a TLC state-graph dump.",
+    )
+    add_arguments(parser)
+    return run(parser.parse_args(argv))
 
 
 if __name__ == "__main__":
