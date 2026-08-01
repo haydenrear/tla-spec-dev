@@ -1567,7 +1567,56 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - workflow: architectural-coherence-epic
 - closed_at: 2026-08-01T23:37:54+00:00
 - summary: RC-01: all nine MF-026 in-scope gaps closed by modelling them or changing the program, plus the owner's guard-weakening decision. GenerateCases + CloseTicketWeakened + architecture_delta + TicketClosedWeakened; bound 9.53x, TLC green 7.99x distinct at unchanged depth 26.
-- feedback_status: unreviewed
+- feedback_status: items-recorded
 
-Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
-Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+### SF-201
+
+- surface: `scripts/spec_evolution.py::record_complexity_ledger`, and the
+  `complexity_ledger.yaml` template `scripts/new_ticket_workflow.py` scaffolds.
+- what happened: RC-01 measured a 7.99x reachable-state increase, wrote the TLC
+  output to `specs/results/rc01-tlc-current.txt`, named it as close evidence, and
+  the ledger entry still recorded `distinct_states: null`. The ledger fills those
+  figures only from one of three conventional FILENAMES inside the ticket's own
+  `results/` directory, and nothing in the scaffolded input mentions the
+  convention, offers a field for the path, or warns when none resolves.
+- why it matters: the same silence produced nulls for AC-01 (the epic's headline
+  4.6x) and EV-03. The one entry in this epic that carries a reachable-state
+  figure is AC-04's, which added no model delta at all. The machine record of the
+  standing objective has the number for the ticket that moved nothing and null
+  for the three that moved it most.
+- recommendation: add `tlc_report:` to the scaffolded ledger input with the
+  convention documented beside it, keep the filename probe as a fallback, and
+  print one line at close when neither resolves. Filed locally as RC-01-DF-04 in
+  `specs/desired_program_model/deferred_findings.yaml`.
+- status: recorded-local
+
+### SF-202
+
+- surface: `tla-spec-dev run spec-unit-tests --scope`.
+- what happened: `specs/desired_program_model/tests/` carries a 17-file
+  conformance suite that is copied forward at every `open ticket` and is never
+  executed -- project scope resolves to `specs/current` only. Its binding
+  reconciliation test had been asserting "fourteen command actions" against a
+  fifteen-action module since AC-01 closed, and no run ever said so.
+- why it matters: this is the toolchain doing to itself what the MF-026 coverage
+  audit exists to catch -- an oracle that is never pointed at a surface reports
+  nothing about it, which is not the same as reporting that it is clean.
+- recommendation: either add a scope that includes the desired tree, or stop
+  scaffolding tests into it and say plainly that the desired tree carries no
+  executable conformance. Filed locally as RC-01-DF-02.
+- status: recorded-local
+
+### SF-203
+
+- surface: `scripts/skill_feedback.py`, the close-out feedback record itself.
+- what happened: filling this block revealed that EVERY close-out entry in this
+  file -- eight of them, across this epic and its predecessor -- still reads
+  `feedback_status: unreviewed` with the boilerplate instruction untouched. The
+  close prints "feedback NOT yet filed" and closes anyway.
+- why it matters: it is a required close-out step that nothing requires. The
+  same shape as the gaps this epic's audit was opened to find: an obligation
+  stated in prose, checked by nobody, and therefore not an obligation.
+- recommendation: owner's call whether the step is real. If it is, make the
+  close refuse `unreviewed` at WORKFLOW close (it already refuses plenty else
+  there); if it is not, stop printing the warning.
+- status: recorded-local
