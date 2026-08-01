@@ -82,6 +82,7 @@ from typing import Any, Iterable, Sequence
 if __package__ in (None, ""):  # direct `python3 scripts/architecture_reflexion.py`
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.spec_paths import EvidencePathError, resolve_evidence_out  # noqa: E402
 from scripts.analyze_architecture import (  # noqa: E402
     EXIT_ANALYSIS_ERROR,
     EXIT_PASS,
@@ -2228,7 +2229,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument("--format", choices=["text", "json"], default="text")
-    parser.add_argument("--out", help="Also write the report here (ticket results/ evidence).")
+    parser.add_argument(
+        "--out",
+        help=(
+            "Also write the report here. RC-01: the path MUST resolve under a "
+            "`results/` directory -- that is the surface the `evidence_report` "
+            "effect port declares, and a write anywhere else is undeclared."
+        ),
+    )
 
 
 def run(args: argparse.Namespace) -> int:
@@ -2286,7 +2294,13 @@ def run(args: argparse.Namespace) -> int:
             rendered += "\n" + render_delta_text(delta)
     sys.stdout.write(rendered)
     if args.out:
-        out_path = Path(args.out)
+        # RC-01 (MF-026 G-2): same constraint as `analyze architecture --out`;
+        # this module is the same scan reached by its own entrypoint.
+        try:
+            out_path = resolve_evidence_out(args.out)
+        except EvidencePathError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return EXIT_USAGE
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(rendered, encoding="utf-8")
         print(f"wrote evidence: {out_path}", file=sys.stderr)

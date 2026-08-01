@@ -518,6 +518,58 @@ def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
     }
 
 
+#: RC-01 (MF-026, owner decision 2026-08-01). The three guard-weakening flags
+#: that reach `close ticket`, with what each one bypasses. The other three the
+#: owner named -- `--validate-only` on the spec-unit run, `--force` and
+#: `--dry-run` on scaffold/open -- weaken an EARLIER step and never reach this
+#: function, which is a limit of what the close path can observe and is
+#: recorded as such on TlaSpecDevCli.tla's CloseTicketWeakened.
+CLOSE_GUARD_WEAKENING_FLAGS = {
+    "--accept-new": "skips the ticket current == desired check and overwrites current/ from desired/",
+    "--allow-open": "snapshots a ticket whose ticket_plan.yaml status is not closed/done",
+    "--no-promote-current": "closes without promoting ticket desired/ into project current/",
+}
+
+
+def weakening_flags_record(
+    *, accept_new: bool, allow_open: bool, promote_current: bool
+) -> dict[str, Any]:
+    """Name the guard-weakening flags this close was taken under.
+
+    RC-01. `CloseTicket` in the model guards on the ticket having reached
+    `TicketSpecUnitTestsPassed`, and `ClosedTicketsPassedSpecUnitTests` is an
+    invariant TLC checks over the whole reachable state space -- while
+    `--accept-new` and `--allow-open` exist precisely to get past that
+    precondition. Before this record existed no modeled state and no artifact
+    distinguished the two closes, so the strongest claim the model makes had a
+    bypass that no oracle in this toolchain could see: the mutation kill test
+    seeds faults per declared port and per invariant, i.e. only inside modeled
+    boundaries.
+
+    Reports, never refuses. The flags ship, they have legitimate uses, and a
+    refusal the CLI does not perform would be a false assurance of the same
+    kind. `weakened` is the fact the model's `TicketClosedWeakened` stage
+    records.
+    """
+    used = []
+    if accept_new:
+        used.append("--accept-new")
+    if allow_open:
+        used.append("--allow-open")
+    if not promote_current:
+        used.append("--no-promote-current")
+    return {
+        "weakened": bool(used),
+        "flags": used,
+        "bypassed": [CLOSE_GUARD_WEAKENING_FLAGS[flag] for flag in used],
+        "model_action": "CloseTicketWeakened" if used else "CloseTicket",
+        "note": (
+            "RC-01: a close taken under a guard-weakening flag is a different modeled "
+            "state from one taken under the guard. Recorded, never refused."
+        ),
+    }
+
+
 def accept_new_ticket_current(active_dir: Path) -> dict[str, Any]:
     """Overwrite ticket current/ with desired/ so the accepted outcome is the ticket desired state."""
     return {
@@ -880,6 +932,18 @@ def create_ticket_history_entry(
     if not allow_open and status not in TICKET_CLOSED_STATUSES:
         raise SystemExit(f"ERROR: ticket {resolved_ticket_id} is not closed in ticket_plan.yaml: status={status or '(missing)'}")
 
+    # RC-01 (MF-026, owner decision 2026-08-01): a close taken under a
+    # guard-weakening flag is a DIFFERENT STATE from one taken under the guard
+    # (TlaSpecDevCli.tla CloseTicketWeakened), and until this ticket the record
+    # could not tell them apart. `--accept-new` and `--allow-open` exist
+    # specifically to bypass the precondition TLC proves over 1,292,951 states;
+    # the manifest recorded only `accept_new`, as an unlabeled boolean beside
+    # fifty other keys, and nothing named what it meant. Recorded here so the
+    # modeled distinction is externally observable in the append-only history --
+    # a model may not represent a difference the program does not expose.
+    guard_weakening_record = weakening_flags_record(
+        accept_new=accept_new, allow_open=allow_open, promote_current=promote_current
+    )
     active_dir = active_ticket_dir(specs_dir, resolved_ticket_id, ticket_root)
     accept_new_record: dict[str, Any] | None = None
     if active_dir.exists() and accept_new:
@@ -1004,6 +1068,11 @@ def create_ticket_history_entry(
         "ticket_workdir": ticket_workdir_record,
         "accept_new": accept_new,
         "accept_new_promotion": accept_new_record,
+        # RC-01: which guard-weakening flags this close was taken under, and
+        # therefore whether it is a CloseTicket or a CloseTicketWeakened in the
+        # model. Never a refusal -- the flags are shipped and have legitimate
+        # uses. What changed is that the record now says so.
+        "guard_weakening": guard_weakening_record,
         "promotion": promotion_record,
         "skill_feedback": skill_feedback_record,
         "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),

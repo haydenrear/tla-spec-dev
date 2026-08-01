@@ -59,6 +59,7 @@ from typing import Any, Iterable, Sequence
 if __package__ in (None, ""):  # direct `python3 scripts/analyze_architecture.py`
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.spec_paths import EvidencePathError, resolve_evidence_out  # noqa: E402
 from scripts.analyze_complexity import (  # noqa: E402
     Action,
     ModuleResolutionError,
@@ -1112,7 +1113,16 @@ def run(args: argparse.Namespace) -> int:
     )
     sys.stdout.write(rendered)
     if args.out:
-        out_path = Path(args.out)
+        # RC-01 (MF-026 G-2): constrained to the `evidence_report` port's
+        # declared target. AnalyzeArchitecture now carries that port
+        # (spec_manifest.yaml effects.actions), which G-1 found it had no row
+        # for at all; the model annotation that claimed this scan "only prints"
+        # was G-4.
+        try:
+            out_path = resolve_evidence_out(args.out)
+        except EvidencePathError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return EXIT_USAGE
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(rendered, encoding="utf-8")
         print(f"wrote evidence: {out_path}", file=sys.stderr)
@@ -1159,7 +1169,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
-    parser.add_argument("--out", help="Also write the descriptor here (ticket results/ evidence).")
+    parser.add_argument(
+        "--out",
+        help=(
+            "Also write the descriptor here. RC-01: the path MUST resolve under a "
+            "`results/` directory -- that is the surface the `evidence_report` "
+            "effect port declares, and a write anywhere else is undeclared."
+        ),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
