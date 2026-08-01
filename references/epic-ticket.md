@@ -30,12 +30,26 @@ ticket:
   wave: 1
   promotion_order: 10
   promotion_predecessor: null
+  role: implementation      # implementation | evaluation
   conflict_keys:
     production: []
     tla: []
     adapters: []
     test_graph: []
     workflow: []
+goals:
+  - goal: "<goal-id>"
+    kind: "perf"            # perf | eval | integration | quality
+    statement: "<what should be measurably better after the epic>"
+    metric: "<measured quantity>"
+    baseline: "<value + commit it was measured on, or 'unmeasured'>"
+    target: "<threshold that counts as success>"
+    decided_by:
+      ticket: "<evaluation-ticket-id>"
+      harness: "<command the evaluation ticket runs on the integrated epic>"
+    contribution: "direct"  # direct | enabling | guard
+    expected_effect: "<direction and magnitude this ticket should produce>"
+    local_signal: "<cheap in-worktree command, or 'N/A: reason'>"
 validation:
   tlc: "<exact command or N/A: reason>"
   spec_unit: "<exact command>"
@@ -57,6 +71,11 @@ deferment:
 This issue belongs to an existing shared spec workflow. The epic assignment
 overrides ordinary instructions to branch from or target the default branch.
 
+- Read `goals` before implementing. The `expected_effect` is the result this
+  change is aiming at; the named evaluation ticket decides the goal on the
+  integrated epic. Run `local_signal` before close, record the number under the
+  evidence root, and report it against `expected_effect` — including "no
+  measurable movement".
 - Start the worktree from the latest `origin/epic/<slug>` after all
   `depends_on` PRs are merged.
 - Run `tla-spec-dev --spec-root specs open ticket <stable-ticket-id>`; never
@@ -65,6 +84,9 @@ overrides ordinary instructions to branch from or target the default branch.
   and rerun the validation matrix.
 - Mark and close only this spec ticket with every evidence path. Never run the
   whole-workflow close script and never use `--accept-new`.
+- A local signal is a signal, not a gate. A missed one is reported, never
+  hidden, and never justifies weakening the REQUIRED matrix or chasing the
+  metric outside this ticket's conflict keys.
 - Defects found outside this ticket's conflict keys and semantic delta are
   **deferred, not fixed**: record them in the backlog under the epic's
   deferment policy and keep working the assigned slice. Escalate blocking
@@ -82,6 +104,38 @@ overrides ordinary instructions to branch from or target the default branch.
 <!-- git-epic-workflow:assignment:end -->
 ````
 
+## Evaluation-ticket variant
+
+A ticket that decides one or more goals sets `role: evaluation`, lists
+`owns_goals`, and replaces the per-goal `contribution` block with the harness it
+must run:
+
+```yaml
+ticket:
+  role: evaluation
+  owns_goals: ["<goal-id>"]
+goals:
+  - goal: "<goal-id>"
+    baseline: "<value + commit>"
+    target: "<threshold>"
+    harness: "<exact command run on the integrated epic tip>"
+    evidence_root: "<results/epic-<slug>/goals/<goal-id>>"
+    contribution: "guard"
+    expected_effect: "decides the goal; adds no behavioral delta"
+    local_signal: "N/A: this ticket is the measurement"
+```
+
+Its issue body states, in addition to the shared assignment rules:
+
+- run each owned harness from a fresh start on the reconciled epic tip, after
+  every contributing ticket has merged, and write results to `evidence_root`;
+- report baseline → measured → target and a verdict (`met` / `missed` /
+  `unmeasured` with a reason) per goal in the PR body;
+- never edit a target to match a result and never re-run selectively until a
+  number passes; report the run that happened;
+- file regressions and shortfalls as deferred findings for the epic owner
+  instead of fixing them in this ticket.
+
 ## Ticket-agent flow
 
 The presence of the start marker selects epic mode before ordinary
@@ -96,8 +150,8 @@ Fetch remote state and confirm:
 - `plan_commit` is reachable from the epic branch;
 - the workflow name and ticket ID still exist in `ticket_plan.yaml`;
 - the assignment's schedule revision, dependencies, blocks, wave, promotion
-  order/predecessor, conflict keys, validation matrix, and evidence root exactly
-  match that canonical ticket entry;
+  order/predecessor, conflict keys, goal relations, validation matrix, and
+  evidence root exactly match that canonical ticket entry;
 - the feature branch is not already merged or owned by another worktree.
 
 Do not treat a locally closed spec ticket, a green branch, or an open PR as a
@@ -191,6 +245,21 @@ as close evidence. A deferred finding never justifies weakening a REQUIRED
 validation entry, loosening an invariant, skipping a test, or closing a ticket
 whose equality gate fails.
 
+### 4b. Record the goal signal
+
+Run each declared `local_signal` in the ticket worktree and store its output
+under the ticket evidence root. Compare it with `expected_effect` and record one
+of: moved as expected, moved less than expected, no measurable movement, or
+moved the wrong way. An evaluation ticket instead runs its owned `harness` on
+the reconciled epic tip and records baseline → measured → target per goal.
+
+The local signal never changes the ticket's pass/fail: the REQUIRED validation
+matrix decides that, and the evaluation ticket decides the goal. Do not tune,
+re-run selectively, or widen scope to make the number look better. If the signal
+shows the goal is unreachable from this slice, finish the assigned semantic
+delta, file a deferred finding describing what the goal would actually require,
+and report it — that is plan feedback, not ticket work.
+
 ### 5. Enter the serialized promotion lane
 
 Parallel implementation ends here. Wait until the `promotion_predecessor` PR is
@@ -246,6 +315,9 @@ The PR body contains:
 - dependency and promotion-predecessor checks;
 - exact commands run and report/evidence paths;
 - the close-history path and resulting commit SHA;
+- a `## Goal contribution` section with one row per declared goal — goal ID,
+  contribution kind, expected effect, measured local signal (or `N/A: reason`),
+  and the evaluation ticket that decides it;
 - a `## Deferred findings` section listing each backlog ID filed by this ticket
   with its severity and one-line summary, or `None`;
 - the `home close-out` verdict for this ticket's worktree, and — if it blocked —

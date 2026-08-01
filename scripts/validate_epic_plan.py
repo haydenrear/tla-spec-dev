@@ -25,6 +25,32 @@ STABLE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
 MISSING = object()
 DEFERMENT_MODES = ("batch", "ask", "inline")
 DEFERMENT_BLOCKING = ("escalate", "ask")
+GOAL_KINDS = ("perf", "eval", "integration", "quality")
+GOAL_TEXT_FIELDS = ("statement", "metric", "harness", "target", "evidence_root")
+CONTRIBUTIONS = ("direct", "enabling", "guard")
+TICKET_ROLES = ("implementation", "evaluation")
+EVALUATION = "evaluation"
+UNMEASURED = "unmeasured"
+
+
+@dataclass(frozen=True)
+class PlanReport:
+    errors: list[str]
+    warnings: list[str]
+
+
+@dataclass(frozen=True)
+class GoalLink:
+    goal: str
+    contribution: str | None
+    local_signal: str | None
+
+
+@dataclass(frozen=True)
+class Goal:
+    id: str
+    evaluation_ticket: object
+    baseline_value: str | None
 
 
 @dataclass(frozen=True)
@@ -36,6 +62,9 @@ class Ticket:
     promotion_order: int | None
     promotion_predecessor: object
     conflict_keys: frozenset[tuple[str, str]]
+    role: str
+    goals: tuple[GoalLink, ...]
+    owns_goals: object
 
 
 def _ticket_label(index: int, raw_id: object) -> str:
@@ -101,6 +130,64 @@ def _conflict_keys(
     return frozenset(result)
 
 
+def _goal_links(
+    raw: dict[str, Any], label: str, errors: list[str]
+) -> tuple[GoalLink, ...]:
+    value = raw.get("goals", MISSING)
+    if value is MISSING:
+        return ()
+    if not isinstance(value, list):
+        errors.append(f"{label}: goals must be a list of goal relations")
+        return ()
+
+    links: list[GoalLink] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(value):
+        entry_label = f"{label}: goals[{index}]"
+        if not isinstance(entry, dict):
+            errors.append(f"{entry_label} must be a mapping")
+            continue
+
+        goal_id = entry.get("goal", MISSING)
+        if not isinstance(goal_id, str) or not STABLE_ID.fullmatch(goal_id):
+            errors.append(f"{entry_label}: goal must be a stable goal ID")
+            continue
+        if goal_id in seen:
+            errors.append(f"{entry_label}: duplicate relation to goal {goal_id!r}")
+            continue
+        seen.add(goal_id)
+
+        contribution = entry.get("contribution", MISSING)
+        if contribution not in CONTRIBUTIONS:
+            errors.append(
+                f"{entry_label}: contribution must be one of {list(CONTRIBUTIONS)}"
+            )
+            contribution = None
+
+        effect = entry.get("expected_effect", MISSING)
+        if not isinstance(effect, str) or not effect.strip():
+            errors.append(
+                f"{entry_label}: expected_effect must state the result this ticket "
+                "should produce, or 'none — enabling only'"
+            )
+
+        signal = entry.get("local_signal", MISSING)
+        if not isinstance(signal, str) or not signal.strip():
+            errors.append(
+                f"{entry_label}: local_signal must be a command or 'N/A: <reason>'"
+            )
+            signal = None
+
+        links.append(
+            GoalLink(
+                goal=goal_id,
+                contribution=contribution if isinstance(contribution, str) else None,
+                local_signal=signal if isinstance(signal, str) else None,
+            )
+        )
+    return tuple(links)
+
+
 def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
     if not isinstance(plan, dict):
         errors.append("plan root must be a mapping")
@@ -149,6 +236,11 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
                     f"{label}: promotion_predecessor must be null or a stable ticket ID"
                 )
 
+        role = raw.get("role", "implementation")
+        if role not in TICKET_ROLES:
+            errors.append(f"{label}: role must be one of {list(TICKET_ROLES)}")
+            role = "implementation"
+
         tickets[raw_id] = Ticket(
             id=raw_id,
             depends_on=_id_list(raw, "depends_on", label, errors),
@@ -157,6 +249,9 @@ def _parse_tickets(plan: object, errors: list[str]) -> dict[str, Ticket]:
             promotion_order=parsed_order,
             promotion_predecessor=predecessor,
             conflict_keys=_conflict_keys(raw, label, errors),
+            role=role,
+            goals=_goal_links(raw, label, errors),
+            owns_goals=raw.get("owns_goals", MISSING),
         )
     return tickets
 
@@ -323,6 +418,241 @@ def _validate_promotion_lane(tickets: dict[str, Ticket], errors: list[str]) -> N
             )
 
 
+def _baseline_value(
+    raw: object, label: str, errors: list[str]
+) -> str | None:
+    """Accept either a `{value: ...}` mapping or a bare measured string."""
+    if raw is MISSING or raw is None:
+        return None
+    if isinstance(raw, str):
+        return raw.strip() or None
+    if not isinstance(raw, dict):
+        errors.append(f"{label}: baseline must be a mapping with a value, or a string")
+        return None
+    value = raw.get("value")
+    if not isinstance(value, str) or not value.strip():
+        return None
+    return value.strip()
+
+
+def _parse_goals(
+    plan: object, errors: list[str], warnings: list[str]
+) -> dict[str, Goal]:
+    """Goals are agreed with the user, so their absence warns rather than fails."""
+    if not isinstance(plan, dict):
+        return {}
+
+    raw_goals = plan.get("epic_goals", MISSING)
+    if raw_goals is MISSING or raw_goals == []:
+        waiver = plan.get("goals_waived", MISSING)
+        if isinstance(waiver, str) and waiver.strip():
+            warnings.append(
+                f"epic_goals is waived: {waiver.strip()}; no evaluation ticket will "
+                "decide this epic's outcome"
+            )
+        else:
+            warnings.append(
+                "plan declares no epic_goals; ask the user what should be measurably "
+                "better, add the evaluation/perf ticket that decides it, and relate "
+                "every ticket to it (see references/goals-and-evaluation.md)"
+            )
+        return {}
+
+    if not isinstance(raw_goals, list):
+        errors.append("epic_goals must be a list of goals")
+        return {}
+
+    goals: dict[str, Goal] = {}
+    for index, raw in enumerate(raw_goals):
+        label = f"epic_goals[{index}]"
+        if not isinstance(raw, dict):
+            errors.append(f"{label} must be a mapping")
+            continue
+
+        goal_id = raw.get("id", MISSING)
+        if not isinstance(goal_id, str) or not STABLE_ID.fullmatch(goal_id):
+            errors.append(f"{label}: id must be a stable goal ID")
+            continue
+        if goal_id in goals:
+            errors.append(f"duplicate goal ID {goal_id!r}")
+            continue
+        label = f"goal {goal_id!r}"
+
+        if raw.get("kind", MISSING) not in GOAL_KINDS:
+            errors.append(f"{label}: kind must be one of {list(GOAL_KINDS)}")
+        for field in GOAL_TEXT_FIELDS:
+            value = raw.get(field, MISSING)
+            if not isinstance(value, str) or not value.strip():
+                errors.append(f"{label}: {field} must be a non-empty string")
+
+        baseline = _baseline_value(raw.get("baseline", MISSING), label, errors)
+        if baseline is None or baseline.lower() == UNMEASURED:
+            warnings.append(
+                f"{label}: baseline is unmeasured; measure it on the epic branch "
+                "before behavioral tickets land, or schedule a wave-1 harness ticket"
+            )
+            baseline = None
+
+        evaluation_ticket = raw.get("evaluation_ticket", MISSING)
+        if evaluation_ticket is MISSING or not isinstance(evaluation_ticket, str):
+            errors.append(
+                f"{label}: evaluation_ticket must name the ticket that decides this goal"
+            )
+
+        goals[goal_id] = Goal(
+            id=goal_id,
+            evaluation_ticket=evaluation_ticket,
+            baseline_value=baseline,
+        )
+    return goals
+
+
+def _ancestors(tickets: dict[str, Ticket], start: str) -> set[str]:
+    """Tickets `start` transitively depends on; cycle-safe."""
+    seen: set[str] = set()
+    stack = [start]
+    while stack:
+        current = stack.pop()
+        ticket = tickets.get(current)
+        if ticket is None:
+            continue
+        for dependency in ticket.depends_on:
+            if dependency in seen or dependency not in tickets:
+                continue
+            seen.add(dependency)
+            stack.append(dependency)
+    return seen
+
+
+def _validate_owns_goals(
+    ticket: Ticket, goals: dict[str, Goal], errors: list[str]
+) -> None:
+    if ticket.owns_goals is MISSING:
+        return
+    if not isinstance(ticket.owns_goals, list):
+        errors.append(f"ticket {ticket.id!r}: owns_goals must be a list of goal IDs")
+        return
+    for goal_id in ticket.owns_goals:
+        if not isinstance(goal_id, str) or goal_id not in goals:
+            errors.append(
+                f"ticket {ticket.id!r}: owns_goals references unknown goal {goal_id!r}"
+            )
+            continue
+        if goals[goal_id].evaluation_ticket != ticket.id:
+            errors.append(
+                f"ticket {ticket.id!r}: owns_goals lists {goal_id!r}, but that goal's "
+                f"evaluation_ticket is {goals[goal_id].evaluation_ticket!r}"
+            )
+    owned = {
+        goal.id for goal in goals.values() if goal.evaluation_ticket == ticket.id
+    }
+    declared = {goal for goal in ticket.owns_goals if isinstance(goal, str)}
+    missing = sorted(owned - declared)
+    if missing:
+        errors.append(
+            f"ticket {ticket.id!r}: owns_goals must list every goal it decides; "
+            f"missing {missing}"
+        )
+
+
+def _validate_goal_alignment(
+    goals: dict[str, Goal],
+    tickets: dict[str, Ticket],
+    errors: list[str],
+    warnings: list[str],
+) -> None:
+    if not goals:
+        return
+
+    has_evaluation_ticket = any(
+        ticket.role == EVALUATION for ticket in tickets.values()
+    )
+    if not has_evaluation_ticket:
+        warnings.append(
+            "no ticket declares role: evaluation; schedule a terminal "
+            "evaluation/perf/integration ticket that runs each goal harness on the "
+            "integrated epic and decides it"
+        )
+
+    contributors: dict[str, list[Ticket]] = defaultdict(list)
+    for ticket in sorted(tickets.values(), key=lambda item: item.id):
+        _validate_owns_goals(ticket, goals, errors)
+
+        if not ticket.goals:
+            errors.append(
+                f"ticket {ticket.id!r}: must relate to at least one epic goal so its "
+                "agent knows which measured outcome the work serves"
+            )
+            continue
+
+        for link in ticket.goals:
+            if link.goal not in goals:
+                errors.append(
+                    f"ticket {ticket.id!r}: goals references unknown goal {link.goal!r}"
+                )
+                continue
+            if link.contribution == "direct":
+                if ticket.role != EVALUATION and (
+                    link.local_signal is None
+                    or link.local_signal.strip().upper().startswith("N/A")
+                ):
+                    warnings.append(
+                        f"ticket {ticket.id!r}: direct contribution to {link.goal!r} "
+                        "has no local signal; the agent cannot tell whether its change "
+                        "moved the metric until finalization"
+                    )
+            # A goal's own decider never counts as a contributor to it, even when
+            # the plan has not marked its role yet.
+            if (
+                ticket.role != EVALUATION
+                and goals[link.goal].evaluation_ticket != ticket.id
+            ):
+                contributors[link.goal].append(ticket)
+
+    for goal_id, goal in sorted(goals.items()):
+        goal_contributors = contributors.get(goal_id, [])
+        if not goal_contributors:
+            errors.append(
+                f"goal {goal_id!r}: no implementation ticket contributes to it; "
+                "schedule the work or drop the goal"
+            )
+
+        evaluator_id = goal.evaluation_ticket
+        if not isinstance(evaluator_id, str):
+            continue
+        evaluator = tickets.get(evaluator_id)
+        if evaluator is None:
+            errors.append(
+                f"goal {goal_id!r}: evaluation_ticket references unknown ticket "
+                f"{evaluator_id!r}"
+            )
+            continue
+        if evaluator.role != EVALUATION and has_evaluation_ticket:
+            errors.append(
+                f"goal {goal_id!r}: evaluation_ticket {evaluator_id!r} must declare "
+                "role: evaluation"
+            )
+
+        evaluator_ancestors = _ancestors(tickets, evaluator_id)
+        for contributor in goal_contributors:
+            if contributor.id not in evaluator_ancestors:
+                errors.append(
+                    f"goal {goal_id!r}: evaluation ticket {evaluator_id!r} must depend "
+                    f"on contributor {contributor.id!r}, directly or transitively, so "
+                    "the measurement runs on the integrated result"
+                )
+            if (
+                evaluator.promotion_order is not None
+                and contributor.promotion_order is not None
+                and evaluator.promotion_order <= contributor.promotion_order
+            ):
+                errors.append(
+                    f"goal {goal_id!r}: evaluation ticket {evaluator_id!r} "
+                    f"({evaluator.promotion_order}) must promote after contributor "
+                    f"{contributor.id!r} ({contributor.promotion_order})"
+                )
+
+
 def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
     """The policy is agreed with the user at epic creation, so require it here."""
     if not isinstance(plan, dict):
@@ -360,17 +690,24 @@ def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
         errors.append("deferment_policy.backlog must be a non-empty path string")
 
 
-def validate_plan(plan: object) -> list[str]:
-    """Return deterministic diagnostics; an empty list means the plan is valid."""
+def validate_plan(plan: object) -> PlanReport:
+    """Return deterministic diagnostics; no errors means the plan is valid.
+
+    Warnings never fail the plan: a missing goal set or evaluation ticket is a
+    conversation to have with the epic owner, not a schema violation.
+    """
     errors: list[str] = []
+    warnings: list[str] = []
     _validate_deferment_policy(plan, errors)
+    goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)
     if not tickets:
-        return errors
+        return PlanReport(errors=errors, warnings=warnings)
     _validate_dependency_graph(tickets, errors)
     _validate_conflicts(tickets, errors)
     _validate_promotion_lane(tickets, errors)
-    return errors
+    _validate_goal_alignment(goals, tickets, errors, warnings)
+    return PlanReport(errors=errors, warnings=warnings)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -399,18 +736,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: invalid YAML in {args.plan}: {error}", file=sys.stderr)
         return 2
 
-    errors = validate_plan(plan)
-    if errors:
+    report = validate_plan(plan)
+    for warning in report.warnings:
+        print(f"WARNING: {warning}", file=sys.stderr)
+
+    if report.errors:
         print(f"INVALID: {args.plan}", file=sys.stderr)
-        for error in errors:
+        for error in report.errors:
             print(f"- {error}", file=sys.stderr)
         return 1
 
     ticket_count = len(plan["tickets"])
     wave_count = len({ticket["wave"] for ticket in plan["tickets"]})
+    goal_count = len(plan.get("epic_goals") or [])
+    goal_label = "goal" if goal_count == 1 else "goals"
     print(
         f"OK: {args.plan} has a valid epic schedule "
-        f"({ticket_count} tickets across {wave_count} waves)"
+        f"({ticket_count} tickets across {wave_count} waves, "
+        f"{goal_count} {goal_label})"
     )
     return 0
 

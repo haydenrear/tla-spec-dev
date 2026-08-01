@@ -14,7 +14,9 @@ Fetch remote state and verify, for every ticket in
 - plan status is closed/done;
 - exactly one append-only ticket history entry exists;
 - the entry records validation evidence;
-- no `specs/tickets/<id>` workspace remains.
+- no `specs/tickets/<id>` workspace remains;
+- every evaluation ticket merged **after** all contributors to the goals it
+  owns, so its measurement describes the integrated epic.
 
 Also confirm there are no open ticket PRs targeting the epic branch and no
 uncommitted changes. An open/green PR or locally closed branch is not integrated.
@@ -126,6 +128,32 @@ Confirm project `specs/current` semantically equals the target
 bindings, JSON artifacts, and graph changes. Do not rely on the cleanup script
 as the only comparison.
 
+## 2a. Decide the epic goals
+
+Read `epic_goals` from `specs/desired_program_model/ticket_plan.yaml` and settle
+every goal before the review gate. A goal is decided by running its `harness` on
+the integrated epic tip, not by trusting a ticket-branch number.
+
+- Reuse the owning evaluation ticket's run only when it ran on a tip identical
+  to the current integrated one; otherwise re-run the harness here.
+- Compare against the recorded baseline, not against intuition. A baseline that
+  was never measured makes the goal `unmeasured` — say so; do not backfill it
+  from the post-epic branch and call it a comparison.
+- Store results under each goal's `evidence_root` and cite them in the epic PR.
+
+Report every goal:
+
+| Goal | Kind | Baseline | Measured | Target | Verdict |
+| --- | --- | --- | --- | --- | --- |
+
+Verdicts are `met`, `missed`, or `unmeasured` with a reason. A missed goal is a
+decision for the user, presented with the measured shortfall and the options:
+add a ticket inside this epic (finalization restarts from step 1), accept the
+shortfall with a recorded reason, or carry it out of the epic as a new issue.
+Never edit a target to match the measurement, and never close an epic with a
+silently unmeasured goal. A regression a goal harness uncovers is a finding: it
+enters the backlog and the normal ticket path, not a hand fix on the epic branch.
+
 ## 3. Pass the external semantic-review gate
 
 Push the fully integrated, still-open workflow state and open or update a draft
@@ -177,6 +205,8 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - every child issue and merged ticket PR;
 - the dependency/promotion order actually integrated;
 - full validation commands, run IDs, summaries, and report paths;
+- the goal table from step 2a — baseline, measured, target, and verdict per
+  goal, with the user's recorded acceptance for any missed goal;
 - the workflow closed-snapshot path;
 - the deferred-findings disposition: tickets opened, `wontfix` reasons, and
   issues carried to the default branch;

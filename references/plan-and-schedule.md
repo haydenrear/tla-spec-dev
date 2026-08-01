@@ -122,6 +122,35 @@ The desired model describes the final whole-program state. A ticket desired
 model later describes the whole-program state after that ticket, not a feature
 fragment.
 
+While discovering, inventory what already measures this program: benchmark
+scripts, eval datasets and scorers, perf-marked test suites, end-to-end Test
+Graph graphs, and any dashboards or saved baselines. That inventory is the raw
+material for the goals agreed in step 3a — goals are cheapest when an existing
+harness already decides them.
+
+## 3a. Agree the epic goals
+
+Before scaffolding the workflow, ask the user what should be measurably better
+when the epic is done. This is a required decision, like the deferment policy;
+do not infer goals from the codebase and do not default them.
+
+Ask for each outcome: the metric, the command that measures it, today's value,
+and the threshold that counts as success. Then:
+
+- write each answer as a goal in the schema from `goals-and-evaluation.md`;
+- measure the baseline now, on the fresh epic branch, whenever the harness
+  already exists, and commit it under the epic evidence root;
+- schedule a wave-1 harness+baseline ticket when it does not;
+- schedule the terminal evaluation ticket(s) that run the harnesses on the
+  integrated epic and decide each goal;
+- give every other ticket a goal relation — contribution kind, expected effect,
+  and a local signal it can run in its own worktree.
+
+If the user has no measurable outcome, record `epic_goals: []` with a
+`goals_waived` reason rather than inventing a metric. Read
+`references/goals-and-evaluation.md` for goal kinds, baselines, contribution
+kinds, the evaluation-ticket contract, and reporting.
+
 ## 4. Scaffold the shared workflow once
 
 Choose stable ticket IDs before scaffolding. Use the first ticket only as the
@@ -139,6 +168,7 @@ Then replace the placeholder planning data with the complete epic:
 - expand `ticket_plan.yaml` to every stable ticket;
 - add an integer `schedule_revision` that changes whenever IDs, dependency
   edges, waves, promotion order, conflict ownership, or validation scope changes;
+- add the `epic_goals` block agreed in step 3a;
 - add the `deferment_policy` block agreed in step 4a;
 - remove placeholder actions, scopes, commands, and assertions.
 
@@ -155,13 +185,22 @@ blocks: []
 wave: 1
 promotion_order: 10
 promotion_predecessor: null
+role: implementation          # implementation | evaluation
 conflict_keys:
   production: []
   tla: []
   adapters: []
   test_graph: []
   workflow: []
+goals:
+  - goal: "<goal-id>"
+    contribution: direct      # direct | enabling | guard
+    expected_effect: "<direction and magnitude, or 'none — enabling only'>"
+    local_signal: "<cheap in-worktree command, or 'N/A: reason'>"
 ```
+
+Evaluation tickets add `role: evaluation` and `owns_goals: ["<goal-id>"]`, and
+depend on every ticket contributing to the goals they own.
 
 ## 4a. Agree the deferment policy
 
@@ -209,7 +248,10 @@ Treat `depends_on` as a directed graph and reject the plan unless:
 - every ticket has an exact validation matrix or an explicit `N/A` reason;
 - `promotion_order` is unique and total;
 - promotion order is a topological extension of `depends_on`;
-- each `promotion_predecessor` names the preceding ticket in that total order.
+- each `promotion_predecessor` names the preceding ticket in that total order;
+- every ticket relates to at least one declared goal, every goal has a
+  contributing ticket, and each goal's evaluation ticket both depends on and
+  promotes after every contributor.
 
 Run the bundled validator before dispatch and whenever the schedule changes:
 
@@ -217,6 +259,12 @@ Run the bundled validator before dispatch and whenever the schedule changes:
 uv run <git-epic-workflow-skill>/scripts/validate_epic_plan.py \
   specs/desired_program_model/ticket_plan.yaml
 ```
+
+The validator prints `WARNING:` lines and still exits 0 for a missing or waived
+goal set, a missing evaluation ticket, an `unmeasured` baseline, or a `direct`
+contribution with no local signal. Treat those as prompts to go back to the
+user, not as noise. Inconsistencies inside a declared goal set are errors and
+exit non-zero.
 
 The total promotion order is an integration lane, not an implementation
 dependency. Agents in one wave may implement and validate concurrently, but
@@ -277,8 +325,8 @@ the same readiness graph agents see in their assignments.
 
 Before dispatch, render every assignment from its canonical plan entry and
 compare the following fields exactly: ticket ID, schedule revision,
-dependencies, blocks, wave, promotion order/predecessor, conflict keys,
-validation matrix, and evidence root. An older ancestor `plan_commit` alone is
+dependencies, blocks, wave, promotion order/predecessor, conflict keys, goal
+relations, validation matrix, and evidence root. An older ancestor `plan_commit` alone is
 not freshness proof; the copied scheduling fields must still match.
 
 ## 7. Commit, push, and dispatch
@@ -287,10 +335,15 @@ Review the desired model and plan, then commit and push `epic/<slug>` before
 dispatch. Each assignment records an epic base SHA that is already reachable
 from the remote epic branch.
 
-Return a schedule such as:
+Return the goals the epic is aiming at:
 
-| Issue | Spec ticket | Start dependencies | Wave | Promote after | State |
+| Goal | Kind | Metric | Baseline | Target | Decided by |
 | --- | --- | --- | --- | --- | --- |
+
+and a schedule such as:
+
+| Issue | Spec ticket | Start dependencies | Wave | Promote after | Goals | State |
+| --- | --- | --- | --- | --- | --- | --- |
 
 An issue is ready to hand off only when every dependency PR is merged into the
 remote epic branch. An open or green PR is not a satisfied dependency.

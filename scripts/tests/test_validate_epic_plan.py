@@ -36,6 +36,16 @@ def valid_plan() -> dict:
         "test_graph": [],
         "workflow": [],
     }
+    def link(contribution: str = "direct", signal: str = "bench --quick") -> list[dict]:
+        return [
+            {
+                "goal": "GOAL-1",
+                "contribution": contribution,
+                "expected_effect": "-120ms p99",
+                "local_signal": signal,
+            }
+        ]
+
     return {
         "deferment_policy": {
             "mode": "batch",
@@ -43,6 +53,23 @@ def valid_plan() -> dict:
             "budget": 5,
             "backlog": "specs/desired_program_model/deferred_findings.yaml",
         },
+        "epic_goals": [
+            {
+                "id": "GOAL-1",
+                "kind": "perf",
+                "statement": "Batched ingest cuts tail latency.",
+                "metric": "p99 ingest latency (ms) at 5k rps",
+                "harness": "bench --profile epic",
+                "baseline": {
+                    "value": "p99 412ms",
+                    "measured_at": "abc123",
+                    "evidence": "results/epic/baseline/ingest.json",
+                },
+                "target": "p99 <= 250ms",
+                "evaluation_ticket": "EPIC-3",
+                "evidence_root": "results/epic/goals/GOAL-1",
+            }
+        ],
         "tickets": [
             {
                 "id": "EPIC-1",
@@ -55,6 +82,7 @@ def valid_plan() -> dict:
                     **empty_conflicts,
                     "production": ["src/one.py"],
                 },
+                "goals": link(),
             },
             {
                 "id": "EPIC-2",
@@ -67,15 +95,19 @@ def valid_plan() -> dict:
                     **empty_conflicts,
                     "production": ["src/two.py"],
                 },
+                "goals": link("enabling", "N/A: plumbing only"),
             },
             {
                 "id": "EPIC-3",
+                "role": "evaluation",
+                "owns_goals": ["GOAL-1"],
                 "depends_on": ["EPIC-1", "EPIC-2"],
                 "blocks": [],
                 "wave": 2,
                 "promotion_order": 30,
                 "promotion_predecessor": "EPIC-2",
                 "conflict_keys": empty_conflicts,
+                "goals": link("guard", "N/A: this ticket is the measurement"),
             },
         ]
     }
@@ -83,12 +115,20 @@ def valid_plan() -> dict:
 
 class EpicPlanValidatorTests(unittest.TestCase):
     def assert_invalid(self, plan: dict, diagnostic: str) -> None:
-        errors = validator.validate_plan(plan)
-        self.assertTrue(errors)
-        self.assertIn(diagnostic, "\n".join(errors))
+        report = validator.validate_plan(plan)
+        self.assertTrue(report.errors)
+        self.assertIn(diagnostic, "\n".join(report.errors))
+
+    def assert_warns(self, plan: dict, diagnostic: str) -> None:
+        """Warnings are advisory: they must not fail the plan."""
+        report = validator.validate_plan(plan)
+        self.assertEqual(report.errors, [])
+        self.assertIn(diagnostic, "\n".join(report.warnings))
 
     def test_accepts_valid_parallel_schedule(self) -> None:
-        self.assertEqual(validator.validate_plan(valid_plan()), [])
+        report = validator.validate_plan(valid_plan())
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.warnings, [])
 
     def test_rejects_plan_without_a_deferment_policy(self) -> None:
         plan = valid_plan()
@@ -122,7 +162,7 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan = valid_plan()
         plan["tickets"].append(copy.deepcopy(plan["tickets"][0]))
         plan["tickets"].append({"id": "not stable"})
-        errors = "\n".join(validator.validate_plan(plan))
+        errors = "\n".join(validator.validate_plan(plan).errors)
         self.assertIn("duplicate ticket ID 'EPIC-1'", errors)
         self.assertIn("id must be a stable string", errors)
 
@@ -188,7 +228,106 @@ class EpicPlanValidatorTests(unittest.TestCase):
             stdout = io.StringIO()
             with redirect_stdout(stdout):
                 self.assertEqual(validator.main([str(path)]), 0)
-            self.assertIn("3 tickets across 2 waves", stdout.getvalue())
+            self.assertIn("3 tickets across 2 waves, 1 goal", stdout.getvalue())
+
+    def test_cli_warns_but_succeeds_without_goals(self) -> None:
+        plan = valid_plan()
+        del plan["epic_goals"]
+        for ticket in plan["tickets"]:
+            ticket.pop("goals", None)
+            ticket.pop("owns_goals", None)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ticket_plan.yaml"
+            path.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), redirect_stdout(io.StringIO()):
+                self.assertEqual(validator.main([str(path)]), 0)
+            self.assertIn("WARNING: plan declares no epic_goals", stderr.getvalue())
+
+    def test_warns_when_goals_are_waived(self) -> None:
+        plan = valid_plan()
+        plan["epic_goals"] = []
+        plan["goals_waived"] = "pure refactor; no behavioral delta"
+        for ticket in plan["tickets"]:
+            ticket.pop("goals", None)
+            ticket.pop("owns_goals", None)
+        self.assert_warns(plan, "epic_goals is waived: pure refactor")
+
+    def test_warns_when_no_ticket_declares_an_evaluation_role(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][2].pop("role")
+        self.assert_warns(plan, "no ticket declares role: evaluation")
+
+    def test_warns_on_unmeasured_baseline(self) -> None:
+        plan = valid_plan()
+        plan["epic_goals"][0]["baseline"] = {"value": "unmeasured"}
+        self.assert_warns(plan, "baseline is unmeasured")
+
+    def test_warns_when_a_direct_contribution_has_no_local_signal(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["goals"][0]["local_signal"] = "N/A: no cheap check"
+        self.assert_warns(plan, "has no local signal")
+
+    def test_rejects_ticket_with_no_goal_relation(self) -> None:
+        plan = valid_plan()
+        del plan["tickets"][0]["goals"]
+        self.assert_invalid(plan, "must relate to at least one epic goal")
+
+    def test_rejects_unknown_goal_reference(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["goals"][0]["goal"] = "GOAL-nope"
+        self.assert_invalid(plan, "goals references unknown goal 'GOAL-nope'")
+
+    def test_rejects_unknown_contribution_kind(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["goals"][0]["contribution"] = "vibes"
+        self.assert_invalid(plan, "contribution must be one of")
+
+    def test_rejects_goal_missing_required_fields(self) -> None:
+        plan = valid_plan()
+        del plan["epic_goals"][0]["harness"]
+        plan["epic_goals"][0]["kind"] = "hunch"
+        errors = "\n".join(validator.validate_plan(plan).errors)
+        self.assertIn("harness must be a non-empty string", errors)
+        self.assertIn("kind must be one of", errors)
+
+    def test_rejects_goal_with_no_contributing_ticket(self) -> None:
+        plan = valid_plan()
+        plan["epic_goals"].append(
+            {
+                **copy.deepcopy(plan["epic_goals"][0]),
+                "id": "GOAL-2",
+            }
+        )
+        plan["tickets"][2]["owns_goals"] = ["GOAL-1", "GOAL-2"]
+        self.assert_invalid(plan, "goal 'GOAL-2': no implementation ticket contributes")
+
+    def test_rejects_evaluation_ticket_that_skips_a_contributor(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][2]["depends_on"] = ["EPIC-1"]
+        plan["tickets"][1]["blocks"] = []
+        self.assert_invalid(plan, "must depend on contributor 'EPIC-2'")
+
+    def test_rejects_evaluation_ticket_that_promotes_before_a_contributor(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][2]["promotion_order"] = 15
+        plan["tickets"][1]["promotion_order"] = 30
+        plan["tickets"][1]["promotion_predecessor"] = "EPIC-3"
+        plan["tickets"][2]["promotion_predecessor"] = "EPIC-1"
+        self.assert_invalid(plan, "must promote after contributor 'EPIC-2'")
+
+    def test_rejects_owns_goals_that_disagrees_with_the_goal(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][2]["owns_goals"] = []
+        self.assert_invalid(plan, "owns_goals must list every goal it decides")
+
+    def test_rejects_evaluation_ticket_reference_to_an_implementation_ticket(
+        self,
+    ) -> None:
+        plan = valid_plan()
+        plan["epic_goals"][0]["evaluation_ticket"] = "EPIC-1"
+        errors = "\n".join(validator.validate_plan(plan).errors)
+        self.assertIn("must declare role: evaluation", errors)
 
 
 if __name__ == "__main__":

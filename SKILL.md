@@ -4,10 +4,12 @@ description: >-
   Use when planning, starting, scheduling, resuming, or finalizing a multi-ticket
   Git epic on an epic/* branch backed by one shared spec-double-compiler workflow.
   Also use when a GitHub issue contains a git-epic-workflow assignment and must
-  be implemented against an epic branch instead of the default branch. Composes
-  git-issue issue authoring, git-issue-workflow ticket execution, tla-spec-dev
-  ticket promotion, and Test Graph validation while allowing dependency-aware
-  parallel work and serialized integration.
+  be implemented against an epic branch instead of the default branch. Agrees
+  measurable epic goals with the user up front, relates every ticket to a final
+  evaluation/perf/integration ticket that decides them, and composes git-issue
+  issue authoring, git-issue-workflow ticket execution, tla-spec-dev ticket
+  promotion, and Test Graph validation while allowing dependency-aware parallel
+  work and serialized integration.
 skill-imports:
   - unit: git-issue
     path: SKILL.md
@@ -35,9 +37,10 @@ through the final epic PR.
 
 This skill has three roles:
 
-- **Plan and schedule:** create the epic branch, shared spec workflow, ticket
-  DAG, issues, and handoff metadata. Read `references/plan-and-schedule.md` and
-  `references/epic-ticket.md`.
+- **Plan and schedule:** agree the epic's measurable goals, then create the epic
+  branch, shared spec workflow, ticket DAG, evaluation tickets, issues, and
+  handoff metadata. Read `references/goals-and-evaluation.md`,
+  `references/plan-and-schedule.md`, and `references/epic-ticket.md`.
 - **Perform one ticket:** detect the epic assignment in an issue and apply its
   overrides to `git-issue-workflow`. Read `references/epic-ticket.md` before
   creating a worktree.
@@ -86,6 +89,13 @@ This skill has three roles:
     `skill-manager unit publish`. An epic cannot finalize until every ticket
     worktree has been through `skill-manager home close-out` — see
     `references/plan-and-schedule.md` §2 and `references/finalize.md` §1b.
+11. **Every epic states measurable goals; every ticket relates to one.** Ask the
+    user what should be measurably better before scaffolding the workflow.
+    Record each goal with its metric, harness command, baseline, and target;
+    schedule terminal evaluation/perf/integration tickets that decide them; and
+    give every other ticket an explicit contribution, expected effect, and local
+    signal. The goal relation is the context a ticket agent aims at, so keep it
+    specific. Read `references/goals-and-evaluation.md`.
 
 ## Preconditions
 
@@ -114,13 +124,19 @@ Every planned ticket declares:
 - conflict keys for production, TLA+, adapters, Test Graph, and workflow data;
 - a total `promotion_order` and `promotion_predecessor`;
 - the immutable schedule revision and plan commit that produced the assignment;
-- exact validation commands and evidence destinations.
+- exact validation commands and evidence destinations;
+- the epic goals it serves, with contribution kind, expected effect, and a
+  local signal that predicts the final measurement.
 
 A ticket is ready to **start** only when every dependency PR is merged into
 `origin/epic/<slug>`. Tickets may share a wave only when neither reaches the
 other in the dependency DAG and their conflict keys are disjoint. A ticket is
 ready to **promote** only when its promotion predecessor is merged into the
 epic branch and the ticket branch has reconciled against that latest tip.
+
+Evaluation tickets are ordinary tickets whose slice is measurement. Each one
+depends on every ticket contributing to the goals it owns and promotes after
+them, so the harness runs on the integrated result rather than a partial one.
 
 `depends_on` is planning metadata; `tla-spec-dev` does not enforce the DAG.
 Validate missing references, self-dependencies, cycles, readiness, and conflict
@@ -132,25 +148,32 @@ canonical plan entry before starting and again before promotion.
 ### Start or resume an epic
 
 1. Follow `references/plan-and-schedule.md`.
-2. Use `git-issue` for discovery and issue authoring. For existing issues,
+2. Ask the user what should be measurably better when the epic is done, before
+   scaffolding the workflow. Turn the answers into goals with metrics,
+   harnesses, baselines, and targets, and schedule the evaluation ticket(s)
+   that decide them (`references/goals-and-evaluation.md`).
+3. Use `git-issue` for discovery and issue authoring. For existing issues,
    preserve their bodies and replace only the marker-delimited epic assignment.
-3. Agree the deferment policy with the user before dispatch and record it in
+4. Agree the deferment policy with the user before dispatch and record it in
    the canonical plan (`references/deferment.md`).
-4. Commit and push the epic branch before handing out any issue URL.
-5. Report the epic branch/tip, workflow name, and a table of issue URL, ticket
-   ID, dependencies, wave, and promotion predecessor. Hand out only ready issue
-   URLs. When recommending the next ticket, present pending deferred findings
-   alongside it and triage them with the user.
+5. Commit and push the epic branch before handing out any issue URL.
+6. Report the epic branch/tip, workflow name, the goal table, and a table of
+   issue URL, ticket ID, dependencies, wave, promotion predecessor, and goals
+   served. Hand out only ready issue URLs. When recommending the next ticket,
+   present pending deferred findings alongside it and triage them with the user.
 
 ### Work an epic issue
 
 1. Read the issue before touching git. If it contains the epic assignment
    markers, follow `references/epic-ticket.md`; do not apply the ordinary
    default-branch closeout from `git-issue-workflow`.
-2. Work and validate in the ticket worktree. Classify every failure case found
-   in validation or review against the ticket's declared slice; defer, batch, or
+2. Read the assignment's goal entries before implementing; the declared
+   expected effect is the result the change is aiming at. Work and validate in
+   the ticket worktree, run the declared local signal before close, and report
+   it against the expected effect. Classify every failure case found in
+   validation or review against the ticket's declared slice; defer, batch, or
    escalate out-of-scope findings under the epic's deferment policy rather than
-   widening the ticket to fix them.
+   widening the ticket to fix them or to chase a metric.
 3. Wait for the declared promotion predecessor, reconcile the latest epic tip,
    close only the assigned spec ticket with evidence, push, and open the PR
    against the epic branch.
@@ -162,7 +185,9 @@ canonical plan entry before starting and again before promotion.
 
 Follow `references/finalize.md`. Do not infer that “all agents are done” from
 open PRs or local branches: verify every planned PR is merged into the epic
-branch and every spec ticket has a close-history entry.
+branch and every spec ticket has a close-history entry. Report every declared
+goal as baseline → measured → target with a verdict; a missed goal is a decision
+for the user, and a silently unmeasured goal is not an acceptable close.
 
 ## Boundaries
 
@@ -170,6 +195,8 @@ branch and every spec ticket has a close-history entry.
   starts agents and invokes this skill again for status or finalization.
 - Do not silently alter dependencies, ticket order, or conflict ownership after
   dispatch.
+- Do not invent goals, targets, or baselines the user did not agree to, and do
+  not edit a target so a measured result passes. Report the run that happened.
 - Do not use `--accept-new` for ticket close or workflow finalization. Reconcile
   current and desired explicitly so validation proves the promoted state.
 - Do not use closing keywords in ticket PRs. Use `Refs #<issue>` and reserve
@@ -181,6 +208,7 @@ branch and every spec ticket has a close-history entry.
 | Task | Read |
 | --- | --- |
 | Create/resume branch, workflow, DAG, and issues | `references/plan-and-schedule.md` |
+| Agree goals, baselines, and evaluation tickets | `references/goals-and-evaluation.md` |
 | Author or execute the epic assignment | `references/epic-ticket.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
