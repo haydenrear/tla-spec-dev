@@ -1,0 +1,25 @@
+# PROPOSED workflow-ledger input for owner reconciliation (MF-026 gate,
+# architectural-coherence epic). NOT applied by the auditing agent: a gate that
+# writes its own verdict into the ledger it reports on is the self-clearing this
+# doctrine forbids, and the dispatching instruction restricts this agent to its
+# report and evidence.
+#
+# The verdict is INCOMPLETE, which per references/coverage_audit.md "Recording"
+# REFUSES the workflow close alongside `fail`. Do not promote and do not rewrite
+# this as a justification or a waiver.
+coverage_audit:
+  status: "incomplete"
+  report: "specs/results/coverage_audit_report_architectural_coherence.md"
+  in_scope_gaps: 12
+  out_of_scope_inventoried: 0
+  escalations: 7
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:22-29,147-162,206-211,282-289,377-381,494-498,605-608,706-710,783-785,870-874,964-967,1076-1079,1142-1145,1208-1213,1271-1272,1363-1365"
+  model_audited: "specs/desired_program_model/TlaSpecDevCli.tla (byte-identical to specs/current/TlaSpecDevCli.tla)"
+  commit: "3467051"
+  raw_evidence: "specs/results/coverage-audit-arch-coherence-raw/"
+  halt: >-
+    Step 0 HALT conditions met (prompts/coverage_audit.md): the plan declares no
+    exclusion rule, and implementation_scope is an edit-permission list rather
+    than a representation scope. 187 of 596 Sweep-1 rows -- including 24 of the
+    34 files in scripts/ -- could not be classified. The owner must amend the
+    scope declaration before this gate can return a pass or a fail.

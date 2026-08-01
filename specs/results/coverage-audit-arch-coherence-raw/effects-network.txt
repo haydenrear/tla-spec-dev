@@ -1,0 +1,145 @@
+examples/distributed_history/ecommerce_backend/domain.py:28:        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+examples/distributed_history/ecommerce_backend/service.py:8:import urllib.error
+examples/distributed_history/ecommerce_backend/service.py:9:import urllib.request
+examples/distributed_history/ecommerce_backend/service.py:10:from urllib.parse import urlparse
+examples/distributed_history/ecommerce_backend/service.py:57:    request = urllib.request.Request(base_url.rstrip("/") + path, data=data, headers=headers, method=method)
+examples/distributed_history/ecommerce_backend/service.py:61:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/ecommerce_backend/service.py:63:        except urllib.error.HTTPError as exc:
+examples/distributed_history/ecommerce_backend/service.py:65:        except (OSError, TimeoutError, urllib.error.URLError):
+examples/distributed_history/specs/program_model/adapters.py:6:import urllib.error
+examples/distributed_history/specs/program_model/adapters.py:7:import urllib.request
+examples/distributed_history/specs/program_model/adapters.py:107:        with urllib.request.urlopen(base_url + path, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:112:        request = urllib.request.Request(
+examples/distributed_history/specs/program_model/adapters.py:119:            with urllib.request.urlopen(request, timeout=5) as response:
+examples/distributed_history/specs/program_model/adapters.py:124:        except urllib.error.HTTPError as exc:
+examples/distributed_history/specs/program_model/adapters.py:159:        with urllib.request.urlopen(base_url.rstrip("/") + "/debug/state", timeout=5) as response:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:10:from urllib.request import urlopen
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:93:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+examples/distributed_history/test_graph/sources/collect_evidence.py:12:from urllib.request import urlopen
+examples/distributed_history/test_graph/sources/collect_evidence.py:64:    with urlopen(base_url + "/debug/state", timeout=5) as response:
+examples/distributed_history/test_graph/sources/collect_evidence.py:69:    with urlopen(base_url + "/debug/traffic", timeout=10) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:13:import socket
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:18:from urllib.request import urlopen
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:153:    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:162:            with urlopen(base_url + "/health", timeout=1) as response:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:174:            with urlopen(base_url + "/debug/state", timeout=3) as response:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:1:"""A deliberately legacy-shaped payment client with module-owned requests.
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:3:The application owns request preparation, a ``requests.Session``, retries, and
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:5:``requests.Session.send``; no transport is injected into this module.
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:15:import requests
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:58:    session = requests.Session()
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:69:        request = requests.Request(
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:81:        except (requests.ConnectTimeout, requests.ReadTimeout):
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:108:def _normalize_terminal_response(response: requests.Response, attempts: int) -> PaymentResult:
+examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py:111:    except (requests.JSONDecodeError, json.JSONDecodeError, ValueError):
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:11:import requests
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:131:        _session: requests.Session,
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:132:        prepared: requests.PreparedRequest,
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:134:    ) -> requests.Response:
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:156:        response = requests.Response()
+examples/effect_providers/legacy_payment_http/payment_effects/baseline.py:164:    with patch.object(requests.Session, "send", new=send):
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:5:import socket
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:7:from urllib.request import urlopen
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:37:                urlopen("http://127.0.0.1:9/probe", timeout=0.1)
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:46:                sock = socket.socket()
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:48:                    sock.connect(("127.0.0.1", 9))
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:58:            alternate["session_send_calls"] = len(scope.requests)
+examples/effect_providers/legacy_payment_http/payment_effects/probes.py:59:            raw["session_send_calls"] = len(scope.requests)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:1:"""Deterministic, self-installing ``requests.Session.send`` effect provider."""
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:12:import socket
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:16:from urllib.parse import urlsplit
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:18:import requests
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:23:ORIGINAL_SESSION_SEND = requests.Session.send
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:24:ORIGINAL_SOCKET_CONNECT = socket.socket.connect
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:25:ORIGINAL_CREATE_CONNECTION = socket.create_connection
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:74:        self.timeout_type = rng.choice([requests.ConnectTimeout, requests.ReadTimeout])
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:83:        self.requests: list[dict[str, Any]] = []
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:105:                session: requests.Session,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:106:                request: requests.PreparedRequest,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:108:            ) -> requests.Response:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:111:            def patched_socket_connect(sock: socket.socket, address: Any) -> None:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:117:            stack.enter_context(patch.object(requests.Session, "send", new=patched_send))
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:118:            stack.enter_context(patch.object(socket.socket, "connect", new=patched_socket_connect))
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:119:            stack.enter_context(patch.object(socket, "create_connection", new=patched_create_connection))
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:158:        actual = len(self.requests)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:177:    def _send(self, _session: requests.Session, request: requests.PreparedRequest, **kwargs: Any) -> requests.Response:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:178:        attempt = len(self.requests) + 1
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:180:        self.requests.append(record)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:226:        request: requests.PreparedRequest,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:274:        request: requests.PreparedRequest,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:279:    ) -> requests.Response:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:280:        response = requests.Response()
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:314:    def _socket_connect(self, _socket: socket.socket, address: Any) -> None:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:316:        raise OutboundSocketAttempt(f"blocked socket.connect to {address!r}")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:320:        raise OutboundSocketAttempt(f"blocked socket.create_connection to {address!r}")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:328:        if requests.Session.send is not ORIGINAL_SESSION_SEND:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:329:            leaks.append("requests.Session.send")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:330:        if socket.socket.connect is not ORIGINAL_SOCKET_CONNECT:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:331:            leaks.append("socket.socket.connect")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:332:        if socket.create_connection is not ORIGINAL_CREATE_CONNECTION:
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:333:            leaks.append("socket.create_connection")
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:359:            "requests": self.requests,
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:389:        and requests.Session.send is ORIGINAL_SESSION_SEND
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:390:        and socket.socket.connect is ORIGINAL_SOCKET_CONNECT
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:391:        and socket.create_connection is ORIGINAL_CREATE_CONNECTION
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:48:    {"id": "PH-06", "expected_detector": "provider_local_assertion", "patch": "omit connect/read timeout from Session.send"},
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:546:        infra_errors.append("mutant provider cleanup/socket isolation failed")
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:552:        infra_errors.append("replay provider cleanup/socket isolation failed")
+examples/effect_providers/legacy_payment_http/tests/test_project.py:15:import requests
+examples/effect_providers/legacy_payment_http/tests/test_project.py:70:            _session: requests.Session,
+examples/effect_providers/legacy_payment_http/tests/test_project.py:71:            prepared: requests.PreparedRequest,
+examples/effect_providers/legacy_payment_http/tests/test_project.py:73:        ) -> requests.Response:
+examples/effect_providers/legacy_payment_http/tests/test_project.py:75:            response = requests.Response()
+examples/effect_providers/legacy_payment_http/tests/test_project.py:92:            with patch.object(requests.Session, "send", new=send):
+examples/effect_providers/legacy_payment_http/validate.py:114:                "requests.Session.send installation and request-shape assertions",
+examples/effect_providers/legacy_payment_http/validate.py:115:                "per-point transcript state socket guard and cleanup",
+examples/effect_providers/legacy_payment_http/validate.py:118:                "urllib and raw-socket bypass probes",
+examples/effect_providers/legacy_payment_http/validate.py:123:            "The provider is compatibility-only because it patches requests.Session.send.",
+examples/effect_providers/reminder_worker/run_experiment.py:427:    import socket
+examples/effect_providers/reminder_worker/run_experiment.py:431:    original_connect = socket.socket.connect
+examples/effect_providers/reminder_worker/run_experiment.py:437:    socket.socket.connect = blocked_connect
+examples/effect_providers/reminder_worker/run_experiment.py:440:        candidate = socket.socket()
+examples/effect_providers/reminder_worker/run_experiment.py:442:            candidate.connect(("127.0.0.1", 9))
+examples/effect_providers/reminder_worker/run_experiment.py:449:        socket.socket.connect = original_connect
+examples/effect_providers/reminder_worker/run_experiment.py:461:            "finding": "explicit NotifierPort needs a separate passive socket guard for bypasses",
+examples/effect_providers/reminder_worker/test_reminder_worker.py:7:import socket
+examples/effect_providers/reminder_worker/test_reminder_worker.py:174:        original = socket.socket.connect
+examples/effect_providers/reminder_worker/test_reminder_worker.py:176:        self.assertIs(socket.socket.connect, original)
+examples/effect_providers/reminder_worker/validate.py:482:                "a passive socket guard detects and blocks the direct-network bypass probe",
+examples/run_distributed_history_validation.py:10:import socket
+examples/run_distributed_history_validation.py:16:from urllib.request import urlopen
+examples/run_distributed_history_validation.py:441:    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+examples/run_distributed_history_validation.py:450:            with urlopen(base_url + "/health", timeout=1) as response:
+scripts/effect_conformance.py:17:   filesystem writes/deletes, process spawns, socket connects, HTTP -- and
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:106:        "network.connect",
+scripts/effect_conformance.py:245:#: exactly ``EFFECT_TYPES``: a child can write, delete, spawn again, and connect.
+scripts/effect_conformance.py:556:    def connect(self, target: str) -> None:
+scripts/effect_conformance.py:558:            ObservedEffect(type="network.connect", target=str(target), detail=f"transport {self.name}")
+scripts/effect_conformance.py:775:            import socket
+scripts/effect_conformance.py:778:        original = socket.socket.connect
+scripts/effect_conformance.py:779:        self._originals["socket.connect"] = (socket.socket, "connect", original)
+scripts/effect_conformance.py:784:                ObservedEffect(type="network.connect", target=_address_target(address), detail="socket.connect")
+scripts/effect_conformance.py:788:        socket.socket.connect = patched  # type: ignore[assignment]
+scripts/effect_conformance.py:1142:                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+scripts/onboard_program_model.py:217:\\* External does NOT mean distributed. For an HTTP service it is requests. For
+scripts/onboard_program_model.py:1149:External does not mean distributed. For an HTTP service it is requests; for a
+skill-scripts/install-tlc2.sh:12:if ! command -v curl >/dev/null 2>&1; then
+skill-scripts/install-tlc2.sh:13:  echo "curl is required to download tla2tools from the TLA+ GitHub releases." >&2
+skill-scripts/install-tlc2.sh:37:curl -fL --retry 3 --retry-delay 1 "$JAR_URL" -o "$JAR_TMP"
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:17:'\b(socket|connect|requests|urlopen|urlretrieve|urllib|httpx|aiohttp|HTTPConnection|curl|wget)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:13:'\b(socket|connect|requests|urlopen|urlretrieve|urllib|httpx|aiohttp|HTTPConnection|curl|wget)\b'
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:213:        val p = ProcessBuilder("curl", "-fsSL", "-o", dest.absolutePath, url)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt:219:            error("[toolchain] curl failed (exit=$code) for $url: $out")
+tests/test_effect_conformance.py:930:        open a socket the diff cannot see, so the verdict STAYS unobservable and
+tests/test_effect_conformance.py:944:        assert "network.connect" in reason and "network.http" in reason, "names the residual"
+tests/test_effect_conformance.py:1017:        dead). But the child could have opened a socket the diff cannot see, so
+tests/test_export_testgraph_cases.py:93:        "import urllib.request\n"
+tests/test_export_testgraph_cases.py:97:        "        urllib.request.urlopen('http://localhost:8080/submit')\n"
+tests/test_testgraph_channels.py:68:        "import urllib.request\n"
+tests/test_testgraph_channels.py:72:        "        urllib.request.urlopen('http://localhost:8080/ship')\n"
+tests/test_testgraph_channels.py:410:    (spec / "adapters.py").write_text("import json\nimport urllib.request\n", encoding="utf-8")

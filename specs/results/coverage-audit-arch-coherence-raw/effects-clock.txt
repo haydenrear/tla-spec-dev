@@ -1,0 +1,384 @@
+examples/distributed_history/ecommerce_backend/service.py:5:import time
+examples/distributed_history/ecommerce_backend/service.py:58:    deadline = time.time() + 10
+examples/distributed_history/ecommerce_backend/service.py:66:            if time.time() >= deadline:
+examples/distributed_history/ecommerce_backend/service.py:68:            time.sleep(0.2)
+examples/distributed_history/scripts/k8s-deploy.sh:38:  sleep 1
+examples/distributed_history/specs/program_model/adapters.py:5:import time
+examples/distributed_history/specs/program_model/adapters.py:95:        deadline = time.time() + 20
+examples/distributed_history/specs/program_model/adapters.py:97:        while time.time() < deadline:
+examples/distributed_history/specs/program_model/adapters.py:103:                time.sleep(0.2)
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:8:import time
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:90:    deadline = time.time() + 10
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:91:    while time.time() < deadline:
+examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py:97:            time.sleep(0.1)
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:14:import time
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:69:    deadline = time.time() + 45
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:71:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/cleanup_ecommerce.py:75:        time.sleep(1)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:16:import time
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:159:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:160:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:166:            time.sleep(0.2)
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:171:    deadline = time.time() + 30
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:172:    while time.time() < deadline:
+examples/distributed_history/test_graph/sources/deploy_ecommerce.py:178:            time.sleep(0.5)
+examples/effect_providers/atomic_publisher/providers.py:8:import time
+examples/effect_providers/atomic_publisher/providers.py:41:        self.started = time.perf_counter()
+examples/effect_providers/atomic_publisher/providers.py:203:            "duration_ms": round((time.perf_counter() - self.started) * 1000.0, 6),
+examples/effect_providers/atomic_publisher/regenerate.py:14:import time
+examples/effect_providers/atomic_publisher/regenerate.py:146:    started = time.perf_counter()
+examples/effect_providers/atomic_publisher/regenerate.py:156:    setattr(completed, "measured_wall_seconds", time.perf_counter() - started)
+examples/effect_providers/atomic_publisher/run_experiment.py:14:import time
+examples/effect_providers/atomic_publisher/run_experiment.py:244:        started = time.perf_counter()
+examples/effect_providers/atomic_publisher/run_experiment.py:254:        wall_ms = round((time.perf_counter() - started) * 1000.0, 6)
+examples/effect_providers/atomic_publisher/run_experiment.py:501:        "authoring_wall_minutes": round((time.time() - authoring_started) / 60.0, 3),
+examples/effect_providers/atomic_publisher/validate.py:13:import time
+examples/effect_providers/atomic_publisher/validate.py:61:    started = time.perf_counter()
+examples/effect_providers/atomic_publisher/validate.py:73:        duration = round(time.perf_counter() - started, 6)
+examples/effect_providers/atomic_publisher/validate.py:87:    duration = round(time.perf_counter() - started, 6)
+examples/effect_providers/atomic_publisher/validate.py:232:    started = time.perf_counter()
+examples/effect_providers/atomic_publisher/validate.py:301:        result["duration_seconds"] = round(time.perf_counter() - started, 6)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:13:from time import perf_counter
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:96:        self._started = perf_counter()
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:141:            elapsed_ms = (perf_counter() - self._started) * 1000.0
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:15:from time import perf_counter
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:98:        started = perf_counter()
+examples/effect_providers/legacy_payment_http/scripts/regenerate.py:100:        wall_seconds = perf_counter() - started
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:16:from time import perf_counter
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:187:    started = perf_counter()
+examples/effect_providers/legacy_payment_http/scripts/run_experiment.py:283:        "wall_seconds": perf_counter() - started,
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:7:from datetime import datetime, timezone
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:14:AUTHORING_STARTED = datetime.fromisoformat("2026-07-22T00:46:34+00:00")
+examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py:58:    finished = datetime.now(timezone.utc)
+examples/effect_providers/legacy_payment_http/validate.py:16:import time
+examples/effect_providers/legacy_payment_http/validate.py:53:    started = time.perf_counter()
+examples/effect_providers/legacy_payment_http/validate.py:63:    duration = time.perf_counter() - started
+examples/effect_providers/legacy_payment_http/validate.py:104:        "duration_seconds": round(time.perf_counter() - started, 6),
+examples/effect_providers/legacy_payment_http/validate.py:333:    started = time.perf_counter()
+examples/effect_providers/legacy_payment_http/validate.py:341:    result["duration_seconds"] = round(time.perf_counter() - started, 6)
+examples/effect_providers/reminder_worker/adapter.py:8:import time
+examples/effect_providers/reminder_worker/adapter.py:17:        self.started_at = time.perf_counter()
+examples/effect_providers/reminder_worker/adapter.py:50:            (time.perf_counter() - self.started_at) * 1000,
+examples/effect_providers/reminder_worker/app.py:59:        now = self.clock.now(ReadClock())
+examples/effect_providers/reminder_worker/app.py:61:            self.clock.now(ReadClock())
+examples/effect_providers/reminder_worker/app.py:62:        not_due = now < job.due_at or (mutant == "RW-06" and now <= job.due_at)
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py:31:        return 'now'
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:20:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py:22:            "No v0 fake template configured for now"
+examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py:17:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:47:    raise NotImplementedError("No transition template configured for now")
+examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py:105:    'ReadClock': 'now',
+examples/effect_providers/reminder_worker/providers.py:56:    now: int
+examples/effect_providers/reminder_worker/providers.py:75:        now = 1_700_000_000 + rng.randrange(10_000)
+examples/effect_providers/reminder_worker/providers.py:77:        due_at = now + due_offset
+examples/effect_providers/reminder_worker/providers.py:82:            now=now,
+examples/effect_providers/reminder_worker/providers.py:231:    def now(self, command: ReadClock) -> int:
+examples/effect_providers/reminder_worker/providers.py:234:        self.state.event("clock.now")
+examples/effect_providers/reminder_worker/providers.py:237:        return self.state.bundle.now
+examples/effect_providers/reminder_worker/regenerate.py:29:    started = __import__("time").perf_counter()
+examples/effect_providers/reminder_worker/regenerate.py:32:        elapsed = __import__("time").perf_counter() - started
+examples/effect_providers/reminder_worker/reminder_cli.py:62:    def now(self, _command: Any) -> int:
+examples/effect_providers/reminder_worker/reminder_cli.py:63:        self.state.event("clock.now")
+examples/effect_providers/reminder_worker/run_experiment.py:17:import time
+examples/effect_providers/reminder_worker/run_experiment.py:202:    started = time.perf_counter()
+examples/effect_providers/reminder_worker/run_experiment.py:211:    wall_ms = round((time.perf_counter() - started) * 1000, 6)
+examples/effect_providers/reminder_worker/run_experiment.py:426:    from datetime import datetime, timezone
+examples/effect_providers/reminder_worker/run_experiment.py:429:    clock_value = datetime.now(timezone.utc).isoformat()
+examples/effect_providers/reminder_worker/run_experiment.py:454:            "finding": "explicit ClockPort cannot intercept direct datetime access",
+examples/effect_providers/reminder_worker/run_experiment.py:528:            "authoring_wall_minutes": round((time.time() - int(subprocess.run(["git", "show", "-s", "--format=%ct", "141e63b"], cwd=REPO_ROOT, text=True, capture_output=True, check=True).stdout)) / 60, 3),
+examples/effect_providers/reminder_worker/run_experiment.py:711:                "concrete unicode identifier, timestamp, receipt, and exception instance",
+examples/effect_providers/reminder_worker/test_reminder_worker.py:53:            "clock.now": (inspect.signature(ClockPort.now), ReadClock, int),
+examples/effect_providers/reminder_worker/validate.py:15:import time
+examples/effect_providers/reminder_worker/validate.py:99:    started = time.perf_counter()
+examples/effect_providers/reminder_worker/validate.py:111:        duration = round(time.perf_counter() - started, 6)
+examples/effect_providers/reminder_worker/validate.py:125:    duration = round(time.perf_counter() - started, 6)
+examples/effect_providers/reminder_worker/validate.py:372:    started = time.perf_counter()
+examples/effect_providers/reminder_worker/validate.py:475:                "one correlated bundle of unicode job/message values, time, receipt, and exception subclass",
+examples/effect_providers/reminder_worker/validate.py:481:                "direct datetime access is confirmed to bypass ClockPort",
+examples/effect_providers/reminder_worker/validate.py:490:            "direct datetime, direct network, external broker, database, filesystem, thread, and child-process effects bypass explicit in-process bindings",
+examples/effect_providers/reminder_worker/validate.py:515:        result["duration_seconds"] = round(time.perf_counter() - started, 6)
+examples/effect_providers/run_validations.py:7:from datetime import datetime, timezone
+examples/effect_providers/run_validations.py:13:import time
+examples/effect_providers/run_validations.py:53:    now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+examples/effect_providers/run_validations.py:61:    return f"{now}-{revision}"
+examples/effect_providers/run_validations.py:243:    started = time.perf_counter()
+examples/effect_providers/run_validations.py:255:        "duration_seconds": round(time.perf_counter() - started, 6),
+examples/effect_providers/run_validations.py:277:    parser.add_argument("--run-id", help="Optional aggregate run id; defaults to UTC time plus git revision.")
+examples/effect_providers/run_validations.py:289:    started = time.perf_counter()
+examples/effect_providers/run_validations.py:334:        "duration_seconds": round(time.perf_counter() - started, 6),
+examples/run_distributed_history_validation.py:14:import time
+examples/run_distributed_history_validation.py:152:    this step today anyway, because case generation for the External model is
+examples/run_distributed_history_validation.py:447:    deadline = time.time() + 10
+examples/run_distributed_history_validation.py:448:    while time.time() < deadline:
+examples/run_distributed_history_validation.py:454:            time.sleep(0.1)
+examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:12:the adapter its input at execution time, in a place no audit looked.
+examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:17:five parameters now recover, and the corpus carries the argument as data. So
+examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py:21:argument is now fixed in the artifact, audited, and identical on every replay,
+examples/validation/runs/ex4-run1/artifacts/kill_matrix.py:2:"""EV-02 aim-1 harness: seed each fault one at a time, run BOTH arms, restore.
+examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py:8:scoring now compares.
+scripts/analyze_architecture.py:827:        # person about a change over time, and `architecture_scan` remains a
+scripts/analyze_complexity.py:87:# complex". A complex model now exits EXIT_PASS with advisory warnings; only an
+scripts/analyze_complexity.py:2281:        # from "this model is complex", which is now advisory and exits 0.
+scripts/architecture_reflexion.py:810:        ``len(names) >= 2`` and excluded the one blob it existed for. It is now
+scripts/architecture_reflexion.py:1063:    # codebase with four real divergences. There is now no guard here at all:
+scripts/architecture_reflexion.py:1624:    # `or []` on BOTH sides: a scan whose comparison never ran now carries
+scripts/architecture_reflexion.py:1728:            f"{absences['delta']} more declared port(s) are now realized by no code edge. A "
+scripts/budgets.py:16:is ``tlc_seconds``, which is about wall time, not complexity.
+scripts/budgets.py:110:        "exit code. The one hard operational limit is tlc_seconds (wall time, not\n"
+scripts/complexity_ledger.py:92:from datetime import datetime, timezone
+scripts/complexity_ledger.py:1193:        "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/effect_conformance.py:158:#: spirit: code running in-process, here, now.
+scripts/generate_cases_from_tlc_dump.py:675:    # Every prepared case has now been written. The caller gates the corpus
+scripts/generate_cases_from_tlc_dump.py:945:    first time, and the run that hit it only found the directory afterwards.
+scripts/infer_action_params.py:510:# The fix is not softer wording. It is that the audit now takes the corpus's
+scripts/kill_test.py:1028:            f"but these previously-killed mutants now survive: {', '.join(lost)}. The rate is "
+scripts/new_ticket_workflow.py:231:    """MR-DF-01: keep the accepted manifest's semantic blocks at scaffold time.
+scripts/new_ticket_workflow.py:414:   landed. At close time, ticket `current/` and `desired/` must match.
+scripts/new_ticket_workflow.py:428:scaffold intentionally records only the spec-side state for now.
+scripts/new_ticket_workflow.py:549:implements right now for the active ticket workflow.
+scripts/skill_feedback.py:6:that had to move, and profile/schema/CLI workarounds. Until now that retro was a
+scripts/skill_feedback.py:34:from datetime import datetime, timezone
+scripts/skill_feedback.py:86:    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+scripts/spec_evolution.py:14:from datetime import datetime, timezone
+scripts/spec_evolution.py:244:        recommendation=f"It is recommended to commit this history directory now: {rel(entry_dir)}",
+scripts/spec_evolution.py:727:    # specs/.history/architectural-coherence-epic/ticket-009-RP-04/ticket/results/cm-01-df-02-workaround-is-now-dead.txt
+scripts/spec_evolution.py:993:        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/spec_evolution.py:1106:        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+scripts/spec_evolution.py:1161:    gate time, before anything is mutated. This is the pointer to the durable
+specs/current/adapter_case_runtime.py:328:    remaining adapters, and it is now fixed centrally.
+specs/current/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/current/production_adapters.py:605:#: External.cfg -- exactly the CM-F1 shape the ledger now refuses to measure
+specs/current/production_adapters.py:2148:    throwaway repository, four times, and asserts the close-time behavior that
+specs/desired_program_model/adapter_case_runtime.py:328:    remaining adapters, and it is now fixed centrally.
+specs/desired_program_model/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/desired_program_model/production_adapters.py:605:#: External.cfg -- exactly the CM-F1 shape the ledger now refuses to measure
+specs/desired_program_model/production_adapters.py:1948:    throwaway repository, four times, and asserts the close-time behavior that
+specs/program_model/adapter_case_runtime.py:328:    remaining adapters, and it is now fixed centrally.
+specs/program_model/production_adapters.py:505:        # setup_phase is read back from the real tree: current/ + desired/ now
+specs/program_model/production_adapters.py:605:#: External.cfg -- exactly the CM-F1 shape the ledger now refuses to measure
+specs/program_model/production_adapters.py:1948:    throwaway repository, four times, and asserts the close-time behavior that
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:22:        "dispatch :62-203 -> TlaSpecDevCli.tla:215-599; port map manifest:209-231. Runner spawn :313-339/:358 now declared runner_process (manifest:187-189/:230, R3-3a FIXED); flag variants out-of-model per :547-551/:599 (recorded granularity limitation) [READ]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:38:        "CloseTicket TlaSpecDevCli.tla:584-599. Deletes :154,:385,:477 now declared spec_tree_delete manifest:198-200/:231 (R3-2 FIXED); git spawn :99 declared git_metadata :206-208/:231 (R3-3b FIXED); ledger + validation refusals out-of-model :544-554/:599; timestamps out-of-model :559-560 [READ regions]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:46:        "RunSpecUnitTests TlaSpecDevCli.tla:529-577; spawn now declared runner_process manifest:187-189/:230 (R3-3a FIXED); env re-exec :971,:990-998 out-of-model per :531 [grep-level + verified citations]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:64:        "bindings case_adapters.toml:13-53 <-> 14 @command actions (:590 wording now says '@command action set', ESC-8 FIXED); proven both ways by test_tla_spec_dev_binding_reconciliation.py [grep-level]"),
+specs/results/epic-close/sweep-raw-run4/ca4_classify.py:71:# Wrapper/plumbing rows now PLACED by the ESC-3 ruling :554-557 (out-of-model).
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:19:'\b(datetime|now|utcnow|today|time|monotonic|perf_counter|sleep|timestamp)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:15:'\b(datetime|now|utcnow|today|time|monotonic|perf_counter|sleep|timestamp)\b'
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:89: * Wait for [process] up to [timeoutMillis]; if it doesn't return in time,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:96: * `waitFor()`; the spec parser doesn't emit those today, but the helper
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt:12: * crash, OOM at fork time, etc.). PlanExecutor stamps the path onto
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:8:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:138:        var startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:164:            startedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:166:            endedAt = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:209:        val now = Instant.now()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:222:            startedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt:223:            endedAt = now,
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:6: * Accepts the suffix forms NodeSpec specs in the wild use today —
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt:10: * configuration time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt:6: * Keeps the plugin dependency-free now that we no longer need snakeyaml.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:25: * The renderer now lives here as a plain object so {@link
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:300:            java.time.Instant.parse(endIso).toEpochMilli() -
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt:301:                    java.time.Instant.parse(startIso).toEpochMilli()
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:14:import java.time.Instant
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:15:import java.time.ZoneOffset
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:16:import java.time.format.DateTimeFormatter
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:23:        return "${safeGraphName}-${fmt.format(Instant.now())}-${UUID.randomUUID().toString().take(8)}"
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt:31: * Non-Property internal fields are set at configuration time by the
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:8: * Every setter returns `this`; at plan-build time the overlay is merged
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt:55: * at execution time.
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt:74:        // serialized in declaration order. Configure-time `dependsOn` is
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:50:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:53:            result = body.apply(ctx).startedAt(startedAt).endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java:57:                    .endedAt(Instant.now());
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java:5:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:3:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java:69:    /** Wall-clock duration in milliseconds, or -1 if either timestamp is missing. */
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:6:import java.time.Instant;
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:14: * dir), and any spawn-time error. Attach it to the result with
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:72:        Instant startedAt = Instant.now();
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:78:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:88:            return new ProcessRecord(label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java:92:                label, command, startedAt, Instant.now(),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:19:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:65:    started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:86:                    ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:97:            ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py:108:        ended_at=datetime.now(timezone.utc),
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:5:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:52:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:53:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:65:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:98:    started_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:99:    ended_at: datetime | None = None
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:164:    def _stamp(self, started: datetime, ended: datetime) -> "NodeResult":
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py:173:        def iso(d: datetime | None) -> str | None:
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:22:from datetime import datetime, timezone
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:47:            started = datetime.now(timezone.utc)
+specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py:52:            ended = datetime.now(timezone.utc)
+test_graph/sources/effect_provider_examples.py:14:import time
+test_graph/sources/effect_provider_examples.py:54:    run_id = f"testgraph-{time.time_ns()}"
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:14:import time
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:148:    deadline = time.monotonic() + budget_seconds
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:150:    while lingering and time.monotonic() < deadline:
+test_graph/sources/spec_workflow_failure_cleanup_probe.py:151:        time.sleep(0.5)
+tests/corpus_fixtures.py:7:4 and 2 cases. That corpus is regenerated under a validation report at run time
+tests/corpus_fixtures.py:123:    differs each time. That is the abstraction fingerprint.
+tests/test_analyze_complexity.py:182:# whole time; the JSON and the ledger threw the caveat away.
+tests/test_analyze_complexity.py:414:    report. The factor is 4: 699,840 * 4 = 2,799,360, which is the first time
+tests/test_analyze_complexity.py:416:    scanner now warns about this model, advisory as always. Measured alongside,
+tests/test_analyze_complexity.py:707:    now guards the landed state: the ordinal is present, no five-member
+tests/test_analyze_complexity.py:730:    # MF-025: the per-ticket lifecycle is one ordinal now.
+tests/test_analyze_complexity.py:1168:    UNKNOWN, never a silent number -- even now that operators are expanded."""
+tests/test_architecture_reflexion.py:75:# defect this ticket closes. It now measures Q = +0.260 with 2 of 7 actions
+tests/test_architecture_reflexion.py:161:# because the repaired PIPELINE_TLA above now decomposes emergently as well as
+tests/test_architecture_reflexion.py:781:# interacting inside a component, and `Reset` is dropped: 5 of 9 actions now
+tests/test_architecture_reflexion.py:1668:        untouched, but `deliver <-> ingest` now has a port because a new action
+tests/test_complexity_ledger.py:461:        now is the absent validated-refactor basis, not the kill rate; a
+tests/test_effect_conformance.py:785:# These tests pin two things at once: (a) the child's filesystem effects are now
+tests/test_effect_conformance.py:796:        """The exact blindness MF-028 recorded, now seen.
+tests/test_effect_conformance.py:858:        its ports dead: the child's writes are now real observations.
+tests/test_infer_action_params.py:236:    # blocking gate -- RunSpecUnitTests is (root, ticket) now.
+tests/test_kill_test.py:721:        # of modeled actions are now declared, each with a seeded fault.
+tests/test_kill_test.py:724:        # user-supplied corpus spawn are now declared, each with a seeded fault.
+tests/test_new_ticket_workflow.py:23:    actions for it. The marker keeps each fixture's identity; the module is now
+tests/test_new_ticket_workflow.py:54:    # "hard wall-time budget: `budgets.tlc_seconds` ... default 120 seconds" --
+tests/test_new_ticket_workflow.py:59:    assert "hard wall-time budget" in generation_modes
+tests/test_spec_yaml_valid.py:21:is append-only, records what was actually committed at the time, and therefore
