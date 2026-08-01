@@ -42,8 +42,21 @@ planning_rules:
     kill test -- remains MODELED as-is, a faithful representation of shipped
     experimental commands.
 
-    (2) `generate` is UNMODELED: a recorded granularity limitation, modeled
-    if/when the experimental surface is promoted.
+    (2) SUPERSEDED 2026-08-01 by owner decision (MF-026 round-2 ESC-11). The
+    predecessor's ruling read "`generate` is UNMODELED, a recorded granularity
+    limitation, modeled if/when the experimental surface is promoted." Two
+    things are now wrong with it and both are recorded rather than quietly
+    dropped. First, it names a `generate` command that does not exist in
+    `build_parser`, so it classifies no file and left `generate_python.py` and
+    `generate_docs.py` unclassified. Second, the owner has ruled that
+    case-module generation IS modeled -- it is shipped, user-invocable program
+    surface, and MF-026 G-6/G-10 found that two tickets closed "zero model
+    delta" against surface the model does not contain. THE RULING NOW READS:
+    case generation is MODELED, as a `GenerateCases` action carrying
+    corpus_process (spawn), spec_tree (write) and spec_tree_delete (the metadir
+    rmtree), with the parameter-recovery audit write folded into the same
+    action. `generate_python.py` and `generate_docs.py` are IN MODEL under
+    scripts/**/*.py and are classified by that line, not by this one.
 
     (3) Per-command refusal branches beyond the modeled gate verdicts, and
     per-flag CLI variants (--accept-new, --allow-open, --no-promote-current,
@@ -104,7 +117,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 4
+  schedule_revision: 5
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -231,6 +244,7 @@ representation_scope:
     - "scripts/**/*.py -- the shipped CLI toolchain the program model represents. THE WHOLE DIRECTORY, closing the 24-of-34 unclassifiable hole; individual files inside it are governed by semantic_model_rule's four rulings, not by silence."
     - "specs/current/spec_manifest.yaml, specs/desired_program_model/spec_manifest.yaml, specs/program_model/spec_manifest.yaml -- where every effect port is declared. Named by NO line of this plan before this amendment (ESC-4), which is why three model/manifest desync gaps had to be filed against an unrelated anchor."
     - "specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg -- the model itself and its finite instances."
+    - "specs/*/production_adapters.py and specs/*/adapter_case_runtime.py -- COMPLETION 2026-08-01 (MF-026 round-2 ESC-9). The spec-unit adapters that bind modeled actions to the real CLI. The FIRST amendment named the manifests and the model and skipped the layer between them, which was an omission and not a boundary: the predecessor plan named specs/program_model/production_adapters.py explicitly under adapter_boundaries, and MF-026 run 1 had already recorded that dropping this exact file 'excluded in-scope surface'. Restoring it."
   out_of_model:
     - "tests/**, specs/*/tests/**, test_graph/** -- test and validation harnesses. ESC-3 found 62 rows with NO available disposition, in scope by an implementation_scope list and un-modelable by semantic_model_rule. semantic_model_rule wins; representation_scope_rule explains why there was never a real conflict."
     - "examples/** -- fixtures, worked examples and eval subjects. They are what the toolchain is pointed AT, not surface of it. This is what put 325 fixture files in scope for TlaSpecDevCli.tla."
@@ -238,6 +252,8 @@ representation_scope:
     - "spec_double_compiler/**, templates/** -- generator templates and harness plumbing, per the restored known_gaps ruling (ESC-7)."
     - "skill-scripts/**, *.sh wrappers, run_tlc.sh -- installer and wrapper shell, per semantic_model_rule (4). SUBJECT TO THE STANDING PROVISO: out-of-model files still owe ports for effects they perform on modeled action paths (ESC-6)."
     - "prompts/**, references/**, templates/*.md, *.md -- documentation and sub-agent prompts. Shipped artifacts, not program state."
+    - "specs/tickets/** -- COMPLETION 2026-08-01 (MF-026 round-2 ESC-8). Per-ticket workspaces and their recorded graph reports, 110 rows. The first amendment covered specs/.history/** and root-level test_graph/** and reached neither. Clerical omission, not a boundary decision."
+    - "specs/results/** -- COMPLETION 2026-08-01 (MF-026 round-2 ESC-10). Recorded evidence and previous audits' own sweep tooling. An audit's instruments are not the program they measure."
 
 tickets:
   - id: CM-01
