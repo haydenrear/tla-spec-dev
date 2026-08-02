@@ -1,0 +1,138 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 91 and seed -2303142566305092078 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 78903] (Mac OS X 26.6 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/tlcprobe/reverted/TlaSpecDevCli.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module TlaSpecDevCli
+Starting... (2026-08-01 19:48:02)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-01 19:48:02.
+Error: Invariant SpecUnitTestsRequireMeasuredCorpus is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 0
+/\ complexity_gate = "unknown"
+/\ lastCommand = "Init"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = NoRoot
+/\ architecture_delta = "unknown"
+/\ result = [reason |-> NoReason, accepted |-> TRUE, next |-> "BuildSkillCli"]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 2: <BuildSkillCli line 267, col 3 to line 278, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 1
+/\ complexity_gate = "unknown"
+/\ lastCommand = "BuildSkillCli"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = NoRoot
+/\ architecture_delta = "unknown"
+/\ result = [reason |-> NoReason, accepted |-> TRUE, next |-> "InstallLocalCli"]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 3: <InstallLocalCli line 285, col 3 to line 296, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 2
+/\ complexity_gate = "unknown"
+/\ lastCommand = "InstallLocalCli"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = NoRoot
+/\ architecture_delta = "unknown"
+/\ result = [ reason |-> NoReason,
+  accepted |-> TRUE,
+  next |-> "tla-spec-dev scaffold project" ]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 4: <ScaffoldProject line 304, col 3 to line 316, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 3
+/\ complexity_gate = "unknown"
+/\ lastCommand = "tla-spec-dev scaffold project"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = default_specs
+/\ architecture_delta = "unknown"
+/\ result = [reason |-> NoReason, accepted |-> TRUE, next |-> "RecordBudgets"]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 5: <RecordBudgets line 328, col 3 to line 340, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 4
+/\ complexity_gate = "unknown"
+/\ lastCommand = "RecordBudgets"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = default_specs
+/\ architecture_delta = "unknown"
+/\ result = [ reason |-> NoReason,
+  accepted |-> TRUE,
+  next |-> "tla-spec-dev scaffold workflow" ]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 6: <ScaffoldWorkflow line 348, col 3 to line 360, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 5
+/\ complexity_gate = "unknown"
+/\ lastCommand = "tla-spec-dev scaffold workflow"
+/\ ticket_state = (cli_entrypoint :> 0)
+/\ spec_root = default_specs
+/\ architecture_delta = "unknown"
+/\ result = [ reason |-> NoReason,
+  accepted |-> TRUE,
+  next |-> "tla-spec-dev open ticket <ticket>" ]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 7: <OpenTicket line 368, col 3 to line 385, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 5
+/\ complexity_gate = "unknown"
+/\ lastCommand = "tla-spec-dev open ticket"
+/\ ticket_state = (cli_entrypoint :> 1)
+/\ spec_root = default_specs
+/\ architecture_delta = "unknown"
+/\ result = [ reason |-> NoReason,
+  accepted |-> TRUE,
+  next |-> "Update ticket desired TLA+ first" ]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+State 8: <CloseTicketWeakened line 738, col 3 to line 751, col 39 of module TlaSpecDevCli>
+/\ architecture_scan = "unknown"
+/\ setup_phase = 5
+/\ complexity_gate = "unknown"
+/\ lastCommand = "tla-spec-dev close ticket --accept-new"
+/\ ticket_state = (cli_entrypoint :> 6)
+/\ spec_root = default_specs
+/\ architecture_delta = "unknown"
+/\ result = [ reason |-> NoReason,
+  accepted |-> TRUE,
+  next |->
+      "Closed under a guard-weakening flag -- the spec-unit precondition was not checked" ]
+/\ kill_test = "unknown"
+/\ effect_conformance = "unknown"
+/\ corpus_gate = "unknown"
+
+879 states generated, 560 distinct states found, 525 states left on queue.
+The depth of the complete state graph search is 8.
+The average outdegree of the complete state graph is 16 (minimum is 0, the maximum 28 and the 95th percentile is 28).
+Finished in 00s at (2026-08-01 19:48:02)

@@ -1,0 +1,107 @@
+scripts/effect_conformance.py:25:   ``shutil``, ``pathlib.Path``, ``subprocess`` and ``socket`` objects living
+scripts/effect_conformance.py:93:import subprocess
+scripts/effect_conformance.py:191:    "subprocess",
+scripts/effect_conformance.py:254:    adapter and a subprocess-delegating adapter both return ``clean``: the
+scripts/effect_conformance.py:706:        self._patch_process("check_call")
+scripts/effect_conformance.py:707:        self._patch_process("check_output")
+scripts/effect_conformance.py:743:        original = getattr(subprocess, name, None)
+scripts/effect_conformance.py:746:        key = f"subprocess.{name}"
+scripts/effect_conformance.py:747:        self._originals[key] = (subprocess, name, original)
+scripts/effect_conformance.py:757:        setattr(subprocess, name, patched)
+scripts/effect_conformance.py:760:        original = subprocess.Popen
+scripts/effect_conformance.py:761:        self._originals["subprocess.Popen"] = (subprocess, "Popen", original)
+scripts/effect_conformance.py:767:                    ObservedEffect(type="process.spawn", target=_command_target(args), detail="subprocess.Popen")
+scripts/effect_conformance.py:771:        subprocess.Popen = PatchedPopen  # type: ignore[misc]
+scripts/effect_conformance.py:1142:                "subprocess spawns and socket.connect patched in THIS interpreter. No "
+scripts/generate_cases_from_tlc_dump.py:19:import subprocess
+scripts/generate_cases_from_tlc_dump.py:116:        subprocess.run(command, check=True, cwd=spec_dir, env=env)
+scripts/generate_cases_from_tlc_dump.py:117:    except subprocess.CalledProcessError as error:
+scripts/kill_test.py:94:import subprocess
+scripts/kill_test.py:608:    def _invoke() -> subprocess.CompletedProcess[str]:
+scripts/kill_test.py:609:        return subprocess.run(
+scripts/onboard_program_model.py:1243:import subprocess
+scripts/onboard_program_model.py:1298:    subprocess.run(command, check=True, cwd=REPO_ROOT)
+scripts/run_generated_case_adapters.py:21:import subprocess
+scripts/run_generated_case_adapters.py:2057:    return subprocess.run(command, env=env).returncode
+scripts/run_generated_case_adapters.py:2111:        result = subprocess.run([*python, str(program)])
+scripts/spec_evolution.py:10:import subprocess
+scripts/spec_evolution.py:99:        result = subprocess.run(["git", *args], check=True, capture_output=True, text=True)
+scripts/spec_evolution.py:100:    except (OSError, subprocess.CalledProcessError):
+scripts/tla_spec_dev.py:8:import subprocess
+scripts/tla_spec_dev.py:401:        result = subprocess.run(command, cwd=repo_root, env=env)
+specs/current/adapter_case_runtime.py:22:import subprocess
+specs/current/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/adapter_case_runtime.py:36:    return subprocess.run(
+specs/current/adapter_case_runtime.py:220:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/current/production_adapters.py:8:import subprocess
+specs/current/production_adapters.py:259:        install = subprocess.run(
+specs/current/production_adapters.py:268:        version = subprocess.run(
+specs/current/production_adapters.py:344:        result = subprocess.run(
+specs/current/production_adapters.py:455:        result = subprocess.run(
+specs/current/production_adapters.py:531:) -> list[subprocess.CompletedProcess[str]]:
+specs/current/production_adapters.py:1127:        result = subprocess.run(
+specs/current/production_adapters.py:1378:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1379:            return subprocess.run(
+specs/current/production_adapters.py:1396:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1397:            return subprocess.run(
+specs/current/production_adapters.py:1563:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1564:            return subprocess.run(
+specs/current/production_adapters.py:1750:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1751:            return subprocess.run(
+specs/current/production_adapters.py:1880:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1881:            return subprocess.run(
+specs/current/production_adapters.py:2009:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/production_adapters.py:2013:            return subprocess.run(
+specs/current/production_adapters.py:2379:        result = subprocess.run(
+specs/current/production_adapters.py:2405:        stray = subprocess.run(
+specs/current/production_adapters.py:2483:        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/current/spec_manifest.yaml:203:        # parser (scripts/analyze_complexity.py contains no subprocess), and
+specs/desired_program_model/adapter_case_runtime.py:22:import subprocess
+specs/desired_program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/adapter_case_runtime.py:36:    return subprocess.run(
+specs/desired_program_model/adapter_case_runtime.py:220:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/desired_program_model/production_adapters.py:8:import subprocess
+specs/desired_program_model/production_adapters.py:259:        install = subprocess.run(
+specs/desired_program_model/production_adapters.py:268:        version = subprocess.run(
+specs/desired_program_model/production_adapters.py:344:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:455:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:531:) -> list[subprocess.CompletedProcess[str]]:
+specs/desired_program_model/production_adapters.py:1127:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:1378:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1379:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1396:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1397:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1563:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1564:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1750:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1751:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:1880:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1881:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:2009:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/production_adapters.py:2013:            return subprocess.run(
+specs/desired_program_model/production_adapters.py:2379:        result = subprocess.run(
+specs/desired_program_model/production_adapters.py:2405:        stray = subprocess.run(
+specs/desired_program_model/production_adapters.py:2483:        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/desired_program_model/spec_manifest.yaml:201:        # parser (scripts/analyze_complexity.py contains no subprocess), and
+specs/program_model/adapter_case_runtime.py:22:import subprocess
+specs/program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/adapter_case_runtime.py:36:    return subprocess.run(
+specs/program_model/adapter_case_runtime.py:213:    return subprocess.CompletedProcess(args=["<record-budgets>"], returncode=0, stdout="", stderr="")
+specs/program_model/production_adapters.py:7:import subprocess
+specs/program_model/production_adapters.py:258:        install = subprocess.run(
+specs/program_model/production_adapters.py:267:        version = subprocess.run(
+specs/program_model/production_adapters.py:343:        result = subprocess.run(
+specs/program_model/production_adapters.py:454:        result = subprocess.run(
+specs/program_model/production_adapters.py:530:) -> list[subprocess.CompletedProcess[str]]:
+specs/program_model/production_adapters.py:1126:        result = subprocess.run(
+specs/program_model/production_adapters.py:1377:        def cli(*args: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1378:            return subprocess.run(
+specs/program_model/production_adapters.py:1395:        def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1396:            return subprocess.run(
+specs/program_model/production_adapters.py:1549:        def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1550:            return subprocess.run(
+specs/program_model/production_adapters.py:1679:        def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1680:            return subprocess.run(
+specs/program_model/production_adapters.py:1808:        def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/production_adapters.py:1812:            return subprocess.run(
+specs/program_model/spec_manifest.yaml:203:        # parser (scripts/analyze_complexity.py contains no subprocess), and

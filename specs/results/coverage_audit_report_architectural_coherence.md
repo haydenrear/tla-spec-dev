@@ -1,1193 +1,530 @@
 # Coverage Audit Report — architectural-coherence epic (MF-026 gate)
 
-**Round 2 — re-classified against `representation_scope` (owner amendment `fa5762a`, schedule_revision 4).**
-Round 1 (`b1fc5fe`) HALTED at Step 0 and is preserved in this file's history. The
-**enumerations were not re-run**: every `sweep1-surface.txt`, `effects-*.txt` and
-`behavior-*.txt` committed at `b1fc5fe` is reused byte for byte, and only the
-scope classification changed, because only the scope declaration changed.
+**Round 3 — re-audited against RC-01 at `05acf8c`.** Rounds 1 (`b1fc5fe`,
+`incomplete`, 12 gaps) and 2 (`b76eaf1`, `fail`, 9 gaps) are preserved in this
+file's git history; their raw enumerations are preserved unmodified under
+`coverage-audit-arch-coherence-raw/`.
 
-## VERDICT (stated plainly)
+**Round 3 RE-ENUMERATES.** Rounds 1→2 reused the raws because only the scope
+declaration changed. RC-01 changed the *program* — a new CLI subcommand, two new
+actions, a new variable, four new ports — so the surface was swept fresh into
+`coverage-audit-arch-coherence-raw/round3/`. Sweeping RC-01's additions as a
+claim rather than as surface is precisely what this gate exists to refuse.
+
+## VERDICT
 
 - **Verdict:** **`fail`**
-- **In-scope gaps:** **9** — every one anchored on a file the plan names IN model
-- **Out-of-model inventory:** **441 Sweep-1 rows** + 3 findings promoted from gap to inventory (round-1 G-7, G-8, G-9)
-- **Scope escalations remaining:** **4** (121 Sweep-1 rows still unclassifiable)
-- **`scope_source`:** `specs/desired_program_model/ticket_plan.yaml:220-240`
-  (`representation_scope`), governed by `:26-67` (`semantic_model_rule`, incl. the
-  standing proviso at `:60-67`) and `:68-77` (`representation_scope_rule`), with
-  the inventory rulings at `:211-219` (`service_catalog.known_gaps`).
-  **`implementation_scope` is no longer read** — `:68-77` declares it
-  edit-permission only.
+- **In-scope gaps:** **3** — all three are surface **RC-01 created**; 8 of the 9
+  round-2 gaps are closed and the ninth is closed in half
+- **Escalations: 0.** For the first time in this audit's history every row in the
+  enumerated surface carries a real disposition.
+- **Out-of-model inventory:** 6,064 of 6,104 source rows, every one traced to a
+  quoted `out_of_model` line
+- **`scope_source`:** `specs/desired_program_model/ticket_plan.yaml:259-282`
+  (`representation_scope`, schedule_revision 6), governed by `:26-96`
+  (`semantic_model_rule`) and `:97-106` (`representation_scope_rule`)
 
-> **`fail`, not `incomplete` — and that is an upgrade in information, not a
-> downgrade in severity.** Round 1 could not answer the question: 187 of 596 rows
-> were unclassifiable and 86% of rows were dispositioned from a path. Round 2
-> can: the declared in-model surface is **46 files** (34 `scripts/*.py` + 12
-> non-source), **every one of which was read**, and it contains 9 gaps. The
-> remaining blocker is a **modeling gap, not a coverage limit** — see §7 for the
-> precise split, and §8.2 for the coverage limits that an amendment cannot and
-> did not fix.
+| | Round 1 | Round 2 | **Round 3** |
+|---|---|---|---|
+| Verdict | `incomplete` | `fail` | **`fail`** |
+| In-scope gaps | 12 | 9 | **3** |
+| Escalations | 7 (187 rows) | 4 (121 rows) | **0 (0 rows)** |
+| In-model surface | undeterminable | 46 files | **52 files** |
+| Rows inferred, in-model | 86% overall | 0 of 46 | **0 of 52** |
 
-- **Epic / workflow:** `architectural-coherence-epic`, branch `epic/architectural-coherence`
-- **Model audited:** `specs/desired_program_model/TlaSpecDevCli.tla`, byte-identical
-  to `specs/current/TlaSpecDevCli.tla`. 10 variables, 16 actions.
-- **Commit:** enumerations at `3467051`; classification at `fa5762a`. The
-  amendment touched only `ticket_plan.yaml`, so the Sweep-1 surface is unchanged.
-- **Date:** 2026-08-01
-- **Raw outputs:** `specs/results/coverage-audit-arch-coherence-raw/`
-- **Reproducers:** `cac_ac_classify.py` (round 1, `implementation_scope`),
-  **`cac_ac_classify_v2.py` (round 2, `representation_scope` — this report)**,
-  `cac_ac_external_surface.py`. Every table row set is one of their outputs.
+> **The three remaining gaps are all new.** RC-01 closed nine gaps and opened
+> three, two of which are the *same class it was closing* — a port with no site,
+> and an unconstrained `--out`. That is not a criticism of RC-01's competence; it
+> is the measurement this gate exists to produce, and it is the strongest
+> available evidence that new surface needs the gate rather than a review.
 
-> This audit checks **completeness of what is modeled**, not fidelity. The four
-> oracles are bounded to what is already represented and cannot see this class of
-> defect. See `prompts/coverage_audit.md`.
+- **Model audited:** `specs/desired_program_model/TlaSpecDevCli.tla` (11 variables,
+  18 `Next` disjuncts), byte-equal in semantics to `specs/current`.
+- **Date:** 2026-08-01 · **Commit:** `05acf8c`
+- **Raw outputs:** `specs/results/coverage-audit-arch-coherence-raw/round3/`
+- **Reproducer:** `round3/cac_ac_classify_v3.py`
+- **Independent verification performed** (not read from RC-01's evidence): a TLC
+  reproduction of the guard-flag invariant claim, and a full `MC.cfg` run. §6.
 
 ---
 
-## 0. Declared scope (quoted verbatim from the amended plan)
+## 1. Per-gap verdict on RC-01
 
-### 0.1 `representation_scope` — `ticket_plan.yaml:220-240`
+Every claim below was checked against the tree, not against
+`specs/results/rc01-gap-closure.md`. **No forbidden disposition appears anywhere
+in RC-01's closure record** — `grep -niE 'justified|accept as-is|acceptable
+risk|out of contract|low priority|not worth modeling|unlikely in practice'`
+returns nothing, and each gap is closed as `model it` or `change the program`.
 
-```yaml
-# ticket_plan.yaml:230-233
-  in_model:
-    - "scripts/**/*.py -- the shipped CLI toolchain the program model represents. THE WHOLE DIRECTORY, closing the 24-of-34 unclassifiable hole; individual files inside it are governed by semantic_model_rule's four rulings, not by silence."
-    - "specs/current/spec_manifest.yaml, specs/desired_program_model/spec_manifest.yaml, specs/program_model/spec_manifest.yaml -- where every effect port is declared. Named by NO line of this plan before this amendment (ESC-4), which is why three model/manifest desync gaps had to be filed against an unrelated anchor."
-    - "specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg -- the model itself and its finite instances."
-# ticket_plan.yaml:234-240
-  out_of_model:
-    - "tests/**, specs/*/tests/**, test_graph/** -- test and validation harnesses. ESC-3 found 62 rows with NO available disposition, in scope by an implementation_scope list and un-modelable by semantic_model_rule. semantic_model_rule wins; representation_scope_rule explains why there was never a real conflict."
-    - "examples/** -- fixtures, worked examples and eval subjects. They are what the toolchain is pointed AT, not surface of it. This is what put 325 fixture files in scope for TlaSpecDevCli.tla."
-    - "specs/.history/** -- sealed append-only snapshots, 5,402 files. Excluded by THIS PLAN LINE rather than by an auditor's own filter (ESC-5). Sealed history is a record of program surface, never program surface."
-    - "spec_double_compiler/**, templates/** -- generator templates and harness plumbing, per the restored known_gaps ruling (ESC-7)."
-    - "skill-scripts/**, *.sh wrappers, run_tlc.sh -- installer and wrapper shell, per semantic_model_rule (4). SUBJECT TO THE STANDING PROVISO: out-of-model files still owe ports for effects they perform on modeled action paths (ESC-6)."
-    - "prompts/**, references/**, templates/*.md, *.md -- documentation and sub-agent prompts. Shipped artifacts, not program state."
-```
-
-### 0.2 The standing proviso — `ticket_plan.yaml:60-67`
-
-```yaml
-# ticket_plan.yaml:60-67 (inside semantic_model_rule)
-    THE STANDING PROVISO, NOT WAIVED BY ANY OF THE FOUR: an out-of-model FILE
-    does not make an out-of-model EFFECT. Where a modeled action performs a real
-    effect, that effect MUST still be declared as a port. MF-026 ESC-6 is the
-    live counterexample -- skill-scripts/install-tlc2.sh:37 performs a real curl
-    download on the BuildSkillCli / InstallLocalCli path and no network.* port
-    is declared anywhere, although the effect sandbox observes network.connect.
-    Ruling the file out of model does NOT rule out the port; that port is a gap
-    to close, not an escalation to answer.
-```
-
-**This proviso did more work than the owner scheduled for it.** Applying it
-across every out-of-model file that sits on a modeled action path produced
-**G-9**, which is materially larger than the single network port ESC-6 named —
-`cli_artifact`, the *only* port declared for both install actions, matches
-nothing either installer writes. See §6.1.
-
-### 0.3 The restored rulings — `ticket_plan.yaml:26-67`, `:211-219`
-
-```yaml
-# ticket_plan.yaml:45-59 (semantic_model_rule, rulings 2-4)
-    (2) `generate` is UNMODELED: a recorded granularity limitation, modeled
-    if/when the experimental surface is promoted.
-
-    (3) Per-command refusal branches beyond the modeled gate verdicts, and
-    per-flag CLI variants (--accept-new, --allow-open, --no-promote-current,
-    --validate-only, --force, --dry-run), are OUT-OF-MODEL as a recorded
-    granularity limitation. Guard-weakening flags are governed by doctrine,
-    not modeled.
-
-    (4) Advisory tooling internals (fitness evaluation inside analyze,
-    silent-degrade guards, runner env re-exec), the close/start/scaffold wrapper
-    scripts, run_tlc.sh, clock/provenance reads on the close path, and the
-    effect-provider runtime are validation harness / toolchain plumbing:
-    OUT-OF-MODEL.
-```
-
-```yaml
-# ticket_plan.yaml:213 and :215 (service_catalog.known_gaps)
-    - "RESTORED 2026-08-01 (owner amendment, schedule_revision 4; MF-026 ESC-1): this repository's baseline remains a SINGLE TlaSpecDevCli.tla module without the Internal/External view split -- future work, unscoped. ... The decision stands; the External view being unrepresented is an INVENTORY ROW under this line, not a gap."
-    - "RESTORED 2026-08-01 (MF-026 ESC-1): per-command refusal branches beyond the modeled gate verdicts, and per-flag CLI variants, are out-of-model ... This covers the five group subcommands' `incomplete command` exit-2 outcome and the 69 options / 9 positionals, INCLUDING the six guard-weakening flags, which are governed by doctrine rather than modeled."
-```
-
-### 0.4 Round-1 escalations: what the amendment answered
-
-| Escalation | Answered? | By | Effect on the audit |
+| Gap | Claim | Verified? | Evidence |
 |---|---|---|---|
-| **ESC-1** rulings not restated | **YES** | `:26-67`, `:211-219` | 3 gaps become inventory (§6.2); the plan is self-contained again |
-| **ESC-2** `implementation_scope` as scope | **YES** | `:68-77`, `:220-240` | `scripts/**/*.py` scoped as a directory — **the 24-of-34 hole is closed** |
-| **ESC-3** tests/test_graph contradiction | **YES** | `:235` | 62 rows that had no available disposition are now `inventory it` |
-| **ESC-4** `spec_manifest.yaml` unnamed | **YES** | `:232` | G-1/G-5/G-6 now anchor on a real plan line instead of a workaround |
-| **ESC-5** `specs/.history/**` filter | **YES** | `:237` | round 1's filter F1 is now the plan's decision, not the auditor's |
-| **ESC-6** installer network effect | **DELIBERATELY NOT** | `:60-67` proviso | **promoted to gap G-9, and it grew** |
-| **ESC-7** harness plumbing contradiction | **YES** | `:238`, `:217` | `spec_double_compiler/**`, `templates/**` resolved |
+| **G-1** | `AnalyzeArchitecture: [evidence_report]` in all three manifests + matching `@port` | **CLOSED** — with a correction to the claim | Row present at `specs/current/spec_manifest.yaml:325` and `specs/desired_program_model/spec_manifest.yaml:323`; `@port TlaSpecDevCliPort.evidence_report` at `TlaSpecDevCli.tla:790`. **`specs/program_model` correctly has no such row** — its module has no `AnalyzeArchitecture` (36 top-level defs vs 42; no `architecture_scan`). "All three" would have been the defect, not the fix. |
+| **G-2** | `--out` refused outside `results/` | **CLOSED — change the program** | `scripts/spec_paths.py:76-95` `resolve_evidence_out` resolves the path first (so `..` cannot escape) and checks `results` as a path **component**, not a prefix. Applied at `analyze_architecture.py:1122` and `architecture_reflexion.py:2300`. |
+| **G-3** | same for `analyze complexity` | **CLOSED — change the program** | `analyze_complexity.py:2297`. |
+| **G-4** | `TlaSpecDevCli.tla:649` replaced | **CLOSED** | The false `\* No @port: … and prints` is gone; `@port TlaSpecDevCliPort.evidence_report` at `:790` immediately precedes `AnalyzeArchitecture(root) ==` at `:791`. |
+| **G-5** | my finding was partly wrong | **CLOSED, and RC-01 IS RIGHT — see §3** | |
+| **G-6** | `generate cases` shipped + `GenerateCases` modeled | **CLOSED as a representation gap** — but the new command path carries **N-2** | `tla_spec_dev.py:161-181` dispatches to `generate_cases_from_tlc_dump.run`; `GenerateCases(root)` at `TlaSpecDevCli.tla`; manifest row `GenerateCases: [corpus_process, spec_tree, spec_tree_delete]` at `:340`/`:342`. Records no verdict, as claimed — it touches only `lastCommand` and `result`. |
+| **G-7** | both comments rewritten in all three manifests | **CLOSED** | `specs/*/spec_manifest.yaml` `source_model` note now names the live citation (`service_catalog.known_gaps`, the "RESTORED 2026-08-01" entry) and says plainly that no 22 July amendment exists. A test checks the citation resolves. |
+| **G-8** | `architecture_delta` as its own 6-valued variable | **CLOSED — model it** | `TlaSpecDevCli.tla:918`: `architecture_delta \in {"unknown","improved","worsened","unchanged","unverified","unattributable"}`; assigned at `:800` conditioned on `architecture_scan'`. The reasoning given — that modelling only the measurements would represent exactly the half that can be gamed — is sound and matches AC-04's own gaming probe. |
+| **G-9** | `cli_artifact` retargeted; `cli_download`, `cli_artifact_delete`, `cli_selftest_process` added; boundaries 22 → 26 | **CLOSED IN HALF — see N-1** | The write is now declared (`cli_artifact` target `**/.venv/**` → `*`). **The other three ports are declared in the ports block and referenced by NO action row, in all three trees.** So the network download, the delete and the self-test spawn remain undeclared *for the actions that perform them*. |
+| **Guard flags** | `CloseTicketWeakened` / `TicketClosedWeakened` + `guard_weakening` in close history | **CLOSED — model it, and it earned its cost. See §6.** | |
 
-**All seven are answered — six by classification, one by conversion to a gap.**
-Four *new* escalations remain (§0.5), all of them surface the amendment did not
-reach rather than rulings it got wrong.
-
-### 0.5 Escalations remaining after the amendment (4)
-
-**121 of 596 Sweep-1 rows are still unclassifiable.** Every one was already an
-escalation in round 1; **no row regressed from classified to unclassified.**
-
-| # | Rows | Surface | Why `representation_scope` does not classify it |
-|---|---|---|---|
-| **ESC-8** | **110** | `specs/tickets/MF-027/results/graph-reports/**` — 34 `.py`, 76 `.kt`/`.java` | Archived Test Graph report trees from a **closed predecessor epic's ticket**, sitting in `specs/tickets/` — the *live* ticket working directory, not `specs/.history/`. `:237` covers `.history` and `:235` covers `test_graph/**` at repository root; neither reaches `specs/tickets/**`. Almost certainly intended out-of-model, but saying so is the owner's call, not mine. **One line — `specs/tickets/**` — closes 110 of the 121.** |
-| **ESC-9** | **6** | `specs/{current,desired_program_model,program_model}/production_adapters.py` and `.../adapter_case_runtime.py` | **The spec-unit adapters** — the code that binds modeled actions to the real CLI. `:235` covers `specs/*/tests/**`; these sit one level up, beside the manifest, and no `in_model` or `out_of_model` line reaches them. This is not a trivial omission: the **predecessor** plan named `specs/program_model/production_adapters.py` explicitly under `adapter_boundaries`, and MF-026 run 1 recorded that a filter dropping this exact file "excluded in-scope surface". The amendment named the manifests and the model and skipped the adapters between them. |
-| **ESC-10** | **5** | `specs/results/epic-close/sweep-raw-run*/`, `specs/results/finalization/sweep-raw-close2/`, `specs/results/coverage-audit-sweep-raw/` — 3 `.py`, 2 `.sh` | Previous coverage audits' own classifier and sweep scripts, committed as their evidence. No line covers `specs/results/**`. `:239` writes `*.sh wrappers` — read strictly, a bare `*.sh` glob does not cross a path separator and matches nothing at repository root, so it does not absorb the two `.sh` files here. **I applied the strict reading deliberately**: widening it by inference would silently swallow files no line names, and Step 0 says escalations are the correct direction. |
-| **ESC-11** | rule-level | `semantic_model_rule` ruling (2), `:45-47` | **Ruling (2) names a `` `generate` `` command that does not exist.** `scripts/tla_spec_dev.py:385-731` registers `scaffold`, `open`, `run`, `analyze`, `close` and nothing else. So the ruling classifies no file: `generate_python.py` and `generate_docs.py` — the actual generator surface — are left unclassified, and I have not inferred them in either direction. **Worse, ruling (2) now contradicts the owner's own direction**: the owner has ruled that case-module generation is `model it` (G-7), while the plan text still says the generate surface is a recorded limitation. Two readers of the record will reach opposite answers. The plan should name the modules and record the G-7 decision. |
+**Boundary count independently recomputed:** 12 ports + 14 `MC.cfg` invariants =
+**26**, matching RC-01's "22 → 26". `kill_mutants.toml` seeds all 26, plus two
+orphans — `port-tlc_process` and `inv-SpecUnitTestsRequireAnalyzedGate`, both for
+boundaries CD-09 removed. `git log -S` dates both to `58d785c`, the epic's
+opening commit: **pre-existing, not RC-01's**, and harmless because the kill test
+recomputes the required set from the model rather than trusting the catalog.
+Recorded, not charged to this ticket.
 
 ---
 
-## 1. The in-model surface, enumerated and fully walked
+## 2. Gaps RC-01 CREATED (3)
 
-This is the section round 1 could not produce. `representation_scope` names a
-surface small enough to read entirely.
+The coordinator asked for this specifically. All three were found by sweeping the
+new surface, not by reading RC-01's account of it.
 
-**Enumeration:**
+### N-1 — three ports declared, referenced by no action. Dead model surface, in all three trees. **[major]**
+
+`cli_download`, `cli_artifact_delete` and `cli_selftest_process` are declared
+under `effects.components.TlaSpecDevCliPort.ports`
+(`specs/desired_program_model/spec_manifest.yaml:180`, `:188`, `:195`, and the
+`current`/`program_model` twins) and appear in **no `effects.actions` row**:
+
+```
+BuildSkillCli:   [cli_artifact]     # spec_manifest.yaml:283
+InstallLocalCli: [cli_artifact]     # spec_manifest.yaml:284
+```
+
+Mechanically confirmed across all three trees: `DECLARED-BUT-UNUSED =
+['cli_artifact_delete', 'cli_download', 'cli_selftest_process']`. The model's
+`@port` annotations agree with the rows and not with the ports block — every
+`@port` line in `TlaSpecDevCli.tla` names one of the ten pre-existing ports.
+
+**Why this is a gap and not a cosmetic issue.** Three independent rules in this
+repository are violated at once:
+
+1. `spec_manifest.yaml`'s own schema note: *"a declared port no case ever
+   exercises is DEAD MODEL SURFACE"* — a HARD FAILURE, not a warning. This is the
+   exact rule CD-09 used to delete `tlc_process` and CD-11 used to delete
+   `AnalyzeCorpus`'s `evidence_report`.
+2. `TlaSpecDevCli.tla:214-222`: *"each action's `@port` lines mirror its row in
+   `effects.actions`."* Round-2 G-1 was this rule violated in one direction (an
+   action with `@port` lines and no row); N-1 is the same rule violated in the
+   other (ports that no action's `@port` lines mirror).
+3. **`effect_conformance.py:511-518` binds ports to actions strictly through
+   `effects.actions`.** A port absent from an action's row is not declared *for
+   that action*. So G-9's substance — the `curl` download at
+   `install-tlc2.sh:37`, the `mv` unlink at `:38`, the wrapper self-test spawn at
+   `install-tla-spec-dev.sh:31` — **is still undeclared on the
+   `BuildSkillCli` / `InstallLocalCli` path.** RC-01 wrote the ports, wrote
+   correct comments explaining which action path each belongs to, and did not
+   attach them.
+
+**Disposition: model it.** Add `cli_download`, `cli_artifact_delete` and
+`cli_selftest_process` to the `BuildSkillCli` / `InstallLocalCli` rows in
+`specs/current` and `specs/desired_program_model` (and at promotion, to
+`specs/program_model` — where the ports are *already* declared against a
+14-action manifest, so that tree carries the dead surface with no path to
+exercise it at all), and add the matching `@port` lines at `TlaSpecDevCli.tla:239`
+and `:256`.
+
+**The sharpest thing about N-1:** it is exactly the defect
+`run effect-conformance` is built to catch. `effect_conformance.py:977` emits
+`DEAD MODEL SURFACE: port {qualified}` and `:1026-1027` returns
+`VERDICT_DEAD_SURFACE`. One oracle run would have found it. See §5.
+
+### N-2 — `generate cases` ships the unconstrained-`--out` class RC-01 fixed three commands for, including a destructive delete. **[major]**
+
+`resolve_evidence_out` was written into `scripts/spec_paths.py` in this commit
+and applied to `analyze_architecture.py`, `analyze_complexity.py` and
+`architecture_reflexion.py`. It is **not applied** to
+`generate_cases_from_tlc_dump.py` — `grep -n resolve_evidence_out scripts/*.py`
+returns four sites, none in the generator.
+
+The new `tla-spec-dev generate cases` path therefore performs, at
+caller-controlled locations:
+
+| Site | Effect | Declared port | Covered? |
+|---|---|---|---|
+| `generate_cases_from_tlc_dump.py:96` | `dot_path.parent.mkdir(parents=True)` | `spec_tree` (`**/specs/**`) | **only if `--dot` happens to point under `specs/`** |
+| `:116` | `subprocess.run(command, cwd=spec_dir, env=env)` — java/TLC, binary from `--tlc2` | `corpus_process` (`*`) | yes |
+| **`:140`** | **`shutil.rmtree(metadir, ignore_errors=True)`**, where `metadir = dot_path.parent / ".tlc-states" / tla_path.stem` | `spec_tree_delete` (`**/specs/**`) | **only if `--dot` happens to point under `specs/`** |
+| `:669` | `package_dir.mkdir(parents=True)` | `spec_tree` | **only if `--out` happens to point under `specs/`** |
+| `:882-883` | `path.parent.mkdir(...)`; `path.write_text(content)` | `spec_tree` | same |
+
+`--out` is `required=True` with no location constraint
+(`generate_cases_from_tlc_dump.py:1153-1157`); `--dot` and `--tlc2` are
+unconstrained too. **The `rmtree` is the serious one**: a destructive delete at a
+path the caller chooses, on a newly modeled action, declared by a port that
+targets a tree the caller need not be in.
+
+**Disposition: change the program** (the disposition RC-01 itself chose for the
+identical class in G-2/G-3) — route `--out` and `--dot` through a
+`resolve_spec_tree_out` sibling of `resolve_evidence_out`, refusing anything
+outside `specs/`. Modelling it instead would mean widening `spec_tree` and
+`spec_tree_delete` to `*`, which would weaken two ports that are currently
+precise and that `CloseTicket` depends on.
+
+### N-3 — a citation that went stale in the commit that wrote it. **[minor]**
+
+`generate_cases_from_tlc_dump.py:1145-1146`, written by RC-01, reads: *"never saw
+the java spawn at :115, the metadir `rmtree` at :139, the package writes at
+:881-882"*. The actual lines are **`:116`, `:140`, `:882-883`** — RC-01's own
+edits shifted them by one and the docstring was not updated. This is the G-5/G-7
+class — a record that contradicts the thing beside it — reappearing one commit
+after being closed twice.
+
+**Disposition: model it** (correct the record). Trivial to fix and reported at
+its true weight: a one-line inaccuracy. It is listed because the class, not the
+severity, is the finding — three consecutive tickets have now shipped a stale
+internal citation, which argues for a check rather than more care.
+
+### Reported, deliberately NOT counted as a gap: three ports at target `*`
+
+`cli_artifact`, `cli_download` and `cli_artifact_delete` all now target `*`
+(`spec_manifest.yaml:170`, `:182`, `:190`). A `filesystem.write` port at `*`
+**cannot express a gap for its action** — the same shape RP-01 refused for
+partitions ("a partition that cannot express a divergence cannot yield
+`coherent`").
+
+I am not filing it as a gap, and the reason should be on the record rather than
+assumed: RC-01 recorded its reasoning at `:155-168`, the reasoning is sound
+(`SKILL_MANAGER_BIN_DIR` and `SKILL_MANAGER_CACHE_DIR` are required env vars that
+nothing in either script constrains), it follows a precedent the manifest already
+carries for `corpus_process`, and the schema has no variable interpolation with
+which to write anything narrower. `*` is honest where `**/.venv/**` was a lie.
+**But the cost is real and unrecorded elsewhere: two modeled actions can now
+write anywhere and no effect-conformance run can ever report a gap for them.** If
+the schema ever gains env-var interpolation, this is the first place to use it.
+
+---
+
+## 3. G-5 adjudicated: RC-01 is right and my round-2 finding was overstated
+
+Stated plainly, as asked.
+
+**Round 2 said:** all three `spec_manifest.yaml` files carry a stale "9 variables
+and 15 actions" figure for a model with 10 and 16.
+
+**That was wrong for one of the three, and RC-01 is correct.** Measured directly
+from the modules at `05acf8c`'s parent:
+
+| Tree | Variables | `Next` disjuncts | Round-2 claim | Correct? |
+|---|---|---|---|---|
+| `specs/current` | 11 (was 10) | 18 (was 16) | stale — **right** | ✅ my finding held |
+| `specs/desired_program_model` | 11 (was 10) | 18 (was 16) | stale — **right** | ✅ my finding held |
+| **`specs/program_model`** | **9** | **15** | stale — **WRONG** | ❌ **its figure was correct** |
+
+`specs/program_model` is the accepted baseline; it predates AC-01 and contains no
+`architecture_scan` and no `AnalyzeArchitecture`. **Its "9 variables and 15
+actions" described the module sitting beside it accurately.** I compared all
+three manifests against one model's figures instead of against each manifest's
+own module — the identical error class I have been filing against others all
+epic, committed by me, in the report that filed them.
+
+RC-01's fix is better than the one I proposed. I suggested updating three
+comments; RC-01 shipped `tests/test_spec_manifest_records.py`, parametrized over
+all three trees, which parses the module beside each manifest and asserts
+`variables`, `Next` disjuncts and `@command` count agree — and it "cannot be
+satisfied by copying one number into three files." That converts the class from
+"found by targeted reading" to "checked mechanically", which is what round 2's
+own attestation asked for and did not expect to get.
+
+**Round 2's G-5 is hereby corrected in the record: it was two-thirds right.**
+
+---
+
+## 4. Re-classification and the surface
+
+**Enumeration (re-run at `05acf8c`):**
 
 ```bash
-git ls-files 'scripts/*.py' | wc -l                                  # 34
-python3 .../cac_ac_classify_v2.py   # sweep1b: in-model non-source    # 12
+git ls-files '*.py' '*.sh' '*.kt' '*.kts' '*.java' '*.j2' | sort > round3/sweep1-surface.txt
+wc -l < round3/sweep1-surface.txt     # 6,104   (round 2: 5,998 — +106, of which
+                                      #          6 are live source, 100 archived)
+python3 round3/cac_ac_classify_v3.py
 ```
 
-**In-model surface = 46 files. All 46 were read.** Reachability is not asserted
-— it is computed: `cac_ac_classify_v2.py`'s companion pass walks the `import`
-graph of `scripts/*.py` with `ast` and does a BFS from `tla_spec_dev.py`
-(raw: `sweep1-cli-import-closure.txt`). **20 of 34 modules are reachable from
-the CLI entrypoint; 14 are not.** That single fact disposes of most of the table.
+**N = 6,104; M = 6,104; `N == M` ✅** (asserted in-script).
 
-### 1.1 The 34 `scripts/*.py` modules — `ticket_plan.yaml:231`
+| Class | Rows |
+|---|---|
+| IN MODEL | **40** (34 `scripts/*.py` + 6 spec adapters) |
+| out-of-model (inventory) | 6,064 |
+| **ESCALATION** | **0** |
 
-`d<N>` = import distance from `tla_spec_dev.py`. `—` = not reachable.
+**Zero escalations.** No filter was applied this round — `specs/.history/**` is
+enumerated and dispositioned by plan line `:277` rather than dropped by an
+auditor's `grep -v`, which was round 1's ESC-5 and round 2's standing caveat.
+The scope completions at `:273` (adapters), `:281` (`specs/tickets/**`) and
+`:282` (`specs/results/**`) answered round-2 ESC-9, ESC-8 and ESC-10; the ruling
+(2) rewrite at `:45-60` answered ESC-11.
 
-| # | Module | Reach | Spec action(s) | Verdict | Disposition | Evidence |
-|---|---|---|---|---|---|---|
-| 1 | `tla_spec_dev.py` | d0 | all 12 dispatched actions | `represented` | — | `build_parser` :385-731; dispatch :63-204 |
-| 2 | `onboard_program_model.py` | d1 | `ScaffoldProject` | `represented` | — | imported at :64, port `spec_tree` |
-| 3 | `new_ticket_workflow.py` | d1 | `ScaffoldWorkflow`, `OpenTicket` | `represented` | — | :105 and :127 (`scaffold_ticket_directory`) |
-| 4 | `budgets.py` | d1 | `RecordBudgets` | `represented` | — | `budget_prompt` at :92/:118; **zero effect sites**, matching the deliberately EMPTY manifest row (`spec_manifest.yaml:204`) |
-| 5 | `analyze_complexity.py` | d1 | `AnalyzeComplexity` | `partial` | **G-3** | :144; UNCOVERED: `--out` (:2293-2294) takes an arbitrary path, `evidence_report` targets only `**/results/**` |
-| 6 | `corpus_diagnostics.py` | d1 | `AnalyzeCorpus` | `represented` | — | :150; print-only, matching the EMPTY row (`spec_manifest.yaml:218`, CD-11 gap R4-3) |
-| 7 | `analyze_architecture.py` | d1 | `AnalyzeArchitecture` | `partial` | **G-1, G-2, G-4** | :156; UNCOVERED: `--out` write :1114-1118, and the action has **no manifest row at all** |
-| 8 | `architecture_reflexion.py` | d2 | `AnalyzeArchitecture` | `partial` | **G-2** | via `analyze_architecture`; UNCOVERED: `--out` write :2288-2292, `--baseline` delta :2222 |
-| 9 | `effect_conformance_report.py` | d1 | `RunEffectConformance` | `represented` | — | :168; ports `evidence_report` + `spec_tree` |
-| 10 | `effect_conformance.py` | d2 | `RunEffectConformance` | `represented` | — | sandbox; `:692` patches `rmtree` rather than deleting |
-| 11 | `run_kill_test.py` | d1 | `RunKillTest` | `represented` | — | :181 |
-| 12 | `kill_test.py` | d2 | `RunKillTest` | `represented` | — | ports `mutation_write` + `corpus_process` (CD-11 R4-1) |
-| 13 | `spec_evolution.py` | d1 | `CloseTicket` | `represented` | — | :187; `spec_tree`/`spec_tree_delete`/`git_metadata`; destructive sites :154/:385/:477 all named in `spec_manifest.yaml:145-152` |
-| 14 | `complexity_ledger.py` | d2 | `CloseTicket`, `ScaffoldWorkflow` | `partial` | **G-8** | via `spec_evolution:770`, `new_ticket_workflow:1006`; UNCOVERED: AC-04's `architecture_delta` member and its 4 attribution verdicts |
-| 15 | `skill_feedback.py` | d2 | `CloseTicket` | `represented` | — | `spec_evolution:962`; writes `<spec-root>/results/skill_feedback.md` (:423-437) — matches declared `spec_tree` (`**/specs/**`) |
-| 16 | `run_generated_case_adapters.py` | d2 | `RunSpecUnitTests` | `partial` | inventory `:217` | port `runner_process`; child effects unrepresented (MF-027 process boundary) — provider machinery ruled harness plumbing |
-| 17 | `extract_spec_manifest.py` | d1 | `RunSpecUnitTests` | `represented` | — | `load_manifest` at :212, target resolution :224-270 |
-| 18 | `fitness_functions.py` | d2 | — | `unrepresented` | inventory `:54` | advisory tooling internals — "fitness evaluation inside analyze" |
-| 19 | `testgraph_channels.py` | d3 | — | `unrepresented` | inventory `:27-29` | Test Graph binding enforcement (MF-015) |
-| 20 | `spec_paths.py` | d3 | — | `represented` | — | 48-line pure path helper, **zero effect sites** |
-| 21 | `case_modules.py` | — | **none** | `unrepresented` | **G-6 — model it** | standalone `main()`; not in `build_parser`; writes :479-480, :822-823 |
-| 22 | `generate_cases_from_tlc_dump.py` | — | **none** | `unrepresented` | **G-6 — model it** | java spawn :115, `rmtree` :139, package writes :881-882 |
-| 23 | `infer_action_params.py` | — | **none** | `unrepresented` | **G-6 — model it** (folded) | recovery-audit write :825-826; generation-time artifact |
-| 24 | `generate_python.py` | — | ? | `unrepresented` | **ESC-11** | ruling (2) names a command, not this module |
-| 25 | `generate_docs.py` | — | ? | `unrepresented` | **ESC-11** | ruling (2) names a command, not this module |
-| 26 | `export_testgraph_cases.py` | — | — | `unrepresented` | inventory `:27-29` | Test Graph trace export |
-| 27 | `close_ticket.py` | — | — | `unrepresented` | inventory `:55-56` | close wrapper script |
-| 28 | `close-ticket.py` | — | — | `unrepresented` | inventory `:55-56` | 8-line compatibility shim |
-| 29 | `close_tickets.py` | — | — | `unrepresented` | inventory `:55-56` | batch close; `unlink` :127, `rmtree` :232 — **no modeled action performs them**, proviso not triggered |
-| 30 | `close_spec_workflow.py` | — | — | `unrepresented` | inventory `:55-56` | workflow close; `rmtree` :49 — the CLI has no `close workflow` subcommand |
-| 31 | `close-spec-workflow.py` | — | — | `unrepresented` | inventory `:55-56` | 8-line compatibility shim |
-| 32 | `start_ticket.py` | — | — | `unrepresented` | inventory `:55-56` | start wrapper script |
-| 33 | `scaffold_spec.py` | — | — | `unrepresented` | inventory `:55-56` | scaffold wrapper script |
-| 34 | `scaffold_spec_workflow.py` | — | — | `unrepresented` | inventory `:55-56` | scaffold wrapper script |
+**In-model surface = 52 files** (40 `.py` + 12 non-source: three
+`TlaSpecDevCli.tla`, three `spec_manifest.yaml`, three `MC.cfg`, three
+`MCsmall.cfg`). **All 52 read. 0 inferred.**
 
-**N = 34, M = 34, `N == M` ✅. Rows READ: 34. Rows INFERRED: 0.**
+Effect sweep restricted to the in-model surface (`round3/effects-*.txt`):
+filesystem 240, subprocess 107, network 10. **Real destructive in-model sites: 7**
+— `spec_evolution.py:154/:385/:477` (declared, `spec_tree_delete` on
+`CloseTicket`), `close_spec_workflow.py:49` and `close_tickets.py:127/:232`
+(inventory `:83-96`, no modeled action performs them), and
+**`generate_cases_from_tlc_dump.py:140` — now on a modeled action path, at a
+caller-chosen location (N-2).** The only change in this category since round 2 is
+that the generator's `rmtree` moved from unmodeled surface to a modeled action
+with an under-constrained port.
 
-### 1.2 The 12 in-model non-source files — `ticket_plan.yaml:232-233`
+---
 
-Round 1 never swept these: the language globs were `.py/.sh/.kt/.kts/.java/.j2`,
-and §8.2 recorded that as a limit. The amendment names them in model, so they are
-enumerated and read here. Raw: `sweep1b-in-model-nonsource.txt`.
+## 5. Does `generate cases` make the effect oracle reachable?
 
-| # | File | Verdict | Finding |
+The coordinator called this the single most useful thing available this round.
+**Answer: it converts the limit from structural to operational. It does not lift
+it, and the distinction is load-bearing.**
+
+**What changed.** Before RC-01, `build_parser` never referenced
+`generate_cases_from_tlc_dump`, so an import-closure walk of the shipped CLI
+never reached case generation at all — round 2 confirmed this mechanically (14 of
+34 modules unreachable, the generator among them). There was **no path through
+the shipped CLI to produce a corpus for this model**, and therefore no path to
+run the effect oracle against it. That was structural.
+
+Now `tla-spec-dev generate cases <tla> <cfg> --out …` exists, registers the
+generator's own arguments rather than a drifting copy, and is modeled.
+
+**What has not changed.** All three manifests still carry
+`case_codegen.generation_status: planned`; `state_fields`, `actions` and `ports`
+are still empty placeholders; `specs/current/generated/` and
+`specs/desired_program_model/generated/` **do not exist**; and
+`git ls-files 'specs/*/generated/*'` returns nothing. **No corpus exists, so the
+effect oracle still has never executed against this model.** Every `declared`
+verdict in this report remains a declaration that has never been checked against
+an observation.
+
+**N-1 is the proof, and it is a clean one.** `effect_conformance.py:977` emits
+`DEAD MODEL SURFACE: port {qualified}` for a declared port no case exercises, and
+`:1026-1027` makes it a hard verdict. Three such ports were introduced in this
+very commit. **One run of the now-reachable oracle would have caught the gap that
+the now-reachable oracle's unreachability allowed.** That is the whole thesis of
+this gate in one commit: the four oracles are bounded to what is modeled *and to
+what is executed*, and coverage is not the same as either.
+
+**The single most useful thing the next ticket can do is run it** — generate a
+corpus for `specs/current`, flip `generation_status`, and let
+`run effect-conformance` execute once. Round 2 said a dead port survived four
+audits because no oracle ran; round 3 shows a fourth dead port arriving three
+audits later by the same mechanism.
+
+---
+
+## 6. The two specifics, verified independently
+
+### 6.1 The guard-flag invariants — **CONFIRMED, by reproduction, not by reading**
+
+RC-01 reports that modelling the guard flags immediately cost five invariants,
+that stage 6 is the highest ordinal so every `>=` reader answered TRUE for it,
+that `SpecUnitTestsRequireMeasuredCorpus` was violated in 1,094 states, and that
+`ClosedTicketsPassedSpecUnitTests` had been true by accident of the encoding.
+
+**I did not take this from RC-01's evidence.** I copied the shipped module to a
+scratch tree, reverted RC-01's helper to the pre-RC-01 encoding — the only edit —
+and ran TLC on both:
+
+```
+TicketReached(t, stage) == ticket_state[t] \in stage..TicketClosed   # shipped
+TicketReached(t, stage) == ticket_state[t] >= stage                  # reverted
+```
+
+| Run | Result |
+|---|---|
+| **Reverted (`>=`)** | **`Error: Invariant SpecUnitTestsRequireMeasuredCorpus is violated.`** exit 12, at 879 states generated / 560 distinct |
+| **Shipped (`stage..TicketClosed`)** | **No error.** 3,678,218 generated / 118,573 distinct / depth 16, 5s |
+
+I also re-ran the full `MC.cfg` model check from scratch rather than reading
+RC-01's number. **It reproduces the headline exactly: `392,923,694 states
+generated, 10,331,543 distinct states found, 0 states left on queue`, depth 26,
+no error, 11min 22s** (RC-01 reported 10,331,543 / depth 26 / 11m16s). The
+9.53× bound growth and the 7.99× distinct-state growth at **unchanged depth 26**
+are confirmed. Raw:
+`round3/verify-tlc-shipped-encoding-mc.txt`,
+`round3/verify-tlc-shipped-encoding-mcsmall.txt`,
+`round3/verify-tlc-reverted-encoding-mcsmall.txt`,
+`round3/verify-tlc-reverted-encoding.diff` (the one-line revert).
+
+The counterexample TLC produced is exactly the mechanism claimed:
+
+```
+tla-spec-dev open ticket           ticket_state = (cli_entrypoint :> 1)   corpus_gate = "unknown"
+tla-spec-dev close ticket --accept-new
+                                   ticket_state = (cli_entrypoint :> 6)   corpus_gate = "unknown"
+```
+
+With `>=`, a ticket at `TicketClosedWeakened` (6) satisfies
+`>= TicketSpecUnitTestsPassed` (4), the invariant's antecedent fires, and
+`corpus_gate /= "unknown"` is false. **A ticket closed under `--accept-new`
+without any corpus ever being measured was being counted as a ticket that passed
+spec-unit tests.**
+
+Five invariants carry the fix — `CurrentRequiresDesired`,
+`SpecUnitTestsRequireCurrent`, `SpecUnitTestsRequireMeasuredCorpus`,
+`SpecUnitTestsRequireMeasuredEffects`, `ClosedTicketsPassedSpecUnitTests` —
+matching the claim of five. **What I did not confirm** is the precise figure
+*1,094 states*: TLC halts at the first violation, so reproducing a count requires
+a continue-mode run I did not do. The violation, the mechanism, the identity of
+the invariant and the count of affected invariants are all confirmed; the state
+count is RC-01's and is not independently checked.
+
+**My read: this is the strongest single piece of evidence in the epic, and
+stronger than the framing suggests.** The claim is usually stated as "modelling
+the flags cost five invariants." The accurate statement is worse and better at
+once: **`ClosedTicketsPassedSpecUnitTests` was not merely fragile, it was true
+for the wrong reason.** It held over 1,292,951 states because the program's
+bypass was not in the state space at all — not because the bypass was safe. The
+round-2 reservation said "no oracle can see the difference"; modelling the
+difference made TLC see it in under six seconds on a reduced config. **A
+1,292,951-state proof of a property the program has a documented flag to violate
+is exactly the "invisible to all four gates" defect this gate was built for, and
+this is the first time in the epic it has been demonstrated rather than argued.**
+
+### 6.2 The emergent-decomposition flip — **a CORRECTNESS problem, not a coverage one; and RC-01 was right to file it**
+
+Confirmed at the tip (`specs/results/rc01-architecture-current.txt:30-38`):
+
+```
+graph modularity Q = 0.012
+[OK  ] component_count: measured 2, rule >= 2
+[OK  ] modularity_q: measured 0.011605, rule > 0
+MEASURED RESULT: the partition is a cut -- every criterion above is met.
+```
+
+**Coverage or correctness?** **Correctness — in `analyze_architecture.py`'s
+criterion, not in the model's coverage of the program.** The flip changes nothing
+about what `TlaSpecDevCli.tla` represents, so this gate correctly does not fail
+on it, and I have not counted it as a gap.
+
+**But it is not therefore harmless to this gate, and I would not file it as
+merely a threshold that is set too low.** Three sharper points:
+
+1. **The criterion is `> 0`, so it cannot fail.** Any partition with the faintest
+   positive modularity passes. Q = 0.0116 is ~26× below the Newman threshold the
+   tool itself prints. A criterion that admits everything measures nothing — the
+   same structural objection RP-01 sustained against a partition that cannot
+   express a divergence, and AC-02's `unfalsifiable_coherence` guard does not fire
+   here because two components *can* technically express one.
+2. **The trigger is the finding.** Nothing was tuned; one variable was added. So
+   the criterion is sensitive to **model size** rather than to **structure** —
+   which is a stronger and more damaging statement than "the threshold is low",
+   because it means the verdict can be moved by any ticket that adds state,
+   including a ticket whose whole purpose is to add state.
+3. **It lands on an input this gate's siblings consume.** AC-01's recorded finding
+   was that this repository "does NOT yield a usable architecture"; AC-02
+   published `consumable_as_architecture = false` so the reflexion check would say
+   `unmappable` rather than a false `coherent`. That refusal is now bypassed by
+   arithmetic. AC-02's own caution — *"a merely COARSE partition still reports a
+   real-looking clean"* — has become live on this repository.
+
+**RC-01 was right not to retune it.** Changing a threshold inside the same delta
+that moved the measurement destroys the measurement, which is this epic's
+standing rule (EV-02: "findings are filed, never fixed inline — fixing inline
+destroys the measurement"). Filing RC-01-DF-01 as `major` against
+`scripts/analyze_architecture.py` is the correct disposition, and the honest
+label for the successor to inherit is: **`modularity_q > 0` is not a criterion,
+it is the absence of one.**
+
+---
+
+## 7. Round-2's own limits, re-checked
+
+Asked for directly. Two of four moved; two did not.
+
+| Round-2 limit | Round-3 status |
+|---|---|
+| **Sweeps 2/3 never run over YAML/TLA/CFG; four of nine gaps were manifest defects found by targeted reading** | **Partly fixed, and not by me.** RC-01 shipped `tests/test_spec_manifest_records.py`, parametrized over all three trees, which parses each module beside its manifest and fails on disagreement — that converts the *count* class to a mechanical check. I also swept all 12 in-model non-source files this round (0 inferred). **The limit is narrowed, not closed, and N-1 is the proof: it is a manifest defect, in an in-model file, in the same commit, and nothing shipped caught it.** I found it with a script I wrote for this report. A port-to-action consistency check belongs beside the count check. |
+| **No oracle has ever executed against this model** | **Unchanged in fact; changed in reachability.** See §5. |
+| **86% of rows dispositioned from path** | **Not applicable any more, and I will not claim credit for that.** Rows needing a coverage judgment are the 52 in-model files; all 52 were read. The other 6,064 are classified from path against an explicit glob, which is classification, not coverage. The ratio improved because the plan shrank the surface, not because I read more. |
+| **Escalations left 121 rows unclassified** | **Closed. 0 escalations, 0 unclassified rows.** |
+
+---
+
+## 8. Dispositions
+
+### 8.1 In-scope gaps — HARD, block promotion (3)
+
+| # | Gap | Disposition | Remediation (advisory) |
 |---|---|---|---|
-| 1-3 | `specs/{current,desired,program_model}/TlaSpecDevCli.tla` | `partial` | **G-4** — `:649` asserts the architecture scan "prints"; it writes |
-| 4-6 | `specs/{current,desired,program_model}/spec_manifest.yaml` | `partial` | **G-1** (no `AnalyzeArchitecture` row), **G-5** ("9 variables and 15 actions" for a 10/16 model), **G-7** (dangling citations) |
-| 7-9 | `specs/{current,desired,program_model}/MC.cfg` | `represented` | invariant list matches `TlaSpecDevCli.tla:698-843` |
-| 10-12 | `specs/{current,desired,program_model}/MCsmall.cfg` | `represented` | reduced-constant instance, same invariants |
+| **N-1** | Three ports declared, referenced by no action row, in all three trees — dead model surface, and G-9's effects still undeclared for the actions that perform them | **model it** | Add the three ports to the `BuildSkillCli` / `InstallLocalCli` rows and add matching `@port` lines |
+| **N-2** | `generate cases` writes and **deletes** at caller-chosen locations against ports targeting `**/specs/**` | **change the program** | A `resolve_spec_tree_out` sibling of `resolve_evidence_out`, applied to `--out` and `--dot` |
+| **N-3** | `generate_cases_from_tlc_dump.py:1145-1146` cites `:115`/`:139`/`:881-882`; actual `:116`/`:140`/`:882-883` | **model it** (correct the record) | Fix the three numbers; consider a check, since this is the third consecutive ticket to ship a stale internal citation |
 
-**N = 12, M = 12 ✅. Rows READ: 12. Rows INFERRED: 0.**
+### 8.2 Out-of-model inventory — does not gate
 
-### 1.3 Full Sweep-1 re-classification — 596 rows
+6,064 source rows against `:275-282`; plus the External view (83 of 93 items,
+`:253`), the 72 non-guard CLI options (`:61-75`, `:255`), the wrapper/close/start/scaffold
+scripts and advisory internals (`:83-96`), and `specs/.history/**` (`:277`). The
+six guard-weakening flags **left inventory this round** — they are modeled, and
+§6.1 is what that bought.
 
-**N = 596, M = 596, `N == M` ✅** (`cac_ac_classify_v2.py`, asserted).
+### 8.3 Escalations
 
-| Class | Round 1 | Round 2 | Change |
-|---|---|---|---|
-| IN MODEL | — (409 "in-scope") | **34** | the surface the model is actually measured against |
-| out-of-model (inventory) | 0 | **441** | every row traced to a quoted `out_of_model` line |
-| **ESCALATION** | **187** | **121** | **66 resolved; 0 regressed** |
-
-The full 596-row table follows, one row per line of the unchanged
-`sweep1-surface.txt`. `CP2:N` = amended `ticket_plan.yaml` line `N`. Round 1's
-table is preserved at `sweep1-table.md` for diffing.
-
-| # | Module (`path`) | In/Out of model | representation_scope line | Spec action(s) | Verdict | Disposition | Evidence (`file:line`) |
-|---|---|---|---|---|---|---|---|
-| 1 | `examples/distributed_history/ecommerce_backend/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 2 | `examples/distributed_history/ecommerce_backend/domain.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 3 | `examples/distributed_history/ecommerce_backend/service.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 4 | `examples/distributed_history/scripts/k3d-up.sh` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 5 | `examples/distributed_history/scripts/k8s-deploy.sh` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 6 | `examples/distributed_history/scripts/regenerate_tlc_cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 7 | `examples/distributed_history/specs/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 8 | `examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 9 | `examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 10 | `examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 11 | `examples/distributed_history/specs/generated/spec_unit/ecommerce_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 12 | `examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 13 | `examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 14 | `examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 15 | `examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 16 | `examples/distributed_history/specs/program_model/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 17 | `examples/distributed_history/specs/program_model/adapters.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 18 | `examples/distributed_history/specs/program_model/tests/test_ecommerce_adapters.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 19 | `examples/distributed_history/specs/program_model/tlc_projection.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 20 | `examples/distributed_history/test_graph/build-logic/build.gradle.kts` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 21 | `examples/distributed_history/test_graph/build-logic/settings.gradle.kts` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 22 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 23 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 24 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 25 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 26 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 27 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 28 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 29 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 30 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 31 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 32 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 33 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 34 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 35 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 36 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 37 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 38 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 39 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 40 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 41 | `examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 42 | `examples/distributed_history/test_graph/build-logic/src/test/kotlin/com/hayden/testgraphsdk/exec/PlanExecutorResumeHarnessTest.kt` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 43 | `examples/distributed_history/test_graph/build.gradle.kts` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 44 | `examples/distributed_history/test_graph/sdk/java/build.gradle.kts` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 45 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextItem.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 46 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 47 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 48 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 49 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 50 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 51 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 52 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 53 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 54 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeStatus.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 55 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 56 | `examples/distributed_history/test_graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 57 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 58 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context_item.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 59 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/context.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 60 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/node_spec.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 61 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/procs.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 62 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/result.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 63 | `examples/distributed_history/test_graph/sdk/python/src/testgraphsdk/runner.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 64 | `examples/distributed_history/test_graph/settings.gradle.kts` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 65 | `examples/distributed_history/test_graph/sources/cleanup_ecommerce.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 66 | `examples/distributed_history/test_graph/sources/collect_evidence.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 67 | `examples/distributed_history/test_graph/sources/deploy_ecommerce.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 68 | `examples/distributed_history/test_graph/sources/run_external_cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 69 | `examples/distributed_history/tests/test_ecommerce_backend.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 70 | `examples/effect_providers/atomic_publisher/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 71 | `examples/effect_providers/atomic_publisher/adapters.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 72 | `examples/effect_providers/atomic_publisher/application.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 73 | `examples/effect_providers/atomic_publisher/atomic_cli.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 74 | `examples/effect_providers/atomic_publisher/conformance.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 75 | `examples/effect_providers/atomic_publisher/external_adapter.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 76 | `examples/effect_providers/atomic_publisher/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 77 | `examples/effect_providers/atomic_publisher/regenerate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 78 | `examples/effect_providers/atomic_publisher/run_experiment.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 79 | `examples/effect_providers/atomic_publisher/specs/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 80 | `examples/effect_providers/atomic_publisher/specs/program_model/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 81 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 82 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 83 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 84 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 85 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 86 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 87 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 88 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/atomic_publisher_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 89 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 90 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 91 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 92 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 93 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/spec-unit/atomic_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 94 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 95 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 96 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 97 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 98 | `examples/effect_providers/atomic_publisher/specs/program_model/generated/cases/testgraph/atomic_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 99 | `examples/effect_providers/atomic_publisher/specs/program_model/tlc_projection.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 100 | `examples/effect_providers/atomic_publisher/test_atomic_publisher.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 101 | `examples/effect_providers/atomic_publisher/validate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 102 | `examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 103 | `examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 104 | `examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 105 | `examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 106 | `examples/effect_providers/legacy_payment_http/generated/spec-unit/payment_http_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 107 | `examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 108 | `examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 109 | `examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 110 | `examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 111 | `examples/effect_providers/legacy_payment_http/generated/testgraph/payment_http_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 112 | `examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 113 | `examples/effect_providers/legacy_payment_http/legacy_payment_http_app/__main__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 114 | `examples/effect_providers/legacy_payment_http/legacy_payment_http_app/application.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 115 | `examples/effect_providers/legacy_payment_http/payment_effects/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 116 | `examples/effect_providers/legacy_payment_http/payment_effects/adapters.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 117 | `examples/effect_providers/legacy_payment_http/payment_effects/baseline.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 118 | `examples/effect_providers/legacy_payment_http/payment_effects/external.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 119 | `examples/effect_providers/legacy_payment_http/payment_effects/probes.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 120 | `examples/effect_providers/legacy_payment_http/payment_effects/provider.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 121 | `examples/effect_providers/legacy_payment_http/scripts/regenerate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 122 | `examples/effect_providers/legacy_payment_http/scripts/run_experiment.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 123 | `examples/effect_providers/legacy_payment_http/scripts/write_cost_evidence.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 124 | `examples/effect_providers/legacy_payment_http/specs/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 125 | `examples/effect_providers/legacy_payment_http/specs/program_model/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 126 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 127 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 128 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 129 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 130 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 131 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 132 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 133 | `examples/effect_providers/legacy_payment_http/specs/program_model/generated/payment_http_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 134 | `examples/effect_providers/legacy_payment_http/specs/program_model/tlc_projection.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 135 | `examples/effect_providers/legacy_payment_http/tests/test_project.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 136 | `examples/effect_providers/legacy_payment_http/validate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 137 | `examples/effect_providers/reminder_worker/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 138 | `examples/effect_providers/reminder_worker/adapter.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 139 | `examples/effect_providers/reminder_worker/app.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 140 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 141 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 142 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 143 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 144 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 145 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 146 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 147 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 148 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 149 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 150 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 151 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 152 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 153 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 154 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 155 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 156 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 157 | `examples/effect_providers/reminder_worker/evidence/validation-runs/20260723T164419.199183Z-0a3080d79ed6-reminder_worker/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 158 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 159 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 160 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 161 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 162 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 163 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 164 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 165 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 166 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 167 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 168 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 169 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 170 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 171 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 172 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 173 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 174 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 175 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v1/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 176 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 177 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 178 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 179 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 180 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 181 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 182 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 183 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 184 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 185 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 186 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 187 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 188 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 189 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 190 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 191 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 192 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 193 | `examples/effect_providers/reminder_worker/evidence/validation-runs/agent-ep06-reminder-v2/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 194 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 195 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 196 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 197 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 198 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 199 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 200 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 201 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 202 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 203 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 204 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 205 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 206 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 207 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 208 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 209 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 210 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 211 | `examples/effect_providers/reminder_worker/evidence/validation-runs/ep06-central-20260722-v2-reminder_worker/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 212 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 213 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 214 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 215 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 216 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 217 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 218 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 219 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 220 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 221 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 222 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 223 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 224 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 225 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 226 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 227 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 228 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 229 | `examples/effect_providers/reminder_worker/evidence/validation-runs/testgraph-1784764040160583000-reminder_worker/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 230 | `examples/effect_providers/reminder_worker/external_adapter.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 231 | `examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 232 | `examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 233 | `examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 234 | `examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 235 | `examples/effect_providers/reminder_worker/generated/cases/spec-unit/reminder_internal_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 236 | `examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 237 | `examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/cases.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 238 | `examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/doubles.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 239 | `examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 240 | `examples/effect_providers/reminder_worker/generated/cases/testgraph/reminder_external_cases/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 241 | `examples/effect_providers/reminder_worker/generated/reminder_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 242 | `examples/effect_providers/reminder_worker/generated/reminder_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 243 | `examples/effect_providers/reminder_worker/generated/reminder_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 244 | `examples/effect_providers/reminder_worker/generated/reminder_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 245 | `examples/effect_providers/reminder_worker/generated/reminder_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 246 | `examples/effect_providers/reminder_worker/generated/reminder_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 247 | `examples/effect_providers/reminder_worker/generated/reminder_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 248 | `examples/effect_providers/reminder_worker/generated/reminder_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 249 | `examples/effect_providers/reminder_worker/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 250 | `examples/effect_providers/reminder_worker/regenerate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 251 | `examples/effect_providers/reminder_worker/reminder_cli.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 252 | `examples/effect_providers/reminder_worker/run_experiment.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 253 | `examples/effect_providers/reminder_worker/specs/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 254 | `examples/effect_providers/reminder_worker/specs/program_model/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 255 | `examples/effect_providers/reminder_worker/specs/program_model/tlc_projection.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 256 | `examples/effect_providers/reminder_worker/test_reminder_worker.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 257 | `examples/effect_providers/reminder_worker/validate.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 258 | `examples/effect_providers/run_validations.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 259 | `examples/run_distributed_history_validation.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 260 | `examples/validate_split_desired_workflow.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 261 | `examples/validation/check_twins.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 262 | `examples/validation/ex1_scaffold_only/taskq/taskq.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 263 | `examples/validation/ex1_scaffold_only/taskq/tests/test_taskq.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 264 | `examples/validation/ex3_over_complex/order_hub/order_hub.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 265 | `examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 266 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 267 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 268 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 269 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 270 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 271 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 272 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 273 | `examples/validation/ex4_pipeline_coherent/generated/pipeline_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 274 | `examples/validation/ex4_pipeline_coherent/pipeline/dispatch/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 275 | `examples/validation/ex4_pipeline_coherent/pipeline/dispatch/delivery.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 276 | `examples/validation/ex4_pipeline_coherent/pipeline/dispatch/failures.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 277 | `examples/validation/ex4_pipeline_coherent/pipeline/ingest/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 278 | `examples/validation/ex4_pipeline_coherent/pipeline/ingest/inbox.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 279 | `examples/validation/ex4_pipeline_coherent/pipeline/ingest/queue.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 280 | `examples/validation/ex4_pipeline_coherent/pipeline/ledger/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 281 | `examples/validation/ex4_pipeline_coherent/pipeline/ledger/journal.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 282 | `examples/validation/ex4_pipeline_coherent/specs/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 283 | `examples/validation/ex4_pipeline_coherent/specs/program_model/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 284 | `examples/validation/ex4_pipeline_coherent/specs/program_model/adapters.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 285 | `examples/validation/ex4_pipeline_coherent/specs/program_model/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 286 | `examples/validation/ex4_pipeline_coherent/specs/program_model/tlc_projection.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 287 | `examples/validation/ex4_pipeline_coherent/tests/driver.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 288 | `examples/validation/ex4_pipeline_coherent/tests/test_behavior.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 289 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 290 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/contract_tests.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 291 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/fake.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 292 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/ports.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 293 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/strategies.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 294 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/traces.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 295 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/types.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 296 | `examples/validation/ex5_pipeline_divergent/generated/pipeline_contract/validators.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 297 | `examples/validation/ex5_pipeline_divergent/pipeline/dispatch/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 298 | `examples/validation/ex5_pipeline_divergent/pipeline/dispatch/delivery.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 299 | `examples/validation/ex5_pipeline_divergent/pipeline/dispatch/failures.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 300 | `examples/validation/ex5_pipeline_divergent/pipeline/ingest/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 301 | `examples/validation/ex5_pipeline_divergent/pipeline/ingest/inbox.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 302 | `examples/validation/ex5_pipeline_divergent/pipeline/ingest/queue.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 303 | `examples/validation/ex5_pipeline_divergent/pipeline/ledger/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 304 | `examples/validation/ex5_pipeline_divergent/pipeline/ledger/journal.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 305 | `examples/validation/ex5_pipeline_divergent/tests/driver.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 306 | `examples/validation/ex5_pipeline_divergent/tests/test_behavior.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 307 | `examples/validation/ex6_jenga/hub/billing/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 308 | `examples/validation/ex6_jenga/hub/billing/audit.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 309 | `examples/validation/ex6_jenga/hub/notify/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 310 | `examples/validation/ex6_jenga/hub/notify/flags.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 311 | `examples/validation/ex6_jenga/hub/orders/__init__.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 312 | `examples/validation/ex6_jenga/hub/orders/lifecycle.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 313 | `examples/validation/runs/ex1-run4/artifacts/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 314 | `examples/validation/runs/ex2-run4/artifacts/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 315 | `examples/validation/runs/ex3-run1/artifacts/order_hub_after.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 316 | `examples/validation/runs/ex3-run4/artifacts/providers.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 317 | `examples/validation/runs/ex4-run1/artifacts/df02_blast.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 318 | `examples/validation/runs/ex4-run1/artifacts/kill_matrix.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 319 | `examples/validation/runs/ex4-run1/artifacts/replay.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 320 | `examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.sh` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 321 | `examples/validation/runs/ex4-run4/artifacts/kill_matrix_round2.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 322 | `examples/validation/runs/ex4-run5/artifacts/replay.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 323 | `examples/validation/runs/ex4-run6/artifacts/mutant_run.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 324 | `examples/validation/runs/ex4-run6/artifacts/sanitize_runB.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 325 | `examples/validation/runs/ex5-run3/artifacts/df02_blast_round2.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 326 | `examples/validation/runs/ex5-run4/artifacts/reexport_attack/shared.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 327 | `examples/validation/runs/ex5-run4/artifacts/sanitize_runA.py` | OUT | CP2:236 | none | `unrepresented` | inventory it | - |
-| 328 | `scripts/analyze_architecture.py` | IN | CP2:231 | AnalyzeArchitecture | `partial` | model it / change the program | specs/desired_program_model/TlaSpecDevCli.tla:650 (action) vs analyze_architecture.py:1010 run(); UNCOVERED: the --out descriptor write (:1116-1117) has no declared port and no manifest actions row |
-| 329 | `scripts/analyze_complexity.py` | IN | CP2:231 | AnalyzeComplexity | `partial` | model it / change the program | specs/desired_program_model/TlaSpecDevCli.tla:393 vs analyze_complexity.py:2293-2294; UNCOVERED: --out accepts an arbitrary path, the declared evidence_report port targets only **/results/** |
-| 330 | `scripts/architecture_reflexion.py` | IN | CP2:231 | AnalyzeArchitecture | `partial` | model it / change the program | specs/desired_program_model/TlaSpecDevCli.tla:650 vs architecture_reflexion.py compare/--out :2290-2291; UNCOVERED: the --out reflexion write and the --baseline delta write have no declared port |
-| 331 | `scripts/budgets.py` | IN | CP2:231 | RecordBudgets | `represented` | - | specs/desired_program_model/TlaSpecDevCli.tla:286; budgets.py has zero effect sites, matching spec_manifest.yaml's deliberately EMPTY RecordBudgets row (spec_manifest.yaml:204) |
-| 332 | `scripts/case_modules.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | standalone main() (case_modules.py:832+); not reachable from tla_spec_dev.py's parser (grep: no case_modules entry in build_parser) |
-| 333 | `scripts/close_spec_workflow.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 334 | `scripts/close_ticket.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 335 | `scripts/close_tickets.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 336 | `scripts/close-spec-workflow.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 337 | `scripts/close-ticket.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 338 | `scripts/complexity_ledger.py` | IN | CP2:231 | CloseTicket, ScaffoldWorkflow | `partial` | model it / change the program | specs/desired_program_model/TlaSpecDevCli.tla:619/:305 via spec_evolution.record_complexity_ledger and new_ticket_workflow.py:1006; UNCOVERED: no action represents the architecture_delta ledger member AC-04 added |
-| 339 | `scripts/corpus_diagnostics.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 340 | `scripts/effect_conformance_report.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 341 | `scripts/effect_conformance.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 342 | `scripts/export_testgraph_cases.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 343 | `scripts/extract_spec_manifest.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 344 | `scripts/fitness_functions.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 345 | `scripts/generate_cases_from_tlc_dump.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | no `generate` subcommand exists in tla_spec_dev.py:385-731; spawns java (:115), rmtree (:139), writes packages (:881-882) |
-| 346 | `scripts/generate_docs.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 347 | `scripts/generate_python.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 348 | `scripts/infer_action_params.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | standalone; writes the recovery audit at :825-826, no CLI subcommand |
-| 349 | `scripts/kill_test.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 350 | `scripts/new_ticket_workflow.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 351 | `scripts/onboard_program_model.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 352 | `scripts/run_generated_case_adapters.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 353 | `scripts/run_kill_test.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 354 | `scripts/run_tlc.sh` | OUT | CP2:239 | none | `unrepresented` | inventory it | - |
-| 355 | `scripts/scaffold_spec_workflow.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 356 | `scripts/scaffold_spec.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 357 | `scripts/skill_feedback.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 358 | `scripts/spec_evolution.py` | IN | CP2:231 | CloseTicket | `partial` | model it / change the program | specs/desired_program_model/TlaSpecDevCli.tla:619 vs spec_evolution.py create_ticket_history_entry; UNCOVERED: record_complexity_ledger (:770) and the workflow-close path have no action |
-| 359 | `scripts/spec_paths.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 360 | `scripts/start_ticket.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 361 | `scripts/testgraph_channels.py` | IN | CP2:231 | none | `unrepresented` | model it / change the program | - |
-| 362 | `scripts/tla_spec_dev.py` | IN | CP2:231 | BuildSkillCli, InstallLocalCli, ScaffoldProject, ScaffoldWorkflow, OpenTicket, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket | `represented` | - | specs/desired_program_model/TlaSpecDevCli.tla:228-663 vs dispatcher tla_spec_dev.py:385-731 |
-| 363 | `skill-scripts/install-tla-spec-dev.sh` | OUT | CP2:239 | none | `unrepresented` | inventory it | - |
-| 364 | `skill-scripts/install-tlc2.sh` | OUT | CP2:239 | none | `unrepresented` | inventory it | - |
-| 365 | `spec_double_compiler/__init__.py` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 366 | `spec_double_compiler/effects.py` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 367 | `spec_double_compiler/runtime.py` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 368 | `specs/current/adapter_case_runtime.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 369 | `specs/current/production_adapters.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 370 | `specs/current/tests/test_current_ticket_workflow.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 371 | `specs/current/tests/test_tla_spec_dev_analyze_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 372 | `specs/current/tests/test_tla_spec_dev_binding_reconciliation.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 373 | `specs/current/tests/test_tla_spec_dev_budgets_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 374 | `specs/current/tests/test_tla_spec_dev_case_execution_run.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 375 | `specs/current/tests/test_tla_spec_dev_cli_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 376 | `specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 377 | `specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 378 | `specs/current/tests/test_tla_spec_dev_corpus_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 379 | `specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 380 | `specs/current/tests/test_tla_spec_dev_kill_test_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 381 | `specs/current/tests/test_tla_spec_dev_run_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 382 | `specs/current/tests/test_tla_spec_dev_scaffold_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 383 | `specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 384 | `specs/current/tests/test_tla_spec_dev_test_graph_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 385 | `specs/current/tests/test_tla_spec_dev_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 386 | `specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 387 | `specs/desired_program_model/adapter_case_runtime.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 388 | `specs/desired_program_model/production_adapters.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 389 | `specs/desired_program_model/tests/test_current_ticket_workflow.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 390 | `specs/desired_program_model/tests/test_tla_spec_dev_analyze_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 391 | `specs/desired_program_model/tests/test_tla_spec_dev_binding_reconciliation.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 392 | `specs/desired_program_model/tests/test_tla_spec_dev_budgets_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 393 | `specs/desired_program_model/tests/test_tla_spec_dev_case_execution_run.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 394 | `specs/desired_program_model/tests/test_tla_spec_dev_cli_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 395 | `specs/desired_program_model/tests/test_tla_spec_dev_close_promotion_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 396 | `specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 397 | `specs/desired_program_model/tests/test_tla_spec_dev_corpus_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 398 | `specs/desired_program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 399 | `specs/desired_program_model/tests/test_tla_spec_dev_kill_test_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 400 | `specs/desired_program_model/tests/test_tla_spec_dev_run_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 401 | `specs/desired_program_model/tests/test_tla_spec_dev_scaffold_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 402 | `specs/desired_program_model/tests/test_tla_spec_dev_skill_feedback_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 403 | `specs/desired_program_model/tests/test_tla_spec_dev_test_graph_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 404 | `specs/desired_program_model/tests/test_tla_spec_dev_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 405 | `specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 406 | `specs/program_model/adapter_case_runtime.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 407 | `specs/program_model/production_adapters.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 408 | `specs/program_model/tests/test_current_ticket_workflow.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 409 | `specs/program_model/tests/test_tla_spec_dev_analyze_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 410 | `specs/program_model/tests/test_tla_spec_dev_binding_reconciliation.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 411 | `specs/program_model/tests/test_tla_spec_dev_budgets_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 412 | `specs/program_model/tests/test_tla_spec_dev_case_execution_run.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 413 | `specs/program_model/tests/test_tla_spec_dev_cli_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 414 | `specs/program_model/tests/test_tla_spec_dev_close_promotion_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 415 | `specs/program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 416 | `specs/program_model/tests/test_tla_spec_dev_corpus_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 417 | `specs/program_model/tests/test_tla_spec_dev_effect_conformance_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 418 | `specs/program_model/tests/test_tla_spec_dev_kill_test_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 419 | `specs/program_model/tests/test_tla_spec_dev_run_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 420 | `specs/program_model/tests/test_tla_spec_dev_scaffold_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 421 | `specs/program_model/tests/test_tla_spec_dev_skill_feedback_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 422 | `specs/program_model/tests/test_tla_spec_dev_test_graph_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 423 | `specs/program_model/tests/test_tla_spec_dev_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 424 | `specs/program_model/tests/test_tla_spec_dev_update_ticket_adapter.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 425 | `specs/results/coverage-audit-sweep-raw/verify_tables.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 426 | `specs/results/epic-close/sweep-raw-run4/ca4_classify.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 427 | `specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 428 | `specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 429 | `specs/results/finalization/sweep-raw-close2/cac2_classify.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 430 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 431 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/settings.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 432 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 433 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 434 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 435 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 436 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 437 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 438 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 439 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 440 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 441 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 442 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 443 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 444 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 445 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 446 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 447 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 448 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 449 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 450 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 451 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 452 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build-logic/src/test/kotlin/com/hayden/testgraphsdk/exec/PlanExecutorResumeHarnessTest.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 453 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 454 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 455 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextItem.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 456 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 457 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 458 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 459 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 460 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 461 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 462 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 463 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 464 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeStatus.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 465 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 466 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 467 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/__init__.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 468 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 469 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 470 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 471 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 472 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 473 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 474 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/settings.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 475 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_cleanup.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 476 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 477 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 478 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 479 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 480 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_force_failure.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 481 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 482 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 483 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 484 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-194428-2cebfb33/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 485 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 486 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/settings.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 487 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Context.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 488 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 489 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/JBangExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 490 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 491 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/TimeoutParser.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 492 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/UvExecutor.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 493 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphAssembler.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 494 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/GraphModel.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 495 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/MiniJson.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 496 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 497 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/InspectionTasks.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 498 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriter.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 499 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/RunTestGraphTask.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 500 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/tasks/ValidationReportTask.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 501 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/TestGraphSpec.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 502 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/Toolchain.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 503 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphExtension.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 504 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationGraphPlugin.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 505 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationNodeSpec.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 506 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/ValidationRuntime.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 507 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build-logic/src/test/kotlin/com/hayden/testgraphsdk/exec/PlanExecutorResumeHarnessTest.kt` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 508 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 509 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/build.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 510 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextItem.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 511 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ContextSerde.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 512 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Json.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 513 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/JsonMapper.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 514 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Node.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 515 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeBody.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 516 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeContext.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 517 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeResult.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 518 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeSpec.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 519 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/NodeStatus.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 520 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/ProcessRecord.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 521 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/java/src/main/java/com/hayden/testgraphsdk/sdk/Procs.java` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 522 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/__init__.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 523 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context_item.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 524 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/context.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 525 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/node_spec.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 526 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/procs.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 527 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/result.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 528 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sdk/python/src/testgraphsdk/runner.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 529 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/settings.gradle.kts` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 530 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_cleanup.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 531 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_close_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 532 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_complete_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 533 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_create_repo.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 534 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_failure_cleanup_probe.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 535 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_force_failure.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 536 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_spec_units.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 537 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/spec_workflow_start_ticket.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 538 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_help.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 539 | `specs/tickets/MF-027/results/graph-reports/specWorkflow-20260719-195414-d28e3b52/cleanup-failure-probe-test-graph/sources/tla_spec_dev_cli_install.py` | ESCALATION | none — no representation_scope line covers it | none | `unrepresented` | ESCALATE | - |
-| 540 | `templates/python/contract_tests.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 541 | `templates/python/docs.md.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 542 | `templates/python/fake.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 543 | `templates/python/package_init.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 544 | `templates/python/ports.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 545 | `templates/python/pyproject.toml.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 546 | `templates/python/strategies.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 547 | `templates/python/traces.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 548 | `templates/python/types.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 549 | `templates/python/validators.py.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 550 | `templates/tla/MC.cfg.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 551 | `templates/tla/MODULE.tla.j2` | OUT | CP2:238 | none | `unrepresented` | inventory it | - |
-| 552 | `test_graph/build.gradle.kts` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 553 | `test_graph/settings.gradle.kts` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 554 | `test_graph/sources/effect_provider_examples.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 555 | `test_graph/sources/spec_workflow_cleanup.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 556 | `test_graph/sources/spec_workflow_close_ticket.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 557 | `test_graph/sources/spec_workflow_complete_ticket.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 558 | `test_graph/sources/spec_workflow_create_repo.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 559 | `test_graph/sources/spec_workflow_failure_cleanup_probe.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 560 | `test_graph/sources/spec_workflow_force_failure.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 561 | `test_graph/sources/spec_workflow_spec_units.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 562 | `test_graph/sources/spec_workflow_start_ticket.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 563 | `test_graph/sources/tla_spec_dev_cli_help.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 564 | `test_graph/sources/tla_spec_dev_cli_install.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 565 | `tests/conftest.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 566 | `tests/corpus_fixtures.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 567 | `tests/effect_adapter_fixtures.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 568 | `tests/test_analyze_architecture.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 569 | `tests/test_analyze_complexity.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 570 | `tests/test_architecture_reflexion.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 571 | `tests/test_budgets.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 572 | `tests/test_case_adapter_runtime.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 573 | `tests/test_case_modules.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 574 | `tests/test_complexity_ledger.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 575 | `tests/test_corpus_diagnostics.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 576 | `tests/test_effect_conformance_cli.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 577 | `tests/test_effect_conformance_runner.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 578 | `tests/test_effect_conformance.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 579 | `tests/test_effect_provider_example_validation.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 580 | `tests/test_effect_provider_fuzzing.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 581 | `tests/test_effect_provider_runtime.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 582 | `tests/test_export_testgraph_cases.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 583 | `tests/test_extract_spec_manifest.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 584 | `tests/test_fitness_functions.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 585 | `tests/test_generate_cases_from_tlc_dump.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 586 | `tests/test_infer_action_params.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 587 | `tests/test_kill_test.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 588 | `tests/test_new_ticket_workflow.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 589 | `tests/test_onboard_program_model.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 590 | `tests/test_promotion_preserves_current.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 591 | `tests/test_scaffold_spec_views.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 592 | `tests/test_skill_feedback.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 593 | `tests/test_spec_evolution.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 594 | `tests/test_spec_yaml_valid.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 595 | `tests/test_testgraph_channels.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
-| 596 | `tests/test_tla_spec_dev_cli.py` | OUT | CP2:235 | none | `unrepresented` | inventory it | - |
+**None.**
 
 ---
 
-## 2. Sweeps 2 and 3 — effects and behaviors, re-columned
+## 9. Verdict
 
-**The enumerations are unchanged and were not re-run.** Every raw file, every
-pattern, every group rule and every raw count is exactly as committed at
-`b1fc5fe` and documented in round 1. The only change is the scope column:
-`in-scope / ESCALATION` becomes `IN-MODEL / out-of-model / ESCALATION`, computed
-by `cac_ac_classify_v2.py`, which re-asserts that each category's group sizes
-sum to its raw count.
-
-Full per-category tables: `effects-<cat>-groups-v2.md`,
-`behavior-<cls>-groups-v2.md`. Summary of what the amendment moved:
-
-| Sweep | Raw | IN-MODEL | out-of-model | ESCALATION | Verdict on the IN-MODEL portion |
-|---|---|---|---|---|---|
-| 2.1 filesystem | 3,909 | 825 | 1,962 | 1,122 | `partial` — the `--out` writes (G-1..G-3) match no port |
-| 2.2 subprocess | 1,366 | 273 | 573 | 520 | `partial` — MF-027 process boundary, not re-collapsed |
-| 2.3 network | 145 | 8 | 131 | 6 | **`undeclared`** — no `network.*` port exists (G-9) |
-| 2.4 environment | 394 | 38 | 209 | 147 | `undeclared` — type not sandbox-observable |
-| 2.5 clock | 384 | 29 | 230 | 125 | `undeclared` — type not sandbox-observable |
-| 2.6 randomness | 50 | 3 | 45 | 2 | `undeclared`; 0 real sites in model (all 9 are fixtures) |
-| 2.7 persistent store | 107 | 13 | 66 | 28 | **0 real sites in model** — the model's silence is correct |
-| 2.8 JVM / native | 417 | 7 | 138 | 272 | **0 real sites in model** — all 57 are out-of-model or escalated |
-| 3.1 error paths | 1,431 | 589 | 732 | 110 | `unrepresented` — one refusal shape modeled; rest inventory `:48-53` |
-| 3.2 retries | 528 | 2 | 449 | 77 | **0 real retry loops in model** |
-| 3.3 timeouts | 275 | 5 | 165 | 105 | `unrepresented`; 0 real in-model timeout sites |
-| 3.4 fallbacks | 314 | 165 | 80 | 69 | `unrepresented` — incl. the silent-guard class, §2.1 |
-| 3.5 concurrency | 29 | 2 | 17 | 10 | `unrepresented`; 2 in-model primitives |
-| 3.6 config branches | 1,160 | 498 | 400 | 262 | inventory `:54` (flags) / `unrepresented` (keys) |
-
-Three results are worth naming because they *changed* the picture, not just the
-column headings:
-
-- **The three categories where the model's silence is now demonstrably correct.**
-  Persistent store, JVM/native and retries have **zero real in-model sites**. In
-  round 1 those categories were dominated by `examples/**` fixtures that the
-  edit-permission scope wrongly admitted. The amendment did not hide anything
-  here; it removed noise that was making the model look worse than it is.
-- **The network category inverted.** Round 1 reported 84 "in-scope" real network
-  sites, all of them fixture HTTP. Round 2 reports **8 in-model**, every one in
-  `scripts/effect_conformance.py` — the sandbox's own `socket.connect`
-  interception (`:775-788`), not an outbound call. **The modeled CLI makes no
-  network call from Python.** It makes one from shell, and that is G-9.
-- **The silent-guard class survived the rescope.** `FB-IMPORT` is 33 raw hits of
-  which **27 are IN MODEL** (round 1: 15 of 33 "in-scope"). The proportion went
-  *up*. This is the class the doctrine keeps rediscovering — a guard that
-  silently passes when its input is absent — and the plan's own dispatch note
-  warns about a live instance: "Run pytest with `--with pyyaml` or the
-  YAML-validity guard skips silently" (`ticket_plan.yaml:120-121`). The model
-  represents neither the present nor the absent path. It is inventoried under
-  ruling (4)'s "silent-degrade guards" (`:55`), **and I want the inventory row
-  read as a cost, not a clearance.**
-
-### 2.1 Destructive filesystem sites — per-site, never grouped
-
-Rule unchanged (`rmtree|\.unlink\(|os\.remove\(|os\.rename\(|os\.replace\(|shutil\.move\(|replace_tree`),
-raw 3,909 → 54 destructive sites. Re-columned: **9 IN MODEL**, 33 out-of-model,
-12 ESCALATION. All 9 in-model sites dispositioned **by reading**, not by path:
-
-| # | Site | Disposition |
-|---|---|---|
-| 1 | `scripts/spec_evolution.py:154` `shutil.rmtree(state_dir)` | **`declared`** — `spec_tree_delete` on `CloseTicket`; named explicitly at `spec_manifest.yaml:145-152` |
-| 2 | `scripts/spec_evolution.py:383` `def replace_tree(...)` | not a site — a definition line the pattern matched |
-| 3 | `scripts/spec_evolution.py:385` `shutil.rmtree(dst)` | **`declared`** — the GitHub #22 promotion mechanism, named at `spec_manifest.yaml:145-152` |
-| 4 | `scripts/spec_evolution.py:477` `target.unlink()` | **`declared`** — seeded-path removal, named at `spec_manifest.yaml:145-152` |
-| 5 | `scripts/effect_conformance.py:692` `self._patch_module(shutil, "rmtree", ...)` | not a site — the sandbox *patches* `rmtree`; it deletes nothing |
-| 6 | `scripts/generate_cases_from_tlc_dump.py:139` `shutil.rmtree(metadir)` | **`undeclared` → G-6** — no action represents case generation |
-| 7 | `scripts/close_spec_workflow.py:49` `shutil.rmtree(path)` | inventory `:55-56` — wrapper script, and **the CLI has no `close workflow` subcommand**, so no modeled action performs it; proviso not triggered |
-| 8 | `scripts/close_tickets.py:127` `dst_files[relative].unlink()` | inventory `:55-56` — batch close, unreachable from `build_parser`; `promotion_rule` forbids agents running it |
-| 9 | `scripts/close_tickets.py:232` `shutil.rmtree(directory)` | inventory `:55-56` — same |
-
-**Zero undeclared destructive sites on a modeled action path except G-6's.** That
-is a genuinely clean result and it is worth stating as clearly as the failures.
-
----
-
-## 3. Sweep 4 — views, reported separately
-
-**Internal — verdict `partial`.** Unchanged from round 1: the single module
-carries 10 variables, 16 actions and 12 invariants (`represented`); component
-decomposition and inter-component interleaving are `unrepresented` because the
-model has one emergent component at `Q = 0.000` and its declared four-component
-partition measures `Q = -0.025`.
-
-**External — verdict `unrepresented` (whole surface, by construction), now an
-INVENTORY row.** Row set unchanged: `cac_ac_external_surface.py` walks the
-shipped `argparse` tree, **N = 93** (15 subcommands, 9 positionals, 69 options).
-10 leaf subcommands are `represented`; **83 of 93 are `unrepresented`**.
-
-What changed is the disposition, not the measurement. `ticket_plan.yaml:213`
-now reads *"the External view being unrepresented is an INVENTORY ROW under this
-line, not a gap"*, and `:215` covers the group-subcommand exit-2 outcome and the
-69 options / 9 positionals by name. **83 unrepresented external surface items,
-0 gaps.** The number did not improve; its disposition did, by a quoted plan line.
-
----
-
-## 4. Dispositions
-
-Only three exist. No "justified", "accept as-is", "acceptable risk", "known
-limitation", "deferred" or "out of contract" disposition appears anywhere below.
-
-### 4.1 In-scope gaps — HARD, block promotion (9)
-
-| # | Gap | Sweep | Plan line (IN model) | Disposition | Proposed remediation (advisory) |
-|---|---|---|---|---|---|
-| **G-1** | **`AnalyzeArchitecture` has no row in `effects.actions`** in any of the three manifests — the only one of 15 non-stutter actions without one. The manifest's own rule (`spec_manifest.yaml:196-199`): an **absent** row claims "unmapped", an **empty** row claims "performs no distinct effect". `TlaSpecDevCli.tla:214-222` states each action's `@port` lines "mirror its row in `effects.actions`" — there is no row to mirror. The epic's one new action shipped without its effect declaration. | 2 | `:232` | **model it** | Add `AnalyzeArchitecture: [evidence_report]` to all three trees; or `: []` only if G-2 is closed by removing `--out`. |
-| **G-2** | **The architecture scan's `--out` writes are undeclared.** `analyze_architecture.py:1114-1118` and `architecture_reflexion.py:2288-2292` both do `out_path.parent.mkdir(parents=True); out_path.write_text(rendered)` on an **unconstrained** path (`--out` is a bare string, `:1162` / `:2231`), while the nearest port `evidence_report` targets only `**/results/**`. AC-01's own acceptance evidence (`ticket_plan.yaml:392-399`) is six files this path produced. | 2 | `:231` | **model it** | Declare `evidence_report` on G-1's new row and constrain `--out` to resolve under `results/`; or drop `--out` — the descriptor already goes to stdout (`:1112`). |
-| **G-3** | **`analyze complexity --out` has the same unconstrained write** at `analyze_complexity.py:2293-2294`. `AnalyzeComplexity` declares `evidence_report` (`**/results/**`), so a write elsewhere is undeclared. Round 1 could see this only as a group-level `partial`; with `scripts/**/*.py` in model it is a per-site finding. | 2 | `:231` | **model it** | Same shape as G-2: constrain `--out`, or widen the port target and say so. |
-| **G-4** | **The model's own annotation is false.** `TlaSpecDevCli.tla:649`: `\* No @port: the scan reads the model and the source tree and prints.` It does not only print — G-2 is its writes. The "honest-in-prose / misleading-in-artifact" class RP-02 was opened for, now in the *model*. | 2 | `:233` | **model it** | Replace `:649` with the `@port` line G-1/G-2 create, in the shape `:227` and `:392` already use. |
-| **G-5** | **Stale contradicted record in all three manifests.** `spec_manifest.yaml:73-74` (desired), `:75-76` (current), `:71-72` (program_model): "the model's **9 variables and 15 actions** live in TlaSpecDevCli.tla". The model has **10 and 16** — AC-01 added `architecture_scan` and `AnalyzeArchitecture` and left the comment. The plan records the correct figures at `:721`. Same class as EV-01-DF-03, which RP-05 was opened to repair. | 2 | `:232` | **model it** | Update all three; add the count to whatever check RP-05 used for `architecture_components.yaml` so the next variable cannot leave it stale. |
-| **G-6** | **Case-module generation is unrepresented — and it is this epic's headline feature.** `case_modules.py` ships a standalone `main()` unreachable from `build_parser` (verified by import-closure BFS), writing a coverage record (`:479-480`) and a JSON report (`:822-823`); `generate_cases_from_tlc_dump.py` spawns java/TLC (`:115`), `rmtree`s a metadir (`:139`) and writes packages (`:881-882`); `infer_action_params.py` writes the recovery audit (`:825-826`). **CM-01, RP-02 and RP-03 all closed "ZERO model delta" against surface the model does not contain.** | 1, 2 | `:231` | **model it** *(owner decision, 2026-08-01)* | One `GenerateCases` action with `corpus_process` (the java spawn), `spec_tree` (package + audit writes) and `spec_tree_delete` (the metadir `rmtree`). **G-11 of round 1 folds in here**: the recovery audit is a generation-time artifact of the same action. **See ESC-11 — the plan's ruling (2) still says this surface is unmodeled, and must be amended to match this decision.** |
-| **G-7** | **Two manifest comments cite plan text that does not exist.** `spec_manifest.yaml:56-61` cites *"ticket_plan.yaml known_gaps, amended 2026-07-22"* for the view split; `:124-130` cites *"the 2026-07-22 scope amendment"* for case generation being "deliberately unmodeled". **The amendment narrows this gap but does not close it** (see §5, answer 2): the substance of the first now exists at `:213`, but dated 2026-08-01 at a different location, so a consumer following the citation still finds nothing; and the second is now **contradicted by the owner's own G-6 decision** — the comment will be false the moment `GenerateCases` lands. | 2 | `:232` | **model it** | Re-point both citations at the restored lines, and rewrite `:124-130` to record the G-6 decision instead of the superseded ruling. |
-| **G-8** | **AC-04's `architecture_delta` and its four attribution verdicts are unrepresented.** `architecture_scan ∈ {coherent, divergent, unmappable}` (`TlaSpecDevCli.tla:652`) covers the scan; the delta's outcomes — `code_only`, `unattributable`, `unverified`, `improved`-with-RED-FLAG (`ticket_plan.yaml:725-748`) — are new externally observable results of `analyze architecture --baseline` with no modeled state. **This is not absorbed by the view-split inventory row**: the model already carries five peer scanner verdicts as first-class variables, so the delta's absence is a hole in the module that exists, not a consequence of the module that does not. | 1, 2 | `:231`, `:233` | **model it** | Widen `architecture_scan`'s domain or add an `architecture_delta` variable, recording the state-count cost the way `:146-161` recorded AC-01's 4.6×. |
-| **G-9** | **The install path's effects are undeclared, and its only declared port is dead.** `BuildSkillCli` and `InstallLocalCli` each declare exactly one port, `cli_artifact` (`filesystem.write`, target `**/.venv/**`, `spec_manifest.yaml:118-120`, `:195-196`). **`.venv` appears nowhere in `scripts/*.py` or `skill-scripts/*.sh`** — `grep -rn '\.venv'` over both returns zero hits. What the install path actually does: `install-tla-spec-dev.sh:20` `mkdir -p "$SKILL_MANAGER_BIN_DIR" "$SKILL_MANAGER_CACHE_DIR"`; `:22-29` `cat > "$WRAPPER"`; `:29` `chmod 0755`; `:31` spawns `"$WRAPPER" --help`; `install-tlc2.sh:18` `mkdir -p "$JAR_DIR"`; `:37` **`curl -fL "$JAR_URL" -o "$JAR_TMP"`** — a real network download; `:38` **`mv "$JAR_TMP" "$JAR_PATH"`** — a destructive overwrite. **Not one of these matches `**/.venv/**`.** So `cli_artifact` is DEAD MODEL SURFACE by the manifest's own rule (`spec_manifest.yaml:88-90`), a `network.*` port is missing entirely although the sandbox observes `network.connect` (`effect_conformance.py:106`, `:775-788`), and `kill_mutants` seeds `port-cli_artifact` (`spec_manifest.yaml:257`) — the kill test has been seeding a fault for a port nothing exercises. | 2 | `:60-67` proviso | **model it** | Retarget `cli_artifact` to what the installers write (`$SKILL_MANAGER_BIN_DIR`, `$SKILL_MANAGER_CACHE_DIR`), add `network.http` for the jar download, add `filesystem.delete` or a rename-capable port for the `mv`, and add `process.spawn` for the wrapper self-test. Then re-check the `port-cli_artifact` mutant, which currently cannot be killed by anything real. |
-
-### 4.2 Out-of-model inventory — does not gate
-
-| # | Surface | Rows | Quoted plan line |
-|---|---|---|---|
-| I-1 | `examples/**` — fixtures, worked examples, eval subjects | 327 | `:236` |
-| I-2 | `tests/**`, `specs/*/tests/**`, `test_graph/**` | 96 | `:235` |
-| I-3 | `templates/**` (`.j2` generators) | 12 | `:238` |
-| I-4 | `spec_double_compiler/**` | 3 | `:238` |
-| I-5 | `skill-scripts/**`, `scripts/run_tlc.sh` | 3 | `:239` — **subject to the proviso; see G-9** |
-| I-6 | `specs/.history/**` | 5,402 (outside the 596) | `:237` |
-| I-7 | **The whole External view** — 83 of 93 caller-drivable items unrepresented | 83 | `:213` |
-| I-8 | **The five group subcommands' `incomplete command` exit-2 outcome** | 5 | `:215` |
-| I-9 | **69 options + 9 positionals, incl. the six guard-weakening flags** | 78 | `:215` — **see §6 for my reservation** |
-| I-10 | Wrapper/close/start/scaffold scripts, advisory internals, Test Graph plumbing (rows 18-19, 26-34 of §1.1) | 11 | `:45-59`, `:27-29` |
-| I-11 | `run_generated_case_adapters.py` provider machinery | 1 | `:217` |
-
-### 4.3 Scope escalations — owner amends the plan, once (4)
-
-ESC-8, ESC-9, ESC-10, ESC-11 — stated in full at §0.5. Summary: `specs/tickets/**`
-(110 rows), the six spec-unit adapters (6 rows), `specs/results/**` audit tooling
-(5 rows), and ruling (2) naming a command that does not exist.
-
----
-
-## 5. Direct answers to the coordinator's questions
-
-**1. How many of the 187 unclassifiable rows now carry a real disposition?**
-
-**66 of 187.** Total escalations 187 → **121**; **no row regressed** from
-classified to unclassified. The 34-of-34 `scripts/` hole is fully closed by
-`:231`. The 121 that remain are the four escalations in §0.5, and they are
-lopsided: **one plan line — `specs/tickets/**` — would close 110 of them.** The
-one that is not clerical is **ESC-9**, the six spec-unit adapters: the amendment
-named the manifests and the model and skipped the adapter layer between them,
-which is the code that binds modeled actions to the real CLI, and which the
-*predecessor* plan named explicitly under `adapter_boundaries`.
-
-**2. Is your expectation about G-7/G-8/G-9/G-6 right?**
-
-**Three of four: yes. One: no.**
-
-- **Round-1 G-7 (view split) → INVENTORY. CONFIRMED.** `:213` says so verbatim:
-  "the External view being unrepresented is an INVENTORY ROW under this line, not
-  a gap." No inference required.
-- **Round-1 G-8 (incomplete-command exit 2) → INVENTORY. CONFIRMED.** `:215`
-  names it explicitly: "the five group subcommands' `incomplete command` exit-2
-  outcome."
-- **Round-1 G-9 (69 options / 9 positionals) → INVENTORY. CONFIRMED.** `:215`
-  names the count and the six flags. **With a reservation I am putting on the
-  record — §6.**
-- **Round-1 G-6 (dangling manifest citations) → NOT closed. REFUTED.** It is now
-  round-2 **G-7 and it survives as a gap**, narrowed but real, on two counts.
-  (a) `spec_manifest.yaml:56-61` cites *"ticket_plan.yaml known_gaps, amended
-  2026-07-22"*; the restored ruling is dated **2026-08-01** and lives at `:213`.
-  The substance exists; the citation still resolves to nothing, and a stale
-  pointer in a record is the exact defect class RP-05 was opened to repair
-  (EV-01-DF-03) and that G-5 repeats. (b) `spec_manifest.yaml:124-130` cites the
-  same nonexistent amendment for case generation being "deliberately unmodeled" —
-  and **your own G-6 decision contradicts it.** Once `GenerateCases` lands, that
-  comment is affirmatively false. It cannot be closed by classification; someone
-  has to edit two comments.
-
-**3. G-6 (case-module generation) is `model it`.** Recorded as such, not
-reclassified. Round-1 G-11 (`infer_action_params.py`) folds into the same action
-— it is a generation-time artifact write on the same path — which is why the gap
-count is 9 rather than 10. **But this decision is not yet in the plan**, and the
-plan currently says the opposite: ruling (2) at `:45-47` declares the generate
-surface a recorded limitation. Filed as **ESC-11**. The next auditor reading only
-the plan will inventory what you have ruled must be modeled.
-
-**4. Verdict — `fail`, and the remaining blocker is a MODELING GAP.** See §7.
-
-**5. Report and ledger updated in place and committed.** Findings filed, nothing
-fixed, nothing pushed, nothing merged, ledger block proposed but not applied.
-
----
-
-## 6. On the record: is this amendment defining gaps out of existence?
-
-You asked for this bluntly, so: **no — with one specific reservation that I want
-recorded rather than softened.**
-
-The reasons it is a boundary and not an escape:
-
-1. **It is one visible amendment, reviewed once, not N per-finding
-   justifications.** That is precisely the distinction
-   `references/coverage_audit.md` builds the gate around.
-2. **It restores rulings a predecessor plan already carried and a previous audit
-   already reviewed.** These are not new escapes invented to answer this audit;
-   they are the ESC-C2-1 fix being re-applied after a regression. The gate is
-   working as designed: it caught the reversion and the reversion was undone.
-3. **You declined to answer ESC-6 when answering it would have been free**, and
-   the proviso you wrote instead *created* work. Applied honestly it produced
-   G-9, which is substantially larger than the network port you flagged — a dead
-   `cli_artifact` port, four undeclared write/spawn sites, and a kill-test mutant
-   seeded against a port nothing exercises. An owner defining gaps out of
-   existence does not write the clause that finds four more.
-4. **You ruled G-6 `model it` against your own plan's ruling (2)**, choosing the
-   harder path where the text would have let you inventory it.
-5. **The largest reclassification is defensible on the merits and the numbers
-   support it.** `examples/**` (327 rows) moving out of model is the correct
-   call, and the effect sweep confirms it independently: three whole effect
-   categories that looked populated in round 1 have **zero real in-model sites**.
-   The fixtures were making the model look worse than it is.
-
-**The reservation, stated plainly: inventorying the six guard-weakening flags
-under ruling (3) is the one place where the boundary costs real safety, and
-"governed by doctrine, not modeled" is doing more work in that sentence than it
-can carry.**
-
-`CloseTicket` (`TlaSpecDevCli.tla:619-638`) guards on `ticket_state[ticket] =
-TicketSpecUnitTestsPassed`, and `ClosedTicketsPassedSpecUnitTests` (`:823`) is an
-invariant TLC checks over 1,292,951 states. `--accept-new` (`tla_spec_dev.py:723`)
-and `--allow-open` (`:719`) exist specifically to bypass those preconditions. So
-the model proves an invariant that the shipped program has two documented flags
-to violate, there is no modeled state in which either was used, and **no oracle
-in this toolchain can see the difference** — the mutation kill test seeds faults
-per declared port and per invariant, i.e. only inside modeled boundaries. The
-inventory row is legitimately quoted and I have not tried to convert it back into
-a gap. But it should be read as **a known, unmeasured hole in the strongest claim
-this model makes**, not as a resolved item. If any single line of `:215` deserves
-revisiting in the successor epic, it is that one, and modeling *only* those six —
-six of 78 — would close it without touching the granularity limitation the rest
-of the ruling is actually about.
-
-One smaller note in the same spirit: ruling (4)'s "silent-degrade guards" now
-inventories a class whose in-model share went **up** after the rescope (27 of 33
-`FB-IMPORT` hits). The plan's own dispatch notes warn about a live instance of
-it. Inventoried is correct; costless it is not.
-
----
-
-## 7. Verdict
-
-- In-scope gaps: **9**
-- Out-of-model inventoried: **441 Sweep-1 rows + 83 external-view items + 5,402 history files**
-- Escalations: **4** (121 Sweep-1 rows)
+- In-scope gaps: **3** — N-1, N-2, N-3, all created by RC-01
+- Escalations: **0**
 - **Verdict: `fail`**
 
-**Why `fail` and not `incomplete`.** Round 1 was `incomplete` because the gate
-could not answer its own question: the scope did not exist in usable form, 187
-rows were unclassifiable, and 86% of rows were dispositioned from a path rather
-than from code. None of that is true now. The declared in-model surface is 46
-files; **all 46 were read**; the row-set discipline held at `N == M` on every
-sweep; and the answer is 9 gaps. A gate that walked its declared surface and
-found gaps returns `fail`. `incomplete` would understate what was measured.
+`fail` because three in-scope gaps exist and there is no fourth disposition. It
+should be read alongside what it replaced: 12 gaps and an unusable scope in round
+1, 9 gaps and 121 unclassifiable rows in round 2, **3 gaps and nothing
+unclassified** now. Nine of nine round-2 gaps were addressed, eight fully, one
+(G-9) in half — and every one by `model it` or `change the program`, with no
+justification, no accepted risk and no waiver anywhere in the closure record.
 
-**Is the remaining blocker a modeling gap or a coverage limit? A modeling gap.**
-All nine are defects in what the model represents, each anchored on a file
-`representation_scope` names IN model, each closable by modeling it or changing
-the program. None is "I could not see this."
+**The remaining blocker is a modeling gap, not a coverage limit.** N-1 and N-3
+are closed by editing declarations; N-2 by a fifteen-line change to the program.
+None is "I could not see this."
 
-**Coverage limits that persist and that no amendment can fix — these are not
-blockers, and they are also not resolved:**
+**One coverage limit persists and it is the same one:** the effect oracle has
+still never executed against this model. It is now *reachable* — that is real
+progress and it is RC-01's — but reachable is not run, and N-1 is a port-with-no-
+site that a single run would have caught, arriving in the very commit that made
+running it possible.
 
-1. **No runtime observation, and no oracle has ever run against this model.**
-   `spec_manifest.yaml:64-66` sets `case_codegen.generation_status: planned`;
-   `state_fields`/`actions`/`ports` are empty placeholders (`:78-80`); the
-   binding discovery returned **0** files. Every `declared` verdict in §2 is a
-   declaration that has never been *checked* against an observation. G-9 is the
-   proof: `cli_artifact` has been declared, annotated in the model, and seeded as
-   a kill-test mutant, and it matches nothing the program writes. **An effect
-   oracle that had ever executed would have found that in one run.** This is the
-   single largest coverage limit in this repository and it is invisible to every
-   other gate.
-2. **Effects and behaviors were found by pattern, not by execution.** A site that
-   does not match a pattern is not in any sweep.
-3. **The four remaining escalations** leave 121 rows unclassified — clerical for
-   110 of them, substantive for the 6 adapters (ESC-9).
-
-**Promotion is blocked.** `fail` refuses the workflow close. The proposed ledger
-block is at
-`specs/results/coverage-audit-arch-coherence-raw/coverage_audit_ledger_input_proposed.yaml`
-and is **deliberately not applied** — a gate that writes its own verdict into the
-ledger it reports on is self-clearing. The owner records it.
+The proposed ledger block is at
+`.../round3/coverage_audit_ledger_input_proposed.yaml` and is **not applied**.
 
 ---
 
-## 8. Attestation
+## 10. Attestation
 
-### 8.1 Row-count reconciliation
-
-| Sweep | Row set | N | M | `N == M` |
-|---|---|---|---|---|
-| 1 — full surface, re-classified | `sweep1-surface.txt` (unchanged) | 596 | 596 | ✅ asserted by `cac_ac_classify_v2.py` |
-| 1.1 — in-model modules | `git ls-files 'scripts/*.py'` | 34 | 34 | ✅ |
-| 1.2 — in-model non-source | `sweep1b-in-model-nonsource.txt` | 12 | 12 | ✅ |
-| 2.1-2.8 — effects | 8 raw files, unchanged | 3,909 / 1,366 / 145 / 394 / 384 / 50 / 107 / 417 | group sums equal | ✅ re-asserted |
-| 2.1a — destructive per-site | derived, rule stated | 54 | 54 (9 in-model tabulated individually) | ✅ |
-| 3.1-3.6 — behaviors | 6 raw files, unchanged | 1,431 / 528 / 275 / 314 / 29 / 1,160 | group sums equal | ✅ re-asserted |
-| 4 — external view | `cac_ac_external_surface.py` | 93 | 93 | ✅ |
-
-### 8.2 Did the amendment fix round 1's stated limits? Partly — and I am not
-### claiming more than it did.
-
-You asked me to be blunt about this. **A scope amendment cannot convert a
-coverage limit into coverage, and I am not going to report as though it did.**
-Precisely:
-
-| Round-1 limit | Status now | Honest reading |
-|---|---|---|
-| **512 of 596 rows (86%) dispositioned from path, not code** | **Genuinely fixed where it matters, and only there.** Rows requiring a *coverage judgment* are the 46 in-model files, and **0 of 46 are inferred** — reachability came from an AST import-closure BFS, effect sites from targeted reads, actions from the dispatcher. The other 550 rows are dispositioned from path, but they are `inventory it` **by a quoted plan line**, which is a *classification*, not a coverage claim. Path-based classification against an explicit glob is legitimate; path-based *coverage* was not. **The metric improved because the surface got smaller, not because I read more of the repository** — and that is the correct outcome only because the plan, not I, decided what shrank. |
-| **6,566 non-source tracked files never swept — including the manifests where 3 gaps were found** | **Partly fixed.** The amendment named 12 of them in model; I enumerated (§1.2) and read all 12. The rest are now out-of-model by plan line, except `specs/tickets/**` and `specs/results/**` (ESC-8, ESC-10). **But the fix was structural luck, not method**: G-1, G-5 and G-7 were found in round 1 by targeted reading, *not* by any sweep, and Sweeps 2 and 3 still do not run over YAML/TLA/CFG at all. If a manifest defect existed that targeted reading missed, nothing here would catch it. **The prompt still has no manifest sweep** — see §8.4. |
-| **`specs/.history/**` (5,402 files) excluded by my filter** | **Fixed as a governance matter, unchanged as a coverage matter.** `:237` makes it the plan's decision (ESC-5 answered). Those files are still not walked. The exclusion is now reviewable; it is not now coverage. |
-| **No runtime observation; no oracle has run against this model** | **Not fixed, not fixable by an amendment.** See §7. G-9 is what that limit costs. |
-
-### 8.3 Surface NOT walked
-
-Not "none". `specs/.history/**` (5,402); `specs/tickets/**` (110 in-surface,
-ESC-8); the 441 out-of-model rows were classified from path, not read; all
-non-source files except the 12 in §1.2; and no code was executed.
-
-### 8.4 Findings about the prompt itself
-
-Round 1's four stand. Round 2 sharpens two and adds one:
-
-1. **Confirmed, and the fix is now demonstrated.** Round 1 said the prompt should
-   name which plan key declares representation scope and HALT if it is absent,
-   rather than falling back to `implementation_scope`. The owner built exactly
-   that key, and the result is the difference between an unanswerable audit and a
-   `fail` with 9 named gaps. **This should go into `prompts/coverage_audit.md`
-   Step 0 as a requirement**: read `representation_scope`; if absent, HALT — do
-   not fall back.
-2. **Confirmed and worse than stated.** Round 1's manifest finding was that
-   sweeping only "the project's languages" misses the file where every effect
-   port lives. Round 2 raises the count: **G-1, G-5, G-7 and half of G-9 are all
-   manifest defects**, four of nine gaps, and *none* was produced by a sweep.
-   Step 2 needs an explicit declarative-artifact sweep, or this class will keep
-   being found by luck.
-3. **New: the prompt has no procedure for a re-audit after an amendment.** The
-   right move — re-classify without re-enumerating — is not written anywhere, and
-   an agent that re-ran the enumerations would have produced a fresh row set that
-   could not be diffed against round 1's, quietly destroying the comparison that
-   makes an amendment reviewable. I preserved round 1's raws and wrote a separate
-   `cac_ac_classify_v2.py` **because the coordinator instructed it**, not because
-   the prompt says so. It should say so.
-4. **Unchanged and unclosable here: `N == M` is still self-reported.** Asserting
-   it in code is stronger than claiming it, but I wrote the code, the group
-   regexes and the glob matcher — and I found and fixed a real bug in that
-   matcher mid-run (a `/**` fast path that did not honour a `*` earlier in the
-   pattern, which mis-sorted 51 rows into ESCALATION before it was corrected).
-   **A reviewer should note that the bug was found by a unit check I chose to
-   write; nothing in the prompt required it.** Issue #48's mechanical inventory
-   remains the only real fix.
+1. **Row counts.** Sweep 1: N = M = 6,104, asserted in `cac_ac_classify_v3.py`.
+   In-model: 40 `.py` + 12 non-source = 52, all read, 0 inferred. Effect sweeps
+   over the in-model surface: filesystem 240, subprocess 107, network 10; raw
+   files in `round3/`. Rounds 1 and 2 raws are unmodified — `git diff` over them
+   is empty — so all three rounds remain diffable.
+2. **Surface not walked.** Non-source files outside the 12 in-model ones (JSON,
+   TOML, remaining YAML, `.tla` under `examples/**`) were not swept; all are
+   out-of-model by plan line. **No code was executed except TLC** — the effect
+   and behavior findings remain pattern-derived.
+3. **Read vs inferred.** 52 of 52 in-model rows read. 6,064 out-of-model rows
+   classified from path against an explicit glob — classification, not coverage.
+4. **Scope decided by reasoning rather than a quoted line:** none. Zero
+   escalations, and no filter was applied.
+5. **Reproducible?** Yes for row sets (`cac_ac_classify_v3.py` over
+   `round3/sweep1-surface.txt`) and yes, unusually, for the central verification:
+   the §6.1 TLC reproduction is a two-line recipe anyone can repeat.
+6. **Findings about the prompt.** Round 1's and round 2's stand. Round 3 adds
+   one, and it is the important one: **`prompts/coverage_audit.md` has no
+   procedure for auditing a remediation.** It assumes a model and a program that
+   have not just been changed *in response to it*. Two of this round's three gaps
+   are in surface the remediation created, and one of them (N-1) is the same
+   class the remediation was closing. Nothing in the prompt says "sweep the fix as
+   surface"; the coordinator had to say it. It should be Step 8: **a remediation
+   commit is new program surface and is swept as such, not verified against its
+   own account of itself.** Had this round audited RC-01's claims instead of the
+   tree, it would have reported `pass` — every claim RC-01 made is true, and three
+   gaps would have shipped.
