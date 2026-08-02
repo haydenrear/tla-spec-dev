@@ -1412,7 +1412,12 @@ def run_generation(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[s
             str(tla),
             str(cfg),
             "--out",
-            str(tmp_path / "generated"),
+            # RC-02 (N-2): `generate cases` now refuses an --out that resolves
+            # outside a `specs/` directory, because that is the tree the
+            # `spec_tree` and `spec_tree_delete` ports declare and the metadir
+            # `rmtree` is derived from it. The fixture writes where the
+            # declaration says it may.
+            str(tmp_path / "specs" / "generated"),
             *extra,
         ],
         cwd=REPO_ROOT,

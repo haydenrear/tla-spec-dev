@@ -1396,7 +1396,13 @@ class AnalyzeComplexityAdapter:
         def generate(*extra: str) -> subprocess.CompletedProcess:
             return subprocess.run(
                 [sys.executable, str(root / "scripts" / "generate_cases_from_tlc_dump.py"),
-                 str(tight_tla), str(tight_cfg), "--out", str(target_repo / "generated"), *extra],
+                 # RC-02 (MF-026 round-3 N-2): `generate cases` refuses an --out that
+                 # resolves outside a `specs/` directory -- the tree spec_tree and
+                 # spec_tree_delete declare, and the tree the metadir rmtree is
+                 # derived from. This probe is about the ADVISORY complexity path,
+                 # so it writes where the declaration says it may.
+                 str(tight_tla), str(tight_cfg), "--out",
+                 str(target_repo / "specs" / "generated"), *extra],
                 cwd=target_repo, text=True, capture_output=True, check=False,
                 timeout=180,
             )
@@ -2356,7 +2362,11 @@ class GenerateCasesAdapter:
     def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
         root = repo_root()
         target_repo = Path(target_repo)
-        spec_dir = target_repo / "genprobe"
+        # RC-02 (MF-026 round-3 N-2): the probe generates INSIDE a `specs/`
+        # tree, because that is the tree `spec_tree` and `spec_tree_delete`
+        # declare and `generate cases` now refuses anything outside it. The
+        # fixture moved; the effects asserted below did not.
+        spec_dir = target_repo / "specs" / "genprobe"
         tla_path, cfg_path = _write_fixture(
             spec_dir, "GenProbe", GENERATE_CASES_TLA, GENERATE_CASES_CFG
         )
@@ -2373,7 +2383,7 @@ class GenerateCasesAdapter:
                 ),
             }
 
-        out_root = target_repo / "generated"
+        out_root = target_repo / "specs" / "generated"
         package = out_root / "genprobe_cases"
         coverage_json = package / "case_module_coverage.json"
         result = subprocess.run(

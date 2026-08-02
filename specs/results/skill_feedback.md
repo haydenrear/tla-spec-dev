@@ -1620,3 +1620,96 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   close refuse `unreviewed` at WORKFLOW close (it already refuses plenty else
   there); if it is not, stop printing the warning.
 - status: recorded-local
+
+## Close-out ticket RC-02
+
+- close_scope: ticket
+- close_id: RC-02
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-02T00:53:30+00:00
+- summary: Closed MF-026 round-3 N-1 (three unattached ports attached to InstallLocalCli in all three trees, with @port mirrors and two always-on consistency tests), N-2 (generate cases --out and --dot constrained through spec_paths.resolve_spec_tree_out, which constrains the metadir rmtree by construction), and N-3 (the stale citation fixed and a file-qualified, content-anchored citation check shipped, which found eight more stale citations). Ran run effect-conformance against this model for the first time: unobservable, 57 observed effects over 8 cases, 20 gaps, 9 dead ports, 15 unobservable targets, exit 1, nothing tuned; the N-1 counterfactual measures the fix at -2 gaps and -1 dead port. generation_status stays planned because this model's corpus is 3,678,217 cases at 18,391x its own cap. TLC unchanged at 10,331,543 distinct states, depth 26.
+- feedback_status: items-recorded
+
+### SF-301
+
+- surface: `tla-spec-dev run effect-conformance`, adapter import resolution.
+- what happened: the FIRST EVER execution of this oracle against this
+  repository's own model died with `ModuleNotFoundError: No module named
+  'production_adapters'` before a single case ran. The command executes
+  adapters in-process and never puts the target spec directory on `sys.path`,
+  while `case_adapters.toml` -- the file this same CLI scaffolds -- names them
+  as bare module paths. The enforcing copy does not have the defect:
+  `run spec-unit-tests` puts the target directory on `PYTHONPATH` when it
+  spawns the runner.
+- why it matters: the standalone oracle cannot run against ANY project this CLI
+  scaffolds, which is the opposite of the documented relationship between the
+  two ("this command exists so the diff can be produced and inspected on its
+  own"). It is a direct contributor to the "no oracle has ever run" limit that
+  MF-026 has reported since round 2: the first operator to try it gets an
+  import error and cannot tell whether the oracle or their project is at fault.
+- recommendation: put the resolved spec directory and the repository root on
+  `sys.path` in `_execute_corpus` before the first `load_object`, and add a
+  regression test that points the oracle at `specs/current` with no PYTHONPATH
+  set. Filed locally as RC-02-DF-02.
+- status: recorded-local
+
+### SF-302
+
+- surface: `tla-spec-dev run effect-conformance`, case execution.
+- what happened: the oracle calls `call_adapter` for every case and never
+  consults `can_run` / `adapter_accepts_case`, so it ABORTS THE WHOLE RUN on
+  the first adapter that cannot take its case -- here `TypeError: adapter
+  <AnalyzeArchitectureAdapter> does not define run(case, ...)`, on the second
+  case. `run_generated_case_adapters` applies exactly that capability check
+  before executing anything.
+- why it matters: the two runners are documented as the same measurement in two
+  places, and they are not. It also means the oracle has no partial report: one
+  unrunnable adapter and there is no evidence at all, rather than evidence about
+  the cases that did run.
+- recommendation: call `adapter_accepts_case` and record a SKIP with its reason,
+  and REPORT the skipped set -- a case the oracle silently did not run is the
+  "unobservable read as clean" shape MF-027 removed. Filed locally as
+  RC-02-DF-03.
+- status: recorded-local
+
+### SF-303
+
+- surface: `tla-spec-dev generate cases`, and `references/case_modules.md`.
+- what happened: generating this repository's own corpus from the REDUCED
+  config MF-028 added for the purpose produces 3,678,217 cases and a 7.4 GB
+  `cases.py` -- 18,391x the manifest's own `max_internal_cases_per_component`
+  -- and the cap gate refuses it after writing the whole thing to disk. Every
+  worked example in `references/case_modules.md` pairs generation with a
+  `tlc_projection.py`; the toolchain's own model has none, and nothing in the
+  CLI says that a model of any size needs one.
+- why it matters: this is why no oracle has ever run against this model, and it
+  is invisible until someone tries. The refusal message offers "redesign" or
+  "raise the cap" and never mentions the projector, which is the actual lever:
+  projecting away the two variables the repository already documents as
+  unrecoverable takes the corpus from 3,678,217 to 628,424 with no model change.
+- recommendation: name `--state-projector` in the cap-refusal message as a third
+  way forward, and gate on the projected count before rendering, so a refused
+  corpus does not cost 7.4 GB and five minutes first. Filed locally as
+  RC-02-DF-04.
+- status: recorded-local
+
+### SF-304
+
+- surface: internal line citations across `scripts/` and `spec_manifest.yaml`.
+- what happened: RC-02 shipped a content-anchored citation check and it
+  immediately found EIGHT stale citations beyond the one the coverage audit
+  filed -- 9 of the 11 distinct citations in that surface were wrong in at least
+  one tree, including one inside the comment block the previous ticket had just
+  written.
+- why it matters: three consecutive tickets were charged with "shipping a stale
+  citation" as though it were a lapse in care. The measurement says otherwise:
+  nothing checked, and a repository that cites line numbers in durable comments
+  will always drift. This is a skill-level pattern, not a repository one --
+  every project this skill scaffolds inherits comment-heavy manifests.
+- recommendation: ship the check (or its convention) with the scaffolded
+  project, or stop encouraging line-number citations in the templates and cite
+  symbols instead. Fixed here for this repository's surface, so no deferred
+  finding was filed.
+- status: recorded-local
+
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

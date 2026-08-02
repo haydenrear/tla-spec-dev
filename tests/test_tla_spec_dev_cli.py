@@ -471,6 +471,62 @@ def test_analyze_out_refuses_a_path_the_evidence_port_does_not_cover(tmp_path: P
         declared.unlink()
 
 
+def test_generate_cases_out_is_constrained_to_the_declared_spec_tree(tmp_path: Path) -> None:
+    """N-2: the class G-2/G-3 closed, shipped again on the new command path.
+
+    RC-01 fixed three `--out` flags and shipped a fourth unconstrained one in
+    the same commit. `generate cases --out` was `required=True` with no
+    location constraint, and `--dot` beside it decides where the TLC metadir
+    `shutil.rmtree` lands -- a DESTRUCTIVE delete at a caller-chosen path, on a
+    newly modeled action, declared by ports that target `**/specs/**`.
+
+    Refused before anything expensive runs: no TLC spawn, no directory created,
+    no delete. The refusal is checked at the CLI so it covers the modeled
+    `GenerateCases` path, not just the module function.
+    """
+    tla, cfg = _tiny_model(tmp_path / "spec")
+    stray = tmp_path / "anywhere"
+
+    refused = run_cli(
+        "generate", "cases", str(tla), str(cfg), "--out", str(stray), cwd=tmp_path
+    )
+    assert refused.returncode == 2, refused.stdout
+    assert "specs/" in refused.stderr
+    assert "spec_tree" in refused.stderr
+    assert not stray.exists()
+
+    # --dot is refused for the same reason even when --out is fine, because the
+    # metadir the run deletes is derived from it.
+    declared_out = tmp_path / "specs" / "generated"
+    stray_dot = tmp_path / "elsewhere" / "Tiny.dot"
+    refused_dot = run_cli(
+        "generate", "cases", str(tla), str(cfg),
+        "--out", str(declared_out), "--dot", str(stray_dot), cwd=tmp_path,
+    )
+    assert refused_dot.returncode == 2, refused_dot.stdout
+    assert "spec_tree_delete" in refused_dot.stderr
+    assert not stray_dot.parent.exists()
+
+
+def test_generate_cases_metadir_delete_stays_inside_the_declared_tree(tmp_path: Path) -> None:
+    """The rmtree is constrained BY CONSTRUCTION, not by a second check.
+
+    `run_tlc_dump` derives `metadir = dot_path.parent / ".tlc-states" / stem`
+    and `shutil.rmtree`s it in its finally branch. Constraining `--dot` is what
+    constrains the delete, so the property worth asserting is the derivation:
+    every path this action deletes is under the `spec_tree_delete` target.
+    """
+    from scripts.spec_paths import SPEC_TREE_DIR_NAME, resolve_spec_tree_out
+
+    spec_dir = tmp_path / "specs" / "program_model"
+    spec_dir.mkdir(parents=True)
+    resolved = resolve_spec_tree_out(
+        tmp_path / "specs" / "generated" / "Tiny.dot", spec_dir, is_file=True
+    )
+    metadir = resolved.parent / ".tlc-states" / "Tiny"
+    assert SPEC_TREE_DIR_NAME in metadir.parts
+
+
 def test_reflexion_out_is_constrained_the_same_way(tmp_path: Path) -> None:
     from scripts import architecture_reflexion
 
