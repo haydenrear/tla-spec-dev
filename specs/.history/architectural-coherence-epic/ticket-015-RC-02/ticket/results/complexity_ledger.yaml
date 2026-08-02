@@ -21,17 +21,17 @@
 #   descriptor_comparison: recorded            -- before/after descriptor doc
 validated_refactor:
   tlc_before:
-    status: "TODO"
-    evidence: "TODO -- path to the pre-change TLC output"
+    status: "green"
+    evidence: "specs/results/coverage-audit-arch-coherence-raw/round3/verify-tlc-shipped-encoding-mc.txt -- the AUDITOR's independent run on the pre-RC-02 model (392,923,694 / 10,331,543 / depth 26), used in preference to RC-01's own so the before-figure is not this epic's self-report"
   tlc_after:
-    status: "TODO"
-    evidence: "TODO -- path to the post-change TLC output"
+    status: "green"
+    evidence: "specs/tickets/RC-02/results/tlc-current.txt (392,923,694 generated / 10,331,543 distinct / depth 26 / 11min 24s, no error -- identical)"
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "pass"
+    evidence: "specs/tickets/RC-02/results/pytest-full.txt (1076 passed, 0 failed; baseline 980 at a866957) and specs/tickets/RC-02/results/spec-unit-project.txt (73 passed)"
   descriptor_comparison:
-    status: "TODO"
-    evidence: "TODO -- path to the before/after descriptor comparison"
+    status: "recorded"
+    evidence: "specs/tickets/RC-02/results/complexity-before.txt and complexity-after.txt -- byte-identical apart from the three worktree paths in the header. Recorded in specs/results/rc02-model-delta.md"
 
 # Fuzzing-era retention members -- RECORDED at every close, non-gating since
 # CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
@@ -49,9 +49,15 @@ retention:
   kill_rate:
     status: "not_run"
     evidence: ""
+  # RC-02: THE FIRST TIME THIS MEMBER HAS CARRIED A MEASURED VALUE. The effect
+  # oracle had never executed against this model -- generation_status planned,
+  # no specs/*/generated/ -- so every close in this repository's history has
+  # recorded `not_run` here. It is `unobservable`, and the comment above is the
+  # reason that is written rather than `clean`: 15 process boundaries the
+  # sandbox could not see, plus 20 gaps and 9 dead ports.
   effect_conformance:
-    status: "not_run"
-    evidence: ""
+    status: "unobservable"
+    evidence: "specs/results/rc02-effect-conformance/README.md; run-action-covering-corpus.txt (57 observed effects over 8 cases, 12 declared ports, 20 gaps, 9 dead ports, 15 unobservable targets, exit 1); run-counterfactual-pre-n1.txt (the N-1 counterfactual: 22 gaps / 10 dead ports with RC-01's rows)"
   external_coverage:
     status: "not_run"
     evidence: ""
@@ -112,9 +118,26 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none applicable, and the reason is structural rather than a
+    shrug: RC-02's whole semantic delta is DECLARATIONS. Three ports moved into
+    an existing action's effects row, three @port comment lines were added, one
+    path helper was applied to two flags, and one docstring citation was
+    corrected. There is no state, no action, no invariant and no guard to
+    refine -- TLC reports the identical 10,331,543 distinct states at depth 26
+    and the complexity descriptor is byte-identical apart from worktree paths.
+    A refinement recommendation here could only be a proposal to shrink surface
+    this ticket did not add.
+
+    The one refinement this ticket DID measure is recorded rather than applied,
+    because it belongs to another ticket's surface: this model's corpus is
+    3,678,217 cases, and projecting away the two variables
+    adapter_case_runtime.UNPROJECTABLE_FIELDS already names as unrecoverable
+    (lastCommand, result) takes it to 628,424 -- a 5.9x reduction in generated
+    cases with no model change at all. That is a generation-side projector, not
+    a model refinement, and it is filed as RC-02-DF-04.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -126,4 +149,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/results/rc02-gap-closure.md, specs/results/rc02-model-delta.md and specs/results/rc02-effect-conformance/README.md. The short form: three MF-026 round-3 gaps closed by modelling or by changing the program, each now guarded by a test that fails on the pre-fix tree; zero model delta, measured against the auditor\'s own independent TLC run rather than against RC-01\'s self-report; and the effect oracle EXECUTED against this model for the first time in the repository\'s history, reporting 20 gaps, 9 dead ports and 15 unobservable boundaries with nothing tuned. The measured alternative that was rejected: moving case_codegen.generation_status off `planned`. The corpus this model generates is 3,678,217 cases and 7.4 GB, 18,391x its own max_internal_cases_per_component, and the shipped cap gate refuses it; projection to 628,424 or 96,056 does not make it executable either. Claiming `generated` would have asserted the thing the evidence disproves. Findings the machine-checked core cannot express: the audit\'s claim that one oracle run would have caught N-1 is one third right (cli_selftest_process yes, cli_download and cli_artifact_delete no, because no adapter executes install-tlc2.sh); the oracle cannot import a scaffolded project\'s adapters at all (RC-02-DF-02); it aborts on the first apply()-only adapter and 9 of this model\'s 17 are apply()-only, so it can see 8 of 18 actions (RC-02-DF-03); and applying a content-anchored citation check to the surface RC-02 owns found EIGHT stale citations beyond the one the audit filed, which reframes N-3 from a carelessness finding to an absence-of-checking finding.'"
