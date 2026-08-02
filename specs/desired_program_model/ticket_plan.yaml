@@ -1802,7 +1802,7 @@ tickets:
 
   - id: RC-02
     title: "Close the three gaps RC-01 created, and run the oracle that would have caught them"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 7
     depends_on: [RC-01]
@@ -1918,3 +1918,110 @@ tickets:
       NONE expected. RC-02 attaches declarations to actions that already exist
       and constrains writes that already happen. If the state space moves at all,
       say why before closing.
+    model_delta_result: >
+      NONE, measured. TLC over MC.cfg: 392,923,694 generated / 10,331,543
+      distinct / depth 26 / 11min 24s, no error -- IDENTICAL to RC-01's figures
+      and to the auditor's independent round-3 reproduction, to the state. The
+      only .tla edits in any tree are COMMENT lines (three @port annotations and
+      a paragraph above InstallLocalCli); nothing parses @port, and no variable,
+      guard, disjunct, invariant or constant changed. The manifest edits are
+      effects.actions rows and comments, which TLC does not read. The N-2
+      program change refuses a CLI path, which is not a modeled transition --
+      the same shape as RC-01's three --out refusals. Full record:
+      specs/results/rc02-model-delta.md.
+    result: >
+      All three gaps closed by modelling or by changing the program. No gap
+      closed by a justification, an accepted risk or a scope waiver. Per-gap
+      record: specs/results/rc02-gap-closure.md.
+
+      N-1 (model it): cli_download, cli_artifact_delete and
+      cli_selftest_process attached to InstallLocalCli in all three trees, with
+      matching @port lines. Attribution decided from SHIPPED ARTIFACTS, not
+      prose -- InstallLocalCliAdapter is the only adapter that executes an
+      installer, and RC-01's own kill_mutants.toml already gives all three
+      refine_action = "InstallLocalCli". Two parametrised tests now assert
+      port-to-action consistency and the @port mirror rule in BOTH directions,
+      over all three trees, with no corpus required; both fail on the pre-fix
+      tree.
+
+      N-2 (change the program): spec_paths.resolve_spec_tree_out, the sibling of
+      resolve_evidence_out the audit asked for, applied to --out AND --dot. The
+      destructive metadir rmtree is constrained BY CONSTRUCTION, since
+      run_tlc_dump derives the metadir from dot_path.parent, and that derivation
+      is asserted as its own test. Four in-repository callers passed an absolute
+      path outside any specs/ tree and were moved, not exempted.
+
+      N-3 (correct the record, and kill the class): the three numbers fixed, and
+      tests/test_source_citations.py now requires every citation in scripts/*.py
+      and the three manifests to be FILE-QUALIFIED and CONTENT-ANCHORED --
+      `file.py:116 (subprocess.run)` -- with the anchor checked against the
+      cited line. A "does the line exist" check passes on :115 and :116 alike
+      and would have caught nothing. APPLYING IT FOUND EIGHT MORE STALE
+      CITATIONS nobody had reported, including one in RC-01's own G-9 comment
+      block: 9 of 11 citations in that surface were wrong in some tree. The
+      class was never carelessness; nothing checked.
+
+      THE HEADLINE, WHICH IS NOT A GAP: THE EFFECT ORACLE HAS NOW RUN AGAINST
+      THIS MODEL, and it reports findings. Verbatim: "effect conformance
+      unobservable: 57 observed effect(s) over 8 case(s), 12 declared port(s),
+      20 gap(s), 9 dead port(s), 15 unobservable target(s)", exit 1. Nothing was
+      tuned. Full record: specs/results/rc02-effect-conformance/README.md.
+
+      THE AUDIT'S CLAIM, SETTLED BY EXPERIMENT. Round 3 said one run of the
+      now-reachable oracle would have caught N-1. Re-running the identical
+      corpus with RC-01's rows restored gives 22 gaps / 10 dead ports against
+      RC-02's 20 / 9; the difference is exactly the two InstallLocalCli spawns
+      and DEAD MODEL SURFACE: cli_selftest_process. So the claim is RIGHT about
+      the mechanism and ONE THIRD right about the instance -- cli_download and
+      cli_artifact_delete report dead in BOTH runs, because no adapter executes
+      install-tlc2.sh, so a run would have told RC-01 nothing about them. And
+      without a corpus the oracle reports ALL TWELVE ports dead, in which the
+      signal is indistinguishable from noise; the always-on manifest test is
+      what actually makes the class non-recurrent.
+
+      generation_status STAYS `planned`, and that is the honest reading of the
+      run rather than a deferral. `generate cases` over MCsmall.cfg -- the
+      config MF-028 added expressly to make a corpus tractable -- produces
+      3,678,217 cases from 118,573 states and a 7.4 GB cases.py, 18,391x the
+      manifest's own max_internal_cases_per_component, and the shipped cap gate
+      REFUSES it. Projection does not rescue it (628,424 cases dropping
+      lastCommand and result; 96,056 also dropping architecture_delta), because
+      this model has no tlc_projection.py while every worked example does. The
+      corpus that WAS executed is the action-covering subset built by the
+      shipped renderer from the real TLC dump -- a lower bound, so no finding
+      above can be an artifact of subsetting.
+
+      TWO DEFECTS STOPPED THE FIRST RUN BEFORE A SINGLE CASE EXECUTED, both
+      filed: run effect-conformance never puts the target spec directory on
+      sys.path, so it cannot load the case_adapters.toml convention the CLI
+      itself scaffolds (RC-02-DF-02); and it never consults can_run and aborts
+      the whole run on the first apply()-only adapter -- 9 of this model's 17
+      are apply()-only, so the oracle can see at most 8 of 18 actions
+      (RC-02-DF-03).
+
+      SUITE: 1076 passed, 0 failed (baseline 980 at a866957; +88 new tests, +8
+      scaffolded by open ticket). Project spec-unit tests: 73 passed. Two tests
+      and three spec adapters updated for the N-2 constraint with the same
+      assertions, none relaxed. specs/current and specs/desired_program_model
+      remain semantically equal -- TlaSpecDevCli.tla and production_adapters.py
+      are byte-identical between the two trees.
+
+      Four findings filed, none fixed: RC-02-DF-01 (minor, BuildSkillCli's own
+      cli_artifact row may be the same over-declaration), RC-02-DF-02 (major,
+      the oracle cannot import a scaffolded project's adapters), RC-02-DF-03
+      (major, no capability check and 9 of 17 adapters cannot execute a case),
+      RC-02-DF-04 (major, this model cannot produce a corpus its own cap gate
+      accepts, and has no tlc_projection.py).
+    outcome: >-
+      Closed. Three gaps in, three gaps closed, and the loop's own question
+      answered by measurement rather than by assertion: the two majors were
+      closed by attaching declarations and constraining a path, and each is now
+      guarded by a test that fails on the pre-fix tree, so neither class can
+      recur silently. Whether RC-02 created a fourth gap is for MF-026 round 4
+      to sweep; RC-02 adds one new file to the in-model surface
+      (tests/test_source_citations.py, which is out-of-model test surface) and
+      no new production module, action, variable or port. The one thing this
+      ticket cannot claim is that the oracle limit is closed: it is now RUN
+      rather than merely reachable, and what it says is that it can see 8 of 18
+      actions over a hand-restricted corpus and certifies nothing about 15
+      process boundaries.

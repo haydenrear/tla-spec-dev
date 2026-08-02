@@ -1,0 +1,190 @@
+complexity scan -- ADVISORY WARNINGS (these do NOT block case generation):
+
+  WARNING: state-space upper bound 362,880 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 9 of 11 declared variables (2 unresolved: lastCommand, result) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap
+  WARNING: component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6
+  WARNING: component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8
+
+Dominant dimensions:
+  ticket_state: 7  ([Tickets -> 0..6])
+  setup_phase: 6  (0..5)
+  architecture_delta: 6  ({"unknown", "improved", "worsened", "unchanged", "unverified", "unattributable"})
+  effect_conformance: 5  ({"unknown", "clean", "gaps", "dead_surface", "unobservable"})
+  kill_test: 4  ({"unknown", "pass", "below_floor", "incomplete_catalog"})
+
+Run `tla-spec-dev analyze complexity <spec> <cfg>` for the full descriptor.
+
+Proceeding with case generation -- complexity is advisory and does not block. Read the findings above (references/architecture_tractability.md, 'Advisory, Not Blocking').
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 1 and seed 6859139990320067072 with 1 worker on 10 cores with 16384MB heap and 64MB offheap memory [pid: 41844] (Mac OS X 26.6 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/TlaSpecDevCli.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module TlaSpecDevCli
+Starting... (2026-08-01 20:21:26)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-08-01 20:21:27.
+Progress(11) at 2026-08-01 20:21:30: 441,019 states generated (441,019 s/min), 39,431 distinct states found (39,431 ds/min), 24,322 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.3E-8
+  based on the actual fingerprints:  val = 4.3E-10
+3678218 states generated, 118573 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 16.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 6).
+Finished in 19s at (2026-08-01 20:21:45)
+corpus gate FAIL: 3678217 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/generated/spec-unit/tlaspecdevcli_current_cases
+
+Distribution per (action, label class) -- 21 stratum/strata:
+  AnalyzeArchitecture / params:recovered      1778535   43.5%
+  RunEffectConformance / params:recovered     474276   11.6%
+  RunKillTest / params:recovered              355707    8.7%
+  AnalyzeComplexity / params:recovered        237138    5.8%
+  AnalyzeCorpus / params:recovered            237138    5.8%
+  RunSpecUnitTests / params:partial           204836    5.0%
+  RunSpecUnitTests / params:unchecked         204836    5.0%
+  RunSpecUnitTests / params:unchecked:ticket  204836    5.0%
+  Stutter / (unlabeled)                       118573    2.9%
+  GenerateCases / params:recovered            118569    2.9%
+  CloseTicketWeakened / params:recovered       61396    1.5%
+  RunSpecUnitTests / params:recovered          18108    0.4%
+  OpenTicket / params:recovered                16764    0.4%
+  UpdateTicketCurrent / params:recovered       16764    0.4%
+  UpdateTicketDesired / params:recovered       16764    0.4%
+  ScaffoldWorkflow / params:recovered          13885    0.3%
+  CloseTicket / params:recovered                9760    0.2%
+  BuildSkillCli / (unlabeled)                      1    0.0%
+  InstallLocalCli / (unlabeled)                    1    0.0%
+  RecordBudgets / params:recovered                 1    0.0%
+  ScaffoldProject / params:recovered               1    0.0%
+
+Strata that DOMINATE the corpus:
+  AnalyzeArchitecture / params:recovered      1778535   43.5%
+  RunEffectConformance / params:recovered     474276   11.6%
+  RunKillTest / params:recovered              355707    8.7%
+  AnalyzeComplexity / params:recovered        237138    5.8%
+  AnalyzeCorpus / params:recovered            237138    5.8%
+  RunSpecUnitTests / params:partial           204836    5.0%
+  RunSpecUnitTests / params:unchecked         204836    5.0%
+  RunSpecUnitTests / params:unchecked:ticket  204836    5.0%
+
+Strata that are STARVED:
+  CloseTicketWeakened / params:recovered   61396    1.5%
+  RunSpecUnitTests / params:recovered      18108    0.4%
+  OpenTicket / params:recovered            16764    0.4%
+  UpdateTicketCurrent / params:recovered   16764    0.4%
+  UpdateTicketDesired / params:recovered   16764    0.4%
+  ScaffoldWorkflow / params:recovered      13885    0.3%
+  CloseTicket / params:recovered            9760    0.2%
+  BuildSkillCli / (unlabeled)                  1    0.0%
+  InstallLocalCli / (unlabeled)                1    0.0%
+  RecordBudgets / params:recovered             1    0.0%
+  ScaffoldProject / params:recovered           1    0.0%
+
+  Skew: AnalyzeArchitecture / params:recovered holds 1778535x the cases of ScaffoldProject / params:recovered.
+  A starved stratum is the interesting half: the model is spending its
+  enumeration budget somewhere other than on that behavior.
+
+corpus gate FAIL -- this corpus exceeds its manifest cap. Nothing was
+trimmed: the full corpus was written, and this gate refuses instead.
+
+A lopsided corpus is evidence about the REPRESENTATION, not noise to
+clean up. The corpus is the symptom; the diagram is the defect.
+
+--- component component: 3678217 cases, cap 200 (over by 3678017)
+
+  Strata within this group that DOMINATE:
+    AnalyzeArchitecture / params:recovered      1778535   48.4%
+    RunEffectConformance / params:recovered     474276   12.9%
+    RunKillTest / params:recovered              355707    9.7%
+    AnalyzeComplexity / params:recovered        237138    6.4%
+    AnalyzeCorpus / params:recovered            237138    6.4%
+    RunSpecUnitTests / params:partial           204836    5.6%
+    RunSpecUnitTests / params:unchecked         204836    5.6%
+    RunSpecUnitTests / params:unchecked:ticket  204836    5.6%
+
+  Strata within this group that are STARVED:
+    CloseTicketWeakened / params:recovered   61396    1.7%
+    RunSpecUnitTests / params:recovered      18108    0.5%
+    OpenTicket / params:recovered            16764    0.5%
+    UpdateTicketCurrent / params:recovered   16764    0.5%
+    UpdateTicketDesired / params:recovered   16764    0.5%
+    ScaffoldWorkflow / params:recovered      13885    0.4%
+    CloseTicket / params:recovered            9760    0.3%
+    BuildSkillCli / (unlabeled)                  1    0.0%
+    InstallLocalCli / (unlabeled)                1    0.0%
+    RecordBudgets / params:recovered             1    0.0%
+    ScaffoldProject / params:recovered           1    0.0%
+
+  What VARIES across the redundant group:
+    after.result.next                      19 distinct / 3678217 cases
+                                        e.g. 'BuildSkillCli'; 'Closed under a guard-weakening flag -- the spec-unit precondition was not checked'; 'Declare the port, or change the program so it no longer emits the effect'
+    before.result.next                     19 distinct / 3678217 cases
+                                        e.g. 'BuildSkillCli'; 'Closed under a guard-weakening flag -- the spec-unit precondition was not checked'; 'Declare the port, or change the program so it no longer emits the effect'
+    after.lastCommand                      18 distinct / 3678217 cases
+                                        e.g. 'BuildSkillCli'; 'Init'; 'InstallLocalCli'
+    before.lastCommand                     18 distinct / 3678217 cases
+                                        e.g. 'BuildSkillCli'; 'Init'; 'InstallLocalCli'
+    after.ticket_state.cli_entrypoint       7 distinct / 3678217 cases
+                                        e.g. 0; 1; 2
+    before.ticket_state.cli_entrypoint      7 distinct / 3678217 cases
+                                        e.g. 0; 1; 2
+    after.architecture_delta                6 distinct / 3678217 cases
+                                        e.g. 'improved'; 'unattributable'; 'unchanged'
+    after.setup_phase                       6 distinct / 3678217 cases
+                                        e.g. 0; 1; 2
+
+  Held CONSTANT across the group: after.result.reason, before.result.reason, params, params.root
+
+  Likely cause: action enabled across equivalent states
+    - 41 distinct change shape(s) across 3678217 cases
+    - but the before-state varies widely: after.result.next (19 values), before.result.next (19 values), after.lastCommand (18 values)
+    - 118573 distinct source states in the reachable graph
+    - the action does one thing, generated once per reachable state that enables it
+
+The measurements above are the finding. This gate prescribes nothing
+and applies nothing; it refuses, and leaves the judgment to you.
+
+REDESIGN QUESTION: can the architecture be redesigned to make the
+program simpler, so these cases are never generated? That judgment is
+yours, not this tool's: take the complexity descriptor
+(`tla-spec-dev analyze complexity`) together with
+references/complexity_intuition.md and consider how to refactor
+complexity out of the app. Nothing is prescribed here, and nothing is
+applied automatically.
+
+Two ways forward, and neither deletes a case:
+
+  1. REDESIGN so the redundant cases are never generated -- if,
+     taking the descriptor and references/complexity_intuition.md
+     as the judgment inputs, you conclude the architecture can be
+     made simpler.
+
+  2. ACCEPT PATH -- raise the cap, with a rationale, in /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/spec_manifest.yaml:
+     
+       budgets:
+         max_internal_cases_per_component: 3678217    # was 200
+         source: negotiated
+         rationale:
+           max_internal_cases_per_component: "<one line: why this program genuinely needs 3678217 cases per component>"
+     
+     That is an explicit, reviewable decision recorded in program state.
+     There is no trimming option, opt-in or otherwise: cases are never
+     dropped, filtered, sampled, or truncated to fit a budget.
+
+REFUSING to accept this corpus. Fix the diagram, or raise the cap with a
+recorded rationale. There is no override that trims cases.
+spec directory: /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current
+generated internal transition cases from 118573 states into /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/generated/spec-unit/tlaspecdevcli_current_cases
+per-action coverage recorded to /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/generated/spec-unit/tlaspecdevcli_current_cases/case_coverage.json
+parameter recovery: 3559642/3678217 cases carry arguments, 3354806 carry a fully recovered argument set, 204836 carry at least one UNCHECKED argument (kept, never dropped); audit written to /Users/hayde/IdeaProjects/wt-rc-02-terminate/specs/current/generated/spec-unit/tlaspecdevcli_current_cases/param_recovery_audit.md
+  PARTIAL on this corpus: RunSpecUnitTests(ticket) -- 18108 of 222944 cases carry an argument

@@ -61,6 +61,55 @@ def effects_action_rows(manifest_path: Path) -> set[str]:
     return set(re.findall(r"^    (\w+):", body, flags=re.MULTILINE))
 
 
+def effects_action_ports(manifest_path: Path) -> dict[str, set[str]]:
+    """``effects.actions`` as action -> declared port names.
+
+    RC-02 (N-1). ``effects_action_rows`` above answers "is there a row", which
+    is the question G-1 asked. It cannot see a port that is declared and then
+    attached to nothing, which is the question N-1 asked, so the rows are
+    parsed with their contents here.
+    """
+    text = manifest_path.read_text(encoding="utf-8")
+    assert "\n  actions:\n" in text, f"{manifest_path}: no effects.actions block"
+    body = block_after(text, "\n  actions:\n", "    ")
+    rows: dict[str, set[str]] = {}
+    for name, raw in re.findall(r"^    (\w+):\s*\[(.*?)\]\s*$", body, flags=re.MULTILINE):
+        rows[name] = {port.strip() for port in raw.split(",") if port.strip()}
+    return rows
+
+
+def declared_ports(manifest_path: Path) -> set[str]:
+    """Every port name under ``effects.components.<component>.ports``."""
+    text = manifest_path.read_text(encoding="utf-8")
+    assert "\n      ports:\n" in text, f"{manifest_path}: no ports block"
+    body = block_after(text, "\n      ports:\n", "        ")
+    return set(re.findall(r"^        (\w+):$", body, flags=re.MULTILINE))
+
+
+def annotated_ports(tla_path: Path) -> dict[str, set[str]]:
+    """Each ``@command`` action mapped to the ports its ``@port`` lines name."""
+    ports: dict[str, set[str]] = {}
+    command: str | None = None
+    pending: set[str] = set()
+    for line in tla_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("\\*"):
+            command_match = re.match(r"\\\* @command (\w+)", stripped)
+            if command_match:
+                command, pending = command_match.group(1), set()
+                continue
+            port_match = re.match(r"\\\* @port \w+\.(\w+)", stripped)
+            if port_match and command is not None:
+                pending.add(port_match.group(1))
+            continue
+        if stripped and command is not None:
+            ports[command] = pending
+            command, pending = None, set()
+    if command is not None:
+        ports[command] = pending
+    return ports
+
+
 def justification_rows(manifest_path: Path) -> set[str]:
     text = manifest_path.read_text(encoding="utf-8")
     assert "\njustification:\n" in text, f"{manifest_path}: no justification block"
@@ -163,6 +212,69 @@ def test_every_command_action_has_an_effects_row(tree: str) -> None:
 
     assert actions <= rows, f"{manifest_path}: actions with no effects row: {sorted(actions - rows)}"
     assert rows <= actions, f"{manifest_path}: effects rows that are not actions: {sorted(rows - actions)}"
+
+
+@pytest.mark.parametrize("tree", MANIFEST_TREES)
+def test_every_declared_port_is_attached_to_an_action(tree: str) -> None:
+    """N-1. A declared port that no action row names is DEAD MODEL SURFACE.
+
+    RC-01 declared `cli_download`, `cli_artifact_delete` and
+    `cli_selftest_process` under `effects.components...ports` and attached none
+    of them to an action, in all three trees. The manifest's own schema note
+    calls that a hard failure, and it is not a cosmetic one:
+    `scripts/effect_conformance.py` binds ports to actions strictly through
+    `effects.actions` (`load_effect_declarations` fills `action_ports`;
+    `declared_for_action` reads it), so a port absent from every row is
+    declared for NOTHING and the effects it was written for stay undeclared on
+    the path that performs them.
+
+    `run effect-conformance` reports this as `DEAD MODEL SURFACE` -- but only
+    over a corpus it has actually executed, and only for ports no case
+    exercises. This check is the cheap, always-on half: it needs no corpus, no
+    TLC run and no adapter, and it fails on the declaration itself.
+    """
+    _, manifest_path = tree_paths(tree)
+    ports = declared_ports(manifest_path)
+    rows = effects_action_ports(manifest_path)
+    attached = set().union(*rows.values()) if rows else set()
+
+    assert ports - attached == set(), (
+        f"{manifest_path}: DEAD MODEL SURFACE -- declared but attached to no "
+        f"effects.actions row: {sorted(ports - attached)}"
+    )
+    assert attached - ports == set(), (
+        f"{manifest_path}: action rows name ports that are not declared: "
+        f"{sorted(attached - ports)}"
+    )
+
+
+@pytest.mark.parametrize("tree", MANIFEST_TREES)
+def test_each_actions_port_annotations_mirror_its_effects_row(tree: str) -> None:
+    """N-1, the other half: the `@port` mirror rule, checked in BOTH directions.
+
+    `TlaSpecDevCli.tla` states that each action's `@port` lines mirror its row
+    in `effects.actions`. Round-2 G-1 broke that rule in one direction -- an
+    action carrying annotations with no row. N-1 broke it in the other -- ports
+    in the manifest that no annotation mirrors. A test that checks set equality
+    per action cannot be satisfied by either.
+    """
+    tla_path, manifest_path = tree_paths(tree)
+    annotated = annotated_ports(tla_path)
+    rows = effects_action_ports(manifest_path)
+
+    assert set(annotated) <= set(rows), (
+        f"{manifest_path}: annotated actions with no effects row: "
+        f"{sorted(set(annotated) - set(rows))}"
+    )
+    mismatched = {
+        action: (sorted(annotated[action]), sorted(rows[action]))
+        for action in sorted(annotated)
+        if annotated[action] != rows[action]
+    }
+    assert mismatched == {}, (
+        f"{tla_path.name} @port lines do not mirror {manifest_path.name} "
+        f"effects.actions (action: (@port lines, manifest row)): {mismatched}"
+    )
 
 
 @pytest.mark.parametrize("tree", MANIFEST_TREES)

@@ -147,12 +147,17 @@ effects:
         # single largest coverage limit in this repository.
         #
         # What the install path actually writes:
-        #   install-tla-spec-dev.sh:20  mkdir -p "$SKILL_MANAGER_BIN_DIR" "$SKILL_MANAGER_CACHE_DIR"
-        #   install-tla-spec-dev.sh:22  cat > "$WRAPPER"   ($SKILL_MANAGER_BIN_DIR/tla-spec-dev)
-        #   install-tlc2.sh:18          mkdir -p "$JAR_DIR" ($SKILL_MANAGER_BIN_DIR/.spec-double-compiler)
-        #   install-tlc2.sh:37          curl -o "$JAR_TMP"  ($SKILL_MANAGER_CACHE_DIR/...)
-        #   install-tlc2.sh:38          mv "$JAR_TMP" "$JAR_PATH"
-        #   install-tlc2.sh:41          cat > "$WRAPPER"   ($SKILL_MANAGER_BIN_DIR/tlc2)
+        # RC-02: every citation below is content-anchored -- the parenthesised
+        # token must be ON the cited line, and tests/test_source_citations.py
+        # fails if it is not. The wrapper-write citation was already off by one
+        # when this comment was written (line 22 assigns WRAPPER; the write is
+        # line 23), which is the N-3 class again, in the same block.
+        #   install-tla-spec-dev.sh:20 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
+        #   install-tla-spec-dev.sh:23 (cat > "$WRAPPER") -> $SKILL_MANAGER_BIN_DIR/tla-spec-dev
+        #   install-tlc2.sh:18 (mkdir -p "$JAR_DIR") -> $SKILL_MANAGER_BIN_DIR/.spec-double-compiler
+        #   install-tlc2.sh:37 (curl -fL) -> $SKILL_MANAGER_CACHE_DIR/tla2tools-<version>.jar.tmp
+        #   install-tlc2.sh:38 (mv "$JAR_TMP" "$JAR_PATH")
+        #   install-tlc2.sh:41 (cat > "$WRAPPER") -> $SKILL_MANAGER_BIN_DIR/tlc2
         #
         # TARGET `*`, deliberately, and this is the one place in this file
         # where that is the honest glob rather than a lazy one. Both
@@ -188,7 +193,7 @@ effects:
         cli_artifact_delete:
           type: filesystem.delete
           target: "*"
-        # RC-01 (MF-026 G-9): install-tla-spec-dev.sh:31 runs the wrapper it
+        # RC-01 (MF-026 G-9): install-tla-spec-dev.sh:31 (--help) runs the wrapper it
         # just wrote (`"$WRAPPER" --help`) as its own self-test. A spawn, and
         # the one effect on this path the program DOES constrain: the wrapper
         # name is a literal, so the glob is a real one.
@@ -223,10 +228,13 @@ effects:
           target: "*pytest*"
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
-        # scripts/run_generated_case_adapters.py ...`, tla_spec_dev.py:313-339
-        # executed at :358) whenever a target carries a generated case package.
+        # scripts/run_generated_case_adapters.py ...`, built at
+        # scripts/tla_spec_dev.py:346 (run_generated_case_adapters.py) and
+        # executed at scripts/tla_spec_dev.py:401 (subprocess.run) whenever a
+        # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
-        # the `uv run --with pytest -m pytest` child (:296-303) does -- so the
+        # the `uv run --with pytest -m pytest` child at
+        # scripts/tla_spec_dev.py:328-335 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
@@ -234,18 +242,25 @@ effects:
           target: "*run_generated_case_adapters*"
         # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
         # performs destructive deletes, all under the spec tree: rmtree of TLC
-        # `states/` dirs (spec_evolution.py:154 via :707 ticket close / :851
-        # workflow close), rmtree of project `current/` before promotion
-        # (:385 via replace_tree, the GitHub #22 data-loss mechanism), and
-        # unlink of seeded paths the ticket dropped (:477). filesystem.write
+        # `states/` dirs (scripts/spec_evolution.py:154 (shutil.rmtree) via
+        # scripts/spec_evolution.py:994 (remove_state_directories) at ticket
+        # close and scripts/spec_evolution.py:1143 (remove_state_directories)
+        # at workflow close), rmtree of project `current/` before promotion
+        # (scripts/spec_evolution.py:385 (shutil.rmtree) via
+        # scripts/spec_evolution.py:580 (replace_tree), the GitHub #22
+        # data-loss mechanism), and unlink of seeded paths the ticket dropped
+        # (scripts/spec_evolution.py:477 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
           type: filesystem.delete
           target: "**/specs/**"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
-        # ...` for history-entry provenance (spec_evolution.py:99 via
-        # git_metadata at :801 ticket close / :903 workflow close). The
+        # ...` for history-entry provenance
+        # (scripts/spec_evolution.py:99 (subprocess.run), via
+        # scripts/spec_evolution.py:1093 (git_metadata) at
+        # ticket close and scripts/spec_evolution.py:1195 (git_metadata) at
+        # workflow close). The
         # fail-open branch on git error is out-of-model; the spawn itself is
         # not, so it is declared.
         git_metadata:
@@ -253,8 +268,9 @@ effects:
           target: "git rev-parse*"
         # CD-11 (audit run 4, gap R4-1): RunKillTest's shipped path seeds
         # each catalog mutant INTO the production source tree and restores it
-        # (kill_test.py:548 write of the mutated copy, :551 finally-branch
-        # restore, driven per mutant by run_kill_test.py:130). The targets
+        # (scripts/kill_test.py:548 (patched) write of the mutated copy,
+        # scripts/kill_test.py:551 (original) finally-branch restore, driven
+        # per mutant by scripts/run_kill_test.py:130 (def run)). The targets
         # are the catalog's `path` keys -- scripts/*.py and
         # skill-scripts/install-tla-spec-dev.sh -- which no other declared
         # write port covers (spec_tree is **/specs/**, evidence_report
@@ -269,7 +285,8 @@ effects:
           type: filesystem.write
           target: "*scripts/*"
         # CD-11 (audit run 4, gap R4-1, spawn member): the per-mutant corpus
-        # run (kill_test.py:609 via run_kill_test.py:198) spawns the
+        # run (scripts/kill_test.py:609 (subprocess.run) via
+        # scripts/run_kill_test.py:198 (subprocess_case_runner)) spawns the
         # user-supplied --corpus-command once per mutant plus the control
         # run. The command is unconstrained user input, so any glob narrower
         # than `*` would assert a constraint the code does not enforce -- the
@@ -281,13 +298,47 @@ effects:
           target: "*"
   actions:
     BuildSkillCli: [cli_artifact]
-    InstallLocalCli: [cli_artifact]
+    # RC-02 (MF-026 round-3 N-1): cli_download, cli_artifact_delete and
+    # cli_selftest_process ATTACHED. RC-01 declared all three in the ports
+    # block above, wrote correct comments naming the script line each covers,
+    # and attached none of them to an action -- so all three were DEAD MODEL
+    # SURFACE by the rule this file states above, no @port line mirrored them,
+    # and, decisively, effect_conformance.py binds ports to actions strictly
+    # through THIS block (load_effect_declarations builds action_ports; a port
+    # absent from an action's row is not declared FOR that action). G-9's
+    # substance -- the curl download, the mv unlink and the wrapper self-test
+    # spawn -- was therefore still undeclared for the action that performs it,
+    # which is the half of G-9 that did not close.
+    #
+    # WHY INSTALLLOCALCLI AND NOT BUILDSKILLCLI, decided from shipped
+    # artifacts rather than from the prose:
+    #   1. specs/*/production_adapters.py InstallLocalCliAdapter.apply()
+    #      literally runs `bash skill-scripts/install-tla-spec-dev.sh` and then
+    #      the installed wrapper. It is the only adapter that executes an
+    #      installer at all.
+    #   2. specs/*/kill_mutants.toml already seeds port-cli_download,
+    #      port-cli_artifact_delete and port-cli_selftest_process with
+    #      refine_action = "InstallLocalCli" -- including the two that live in
+    #      install-tlc2.sh. RC-01's own catalog placed them here.
+    #   3. BuildSkillCliAdapter.apply() checks that the entrypoint and the
+    #      installer EXIST and writes nothing; its own comment says so.
+    # Splitting the two installers across the two actions would have asserted a
+    # phase boundary no shipped artifact draws.
+    #
+    # RECORDED, NOT FIXED: point 3 makes BuildSkillCli's own `cli_artifact` a
+    # candidate for the same dead-row treatment RecordBudgets and AnalyzeCorpus
+    # carry, since the adapter for it writes nothing. That is a claim about a
+    # row RC-02 was not opened to change, and it is filed as RC-02-DF-01 rather
+    # than decided here.
+    InstallLocalCli: [cli_artifact, cli_download, cli_artifact_delete, cli_selftest_process]
     ScaffoldProject: [spec_tree]
     # CD-10 (DF-2/ESC-4): deliberately an EMPTY row, not an absent one -- an
     # absent row claims "unmapped", an empty row claims "performs no distinct
     # effect", and only the second is true. The CLI records no budgets:
-    # budget_prompt only prints negotiation instructions (budgets.py:74-94,
-    # printed at tla_spec_dev.py:91/:118); the budgets: block itself is
+    # budget_prompt only prints negotiation instructions
+    # (scripts/budgets.py:74-94 (def budget_prompt), printed at
+    # scripts/tla_spec_dev.py:94 (budget_prompt) and
+    # scripts/tla_spec_dev.py:121 (budget_prompt)); the budgets block itself is
     # emitted at scaffold time under ScaffoldProject/ScaffoldWorkflow's
     # spec_tree, and recording user-negotiated values is an agent edit, not a
     # program effect.
@@ -300,8 +351,10 @@ effects:
     # CD-11 (audit run 4, gap R4-3): evidence_report REMOVED -- a dead
     # declared port, the same class G4 removed for AnalyzeComplexity's
     # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
-    # :835-852 registers cases_dir/--view/--manifest only) and no file write
-    # anywhere; run() (:902-935) prints the report and returns. Removal
+    # scripts/corpus_diagnostics.py:842 (def add_arguments) registers
+    # cases_dir/--view/--manifest only) and no file write anywhere; run()
+    # (scripts/corpus_diagnostics.py:909 (def run)) prints the report and
+    # returns. Removal
     # matches the shipped print-only behavior. Deliberately an EMPTY row, not
     # an absent one (the RecordBudgets rule above): the command reads and
     # prints, performing no distinct declared effect.
@@ -340,9 +393,13 @@ effects:
     GenerateCases: [corpus_process, spec_tree, spec_tree_delete]
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
-    # under the spec dir (effect_conformance_report.py:149, default
-    # spec_dir/.effect-conformance-work; :163 per-case dirs;
-    # effect_conformance.py:619/:656 sandbox roots) -- writes landing under
+    # under the spec dir
+    # (scripts/effect_conformance_report.py:149 (work_dir.mkdir), default
+    # spec_dir/.effect-conformance-work;
+    # scripts/effect_conformance_report.py:163 (case_dir.mkdir) per-case dirs;
+    # scripts/effect_conformance.py:619 (self.root.mkdir) and
+    # scripts/effect_conformance.py:656 (path.mkdir) sandbox roots) -- writes
+    # landing under
     # **/specs/**. DECLARED rather than relocated under results/: the same
     # physical sandbox writes on the spec-unit path are already declared as
     # spec_tree on RunSpecUnitTests (manifest row below), the work tree is

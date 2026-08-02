@@ -1395,7 +1395,13 @@ class AnalyzeComplexityAdapter:
         def generate(*extra: str) -> subprocess.CompletedProcess:
             return subprocess.run(
                 [sys.executable, str(root / "scripts" / "generate_cases_from_tlc_dump.py"),
-                 str(tight_tla), str(tight_cfg), "--out", str(target_repo / "generated"), *extra],
+                 # RC-02 (MF-026 round-3 N-2): `generate cases` refuses an --out that
+                 # resolves outside a `specs/` directory -- the tree spec_tree and
+                 # spec_tree_delete declare, and the tree the metadir rmtree is
+                 # derived from. This probe is about the ADVISORY complexity path,
+                 # so it writes where the declaration says it may.
+                 str(tight_tla), str(tight_cfg), "--out",
+                 str(target_repo / "specs" / "generated"), *extra],
                 cwd=target_repo, text=True, capture_output=True, check=False,
                 timeout=180,
             )

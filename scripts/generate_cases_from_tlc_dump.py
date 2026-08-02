@@ -27,13 +27,13 @@ try:
     from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
     from .infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
-    from .spec_paths import is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from .spec_paths import SpecTreePathError, is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path, resolve_spec_tree_out
 except ImportError:  # pragma: no cover - direct script execution
     import case_modules  # type: ignore[no-redef]
     from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
     from infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
-    from spec_paths import is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from spec_paths import SpecTreePathError, is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path, resolve_spec_tree_out
 
 
 NODE_RE = re.compile(r'^\s*(-?\d+) \[label="(.*)"(?:,style = filled)?\];?$')
@@ -1139,13 +1139,24 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
     RC-01 (MF-026 G-6). Split out of ``main()`` so `tla-spec-dev generate
     cases` can register the SAME arguments rather than a second, drifting copy.
-    Until this ticket the whole of case-module generation was reachable only by
+    Until that ticket the whole of case-module generation was reachable only by
     running this file directly: `build_parser` in scripts/tla_spec_dev.py never
     referenced it, so an import-closure walk of the shipped CLI never saw the
-    java spawn at :115, the metadir `rmtree` at :139, the package writes at
-    :881-882 or the parameter-recovery audit write. Nothing generated a case
-    for it, nothing adapted it, nothing mutated it, and all four oracles
-    reported green over surface the model did not contain.
+    java spawn at scripts/generate_cases_from_tlc_dump.py:116
+    (subprocess.run), the metadir delete at
+    scripts/generate_cases_from_tlc_dump.py:140 (shutil.rmtree), the package
+    writes at scripts/generate_cases_from_tlc_dump.py:882-883 (path.write_text)
+    or the parameter-recovery audit write. Nothing generated a case for it,
+    nothing adapted it, nothing mutated it, and all four oracles reported green
+    over surface the model did not contain.
+
+    RC-02 (MF-026 round-3 N-3). The three citations above each pointed one
+    line too high when RC-01 shipped them -- lines 115, 139 and 881-882 for
+    code on 116, 140 and 882-883 -- stale in the commit that wrote them, and
+    the third consecutive ticket to ship a stale internal citation. They are now file-qualified and content-anchored:
+    tests/test_source_citations.py resolves every citation in this repository's
+    in-model source, reads the cited line, and fails unless the parenthesised
+    anchor is on it. A line shift now breaks a test instead of a reader.
     """
     parser.add_argument("tla", type=Path)
     parser.add_argument("cfg", type=Path)
@@ -1160,7 +1171,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
             "points inside the spec directory. `--out generated` run from a repo "
             "root therefore writes <spec dir>/generated, which is rarely what was "
             "meant; the resolved root is printed before generation starts. Pass an "
-            "absolute path when you want cwd-relative behavior."
+            "absolute path when you want cwd-relative behavior. RC-02: the "
+            "RESOLVED path must fall under a `specs/` directory -- that is the "
+            "tree the `spec_tree` port declares for this action -- and a path "
+            "outside it is refused rather than silently relocated."
         ),
     )
     parser.add_argument(
@@ -1185,7 +1199,18 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--view", choices=sorted(SUPPORTED_VIEWS), help="Generate a view-aware case package.")
     parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
     parser.add_argument("--tlc2", default="tlc2")
-    parser.add_argument("--dot", type=Path)
+    parser.add_argument(
+        "--dot",
+        type=Path,
+        help=(
+            "Where TLC dumps the state graph. Defaults to <out>/<module>.dot. "
+            "RC-02: constrained the same way as --out, and for a stronger "
+            "reason -- run_tlc_dump derives the TLC metadir from this path's "
+            "parent and `shutil.rmtree`s it in its finally branch, so an "
+            "unconstrained --dot is a destructive delete at a caller-chosen "
+            "location declared by a port targeting `**/specs/**`."
+        ),
+    )
     parser.add_argument(
         "--state-projector",
         help="Optional module:function that projects raw TLC states before rendering cases.",
@@ -1236,10 +1261,26 @@ def run(args: argparse.Namespace) -> int:
     if not cfg_path.exists():
         raise SystemExit(f"ERROR: config not found: {cfg_path} (spec directory: {spec_dir})")
     view = args.view or "internal"
-    out_path = resolve_spec_relative_path(args.out, spec_dir)
+    # RC-02 (MF-026 round-3 N-2): both caller-controlled generation paths are
+    # constrained to the tree the `spec_tree` / `spec_tree_delete` ports
+    # declare. Resolution itself is unchanged (resolve_spec_tree_out still
+    # resolves through resolve_spec_relative_path); what is new is that a path
+    # resolving outside a `specs/` directory is REFUSED instead of written to.
+    # The metadir `rmtree` in run_tlc_dump's finally branch is derived from
+    # `dot_path.parent`, so constraining `--dot` constrains the destructive
+    # delete by construction rather than by a second, separate check.
+    try:
+        out_path = resolve_spec_tree_out(args.out, spec_dir)
+        dot_path = (
+            resolve_spec_tree_out(args.dot, spec_dir, is_file=True) if args.dot else None
+        )
+    except SpecTreePathError as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
     if args.view is not None:
         out_path = out_path / VIEW_OUTPUT_DIRS[view]
-    dot_path = resolve_spec_relative_path(args.dot, spec_dir) if args.dot else out_path / f"{tla_path.stem}.dot"
+    if dot_path is None:
+        dot_path = out_path / f"{tla_path.stem}.dot"
     report_out_resolution(args.out, out_path, spec_dir)
 
     for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:

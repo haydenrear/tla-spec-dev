@@ -278,9 +278,19 @@ BuildSkillCli ==
                   architecture_delta >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
+\* RC-02 (MF-026 round-3 N-1): three @port lines ADDED so this action's
+\* annotation mirrors its effects.actions row again. RC-01 declared
+\* cli_download, cli_artifact_delete and cli_selftest_process in the manifest's
+\* ports block and attached them to no action, which broke the mirror rule
+\* stated above in the OPPOSITE direction from round-2 G-1: G-1 was an action
+\* with @port lines and no row, this was ports that no action's @port lines
+\* mirrored. Comments only; the states, guards and invariants are unchanged.
 \* @command InstallLocalCli
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.cli_artifact
+\* @port TlaSpecDevCliPort.cli_download
+\* @port TlaSpecDevCliPort.cli_artifact_delete
+\* @port TlaSpecDevCliPort.cli_selftest_process
 InstallLocalCli ==
   /\ setup_phase = 1
   /\ setup_phase' = 2

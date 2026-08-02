@@ -1741,3 +1741,251 @@ findings:
       specs/results/rc01-model-delta.md, in the plan's RC-01 model_delta_result,
       and in the ledger input's narrative -- three prose records and no machine
       one, which is exactly the arrangement this epic keeps finding.
+
+  - id: RC-02-DF-01
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - "specs/current/spec_manifest.yaml"
+        - "specs/desired_program_model/spec_manifest.yaml"
+        - "specs/program_model/spec_manifest.yaml"
+        - "specs/current/production_adapters.py"
+      test_graph: []
+    summary: >-
+      `BuildSkillCli: [cli_artifact]` may be an over-declaration, by the same
+      rule N-1 was filed under. `BuildSkillCliAdapter.apply()` checks that
+      `scripts/tla_spec_dev.py` and `skill-scripts/install-tla-spec-dev.sh`
+      EXIST and writes nothing; its own `run()` comment says so in as many
+      words ("BuildSkillCli advances the pipeline but writes nothing into the
+      target repo"). Every write the `cli_artifact` comment enumerates belongs
+      to one of the two installer scripts, `InstallLocalCliAdapter.apply()` is
+      the only adapter that executes one, and `kill_mutants.toml` gives
+      `port-cli_artifact` `refine_action = "InstallLocalCli"`. If the shipped
+      artifacts are read as the authority -- which is how RC-02 decided where
+      to attach the three unattached ports -- BuildSkillCli's row should be an
+      EMPTY row, the RecordBudgets/AnalyzeCorpus shape, claiming "performs no
+      distinct effect".
+    reproduction: >-
+      `PYTHONPATH=$PWD/specs/current:$PWD python3 scripts/tla_spec_dev.py
+      --spec-root specs run effect-conformance --target specs/current
+      --cases-dir specs/results/rc02-effect-conformance/corpus-executed`
+      -- `cli_artifact` is exercised, but the observation that matches it is
+      `case_0002_install_local_cli` (action InstallLocalCli). No effect is
+      observed for `case_0001_build_skill_cli` at all.
+    evidence:
+      - "specs/results/rc02-effect-conformance/run-action-covering-corpus.txt"
+      - "specs/current/production_adapters.py (BuildSkillCliAdapter.apply and its run() comment)"
+    why_out_of_scope: >-
+      RC-02's gap is three ports attached to NO action. Emptying a row that has
+      carried a port since before this epic is a different claim about a
+      different action, it changes what the kill test's required-boundary set
+      is checked against, and deciding it inside the ticket that was moving the
+      neighbouring rows would be indistinguishable from tidying the measurement
+      to fit the edit.
+    suggested_fix: >-
+      Decide whether the skill-manager BUILD step (which materializes
+      $SKILL_DIR before either installer runs) is an effect of this program or
+      of skill-manager. If the latter, `BuildSkillCli: []` with the
+      absent-versus-empty comment the manifest already carries twice; if the
+      former, say which write it means, because the six listed under
+      `cli_artifact` are all in the two installers.
+    blast_radius: >-
+      None observable. An over-declared port cannot turn an observed effect
+      into a gap and cannot make a dead port live -- `diff_effects` computes
+      dead surface globally over declared ports and gaps per action -- so the
+      current rows are conservative in the safe direction.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Recorded in the manifest comment beside the row RC-02 did change, so the
+      next reader meets the question where the decision would be made.
+
+  - id: RC-02-DF-02
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: ["scripts/effect_conformance_report.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `run effect-conformance` cannot load the adapters of the spec directory
+      it is pointed at. It executes them IN-PROCESS and never puts the target
+      spec directory on `sys.path`, while `case_adapters.toml` -- the file the
+      CLI itself scaffolds -- names adapters as bare module paths
+      (`production_adapters:BuildSkillCliAdapter`). The first ever run of this
+      oracle against this repository's own model died with
+      `ModuleNotFoundError: No module named 'production_adapters'` before a
+      single case executed.
+
+      The enforcing copy does not have this defect: `run spec-unit-tests` puts
+      `target_dir` on `PYTHONPATH` when it spawns
+      `scripts/run_generated_case_adapters.py`
+      (scripts/tla_spec_dev.py:310 (python_path)), and
+      `run_generated_case_adapters` additionally inserts the cases directory's
+      parent on `sys.path`. So the standalone command is the only one of the
+      pair that cannot run a scaffolded project, which is the opposite of the
+      documented relationship between them ("this command exists so the diff
+      can be produced and inspected on its own").
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance
+      --target specs/current --cases-dir
+      specs/results/rc02-effect-conformance/corpus-executed`
+      -> ModuleNotFoundError. The same command with
+      `PYTHONPATH=$PWD/specs/current:$PWD` runs.
+    evidence:
+      - "specs/results/rc02-effect-conformance/README.md (section: two defects that stopped the very first run)"
+    why_out_of_scope: >-
+      `scripts/effect_conformance_report.py` is not in RC-02's conflict keys,
+      and the fix changes import resolution for every caller of the oracle,
+      including `run spec-unit-tests`'s enforcing path if it is done in the
+      shared helper rather than in the reporter.
+    suggested_fix: >-
+      Insert the resolved spec directory (and the repository root) at the front
+      of `sys.path` in `_execute_corpus` before the first `load_object`, the
+      same set `command_env` builds for the enforcing runner, and add a
+      regression test that points the oracle at `specs/current` with no
+      PYTHONPATH set.
+    blast_radius: >-
+      The whole standalone oracle, for any project that uses the scaffolded
+      `case_adapters.toml` convention -- which is every project this CLI
+      scaffolds. It is the direct reason the "no oracle has ever run" limit
+      survived even after RC-01 made the corpus path reachable: the first
+      operator to try it hits an import error and cannot tell whether the
+      oracle or their project is at fault.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Found by running the command, not by reading it. Three MF-026 audit
+      rounds read this file and none could have seen this.
+
+  - id: RC-02-DF-03
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: ["scripts/effect_conformance_report.py"]
+      tla: []
+      adapters: ["specs/current/production_adapters.py"]
+      test_graph: []
+    summary: >-
+      `run effect-conformance` executes every case unconditionally and ABORTS
+      THE WHOLE RUN on the first adapter that cannot take it. It calls
+      `call_adapter` directly and never consults `can_run` /
+      `adapter_accepts_case`, which is precisely the capability check
+      `run_generated_case_adapters` applies before executing anything. On this
+      model the second case killed the run with
+      `TypeError: adapter <AnalyzeArchitectureAdapter> does not define
+      run(case, ...)`.
+
+      The underlying fact is the sharper half: **9 of this model's 17 bound
+      adapters implement only `apply()`**, not `run(case, work_dir)` --
+      AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture,
+      RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket,
+      GenerateCases and CloseTicketWeakened. MF-028's case-execution seam was
+      built for the setup and ticket segments only. So no corpus containing an
+      analyze, run or close case can be executed by either runner, and the
+      effect oracle can see at most 8 of 18 modeled actions.
+    reproduction: >-
+      `PYTHONPATH=$PWD/specs/current:$PWD python3 scripts/tla_spec_dev.py
+      --spec-root specs run effect-conformance --target specs/current
+      --cases-dir <a corpus containing any analyze/run/close case>`
+      -> TypeError, no report written. The 9/17 split is enumerated by
+      `hasattr(cls, "run")` over `specs/current/case_adapters.toml`.
+    evidence:
+      - "specs/results/rc02-effect-conformance/README.md"
+      - "specs/results/rc02-effect-conformance/build_action_covering_corpus.py (executable_actions)"
+    why_out_of_scope: >-
+      Two separate fixes on two surfaces outside RC-02's slice: the runner's
+      missing capability check (`scripts/effect_conformance_report.py`) and
+      nine missing `run()` implementations (`production_adapters.py` in all
+      three trees), the second of which is a body of work comparable to MF-028
+      and MF-032 together.
+    suggested_fix: >-
+      In the reporter, call `adapter_accepts_case` and record a SKIP with its
+      reason rather than executing -- and report the skipped set in the
+      report, because a case the oracle silently did not run is exactly the
+      "unobservable read as clean" shape MF-027 removed. The nine `run()`
+      implementations are their own ticket.
+    blast_radius: >-
+      The effect oracle's reach over this model: 8 of 18 actions today, and
+      an abort rather than a partial report for any corpus that is not
+      hand-restricted to those 8. Every dead-port finding this oracle produces
+      for this repository is therefore a statement about a third of the model.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      RC-02's own evidence corpus is restricted to the 8 executable actions for
+      this reason, and says so where it is used.
+
+  - id: RC-02-DF-04
+    found_by: "RC-02"
+    found_at_commit: "a866957"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - "specs/current/spec_manifest.yaml"
+        - "specs/current/MCsmall.cfg"
+      test_graph: []
+    summary: >-
+      This model cannot produce a corpus its own gate accepts, so
+      `case_codegen.generation_status` cannot honestly leave `planned`.
+      `generate cases` over `MCsmall.cfg` -- the config MF-028 added expressly
+      to make a corpus tractable -- yields **3,678,217 cases from 118,573
+      states and a 7.4 GB cases.py**, which is 18,391x
+      `max_internal_cases_per_component: 200`; `enforce_case_cap` refuses it
+      (exit 2) and CPython cannot import the package it wrote anyway.
+
+      The mechanism is that this repository's model has NO `tlc_projection.py`.
+      Every generation recipe in `references/case_modules.md` pairs
+      `--state-projector` and `--output-projector` with `--dedupe projected`,
+      and each shipped example has one; this model has neither, so every one of
+      the 3.7M action-labelled edges becomes a case. Measured, with the
+      projections that would be honest for this model: dropping `lastCommand`
+      and `result` (the pair `adapter_case_runtime.UNPROJECTABLE_FIELDS`
+      already names as unrecoverable) leaves 628,424 cases; additionally
+      dropping `architecture_delta` leaves 96,056. None is executable.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out
+      specs/current/generated --view internal`
+      -> "REFUSING to accept this corpus", exit 2, after writing a 7.4 GB
+      cases.py. Full log:
+      specs/results/rc02-effect-conformance/generate-cases-mcsmall.txt.
+    evidence:
+      - "specs/results/rc02-effect-conformance/generate-cases-mcsmall.txt"
+      - "specs/results/rc02-effect-conformance/README.md (the projection table)"
+    why_out_of_scope: >-
+      Closing it means either authoring a `tlc_projection.py` for this model
+      (new in-model surface, and a modelling decision about which variables an
+      adapter can observe) or adding a further-reduced config, and RC-02's
+      declared model delta is NONE. Either is a deliberate act on AC/CM
+      surface, not a side effect of a remediation ticket.
+    suggested_fix: >-
+      Write `specs/current/tlc_projection.py` beside the model, projecting away
+      the variables no adapter can observe, and record the resulting case count
+      against the cap. If it still does not fit, that is the answer to the
+      standing complexity objective rather than a generation problem.
+    blast_radius: >-
+      The single largest coverage limit this repository has, and the one MF-026
+      has been reporting since round 2. Until it is closed, `run
+      effect-conformance` and `run spec-unit-tests` have no corpus of this
+      model to execute, the kill test's corpus command has nothing to run, and
+      every `declared` verdict about this model remains a declaration checked
+      only by the always-on manifest tests.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      RC-02 deliberately left `generation_status: planned`. Moving it would
+      have asserted the thing this finding disproves.

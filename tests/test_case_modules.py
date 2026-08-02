@@ -550,7 +550,10 @@ def test_generation_refuses_before_tlc_when_a_module_is_missing(
             str(module),
             str(module.parent / "Scenario_Accept.cfg"),
             "--out",
-            str(tmp_path / "out"),
+            # RC-02 (N-2): under a `specs/` directory, the tree the spec_tree
+            # port declares. The point of this test is the EXTENDS failure, and
+            # the --out refusal is checked in tests/test_tla_spec_dev_cli.py.
+            str(tmp_path / "specs" / "out"),
             "--view",
             "internal",
         ],
