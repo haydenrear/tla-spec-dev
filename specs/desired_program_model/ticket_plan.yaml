@@ -143,7 +143,7 @@ epic:
   branch: epic/architectural-coherence
   default_branch: main
   base_sha: be936c12c169b0debe704fb525107d900420a53a
-  schedule_revision: 6
+  schedule_revision: 7
   review_mode: epic-owner-post-merge
   notes: >
     Base is main (c72d03a) plus be936c1, the case-module doctrine and probe
@@ -1552,7 +1552,7 @@ tickets:
     github_issue: null
     schedule_revision: 6
     depends_on: [EV-03]
-    blocks: []
+    blocks: [RC-02]
     wave: 9
     promotion_order: 150
     promotion_predecessor: EV-03
@@ -1799,3 +1799,122 @@ tickets:
       executed -- the desync is repaired here, the mechanism question is
       deferred), RC-01-DF-03 (minor, three of the six guard-weakening flags
       cannot be observed at the close).
+
+  - id: RC-02
+    title: "Close the three gaps RC-01 created, and run the oracle that would have caught them"
+    status: planned
+    github_issue: null
+    schedule_revision: 7
+    depends_on: [RC-01]
+    blocks: []
+    wave: 10
+    promotion_order: 160
+    promotion_predecessor: RC-01
+    conflict_keys:
+      production:
+        - "scripts/generate_cases_from_tlc_dump.py"
+        - "scripts/spec_paths.py"
+      tla: []
+      adapters:
+        - "specs/current/spec_manifest.yaml"
+        - "specs/desired_program_model/spec_manifest.yaml"
+        - "specs/program_model/spec_manifest.yaml"
+      test_graph: []
+      workflow: []
+    objective: >-
+      MF-026 round 3 returned `fail` with three gaps and ZERO escalations, and
+      two of the three are in surface RC-01 itself created -- one of them the
+      same class RC-01 was closing. The gate is converging (12 -> 9 -> 3 gaps,
+      7 -> 4 -> 0 escalations) and this ticket is meant to close it.
+
+      N-1 [major] -- G-9 IS ONLY HALF CLOSED. `cli_download`,
+      `cli_artifact_delete` and `cli_selftest_process` are declared in the ports
+      block of all three trees and referenced by NO `effects.actions` row;
+      `BuildSkillCli: [cli_artifact]` and `InstallLocalCli: [cli_artifact]` are
+      unchanged. Three rules break at once: the manifest's own "a declared port
+      no case exercises is DEAD MODEL SURFACE"; the `@port` mirror rule at
+      TlaSpecDevCli.tla:214-222, violated in the OPPOSITE direction from round-2
+      G-1; and decisively, `effect_conformance.py:511-518` binds ports through
+      `effects.actions`, so G-9's curl download, mv unlink and wrapper self-test
+      spawn are STILL undeclared for the actions that perform them. RC-01 wrote
+      the ports, wrote correct comments naming which action path each belongs
+      to, and never attached them. Attach them.
+
+      N-2 [major] -- `generate cases` SHIPS THE EXACT CLASS RC-01 FIXED for the
+      three analyze commands in the same commit. `--out` is `required=True` with
+      no location constraint; writes at :96, :669, :882-883, and a DESTRUCTIVE
+      `shutil.rmtree` at :140 against a metadir path, all running against ports
+      that target `**/specs/**`. `resolve_evidence_out` already exists in
+      spec_paths.py and is simply not applied here. Apply it, and constrain or
+      declare the rmtree.
+
+      N-3 [minor] -- the docstring RC-01 wrote at
+      generate_cases_from_tlc_dump.py:1145 cites :115/:139/:881-882; the actual
+      lines are :116/:140/:882-883. Stale in the very commit that wrote it, and
+      the THIRD CONSECUTIVE TICKET to ship a stale line citation. Fix it and add
+      whatever check makes the fourth one impossible -- that recurrence is the
+      finding, not the three digits.
+
+      AND THE HIGHEST-VALUE ACTION IN THE ROUND, which is not a gap: RUN
+      `effect-conformance` ONCE. Before RC-01 the shipped CLI had no path to a
+      corpus at all; `generate cases` now provides one, which converts that
+      oracle's unreachability from STRUCTURAL to OPERATIONAL. It has never been
+      executed against this model -- `generation_status: planned`, no
+      `specs/*/generated/` exists -- so every `declared` verdict in every audit
+      has been unchecked. `effect_conformance.py:977` emits DEAD MODEL SURFACE
+      for precisely the N-1 defect, so ONE RUN of the now-reachable oracle would
+      have caught the gap its own unreachability allowed. Generate a corpus, run
+      the oracle, record what it says, and move `generation_status` off
+      `planned` if the run supports it.
+
+      NOT A GAP AND DO NOT "FIX" IT: `cli_artifact`, `cli_download` and
+      `cli_artifact_delete` target `*`, so two modeled actions may write
+      anywhere. The auditor recorded the reasoning rather than filing it -- the
+      schema has no env-var interpolation, and `*` is HONEST where
+      `**/.venv/**` was a lie. Narrowing it needs schema support, not a patch.
+    desired_actions: []
+    implementation_scope:
+      - "scripts/generate_cases_from_tlc_dump.py"
+      - "scripts/spec_paths.py"
+      - "specs/current/"
+      - "specs/desired_program_model/"
+      - "specs/program_model/"
+      - "tests/"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: ["specs/*/spec_manifest.yaml"]
+      unit_tests: ["uv run --with pytest --with pyyaml python -m pytest tests -q"]
+      graph_after_unit_pass: []
+    eval_relation:
+      eval_ticket: "the MF-026 round-4 re-audit"
+      measures: >-
+        Whether the remediation loop CONVERGES. RC-01 closed nine gaps and
+        created three. If RC-02 closes three and creates zero, the loop
+        terminates and the epic can close. If it creates more, the finding is
+        about the method rather than about any gap, and it must be reported that
+        way.
+      instrument: "MF-026 round 4, sweeping RC-02's own diff as program surface"
+      null_result: >-
+        Three closed, N created, N > 0. That is a real result: it would say
+        modeling previously-unmodeled surface reliably produces new unmodeled
+        surface, which is a fact about this toolchain worth more than a clean
+        close.
+      forbidden_to_tune: ["examples/validation/ -- untouched, findings filed not fixed"]
+    acceptance:
+      commands:
+        - "uv run --with pytest --with pyyaml python -m pytest tests -q"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs generate cases --out <corpus>"
+        - "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <corpus>"
+      assertions:
+        - "Every declared port is referenced by at least one effects.actions row, in all three trees, and a test asserts port-to-action consistency so N-1's class cannot recur."
+        - "`generate cases --out` resolves through resolve_evidence_out or an equally explicit constraint, and the rmtree target is constrained or declared."
+        - "effect-conformance has ACTUALLY RUN against a generated corpus and its output is recorded as evidence, whatever it says. A run that reports findings is a success of this ticket."
+        - "No stale line citation ships, and a check exists that would have caught the last three."
+        - "specs/current and specs/desired_program_model remain semantically equal."
+      evidence: "specs/results/rc02-*"
+    model_delta_expectation: >-
+      NONE expected. RC-02 attaches declarations to actions that already exist
+      and constrains writes that already happen. If the state space moves at all,
+      say why before closing.
