@@ -225,17 +225,23 @@ so re-run §1b's gate immediately before it rather than trusting the earlier pas
 a worktree can be used again between the audit and the teardown.
 
 ```bash
-# ordinary repo, per worktree
+# One command, every repo shape, and for a hand-made epic/ticket worktree too:
+# it runs the gate and, only on a clean verdict, removes the worktree
+# (refusing with exit 4 otherwise). It resolves <ticket> by searching where
+# ticket worktrees live, so the declared ../wt-<issue>-<slug> path is found.
+WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/wt"
+"$WT" close <ticket>
+
+# The two steps it wraps, if you need a flag it does not forward. Keep the `&&`:
+# on separate lines the removal runs whatever the gate returned, which is the
+# exact loss the gate exists to prevent.
 skill-manager home close-out --home <worktree>/.skill-manager \
                              --into <repo-root>/.skill-manager \
   && git -C <repo-root> worktree remove <worktree>
-
-# integration repo: one script does the gate and the removal in that order,
-# refusing (exit 4) on a non-zero verdict
-<git-integration-repo-skill>/scripts/close-change.sh <ticket>
 ```
 
-`close-change.sh --force` still runs the gate and still prints every blocker; it
+`wt close --force` (which forwards to `close-change.sh --force`) still runs the
+gate and still prints every blocker; it
 only declines to stop, and it states that the work is being discarded. It exists so
 a deliberate discard is named and loud instead of an improvised `rm -rf` that skips
 this check and every other one. `skill-manager home close-out` itself has no

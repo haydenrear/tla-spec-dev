@@ -1,11 +1,20 @@
 # skill-manager 0.18.1 traverses table references through the legacy `name`
 # projection. Keep the full pinned git coordinate in `name`; bare string direct
 # git references parse but are skipped by that release's transitive walker.
+# git-integration-skill (-> skill "git-integration-repo") is listed DIRECTLY
+# rather than left to arrive through git-issue-workflow-skill: this skill's own
+# pages now name scripts/bootstrap-home.sh and scripts/wt by resolved path
+# ($SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/...), and a file a
+# page instructs you to run should not depend on another unit's dependency list
+# staying as it is. It is a reference and not a skill-import on purpose — what is
+# needed is the file on disk, not integration-repo semantics in context.
+#
+# git-issue-skill was listed twice; deduplicated.
 skill_references = [
 	"github:haydenrear/git-issue-skill",
 	"github:haydenrear/git-issue-workflow-skill",
+	"github:haydenrear/git-integration-skill",
 	"github:haydenrear/tla-spec-dev",
-	"github:haydenrear/git-issue-skill",
 	"github:haydenrear/test_graph_skill",
 	"github:haydenrear/skill-manager-skill",
 	"github:haydenrear/skill-publisher-skill"

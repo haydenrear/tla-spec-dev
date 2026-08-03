@@ -174,8 +174,24 @@ tree_oid=$(git rev-parse "origin/epic/<slug>^{tree}")
 git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/${tree_oid}" "$commit_oid" ""
 git worktree add ../wt-<issue-number>-<slug> \
   -b feature/<issue-number>-<slug> "$commit_oid"
+
+# `git worktree add` alone leaves a checkout with NO Skill Manager home, so an
+# agent launched here reads and writes the operator's global ~/.skill-manager —
+# and an epic runs several ticket agents at once. Close that window now, before
+# anything that installs, syncs, binds or resolves:
+"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/bootstrap-home.sh" \
+  --root ../wt-<issue-number>-<slug>
+
 cd ../wt-<issue-number>-<slug>
 ```
+
+An ordinary (non-epic) ticket does both of those in one command, `wt new <ticket>
+"$commit_oid"`. Epic mode branches by hand because `wt` chooses the worktree path
+(`<parent>/<repo>-<ticket>`) and an epic assignment **declares** it — the
+assignment wins. The home the two routes produce is identical, and teardown is
+the same single command either way:
+`"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/wt" close <issue-number>-<slug>`,
+which finds a hand-made `../wt-<issue-number>-<slug>` by search.
 
 Resume the declared branch/worktree instead of creating another when it already
 exists. Never use `origin/<default-branch>` in epic mode.
