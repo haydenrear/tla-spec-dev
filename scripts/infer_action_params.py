@@ -64,7 +64,28 @@ Four mechanisms recover a parameter, in this preference order:
     field is a tautology for this action and is reported as such in
     ``unavailable_checks``.
 
-Anything the three mechanisms do not reach is marked ``UNCHECKED``. It is never
+``except-value``  (EVAL-STABLE)
+    The action body contains ``v' = [v EXCEPT ![i] = param]`` -- the parameter
+    is the VALUE written into a function entry, not the index. The parameter is
+    the after-state value at the one index of ``v`` that changed.
+
+    This is ``written-through`` one level down, and it carries the same price:
+    the entry it was read from is a tautology for this action, so ``v`` goes
+    into ``unavailable_checks``. It is LAST in the preference order on purpose.
+    Appending a mechanism at the end can only change parameters that were
+    previously ``UNRECOVERABLE``; it cannot re-classify a parameter an earlier
+    mechanism already reached, so no existing recipe moves.
+
+    It exists because of a measured red control. ``Reserve(t, a, r)`` writes
+    ``amt' = [amt EXCEPT ![r] = a]``: the amount is in the state pair, plainly,
+    and the four mechanisms above all miss it because they only ever look at
+    indices and whole variables. The consequence was not academic -- 0 of 588
+    ``Reserve`` cases carried an argument, every one of them was skipped for an
+    unrecovered parameter, and a fault seeded inside ``reserve`` therefore
+    survived every generated instrument. The positive control of an entire
+    evaluation was red because of a missing regex.
+
+Anything the five mechanisms do not reach is marked ``UNCHECKED``. It is never
 fabricated, and the case is never dropped: an unrecoverable parameter is a
 finding to report, not a case to filter away.
 """
@@ -82,6 +103,7 @@ GUARD_PINNED = "guard-pinned"
 EXCEPT_INDEX = "except-index"
 SET_MEMBERSHIP = "set-membership"
 WRITTEN_THROUGH = "written-through"
+EXCEPT_VALUE = "except-value"
 UNRECOVERABLE = "unrecoverable"
 
 #: Directions a set-membership conjunct can move its parameter.
@@ -160,14 +182,18 @@ class ActionRecipe:
         A ``written-through`` parameter is read out of the after-state, so
         comparing that same after-state field against the recovered parameter
         proves nothing. Callers must treat these fields as NOT independently
-        checkable for this action.
+        checkable for this action. An ``except-value`` parameter is read out of
+        one ENTRY of an after-state function, which makes that entry -- not the
+        whole variable -- tautological; the whole variable is reported anyway,
+        because over-declaring what a recovery spent is the safe direction and
+        under-declaring it is the MF-028 trap.
         """
         return tuple(
             sorted(
                 {
                     param.variable
                     for param in self.params
-                    if param.mechanism == WRITTEN_THROUGH and param.variable
+                    if param.mechanism in (WRITTEN_THROUGH, EXCEPT_VALUE) and param.variable
                 }
             )
         )
@@ -348,13 +374,27 @@ def classify_param(param: str, body: str, variables: tuple[str, ...]) -> ParamRe
         if written.search(body):
             return ParamRecovery(name=param, mechanism=WRITTEN_THROUGH, variable=variable)
 
+    # 5. except-value: `v' = [v EXCEPT ![i] = param]` -- the parameter is the
+    #    VALUE, not the index. The RHS must be the bare parameter: `= @ - a` is
+    #    an expression CONTAINING the parameter, and the after-state entry is
+    #    then not the parameter, so that shape must not match.
+    for variable in variables:
+        name = re.escape(variable)
+        except_value = re.compile(
+            rf"{name}'\s*=\s*(?:.*?\s)?\[\s*{name}\s+EXCEPT\s+!\[[^\]]*\]\s*=\s*{escaped}\s*\]",
+            re.DOTALL,
+        )
+        if except_value.search(body):
+            return ParamRecovery(name=param, mechanism=EXCEPT_VALUE, variable=variable)
+
     return ParamRecovery(
         name=param,
         mechanism=UNRECOVERABLE,
         reason=(
             "no conjunct pins the parameter to a before-state variable, indexes a "
-            "function with it, adds it to or removes it from a set, or writes it "
-            "into the after-state; the state pair does not determine it"
+            "function with it, adds it to or removes it from a set, writes it "
+            "into the after-state, or writes it into a function entry; the state "
+            "pair does not determine it"
         ),
     )
 
@@ -429,6 +469,20 @@ def recover_param(
         if variable not in after:
             return UNCHECKED
         return after[variable]
+
+    if recovery.mechanism == EXCEPT_VALUE:
+        variable = recovery.variable or ""
+        indices = changed_indices(before.get(variable), after.get(variable))
+        if len(indices) != 1:
+            # Zero changed entries means the written value equalled the one
+            # already there, so the state pair does not distinguish the
+            # parameter from the entry's old value; more than one means the
+            # diff is ambiguous. Neither justifies guessing.
+            return UNCHECKED
+        entry = after.get(variable)
+        if not isinstance(entry, dict) or indices[0] not in entry:
+            return UNCHECKED
+        return entry[indices[0]]
 
     return UNCHECKED
 

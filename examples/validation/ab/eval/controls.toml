@@ -1,0 +1,164 @@
+# EVAL-STABLE: the CONTROL RECORD for the sealed quota-ledger catalogue.
+#
+# `../seeded_faults.toml` is sealed and is NOT amended here. Every mutant in it
+# runs exactly as declared, with the find/replace text it shipped with. What
+# this file adds is three things the sealed catalogue could not carry, because
+# each of them is a MEASURED correction to a declaration the catalogue made
+# before anything had been run:
+#
+#   1. SCOPE for a positive control. "Must die on every instrument" is a claim
+#      about instruments, and an instrument that never executes the action the
+#      fault lives in cannot decide it. A limitation declared here must name a
+#      CHECKABLE WITNESS and the driver verifies it against the run's own
+#      executability counts; an unverifiable limitation is rejected and the cell
+#      is decided normally. "Not caught" and "not decidable" are different
+#      claims and this is the file that keeps them apart.
+#
+#   2. RETIREMENT of a control whose declaration the measurement falsified.
+#      A retired control still runs and is still scored in its class row. What
+#      it stops doing is deciding whether the instrument works.
+#
+#   3. A REPLACEMENT negative control, with its predictions written here before
+#      it was run, and with a REALITY WITNESS proving it is a fault rather than
+#      an equivalent mutant.
+#
+# Every prediction below was written before the row it predicts was executed.
+# Where one turned out wrong, the wrong prediction is left in place with the
+# correction beside it.
+
+
+[catalogue]
+id = "EVAL-STABLE-controls"
+anchored_on = "reference/quota_ledger.py"
+root = "examples/validation/ab/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+
+# ---------------------------------------------------------------------------
+# 1. SCOPE. M07 is declared "positive -- must die on every instrument on every
+#    arm". Two of the six generated instruments cannot decide it, and neither
+#    of them is a failure to catch a fault.
+# ---------------------------------------------------------------------------
+
+[[limitation]]
+mutant = "M07-positive-control-wrong-hold"
+instrument = "corpus-neg"
+reason = '''
+M07 is a fault on the ACCEPT path of `reserve`: the hold is one unit too large
+on a reservation that succeeds. HP-03's negative corpus contains only DISABLED
+edges -- every case asserts a refusal plus inertness -- so it executes no
+accepted `Reserve` at all. Zero accepted Reserve cases is not "the negative
+corpus missed a blatant fault"; it is the negative corpus doing exactly what it
+is for.
+
+Recorded because the shipped arm-B row shows corpus-neg KILLING M07 and a
+reader could take that as arm A's instrument being worse. It is not the same
+experiment: arm B's M07 is HP-06's declared BROADER-REACH SUBSTITUTE, which
+inflates the COMPUTATION of the held total and is therefore observable after any
+command including a refusal. Same id, different mutant.
+'''
+witness_action = "Reserve"
+witness_polarity = "positive"
+witness_ran_must_be = 0
+
+[[limitation]]
+mutant = "M07-positive-control-wrong-hold"
+instrument = "corpus-slice-led"
+reason = '''
+The LEDGER slice does not project `available` -- M07's only observable -- and
+its corpus contains no `Reserve` edge whatsoever (its actions are CloseTenant,
+RefuseCloseAlreadyClosed and RefuseCommitUnknown). It cannot execute the
+mutated line, and it could not see the difference if it did. That is the
+declared shape of an aspect slice, not a miss.
+'''
+witness_action = "Reserve"
+witness_polarity = "positive"
+witness_ran_must_be = 0
+
+
+# ---------------------------------------------------------------------------
+# 2. RETIREMENT. M09 is declared a NEGATIVE control and it does not survive.
+# ---------------------------------------------------------------------------
+
+[[retired_control]]
+mutant = "M09-negative-control-ledger-order"
+was = "negative"
+reason = '''
+M09 REVERSES THE ORDER OF LEDGER LINES, and this model represents its ledger as
+a SEQUENCE: `ledger' = Append(ledger, ...)`, projected by the oracle as a tuple
+and compared positionally. Ordering is therefore fully expressible here, the
+corpus sees it, and M09 dies under corpus-whole, corpus-slice-led, map-silent
+and map-checking on the reference exactly as it did on both arms.
+
+The sealed catalogue's own terms say what to do with this: "a kill here RETRACTS
+a documented limit and is a finding". HP-03 retracted the limit. What did not
+happen is the consequence -- M09 kept its `control_role` and has been carried as
+a red negative control ever since, which means the eval has had NO working
+negative control for two rounds.
+
+The retraction is only half true and the other half is the reason a replacement
+is needed. Ordering IS invisible to a generated corpus when the modelled thing
+is a SET. It is a property of the MODEL, not a limit of corpora, and M09 was
+seeded against the one ledger-shaped variable this model happens to represent as
+a sequence. A negative control has to be seeded against a variable the model
+represents as a set, or it is not testing the limit it claims to test.
+
+M09 is NOT deleted, NOT re-seeded, and NOT excused. It still runs, it is still
+scored in the `ordering` class row, and its kills stand as measurements. What it
+stops doing is deciding whether the instrument works.
+'''
+replaced_by = "N01-negative-control-outstanding-id-order"
+
+
+# ---------------------------------------------------------------------------
+# 3. THE REPLACEMENT NEGATIVE CONTROL, negative for the right reason.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "N01-negative-control-outstanding-id-order"
+fault_class = "ordering"
+control_role = "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding"
+gap_targeted = '''
+The model holds live reservations in `live`, a SET, and the oracle projects it
+as a `frozenset`. No sequence, no index, nothing positional anywhere in the
+chain. Reversing the order `outstanding_ids()` reports is therefore invisible to
+every model-derived instrument BY CONSTRUCTION rather than by accident of
+tuning -- which is what M09 was supposed to be and, on this model, was not.
+'''
+boundary_kind = "invariant"
+boundary_ref = "FEATURE.md -- outstanding_ids(): the ids of all live reservations, ascending"
+path = "reference/quota_ledger.py"
+find = "        return sorted(self._outstanding)"
+replace = "        return sorted(self._outstanding, reverse=True)  # MUTANT N01: live ids are reported newest-first"
+description = "outstanding_ids() reports live reservation ids descending; the SET of ids is identical and every other observable is byte-correct"
+semantic = "The membership of `outstanding_ids()` is unchanged and correct; only its ORDER is reversed. FEATURE.md requires ascending."
+observable = "the ORDER of `outstanding_ids()` when two or more reservations are live, and nothing else."
+
+# PREDICTIONS, written before this mutant was run for the first time.
+predicted_corpus_whole = "SURVIVES -- `live` is a set in the model and a frozenset in the projection"
+predicted_corpus_neg = "SURVIVES -- same, and a refusal changes no reservation anyway"
+predicted_corpus_slice_res = "SURVIVES -- the RESERVATIONS slice projects `live`, still as a set"
+predicted_corpus_slice_led = "SURVIVES -- the LEDGER slice does not project `live` at all"
+predicted_map_silent = "SURVIVES"
+predicted_map_checking = "SURVIVES -- the content assertion is about ledger lines, not about live ids"
+predicted_suite = '''
+SURVIVES, and this is the uncomfortable half. The hand-written suite asserts
+`outstanding_ids() == ["r1"]` -- one element, where ascending and descending are
+the same list -- and its `snapshot()` helper compares a book against ITSELF
+across a rejection, so a consistently reversed order matches. The suite that
+scored 10 of 10 on the sealed catalogue has no assertion this mutant can fail.
+
+That makes the REALITY WITNESS load-bearing rather than decorative: with no
+instrument killing it, "survives" and "is an equivalent mutant" would otherwise
+be the same observation.
+'''
+
+# The proof that it is a fault at all, run against both trees by the driver.
+reality_witness = "witnesses:outstanding_ids_not_ascending"
+
+# What a survivor tells the reader to go and refine. `live` is the variable
+# whose SET shape is the whole reason this mutant is a negative control, and
+# refining it into something ordered is precisely the profile change HP-03's
+# retraction named. `Reserve` is the action that puts an element into it.
+refine_variable = "live"
+refine_action = "Reserve"

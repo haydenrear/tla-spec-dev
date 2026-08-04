@@ -1020,10 +1020,31 @@ findings:
     blast_radius: >-
       The whole-view control on every future round that fixes Reserve argument
       recovery, which is the first thing this round tells the next one to do.
-    disposition: carried
-    disposition_ticket: null
+    disposition: closed
+    disposition_ticket: EVAL-STABLE
     disposition_note: >-
       Recorded as the ORDER OF WORK rather than as an objection to doing it.
+      CLOSED BY MEASUREMENT, EVAL-STABLE (2026-08-04). The prediction was RIGHT
+      and it was measured rather than argued: with `Reserve` argument recovery
+      repaired (`scripts/infer_action_params.py`, new `except-value` mechanism)
+      and NO expressibility rule, 294 of 588 positive `Reserve` cases FAIL on
+      UNMUTATED code -- half the class, not an edge case -- with the exact
+      disagreement this finding describes (`live: expected frozenset({'r2'}),
+      actual frozenset({'r1'})`). It fires more broadly than predicted: the
+      finding reasoned about an id outside `ResIds`, and the common case is
+      simply the model choosing `r2` where the API allocates `r1`.
+      The resolution is NOT the suggested fix. Passing `params["r"]` through is
+      impossible (the API allocates ids) and installing the counter FROM the
+      case's own `r` would configure the program to produce the id the oracle
+      then compares. Instead the oracle SKIPS the cases the API cannot express,
+      counts them under a named rule, and reports the count per action:
+      `examples/validation/ab/eval/oracle.py` (`ID_NOT_EXPRESSIBLE`). The
+      whole-view control is green with 294 Reserve cases executing where 0 did
+      before, and the 294 skipped are a declared, counted limitation of the
+      fixture's own refinement rather than a silent omission.
+      The underlying defect this finding names -- HP-03-DF-01, a model that
+      guards a reservation id its own API allocates -- is UNTOUCHED and remains
+      the reason half this class is unreachable.
 
   - id: HP-06-DF-12
     found_by: "HP-06 (adversarial channel)"
