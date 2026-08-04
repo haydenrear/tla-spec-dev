@@ -83,7 +83,7 @@ epic:
     Branched from main AFTER the architectural-coherence epic was merged to main
     locally, per owner direction 2026-08-03. Nothing was pushed; the remote is
     untouched and `skill-manager sync` was NOT run.
-  schedule_revision: 2
+  schedule_revision: 3
   review_mode: "epic-owner-post-merge"
   notes: >-
     Never merge to main and never run skill-manager sync without explicit owner
@@ -101,15 +101,37 @@ deferment_policy:
 
 representation_scope:
   note: >-
-    What the MF-026 coverage audit measures the model against. Carried forward
-    from the predecessor's final amendment, which took four audit rounds to get
-    right. Written with explicit directory globs, because the audit's closure
-    rule treats a bare file path as scoping that file alone.
+    What the MF-026 coverage audit measures the model against. Written with
+    explicit directory globs, because the audit's closure rule treats a bare
+    file path as scoping that file alone.
+
+    OWNER AMENDMENT 2026-08-04 (schedule_revision 3), answering all three
+    escalations of this epic's audit. I carried this block forward from the
+    predecessor's final amendment and said so in the note -- and the carry LOST
+    CONTENT. Two governing rulings did not survive the copy (ESC-2, ESC-3), and
+    19 tracked files matched no line at all (ESC-1). That is my error, and it is
+    the specific failure mode the predecessor's ESC-1 was raised about one epic
+    earlier: a plan that drops its predecessor's folded rulings silently
+    re-opens every gap they closed. It happened again, to me, in the very block
+    written to prevent it. The lesson that generalizes: a carried-forward scope
+    block must be DIFFED against its source, not copied and trusted.
+
+    AND A RETROACTIVE CORRECTION TO THE PREDECESSOR'S CLEAN CLOSE. Its final
+    round reported `escalations: 0`, and that number was STRUCTURALLY
+    GUARANTEED: the audit prompt's Step 2 says to adapt the enumeration glob to
+    the project's languages, so its row set was source extensions only. Every
+    one of the 19 rows unclassifiable here is a `.toml`, a `.yaml`, or a `.py`
+    inside the spec tree -- none of which could ever have entered that sweep.
+    The predecessor did not converge to zero escalations; it converged to zero
+    escalations ON SOURCE FILES. Both facts are now on record.
   in_model:
     - "scripts/**/*.py -- the shipped CLI toolchain"
     - "specs/*/spec_manifest.yaml -- where every effect port is declared"
     - "specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg"
     - "specs/*/production_adapters.py and specs/*/adapter_case_runtime.py"
+    - "specs/*/case_adapters.toml -- ADDED 2026-08-04 (ESC-1). The model's own binding table: action -> adapter. It decides which adapter a modeled action reaches, so a module that mutates it is acting on modeled surface."
+    - "specs/*/kill_mutants.toml -- ADDED 2026-08-04 (ESC-1). Oracle 4's input. A catalogue that seeds a fault per port and per invariant is a statement ABOUT the model's boundaries and belongs inside its scope."
+    - "specs/*/tlc_projection.py -- ADDED 2026-08-04 (ESC-1), and this is the one the audit was right to insist on. It is not peripheral surface that happens to be unclassified: it is the mechanism that makes case generation possible on this model at all (3,678,217 cases and a 7.4 GB cases.py without it), and it is `desired_boundaries` DELIVERED by HP-03. A scope block that cannot classify the thing an epic shipped is not a scope block."
   out_of_model:
     - "tests/**, specs/*/tests/**, test_graph/** -- harnesses; semantic_model_rule forbids modeling them"
     - "examples/** -- fixtures and eval subjects; what the toolchain is pointed AT"
@@ -117,6 +139,12 @@ representation_scope:
     - "spec_double_compiler/**, templates/** -- generator templates and harness plumbing"
     - "skill-scripts/**, *.sh wrappers -- installer shell. SUBJECT TO THE STANDING PROVISO: out-of-model files still owe ports for effects they perform on modeled action paths."
     - "prompts/**, references/**, *.md -- documentation and sub-agent prompts"
+    - "specs/*/architecture_components.yaml, specs/*/architecture_map.yaml -- ADDED 2026-08-04 (ESC-1). Declarations consumed by the architecture scanner, which this epic's redirect moved OUT of the product direction. They describe the model; they are not surface the model represents."
+    - "specs/desired_program_model/ticket_plan.yaml, deferred_findings.yaml, desired_state.yaml -- ADDED 2026-08-04 (ESC-1). Planning and workflow artifacts. The audit reads them; it does not audit them."
+    - ".gitignore, .DS_Store, skill-manager.toml, and any other repository-root dotfile or tool config -- ADDED 2026-08-04 (ESC-1). Repository configuration, not program surface."
+    - "scripts/run_generated_case_adapters.py provider machinery, scripts/generate_python.py codegen, and the effect-provider runtime -- RESTORED 2026-08-04 (ESC-3). The predecessor's ruling carved these out as SHIPPED VALIDATION HARNESS AND TOOLCHAIN PLUMBING, exactly as the spec-unit runner always was, and the carry-forward kept the carve-out for spec_double_compiler/** and templates/** while dropping it for scripts/. That asymmetry was an accident of copying, not a decision. THE STANDING PROVISO STILL APPLIES: an out-of-model FILE does not make an out-of-model EFFECT, so an effect either of these performs on a MODELED action path is still owed a port."
+  view_split:
+    - "RESTORED 2026-08-04 (ESC-2). This repository's baseline remains a SINGLE TlaSpecDevCli.tla module with no Internal/External view split -- future work, unscoped. The predecessor measured 2 of 115,975 partitions meeting all three shipped criteria at Q = 0.0029, and its own DECLARED four-component partition at Q = -0.025 against a 0.6 criterion. The External view being unrepresented is an INVENTORY ROW under this line, not a gap. Sweep 4 classifies against this line."
 
 service_catalog:
   existing_boundaries:
