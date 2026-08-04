@@ -44,6 +44,7 @@ from effect_conformance import (  # noqa: E402
     UnobservableTarget,
     WorkingTreeObserver,
     SKIP_DECLINED,
+    SKIP_ERROR,
     SKIP_NOT_RUNNABLE,
     SKIP_UNBOUND,
     SkippedCase,
@@ -1147,7 +1148,7 @@ class TestSkippedCasesAreReportedNotFatal:
             executed_actions=["Act"],
         )
         reach = report.action_reach()
-        assert "1 of 2 action(s) in this corpus EXECUTED" in reach
+        assert "1 of 2 action(s) in this corpus DRIVEN" in reach
         assert "Skipped: Skipped" in reach
         payload = report.to_dict()["action_reach"]
         assert payload["executed"] == ["Act"] and payload["skipped"] == ["Skipped"]
@@ -1364,7 +1365,7 @@ class TestExecuteCorpusEndToEnd:
         # unbound action is named rather than passed over in silence.
         kinds = {skip.action: skip.kind for skip in report.skipped}
         assert kinds == {"ApplyOnly": SKIP_NOT_RUNNABLE, "Unbound": SKIP_UNBOUND}
-        assert "1 of 3 action(s) in this corpus EXECUTED" in report.action_reach()
+        assert "1 of 3 action(s) in this corpus DRIVEN" in report.action_reach()
 
     def test_two_runs_over_an_identical_corpus_are_identical(self, tmp_path):
         """MF026-R4-F-01, the whole ticket in one assertion.
@@ -1445,3 +1446,102 @@ class TestPathOpenIsObserved:
         via_path = crossings(lambda p: p.open("a", encoding="utf-8").close())
         via_builtin = crossings(lambda p: open(p, "a", encoding="utf-8").close())
         assert via_path == via_builtin
+
+
+class TestAnAdapterThatRaisesIsCollectedNotFatal:
+    """HP-04: one bad case used to hide every case after it.
+
+    Distinguished from a SKIP on purpose. A skip means the adapter said it could
+    not take the case and enters no verdict; an error means it said it could,
+    then blew up, and the run FAILS -- which it already did before HP-04, by
+    dying with a traceback and writing no report at all. Collecting it is a
+    better report of the same failure, not a relaxed one.
+    """
+
+    def test_the_error_fails_the_run_and_names_the_case(self):
+        report = diff_effects(
+            load_effect_declarations(declarations(workspace=WRITE_PORT)),
+            [ObservedEffect(type="filesystem.write", target="/a/workspace/f", action="Act", case="c1")],
+            cases=["c1"],
+            skipped=[
+                SkippedCase(
+                    case="c2",
+                    action="Act",
+                    adapter="m:A",
+                    reason="NotImplementedError: load the TLA `before` state",
+                    kind=SKIP_ERROR,
+                )
+            ],
+            executed_actions=["Act"],
+        )
+        assert report.verdict == "adapter_error"
+        assert report.ok is False
+        assert [skip.case for skip in report.errored] == ["c2"]
+        assert "ADAPTER ERRORS" in report.render()
+        assert "RAISED on at least one case and are measured by nothing" in report.action_reach()
+        assert report.to_dict()["adapter_errors"][0]["case"] == "c2"
+
+    def test_a_declared_incapacity_is_still_only_a_report(self):
+        """The two must not collapse into each other."""
+        report = diff_effects(
+            load_effect_declarations(declarations(workspace=WRITE_PORT)),
+            [ObservedEffect(type="filesystem.write", target="/a/workspace/f", action="Act", case="c1")],
+            cases=["c1"],
+            skipped=[SkippedCase(case="c2", action="Other", adapter="m:A", reason="apply()-only")],
+            executed_actions=["Act"],
+        )
+        assert report.errored == []
+        assert report.ok is True
+
+    def test_later_cases_still_run_after_one_raises(self, tmp_path):
+        recorder = EffectRecorder()
+        spec_dir = tmp_path / "specs" / "current"
+        (spec_dir / "cases_pkg").mkdir(parents=True)
+        (spec_dir / "case_adapters.toml").write_text(
+            '[adapters.Boom]\nadapter = "hp04_boom:BoomAdapter"\n'
+            '[adapters.Fine]\nadapter = "hp04_boom:FineAdapter"\n',
+            encoding="utf-8",
+        )
+        (spec_dir / "hp04_boom.py").write_text(
+            "from pathlib import Path\n\n\n"
+            "class BoomAdapter:\n"
+            "    def run(self, case, work_dir=None):\n"
+            "        raise NotImplementedError('implement me')\n\n\n"
+            "class FineAdapter:\n"
+            "    def run(self, case, work_dir=None):\n"
+            "        (Path(work_dir) / 'out.txt').write_text('x', encoding='utf-8')\n",
+            encoding="utf-8",
+        )
+        (spec_dir / "cases_pkg" / "__init__.py").write_text(
+            "from .cases import CASES\n\n__all__ = ['CASES']\n", encoding="utf-8"
+        )
+        (spec_dir / "cases_pkg" / "cases.py").write_text(
+            "from dataclasses import dataclass\n\n\n"
+            "@dataclass(frozen=True)\n"
+            "class Case:\n"
+            "    name: str\n"
+            "    labels: frozenset\n\n\n"
+            "CASES = [\n"
+            "    Case(name='c1', labels=frozenset({'Boom'})),\n"
+            "    Case(name='c2', labels=frozenset({'Fine'})),\n"
+            "]\n",
+            encoding="utf-8",
+        )
+        saved = list(sys.path)
+        try:
+            execution = execute_corpus(
+                spec_dir=spec_dir,
+                cases_dirs=[spec_dir / "cases_pkg"],
+                mapping_path=spec_dir / "case_adapters.toml",
+                work_dir=tmp_path / "work",
+                recorder=recorder,
+            )
+        finally:
+            sys.path[:] = saved
+            for name in ("hp04_boom", "cases_pkg", "cases_pkg.cases"):
+                sys.modules.pop(name, None)
+
+        assert [skip.kind for skip in recorder.skipped] == [SKIP_ERROR]
+        # The case AFTER the raise ran, and its effect was observed.
+        assert execution.cases == ["c1", "c2"]
+        assert any(effect.case == "c2" for effect in recorder.effects)

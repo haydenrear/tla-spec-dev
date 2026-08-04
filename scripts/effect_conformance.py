@@ -180,6 +180,11 @@ VERDICT_DEAD_SURFACE = "dead_surface"
 #: information, so reporting it as "clean" -- or even as "gaps" -- would assert
 #: something the run has no evidence for.
 VERDICT_UNOBSERVABLE = "unobservable"
+#: HP-04: an adapter accepted a case and then raised. Ranked below
+#: ``unobservable`` and above ``gaps`` for the same reason ``unobservable``
+#: outranks both: a diff over a case that blew up mid-way is a statement about a
+#: partial observation set.
+VERDICT_ADAPTER_ERROR = "adapter_error"
 
 #: Runtime identifiers the sandbox can actually observe. The sandbox patches
 #: objects in this CPython interpreter, so this set has exactly one member in
@@ -336,6 +341,13 @@ class OutOfProcessObservation:
 SKIP_NOT_RUNNABLE = "not-runnable"
 SKIP_DECLINED = "declined"
 SKIP_UNBOUND = "unbound"
+#: The adapter accepted the case and then RAISED. Unlike the three above this
+#: one is a FAILURE and enters ``EffectConformanceReport.ok``. It is recorded
+#: rather than allowed to propagate for the same reason as the others -- one bad
+#: case used to hide every case after it -- but recording a failure is not the
+#: same as forgiving one, and an adapter that blew up has told the run nothing
+#: about the effects its action performs.
+SKIP_ERROR = "error"
 
 
 @dataclass(frozen=True)
@@ -368,8 +380,9 @@ class SkippedCase:
 
     def describe(self) -> str:
         adapter = self.adapter or "<unbound>"
+        head = "ADAPTER ERROR" if self.kind == SKIP_ERROR else "SKIPPED"
         return (
-            f"SKIPPED [{self.kind}]: case {self.case} (action {self.action or '<unmapped>'}) "
+            f"{head} [{self.kind}]: case {self.case} (action {self.action or '<unmapped>'}) "
             f"-- adapter {adapter}: {self.reason}"
         )
 
@@ -1152,6 +1165,11 @@ class EffectConformanceReport:
         return sorted({skip.action for skip in self.skipped if skip.action and skip.action not in executed})
 
     @property
+    def errored(self) -> list[SkippedCase]:
+        """Cases whose adapter accepted them and then RAISED. A failure."""
+        return [skip for skip in self.skipped if skip.kind == SKIP_ERROR]
+
+    @property
     def ok(self) -> bool:
         # Note the shape: no flag, no manifest entry, and no justification is
         # consulted here. Findings exist => the run fails. This property is the
@@ -1170,7 +1188,12 @@ class EffectConformanceReport:
         # failure would have shipped a new blocking check under cover. The skip
         # is instead impossible to miss: it is in `summary()`, in `render()`,
         # and it annotates every dead-port finding it could have caused.
-        return not self.gaps and not self.dead_surface and not self.unobservable
+        #
+        # An adapter that RAISED is the one exception, and it is not a new gate:
+        # before HP-04 that exception propagated and killed the whole command,
+        # so the run already failed. Collecting it lets the remaining cases run
+        # and be reported; it does not forgive it.
+        return not self.gaps and not self.dead_surface and not self.unobservable and not self.errored
 
     @property
     def verdict(self) -> str:
@@ -1184,6 +1207,8 @@ class EffectConformanceReport:
         """
         if self.unobservable:
             return VERDICT_UNOBSERVABLE
+        if self.errored:
+            return VERDICT_ADAPTER_ERROR
         if self.gaps:
             return VERDICT_GAPS
         if self.dead_surface:
@@ -1201,8 +1226,11 @@ class EffectConformanceReport:
             f"{len(self.gaps)} gap(s), {len(self.dead_surface)} dead port(s), "
             f"{len(self.unobservable)} unobservable target(s)"
         )
+        errored = self.errored
         if self.skipped or self.offered_actions:
-            head += f", {len(self.skipped)} skipped case(s)"
+            head += f", {len(self.skipped) - len(errored)} skipped case(s)"
+        if errored:
+            head += f", {len(errored)} ADAPTER ERROR(S)"
         return head
 
     def action_reach(self) -> str:
@@ -1214,11 +1242,21 @@ class EffectConformanceReport:
         executed = sorted(set(self.executed_actions))
         skipped = self.skipped_actions
         offered = sorted(set(self.offered_actions) | set(executed) | set(skipped))
-        return (
-            f"ADAPTER REACH: {len(executed)} of {len(offered)} action(s) in this corpus EXECUTED; "
-            f"{len(skipped)} SKIPPED. Executed: {', '.join(executed) or '(none)'}. "
+        errored = sorted({skip.action for skip in self.errored if skip.action})
+        line = (
+            f"ADAPTER REACH: {len(executed)} of {len(offered)} action(s) in this corpus DRIVEN; "
+            f"{len(skipped)} SKIPPED. Driven: {', '.join(executed) or '(none)'}. "
             f"Skipped: {', '.join(skipped) or '(none)'}."
         )
+        if errored:
+            # "Driven" is not "measured": an adapter that raised was called and
+            # told the run nothing, so naming these separately is the difference
+            # between reach and evidence.
+            line += (
+                f" Of the driven, {len(errored)} RAISED on at least one case and are "
+                f"measured by nothing: {', '.join(errored)}."
+            )
+        return line
 
     def render(self) -> str:
         lines = [self.summary()]
@@ -1234,14 +1272,24 @@ class EffectConformanceReport:
             )
         if self.skipped or self.offered_actions:
             lines.append(self.action_reach())
-        if self.skipped:
+        errored = self.errored
+        if errored:
+            lines.append("")
+            lines.append(
+                "ADAPTER ERRORS -- these adapters accepted their case and then RAISED. "
+                "This is a FAILURE, not a skip: the run reports every case instead of "
+                "dying on the first, and reports nothing about what these actions do:"
+            )
+            lines.extend(f"  - {skip.describe()}" for skip in errored)
+        reported = [skip for skip in self.skipped if skip.kind != SKIP_ERROR]
+        if reported:
             lines.append("")
             lines.append(
                 "SKIPPED CASES -- reported, never a refusal (no_new_gates_rule). The "
                 "oracle certifies NOTHING about the actions below; their ports are "
                 "unexercised by this run rather than proven dead:"
             )
-            lines.extend(f"  - {skip.describe()}" for skip in self.skipped)
+            lines.extend(f"  - {skip.describe()}" for skip in reported)
         if self.out_of_process:
             observed = sum(obs.observed_count for obs in self.out_of_process)
             axes = sorted({t for obs in self.out_of_process for t in obs.covered_types})
@@ -1353,6 +1401,15 @@ class EffectConformanceReport:
                     "case now starts from an empty one."
                 ),
             },
+            "adapter_errors": [
+                {
+                    "case": skip.case,
+                    "action": skip.action,
+                    "adapter": skip.adapter,
+                    "reason": skip.reason,
+                }
+                for skip in self.errored
+            ],
             "skip_policy": (
                 "HP-04: a case whose adapter cannot execute it is SKIPPED AND REPORTED and "
                 "never aborts the run, and the skip enters no verdict -- the epic's "
@@ -1763,6 +1820,19 @@ def execute_corpus(
                 kind=mapping.kind,
                 channel=mapping.channel,
             )
-            with sandbox, sandbox.observe(action=mapping.label, case=case.name):
-                call_adapter(adapter, case, case_dir)
+            try:
+                with sandbox, sandbox.observe(action=mapping.label, case=case.name):
+                    call_adapter(adapter, case, case_dir)
+            except Exception as exc:  # noqa: BLE001 -- reported, not swallowed
+                # One bad case used to hide every case after it. Collect it,
+                # keep going, and FAIL the run: see SKIP_ERROR.
+                recorder.record_skip(
+                    SkippedCase(
+                        case=case.name,
+                        action=mapping.label,
+                        adapter=mapping.adapter,
+                        reason=f"{type(exc).__name__}: {exc}",
+                        kind=SKIP_ERROR,
+                    )
+                )
     return execution

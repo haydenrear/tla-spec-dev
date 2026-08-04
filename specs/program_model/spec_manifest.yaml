@@ -396,11 +396,11 @@ effects:
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
     # under the spec dir
-    # (scripts/effect_conformance.py:1708 (work_root.mkdir), default
+    # (scripts/effect_conformance.py:1765 (work_root.mkdir), default
     # spec_dir/.effect-conformance-work;
-    # scripts/effect_conformance.py:1629 (case_dir.mkdir) per-case dirs;
-    # scripts/effect_conformance.py:701 (self.root.mkdir) and
-    # scripts/effect_conformance.py:738 (path.mkdir) sandbox roots) -- writes
+    # scripts/effect_conformance.py:1686 (case_dir.mkdir) per-case dirs;
+    # scripts/effect_conformance.py:714 (self.root.mkdir) and
+    # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
     # landing under
     # **/specs/**. DECLARED rather than relocated under results/: the same
     # physical sandbox writes on the spec-unit path are already declared as
@@ -419,7 +419,7 @@ effects:
     # rests on -- because the work tree survived between runs and an adapter
     # that materializes its own before-state writes a file on a cold run that
     # it finds already present on a warm one. Each case now starts from an
-    # EMPTY directory (scripts/effect_conformance.py:1628 (shutil.rmtree)),
+    # EMPTY directory (scripts/effect_conformance.py:1685 (shutil.rmtree)),
     # which is a filesystem.delete under **/specs/** and therefore owes a port
     # by this file's own rule -- the same rule that made CloseTicket declare
     # its TLC states/ rmtree rather than leave it undeclared.
