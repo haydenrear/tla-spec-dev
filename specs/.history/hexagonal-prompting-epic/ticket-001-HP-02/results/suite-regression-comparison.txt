@@ -1,0 +1,9 @@
+BASELINE at epic tip 386222b: 1070 passed (collected 1070)
+HP-02 branch:                1078 passed (collected 1078)
+
+The +8 is entirely tests/test_spec_yaml_valid.py::test_spec_yaml_parses, which is
+parametrized over spec YAML files; opening the HP-02 ticket workspace scaffolds 8
+new ones. Verified by diffing --collect-only between the two checkouts:
+  <   21 tests/test_spec_yaml_valid.py::test_spec_yaml_parses
+  >   29 tests/test_spec_yaml_valid.py::test_spec_yaml_parses
+No other test node appears or disappears. 0 failed on both sides.
