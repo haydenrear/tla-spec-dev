@@ -1,0 +1,178 @@
+module: CliProject
+package: current_program_cases
+
+status:
+  workflow: ticket
+  active_ticket: CLI-123
+  active_ticket_title: "CLI scaffold ticket"
+  relation_to_program_model: starts_equivalent_then_advances_as_slices_land
+  relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
+  current_model_rule: whole_program_working_copy_not_ticket_projection
+  test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
+  updated: null
+  current_slice:
+    name: baseline
+    status: scaffolded
+    refines: []
+    implemented_actions: []
+    validation:
+      unit: []
+      tlc: []
+      graph: []
+      evidence: []
+  next:
+    - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
+    - Preserve all existing specs/program_model state/actions unless production behavior changes them.
+    - Run TLC and adapter/unit tests before adding graph execution coverage.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
+
+# Per-program complexity and case budgets. These are advisory thresholds read
+# by analyze complexity (which warns with facts and never blocks) and by the
+# EXPERIMENTAL fuzzing surface (case generation, the adapter runner, the
+# mutation kill test). Defaults come from references/modular_fuzzing.md;
+# negotiate them with the user and record a one-line rationale for each
+# changed value. Doctrine: SKILL.md "Complexity Budgets Are Advisory".
+budgets:
+  tlc_seconds: 120                          # hard external timeout per TLC run
+  max_distinct_states: 50000                # reachable states TLC may find, per component model
+  max_state_space_bound: 1000000            # static declared-representation ceiling; see modular_fuzzing.md
+  max_internal_cases_per_component: 200     # spec-unit case cap per component
+  max_external_cases_per_action: 50         # Test Graph case cap per external action
+  kill_rate_floor: 0.8                      # minimum mutation kill rate (EXPERIMENTAL fuzzing surface; optional)
+  max_component_variables: 6                # component-size heuristic
+  max_component_actions: 8                  # component-size heuristic
+  max_symmetric_instances: 2                # component-size heuristic (EXPERIMENTAL fuzzing surface; optional)
+  source: negotiateds
+  rationale: {}
+
+# Optional dead-weight audit (advisory): add a justification: table linking
+# every declared variable to what depends on it. Schema: one mapping per
+# variable with at least one NON-EMPTY list among invariants/effects/
+# kill_tests. Prose strings are not linkage -- a prose-only entry leaves the
+# variable flagged DEAD WEIGHT. Example:
+#   justification:
+#     orders:
+#       invariants: [SafetyInv]
+#       effects: [order_submitted]
+#       kill_tests: [test_order_cap]
+
+views:
+  internal:
+    module: Internal.tla
+    config: Internal.cfg
+    spec: InternalSpec
+    generates: spec_unit
+    adapter_mapping: case_adapters.toml
+  external:
+    module: External.tla
+    config: External.cfg
+    spec: Spec
+    generates: testgraph
+    adapter_mapping: testgraph_bindings.yml
+
+state:
+  CliProjectState:
+    fields:
+      owners:
+        type: frozenset[ActorId]
+        tla: owners
+      records:
+        type: dict[RecordId, RecordEntry]
+        tla: records
+      outbox:
+        type: frozenset[RecordId]
+        tla: outbox
+      projections:
+        type: dict[RecordId, str]
+        tla: projections
+
+types:
+  ActorId:
+    python: str
+    source: Actors
+  RecordId:
+    python: str
+    source: Records
+  ClientId:
+    python: str
+    source: Clients
+
+commands:
+  RegisterActor:
+    action: RegisterActor
+    fields:
+      actor:
+        type: ActorId
+        tla: a
+  AcceptRecord:
+    action: AcceptRecord
+    fields:
+      actor:
+        type: ActorId
+        tla: a
+      record:
+        type: RecordId
+        tla: r
+  PublishRecord:
+    action: PublishRecord
+    fields:
+      record:
+        type: RecordId
+        tla: r
+
+results:
+  RegisterActorResult:
+    fields:
+      status:
+        type: int
+      body:
+        type: dict
+  AcceptRecordResult:
+    fields:
+      status:
+        type: int
+      body:
+        type: dict
+  PublishRecordResult:
+    fields:
+      status:
+        type: int
+      body:
+        type: dict
+
+ports:
+  CliProjectPort:
+    methods:
+      register_actor:
+        command: RegisterActor
+        result: RegisterActorResult
+      accept_record:
+        command: AcceptRecord
+        result: AcceptRecordResult
+      publish_record:
+        command: PublishRecord
+        result: PublishRecordResult
+      snapshot:
+        result: CliProjectState
+
+invariants:
+  - InternalInvariant
+  - ExternalInvariant
+
+finite_model:
+  Actors:
+    values:
+      - actor-1
+      - actor-2
+  Records:
+    values:
+      - record-1
+      - record-2
+  Clients:
+    values:
+      - client-1
+
+case_codegen:
+  style: explicit_transition_cases
+  generation_status: planned
+  projection: tlc_projection.py

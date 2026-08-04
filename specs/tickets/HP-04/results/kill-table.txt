@@ -1,0 +1,39 @@
+CONTROL oracle-before: exit=1 report=NO REPORT
+  KeyError: 't'
+CONTROL oracle-after: exit=1 report=yes
+CONTROL corpus-after: GREEN (no case failed), labels Reserve, Commit, CloseTenant
+
+  M01-guard-zero-amount              guard_relaxation   no-report   survived    survived
+  M02-guard-over-quota               guard_relaxation   no-report   survived    survived
+  M03-guard-close-with-outstanding   guard_relaxation   no-report   survived    survived
+  M04-durable-stale-total            durable_content    no-report   survived    survived
+  M05-durable-close-line-zero-and-swallowed durable_content    no-report   survived    survived
+  M08-cross-aspect-commit-refunds-the-hold cross_aspect       no-report   survived    KILLED
+  M06-wrong-status-on-release        output_oracle      no-report   survived    survived
+  M10-apply-only-double-refund       wrong_value        no-report   survived    survived
+  M07-positive-control-wrong-hold    wrong_value        no-report   survived    KILLED
+  M09-negative-control-ledger-order  ordering           no-report   survived    survived
+
+KILL TABLE -- per class, per arm. No aggregate rate: an average over
+classes whose whole point is that they behave differently is a number
+about nothing (HP-01's catalogue header).
+
+class                  n   oracle-before   oracle-after   corpus-after
+cross_aspect           1       no-report         0 of 1         1 of 1
+durable_content        2       no-report         0 of 2         0 of 2
+guard_relaxation       3       no-report         0 of 3         0 of 3
+ordering               1       no-report         0 of 1         0 of 1
+output_oracle          1       no-report         0 of 1         0 of 1
+wrong_value            2       no-report         0 of 2         1 of 2
+
+M10 (HP-04's own seeded blind spot): oracle-before=no-report, oracle-after=survived, corpus-after=survived
+
+M10 COUNTERFACTUAL -- the same action with a run(case, work_dir).
+Prediction N05: HP-04 makes the apply()-only action VISIBLE without
+making it KILLABLE. The counterfactual says what WOULD kill it.
+  control failing cases: 0; seeded: 8; M10 = KILLED
+  => the limit is NOT the oracle's reach. It is the nine apply()-only
+     adapters in production_adapters.py, which HP-04 may not edit.
+
+fixture clean after revert:
+  (clean)

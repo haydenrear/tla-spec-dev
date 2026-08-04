@@ -123,3 +123,176 @@ findings:
       "port" after the parser refused it.
     disposition: filed
     disposition_ticket: null
+
+  - id: HP-04-DF-01
+    found_by: "HP-04"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: ["specs/current/production_adapters.py", "specs/desired_program_model/production_adapters.py", "specs/program_model/production_adapters.py"]
+      test_graph: []
+    summary: >-
+      THE ORACLE'S REACH IS NO LONGER WHAT LIMITS IT. NINE `run(case, work_dir)`
+      IMPLEMENTATIONS ARE. HP-04 closed RC-02-DF-03's runner half -- the oracle
+      consults `can_run`, skips what it cannot drive, names every skip and never
+      aborts -- so it now REPORTS on 18 of 18 modeled actions. It still EXECUTES
+      only 8. The nine that stay unexecuted (AnalyzeComplexity, AnalyzeCorpus,
+      AnalyzeArchitecture, RunEffectConformance, RunKillTest, RunSpecUnitTests,
+      CloseTicket, GenerateCases, CloseTicketWeakened) implement `apply()` with
+      no case-driven entry point, exactly as RC-02 measured; HP-04's
+      implementation_scope does not include `production_adapters.py`.
+
+      WHAT MAKES THIS WORTH A TICKET RATHER THAN A NOTE is a counterfactual
+      HP-04 ran. HP-01's catalogue seeds M10 (`release credits back double`)
+      into precisely this blind spot, with `Release` bound to an `apply()`-only
+      adapter. Under HP-04's oracle M10 SURVIVES -- prediction N05 confirmed,
+      "visible without being killable". Bind the SAME action to an adapter whose
+      only difference is that it has a `run(case, work_dir)`, change nothing
+      else, and M10 dies on 8 of 8 cases. The remaining distance between the
+      oracle and the fault is one method per adapter, and nothing else.
+    reproduction: >-
+      `python3 specs/tickets/HP-04/results/m10/run_m10.py <epic-tip-checkout> .`
+      -- the "M10 COUNTERFACTUAL" block at the end. `case_adapters.toml` binds
+      `quota_adapters:ReleaseAdapter` (apply()-only, M10 survives);
+      `case_adapters_release_runnable.toml` binds
+      `quota_adapters:ReleaseRunnableAdapter` (M10 KILLED, 8 of 8).
+    evidence:
+      - "specs/tickets/HP-04/results/kill-table.txt"
+      - "specs/tickets/HP-04/results/adapter-reach.txt"
+      - "specs/tickets/HP-04/results/dead-ports-reread.txt"
+    why_out_of_scope: >-
+      HP-04's implementation_scope is
+      ["scripts/effect_conformance.py", "scripts/run_generated_case_adapters.py",
+      "references/case_modules.md", "tests/"]. `production_adapters.py` is in
+      none of them, its conflict-key `adapters` list is empty, and RC-02 sized
+      the nine implementations as "a body of work comparable to MF-028 and
+      MF-032 together". A ticket that grew to include them would be a different
+      ticket wearing this one's number.
+    suggested_fix: >-
+      Nine `run(case, work_dir)` implementations following the shape
+      `UpdateTicketAdapterBase` and `RecordBudgetsAdapter` already use --
+      `adapter_case_runtime.materialize_before`, drive the CLI, project the
+      after-state -- in all three trees. Sequence them by what they unblock: the
+      four analyze/run actions carry `evidence_report`, `corpus_process`,
+      `mutation_write`, `runner_process` and `test_process`, which are five of
+      the seven ports HP-04 had to reclassify from "dead" to "unexercised".
+    blast_radius: >-
+      Every dead-surface claim this oracle makes about this repository. 7 of the
+      9 ports it reports as dead are UNEXERCISED, not dead: every action
+      declaring them was skipped. Only `cli_download` and `cli_artifact_delete`
+      are proven dead. RC-02's "9 DEAD PORTS" therefore over-read by 7, and any
+      future manifest edit made on the strength of that column would have been
+      removing live surface.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Found by running the fixed oracle, then by asking what would happen if the
+      one remaining defect were removed. The counterfactual is the finding; the
+      survivor on its own would have read as "HP-04 did not help".
+
+  - id: HP-04-DF-02
+    found_by: "HP-04"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/effect_conformance.py", "scripts/run_generated_case_adapters.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      ONE BOUNDARY, TWO INCOMPATIBLE DECLARATION SHAPES, AND NO PROJECT CAN USE
+      BOTH ORACLES WITHOUT WRITING IT TWICE. `effects:` in a manifest means two
+      different schemas depending on which runner reads it. The effect oracle
+      (`load_effect_declarations`) requires
+      `components.<C>.ports.<P>.{type,target}` with `type` drawn from
+      `EFFECT_TYPES`; the semantic effect providers
+      (`load_effect_provider_plan`) require a top-level
+      `ports.<P>.{role: effect, methods:}` plus `actions.<A>.effect_ports` in
+      `actions.yml`. HP-01's own A/B fixture declares its one durable port
+      (`LedgerAppendPort`, `kind: durable_write`, `asserts_content: true`) in the
+      SECOND shape, so pointing `run effect-conformance` at
+      `examples/validation/ab/model` fails with `port LedgerAppendPort declares
+      no type` -- and HP-04 had to ship a second manifest under its own results
+      directory to run the oracle over that model at all.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance
+      --target examples/validation/ab/model --cases-dir <any corpus>`
+      -> `ERROR: malformed effect declarations: port LedgerAppendPort declares no
+      type`. Compare `specs/tickets/HP-04/results/m10/spec_manifest.yaml`, which
+      says the same thing in the other vocabulary.
+    evidence:
+      - "specs/tickets/HP-04/results/m10/spec_manifest.yaml"
+      - "examples/validation/ab/model/spec_manifest.yaml"
+    why_out_of_scope: >-
+      Unifying the two schemas changes what every existing manifest means and
+      touches both runners' parsers plus every shipped example. HP-04 is three
+      defect fixes in the oracle's execution loop; this is a schema decision.
+    suggested_fix: >-
+      Decide whether a port's OBSERVABLE type/target and its SEMANTIC
+      role/methods are one declaration or two, and say so once. If two, the
+      documentation should state that a project needs both blocks and the error
+      message should name the other shape instead of reporting the port as
+      malformed.
+    blast_radius: >-
+      Any project that wants both the passive effect oracle and semantic effect
+      providers -- which is the configuration HP-05 is about to make the
+      DEFAULT. It is also the reason HP-04's M10 measurement needed a manifest
+      of its own rather than reusing HP-01's.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Hit while building the M10 instrument, not while reading the schemas.
+
+  - id: HP-04-DF-03
+    found_by: "HP-04"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/generate_cases_from_tlc_dump.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A GENERATED CORPUS RECOVERS NO ARGUMENTS AT ALL FOR A REFUSAL. On HP-01's
+      A/B model, every accepting action recovers its parameters
+      (`Reserve {a, r, t}`, `Commit {r}`, `Release {r}`, `CloseTenant {t}`) and
+      every one of the seven `Refuse*` actions recovers `{}` -- an empty
+      parameter map, on all 8 sampled cases each. An adapter cannot drive a
+      refusal it has no argument for, so all 7 refusal actions are SKIPPED
+      `[declined]` and the corpus runner raises `KeyError` on them.
+
+      This is the same shape as RP-02's counted result ("all 330 recovered
+      arguments are arguments the guard ACCEPTS, 0 are rejected inputs") seen
+      from the adapter side rather than the corpus side, and it is HP-03's
+      territory. Recorded here because HP-04 measured it independently while
+      building an instrument for something else, and because it is the reason
+      HP-04's corpus column is restricted to 3 of 11 actions.
+    reproduction: >-
+      Generate a corpus from `examples/validation/ab/model/QuotaLedger.tla` and
+      print `case.input.params` per action; every `Refuse*` case has `{}`.
+      `specs/tickets/HP-04/results/kill-table.txt` shows the consequence
+      (`guard_relaxation 0 of 3` on every arm).
+    evidence:
+      - "specs/tickets/HP-04/results/kill-table.txt"
+    why_out_of_scope: >-
+      `scripts/generate_cases_from_tlc_dump.py` is HP-03's production conflict
+      key and HP-03 is running concurrently. Touching it would collide.
+    suggested_fix: >-
+      HP-03's negative corpus is the fix in substance. Worth checking there that
+      a rejection case carries the argument that WOULD be refused, because a
+      rejection case with an empty parameter map is not executable by any
+      adapter and would reproduce this zero under a new name.
+    blast_radius: >-
+      Guard relaxation, which is 0 on every instrument in every round. If the
+      negative corpus emits refusal cases with no recoverable argument, the class
+      stays at zero for a reason nobody would look for.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Filed toward HP-03, not fixed. Measured on a different model than RP-02's,
+      which makes it a replication rather than a restatement.

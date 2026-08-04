@@ -1,0 +1,26 @@
+HP-04 -- MF026-R4-F-01: two runs over an IDENTICAL corpus, gap counts compared.
+
+The defect: 20 / 15 / 14 gaps across three runs of an identical corpus on an
+identical tree. Reproduced at the epic tip below, then re-measured here.
+
+== AT THE EPIC TIP (386222b), same corpus, three runs ==
+   (PYTHONPATH set, because the epic tip cannot import the adapters at all)
+  run 1 (WARM, shared work dir): effect conformance unobservable: 67 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s)
+  run 2 (WARM, shared work dir): effect conformance unobservable: 50 observed effect(s) over 8 case(s), 12 declared port(s), 19 gap(s), 10 dead port(s), 15 unobservable target(s)
+  run 3 (WARM, shared work dir): effect conformance unobservable: 50 observed effect(s) over 8 case(s), 12 declared port(s), 19 gap(s), 10 dead port(s), 15 unobservable target(s)
+  -- and with the work dir removed first (COLD):
+  cold run: effect conformance unobservable: 67 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s)
+
+== AT HP-04, same corpus, three runs, SAME shared work dir ==
+  run 1: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+  run 2: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+  run 3: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+
+== whole-report comparison, not just the count ==
+  report 1 == report 2: True
+  report 2 == report 3: True
+
+== and over the 18-action corpus, cold then warm ==
+  cold: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 10 skipped case(s)
+  warm: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 10 skipped case(s)
+  report cold == report warm: True

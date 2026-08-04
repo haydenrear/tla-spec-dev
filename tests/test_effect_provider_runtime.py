@@ -740,11 +740,13 @@ def test_assertion_failure_reaches_teardown_and_provider_cleanup(tmp_path: Path)
             '[effect_providers.FilesystemPort]\nprovider = "effect_provider_fixture:filesystem_provider"\n',
             "effect_ports must be a list",
         ),
-        (
-            "[FilesystemPort]",
-            None,
-            "not required by any selected case: PatchPort",
-        ),
+        # The orphan-provider configuration that used to sit here -- a provider
+        # bound for a port no selected case requires -- is deliberately NOT a
+        # refusal any more. HP-04 (CM-F5 / EV-03-DF-02) made it a report,
+        # because it is the normal shape of a case-module SLICE and the refusal
+        # left the shipped ex4 fixture with zero working configurations for its
+        # own slice. The same configuration is asserted, with the opposite
+        # outcome, by `test_an_orphaned_provider_is_reported_not_refused`.
     ],
 )
 def test_effect_provider_configuration_fails_closed_before_execution(
@@ -763,6 +765,46 @@ def test_effect_provider_configuration_fails_closed_before_execution(
             cases=[make_case()],
             import_roots=[tmp_path],
         )
+
+
+def test_an_orphaned_provider_is_reported_not_refused(tmp_path: Path) -> None:
+    """CM-F5 / EV-03-DF-02: a slice narrower than its view still runs.
+
+    A case module in `slice` form enters fewer actions than the view it
+    extends, so the view's providers for the actions it does not enter are
+    orphaned. That used to raise, which meant EVERY mapping the ex4 fixture
+    ships refused the fixture's own slice: zero working configurations, and the
+    documented workaround needed a third mapping file that existed nowhere.
+
+    The two halves asserted here are the two halves of the fix. The plan is
+    produced (no refusal), AND it says out loud which oracle the run does not
+    carry -- because the blind agent that hit the refusal wrote its own third
+    mapping and observed it was a strictly weaker instrument, so a green run
+    under it over-reads. Documentation cannot reach a reader at that moment; the
+    run's own output can.
+    """
+    write_provider_fixture(tmp_path)
+    spec_dir, mapping_path = write_effect_project(tmp_path, action_ports="[FilesystemPort]", providers=None)
+
+    plan = load_effect_provider_plan(
+        spec_dir=spec_dir,
+        mapping_path=mapping_path,
+        cases=[make_case()],
+        import_roots=[tmp_path],
+    )
+
+    assert plan.orphan_ports == ("PatchPort",)
+    assert set(plan.carried) == {"FilesystemPort"}
+    assert plan.configured is True
+    # The bindings the run DOES carry are unaffected: reporting the orphan must
+    # not quietly drop the providers the corpus actually requires.
+    assert [binding.port_name for binding in plan.for_case(make_case())] == ["FilesystemPort"]
+
+    rendered = plan.render_oracle_coverage()
+    assert "**NOT** CARRIED" in rendered
+    assert "PatchPort" in rendered
+    assert "FLOOR" in rendered
+    assert "FilesystemPort" in rendered
 
 
 def test_non_effect_manifest_port_cannot_be_bound_as_semantic_effect(tmp_path: Path) -> None:

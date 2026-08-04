@@ -43,9 +43,18 @@ from effect_conformance import (  # noqa: E402
     OutOfProcessObservation,
     UnobservableTarget,
     WorkingTreeObserver,
+    SKIP_DECLINED,
+    SKIP_NOT_RUNNABLE,
+    SKIP_UNBOUND,
+    SkippedCase,
+    adapter_skip_reason,
     assess_target_observability,
+    corpus_import_roots,
     diff_effects,
+    ensure_import_roots,
+    execute_corpus,
     load_effect_declarations,
+    reset_case_work_dir,
 )
 
 
@@ -1066,3 +1075,373 @@ class TestPolaritySurvivesOutOfProcessObservation:
         assert payload["out_of_process_observations"][0]["observer"] == "working-tree-diff"
         assert payload["out_of_process_observations"][0]["observed_count"] == 3
         assert payload["verdict"] == VERDICT_UNOBSERVABLE
+
+
+# ---------------------------------------------------------------------------
+# HP-04. Three defects found by RUNNING the oracle against this repository's own
+# model for the first time in the project's history -- not by reading it, which
+# four MF-026 audit rounds had already done.
+# ---------------------------------------------------------------------------
+
+
+class TestSkippedCasesAreReportedNotFatal:
+    """RC-02-DF-03. The run does not die on an adapter it cannot drive."""
+
+    def test_an_apply_only_adapter_is_skipped_with_a_reason(self):
+        class ApplyOnly:
+            def apply(self):  # no run(case, work_dir): nothing can drive it
+                return {}
+
+        skip = adapter_skip_reason(ApplyOnly(), object())
+        assert skip is not None
+        kind, reason = skip
+        assert kind == SKIP_NOT_RUNNABLE
+        assert "apply()" in reason and "run(case, work_dir)" in reason
+
+    def test_an_adapter_that_declines_the_case_is_a_different_skip(self):
+        """"cannot be driven at all" and "declined this input" are not the same fact."""
+
+        class Picky:
+            def can_run(self, case):
+                return False, "wrong phase"
+
+            def run(self, case, work_dir=None):  # pragma: no cover - never called
+                raise AssertionError("must not run")
+
+        skip = adapter_skip_reason(Picky(), object())
+        assert skip == (SKIP_DECLINED, "wrong phase")
+
+    def test_a_runnable_adapter_is_not_skipped(self):
+        class Fine:
+            def run(self, case, work_dir=None):
+                return None
+
+        assert adapter_skip_reason(Fine(), object()) is None
+
+    def test_a_skip_does_not_change_the_verdict(self):
+        """The epic's no_new_gates_rule: a skip is a report, never a refusal."""
+        decls = load_effect_declarations(declarations(workspace=WRITE_PORT))
+        report = diff_effects(
+            decls,
+            [ObservedEffect(type="filesystem.write", target="/a/workspace/f", action="Act", case="c1")],
+            cases=["c1"],
+            skipped=[
+                SkippedCase(case="c2", action="Other", adapter="m:A", reason="apply()-only", kind=SKIP_NOT_RUNNABLE)
+            ],
+            executed_actions=["Act"],
+        )
+        assert report.verdict == VERDICT_CLEAN
+        assert report.ok is True
+        # ...and yet it is impossible to read the report without seeing it.
+        assert "1 skipped case(s)" in report.summary()
+        assert "SKIPPED CASES" in report.render()
+        assert "apply()-only" in report.render()
+
+    def test_action_reach_is_answered_by_the_run(self):
+        report = diff_effects(
+            load_effect_declarations(declarations(workspace=WRITE_PORT)),
+            [],
+            cases=["c1"],
+            skipped=[SkippedCase(case="c2", action="Skipped", adapter="m:A", reason="apply()-only")],
+            offered_actions=["Act", "Skipped"],
+            executed_actions=["Act"],
+        )
+        reach = report.action_reach()
+        assert "1 of 2 action(s) in this corpus EXECUTED" in reach
+        assert "Skipped: Skipped" in reach
+        payload = report.to_dict()["action_reach"]
+        assert payload["executed"] == ["Act"] and payload["skipped"] == ["Skipped"]
+
+    def test_a_port_whose_every_action_was_skipped_is_not_called_dead(self):
+        """An absence of evidence is not evidence of absence.
+
+        Nine of seventeen adapters in this repository's own model are
+        apply()-only, so before this annotation the oracle's dead-port list
+        mixed proven dead surface with ports nothing had been in a position to
+        exercise. On the shipped model that was 7 of the 9 reported dead ports.
+        """
+        block = declarations(evidence=WRITE_PORT, other=dict(WRITE_PORT))
+        block["effects"]["actions"] = {"Act": ["other"], "Skipped": ["evidence"]}
+        decls = load_effect_declarations(block)
+        report = diff_effects(
+            decls,
+            [],
+            cases=["c1"],
+            skipped=[SkippedCase(case="c2", action="Skipped", adapter="m:A", reason="apply()-only")],
+            executed_actions=["Act"],
+        )
+        by_port = {dead.port.port: dead for dead in report.dead_surface}
+        assert by_port["evidence"].blocked_by == ("Skipped",)
+        assert "UNEXERCISED PORT (NOT proven dead)" in by_port["evidence"].describe()
+        # `other`'s action DID run and still did not exercise it: that is real
+        # dead surface and softening it would be the same mistake inverted.
+        assert by_port["other"].blocked_by == ()
+        assert "DEAD MODEL SURFACE" in by_port["other"].describe()
+        # The verdict is untouched either way.
+        assert report.verdict == VERDICT_DEAD_SURFACE and report.ok is False
+
+
+class TestImportRootsForAScaffoldedProject:
+    """RC-02-DF-02. The oracle could not read a project the CLI itself creates."""
+
+    def test_the_target_spec_dir_leads_the_import_roots(self, tmp_path):
+        spec_dir = tmp_path / "specs" / "current"
+        spec_dir.mkdir(parents=True)
+        roots = corpus_import_roots(spec_dir)
+        assert roots[0] == spec_dir.resolve()
+        # The toolchain root carries spec_double_compiler, which every
+        # scaffolded adapters.py imports.
+        assert (Path(__file__).resolve().parents[1]) in roots
+
+    def test_ensure_import_roots_puts_them_in_front(self, tmp_path):
+        first = tmp_path / "one"
+        second = tmp_path / "two"
+        first.mkdir()
+        second.mkdir()
+        saved = list(sys.path)
+        try:
+            added = ensure_import_roots([first, second])
+            assert set(added) == {str(first), str(second)}
+            assert sys.path[0] == str(first), "the spec dir must win over anything already importable"
+        finally:
+            sys.path[:] = saved
+
+    def test_the_scaffolded_convention_imports_with_no_pythonpath(self, tmp_path):
+        """The exact shape of `case_adapters.toml`: a bare module path."""
+        spec_dir = tmp_path / "specs" / "current"
+        spec_dir.mkdir(parents=True)
+        (spec_dir / "hp04_production_adapters.py").write_text(
+            "class Adapter:\n    def run(self, case, work_dir=None):\n        return None\n",
+            encoding="utf-8",
+        )
+        saved = list(sys.path)
+        try:
+            ensure_import_roots(corpus_import_roots(spec_dir))
+            from spec_double_compiler.runtime import load_object
+
+            assert load_object("hp04_production_adapters:Adapter") is not None
+        finally:
+            sys.path[:] = saved
+            sys.modules.pop("hp04_production_adapters", None)
+
+
+class TestTheWorkDirIsResetPerCase:
+    """MF026-R4-F-01. 20 / 15 / 14 gaps over an identical corpus and tree."""
+
+    def test_a_stale_case_dir_is_emptied(self, tmp_path):
+        work = tmp_path / "work"
+        stale = work / "case_1"
+        stale.mkdir(parents=True)
+        (stale / "target-repo").mkdir()
+        (stale / "target-repo" / "manifest.yaml").write_text("from a previous run", encoding="utf-8")
+
+        fresh = reset_case_work_dir(work, "case_1")
+
+        assert fresh.exists() and list(fresh.iterdir()) == []
+
+    def test_sibling_case_dirs_and_the_parent_survive(self, tmp_path):
+        """Only the directory this case is about to use is emptied."""
+        work = tmp_path / "work"
+        (work / "case_1").mkdir(parents=True)
+        (work / "case_2").mkdir(parents=True)
+        keep = work / "case_2" / "keep.txt"
+        keep.write_text("x", encoding="utf-8")
+        (work / "notes.txt").write_text("caller's own file", encoding="utf-8")
+
+        reset_case_work_dir(work, "case_1")
+
+        assert keep.exists()
+        assert (work / "notes.txt").exists()
+
+    def test_the_report_states_whether_the_scratch_was_reset(self):
+        report = diff_effects(
+            load_effect_declarations(declarations(workspace=WRITE_PORT)),
+            [ObservedEffect(type="filesystem.write", target="/a/workspace/f", action="Act", case="c1")],
+            cases=["c1"],
+            executed_actions=["Act"],
+            work_dir="/tmp/w",
+            work_dir_reset=True,
+        )
+        assert "each case started from an EMPTY directory" in report.render()
+        assert report.to_dict()["determinism"]["work_dir_reset_per_case"] is True
+
+
+class TestExecuteCorpusEndToEnd:
+    """All three defects at once, on a project shaped like a scaffolded one."""
+
+    @staticmethod
+    def _project(tmp_path):
+        spec_dir = tmp_path / "specs" / "current"
+        (spec_dir / "cases_pkg").mkdir(parents=True)
+        # `case_adapters.toml` names adapters as BARE module paths -- the
+        # convention `tla-spec-dev scaffold` writes. Nothing here adjusts
+        # sys.path; that is the point of the test.
+        (spec_dir / "case_adapters.toml").write_text(
+            '[adapters.Writes]\nadapter = "hp04_adapters:WritesAdapter"\n'
+            '[adapters.ApplyOnly]\nadapter = "hp04_adapters:ApplyOnlyAdapter"\n',
+            encoding="utf-8",
+        )
+        (spec_dir / "hp04_adapters.py").write_text(
+            "from pathlib import Path\n"
+            "\n"
+            "\n"
+            "class WritesAdapter:\n"
+            "    def run(self, case, work_dir=None):\n"
+            "        # Exactly the shape that made the oracle non-reproducible:\n"
+            "        # an adapter materializing its own before-state writes on a\n"
+            "        # cold run and finds the file already there on a warm one.\n"
+            "        target = Path(work_dir) / 'target-repo' / 'manifest.yaml'\n"
+            "        target.parent.mkdir(parents=True, exist_ok=True)\n"
+            "        if not target.exists():\n"
+            "            target.write_text('scaffolded', encoding='utf-8')\n"
+            "        return None\n"
+            "\n"
+            "\n"
+            "class ApplyOnlyAdapter:\n"
+            "    def apply(self):\n"
+            "        return {}\n",
+            encoding="utf-8",
+        )
+        (spec_dir / "cases_pkg" / "__init__.py").write_text(
+            "from .cases import CASES\n\n__all__ = ['CASES']\n", encoding="utf-8"
+        )
+        (spec_dir / "cases_pkg" / "cases.py").write_text(
+            "from dataclasses import dataclass, field\n"
+            "\n"
+            "\n"
+            "@dataclass(frozen=True)\n"
+            "class Case:\n"
+            "    name: str\n"
+            "    labels: frozenset\n"
+            "    view: str = 'internal'\n"
+            "\n"
+            "\n"
+            "CASES = [\n"
+            "    Case(name='case_1', labels=frozenset({'Writes'})),\n"
+            "    Case(name='case_2', labels=frozenset({'ApplyOnly'})),\n"
+            "    Case(name='case_3', labels=frozenset({'Unbound'})),\n"
+            "]\n",
+            encoding="utf-8",
+        )
+        return spec_dir
+
+    def _run(self, spec_dir, work_dir):
+        recorder = EffectRecorder()
+        execution = execute_corpus(
+            spec_dir=spec_dir,
+            cases_dirs=[spec_dir / "cases_pkg"],
+            mapping_path=spec_dir / "case_adapters.toml",
+            work_dir=work_dir,
+            recorder=recorder,
+        )
+        block = declarations(spec_tree={"type": "filesystem.write", "target": "**/target-repo/**"})
+        block["effects"]["actions"] = {"Writes": ["spec_tree"]}
+        return diff_effects(
+            load_effect_declarations(block),
+            recorder.effects,
+            cases=execution.cases,
+            unobservable=recorder.unobservable,
+            skipped=recorder.skipped,
+            offered_actions=execution.offered_actions,
+            executed_actions=execution.executed_actions,
+            work_dir=str(work_dir),
+            work_dir_reset=True,
+        )
+
+    def test_runs_a_scaffolded_project_and_reports_what_it_could_not_run(self, tmp_path):
+        spec_dir = self._project(tmp_path)
+        saved = list(sys.path)
+        try:
+            report = self._run(spec_dir, tmp_path / "work")
+        finally:
+            sys.path[:] = saved
+            for name in ("hp04_adapters", "cases_pkg", "cases_pkg.cases"):
+                sys.modules.pop(name, None)
+
+        # RC-02-DF-02: it imported `hp04_adapters` with no caller help.
+        assert report.cases == ["case_1"]
+        # RC-02-DF-03: the apply()-only adapter did not abort the run, and the
+        # unbound action is named rather than passed over in silence.
+        kinds = {skip.action: skip.kind for skip in report.skipped}
+        assert kinds == {"ApplyOnly": SKIP_NOT_RUNNABLE, "Unbound": SKIP_UNBOUND}
+        assert "1 of 3 action(s) in this corpus EXECUTED" in report.action_reach()
+
+    def test_two_runs_over_an_identical_corpus_are_identical(self, tmp_path):
+        """MF026-R4-F-01, the whole ticket in one assertion.
+
+        The measured defect was 20 / 15 / 14 gaps across three runs of an
+        identical corpus on an identical tree -- a 43% spread on the number any
+        claim would rest on. The comparison here is the WHOLE report, not just
+        the count, because two runs that agree on a total while disagreeing on
+        which effects produced it are still not reproducible.
+        """
+        spec_dir = self._project(tmp_path)
+        work = tmp_path / "work"
+        saved = list(sys.path)
+        try:
+            first = self._run(spec_dir, work).to_dict()
+            second = self._run(spec_dir, work).to_dict()
+            third = self._run(spec_dir, work).to_dict()
+        finally:
+            sys.path[:] = saved
+            for name in ("hp04_adapters", "cases_pkg", "cases_pkg.cases"):
+                sys.modules.pop(name, None)
+
+        assert first == second == third
+        # Stable on a NONZERO gap count. Agreeing on zero would be a weaker
+        # claim: the defect was a gap that appeared on the cold run and vanished
+        # on the warm one, so the count has to be reproducible while it is a
+        # number somebody would cite.
+        assert len(first["gaps"]) == 1
+        # The warm runs really did re-execute the write -- this is not agreement
+        # by way of both runs observing nothing.
+        assert first["observed_effects"], "the adapter's write must be observed on every run"
+        assert any(
+            effect["target"].endswith("manifest.yaml") for effect in first["observed_effects"]
+        ), "the write that used to appear only on a cold run must appear on every run"
+
+
+class TestPathOpenIsObserved:
+    """HP-04: `path.open("a")` used to cross the boundary unobserved.
+
+    Found by running the oracle over HP-01's A/B reference rather than by
+    reading the sandbox. The reference appends its durable ledger with
+    `self._ledger_path.open("a")`; the sandbox patched `builtins.open`,
+    `Path.write_text` and `Path.write_bytes` but not `Path.open`, so the
+    idiomatic append was silent while the equivalent `open(path, "a")` was
+    recorded. The oracle then "killed" the ordering NEGATIVE CONTROL, whose
+    mutation swaps that append for a `Path.write_text` -- it detected a change
+    of API, not a change of behavior.
+    """
+
+    def test_append_through_path_open_is_recorded(self, tmp_path):
+        sandbox = EffectSandbox(root=tmp_path / "sb")
+        target = tmp_path / "ledger.txt"
+        with sandbox, sandbox.observe(action="Act", case="c1"):
+            with target.open("a", encoding="utf-8") as handle:
+                handle.write("COMMIT t1 1\n")
+        assert any(
+            effect.type == "filesystem.write" and effect.target.endswith("ledger.txt")
+            for effect in sandbox.recorder.for_case("c1")
+        )
+
+    def test_reading_through_path_open_is_not_a_write(self, tmp_path):
+        target = tmp_path / "ledger.txt"
+        target.write_text("x", encoding="utf-8")
+        sandbox = EffectSandbox(root=tmp_path / "sb")
+        with sandbox, sandbox.observe(action="Act", case="c1"):
+            with target.open("r", encoding="utf-8") as handle:
+                handle.read()
+        assert sandbox.recorder.for_case("c1") == []
+
+    def test_the_two_idioms_produce_the_same_crossing(self, tmp_path):
+        """The point of the fix: observation must not depend on which was used."""
+        def crossings(write) -> set[tuple[str, str]]:
+            sandbox = EffectSandbox(root=tmp_path / "sb")
+            with sandbox, sandbox.observe(action="Act", case="c"):
+                write(tmp_path / "ledger.txt")
+            return {(e.type, e.target) for e in sandbox.recorder.for_case("c")}
+
+        via_path = crossings(lambda p: p.open("a", encoding="utf-8").close())
+        via_builtin = crossings(lambda p: open(p, "a", encoding="utf-8").close())
+        assert via_path == via_builtin

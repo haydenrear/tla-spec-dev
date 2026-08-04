@@ -59,6 +59,33 @@ Three surfaces:
    - A **declared-but-never-observed port** across the whole corpus is dead
      model surface: remove the port, or produce a case that exercises it.
 
+4. **Execution.** :func:`execute_corpus` drives a generated case corpus through
+   the mapped adapters inside the sandbox. HP-04 moved it here from the CLI
+   shim, because running it for the first time in the project's history found
+   three defects that four rounds of *reading* the oracle had not:
+
+   - **It could not import the adapters of a project the CLI itself
+     scaffolds** (RC-02-DF-02). ``case_adapters.toml`` names adapters as bare
+     module paths (``production_adapters:BuildSkillCliAdapter``) and nothing
+     put the target spec directory on ``sys.path``, so the very first run died
+     with ``ModuleNotFoundError`` before a single case executed.
+     :func:`corpus_import_roots` now builds the same root set the enforcing
+     runner gets on ``PYTHONPATH``.
+   - **It aborted the whole run on the first adapter that could not take a
+     case** (RC-02-DF-03). Nine of seventeen adapters in this repository's own
+     model implement ``apply()`` and no ``run(case, work_dir)``. A skip is a
+     **report** (:class:`SkippedCase`), never a refusal, and never silence: the
+     summary line carries the executed/skipped/unbound action counts, and a
+     declared port whose every action was skipped is annotated as UNEXERCISED
+     rather than read as proven dead.
+   - **Its findings were not reproducible** (MF026-R4-F-01): 20 / 15 / 14 gaps
+     across three runs of an identical corpus on an identical tree, because the
+     work directory persisted between runs and an adapter that materializes its
+     own before-state writes a file on the first run that it finds already
+     present on the second. A gap count that moves 43% is not a number anything
+     can cite. :func:`reset_case_work_dir` gives every case an empty directory,
+     so the run is a function of the corpus and the tree and of nothing else.
+
 **NOTHING SUPPRESSES A GAP REPORT.** There is no justification field, no
 annotation, no manifest entry, and no flag that turns a gap into a pass. The
 2026-07-18 degeneracy audit found this ticket's original criteria
@@ -91,6 +118,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
@@ -298,6 +326,52 @@ class OutOfProcessObservation:
     covered_types: frozenset[str]
     root: str = ""
     observed_count: int = 0
+
+
+#: HP-04 skip reasons. ``not-runnable`` means the adapter has no case-driven
+#: entry point at all (``apply()`` and no ``run(case, work_dir)``);
+#: ``declined`` means the adapter has one and its own ``can_run``/``validate``
+#: refused this particular case; ``unbound`` means the mapping binds no adapter
+#: for the case's action.
+SKIP_NOT_RUNNABLE = "not-runnable"
+SKIP_DECLINED = "declined"
+SKIP_UNBOUND = "unbound"
+
+
+@dataclass(frozen=True)
+class SkippedCase:
+    """A case the runner did not execute, and why. A REPORT, never a refusal.
+
+    RC-02-DF-03. Before HP-04 the oracle called ``call_adapter`` unconditionally
+    and the first ``apply()``-only adapter raised ``TypeError``, killing the run
+    with no report written -- so a corpus containing any analyze/run/close case
+    produced nothing at all rather than a partial measurement.
+
+    A skip is deliberately **not** a verdict input. The epic's
+    ``no_new_gates_rule`` is explicit that skipping an adapter that cannot
+    execute is a report, and adding it to :attr:`EffectConformanceReport.ok`
+    would be shipping a new blocking check under the cover of a bug fix.
+
+    It is equally deliberately **not silent**. MF-027's whole lesson is that an
+    absence of observation must never read as a clean observation, so the skip
+    count rides in :meth:`EffectConformanceReport.summary` beside the gap count,
+    every skip is rendered with its reason, and a declared port whose every
+    declaring action was skipped is annotated as unexercised rather than
+    presented as proven dead surface.
+    """
+
+    case: str
+    action: str
+    adapter: str
+    reason: str
+    kind: str = SKIP_NOT_RUNNABLE
+
+    def describe(self) -> str:
+        adapter = self.adapter or "<unbound>"
+        return (
+            f"SKIPPED [{self.kind}]: case {self.case} (action {self.action or '<unmapped>'}) "
+            f"-- adapter {adapter}: {self.reason}"
+        )
 
 
 @dataclass(frozen=True)
@@ -577,11 +651,19 @@ class EffectRecorder:
     #: there is deliberately no method to withdraw one, because it is evidence,
     #: not a flag.
     out_of_process: list["OutOfProcessObservation"] = field(default_factory=list)
+    #: HP-04 (RC-02-DF-03): cases the runner could not execute, with the reason.
+    #: Like ``unobservable`` this is a fact the run gathered and there is no
+    #: method to withdraw one -- but unlike it, a skip changes no verdict.
+    skipped: list["SkippedCase"] = field(default_factory=list)
 
     def record_unobservable(self, finding: UnobservableTarget) -> None:
         """Record a refusal. There is no matching ``clear``/``waive`` method."""
         if finding not in self.unobservable:
             self.unobservable.append(finding)
+
+    def record_skip(self, skip: "SkippedCase") -> None:
+        """Record a case the runner did not execute. No ``clear``/``waive``."""
+        self.skipped.append(skip)
 
     def record_out_of_process(self, observation: "OutOfProcessObservation") -> None:
         """Record what an out-of-process observer proved. No ``clear``/``waive``."""
@@ -697,6 +779,17 @@ class EffectSandbox:
 
         self._patch_path_method("write_text", "filesystem.write")
         self._patch_path_method("write_bytes", "filesystem.write")
+        # HP-04: `Path.open` was NOT patched, so `path.open("a")` -- the
+        # idiomatic way to append to a durable file -- crossed the boundary
+        # unobserved while `builtins.open(path, "a")` was recorded. Found by
+        # running the oracle over HP-01's A/B reference: the ordering mutant M09
+        # replaces a `Path.open("a")` append with `Path.write_text`, and the
+        # oracle "killed" it purely because the mutation swapped an INVISIBLE
+        # write for a visible one. An oracle whose observation depends on which
+        # of two equivalent APIs the program picked reports a fact about the
+        # program's style, and the failure direction is the bad one: the more
+        # common idiom was the silent one.
+        self._patch_path_open()
         self._patch_path_method("mkdir", "filesystem.write")
         self._patch_path_method("unlink", "filesystem.delete")
         self._patch_path_method("rmdir", "filesystem.delete")
@@ -738,6 +831,29 @@ class EffectSandbox:
             return original(self_path, *args, **kwargs)
 
         setattr(Path, name, patched)
+
+    def _patch_path_open(self) -> None:
+        """Record ``Path.open`` in a write mode, like ``builtins.open``.
+
+        Same mode test as the ``builtins.open`` patch, so the two idioms are
+        observed identically -- which is the whole point of adding it.
+        """
+        original = getattr(Path, "open", None)
+        if original is None:  # pragma: no cover - defensive
+            return
+        self._originals["Path.open"] = (Path, "open", original)
+        recorder = self.recorder
+
+        def patched(self_path: Path, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
+            if any(char in _WRITE_MODES for char in mode):
+                recorder.record(
+                    ObservedEffect(
+                        type="filesystem.write", target=str(_abspath(self_path)), detail="Path.open"
+                    )
+                )
+            return original(self_path, mode, *args, **kwargs)
+
+        setattr(Path, "open", patched)
 
     def _patch_process(self, name: str) -> None:
         original = getattr(subprocess, name, None)
@@ -968,11 +1084,31 @@ class EffectGap:
 
 @dataclass
 class DeadSurface:
-    """A declared port no case ever exercised. Always a failure."""
+    """A declared port no case ever exercised. Always a failure.
+
+    HP-04 adds :attr:`blocked_by`: the actions that declare this port and whose
+    cases the run SKIPPED (see :class:`SkippedCase`). The verdict is unchanged
+    -- an unexercised port still fails -- but the message is, because "declared
+    but never observed" and "declared, and every action that could have
+    exercised it was skipped" are different claims and only the first is
+    evidence that the surface is dead. Nine of this model's seventeen adapters
+    are ``apply()``-only, so before this annotation the oracle's dead-port list
+    silently mixed proven dead surface with ports nothing had ever been in a
+    position to exercise.
+    """
 
     port: PortDeclaration
+    #: Actions declaring this port whose cases were all skipped, if any.
+    blocked_by: tuple[str, ...] = ()
 
     def describe(self) -> str:
+        if self.blocked_by:
+            return (
+                f"UNEXERCISED PORT (NOT proven dead): port {self.port.qualified} "
+                f"({self.port.type} -> {self.port.target}) -- every action declaring it "
+                f"was SKIPPED by this run: {', '.join(self.blocked_by)}. "
+                "This is an absence of evidence, not evidence of absence."
+            )
         return (
             f"DEAD MODEL SURFACE: port {self.port.qualified} "
             f"({self.port.type} -> {self.port.target}) declared but never observed"
@@ -995,6 +1131,25 @@ class EffectConformanceReport:
     #: evidence, reported so the reader can see WHICH child effects were
     #: recovered across a boundary and on which axes; it never enters ``ok``.
     out_of_process: list[OutOfProcessObservation] = field(default_factory=list)
+    #: HP-04 (RC-02-DF-03): the cases this run did not execute, with reasons.
+    #: Reported, never a verdict input -- see :class:`SkippedCase`.
+    skipped: list[SkippedCase] = field(default_factory=list)
+    #: HP-04: the modeled actions the corpus offered, whether or not their
+    #: adapters could run. ``executed`` + ``skipped`` action names partition it,
+    #: which is what makes "the oracle sees N of M actions" a statement anyone
+    #: can check against the run instead of against the source.
+    offered_actions: list[str] = field(default_factory=list)
+    executed_actions: list[str] = field(default_factory=list)
+    #: HP-04 (MF026-R4-F-01): the work directory this run used and whether each
+    #: case started from an empty one. A run whose scratch persisted is a run
+    #: whose numbers depend on what ran before it.
+    work_dir: str = ""
+    work_dir_reset: bool = False
+
+    @property
+    def skipped_actions(self) -> list[str]:
+        executed = set(self.executed_actions)
+        return sorted({skip.action for skip in self.skipped if skip.action and skip.action not in executed})
 
     @property
     def ok(self) -> bool:
@@ -1007,6 +1162,14 @@ class EffectConformanceReport:
         # beside it, so there is no second code path that could be relaxed
         # independently. An unobservable target is not a caveat attached to a
         # pass; it is a failure.
+        #
+        # HP-04 deliberately does NOT add `skipped` here. The epic's
+        # no_new_gates_rule says skipping an adapter that cannot execute is a
+        # report, never a refusal, and a bug-fix ticket that quietly turned the
+        # 9 apply()-only adapters in this repository's own model into a hard
+        # failure would have shipped a new blocking check under cover. The skip
+        # is instead impossible to miss: it is in `summary()`, in `render()`,
+        # and it annotates every dead-port finding it could have caused.
         return not self.gaps and not self.dead_surface and not self.unobservable
 
     @property
@@ -1028,15 +1191,57 @@ class EffectConformanceReport:
         return VERDICT_CLEAN
 
     def summary(self) -> str:
-        return (
+        # HP-04: the skip count is APPENDED to the historical summary rather
+        # than folded into it. A reader comparing this line with a pre-HP-04
+        # report should see the same leading counts plus one new fact, not a
+        # reshuffled sentence they have to re-parse.
+        head = (
             f"effect conformance {self.verdict}: {len(self.observed)} observed effect(s) over "
             f"{len(self.cases)} case(s), {len(self.declared)} declared port(s), "
             f"{len(self.gaps)} gap(s), {len(self.dead_surface)} dead port(s), "
             f"{len(self.unobservable)} unobservable target(s)"
         )
+        if self.skipped or self.offered_actions:
+            head += f", {len(self.skipped)} skipped case(s)"
+        return head
+
+    def action_reach(self) -> str:
+        """One line answering "how many actions can this oracle actually see?".
+
+        The question RC-02-DF-03 left open, answered by the run instead of by
+        counting ``hasattr(cls, "run")`` over the mapping by hand.
+        """
+        executed = sorted(set(self.executed_actions))
+        skipped = self.skipped_actions
+        offered = sorted(set(self.offered_actions) | set(executed) | set(skipped))
+        return (
+            f"ADAPTER REACH: {len(executed)} of {len(offered)} action(s) in this corpus EXECUTED; "
+            f"{len(skipped)} SKIPPED. Executed: {', '.join(executed) or '(none)'}. "
+            f"Skipped: {', '.join(skipped) or '(none)'}."
+        )
 
     def render(self) -> str:
         lines = [self.summary()]
+        if self.work_dir:
+            lines.append(
+                f"work dir: {self.work_dir} "
+                + (
+                    "(each case started from an EMPTY directory, so two runs over an "
+                    "identical corpus report identical counts -- MF026-R4-F-01)"
+                    if self.work_dir_reset
+                    else "(NOT reset per case: results may depend on what ran before)"
+                )
+            )
+        if self.skipped or self.offered_actions:
+            lines.append(self.action_reach())
+        if self.skipped:
+            lines.append("")
+            lines.append(
+                "SKIPPED CASES -- reported, never a refusal (no_new_gates_rule). The "
+                "oracle certifies NOTHING about the actions below; their ports are "
+                "unexercised by this run rather than proven dead:"
+            )
+            lines.extend(f"  - {skip.describe()}" for skip in self.skipped)
         if self.out_of_process:
             observed = sum(obs.observed_count for obs in self.out_of_process)
             axes = sorted({t for obs in self.out_of_process for t in obs.covered_types})
@@ -1113,9 +1318,47 @@ class EffectConformanceReport:
                 for gap in self.gaps
             ],
             "dead_surface": [
-                {"port": dead.port.qualified, "type": dead.port.type, "target": dead.port.target}
+                {
+                    "port": dead.port.qualified,
+                    "type": dead.port.type,
+                    "target": dead.port.target,
+                    "blocked_by_skipped_actions": list(dead.blocked_by),
+                    "proven_dead": not dead.blocked_by,
+                }
                 for dead in self.dead_surface
             ],
+            "skipped_cases": [
+                {
+                    "case": skip.case,
+                    "action": skip.action,
+                    "adapter": skip.adapter,
+                    "kind": skip.kind,
+                    "reason": skip.reason,
+                    "message": skip.describe(),
+                }
+                for skip in self.skipped
+            ],
+            "action_reach": {
+                "offered": sorted(set(self.offered_actions) | set(self.executed_actions) | set(self.skipped_actions)),
+                "executed": sorted(set(self.executed_actions)),
+                "skipped": self.skipped_actions,
+                "summary": self.action_reach(),
+            },
+            "determinism": {
+                "work_dir": self.work_dir,
+                "work_dir_reset_per_case": self.work_dir_reset,
+                "note": (
+                    "MF026-R4-F-01: the gap count was 20/15/14 across three runs of an "
+                    "identical corpus because this directory persisted between runs. Each "
+                    "case now starts from an empty one."
+                ),
+            },
+            "skip_policy": (
+                "HP-04: a case whose adapter cannot execute it is SKIPPED AND REPORTED and "
+                "never aborts the run, and the skip enters no verdict -- the epic's "
+                "no_new_gates_rule. It is also never silent: it is in the summary line, in "
+                "the rendered report, and it annotates every dead-port finding it caused"
+            ),
             "unobservable_targets": [
                 {
                     "target": finding.target,
@@ -1166,6 +1409,11 @@ def diff_effects(
     case_actions: dict[str, str] | None = None,
     unobservable: Iterable[UnobservableTarget] = (),
     out_of_process: Iterable[OutOfProcessObservation] = (),
+    skipped: Iterable[SkippedCase] = (),
+    offered_actions: Iterable[str] = (),
+    executed_actions: Iterable[str] = (),
+    work_dir: str = "",
+    work_dir_reset: bool = False,
 ) -> EffectConformanceReport:
     """Diff observed effects against declared ports.
 
@@ -1199,6 +1447,7 @@ def diff_effects(
     observed_list = list(observed)
     case_actions = case_actions or {}
     out_of_process_list = list(out_of_process)
+    skipped_list = list(skipped)
     report = EffectConformanceReport(
         observed=observed_list,
         declared=declarations.all_qualified(),
@@ -1206,6 +1455,11 @@ def diff_effects(
         ignored_suppression_keys=list(declarations.ignored_suppression_keys),
         unobservable=list(unobservable),
         out_of_process=out_of_process_list,
+        skipped=skipped_list,
+        offered_actions=list(offered_actions),
+        executed_actions=list(executed_actions),
+        work_dir=work_dir,
+        work_dir_reset=work_dir_reset,
     )
 
     # MF-033: per-case union of the axes an out-of-process observer positively
@@ -1271,8 +1525,244 @@ def diff_effects(
         seen_gaps.add(key)
         report.gaps.append(EffectGap(effect=effect))
 
+    # HP-04: which actions were skipped, so a port only those actions declare
+    # can be reported as unexercised rather than as proven dead surface.
+    executed_names = set(report.executed_actions)
+    skipped_names = {skip.action for skip in skipped_list if skip.action and skip.action not in executed_names}
     for name, decl in sorted(declarations.ports.items()):
-        if name not in exercised:
+        if name in exercised:
+            continue
+        declaring = sorted(
+            action for action, ports in declarations.action_ports.items() if name in ports
+        )
+        blocked = tuple(action for action in declaring if action in skipped_names)
+        # Only an annotation when EVERY declaring action was skipped. If even
+        # one ran and did not exercise the port, the run does carry evidence and
+        # softening the message would be the absence-of-evidence mistake in the
+        # other direction.
+        if declaring and len(blocked) == len(declaring):
+            report.dead_surface.append(DeadSurface(port=decl, blocked_by=blocked))
+        else:
             report.dead_surface.append(DeadSurface(port=decl))
 
     return report
+
+
+# ---------------------------------------------------------------------------
+# Execution (HP-04). Moved here from `scripts/effect_conformance_report.py` so
+# the oracle's own module owns the loop, and so the three defects below have one
+# place to be fixed rather than one per caller.
+# ---------------------------------------------------------------------------
+
+#: The repository root, i.e. the directory holding ``scripts/`` and
+#: ``spec_double_compiler/``. Scaffolded adapters import ``CaseRunResult`` from
+#: the latter, so it belongs on every import path the oracle builds.
+_TOOLCHAIN_ROOT = Path(__file__).resolve().parents[1]
+
+
+def corpus_import_roots(spec_dir: Path, extra: Iterable[Path] = ()) -> list[Path]:
+    """The import roots a scaffolded project's adapters need. RC-02-DF-02.
+
+    ``case_adapters.toml`` -- the file ``tla-spec-dev scaffold`` writes -- names
+    adapters as bare module paths such as
+    ``production_adapters:BuildSkillCliAdapter``. Those resolve only with the
+    target spec directory on ``sys.path``.
+
+    The enforcing runner already gets exactly this set: ``run spec-unit-tests``
+    spawns ``scripts/run_generated_case_adapters.py`` with
+    ``PYTHONPATH=<target dir>:<repo root>:<toolchain root>``
+    (``scripts/tla_spec_dev.py``, ``command_env``). The standalone oracle built
+    none of it, which made it the only one of the pair that could not read a
+    project the CLI itself created -- the exact inverse of the documented
+    relationship between them. The order here mirrors ``command_env``: the spec
+    dir first, so a project's own module wins over a same-named one in the
+    toolchain.
+    """
+    roots: list[Path] = []
+    for candidate in (Path(spec_dir), *[Path(item) for item in extra], Path.cwd(), _TOOLCHAIN_ROOT):
+        try:
+            resolved = candidate.resolve()
+        except OSError:  # pragma: no cover - defensive
+            continue
+        if resolved not in roots:
+            roots.append(resolved)
+    return roots
+
+
+def ensure_import_roots(roots: Iterable[Path]) -> list[str]:
+    """Put ``roots`` at the front of ``sys.path``; return the ones added.
+
+    Front, not back: a scaffolded project's ``production_adapters`` must win
+    over anything already importable under that name, or the oracle silently
+    measures the wrong program.
+    """
+    added: list[str] = []
+    for root in reversed(list(roots)):
+        text = str(root)
+        if text in sys.path:
+            continue
+        sys.path.insert(0, text)
+        added.append(text)
+    return added
+
+
+def reset_case_work_dir(work_dir: Path, case_name: str) -> Path:
+    """Return an EMPTY directory for ``case_name`` under ``work_dir``.
+
+    MF026-R4-F-01. The oracle's gap count was 20 / 15 / 14 across three runs of
+    an identical corpus on an identical tree -- a 43% spread on the number that
+    would gate anything -- and the cause was this directory surviving between
+    runs. Adapters materialize their own before-state by replaying CLI commands
+    into ``<case>/target-repo``; a scaffold command writes a file on a cold run
+    and finds it already present on a warm one, so the cold run observes a
+    ``filesystem.write`` the warm run does not. That is a gap that exists
+    because of what ran yesterday.
+
+    Only the per-case subdirectory is removed, and only under a directory the
+    oracle owns. Recreating it is what makes the run a function of the corpus
+    and the tree; leaving the parent alone is what keeps ``--work-dir`` a
+    directory the caller can point anywhere without the oracle emptying it.
+    """
+    case_dir = Path(work_dir) / case_name
+    if case_dir.exists():
+        shutil.rmtree(case_dir)
+    case_dir.mkdir(parents=True, exist_ok=True)
+    return case_dir
+
+
+def _case_action_name(case: Any) -> str:
+    """The action a generated case exercises, from the case's own input."""
+    action = getattr(getattr(case, "input", None), "action", None)
+    if isinstance(action, str) and action:
+        return action
+    for label in sorted(getattr(case, "labels", ()) or ()):
+        if isinstance(label, str) and label and ":" not in label:
+            return label
+    return ""
+
+
+@dataclass
+class CorpusExecution:
+    """What one corpus execution produced, beside the recorded effects."""
+
+    cases: list[str] = field(default_factory=list)
+    offered_actions: list[str] = field(default_factory=list)
+    executed_actions: list[str] = field(default_factory=list)
+    work_dir: Path | None = None
+    import_roots: list[str] = field(default_factory=list)
+
+
+def adapter_skip_reason(adapter: Any, case: Any) -> tuple[str, str] | None:
+    """Why ``adapter`` cannot run ``case``, or ``None`` if it can. RC-02-DF-03.
+
+    Two distinct facts, kept distinct because they mean different things about
+    the model:
+
+    * **no case-driven entry point at all** -- the adapter implements
+      ``apply()`` and no ``run(case, work_dir)``. Nine of this repository's own
+      seventeen bound adapters are in this state, so the oracle can execute at
+      most 8 of 18 modeled actions, and that is a fact about the ADAPTERS.
+    * **the adapter declined this case** -- it has a ``run`` and its own
+      ``can_run``/``validate`` refused this particular input. That is a fact
+      about the CASE, and it is the check ``run_generated_case_adapters``
+      already applies before executing anything.
+    """
+    from spec_double_compiler.runtime import adapter_accepts_case
+
+    if getattr(adapter, "run", None) is None:
+        return (
+            SKIP_NOT_RUNNABLE,
+            "adapter defines apply() but no run(case, work_dir), so no case can drive it; "
+            "the oracle observes nothing for this action",
+        )
+    accepted, reason = adapter_accepts_case(adapter, case)
+    if not accepted:
+        return (SKIP_DECLINED, reason or "adapter can_run() declined this case")
+    return None
+
+
+def execute_corpus(
+    *,
+    spec_dir: Path,
+    cases_dirs: Iterable[Path],
+    mapping_path: Path,
+    work_dir: Path,
+    recorder: EffectRecorder,
+    import_roots: Iterable[Path] = (),
+) -> CorpusExecution:
+    """Run each mapped adapter for each case in the sandbox.
+
+    The whole loop, with all three HP-04 repairs applied in one place:
+    :func:`corpus_import_roots` before the first import, :func:`reset_case_work_dir`
+    before each case, and :func:`adapter_skip_reason` instead of an unconditional
+    ``call_adapter``.
+    """
+    from run_generated_case_adapters import adapter_for_case, load_cases, load_mappings
+    from spec_double_compiler.runtime import call_adapter, instantiate, load_object
+
+    execution = CorpusExecution(work_dir=Path(work_dir))
+    execution.import_roots = ensure_import_roots(corpus_import_roots(Path(spec_dir), import_roots))
+
+    mappings = load_mappings(Path(mapping_path))
+    work_root = Path(work_dir)
+    work_root.mkdir(parents=True, exist_ok=True)
+
+    adapter_cache: dict[str, Any] = {}
+    for cases_dir in cases_dirs:
+        module = load_cases(Path(cases_dir))
+        for case in module.CASES:
+            mapping = adapter_for_case(case, mappings)
+            # An UNBOUND case still has an action -- that is the whole point of
+            # reporting it -- so the name comes from the case itself when the
+            # mapping has nothing to offer.
+            action = mapping.label if mapping is not None else _case_action_name(case)
+            if action:
+                execution.offered_actions.append(action)
+            if mapping is None or mapping.adapter is None:
+                # An unbound action is a fact about the mapping, and before
+                # HP-04 it was passed over in silence -- indistinguishable in
+                # the report from an action that ran clean.
+                recorder.record_skip(
+                    SkippedCase(
+                        case=case.name,
+                        action=action,
+                        adapter="",
+                        reason="no adapter is bound for this action in " + Path(mapping_path).name,
+                        kind=SKIP_UNBOUND,
+                    )
+                )
+                continue
+            adapter = adapter_cache.get(mapping.adapter)
+            if adapter is None:
+                adapter = instantiate(load_object(mapping.adapter))
+                adapter_cache[mapping.adapter] = adapter
+            skip = adapter_skip_reason(adapter, case)
+            if skip is not None:
+                kind, reason = skip
+                recorder.record_skip(
+                    SkippedCase(
+                        case=case.name,
+                        action=mapping.label,
+                        adapter=mapping.adapter,
+                        reason=reason,
+                        kind=kind,
+                    )
+                )
+                continue
+            case_dir = reset_case_work_dir(Path(work_dir), case.name)
+            sandbox = EffectSandbox(root=case_dir / "sandbox", recorder=recorder)
+            execution.cases.append(case.name)
+            execution.executed_actions.append(mapping.label)
+            # MF-027: same assessment as the enforcing copy in
+            # run_generated_case_adapters. Both runners refuse; neither is the
+            # lenient one.
+            sandbox.require_observable(
+                mapping.adapter or mapping.label,
+                resolved=adapter,
+                runtime=getattr(mapping, "runtime", None),
+                kind=mapping.kind,
+                channel=mapping.channel,
+            )
+            with sandbox, sandbox.observe(action=mapping.label, case=case.name):
+                call_adapter(adapter, case, case_dir)
+    return execution

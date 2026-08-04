@@ -396,19 +396,43 @@ effects:
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
     # under the spec dir
-    # (scripts/effect_conformance_report.py:149 (work_dir.mkdir), default
+    # (scripts/effect_conformance.py:1708 (work_root.mkdir), default
     # spec_dir/.effect-conformance-work;
-    # scripts/effect_conformance_report.py:163 (case_dir.mkdir) per-case dirs;
-    # scripts/effect_conformance.py:619 (self.root.mkdir) and
-    # scripts/effect_conformance.py:656 (path.mkdir) sandbox roots) -- writes
+    # scripts/effect_conformance.py:1629 (case_dir.mkdir) per-case dirs;
+    # scripts/effect_conformance.py:701 (self.root.mkdir) and
+    # scripts/effect_conformance.py:738 (path.mkdir) sandbox roots) -- writes
     # landing under
     # **/specs/**. DECLARED rather than relocated under results/: the same
     # physical sandbox writes on the spec-unit path are already declared as
     # spec_tree on RunSpecUnitTests (manifest row below), the work tree is
     # spec-scoped working state rather than evidence, and relocating would
     # change a shipped default to fit a declaration -- the dishonesty lived
-    # in the manifest, so the manifest is what changed.
-    RunEffectConformance: [evidence_report, spec_tree]
+    # in the manifest, so the manifest is what changed. HP-04 moved the loop
+    # itself out of effect_conformance_report.py into the oracle's own module,
+    # so the four citations above now name one file instead of two; the writes
+    # they describe are unchanged.
+    #
+    # HP-04 (MF026-R4-F-01): spec_tree_delete ADDED. This is a DECLARATION
+    # CHANGE FOLLOWING A BEHAVIOR CHANGE, stated rather than slipped in.
+    # The oracle's gap count was 20 / 15 / 14 across three runs of an IDENTICAL
+    # corpus on an IDENTICAL tree -- a 43% spread on the number every claim
+    # rests on -- because the work tree survived between runs and an adapter
+    # that materializes its own before-state writes a file on a cold run that
+    # it finds already present on a warm one. Each case now starts from an
+    # EMPTY directory (scripts/effect_conformance.py:1628 (shutil.rmtree)),
+    # which is a filesystem.delete under **/specs/** and therefore owes a port
+    # by this file's own rule -- the same rule that made CloseTicket declare
+    # its TLC states/ rmtree rather than leave it undeclared.
+    #
+    # SURFACE COST, per the plan's surface_cost_rule, stated because that rule
+    # asks for it: ZERO. No new port (spec_tree_delete is declared above and
+    # already exercised by CloseTicket, CloseTicketWeakened and GenerateCases),
+    # no new action, no new variable, and no change to the TLA state space --
+    # effects.actions is a declaration table, not state, and TLC enumerates the
+    # same states before and after. What it buys is HP-04's own acceptance
+    # criterion: two runs over an identical corpus reporting an identical gap
+    # count.
+    RunEffectConformance: [evidence_report, spec_tree, spec_tree_delete]
     # CD-11 (audit run 4, gap R4-1): mutation_write + corpus_process ADDED,
     # test_process REMOVED from this row (it stays declared, and exercised,
     # via RunSpecUnitTests). The kill test's spawn is the user-supplied

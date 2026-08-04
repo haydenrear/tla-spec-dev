@@ -1,0 +1,81 @@
+HP-04 -- goal signals, run in the ticket worktree, classified. Nothing tuned.
+
+================================================================================
+GOAL-catch-bugs        contribution: direct
+expected_effect: "The oracle sees 18 of 18 actions instead of 8, and a
+                  hand-written slice executes. More of the corpus reaching real
+                  adapters is the mechanism by which D1 can move at all."
+local_signal:    "run effect-conformance twice over the same corpus; the gap
+                  count must be identical"
+================================================================================
+
+SIGNAL, run: determinism-two-runs.txt
+
+  epic tip (386222b), identical corpus, identical tree:
+      20 gaps (cold) / 19 / 19 (warm)  and  9 / 10 / 10 dead ports
+  HP-04, identical corpus, three runs, same shared work dir:
+      20 / 20 / 20 gaps, 9 / 9 / 9 dead ports, and the WHOLE report byte-identical
+      (report1 == report2 == report3), not merely the count.
+  18-action corpus, cold then warm: identical report.
+
+CLASSIFICATION: **moved as expected** on the signal as written.
+
+BUT THE EXPECTED EFFECT IS ONLY HALF MET, and the half that is missing is the
+half the goal names. Measured, not estimated:
+
+  the oracle now sees        8 of 18 actions EXECUTED
+  the oracle now reports    18 of 18 actions, 9 named SKIPPED [not-runnable],
+                             1 named SKIPPED [unbound]
+  at the epic tip it saw     NOTHING -- the run aborts with a TypeError on the
+                             first apply()-only adapter and writes no report
+
+"18 of 18" is NOT reached and cannot be reached from this ticket's slice. The
+nine remaining actions need `run(case, work_dir)` implementations in
+`specs/*/production_adapters.py`, which is outside HP-04's implementation_scope
+and is a body of work RC-02 sized as "comparable to MF-028 and MF-032 together".
+Filed as HP-04-DF-01. The counterfactual in kill-table.txt settles that this is
+the whole of the remaining distance: given a runnable Release adapter, M10 dies
+on 8 of 8 cases immediately.
+
+WHAT DID NOT MOVE, and it was PREDICTED not to (kill-table.txt):
+  the mutant matrix moved by ZERO cells.
+      oracle-before: no-report on the control and all 10 mutants
+      oracle-after:  0 of 10, every class
+  HP-01 sealed exactly this negative prediction. It is confirmed. The oracle's
+  reach was never what limited detection on this catalogue.
+
+================================================================================
+GOAL-hexagonal-in-fact contribution: direct
+expected_effect: "An adapter swappable for a fake with the same cases passing is
+                  D3 anchor 4; this ticket is what makes that runnable."
+local_signal:    "run one aspect's corpus against a real adapter and a fake"
+================================================================================
+
+SIGNAL, run: real-and-fake.txt
+
+  ex4 LedgerStorePort, the GIVEN corpus (Scenario_RecordAfterDelivery, 6 cases):
+      REAL adapter (FileLedgerStore, on disk)     executed 6 cases in batch, EXIT=0
+      FAKE adapter (InMemoryLedgerStore, memory)  executed 6 cases in batch, EXIT=0
+  Same cases, same content assertion, both green. The fake is refused outright
+  if it widens the port's parameter annotation, which is what stops "both pass"
+  from being "the fake asserts less" -- the first version of the fake used
+  `Any` and the runner rejected it.
+
+  ex4 the SLICE corpus (Scenario_DeliveryPath, 50 cases), which does NOT enter
+  the port:
+      REAL mapping  executed 50 cases in batch, EXIT=0
+      FAKE mapping  executed 50 cases in batch, EXIT=0
+  At the epic tip BOTH refuse (cmf5-baseline.txt): the fixture had zero working
+  configurations for its own slice. Both runs now print
+  "EFFECT ORACLES **NOT** CARRIED ... treat its kill count as a FLOOR".
+
+CLASSIFICATION: **moved as expected**. D3 anchor 4 is runnable; whether an ARM
+scores it is HP-06's to decide, and this ticket does not and cannot claim it.
+
+================================================================================
+GOAL-simpler-same-behavior  contribution: guard   local_signal: N/A
+================================================================================
+N/A: no complexity claim in this slice. The model delta is one existing port
+attached to one existing action (see the RunEffectConformance row comment in
+spec_manifest.yaml): zero new ports, actions or variables, and no change to the
+TLA state space.

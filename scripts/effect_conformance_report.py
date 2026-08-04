@@ -34,9 +34,11 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from effect_conformance import (  # noqa: E402
+    CorpusExecution,
     EffectDeclarationError,
     EffectRecorder,
     diff_effects,
+    execute_corpus,
     load_effect_declarations,
 )
 from extract_spec_manifest import load_manifest  # noqa: E402
@@ -88,19 +90,24 @@ def run(args: argparse.Namespace) -> int:
     print(f"effect declarations: {len(declarations.ports)} port(s) from {source}")
 
     recorder = EffectRecorder()
-    observed_cases: list[str] = []
+    execution = CorpusExecution()
     ran_corpus = False
 
     cases_dirs = [Path(d) for d in (getattr(args, "cases_dir", None) or [])]
     if cases_dirs:
         ran_corpus = True
-        _execute_corpus(args, spec_dir, cases_dirs, recorder, observed_cases)
+        execution = _execute_corpus(args, spec_dir, cases_dirs, recorder)
 
     report = diff_effects(
         declarations,
         recorder.effects,
-        cases=observed_cases,
+        cases=execution.cases,
         unobservable=recorder.unobservable,
+        skipped=recorder.skipped,
+        offered_actions=execution.offered_actions,
+        executed_actions=execution.executed_actions,
+        work_dir=str(execution.work_dir) if execution.work_dir else "",
+        work_dir_reset=ran_corpus,
     )
 
     if getattr(args, "out", None):
@@ -131,50 +138,26 @@ def _execute_corpus(
     spec_dir: Path,
     cases_dirs: list[Path],
     recorder: EffectRecorder,
-    observed_cases: list[str],
-) -> None:
-    """Run the mapped adapters for each case package inside the sandbox."""
-    from run_generated_case_adapters import (
-        AdapterMapping,  # noqa: F401  (re-exported for callers/tests)
-        adapter_for_case,
-        load_cases,
-        load_mappings,
-    )
-    from effect_conformance import EffectSandbox
-    from spec_double_compiler.runtime import call_adapter, instantiate, load_object
+) -> CorpusExecution:
+    """Resolve this invocation's paths and hand the loop to the oracle.
 
+    HP-04 moved the loop itself into ``effect_conformance.execute_corpus``. The
+    three defects it carried -- no ``sys.path`` for the target project
+    (RC-02-DF-02), an abort on the first ``apply()``-only adapter
+    (RC-02-DF-03), and a work directory that survived between runs
+    (MF026-R4-F-01) -- were all defects of the loop, and leaving it in the CLI
+    shim is what let them be invisible to four rounds of reading the oracle's
+    own module.
+    """
     mapping_path = Path(getattr(args, "mapping", None) or spec_dir / "case_adapters.toml")
-    mappings = load_mappings(mapping_path)
     work_dir = Path(getattr(args, "work_dir", None) or spec_dir / ".effect-conformance-work")
-    work_dir.mkdir(parents=True, exist_ok=True)
-
-    adapter_cache: dict[str, Any] = {}
-    for cases_dir in cases_dirs:
-        module = load_cases(cases_dir)
-        for case in module.CASES:
-            mapping = adapter_for_case(case, mappings)
-            if mapping is None or mapping.adapter is None:
-                continue
-            adapter = adapter_cache.get(mapping.adapter)
-            if adapter is None:
-                adapter = instantiate(load_object(mapping.adapter))
-                adapter_cache[mapping.adapter] = adapter
-            case_dir = work_dir / case.name
-            case_dir.mkdir(parents=True, exist_ok=True)
-            sandbox = EffectSandbox(root=case_dir / "sandbox", recorder=recorder)
-            observed_cases.append(case.name)
-            # MF-027: same assessment as the enforcing copy in
-            # run_generated_case_adapters. Both runners refuse; neither is the
-            # lenient one.
-            sandbox.require_observable(
-                mapping.adapter or mapping.label,
-                resolved=adapter,
-                runtime=getattr(mapping, "runtime", None),
-                kind=mapping.kind,
-                channel=mapping.channel,
-            )
-            with sandbox, sandbox.observe(action=mapping.label, case=case.name):
-                call_adapter(adapter, case, case_dir)
+    return execute_corpus(
+        spec_dir=spec_dir,
+        cases_dirs=cases_dirs,
+        mapping_path=mapping_path,
+        work_dir=work_dir,
+        recorder=recorder,
+    )
 
 
 def main() -> int:
