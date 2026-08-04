@@ -1,0 +1,75 @@
+analyze architecture -- TlaSpecDevCli (architecture descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/program_model/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/program_model/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/program_model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It names the structure the model implies and makes no
+suggestions: no proposed cut, no refactor, no verdict on the code.
+
+[MEASURED] Component partition
+  source: EMERGENT
+  computed by greedy modularity maximization over the variable interaction graph (the same method `analyze complexity` reports) -- a MEASUREMENT of what the matrix admits, not a declaration and not a proposal
+  actions: top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions
+
+  C1
+    variables:         complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state
+    owns:              NOT MEASURABLE with one component -- every variable would be trivially owned.
+    internal actions:  AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+    crossing actions:  (none)
+    reaches: (nothing -- no action of this component touches another)
+
+[MEASURED] Does this partition decompose the model?
+  graph modularity Q = 0.000
+  [FAIL] component_count: measured 1, rule >= 2
+         a partition with one component separated nothing
+  [FAIL] modularity_q: measured 0.0, rule > 0
+         Q <= 0 means the partition groups no more interaction than chance (Newman's conventional threshold for significant community structure is 0.3; reported, not applied)
+  [OK  ] crossing_action_fraction: measured 0.0, rule <= 0.5
+         a boundary crossed by more than half the actions is not a boundary (the R/W matrix's own dense-row/dense-column convention)
+
+  MEASURED RESULT: this model DOES NOT DECOMPOSE under this partition.
+  The descriptor states that rather than presenting a cut the model does
+  not have. It does not propose a different one: naming a boundary the
+  matrix does not show is the CD-01 failure mode, and a clean-looking
+  architecture derived from an invented cut is worse than none.
+
+  Consumers (the reflexion check, the implementation brief) must treat
+  this as UNMAPPABLE. To have an architecture measured here, DECLARE one
+  (`architecture:` in spec_manifest.yaml, or --components) -- the tool
+  measures a declared partition; it never writes one for you.
+
+[MEASURED] State ownership -- which actions write each variable
+  setup_phase         BuildSkillCli, InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow
+  spec_root           ScaffoldProject
+  ticket_state        CloseTicket, OpenTicket, RunSpecUnitTests, UpdateTicketCurrent, UpdateTicketDesired
+  lastCommand         AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  result              AnalyzeComplexity, AnalyzeCorpus, BuildSkillCli, CloseTicket, InstallLocalCli, OpenTicket, RecordBudgets, RunEffectConformance, RunKillTest, RunSpecUnitTests, ScaffoldProject, ScaffoldWorkflow, UpdateTicketCurrent, UpdateTicketDesired
+  complexity_gate     AnalyzeComplexity
+  corpus_gate         AnalyzeCorpus, RunSpecUnitTests
+  effect_conformance  RunEffectConformance, RunSpecUnitTests
+  kill_test           RunKillTest
+
+[MEASURED] Single-writer violations (a variable written from >1 component)
+  NOT MEASURABLE: single-writer ownership is defined against a component partition, and this model has only one component. Reporting zero violations here would be a clean result for a model with no architecture.
+
+[MEASURED] Ports -- the crossings that would become interfaces
+  none: no action touches more than one component.
+
+[MEASURED] Spanning actions -- write sets that span components
+  none: no action commits state in more than one component in one step.
+
+[MEASURED] Reflexion check -- production code against the model's architecture
+  NOT RUN. The comparison was not performed, so there are no convergences,
+  divergences, or absences to report -- not zero of them. The reason is
+  below.
+
+[MEASURED] Reflexion verdict
+  architecture_scan = unmappable
+    - [model_has_no_architecture] the MODEL side has no architecture to measure code against: the emergent partition fails (component_count, modularity_q) and the project declares none. This is a fact about TlaSpecDevCli.tla, not about the code -- with one component every code edge is internal, and this check would otherwise report a flawless codebase for a model with no boundary in it. Declare a partition (`architecture:` in spec_manifest.yaml, or --components) to make the comparison possible (/Users/hayde/IdeaProjects/wt-122-ac02-reflexion-check/specs/program_model/TlaSpecDevCli.tla)
+
+  UNMAPPABLE is the answer, not `coherent`. Nothing downgrades it: there is
+  no flag, key, annotation, or environment variable that turns it into a
+  clean result.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.

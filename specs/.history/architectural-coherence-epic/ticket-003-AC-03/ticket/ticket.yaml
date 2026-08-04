@@ -1,0 +1,113 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket AC-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Each prompt names its inputs (which descriptor fields), its output artifact, and what the agent may NOT do.",
+        "The implementation brief is derivable from a real architecture descriptor: demonstrate it end-to-end on this repository's own model and keep the rendered brief as evidence.",
+        "Neither prompt proposes an architectural move the descriptor did not measure (CD-01).",
+        "SKILL.md states the case-module/feature-module distinction in one place and the Program Spec Rule is not weakened."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EV-01"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "prompts/implementation_brief.md",
+        "prompts/aspect_decomposition.md",
+        "templates/implementation_brief.md",
+        "references/case_modules.md",
+        "SKILL.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "AC-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/123",
+    "id": "AC-03",
+    "implementation_scope": [
+      "prompts/",
+      "templates/",
+      "references/case_modules.md",
+      "SKILL.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op model result with evidence.",
+    "objective": "The generation-time half of the epic, and the owner's stated hypothesis: incoherent code is partly a function of how the work is ASKED for. Ship two prompts in the shape prompts/coverage_audit.md already established. (1) implementation_brief.md turns an architecture descriptor into a constrained ask: this action belongs to component C, which owns variables V; it may reach D only through port P; effects live at the boundary (functional core / imperative shell); one externally visible commitment per action. The refactor target shapes in references/architecture_tractability.md, Move 3, are the vocabulary -- this ticket makes them an instruction instead of advice. (2) aspect_decomposition.md is the BDD ask from the user's perspective: enumerate the aspects of the public surface, name each one's Given, and map each to a case module and its action scope. Reconcile both with SKILL.md's Program Spec Rule so a case module is never mistaken for a feature module.\n",
+    "promotion_order": 40,
+    "promotion_predecessor": "AC-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The ask: implementation-brief and aspect-decomposition prompts",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/tickets/AC-03",
+  "ticket_id": "AC-03",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-123-ac03-implementation-brief/specs/tickets"
+}

@@ -1,0 +1,112 @@
+analyze complexity -- TlaSpecDevCli (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-epic-architectural-coherence/specs/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-epic-architectural-coherence/specs/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-epic-architectural-coherence/specs/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain                                                                            cardinality  source         note
+------------------  --------------------------------------------------------------------------------  -----------  -------------  -------------------------------------------------------------------------------------------------------------
+setup_phase         0..5                                                                              6            TypeInvariant
+spec_root           SpecRoots \cup {NoRoot}                                                           3            TypeInvariant
+ticket_state        [Tickets -> 0..6]                                                                 343          TypeInvariant  7^3 total functions
+lastCommand         (unconstrained)                                                                   unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+result              (unconstrained)                                                                   unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+complexity_gate     {"unknown", "pass", "fail"}                                                       3            TypeInvariant
+corpus_gate         {"unknown", "pass", "fail"}                                                       3            TypeInvariant
+effect_conformance  {"unknown", "clean", "gaps", "dead_surface", "unobservable"}                      5            TypeInvariant
+kill_test           {"unknown", "pass", "below_floor", "incomplete_catalog"}                          4            TypeInvariant
+architecture_scan   {"unknown", "coherent", "divergent", "unmappable"}                                4            TypeInvariant
+architecture_delta  {"unknown", "improved", "worsened", "unchanged", "unverified", "unattributable"}  6            TypeInvariant
+  (domain sources merge per-variable: TypeInvariant, then TypeOK, then the
+  configured invariants -- first source that resolves wins. What the resolver
+  can and cannot see: references/architecture_tractability.md,
+  'What The Domain Resolver Can And Cannot See'.)
+
+[MEASURED] State-space upper bound
+  bound = 26,671,680  [INCOMPLETE: product over 9 of 11 declared variables; domains from TypeInvariant]
+  this number is a LOWER BOUND on the declared-representation bound,
+  not the bound: it cannot be read as a percent of max_state_space_bound, and
+  'within cap' is NOT a claim this scan can make about it.
+  excluded (no resolvable domain): lastCommand, result
+  dominant dimensions:
+    ticket_state: 343 (34.1% of the bound in log space)
+    setup_phase: 6 (10.5% of the bound in log space)
+    architecture_delta: 6 (10.5% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+  (actions = top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions)
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  AnalyzeArchitecture  GenerateCases  RunEffectConformance  RunKillTest  RunSpecUnitTests  CloseTicket  CloseTicketWeakened  Stutter
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  -------------------  -------------  --------------------  -----------  ----------------  -----------  -------------------  -------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r                    r              r                     r            r                 r            r                    .
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r                    r              r                     r            r                 r            r                    .
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .                    .              .                     .            rw                rw           rw                   .
+lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w                    w              w                     w            w                 w            w                    .
+result              w              w                w                w              w                 w           w                    w                    w                  w              w                    w              w                     w            w                 w            w                    .
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .                    .              .                     .            .                 .            .                    .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .                    .              .                     .            w                 .            .                    .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              .                    .              w                     .            w                 .            .                    .
+kill_test           .              .                .                .              .                 .           .                    .                    .                  .              .                    .              .                     w            .                 .            .                    .
+architecture_scan   .              .                .                .              .                 .           .                    .                    .                  .              w                    .              .                     .            .                 .            .                    .
+architecture_delta  .              .                .                .              .                 .           .                    .                    .                  .              w                    .              .                     .            .                 .            .                    .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.012 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state  (9 variables, 17 actions)
+  C2: architecture_delta, architecture_scan  (2 variables, 1 actions)
+  candidate port-crossing actions:
+    AnalyzeArchitecture crosses C1, C2
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastCommand touched by 17/18 actions
+    result touched by 17/18 actions
+    setup_phase touched by 15/18 actions
+    spec_root touched by 13/18 actions
+  dense columns (action touching more than half the variables):
+    AnalyzeArchitecture
+    RunSpecUnitTests
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    lastCommand
+    result
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-epic-architectural-coherence/specs/current/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)
+
+  WARNING: component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6
+
+  WARNING: component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.

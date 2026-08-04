@@ -1,0 +1,50 @@
+examples/effect_providers/atomic_publisher/providers.py:6:import random
+examples/effect_providers/atomic_publisher/providers.py:42:        self.rng = random.Random(context.derived_seed)
+examples/effect_providers/atomic_publisher/providers.py:43:        component = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:50:        self.record_id = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:53:        self.old_payload = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:56:        self.new_payload = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:64:        for index in self.rng.sample(range(20), k=3):
+examples/effect_providers/atomic_publisher/providers.py:193:            "choice": {
+examples/effect_providers/atomic_publisher/providers.py:245:            "choice": self.representative | {
+examples/effect_providers/atomic_publisher/providers.py:278:            self.read_error = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:282:            self.write_error = self.rng.choice(
+examples/effect_providers/atomic_publisher/providers.py:286:            self.replace_error = self.rng.choice(
+examples/effect_providers/atomic_publisher/run_experiment.py:434:            "choice": point["choice"],
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:11:import random
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:72:        rng = random.Random(context.derived_seed)
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:73:        self.transient_status = rng.choice([502, 503, 504])
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:74:        self.timeout_type = rng.choice([requests.ConnectTimeout, requests.ReadTimeout])
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:75:        self.malformed_bytes = rng.choice(
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:78:        self.header_name = rng.choice(
+examples/effect_providers/legacy_payment_http/payment_effects/provider.py:81:        self.layout = rng.choice(["compact", "spaced", "indented", "reversed"])
+examples/effect_providers/reminder_worker/providers.py:10:import random
+examples/effect_providers/reminder_worker/providers.py:72:        rng = random.Random(seed)
+examples/validation/runs/ex1-run4/artifacts/providers.py:32:from random import Random
+examples/validation/runs/ex1-run4/artifacts/providers.py:54:        flavor = rng.choice(DIRECTORY_FLAVORS)
+examples/validation/runs/ex1-run4/artifacts/providers.py:57:        self.represent_empty_as_file = rng.choice([True, False])
+examples/validation/runs/ex2-run4/artifacts/providers.py:9:(sqlite backing choice, row insertion order), binds a real EcommerceStore,
+examples/validation/runs/ex2-run4/artifacts/providers.py:22:from random import Random
+examples/validation/runs/ex2-run4/artifacts/providers.py:48:        self.backing = rng.choice(["memory", "file"])
+examples/validation/runs/ex2-run4/artifacts/providers.py:141:    rng.shuffle(copy)
+examples/validation/runs/ex2-run4/artifacts/providers.py:147:    rng.shuffle(keys)
+examples/validation/runs/ex3-run4/artifacts/providers.py:23:from random import Random
+examples/validation/runs/ex3-run4/artifacts/providers.py:46:        self._encoding = self._rng.choice(_ENCODINGS)
+examples/validation/runs/ex3-run4/artifacts/providers.py:52:            self._store(self._rng.choice(_OPERATIONS), seq)
+scripts/architecture_reflexion.py:1227:        # choice a cut is the difference between a clean that means something
+scripts/fitness_functions.py:228:# the standard library alone -- the dependency-free choice when the CLI runs
+scripts/kill_test.py:171:    production source file. It is deliberately not a random AST perturbation:
+spec_double_compiler/effects.py:17:    The first 128 digest bits are ample for project-local ``random.Random``.
+specs/results/epic-close/sweep-raw-run5/ca5_changed_enum.sh:20:'\b(random|randint|choice|shuffle|sample|uuid|uuid4|secrets|urandom|token_hex)\b'
+specs/results/epic-close/sweep-raw-run5/ca5_delta_check.sh:16:'\b(random|randint|choice|shuffle|sample|uuid|uuid4|secrets|urandom|token_hex)\b'
+tests/test_corpus_diagnostics.py:90:    This is the structural guarantee. A distillation/trim/sample helper would
+tests/test_corpus_diagnostics.py:94:    forbidden = ("distill", "trim", "sample", "prune", "truncate", "drop", "select_survivors")
+tests/test_corpus_diagnostics.py:117:        for flag in ("--distill", "--trim", "--sample", "--prune", "--max-cases"):
+tests/test_effect_provider_fuzzing.py:1159:import random
+tests/test_effect_provider_fuzzing.py:1173:        "choice": scope.choice,
+tests/test_effect_provider_fuzzing.py:1202:        rng = random.Random(context.derived_seed)
+tests/test_effect_provider_fuzzing.py:1203:        self.choice = f"artifact-{{rng.randrange(1_000_000)}}.json"
+tests/test_effect_provider_fuzzing.py:1205:            "status": rng.choice(["accepted", "stored", "committed"]),
+tests/test_effect_provider_fuzzing.py:1213:                "choice": self.choice,
+tests/test_effect_provider_fuzzing.py:1360:            event["choice"],
+tests/test_effect_provider_fuzzing.py:1365:        if "choice" in event

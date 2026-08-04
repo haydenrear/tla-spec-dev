@@ -1,0 +1,58 @@
+RP-04 -- re-measurement of this repository's own ledger figures
+======================================================================
+
+Model: specs/current/TlaSpecDevCli.tla + specs/current/MC.cfg
+TLC (specs/tickets/RP-04/results/tlc-current.txt): 32,122,220 generated /
+  1,292,951 distinct / depth 26 -- identical to the AC-01 recorded figures,
+  so the model is byte-identical and RP-04 has ZERO model delta.
+
+{
+  "variables": 10,
+  "actions": 16,
+  "actions_from_fallback_heuristic": false,
+  "bound": 2799360,
+  "bound_complete": false,
+  "bound_resolved_variables": 8,
+  "bound_unresolved_variables": [
+    "lastCommand",
+    "result"
+  ],
+  "modularity": 0.0,
+  "distinct_states": null,
+  "generated_states": null,
+  "depth": null,
+  "gate_passed": false,
+  "budget_utilization": {
+    "max_state_space_bound": {
+      "cap": 1000000,
+      "used": 2799360,
+      "bound_complete": false,
+      "percent_lower_bound": 279.9,
+      "percent": null,
+      "within_cap": false,
+      "caveat": "the bound is a product over 8 of 10 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+    }
+  }
+}
+
+WHAT MOVED:
+  bound              2,799,360  ->  2,799,360   (unchanged)
+  variables/actions  10 / 16    ->  10 / 16     (unchanged)
+  modularity         0.0        ->  0.0         (unchanged)
+  within_cap         false      ->  false       (unchanged -- over the cap
+                                                 is sound on an incomplete
+                                                 bound: the complete bound
+                                                 is only larger)
+  percent            279.9      ->  null, with percent_lower_bound 279.9
+                                                 (CHANGED: the number is a
+                                                 floor, not the percent)
+  NEW: bound_complete false, bound_resolved_variables 8 of 10,
+       bound_unresolved_variables [lastCommand, result], caveat.
+
+The repository's own model has NEVER resolved all ten variables --
+tests/test_analyze_complexity.py has asserted
+set(result.unbounded) == {'lastCommand', 'result'} since MF-020. The RP-04
+brief said this model 'resolves every variable'; the code says otherwise and
+the code is authoritative. No figure was smoothed to hide that: the bound and
+the cap verdict are unchanged, and the percent is now published as the floor
+it always was.

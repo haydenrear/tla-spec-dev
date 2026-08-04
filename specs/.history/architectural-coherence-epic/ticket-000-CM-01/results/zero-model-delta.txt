@@ -1,0 +1,47 @@
+CM-01 -- the no-op model result, with evidence
+==============================================
+
+This ticket was dispatched as expected zero-TLA+-model-delta, and it is one.
+Case-module declaration, per-module action scope, and the coverage report all
+live in generation and manifest-reading code that the CLI lifecycle model does
+not represent. No action was invented to produce a delta.
+
+1. Ticket current == ticket desired
+
+   $ diff -r specs/tickets/CM-01/current specs/tickets/CM-01/desired
+   (no output)
+
+2. Ticket model == the accepted baseline, byte for byte
+
+   md5 TlaSpecDevCli.tla
+     specs/program_model            9d982f19ca98c74989bc98460488b7a1
+     specs/tickets/CM-01/current    9d982f19ca98c74989bc98460488b7a1
+     specs/tickets/CM-01/desired    9d982f19ca98c74989bc98460488b7a1
+   md5 MC.cfg
+     specs/program_model            98e215c5adf6f4101a0cca68d1535966
+     specs/tickets/CM-01/current    98e215c5adf6f4101a0cca68d1535966
+     specs/tickets/CM-01/desired    98e215c5adf6f4101a0cca68d1535966
+
+3. TLC on ticket current is green and reproduces the baseline figures recorded
+   in the epic plan (283,805 distinct / 6,209,780 generated, depth 25):
+
+   $ bash scripts/run_tlc.sh specs/tickets/CM-01/current/TlaSpecDevCli.tla \
+                             specs/tickets/CM-01/current/MC.cfg
+   Model checking completed. No error has been found.
+   6209780 states generated, 283805 distinct states found, 0 states left on queue.
+   The depth of the complete state graph search is 25.
+   Finished in 14s.
+   Full output: results/tlc-current.txt
+
+4. The complexity descriptor is unchanged between the accepted baseline and the
+   ticket model -- the only diff line is the path of the manifest each run read.
+   Full output: results/descriptors-before-after.txt
+
+What DID change in specs/current (and program_model / desired_program_model, kept
+equal): specs/current/production_adapters.py, the spec-unit fixture for the
+complexity-ledger close-out adapter. Its throwaway model used to be a single
+VARIABLES line written on top of a scaffolded three-module baseline, leaving
+`MODULE Fixture` paired with the baseline's External.cfg -- the CM-F1 shape this
+ticket makes the ledger refuse. The fixture is now a complete module with a cfg
+that configures it and a `model:` declaration naming the pair. That is an
+adapter-fixture change, not a model change: no TLA+ file was touched.

@@ -1,0 +1,239 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: >-
+      EV-01, this ticket's promotion predecessor, closed TLC-green on this
+      model; EV-02 inherited it byte-identical
+      (specs/tickets/EV-02/results/zero-model-delta.txt).
+  tlc_after:
+    status: "green"
+    evidence: >-
+      specs/tickets/EV-02/results/tlc-current.txt -- 32,122,220 generated /
+      1,292,951 distinct / depth 26, 0 states left on queue, no error found.
+  behavior_tests:
+    status: "pass"
+    evidence: >-
+      specs/tickets/EV-02/results/repository-unit-tests.txt -- 864 passed, 1
+      failed (test_skill_requires_two_minute_case_generation_budget, a
+      documentation-content guard already filed as CM-01-DF-01 and explicitly
+      outside this ticket);
+      specs/tickets/EV-02/results/spec-unit-tests.txt -- 2 targets, 71 + 68,
+      exit 0. The EVAL FIXTURES' own behavior suites are green and unmodified:
+      specs/tickets/EV-02/results/twin-integrity.txt (5 of 5 hashes match) and
+      fixture-restored.txt (git status on examples/ clean after every seeded
+      mutant was restored).
+  descriptor_comparison:
+    status: "recorded"
+    evidence: >-
+      No before/after comparison is possible or meaningful: the model is
+      byte-identical before and after, and the ledger's own delta computation
+      reports direction=zero against EV-01. Recorded as the no-op it is rather
+      than left blank. The architecture descriptors this ticket DID compare are
+      comparisons between DECLARED PARTITIONS of a fixture, not between two
+      states of this repository's model, and they live in
+      examples/validation/runs/ex5-run2/ where they are a measurement rather
+      than a refactor claim.
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "pass"
+    evidence: >-
+      EV-01 built the six-fault catalog and ran the CONTROL only, deliberately,
+      because a fixture author who scores his own instrument has deleted the
+      measurement. EV-02 ran the mutants. Control GREEN on BOTH declared arms
+      (330 cases, exit 0) before any mutant, per MF-016. Result, per fault class
+      per arm, twice, over two independently generated corpora with identical
+      outcomes: ARM A (corpus alone, the MF-038 instrument) 4 of 6 -- F3 and F5,
+      both durable-side faults, SURVIVED exactly as predicted; ARM B (corpus +
+      content-asserting provider, the ex1-run4 instrument) 6 of 6, with F3 and
+      F5 killed by provider_content_assertion and by nothing else. Baseline
+      MF-038: 0 of 9, kill rate 0.31. The number is recorded per arm and never
+      in aggregate (DP-8). BOUND, recorded with the number: MF-029 recovers 0 of
+      5 parameters on this model, so the adapters take the action argument from
+      the oracle (EV-01-DF-01) and ARM A's 4/6 is an UPPER BOUND on what a
+      corpus with honestly recovered parameters would achieve; a blind agent
+      confirmed this independently from the outside. Evidence:
+      specs/tickets/EV-02/results/kill-matrix-run1.json,
+      kill-matrix-run2.json, and
+      examples/validation/runs/ex4-run1/scoring.md.
+  effect_conformance:
+    status: "clean"
+    evidence: >-
+      The LedgerStorePort effect boundary was exercised under both declared
+      providers across 14 executions per run and two runs. Under ARM B the
+      content assertion fired on exactly the two faults it exists for and stayed
+      silent on the unmutated program; under ARM A the same real boundary was
+      bound and asserted nothing. No provider mutated a generated case
+      (oracle-integrity silent throughout), and every failure replayed exactly
+      from the runner's own replay command -- 3 faults x 2 replays, 6 of 6
+      reproducing the originating error string. Evidence:
+      specs/tickets/EV-02/results/replay.json and
+      examples/validation/runs/ex4-run2/scoring.md.
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # honest not_run: this ticket changed no code, so there is no refactor to attribute.
+  claim: ""    # AC-04's delta WAS exercised, as an ATTACK rather than as a claim: the maximal
+               # gaming move (collapse the partition to one component, re-place all eight modules)
+               # was run with --baseline against the honest scan and reported
+               # direction=unattributable, stable basis 0 -> 0, every lost edge classified
+               # endpoint_reassigned. Recorded in examples/validation/runs/ex5-run2/scoring.md,
+               # not here, because it is a measurement of the refusal and not a delta for EV-02.
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  No complexity change to justify: this ticket is zero-model-delta by design.
+  EV-02 measures the shipped surface and fixes nothing -- a fix during a
+  measurement destroys the measurement. Five findings were filed to
+  specs/desired_program_model/deferred_findings.yaml (EV-02-DF-01..05), at the
+  deferment budget of 5 and not over it, and the highest-severity one
+  (EV-02-DF-01: a declared one-component partition makes a codebase with four
+  real divergences report `coherent`) was left in place deliberately so that
+  NEXT-EPIC.md's NE-01 has an unaltered reproduction to fix against.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none applicable, because there is no model delta:
+    specs/tickets/EV-02/current == desired, byte for byte. The search WAS run
+    against this ticket's real representation decisions, which are measurement
+    decisions, and it produced three recorded outcomes rather than a model
+    change. (1) The aim-1 arms were almost run once each; they were run TWICE,
+    over two INDEPENDENTLY GENERATED corpora rather than twice over one, so that
+    a difference between runs could have come from either generation or
+    execution -- and the failing half of determinism, which nobody had tested,
+    is now measured across twelve failing executions rather than two clean ones.
+    (2) EV-01-DF-02 was almost verified by re-running EV-01's own reproduction
+    and stopping; instead the blast radius was ENUMERATED over all 203 set
+    partitions of the fixture's variables, which turned a qualitative finding
+    into 12-of-203 and revealed the sharper defect underneath it (the fully
+    degenerate one-component case escapes the unfalsifiable_coherence guard
+    entirely, because the guard reads len(names) >= 2). (3) The kill table was
+    almost reported as killed/survived; the runner's own failing-case counts
+    were kept as a second column, which is what exposes F6 as a PARTIAL kill
+    (15 of 66 Deliver cases) that a binary table would have hidden.
+  measured: false      # true only if a real TLC run produced the figure
+  applied: false       # if true, approved_by is required
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: >-
+  EV-02 ran the evals as a fact-finding mission and wrote the follow-up charter.
+  Six run records under examples/validation/runs/ (ex4 x3, ex5 x2, ex6 x1), each
+  scored against predictions committed before any dispatch. Aim 1: control green
+  on both arms, then 4 of 6 for the corpus alone and 6 of 6 with the
+  content-asserting provider, per fault class, per arm, against MF-038's 0 of 9
+  -- with the parameter-recovery bound stated so the comparison is not
+  overclaimed. Aim 2: EV-01's ratios reproduce exactly, and a blind agent's
+  Given-form aspect turned 60 authored lines into 38 cases that killed exactly
+  what the 330-case whole-view corpus killed. Aim 3: generation byte-identical
+  again, execution byte-identical across 14 executions including twelve failing
+  ones, and seeded failures replaying exactly -- the half EV-01 could not do.
+  The architecture half scored precision 1.000 and recall 1.000 against the
+  owner's enumerated answer key, with zero false positives on the coherent twin,
+  and every refusal held on both real models. The centrepiece experiment passed:
+  a blind agent handed a divergent codebase and an editable map fixed the code
+  and left all four declarations byte-identical. Against that, the unflattering
+  half, which is the half worth having: `coherent` is obtainable on that same
+  divergent codebase for about six lines of YAML, 12 of 203 partitions do it,
+  every one of them fails the model's own decomposition criteria, none records a
+  blind spot, and the mitigation for it already exists -- in a prompt rather
+  than in the program. The check measures import topology and not interaction,
+  anything outside --code is free, a generated corpus cannot see guard
+  relaxation by construction, and ordering is invisible at every oracle layer.
+  Five findings filed, none fixed. And the single most valuable result came from
+  neither lever: authoring an aspect from the public surface revealed that the
+  public surface is FALSE of the model -- a failed item can never reach the
+  ledger, though the README promises it -- which no corpus could ever catch,
+  because a case module may not add an action and there is no action to enter.
+  NEXT-EPIC.md carries all of it forward, including what not to re-litigate.

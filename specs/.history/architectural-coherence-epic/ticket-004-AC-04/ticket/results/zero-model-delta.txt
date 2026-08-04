@@ -1,0 +1,22 @@
+AC-04 -- ZERO MODEL DELTA (documented no-op)
+===========================================
+
+This ticket adds a CAPABILITY (the architecture delta and its ledger member).
+It adds no action, no variable, and no state to the TLA+ model: the delta is
+computed by a scanner over the code, and the model already carries the
+`architecture_scan` variable AC-01 added. So current == desired, by design,
+and the plan records model_delta_expectation: ZERO.
+
+$ diff -r -x __pycache__ specs/tickets/AC-04/current specs/tickets/AC-04/desired
+exit 0 (empty output above == byte-identical trees)
+
+$ diff -r -x __pycache__ specs/current specs/tickets/AC-04/current
+Only in specs/current/tests: test_current_ticket_workflow.py
+exit 1
+
+TLC on the ticket's current model: specs/tickets/AC-04/results/tlc-current.txt
+Progress(13) at 2026-07-27 13:55:09: 1,236,832 states generated (1,236,832 s/min), 141,184 distinct states found (141,184 ds/min), 74,918 states left on queue.
+Model checking completed. No error has been found.
+32122220 states generated, 1292951 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 26.
+Finished in 59s at (2026-07-27 13:56:05)

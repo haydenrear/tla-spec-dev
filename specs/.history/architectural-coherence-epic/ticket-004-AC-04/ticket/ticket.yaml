@@ -1,0 +1,112 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket AC-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The ledger entry carries the divergence delta and never gates on it; a rise is recorded, not refused.",
+        "A divergence drop reported without the edges that disappeared is refused as unverified -- the MF-020 red-flag precedent, where a metric drop was really a deleted transition.",
+        "The refactor basis names exactly which oracles are validated for this and which are not, citing MF-038 and ex1-run4."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket AC-04"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EV-01"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/complexity_ledger.py",
+        "scripts/architecture_reflexion.py",
+        "tests/test_complexity_ledger.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/architecture_tractability.md"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "AC-02"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/124",
+    "id": "AC-04",
+    "implementation_scope": [
+      "scripts/complexity_ledger.py",
+      "scripts/architecture_reflexion.py",
+      "references/architecture_tractability.md"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op model result with evidence.",
+    "objective": "Make a refactor measurable instead of hoped-for. `--baseline` on the architecture scan compares two runs and reports the divergence delta with the specific edges gained and lost; the delta joins the complexity ledger as a RECORDED, NON-GATING member alongside the CD-09 fuzzing-era members, so a ticket that increased structural divergence is visible in its close evidence and one that lowered it can prove it. Extend the validated-refactor basis (CD-02/CD-09) with the code-structure half: TLC green before and after, behavior corpus unchanged, descriptor comparison recorded, AND the divergence delta recorded. State plainly what makes a refactor safe here -- the generated corpus plus effect providers with content assertions (ex1-run4: 45 points killed on the exact MF-038 bug class) -- and what does not (the kill rate, which MF-038 falsified as a bug-catching claim).\n",
+    "promotion_order": 50,
+    "promotion_predecessor": "AC-03",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Refactor capability: before/after architecture and the behavior-preserving loop",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/tickets/AC-04",
+  "ticket_id": "AC-04",
+  "ticket_index": 4,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-124-ac04-refactor-capability/specs/tickets"
+}

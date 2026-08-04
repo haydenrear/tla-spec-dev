@@ -6,6 +6,64 @@
 # and case_adapters.toml are unchanged.
 module: EcommerceHistory
 
+# CM-F1: the model the complexity ledger measures is DECLARED, not discovered.
+# Before this block existed the ledger picked the alphabetically first *.tla in
+# this directory -- Core.tla -- and paired it with External.cfg, then reported
+# bound = None and modularity = 0.0 for a module that has no variables and no
+# actions. External is the outermost view (External EXTENDS Internal EXTENDS
+# Core) and External.cfg is what configures it, so this pair is the whole
+# program. Declaring it also means an extra *.tla in this directory (a case
+# module, a scratch scenario) can never change what is measured.
+model:
+  tla: External.tla
+  cfg: External.cfg
+
+# CM-01: the case modules this project runs, and what each one claims.
+# These are DECLARATIONS, not files that live here: the probe's modules are
+# kept in examples/case_modules/ and copied in to run (see that README). The
+# block gives generation a per-module action scope -- so the R4-DF-04 zero-case
+# warning stops firing for actions that simply are not in an aspect -- and
+# gives `python3 scripts/case_modules.py coverage` the set to aggregate.
+# Doctrine: references/case_modules.md.
+case_modules:
+  Scenario_CheckoutHappyPath:
+    extends: External
+    view: external
+    form: slice
+    actions:
+      - SubmitCreateAccount
+      - SubmitAddCartItem
+      - SubmitCheckout
+      - RunFulfillmentWorker
+  Scenario_IdempotentResubmit:
+    extends: External
+    view: external
+    form: given
+    actions:
+      - SubmitDuplicateCreateAccount
+      - SubmitDuplicateAddCartItem
+      - SubmitDuplicateCheckout
+      - RunFulfillmentWorker
+      - RunFulfillmentWorkerNoop
+    claim: >-
+      Resubmitting an already-applied command is independent of the reachable
+      configuration it is replayed from. The Given asserts one pre-state (the
+      account exists, the cart holds sku-1, order-1 is accepted and queued)
+      instead of enumerating the 504 distinct projected before-states the whole
+      view reaches, and that assertion IS the 504 -> 12 reduction. What it
+      claims is irrelevant to duplicate handling: cart contents and order
+      fan-out. If duplicate handling ever reads either, the claim is false and
+      the Given must go.
+  Scenario_RejectedRequests:
+    extends: External
+    view: external
+    form: slice
+    actions:
+      - SubmitCreateAccount
+      - SubmitAddCartItemMissingAccount
+      - SubmitCheckoutMissingAccount
+      - SubmitCheckoutEmptyCart
+
 budgets:
   # Documented defaults from references/modular_fuzzing.md, except where a
   # value below carries an entry under rationale:. A changed value without a

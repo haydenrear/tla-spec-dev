@@ -1,0 +1,116 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket CM-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A three-module baseline's ledger measures the declared model; a mismatched .tla/.cfg pair errors instead of reporting bound=None.",
+        "A case module declared in the manifest generates without spurious zero-case warnings for actions outside its scope.",
+        "The aggregation report names every view action entered by no module and not covered by the view's own corpus, and blocks nothing.",
+        "The probe's three modules (examples/case_modules/) still reproduce their recorded case counts: 160 / 16 / 14."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket CM-01"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EV-01"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/spec_evolution.py",
+        "scripts/generate_cases_from_tlc_dump.py",
+        "scripts/budgets.py",
+        "tests/test_spec_evolution.py",
+        "tests/test_generate_cases_from_tlc_dump.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/case_modules.md",
+        "examples/case_modules/"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/120",
+    "id": "CM-01",
+    "implementation_scope": [
+      "scripts/spec_evolution.py",
+      "scripts/generate_cases_from_tlc_dump.py",
+      "scripts/budgets.py",
+      "tests/",
+      "references/case_modules.md"
+    ],
+    "model_delta_expectation": "ZERO. Case-module generation lives in generate_cases_from_tlc_dump.py, which the CLI lifecycle model does not represent. Document the no-op model result with evidence at close; do not invent an action to have a delta.\n",
+    "objective": "Mechanize the case-module option and fix the defect the probe found underneath it. Three parts, in this order. (1) CM-F1 -- record_complexity_ledger locates its model as the alphabetically first *.tla excluding MC*, which on any Core/Internal/External baseline resolves to Core.tla paired with External.cfg and measures bound=None, modularity=0.0; the standing-objective ledger has been measuring a module with no variables and no actions. The measured model becomes DECLARED, and a mismatched .tla/.cfg pair is an error rather than a silent measurement. This is a live defect on every three-module project, independent of case modules. (2) A `case_modules:` block in spec_manifest.yaml -- per module, the view it extends, its action subset, and (for a Given form) the recorded claim the Given asserts. (3) Per-module action scope so generation stops emitting the R4-DF-04 zero-case alias-wrapper warning for actions that simply are not in this aspect (CM-F2), plus an aggregation report of per-action coverage across modules against the view's action set -- a report, never a gate.\n",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "next",
+    "title": "Case modules: declared model discovery, manifest block, per-module action scope, corpus aggregation",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/tickets/CM-01",
+  "ticket_id": "CM-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-120-cm01-case-modules/specs/tickets"
+}

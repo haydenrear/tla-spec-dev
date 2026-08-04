@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib
+import json
+import os
 import re
 import shutil
 import subprocess
@@ -21,15 +23,17 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from . import case_modules
     from .corpus_diagnostics import enforce_case_cap
     from .extract_spec_manifest import load_manifest
-    from .infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
-    from .spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from .infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
+    from .spec_paths import SpecTreePathError, is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path, resolve_spec_tree_out
 except ImportError:  # pragma: no cover - direct script execution
+    import case_modules  # type: ignore[no-redef]
     from corpus_diagnostics import enforce_case_cap
     from extract_spec_manifest import load_manifest
-    from infer_action_params import UNCHECKED, ActionRecipe, build_recipes_from_path, infer_params, render_audit, unchecked_param_names
-    from spec_paths import resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path
+    from infer_action_params import UNCHECKED, ActionRecipe, CorpusMeasurement, build_recipes, build_recipes_from_path, infer_params, measure_recovery, render_audit, unchecked_param_names
+    from spec_paths import SpecTreePathError, is_relative_to, resolve_existing_from_cwd, resolve_existing_spec_input, resolve_spec_dir, resolve_spec_relative_path, resolve_spec_tree_out
 
 
 NODE_RE = re.compile(r'^\s*(-?\d+) \[label="(.*)"(?:,style = filled)?\];?$')
@@ -72,7 +76,23 @@ class PreparedCase:
     metadata: ActionMetadata
 
 
-def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> None:
+def run_tlc_dump(
+    tla_path: Path,
+    cfg_path: Path,
+    dot_path: Path,
+    tlc2: str,
+    search_path: "case_modules.ModuleSearchPath | None" = None,
+) -> None:
+    """Explore ``tla_path`` with TLC and dump the state graph.
+
+    EV-02-DF-02: TLC runs with cwd = the ``.tla``'s directory and resolves
+    ``EXTENDS`` against that directory and the ``TLA-Library`` search path --
+    never against the current directory. A module that extends a view in another
+    directory therefore needs the view's directory on that path, which
+    ``search_path`` supplies. Without it the failure is a
+    ``tla2sany.semantic.AbortException`` and a ``CalledProcessError`` traceback,
+    which is why the caller resolves the hierarchy BEFORE getting here.
+    """
     dot_path.parent.mkdir(parents=True, exist_ok=True)
     spec_dir = tla_path.parent.resolve()
     metadir = dot_path.parent / ".tlc-states" / tla_path.stem
@@ -91,8 +111,31 @@ def run_tlc_dump(tla_path: Path, cfg_path: Path, dot_path: Path, tlc2: str) -> N
         str(dot_path.resolve()),
         str(tla_path.resolve()),
     ]
+    env = case_modules.tlc_environment(search_path)
     try:
-        subprocess.run(command, check=True, cwd=spec_dir)
+        subprocess.run(command, check=True, cwd=spec_dir, env=env)
+    except subprocess.CalledProcessError as error:
+        lines = [
+            f"ERROR: TLC exited {error.returncode} exploring {tla_path.name} "
+            f"(config {cfg_path.name}).",
+            f"  working directory: {spec_dir}",
+        ]
+        if search_path is not None and not search_path.is_self_contained:
+            lines.append(
+                "  module search path (TLA-Library): "
+                + ", ".join(str(directory) for directory in search_path.directories)
+            )
+            lines.append(f"  EXTENDS resolved elsewhere: {search_path.describe()}")
+        else:
+            lines.append(
+                "  module search path: the spec directory only -- every EXTENDS "
+                "resolved beside the module."
+            )
+        lines.append(
+            "  TLC's own message is above. It is not a case-generation failure: "
+            "nothing was written."
+        )
+        raise SystemExit("\n".join(lines)) from error
     finally:
         shutil.rmtree(metadir, ignore_errors=True)
 
@@ -840,10 +883,85 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def resolve_module_search_path(
+    tla_path: Path, extra_roots: list[Path]
+) -> "case_modules.ModuleSearchPath | None":
+    """Resolve the EXTENDS hierarchy and report where each module came from.
+
+    EV-02-DF-02. Returns None when the hierarchy cannot be resolved statically
+    AND the operator has already supplied a ``TLA-Library`` of their own -- in
+    that case this resolver is not the authority and generation proceeds with
+    whatever the environment says. In every other case an unresolvable EXTENDS
+    is fatal HERE, with the module named, because TLC will fail on it anyway and
+    its message is thirty lines lower.
+    """
+    try:
+        search_path = case_modules.resolve_search_path(tla_path, extra_roots)
+    except case_modules.ModuleSearchError as error:
+        if f"-D{case_modules.TLA_LIBRARY_PROPERTY}" in os.environ.get("JAVA_TOOL_OPTIONS", ""):
+            print(
+                f"warning: {error}\n"
+                f"  JAVA_TOOL_OPTIONS already sets {case_modules.TLA_LIBRARY_PROPERTY}, so "
+                "the environment is the authority here and generation proceeds.",
+                file=sys.stderr,
+            )
+            return None
+        raise SystemExit(f"ERROR: {error}") from error
+    if not search_path.is_self_contained:
+        print(
+            f"module search path: {', '.join(str(d) for d in search_path.directories)}\n"
+            f"  EXTENDS resolved outside {search_path.root.parent}: {search_path.describe()}"
+        )
+    return search_path
+
+
+def build_recipes_for_hierarchy(
+    tla_path: Path, search_path: "case_modules.ModuleSearchPath | None"
+) -> dict[str, "ActionRecipe"]:
+    """MF-029 recipes over the whole EXTENDS hierarchy, base modules first.
+
+    A case module declares no VARIABLES and no actions -- every action it enters
+    is defined in the view it EXTENDS -- so reading only its own text produced
+    recipes for nothing, every case carried no argument, and the adapters then
+    refused the entire corpus with ``no usable argument for `i```. Measured on
+    the ex4 fixture: the view's own corpus recovered 330/330 arguments while its
+    two case modules recovered 0/50 and 0/6 from the same actions.
+
+    The recipes must come from the same module set TLC explored, which is
+    exactly what the search path resolved. On a single-file spec that extends
+    only standard modules this is the module's own text and nothing changes.
+    """
+    files = search_path.files_base_first if search_path is not None else (Path(tla_path),)
+    return build_recipes(
+        "\n".join(Path(path).read_text(encoding="utf-8") for path in files)
+    )
+
+
+def report_out_resolution(requested: Path, resolved: Path, spec_dir: Path) -> None:
+    """Say out loud where a relative ``--out`` landed, when it is not obvious.
+
+    EV-02: `--out generated` from a repo root silently created
+    ``<spec dir>/generated``. The resolution rule is deliberate (a spec-relative
+    default keeps generated corpora beside their spec), but it is a surprise the
+    first time, and the run that hit it only found the directory afterwards.
+    """
+    if Path(requested).is_absolute():
+        return
+    cwd_candidate = (Path.cwd() / requested).resolve()
+    if cwd_candidate == resolved or is_relative_to(resolved, cwd_candidate):
+        return
+    print(
+        f"note: --out {requested} resolved to {resolved} -- a relative --out is "
+        f"resolved against the SPEC DIRECTORY ({spec_dir}), not the current "
+        f"directory ({Path.cwd()}). Pass an absolute path to control it."
+    )
+
+
 def advise_complexity(
     tla_path: Path,
     cfg_path: Path,
     spec_dir: Path,
+    search_path: "case_modules.ModuleSearchPath | None" = None,
 ) -> None:
     """Print the complexity scan as ADVICE before generating cases (MF-036).
 
@@ -856,7 +974,7 @@ def advise_complexity(
     reported, not refused -- because TLC may handle a model the static scanner
     cannot.
     """
-    manifest_path = spec_dir / "spec_manifest.yaml"
+    manifest_path = case_modules.resolve_manifest_path(spec_dir, search_path)
     try:
         from scripts.analyze_complexity import gate_report
     except ImportError:  # direct-script import, where sys.path[0] is scripts/
@@ -864,7 +982,10 @@ def advise_complexity(
 
     try:
         clean, message = gate_report(
-            tla_path, cfg_path, manifest_path if manifest_path.is_file() else None
+            tla_path,
+            cfg_path,
+            manifest_path if manifest_path.is_file() else None,
+            search_path=list(search_path.directories) if search_path is not None else None,
         )
     except Exception as exc:  # a scan that cannot parse must not block generation
         print(f"warning: complexity scan could not analyze {tla_path}: {exc}", file=sys.stderr)
@@ -882,16 +1003,214 @@ def advise_complexity(
     )
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
+def report_param_recovery(
+    prepared: list[PreparedCase],
+    param_recipes: dict[str, ActionRecipe],
+    package_dir: Path,
+) -> CorpusMeasurement:
+    """Write the recoverability audit FROM THE CORPUS IT AUDITS, and report it.
+
+    RP-02. The audit used to be rendered from ``param_recipes`` alone -- a
+    reading of the module's syntax -- so it printed "Every parameter of every
+    action is recoverable from its state pair" over a run that had just
+    reported ``0/38 cases carry arguments`` (EV-02-DF-03). A mechanism NAMED is
+    not an argument RECOVERED, and only the corpus knows which happened.
+
+    Nothing here filters, samples or truncates: every prepared case is counted,
+    including the ones whose arguments failed to recover, because an
+    unrecovered argument is a finding to report and not a case to drop.
+    """
+    audit_path = package_dir / "param_recovery_audit.md"
+    measurement = measure_recovery((case.edge.action, case.params) for case in prepared)
+    write(audit_path, render_audit(param_recipes, measurement))
+    with_params = sum(1 for case in prepared if case.params)
+    recovered = sum(
+        1 for case in prepared if case.params and not unchecked_param_names(case.params)
+    )
+    unchecked = sum(1 for case in prepared if unchecked_param_names(case.params))
+    print(
+        f"parameter recovery: {with_params}/{len(prepared)} cases carry arguments, "
+        f"{recovered} carry a fully recovered argument set, "
+        f"{unchecked} carry at least one UNCHECKED argument (kept, never dropped); "
+        f"audit written to {audit_path}"
+    )
+    for item in measurement.unrecovered:
+        print(
+            f"  UNRECOVERABLE on this corpus: {item.action}({item.param}) -- "
+            f"0 of {item.cases} cases carry an argument"
+        )
+    for item in measurement.partial:
+        print(
+            f"  PARTIAL on this corpus: {item.action}({item.param}) -- "
+            f"{item.recovered} of {item.cases} cases carry an argument"
+        )
+    return measurement
+
+
+def report_action_coverage(
+    prepared: list[PreparedCase],
+    *,
+    module: str,
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    package_dir: Path,
+    manifest_path: Path,
+) -> dict[str, Any]:
+    """Report per-action coverage for the corpus just written, and record it.
+
+    Two things happen here, both advisory:
+
+    * **R4-DF-04** -- a declared view action that generated ZERO cases is a
+      silent coverage hole, most often caused by a pure alias wrapper
+      (``CliAdd(t) == AddTask(t)``): TLC attributes such edges to the inner
+      action's definition site, so the wrapper never appears in the dump.
+    * **CM-F2** -- when the module is declared in the manifest's
+      ``case_modules:`` block, that warning is scoped to the actions the module
+      says it enters. A slice deliberately does not enter the rest of the view,
+      and warning about them diagnosed a design decision as a defect: a
+      four-action slice of an eleven-action view emitted seven wrong warnings,
+      which is how a real warning stops being read.
+
+    Nothing here can refuse a generation; the corpus is already on disk.
+    """
+    emitted_counts: dict[str, int] = {}
+    for case in prepared:
+        emitted_counts[case.edge.action] = emitted_counts.get(case.edge.action, 0) + 1
+    declared_for_view = {
+        name for name, meta in action_metadata.items() if should_emit_action(meta, view)
+    }
+
+    declaration = case_modules.declaration_for(manifest_path, module, warn_stream=sys.stderr)
+    if declaration is None:
+        reportable = declared_for_view
+    else:
+        scope = set(declaration.actions)
+        reportable = declared_for_view & scope
+        out_of_view = sorted(scope - declared_for_view)
+        out_of_scope = sorted(set(emitted_counts) - scope)
+        print(
+            f"case module {module}: declared {declaration.form} of {declaration.extends} "
+            f"with {len(scope)} action(s) in scope; "
+            f"{len(declared_for_view - scope)} other declared {view} action(s) are outside "
+            "this aspect and are NOT reported as coverage holes "
+            f"(spec_manifest.yaml {case_modules.CASE_MODULES_KEY}:)"
+        )
+        if declaration.form == "given" and declaration.claim:
+            print(f"case module {module}: recorded Given claim -- {declaration.claim}")
+        for name in out_of_view:
+            print(
+                f"warning: case module {module} declares {name!r} in its action scope, "
+                f"but actions.yml does not declare it as a {view} action.",
+                file=sys.stderr,
+            )
+        for name in out_of_scope:
+            print(
+                f"warning: case module {module} generated {emitted_counts[name]} case(s) for "
+                f"{name!r}, which is not in its declared `actions:` scope. The declaration "
+                "is out of date, and the coverage report is reading it.",
+                file=sys.stderr,
+            )
+
+    for silent in sorted(reportable - set(emitted_counts)):
+        print(
+            f"warning: declared {view} action {silent!r} generated ZERO cases. "
+            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
+            "attributes its transitions to the inner action -- add a semantic "
+            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
+            "the action from actions.yml if it is not a real view action.",
+            file=sys.stderr,
+        )
+
+    record = case_modules.coverage_record(
+        module=module,
+        view=view,
+        action_counts=emitted_counts,
+        declared_view_actions=declared_for_view,
+        declaration=declaration,
+        source=str(package_dir),
+    )
+    path = case_modules.write_coverage_record(package_dir, record)
+    print(f"per-action coverage recorded to {path}")
+    return record
+
+
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Register the generation arguments.
+
+    RC-01 (MF-026 G-6). Split out of ``main()`` so `tla-spec-dev generate
+    cases` can register the SAME arguments rather than a second, drifting copy.
+    Until that ticket the whole of case-module generation was reachable only by
+    running this file directly: `build_parser` in scripts/tla_spec_dev.py never
+    referenced it, so an import-closure walk of the shipped CLI never saw the
+    java spawn at scripts/generate_cases_from_tlc_dump.py:116
+    (subprocess.run), the metadir delete at
+    scripts/generate_cases_from_tlc_dump.py:140 (shutil.rmtree), the package
+    writes at scripts/generate_cases_from_tlc_dump.py:882-883 (path.write_text)
+    or the parameter-recovery audit write. Nothing generated a case for it,
+    nothing adapted it, nothing mutated it, and all four oracles reported green
+    over surface the model did not contain.
+
+    RC-02 (MF-026 round-3 N-3). The three citations above each pointed one
+    line too high when RC-01 shipped them -- lines 115, 139 and 881-882 for
+    code on 116, 140 and 882-883 -- stale in the commit that wrote them, and
+    the third consecutive ticket to ship a stale internal citation. They are now file-qualified and content-anchored:
+    tests/test_source_citations.py resolves every citation in this repository's
+    in-model source, reads the cited line, and fails unless the parenthesised
+    anchor is on it. A line shift now breaks a test instead of a reader.
+    """
     parser.add_argument("tla", type=Path)
     parser.add_argument("cfg", type=Path)
-    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--out",
+        type=Path,
+        required=True,
+        help=(
+            "Output ROOT for the generated package. An absolute path is used as "
+            "given. A RELATIVE path is resolved against the SPEC DIRECTORY (the "
+            ".tla's own directory), not the current directory -- unless it already "
+            "points inside the spec directory. `--out generated` run from a repo "
+            "root therefore writes <spec dir>/generated, which is rarely what was "
+            "meant; the resolved root is printed before generation starts. Pass an "
+            "absolute path when you want cwd-relative behavior. RC-02: the "
+            "RESOLVED path must fall under a `specs/` directory -- that is the "
+            "tree the `spec_tree` port declares for this action -- and a path "
+            "outside it is refused rather than silently relocated."
+        ),
+    )
+    parser.add_argument(
+        "--module-path",
+        action="append",
+        type=Path,
+        default=[],
+        metavar="DIR",
+        help=(
+            "Directory to search for the modules this .tla EXTENDS, ahead of the "
+            "directories beside it. Repeatable. TLC resolves EXTENDS against the "
+            ".tla's own directory and the TLA-Library search path -- never against "
+            "the current directory -- so a case module in specs/case_modules/ that "
+            "extends a view in specs/program_model/ needs the view's directory on "
+            "this path. Sibling directories of the .tla that contain .tla files are "
+            "searched automatically, so the documented layout needs no flag; use "
+            "this when the view is somewhere else or when two siblings define the "
+            "same module."
+        ),
+    )
     parser.add_argument("--package", default="tlc_state_graph_cases")
     parser.add_argument("--view", choices=sorted(SUPPORTED_VIEWS), help="Generate a view-aware case package.")
     parser.add_argument("--actions-metadata", type=Path, help="YAML file with actions.<ActionName> layer/controllability/generates.")
     parser.add_argument("--tlc2", default="tlc2")
-    parser.add_argument("--dot", type=Path)
+    parser.add_argument(
+        "--dot",
+        type=Path,
+        help=(
+            "Where TLC dumps the state graph. Defaults to <out>/<module>.dot. "
+            "RC-02: constrained the same way as --out, and for a stronger "
+            "reason -- run_tlc_dump derives the TLC metadir from this path's "
+            "parent and `shutil.rmtree`s it in its finally branch, so an "
+            "unconstrained --dot is a destructive delete at a caller-chosen "
+            "location declared by a port targeting `**/specs/**`."
+        ),
+    )
     parser.add_argument(
         "--state-projector",
         help="Optional module:function that projects raw TLC states before rendering cases.",
@@ -922,30 +1241,67 @@ def main() -> int:
             "model or spec change."
         ),
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--coverage-json",
+        type=Path,
+        help=(
+            "Also write the aggregated case-module coverage report here, as JSON. "
+            "RC-01: the path MUST resolve inside the generated package root -- the "
+            "report is an artifact OF the corpus it describes, and the "
+            "`spec_tree` port that declares this action's writes covers the "
+            "generated tree, not an arbitrary destination."
+        ),
+    )
 
+
+def run(args: argparse.Namespace) -> int:
     tla_path = resolve_existing_from_cwd(args.tla)
     spec_dir = resolve_spec_dir(args.tla)
     cfg_path = resolve_existing_spec_input(args.cfg, spec_dir)
     if not cfg_path.exists():
         raise SystemExit(f"ERROR: config not found: {cfg_path} (spec directory: {spec_dir})")
     view = args.view or "internal"
-    out_path = resolve_spec_relative_path(args.out, spec_dir)
+    # RC-02 (MF-026 round-3 N-2): both caller-controlled generation paths are
+    # constrained to the tree the `spec_tree` / `spec_tree_delete` ports
+    # declare. Resolution itself is unchanged (resolve_spec_tree_out still
+    # resolves through resolve_spec_relative_path); what is new is that a path
+    # resolving outside a `specs/` directory is REFUSED instead of written to.
+    # The metadir `rmtree` in run_tlc_dump's finally branch is derived from
+    # `dot_path.parent`, so constraining `--dot` constrains the destructive
+    # delete by construction rather than by a second, separate check.
+    try:
+        out_path = resolve_spec_tree_out(args.out, spec_dir)
+        dot_path = (
+            resolve_spec_tree_out(args.dot, spec_dir, is_file=True) if args.dot else None
+        )
+    except SpecTreePathError as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 2
     if args.view is not None:
         out_path = out_path / VIEW_OUTPUT_DIRS[view]
-    dot_path = resolve_spec_relative_path(args.dot, spec_dir) if args.dot else out_path / f"{tla_path.stem}.dot"
+    if dot_path is None:
+        dot_path = out_path / f"{tla_path.stem}.dot"
+    report_out_resolution(args.out, out_path, spec_dir)
 
     for root in [Path.cwd(), Path(__file__).resolve().parents[1], spec_dir]:
         resolved = str(root.resolve())
         if resolved not in sys.path:
             sys.path.insert(0, resolved)
 
+    # EV-02-DF-02: resolve the EXTENDS hierarchy BEFORE anything expensive runs,
+    # so a module that extends a view in another directory either gets that
+    # directory on the search path or gets one sentence saying which module is
+    # missing and where it was looked for -- not a SANY AbortException stack
+    # underneath a complexity paragraph about a bound that could not be measured.
+    search_path = resolve_module_search_path(tla_path, args.module_path)
+    manifest_path = case_modules.resolve_manifest_path(spec_dir, search_path)
+
     # Complexity scan (MF-011, made advisory in MF-036). Runs BEFORE
     # run_tlc_dump only so the warnings and recommendations print ahead of the
     # TLC exploration. It never refuses generation -- complexity is advisory.
-    advise_complexity(tla_path, cfg_path, spec_dir)
+    advise_complexity(tla_path, cfg_path, spec_dir, search_path)
 
-    run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2)
+    run_tlc_dump(tla_path, cfg_path, dot_path, args.tlc2, search_path)
     states, edges = load_dot(dot_path)
     if not states:
         raise SystemExit(f"ERROR: no states parsed from {dot_path}")
@@ -954,7 +1310,9 @@ def main() -> int:
     # MF-029: recover action arguments from each case's own state pair. The
     # recipes come from the SAME module TLC just explored, so the recovery and
     # the corpus can never describe different actions.
-    param_recipes = None if args.no_infer_params else build_recipes_from_path(tla_path)
+    param_recipes = (
+        None if args.no_infer_params else build_recipes_for_hierarchy(tla_path, search_path)
+    )
 
     prepared = render_python_package(
         module=tla_path.stem,
@@ -972,36 +1330,27 @@ def main() -> int:
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
 
-    # R4-DF-04: a declared view action that generated ZERO cases is a silent
-    # coverage hole, most often caused by a pure alias wrapper
-    # (`CliAdd(t) == AddTask(t)`) -- TLC attributes such edges to the inner
-    # action's definition site, so the wrapper never appears in the dump.
-    emitted_actions = {case.edge.action for case in prepared}
-    declared_for_view = {
-        name
-        for name, meta in action_metadata.items()
-        if should_emit_action(meta, view)
-    }
-    for silent in sorted(declared_for_view - emitted_actions):
-        print(
-            f"warning: declared {view} action {silent!r} generated ZERO cases. "
-            "If it is a pure alias wrapper (Wrapper(x) == Inner(x)), TLC "
-            "attributes its transitions to the inner action -- add a semantic "
-            "no-op anchoring conjunct so the wrapper owns its edges, or remove "
-            "the action from actions.yml if it is not a real view action.",
-            file=sys.stderr,
+    coverage_record = report_action_coverage(
+        prepared,
+        module=tla_path.stem,
+        view=view,
+        action_metadata=action_metadata,
+        package_dir=out_path / args.package,
+        manifest_path=manifest_path,
+    )
+
+    if getattr(args, "coverage_json", None) is not None:
+        write_case_module_coverage_report(
+            coverage_record,
+            manifest_path=manifest_path,
+            view=view,
+            action_metadata=action_metadata,
+            package_dir=out_path / args.package,
+            destination=args.coverage_json,
         )
 
     if param_recipes is not None:
-        audit_path = out_path / args.package / "param_recovery_audit.md"
-        write(audit_path, render_audit(param_recipes))
-        with_params = sum(1 for case in prepared if case.params)
-        unchecked = sum(1 for case in prepared if unchecked_param_names(case.params))
-        print(
-            f"parameter recovery: {with_params}/{len(prepared)} cases carry arguments, "
-            f"{unchecked} carry at least one UNCHECKED argument (kept, never dropped); "
-            f"audit written to {audit_path}"
-        )
+        report_param_recovery(prepared, param_recipes, out_path / args.package)
 
     # Case-cap hard gate (MF-014). Runs AFTER the complete package is written:
     # the corpus is never trimmed to pass, so the artifacts on disk hold every
@@ -1011,10 +1360,66 @@ def main() -> int:
     enforce_case_cap(
         prepared,
         view=view,
-        manifest_path=spec_dir / "spec_manifest.yaml",
+        manifest_path=manifest_path,
         source=str(out_path / args.package),
     )
     return 0
+
+
+def write_case_module_coverage_report(
+    coverage_record: dict[str, Any],
+    *,
+    manifest_path: Path,
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    package_dir: Path,
+    destination: Path,
+) -> Path:
+    """Aggregate the case-module coverage report for the corpus just written.
+
+    RC-01 (MF-026 G-6). ``scripts/case_modules.py`` shipped a standalone
+    ``main()`` whose ``coverage`` subcommand built this report and wrote it as
+    JSON, and NOTHING in `build_parser` reached it. The aggregation is the
+    epic's flagship reporting artifact, so it is reachable from the shipped CLI
+    here, on the generation path that produces the corpora it reads.
+
+    The destination is required to resolve inside the generated package root:
+    the `spec_tree` port declares this action's writes over the generated tree,
+    and an unconstrained destination would be the same undeclared-write defect
+    the audit filed as G-2/G-3 against the three `--out` flags.
+    """
+    package_dir = package_dir.resolve()
+    resolved = Path(destination).expanduser()
+    resolved = (
+        resolved.resolve() if resolved.is_absolute() else (Path.cwd() / resolved).resolve()
+    )
+    if not is_relative_to(resolved, package_dir):
+        raise SystemExit(
+            f"ERROR: --coverage-json must resolve inside the generated package "
+            f"({package_dir}); got {resolved}. The report describes that corpus and is "
+            "declared as a write to it."
+        )
+    declared_for_view = {
+        name for name, meta in action_metadata.items() if should_emit_action(meta, view)
+    }
+    report = case_modules.build_report(
+        manifest_path=manifest_path,
+        corpora=[coverage_record],
+        view=view,
+        view_actions=declared_for_view,
+    )
+    write(resolved, json.dumps(case_modules.report_payload(report), indent=2, sort_keys=True) + "\n")
+    print(f"case-module coverage report written to {resolved}")
+    return resolved
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="generate_cases_from_tlc_dump",
+        description="Generate a view-aware spec-unit case package from a TLC state-graph dump.",
+    )
+    add_arguments(parser)
+    return run(parser.parse_args(argv))
 
 
 if __name__ == "__main__":

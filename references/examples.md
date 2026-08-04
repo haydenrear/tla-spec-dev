@@ -100,3 +100,13 @@ accepted, closed `program_model` must not retain them.
 For production onboarding, use
 `tla-spec-dev --spec-root specs scaffold project --name ProjectName` so only
 the accepted `specs/program_model` baseline is created.
+
+## Case Modules
+
+`examples/case_modules/` holds three BDD-style case modules over the
+`distributed_history` External view, plus the measurements they produced. They
+are evidence for the optional shape described in `references/case_modules.md` —
+per-aspect modules that EXTEND a view and add no state or actions — not a
+fixture to copy into a project unexamined. They live outside the example's
+accepted baseline on purpose; `README.md` there explains how to run them and
+why.

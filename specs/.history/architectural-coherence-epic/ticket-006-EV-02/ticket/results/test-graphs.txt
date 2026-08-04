@@ -1,0 +1,31 @@
+$ cd test_graph && ./gradlew cliWorkflow --console=plain
+BUILD SUCCESSFUL in 6s
+
+$ cd test_graph && ./gradlew specWorkflow --console=plain
+> Task :specWorkflow FAILED
+> node spec.workflow.failure_cleanup_probe errored: node launcher exited with
+  live descendants: 75016,75071
+BUILD FAILED in 55s
+
+PRE-EXISTING RED, NOT THIS TICKET'S. Reproduced on the UNMODIFIED epic tip
+(/Users/hayde/IdeaProjects/wt-epic-architectural-coherence, commit 60d4a51,
+before any EV-02 change):
+
+  $ cd test_graph && ./gradlew specWorkflow --console=plain
+  > Task :specWorkflow FAILED
+  > node spec.workflow.failure_cleanup_probe errored: node launcher exited with
+    live descendants: 76911,76934
+  BUILD FAILED in 41s
+
+Same node, same failure mode, different PIDs. EV-02 changed no production code,
+no adapter, no model, and no test_graph source; its conflict keys are
+`examples/validation/runs/` and `NEXT-EPIC.md`. The node is a deliberate
+failure/cleanup probe and the failure is a leaked-descendant reap in the node
+launcher -- an environment/harness condition rather than a spec-workflow
+behavior.
+
+NOT FILED as a sixth deferred finding. The deferment budget is 5 and EV-02 filed
+exactly 5 (EV-02-DF-01..05); a pre-existing baseline red belongs in the same
+category as CM-01-DF-01 (the known-red doc-phrase test), which the assignment
+already carves out as "not yours". Recorded here and escalated to the epic owner
+in the ticket report instead.

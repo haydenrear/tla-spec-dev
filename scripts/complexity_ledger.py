@@ -63,6 +63,18 @@ Escapes"). A rule with an escape hatch is not a rule.
   targets it cannot see rather than reporting them clean. The member keeps its
   DEGRADED classification in the record for exactly that reason, even though
   it no longer gates.
+- AC-04 STRUCTURE MEMBER. ``architecture_delta`` records the before/after
+  reflexion comparison -- divergences before, divergences after, and the
+  specific dependencies gained and lost -- next to the complexity delta, and
+  GATES NOTHING. A ticket that raised structural divergence records that and
+  closes. The member is DERIVED from the report file rather than typed: the only
+  authored field is ``claim:``, and the only refusal is a claim the measurement
+  contradicts. Two properties are load-bearing and both are recorded in the
+  entry: a drop whose disappeared edges are not enumerated is ``unverified``
+  (MF-020 applied to structure), and a comparison whose two scans used different
+  maps or different models is ``unattributable`` -- any divergence disappears if
+  the map moves the offending module into the component it reaches, so the map's
+  identity is part of the result.
 - A generated-states drop at constant distinct states and constant depth is a
   RED FLAG, not a win. MF-020 withdrew a projected -13.1% reduction that turned
   out to require deleting a legitimate idempotent re-fire transition; the
@@ -82,9 +94,10 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover - import shim for direct script execution
-    from . import analyze_complexity
+    from . import analyze_complexity, spec_paths
 except ImportError:  # pragma: no cover
     import analyze_complexity
+    import spec_paths
 
 try:  # pragma: no cover
     import yaml
@@ -176,6 +189,34 @@ COVERAGE_AUDIT_PASSING = {"pass"}
 # Sentinel the scaffolded template carries. It must fail every gate it touches,
 # so an unfilled template can never be closed through.
 TEMPLATE_SENTINEL = "TODO"
+
+# AC-04 -- the architecture delta member. RECORDED at every close, and it gates
+# NOTHING about the code: a ticket that raised structural divergence records
+# that fact and closes.
+#
+# It is not read from a status word. The ledger opens the delta report produced
+# by `analyze architecture ... --baseline` and DERIVES the direction from it,
+# because a member whose verdict is typed in by the author being graded is not a
+# measurement. The only thing the author may assert is a `claim:`, and the only
+# gate here checks that assertion against the derived direction.
+ARCHITECTURE_DELTA_SCHEMA = "tla-spec-dev/architecture-delta"
+
+#: Directions a delta report may carry, with what each licenses. `unverified`
+#: and `unattributable` are refusals to call the number a refactor result; both
+#: are recorded and neither refuses a close.
+ARCHITECTURE_DELTA_DIRECTIONS = {
+    "improved": "fewer divergent dependencies, each disappearance enumerated",
+    "worsened": "more divergent dependencies -- recorded, never refused",
+    "unchanged": "the divergence count did not move",
+    "unverified": "the count fell and the enumerated edges do not explain why (MF-020)",
+    "unattributable": "the two scans did not share a declared map and model",
+    "not_run": "no before/after comparison was recorded for this close",
+    "unreadable": "a delta report was named and could not be read as one",
+}
+
+#: The only direction a `claim:` may assert as an improvement. Everything else
+#: an author might type is compared verbatim against the derived direction.
+ARCHITECTURE_DELTA_IMPROVEMENT = "improved"
 
 # Metrics whose growth counts as a complexity increase. Deliberately the
 # representation-size and reachable-size measures, not counts of files or tests.
@@ -284,6 +325,65 @@ class CoverageAuditRecord:
 
 
 @dataclass
+class ArchitectureDeltaRecord:
+    """AC-04 -- the before/after STRUCTURE comparison, recorded at every close.
+
+    The complexity delta answers "is the representation smaller?". This answers
+    "did the code move toward or away from the boundaries the model draws?", and
+    the two can disagree: a change that lowers complexity while scattering the
+    code further is not the refactor anyone wanted, and until this member existed
+    the ledger could not see the difference.
+
+    Everything here except ``claim`` is DERIVED from the report file. The map and
+    architecture digests are copied into the ledger entry on purpose -- a delta
+    across two different maps is not a refactor result, and the entry has to
+    carry enough to prove which case it was long after the scans are gone.
+    """
+
+    status: str = "not_run"
+    report: str = ""
+    resolved_report: str = ""
+    claim: str = ""
+    attribution: str = ""
+    divergences_before: Any = None
+    divergences_after: Any = None
+    divergences_delta: Any = None
+    edges_lost: list[str] = field(default_factory=list)
+    edges_gained: list[str] = field(default_factory=list)
+    map_digest_before: str = ""
+    map_digest_after: str = ""
+    architecture_digest_before: str = ""
+    architecture_digest_after: str = ""
+    red_flags: list[str] = field(default_factory=list)
+    problems: list[str] = field(default_factory=list)
+    why: list[str] = field(default_factory=list)
+
+    @property
+    def normalized(self) -> str:
+        value = str(self.status or "").strip().lower()
+        return value if value in ARCHITECTURE_DELTA_DIRECTIONS else "unreadable"
+
+    @property
+    def recorded(self) -> bool:
+        """Whether a comparison was actually read. Never a pass/fail judgment."""
+        return self.normalized not in {"not_run", "unreadable"}
+
+    @property
+    def verified_improvement(self) -> bool:
+        return self.normalized == ARCHITECTURE_DELTA_IMPROVEMENT
+
+    def describe(self) -> str:
+        note = ARCHITECTURE_DELTA_DIRECTIONS[self.normalized]
+        if not self.recorded:
+            return f"architecture_delta={self.normalized} ({note})"
+        return (
+            f"architecture_delta={self.normalized} ({note}); divergences "
+            f"{self.divergences_before} -> {self.divergences_after}, "
+            f"attribution={self.attribution or 'unknown'}"
+        )
+
+
+@dataclass
 class LedgerVerdict:
     entry: dict[str, Any]
     errors: list[str] = field(default_factory=list)
@@ -316,10 +416,28 @@ def collect_metrics(
     otherwise -- never estimated, never carried forward from a previous entry.
     """
     analysis = analyze_complexity.analyze(tla_path, cfg_path, manifest_path)
+    completeness = analysis.completeness
     metrics: dict[str, Any] = {
         "variables": len(analysis.variables),
         "actions": len(analysis.actions),
+        # RP-04, same class again: `actions` is a DELTA_METRIC, and the
+        # descriptor says in prose when the count came from the FALLBACK primes
+        # heuristic ("helper operators may be listed as actions and composed
+        # actions may be missing") rather than from the next-state relation's
+        # disjuncts. The ledger recorded the bare count. Carry the attribution.
+        "action_attribution": analysis.action_attribution,
+        "actions_from_fallback_heuristic": analysis.action_attribution.startswith(
+            "FALLBACK"
+        ),
         "bound": analysis.bound,
+        # CM-01-DF-03: the bound above is a product over the variables whose
+        # domain resolved. Recording it without these three fields is how the
+        # ledger came to record "0.0% of 1,000,000, within cap" for a model TLC
+        # measures at 49,386 distinct states -- the descriptor TEXT named the
+        # nine excluded variables and the JSON threw the caveat away.
+        "bound_complete": completeness.complete,
+        "bound_resolved_variables": completeness.resolved,
+        "bound_unresolved_variables": list(completeness.unresolved),
         "modularity": analysis.modularity_score,
         "distinct_states": None,
         "generated_states": None,
@@ -333,13 +451,36 @@ def collect_metrics(
         metrics["generated_states"] = report.generated
         metrics["depth"] = report.depth
         metrics["tlc_report"] = str(tlc_report)
+        # RP-04, the same class as CM-01-DF-03 found one file over: a TLC run
+        # that did not finish still prints a distinct-state count, and
+        # `analyze` is careful to check `max_distinct_states` only when
+        # `report.complete` -- while the ledger recorded the count with no such
+        # flag and compared it against the cap regardless. Publish the flag.
+        metrics["tlc_run_complete"] = report.complete
     budgets = analysis.budgets or {}
     metrics["budget_utilization"] = _budget_utilization(metrics, budgets)
     return metrics
 
 
 def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dict[str, Any]:
-    """Percent-of-cap for each hard cap, in the form the manual ledgers used."""
+    """Percent-of-cap for each hard cap, in the form the manual ledgers used.
+
+    CM-01-DF-03: the state-space entry additionally reads
+    ``metrics['bound_complete']``. A bound that is a product over a SUBSET of
+    the declared variables supports one comparison and not the other:
+
+    * over the cap  -- recorded as ``within_cap: false``. Sound: every
+      unresolved variable has at least one value, so the complete bound is at
+      least the recorded one.
+    * at or under the cap -- recorded as ``within_cap: null`` with a
+      ``caveat``, and ``percent`` becomes ``percent_lower_bound``. "0.0% of
+      1,000,000, within cap" over one resolved variable of ten is not a
+      measurement, and a null here is the only honest value.
+
+    A missing ``bound_complete`` key (every ledger entry written before this
+    fix) is treated as UNKNOWN completeness, which is also not a licence to
+    claim "within cap" -- it is recorded as null with a caveat naming the gap.
+    """
     utilization: dict[str, Any] = {}
     pairs = (
         ("max_state_space_bound", "bound"),
@@ -350,13 +491,80 @@ def _budget_utilization(metrics: dict[str, Any], budgets: dict[str, Any]) -> dic
         used = metrics.get(metric_key)
         if not isinstance(cap, int) or cap <= 0 or not isinstance(used, int):
             continue
-        utilization[budget_key] = {
-            "cap": cap,
-            "used": used,
-            "percent": round(used / cap * 100, 1),
-            "within_cap": used <= cap,
-        }
+        entry: dict[str, Any] = {"cap": cap, "used": used}
+        percent = round(used / cap * 100, 1)
+        if metric_key != "bound":
+            # max_distinct_states caps ACTUAL states counted by TLC. There is no
+            # partial-RESOLUTION question to ask of a measured count -- but
+            # there is a partial-RUN one, and it has the same shape (RP-04): a
+            # TLC run that did not finish reports a count that is a floor.
+            # `tlc_run_complete` absent means no TLC report was supplied at
+            # all, in which case `used` came from a caller's own dict and is
+            # taken at face value, as before.
+            if metrics.get("tlc_run_complete") is False:
+                entry["tlc_run_complete"] = False
+                entry["percent_lower_bound"] = percent
+                entry["percent"] = None
+                entry["within_cap"] = False if used > cap else None
+                entry["caveat"] = (
+                    "the TLC run that produced this count did not finish, so the "
+                    "count is a LOWER BOUND on the reachable states"
+                    + (
+                        "; over the cap is still over the cap"
+                        if used > cap
+                        else " and 'within cap' is UNKNOWN"
+                    )
+                )
+            else:
+                entry["percent"] = percent
+                entry["within_cap"] = used <= cap
+            utilization[budget_key] = entry
+            continue
+        complete = metrics.get("bound_complete")
+        entry["bound_complete"] = complete
+        if complete is True:
+            entry["percent"] = percent
+            entry["within_cap"] = used <= cap
+        elif used > cap:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = False
+            entry["caveat"] = _bound_caveat(metrics, over_cap=True)
+        else:
+            entry["percent_lower_bound"] = percent
+            entry["percent"] = None
+            entry["within_cap"] = None
+            entry["caveat"] = _bound_caveat(metrics, over_cap=False)
+        utilization[budget_key] = entry
     return utilization
+
+
+def _bound_caveat(metrics: dict[str, Any], *, over_cap: bool) -> str:
+    """Why the state-space cap comparison is qualified or refused."""
+    resolved = metrics.get("bound_resolved_variables")
+    total = metrics.get("variables")
+    unresolved = metrics.get("bound_unresolved_variables") or []
+    if metrics.get("bound_complete") is None:
+        basis = (
+            "bound completeness was not recorded for this entry (written before "
+            "CM-01-DF-03 was fixed), so it is unknown whether the bound is a "
+            "product over every declared variable"
+        )
+    else:
+        basis = (
+            f"the bound is a product over {resolved} of {total} declared variables"
+            + (f" ({len(unresolved)} unresolved: {', '.join(unresolved)})" if unresolved else "")
+        )
+    if over_cap:
+        return (
+            f"{basis}, so the recorded figure is a LOWER BOUND; over the cap is "
+            "still over the cap, but the percent is a floor, not the percent"
+        )
+    return (
+        f"{basis}, so percent-of-cap is not a measurement and within_cap is "
+        "UNKNOWN -- an incomplete bound at or under the cap is not evidence of "
+        "anything"
+    )
 
 
 # --------------------------------------------------------------------------
@@ -453,6 +661,16 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
         entry: dict[str, Any] = {"before": before, "after": after, "delta": change}
         if before:
             entry["percent"] = round(change / before * 100, 1)
+        if key == "bound":
+            # CM-01-DF-03: a bound delta is only like-for-like when BOTH sides
+            # are products over the whole representation. Two incomplete bounds
+            # differ partly because the resolver saw different amounts of the
+            # model, and a bound that changed completeness is not a comparison
+            # at all. Recorded here rather than silently folded into the
+            # direction; the direction rules are unchanged, because relaxing
+            # them is a policy call for the owner, not a side effect of a
+            # reporting fix. Read the note before reading the number.
+            entry.update(_bound_delta_comparability(previous_metrics, current))
         delta["metrics"][key] = entry
         if key in DIRECTION_METRICS and change:
             directions.append("increase" if change > 0 else "decrease")
@@ -463,6 +681,41 @@ def compute_delta(previous: dict[str, Any] | None, current: dict[str, Any]) -> d
     else:
         delta["direction"] = directions[0]
     return delta
+
+
+def _bound_delta_comparability(
+    previous_metrics: dict[str, Any], current: dict[str, Any]
+) -> dict[str, Any]:
+    """Whether a bound before/after pair is a like-for-like comparison."""
+    before = previous_metrics.get("bound_complete")
+    after = current.get("bound_complete")
+    fields: dict[str, Any] = {
+        "bound_complete_before": before,
+        "bound_complete_after": after,
+    }
+    if before is True and after is True:
+        fields["comparable"] = True
+        return fields
+    fields["comparable"] = False
+    if before is None or after is None:
+        fields["note"] = (
+            "bound completeness is unrecorded on at least one side of this "
+            "comparison (entries written before CM-01-DF-03 was fixed do not "
+            "carry it), so this delta is NOT known to be like-for-like"
+        )
+    elif before != after:
+        fields["note"] = (
+            f"bound completeness CHANGED across this comparison "
+            f"(complete={before} -> complete={after}): the two numbers are "
+            "products over different subsets of the representation, so the "
+            "delta is not a measurement of the model getting bigger or smaller"
+        )
+    else:
+        fields["note"] = (
+            "both bounds are products over a SUBSET of the declared variables, "
+            "so this delta measures the resolved subset, not the model"
+        )
+    return fields
 
 
 def _tlc_reports(previous: dict[str, Any] | None, current: dict[str, Any]) -> tuple[Any, Any]:
@@ -564,6 +817,115 @@ def parse_coverage_audit(raw: dict[str, Any] | None) -> CoverageAuditRecord:
     )
 
 
+def _edge_line(row: Any) -> str:
+    """One enumerated dependency, in the form a person can navigate."""
+    if not isinstance(row, dict):
+        return str(row)
+    sites = row.get("sites") or []
+    where = ", ".join(str(s) for s in sites) if sites else row.get("site") or "(no site)"
+    return (
+        f"{row.get('from')} -{row.get('kind')}-> {row.get('to')} "
+        f"[{row.get('symbol')}] {where}"
+    )
+
+
+def parse_architecture_delta(
+    raw: dict[str, Any] | None, input_dir: Path | None = None
+) -> ArchitectureDeltaRecord:
+    """AC-04 -- read the delta REPORT and derive the direction from it.
+
+    Deliberately not a status word. Every other member of this ledger takes the
+    author's verdict on trust because no machine-readable artifact exists for it;
+    here one does, so the ledger opens it. What the author may supply is a
+    ``claim:``, which exists only so that a wrong one can be caught.
+
+    The MF-020 rule is re-applied here rather than delegated: an ``improved``
+    direction whose report enumerates no disappeared edges is downgraded to
+    ``unverified``. The delta tool already refuses that case, and this check
+    means a report produced by something else, or edited afterwards, cannot
+    smuggle an unexplained drop into the ledger.
+    """
+    raw = raw if isinstance(raw, dict) else {}
+    report = str(raw.get("report", "") or "").strip()
+    if TEMPLATE_SENTINEL in report:
+        report = ""
+    claim = str(raw.get("claim", "") or "").strip().lower()
+    if TEMPLATE_SENTINEL.lower() in claim:
+        claim = ""
+
+    record = ArchitectureDeltaRecord(report=report, claim=claim)
+    if not report:
+        record.status = "not_run"
+        return record
+
+    base = Path(input_dir) if input_dir else Path.cwd()
+    resolved = spec_paths.resolve_existing_spec_input(Path(report), base)
+    record.resolved_report = str(resolved)
+    if not resolved.is_file():
+        record.status = "unreadable"
+        record.problems.append(f"delta report not found: {resolved}")
+        return record
+    try:
+        payload = json.loads(resolved.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        record.status = "unreadable"
+        record.problems.append(f"{resolved}: not a JSON delta report ({exc})")
+        return record
+    if isinstance(payload, dict) and isinstance(payload.get("delta"), dict):
+        # A whole `analyze architecture --format json` run was recorded. Fine --
+        # that is the artifact the command actually produces.
+        payload = payload["delta"]
+    if not isinstance(payload, dict) or payload.get("schema") != ARCHITECTURE_DELTA_SCHEMA:
+        record.status = "unreadable"
+        record.problems.append(
+            f"{resolved}: schema is `{payload.get('schema') if isinstance(payload, dict) else None}`, "
+            f"not `{ARCHITECTURE_DELTA_SCHEMA}`. The ledger records a MEASURED delta; it "
+            "does not accept a hand-written summary of one."
+        )
+        return record
+
+    verdict = payload.get("verdict") or {}
+    divergences = payload.get("divergences") or {}
+    basis = payload.get("basis") or {}
+    record.status = str(verdict.get("direction", "") or "").strip().lower()
+    record.why = [str(x) for x in (verdict.get("why") or [])]
+    record.red_flags = [str(x) for x in (verdict.get("red_flags") or [])]
+    record.attribution = str(basis.get("attribution", "") or "")
+    record.divergences_before = divergences.get("before")
+    record.divergences_after = divergences.get("after")
+    record.divergences_delta = divergences.get("delta")
+    record.edges_lost = [_edge_line(row) for row in (divergences.get("lost") or [])]
+    record.edges_gained = [_edge_line(row) for row in (divergences.get("gained") or [])]
+    record.map_digest_before = str(basis.get("map_digest_before", "") or "")
+    record.map_digest_after = str(basis.get("map_digest_after", "") or "")
+    record.architecture_digest_before = str(basis.get("architecture_digest_before", "") or "")
+    record.architecture_digest_after = str(basis.get("architecture_digest_after", "") or "")
+
+    if record.normalized == "unreadable":
+        record.problems.append(
+            f"{resolved}: direction `{verdict.get('direction')}` is not one of "
+            f"{', '.join(sorted(ARCHITECTURE_DELTA_DIRECTIONS))}. An unrecognized verdict "
+            "is never assumed to be good news."
+        )
+        return record
+
+    # The MF-020 rule, applied to structure and re-checked here.
+    if (
+        record.normalized == ARCHITECTURE_DELTA_IMPROVEMENT
+        and isinstance(record.divergences_delta, int)
+        and record.divergences_delta < 0
+        and not record.edges_lost
+    ):
+        record.status = "unverified"
+        record.problems.append(
+            "the report claims a divergence DROP and enumerates none of the dependencies "
+            "that disappeared. A drop reported without the specific edges is unverified by "
+            "construction -- the structural form of MF-020, where a projected reduction "
+            "turned out to be a deleted transition the distinct-state count could not see."
+        )
+    return record
+
+
 def load_input(path: Path) -> dict[str, Any]:
     path = Path(path)
     if not path.exists():
@@ -591,6 +953,7 @@ def evaluate(
     metrics: dict[str, Any],
     ledger_input: dict[str, Any],
     previous: dict[str, Any] | None,
+    input_dir: Path | None = None,
 ) -> LedgerVerdict:
     """Build the ledger entry and run every gate. Errors mean the close is refused."""
     errors: list[str] = []
@@ -602,6 +965,9 @@ def evaluate(
     validated_refactor = parse_validated_refactor(ledger_input.get("validated_refactor"))
     refinement = parse_refinement(ledger_input.get("refinement"))
     coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
+    architecture_delta = parse_architecture_delta(
+        ledger_input.get("architecture_delta"), input_dir
+    )
     justification = str(ledger_input.get("justification", "") or "").strip()
     if TEMPLATE_SENTINEL in justification:
         justification = ""
@@ -754,6 +1120,58 @@ def evaluate(
             "MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
         )
 
+    # ---- The architecture delta (AC-04): recorded, NEVER gating -------------
+    # A rise in structural divergence is a fact about this ticket, and it is
+    # written down and printed. It does not refuse the close: the delta has not
+    # earned a gate, and a structural finding that blocks work would be answered
+    # by not running the scan.
+    #
+    # The ONE thing that refuses here is a false claim. `architecture_delta.claim`
+    # is optional; if it is present and the measured direction is something else,
+    # the close is refused -- not because the structure got worse, but because
+    # the record would say something the evidence does not. That is the same rule
+    # the complexity side applies to a decrease: there is no flag that records a
+    # rejected improvement as an improvement.
+    for problem in architecture_delta.problems:
+        notes.append(f"architecture delta: {problem}")
+    for flag in architecture_delta.red_flags:
+        notes.append(f"architecture delta RED FLAG: {flag}")
+    if not architecture_delta.recorded:
+        notes.append(
+            f"architecture delta {architecture_delta.normalized} -- no before/after "
+            "structure comparison was recorded for this close. Recorded as absent rather "
+            "than dropped; it gates nothing."
+        )
+    else:
+        notes.append(architecture_delta.describe())
+        if architecture_delta.normalized == "worsened":
+            notes.append(
+                "structural divergence ROSE. Recorded, not refused -- the edges are "
+                "enumerated in the entry so a person can read what moved."
+            )
+    if architecture_delta.claim:
+        if architecture_delta.claim != architecture_delta.normalized:
+            errors.append(
+                f"REJECTED -- the ledger claims the architecture delta is "
+                f"`{architecture_delta.claim}` and the recorded delta measures "
+                f"`{architecture_delta.normalized}`"
+                + (
+                    f" ({'; '.join(architecture_delta.problems)})"
+                    if architecture_delta.problems
+                    else ""
+                )
+                + ". The claim is the only part of this member an author writes; every "
+                "other figure is derived from the report. Withdraw the claim or record a "
+                "delta that supports it. A structural improvement asserted without the "
+                "edges that disappeared is unverified by construction (MF-020)."
+            )
+        elif architecture_delta.verified_improvement:
+            notes.append(
+                "structural improvement claimed and VERIFIED against the recorded delta: "
+                f"{len(architecture_delta.edges_lost)} divergent dependenc(ies) enumerated "
+                "as disappeared, measured against an unchanged map and model."
+            )
+
     # ---- Gate 7: the narrative is required ---------------------------------
     # The machine-checked core is narrow by design; the narrative is where the
     # ledger actually says what happened. Requiring it is what keeps the
@@ -817,6 +1235,30 @@ def evaluate(
             "in_scope_gaps": coverage_audit.in_scope_gaps,
             "scope_source": coverage_audit.scope_source,
         },
+        # AC-04. Non-gating, and carrying the identity of what it was measured
+        # against: a delta whose two scans used different maps is not a refactor
+        # result, and the entry must still say so years later.
+        "architecture_delta": {
+            "status": architecture_delta.normalized,
+            "recorded": architecture_delta.recorded,
+            "gates": False,
+            "report": architecture_delta.report,
+            "resolved_report": architecture_delta.resolved_report,
+            "claim": architecture_delta.claim,
+            "attribution": architecture_delta.attribution,
+            "divergences_before": architecture_delta.divergences_before,
+            "divergences_after": architecture_delta.divergences_after,
+            "divergences_delta": architecture_delta.divergences_delta,
+            "divergent_edges_lost": architecture_delta.edges_lost,
+            "divergent_edges_gained": architecture_delta.edges_gained,
+            "map_digest_before": architecture_delta.map_digest_before,
+            "map_digest_after": architecture_delta.map_digest_after,
+            "architecture_digest_before": architecture_delta.architecture_digest_before,
+            "architecture_digest_after": architecture_delta.architecture_digest_after,
+            "why": architecture_delta.why,
+            "red_flags": architecture_delta.red_flags,
+            "problems": architecture_delta.problems,
+        },
         "transition_diff": transition_diff,
         "narrative": narrative,
         "tlc_findings": tlc_findings,
@@ -842,6 +1284,17 @@ def render_report(verdict: LedgerVerdict) -> str:
     # an explicit unknown, rendered as such, never a silent 1.
     bound = metrics.get("bound")
     bound_text = f"{bound:,}" if isinstance(bound, int) else "unknown"
+    # CM-01-DF-03: the bound never appears in this report without saying how
+    # much of the representation it covers. "bound=4" beside "variables=10"
+    # read as a small model; "bound=4 (INCOMPLETE: 1/10 variables)" reads as
+    # what it is.
+    if isinstance(bound, int) and metrics.get("bound_complete") is False:
+        bound_text += " (INCOMPLETE: {resolved}/{total} variables resolved)".format(
+            resolved=metrics.get("bound_resolved_variables"),
+            total=metrics.get("variables"),
+        )
+    elif isinstance(bound, int) and metrics.get("bound_complete") is None:
+        bound_text += " (completeness not recorded)"
     lines.append(
         "  measured: variables={variables} actions={actions} bound={bound}".format(
             variables=metrics.get("variables"),
@@ -849,14 +1302,38 @@ def render_report(verdict: LedgerVerdict) -> str:
             bound=bound_text,
         )
     )
+    if metrics.get("actions_from_fallback_heuristic"):
+        lines.append(
+            "            actions counted by the FALLBACK primes heuristic (no "
+            "next-state relation found): helpers may be counted and composed "
+            "actions may be missing"
+        )
     if isinstance(metrics.get("distinct_states"), int):
         lines.append(
             "            distinct={distinct_states:,} generated={generated_states:,} "
             "depth={depth}".format(**metrics)
         )
     for key, util in (metrics.get("budget_utilization") or {}).items():
-        flag = "within cap" if util["within_cap"] else "OVER CAP"
-        lines.append(f"            {key}: {util['used']:,} / {util['cap']:,} ({util['percent']}%, {flag})")
+        # CM-01-DF-03: `within_cap: None` is a REFUSAL to make the comparison,
+        # and it must not render as "OVER CAP" (a claim) or as "within cap"
+        # (the claim this ticket exists to stop).
+        within = util.get("within_cap")
+        if within is None:
+            flag = "cap comparison UNKNOWN -- incomplete bound"
+        else:
+            flag = "within cap" if within else "OVER CAP"
+        percent = util.get("percent")
+        if percent is None and util.get("percent_lower_bound") is not None:
+            percent_text = f">= {util['percent_lower_bound']}%"
+        elif percent is None:
+            percent_text = "percent unknown"
+        else:
+            percent_text = f"{percent}%"
+        lines.append(
+            f"            {key}: {util['used']:,} / {util['cap']:,} ({percent_text}, {flag})"
+        )
+        if util.get("caveat"):
+            lines.append(f"              caveat: {util['caveat']}")
 
     delta = entry["delta"]
     lines.append(f"  delta:    direction={delta['direction']} (vs {delta.get('previous_scope_id') or 'baseline'})")
@@ -864,6 +1341,10 @@ def render_report(verdict: LedgerVerdict) -> str:
         if isinstance(change.get("delta"), int) and change["delta"]:
             percent = f" ({change['percent']:+}%)" if "percent" in change else ""
             lines.append(f"            {key}: {change['before']:,} -> {change['after']:,} = {change['delta']:+,}{percent}")
+            # CM-01-DF-03: a bound delta that is not like-for-like says so on
+            # the line under the number, never only in the JSON.
+            if change.get("note") and change.get("comparable") is False:
+                lines.append(f"              NOT LIKE-FOR-LIKE: {change['note']}")
 
     # The licensing basis is printed next to the delta, never separately. The
     # adjacency is the point: a delta read without it is the number the
@@ -895,6 +1376,39 @@ def render_report(verdict: LedgerVerdict) -> str:
     lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
     if audit.get("report"):
         lines.append(f"            report: {audit['report']}")
+
+    # Structure is printed next to representation size, always. The complexity
+    # delta above says whether the model got smaller; this says whether the code
+    # moved toward or away from the boundaries the model draws. A change can do
+    # one without the other, and reading either alone is how a refactor gets
+    # celebrated for scattering the code.
+    structure = entry.get("architecture_delta") or {}
+    lines.append(
+        f"  architecture delta (structure, AC-04): {structure.get('status', 'not_run')} "
+        "(recorded, never gating)"
+    )
+    if structure.get("recorded"):
+        lines.append(
+            f"            divergences: {structure.get('divergences_before')} -> "
+            f"{structure.get('divergences_after')} "
+            f"({structure.get('divergences_delta')}); attribution="
+            f"{structure.get('attribution') or 'unknown'}"
+        )
+        same_map = structure.get("map_digest_before") == structure.get("map_digest_after")
+        lines.append(
+            "            map identity: "
+            + (
+                "UNCHANGED across both scans"
+                if same_map
+                else "CHANGED between the scans -- this is not a refactor result"
+            )
+        )
+        for edge in structure.get("divergent_edges_lost") or []:
+            lines.append(f"            - lost:   {edge}")
+        for edge in structure.get("divergent_edges_gained") or []:
+            lines.append(f"            + gained: {edge}")
+    for flag in structure.get("red_flags") or []:
+        lines.append(f"            RED FLAG: {flag}")
 
     for note in entry.get("notes", []):
         lines.append(f"  note:     {note}")
@@ -985,6 +1499,36 @@ coverage_audit:
   report: ""          # path to the filled templates/coverage_audit_report.md
   in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
   scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> \
+#       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> \
+#       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
+  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
 
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the

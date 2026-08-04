@@ -1,0 +1,36 @@
+[MEASURED] Reflexion check -- production code against the model's architecture
+  map:       /private/tmp/onemap.yaml
+  code root: pipeline
+  scanned 8 Python module(s); the map places 8 of them in 1 component(s)
+  extracted 7 dependency edge(s) (imports + resolvable calls)
+  7 edge(s) stay inside one component and were not checked against a port
+
+  Is a divergence even detectable here?
+    component pairs with a port:    (none)
+    component pairs with NO port:   (none)
+    A code edge can only diverge across a pair in the second list. When that list is
+    empty the architecture permits every pair and a clean result is true by construction.
+
+  CONVERGENCES (0) -- a crossing edge the model declares a port for
+
+  DIVERGENCES (0) -- a crossing edge NO port declares
+    none.
+
+  ABSENCES (0) -- a declared port no code edge realizes
+    none.
+
+  Out of scope: 2 import target(s) resolve outside the scanned tree
+  (standard library and third-party packages). They are not edges: the model declares
+  components of THIS program. A component that reaches an external system directly is
+  therefore invisible to this check.
+    __future__, pipeline_contract
+
+[MEASURED] Reflexion verdict
+  architecture_scan = coherent
+    - every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code
+
+  COHERENT: over the edges this extractor can resolve, every boundary
+  crossing in the code has a port in the model and every port is realized.
+
+  Advisory: nothing here blocks a close, a promotion, or a case generation.
+EXIT=0

@@ -1,0 +1,107 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket RP-05",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The suite is FULLY green -- 0 failures -- for the first time in this epic.",
+        "The architecture_components.yaml comment states the measurement it actually has, with the current edge count."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "EV-03"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "tests/test_new_ticket_workflow.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/generation_modes.md",
+        "specs/program_model/architecture_components.yaml"
+      ]
+    },
+    "current_increment": {
+      "adapters": [],
+      "graph_after_unit_pass": [],
+      "model_actions": [],
+      "model_state": [],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml -m pytest tests -q"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": null,
+    "id": "RP-05",
+    "implementation_scope": [
+      "tests/test_new_ticket_workflow.py",
+      "references/generation_modes.md",
+      "specs/program_model/architecture_components.yaml"
+    ],
+    "model_delta_expectation": "ZERO. Document the no-op with evidence.",
+    "objective": "The red test that every ticket in this epic had to be told to ignore: `test_skill_requires_two_minute_case_generation_budget` asserts the literal phrase \"hard two-minute budget\" in references/generation_modes.md, which the c72d03a docs refresh removed. Decide deliberately -- restore the phrase or retarget the assertion at the wording that now carries the budget -- and say which, because a test asserting doc prose is a maintenance tax either way. Also EV-01-DF-03: the checked-in architecture_components.yaml comment claims the dogfood \"found edges across both\" unported pairs when the measurement is 0 divergences, and the edge count has drifted 258 -> 263. A comment that contradicts the measurement beside it is the same defect class as the audit in RP-02.\n",
+    "promotion_order": 110,
+    "promotion_predecessor": "RP-04",
+    "schedule_revision": 3,
+    "status": "planned",
+    "title": "Stale assertions and contradicted records (CM-01-DF-01/AC-DF-01, EV-01-DF-03)",
+    "wave": 6
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/tickets/RP-05",
+  "ticket_id": "RP-05",
+  "ticket_index": 10,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-rp05-stale-assertions/specs/tickets"
+}

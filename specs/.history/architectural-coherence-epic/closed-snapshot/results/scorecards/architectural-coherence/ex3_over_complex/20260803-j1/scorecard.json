@@ -1,0 +1,72 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex3_over_complex",
+  "run_id": "20260803-j1",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "examples/validation/runs/ex3-run4/artifacts/providers.py:71-99",
+        "examples/validation/runs/ex3-run4/artifacts/assertion_probes.txt:6-16",
+        "examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:9-53"
+      ],
+      "rationale": "Anchor 2. The fixture itself carries no seeded faults and no content oracle -- six pytest tests over a dict (test_order_hub.py:9-53), which alone is anchor 0 territory. Run 4's agent-authored provider is real content-asserting code: providers.py:71-99 raises on a per-entry operation-name mismatch, on a count mismatch between the stored journal and the modeled auditLog, and on out-of-order sequence numbers. Two deliberate faults were seeded and both killed with EFFECT_FUZZ_FAILURE (assertion_probes.txt:6-16): a dropped effect caught by the count assertion, and a wrong operation name caught by the per-entry content assertion -- with the file restored byte-identically and the tests green afterward. That is wrong-value and wrong-content through adapters that assert content, which is anchor 2 exactly. Anchor 3 is not attempted: no refusal, no ordering, no cross-aspect before-state; and the ordering assertion that does exist (providers.py:99) checks the journal's own sequence numbers rather than probing an ordering fault. Two faults from one catalogue, both predicted to die and both dying, is anchor 2 and nothing more.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 3,
+      "citations": [
+        "examples/validation/runs/ex3-run3/artifacts/descriptor_before.txt:24",
+        "examples/validation/runs/ex3-run3/artifacts/descriptor_after.txt:22",
+        "examples/validation/runs/ex3-run3/artifacts/descriptor_before.txt:48-51",
+        "examples/validation/runs/ex3-run3/artifacts/descriptor_after.txt:44-45",
+        "examples/validation/ex3_over_complex/order_hub/specs/program_model/OrderHub.tla:10-16",
+        "examples/validation/runs/ex3-run1/scoring.md:12-12"
+      ],
+      "rationale": "Anchor 3, and I can say what got simpler and how the behavior survived it, which the card requires before awarding 3 or more. I reproduced the baseline independently at this commit: bound 8,388,608 COMPLETE over 6 of 6 variables, Q = 0.000, ONE component, THREE dense rows (auditLog, dirty, mode all 4/4) and THREE dense columns. The before and after descriptors are both committed, four independent times (descriptor_before.txt:24 -> descriptor_after.txt:22, 8,388,608 -> 624; dense rows 3 -> 1). WHAT got simpler: (a) OrderHub.tla:10-16 declares domains far wider than any guard enforces -- orders 0..15 against a guard of < 3, retries 0..31 against < 2, auditLog 0..63 against < 12 -- and honest resizing alone reaches 6,240, which run 2 measured with generated AND distinct state counts BYTE-IDENTICAL before and after (1,878 / 717), the cleanest possible proof that nothing reachable moved; (b) the remaining 6,240 -> 624 is the DELETION of mode and dirty from model and code. HOW behavior survived: TLC green with the same invariant, the six behavior tests byte-identical and passing, depth and outdegree constant, and generated and distinct falling together rather than the deleted-self-loop pattern the tool warns about, which run 1's agent checked unprompted (ex3-run1:12). Not 4, and MF-020 is exactly why: anchor 4 requires the simplification be SHOWN behavior-preserving, and the 6,240 -> 624 half is a deleted edge whose preservation rests on six hand-written tests that never referenced the deleted variables -- a check that could not have failed on that change. Torn between 3 and 4, lower per rule 5.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 1,
+      "citations": [
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:15-60",
+        "examples/validation/ex3_over_complex/order_hub/order_hub.py:26-29",
+        "examples/validation/runs/ex3-run4/artifacts/effect_provider_usage.yaml:1-10"
+      ],
+      "rationale": "Anchor 1, and only just. The shipped fixture has no boundary of any kind: order_hub.py:15-60 is one module in which four functions mutate one shared dict and every one of them routes through _stamp (order_hub.py:26-29), which writes mode, audit_log and dirty on every call. My own descriptor run confirms the model side: Q = 0.000, one component, three variables touched by 4 of 4 actions and three dense columns. That is anchor 0's wording -- state written from everywhere, no boundary discernible. What lifts it to 1 rather than 0 is that run 4 DECLARED a boundary -- an AuditJournalPort with an on_audit seam and a generated runtime-checkable Protocol (effect_provider_usage.yaml:1-10) -- and the shipped code does not carry it: no artifact in this repository contains the ported order_hub.py, only the provider that would bind to it. A boundary named in a declaration that the shipped code does not follow is anchor 1. Note recorded and not scored: there is no I/O in this fixture at all, so 'domain independent of I/O' has nothing to be independent of, and no swap could be named.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 3,
+      "citations": [
+        "examples/validation/ex3_over_complex/order_hub/tests/test_order_hub.py:9-53",
+        "examples/validation/ex3_over_complex/order_hub/specs/program_model/OrderHub.cfg:3-3",
+        "examples/validation/runs/ex3-run1/scoring.md:12-12",
+        "examples/validation/runs/ex3-run4/artifacts/assertion_probes.txt:6-19",
+        "examples/validation/runs/ex3-run2/scoring.md:11-11"
+      ],
+      "rationale": "Anchor 3, with anchor 4 withheld. The baseline behaviors are enumerated one test per rule -- place-then-ship, cannot-ship-more-than-ordered, the order cap, the retry cap, audit grows with every operation, audit cap stops everything (test_order_hub.py:9-53) -- and each is shown to hold after every refactor, with zero assertion changes across four runs. The check is model-derived, not only hand-written: OrderHub.cfg:3 checks Inv (TypeOK and SafetyInv) under TLC, run 1's agent applied the transition-level ledger red-flag test unprompted (ex3-run1:12), and run 4 generated 716 exhaustive transition cases and ran a 3,580-point campaign. Anchor 4's condition is literally met by assertion_probes.txt:6-19 (two deliberate faults, both killed, file restored, tests 6/6). I take the lower anchor because the specific change whose preservation matters most is the one the check could not have failed on: three of the four runs deleted mode and dirty from the model AND the production code, and the six tests never referenced either variable -- so 'tests pass unmodified' cannot distinguish removing dead state from removing behavior. The epic knows: ex3-run2:11 records that a second agent read the same descriptor and the same doc and KEPT them as the program's stated design, so the two runs disagree about whether that deletion loses behavior, and nothing in the check can settle it.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "examples/validation/runs/ex3-run2/scoring.md:11-11",
+        "examples/validation/runs/ex3-run2/scoring.md:27-39",
+        "examples/validation/runs/ex3-run3/scoring.md:22-27",
+        "examples/validation/runs/ex3-run1/scoring.md:22-33",
+        "examples/validation/runs/ex3-run4/scoring.md:13-13",
+        "examples/validation/runs/ex3-run4/artifacts/effect_provider_usage.yaml:10-12"
+      ],
+      "rationale": "Anchor 3, and anchor 4 withheld. The record refuses to round up: ex3-run2:11 scores E3-P2 PARTIAL against the committed prediction because the dense-row clause was not met, even though the bound clause passed and the warning cleared -- a prediction scored against itself rather than reinterpreted. VAL-15 (ex3-run2:27-39) files the honest negative that two reasonable agents put the same write-only stamped state on opposite sides of the intuition doc's line, i.e. the doc under test is ambiguous. ex3-run3:22-27 records a measurement blind spot in the tool itself -- the invariant-coverage section counts a TypeOK type conjunct as a semantic read, so write-only variables show clean coverage. ex3-run1:22-33 files three defects against the toolchain including VAL-04, the scaffold contradicting its own advisory doctrine, and run 4 scores R4-X1 PARTIAL (ex3-run4:13). The tool's own output refuses to convert a number into a verdict: I saw 'A poor score is not a verdict' and the deleted-self-loop red-flag paragraph printed in the descriptor I ran. The strongest argument FOR 4, and I record it because a second judge should see where the line fell: effect_provider_usage.yaml:10-12 declares a bypass_limits block in the artifact itself, naming what the provider cannot observe (a bypass that edits order_hub._audit directly, and the in-memory-only scope with no cross-process observation). That is anchor 2's condition met in the artifact rather than in a report, and the unflattering results above meet anchor 4's bar. What stops 4: the run verdicts generalize past their evidence -- run 1 closes 'the sharpest test passed', run 4 closes 'This is the compounding the two epics were built for' -- and no ex3 record states the limit that this is one 60-line program with six hand-written tests, no I/O, and a deliberately inflated representation. Genuinely a 3-versus-4 call; lower per rule 5, with the reason on the record.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 12,
+  "contested": [],
+  "verdict": "The only fixture in the set that measures a simplification with committed before and after descriptors, four times over, and the one place the toolchain demonstrably changed behavior -- but half its headline reduction is a variable deletion validated by six tests that never read the deleted variables, and its shipped code has no boundary at all."
+}

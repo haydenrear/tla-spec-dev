@@ -1,0 +1,977 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/RC-01",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/architectural-coherence-epic/ticket-014-RC-01 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for RC-01'",
+    "message": "It is recommended to commit this history directory now: specs/.history/architectural-coherence-epic/ticket-014-RC-01"
+  },
+  "complexity_delta": {
+    "direction": "increase",
+    "metrics": {
+      "actions": {
+        "after": 18,
+        "before": 16,
+        "delta": 2,
+        "percent": 12.5
+      },
+      "bound": {
+        "after": 26671680,
+        "before": 2799360,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 23872320,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 852.8
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 11,
+        "before": 10,
+        "delta": 1,
+        "percent": 10.0
+      }
+    },
+    "previous_scope_id": "EV-03"
+  },
+  "complexity_ledger": {
+    "architecture_delta": {
+      "architecture_digest_after": "sha256:12f4b9d0677ce6d11e1f93241526f104decb20e9866cb46d4bf6d60a029e24db",
+      "architecture_digest_before": "sha256:a550b70225ca71619b7cd27d4c5ca5581f1bc89944de897e824cf65f1e1fbd3c",
+      "attribution": "unattributable",
+      "claim": "unattributable",
+      "divergences_after": 0,
+      "divergences_before": 0,
+      "divergences_delta": 0,
+      "divergent_edges_gained": [],
+      "divergent_edges_lost": [],
+      "gates": false,
+      "map_digest_after": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+      "map_digest_before": "sha256:a9523e7d75705e7b4b7ae3745bcf1736c5c11e2b7342ae17274e6063cf4331a4",
+      "problems": [],
+      "recorded": true,
+      "red_flags": [],
+      "report": "specs/results/rc01-architecture-delta.json",
+      "resolved_report": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/results/rc01-architecture-delta.json",
+      "status": "unattributable",
+      "why": [
+        "the two scans were not measured against the same declared basis, so this is not a refactor result. The numbers below are real; what they are a fact ABOUT is undetermined.",
+        "the MODEL side changed between the two scans (components or ports differ), so the two runs do not share a definition of what a divergence IS. Adding a port converts a divergence into a convergence with no code change."
+      ]
+    },
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml:220-240 (representation_scope), governed by :26-67 and :68-77",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "increase",
+      "metrics": {
+        "actions": {
+          "after": 18,
+          "before": 16,
+          "delta": 2,
+          "percent": 12.5
+        },
+        "bound": {
+          "after": 26671680,
+          "before": 2799360,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 23872320,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 852.8
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 11,
+          "before": 10,
+          "delta": 1,
+          "percent": 10.0
+        }
+      },
+      "previous_scope_id": "EV-03"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/RC-01/results/complexity_ledger.yaml",
+    "justification": "Complexity increased 9.53x on the static bound and 7.99x on reachable states, and every part of the increase carries new EXTERNALLY OBSERVABLE behavior the model did not represent. `architecture_delta` (6-valued, the 6x factor): `analyze architecture --baseline` reports a direction verdict that the complexity ledger records as its own member and that no other variable determines. Two of its six values are REFUSALS about the before/after pair rather than measurements of the code -- `unattributable` is what this very ledger entry reports above, and `unverified` is the structural MF-020 rule. Modeling only the three measurements would have represented exactly the half of the command that can be gamed. `TicketClosedWeakened` (the 343/216 factor): a close taken under `--accept-new` or `--allow-open` bypasses the precondition `CloseTicket` guards on, and `ClosedTicketsPassedSpecUnitTests` is an invariant TLC proves over the whole state space. Before this stage existed the model proved an assurance the shipped program has two documented flags to violate, no state recorded their use, and no oracle in this toolchain could see the difference. The stage is what makes the two closes distinguishable; `scripts/spec_evolution.py` now writes the matching `guard_weakening` record so the distinction is observable outside the model too. `GenerateCases` and `CloseTicketWeakened` add NOTHING to the bound: both write only `lastCommand` and `result`, neither of which has a resolvable domain. Not essential-by-assertion: the increase is decomposed exactly into its two factors and that decomposition is asserted as a test (tests/test_analyze_complexity.py::test_repository_own_model_reproduces_the_recorded_state_space_bound), so a future ticket cannot absorb an unexplained factor into this figure.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 18,
+      "actions_from_fallback_heuristic": false,
+      "bound": 26671680,
+      "bound_complete": false,
+      "bound_resolved_variables": 9,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent",
+          "percent": null,
+          "percent_lower_bound": 2667.2,
+          "used": 26671680,
+          "within_cap": false
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.011604840309462296,
+      "variables": 11
+    },
+    "narrative": "specs/results/rc01-model-delta.md (the delta and its cost), specs/results/rc01-gap-closure.md (the nine gaps, one by one, with the disposition for each), and specs/desired_program_model/deferred_findings.yaml entries RC-01-DF-01..03. The one thing a reader should not miss, stated here because it is the least flattering result of the ticket: this repository's own model FLIPPED OUT OF THE BLOB CASE as a side effect of the delta. `analyze architecture` reported one component at Q = 0 through AC-04 -- asserted as a test so the finding \"cannot quietly reverse\" -- and adding one variable beside its neighbour makes the same measurement report two components meeting all three shipped criteria at Q = 0.0116, 26x below the Newman threshold the tool prints and does not apply, while still listing the two god-variables as single-writer violations across the boundary it just drew. Nothing was tuned; no criterion changed. That is a measurement of the scanner, filed as RC-01-DF-01 rather than repaired, because a reconciliation ticket retuning a criterion while its own model delta was in flight could not be told apart from fitting the tool to the change it just made. The eval null result held where it was measurable: EV-03's worked-example arm re-run against this tree produces a BYTE-IDENTICAL corpus (same sha256, same 330/50/6 case counts, same 330/330 recovered arguments, CM-F5 still refusing). The ARM A/B and 12-mutant tables were not re-run by this ticket.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+      "architecture_delta=unattributable (the two scans did not share a declared map and model); divergences 0 -> 0, attribution=unattributable"
+    ],
+    "recorded_at_utc": "2026-08-01T23:37:54.696352+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Two reductions were considered and both were rejected on the merits rather than on cost. (1) WIDEN `architecture_scan` INSTEAD OF ADDING `architecture_delta`. The audit explicitly permitted this and it is cheaper -- 9 values in one variable rather than 4 x 6 across two. Rejected: the scan verdict and the delta verdict are produced BY THE SAME RUN and are independent, so a merged domain would have to enumerate their product to stay faithful, or drop information to stay small. The plan's own AC-01 note forbids the analogous move (\"do not merge `unmappable` into `unknown` to shrink the domain\"), for the same reason. (2) RECORD THE WEAKENED CLOSE IN A SEPARATE VARIABLE rather than as a sixth ticket stage. Measured as strictly worse: a `[Tickets -> BOOLEAN]` companion is a 2^3 = 8x factor against the ordinal's 343/216 = 1.59x, for the same information. The ordinal was chosen because it is the cheaper faithful representation, not despite being cheaper. One reduction WAS applied and it is not visible as a saving because it prevented a cost: `architecture_delta` is constrained so that an `unmappable` scan admits only three of its six values, which is honest (with no comparable reflexion report there is no count to compare) rather than a packing trick. No reduction of the EXISTING model was found. The two unresolved variables (`lastCommand`, `result`) remain unresolved, as they have been since MF-020, so this ticket's chain is a like-for-like comparison with every recorded predecessor -- RP-04's completeness assertions check exactly that.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "RC-01",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/results/rc01-pytest-full.txt (987 passed, 0 failed) and specs/results/rc01-spec-unit-tests.txt (71 passed)",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/results/rc01-model-delta.md, from specs/results/rc01-complexity-baseline.txt and specs/results/rc01-complexity-current.txt",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/results/rc01-tlc-current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/results/rc01-tlc-baseline-d3eb851.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "architectural-coherence-epic"
+  },
+  "created_at_utc": "2026-08-01T23:37:54.756837+00:00",
+  "entry_name": "ticket-014-RC-01",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/rc-01-reconciliation",
+    "commit": "c2dab33",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/RC-01/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/RC-01/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/RC-01/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/RC-01/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/RC-01/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/architecture_components.yaml",
+            "relative": "architecture_components.yaml",
+            "source": "specs/tickets/RC-01/desired/architecture_components.yaml"
+          },
+          {
+            "destination": "specs/current/architecture_map.yaml",
+            "relative": "architecture_map.yaml",
+            "source": "specs/tickets/RC-01/desired/architecture_map.yaml"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/RC-01/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/RC-01/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/RC-01/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/RC-01/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_current_ticket_workflow.py",
+            "relative": "tests/test_current_ticket_workflow.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_current_ticket_workflow.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/RC-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/RC-01/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/RC-01"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Two reductions were considered and both were rejected on the merits rather than on cost. (1) WIDEN `architecture_scan` INSTEAD OF ADDING `architecture_delta`. The audit explicitly permitted this and it is cheaper -- 9 values in one variable rather than 4 x 6 across two. Rejected: the scan verdict and the delta verdict are produced BY THE SAME RUN and are independent, so a merged domain would have to enumerate their product to stay faithful, or drop information to stay small. The plan's own AC-01 note forbids the analogous move (\"do not merge `unmappable` into `unknown` to shrink the domain\"), for the same reason. (2) RECORD THE WEAKENED CLOSE IN A SEPARATE VARIABLE rather than as a sixth ticket stage. Measured as strictly worse: a `[Tickets -> BOOLEAN]` companion is a 2^3 = 8x factor against the ordinal's 343/216 = 1.59x, for the same information. The ordinal was chosen because it is the cheaper faithful representation, not despite being cheaper. One reduction WAS applied and it is not visible as a saving because it prevented a cost: `architecture_delta` is constrained so that an `unmappable` scan admits only three of its six values, which is honest (with no comparable reflexion report there is no count to compare) rather than a packing trick. No reduction of the EXISTING model was found. The two unresolved variables (`lastCommand`, `result`) remain unresolved, as they have been since MF-020, so this ticket's chain is a like-for-like comparison with every recorded predecessor -- RP-04's completeness assertions check exactly that.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-gap-closure.md",
+      "source": "specs/results/rc01-gap-closure.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-model-delta.md",
+      "source": "specs/results/rc01-model-delta.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-tlc-current.txt",
+      "source": "specs/results/rc01-tlc-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-tlc-baseline-d3eb851.txt",
+      "source": "specs/results/rc01-tlc-baseline-d3eb851.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-complexity-current.txt",
+      "source": "specs/results/rc01-complexity-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-complexity-baseline.txt",
+      "source": "specs/results/rc01-complexity-baseline.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-architecture-current.txt",
+      "source": "specs/results/rc01-architecture-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-architecture-reflexion.txt",
+      "source": "specs/results/rc01-architecture-reflexion.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-architecture-delta.json",
+      "source": "specs/results/rc01-architecture-delta.json"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-pytest-full.txt",
+      "source": "specs/results/rc01-pytest-full.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-spec-unit-tests.txt",
+      "source": "specs/results/rc01-spec-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/results/rc01-eval-regression-worked-example.txt",
+      "source": "specs/results/rc01-eval-regression-worked-example.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 70,
+    "close_out_entry": "Close-out ticket RC-01",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex5-run4/artifacts/reexport_attack/",
+        "filed": false,
+        "id": "SF-101",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-03 -- resolve first-party-ness against the project root",
+        "reference": null,
+        "root_cause": "",
+        "severity": "major",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt",
+        "filed": false,
+        "id": "SF-102",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-02 -- a lever that treats an unused provider on a",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-103",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-04 -- write the report with an explicit \"no effect",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-104",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-05 -- name a declaration the run did not use (a fact,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/scoring.md",
+        "filed": false,
+        "id": "SF-105",
+        "observed_on": "",
+        "recommendation": "EV-02-DF-05 -- state an absolute interpreter path, or declare",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 19,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-101",
+      "SF-102",
+      "SF-103",
+      "SF-104",
+      "SF-105"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-rc-01-reconciliation/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/ticket",
+      "source": "specs/tickets/RC-01"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "RC-01: all nine MF-026 in-scope gaps closed by modelling them or changing the program, plus the owner's guard-weakening decision. GenerateCases + CloseTicketWeakened + architecture_delta + TicketClosedWeakened; bound 9.53x, TLC green 7.99x distinct at unchanged depth 26.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "All nine gaps closed by modeling or by changing the program. NO gap closed by a justification, an accepted risk, or a scope waiver -- those dispositions do not exist for an in-scope gap.",
+        "GenerateCases is reachable from the shipped parser and declares corpus_process, spec_tree and spec_tree_delete. Case-module generation is no longer invisible to all four oracles.",
+        "cli_artifact either matches a path the install flow actually writes, or is removed; if removed, port-cli_artifact stops being seeded in kill_mutants.toml. The install path's real effects, INCLUDING network, are declared.",
+        "A close under --accept-new or --allow-open is a distinguishable modeled state from a close under the guard, and ClosedTicketsPassedSpecUnitTests still holds where it should.",
+        "The three manifests say 10 variables and 16 actions, and no manifest comment cites an amendment that does not exist.",
+        "TlaSpecDevCli.tla:649 no longer claims the scan only prints.",
+        "specs/current and specs/desired_program_model remain semantically equal after the work."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <generated corpus>"
+      ],
+      "evidence": "specs/results/rc01-*"
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [
+        "specs/current/production_adapters.py",
+        "specs/desired_program_model/production_adapters.py",
+        "specs/current/spec_manifest.yaml",
+        "specs/desired_program_model/spec_manifest.yaml"
+      ],
+      "production": [
+        "scripts/tla_spec_dev.py",
+        "scripts/analyze_architecture.py",
+        "scripts/architecture_reflexion.py",
+        "scripts/case_modules.py"
+      ],
+      "test_graph": [],
+      "tla": [
+        "specs/current/TlaSpecDevCli.tla",
+        "specs/desired_program_model/TlaSpecDevCli.tla"
+      ],
+      "workflow": []
+    },
+    "current_increment": {
+      "adapters": [
+        "specs/*/production_adapters.py"
+      ],
+      "graph_after_unit_pass": [],
+      "model_actions": [
+        "GenerateCases",
+        "the weakened-close transition"
+      ],
+      "model_state": [
+        "architecture_delta or a widened architecture_scan domain"
+      ],
+      "unit_tests": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "depends_on": [
+      "EV-03"
+    ],
+    "desired_actions": [
+      "GenerateCases",
+      "CloseTicketWeakened (or the equivalent weakened-close transition)"
+    ],
+    "eval_relation": {
+      "eval_ticket": "the MF-026 re-audit, then EV-03's recorded numbers as the regression baseline",
+      "forbidden_to_tune": [
+        "nothing -- but do not touch examples/validation/, and file any eval finding rather than fixing it"
+      ],
+      "instrument": "the MF-026 re-audit for the gaps; EV-03's round-2 delta table for the regression",
+      "measures": "Whether modeling previously-invisible surface CHANGES ANY MEASURED NUMBER. It should not change the eval kill matrix at all -- these are representation gaps, not behavior changes -- and if it does, that is a finding about the previous rounds rather than about this ticket.",
+      "null_result": "Nine gaps closed and every eval number identical to round 2. That is the EXPECTED outcome and it is a real result: it would mean the model grew to cover shipped surface without disturbing anything measured."
+    },
+    "github_issue": null,
+    "id": "RC-01",
+    "implementation_scope": [
+      "scripts/",
+      "specs/current/",
+      "specs/desired_program_model/",
+      "tests/"
+    ],
+    "model_delta_expectation": "SUBSTANTIAL and deliberate: two new actions, at least one new variable or a widened domain, and new effect ports on existing actions. Record the state-space cost in the ledger the way AC-01's 4.6x was recorded. This is the first ticket in the epic whose whole purpose is model delta.",
+    "model_delta_result": "SUBSTANTIAL, as expected. Two new actions (GenerateCases, CloseTicketWeakened), one new variable (architecture_delta, 6-valued), one widened domain (ticket_state [Tickets -> 0..5] -> 0..6 for TicketClosedWeakened), one new invariant (WeakenedClosesCertifyNothing), one new named operator (TicketReached), one new effects row on an existing action (AnalyzeArchitecture: [evidence_report]), and four install-path ports (cli_artifact RETARGETED off the dead **/.venv/**, plus cli_download, cli_artifact_delete, cli_selftest_process). COST, recorded the way AC-01's 4.6x was. Static bound 2,799,360 -> 26,671,680 = 9.53x, decomposing exactly as 6 (architecture_delta) x 343/216 (the sixth ticket stage) and asserted as a test. TLC green: 32,122,220 generated / 1,292,951 distinct / depth 26 / 59s -> 392,923,694 generated / 10,331,543 distinct / depth 26 / 11min 15s = 7.99x on distinct states. DEPTH IS UNCHANGED at 26: the model got wider, not deeper -- no new sequence of commands became possible. Both advisory budgets were already exceeded before this ticket and are further exceeded now; neither is renegotiated. FLAGGED FOR THE OWNER: budgets.tlc_seconds is 120 and this model now takes 675s to check. Nothing enforces it (run_tlc.sh applies no timeout), so nothing failed, but the epic's model growth has put the model 5.6x over its own declared TLC wall-time budget. Full record: specs/results/rc01-model-delta.md.\n",
+    "objective": "The MF-026 coverage audit returned `fail` with nine in-scope gaps, each anchored on a file `representation_scope` names IN MODEL, each closable only by modeling it or changing the program. There is no third disposition. This ticket closes all nine and the epic cannot promote until it does. The audit's own framing, which is the reason this ticket exists at all: every oracle in this toolchain is bounded to what is already modeled, so unmodeled surface is invisible to all four and all four report green. Two eval rounds could not have caught any of this. G-6 (the headline). CASE-MODULE GENERATION IS ENTIRELY UNREPRESENTED and it is this epic's flagship feature. `scripts/case_modules.py` ships a standalone main() unreachable from the parser, writing a coverage record and a JSON report; `generate_cases_from_tlc_dump.py` spawns java/TLC, rmtree's a metadir, and writes generated packages. No action, no port, no CLI subcommand -- and CM-01 AND RP-03 BOTH CLOSED \"ZERO MODEL DELTA\" against surface the model does not contain. Add a `GenerateCases` action carrying corpus_process (spawn), spec_tree (write) and spec_tree_delete (the metadir rmtree), reachable from the shipped parser. Fold in the parameter-recovery audit write (infer_action_params.py:825-826) with evidence_report; it is a generation-time artifact. G-1. `AnalyzeArchitecture` -- the epic's only new action -- has no row in `effects.actions` in any of the three manifests, and it is the only non-stutter action without one. The manifest's own rule says an ABSENT row claims \"unmapped\" while an EMPTY row claims \"performs no distinct effect\", and TlaSpecDevCli.tla states that each action's @port lines mirror its row. There is no row to mirror. G-2 / G-3. `analyze architecture --out` and `architecture_reflexion --out` perform unconstrained undeclared filesystem writes: the path is a bare string, so a write can land anywhere, while the nearest candidate port targets only **/results/**. Declare the port and constrain the path, or drop --out and let callers redirect stdout (the descriptor already goes to stdout). G-4. TlaSpecDevCli.tla:649 reads \"No @port: the scan reads the model and the source tree and prints.\" It does not only print -- G-2 and G-3 are its writes. This is the honest-in-prose / misleading-in-artifact class RP-02 was opened for, except the MODEL now carries the misleading record. G-5. All three manifests state \"9 variables and 15 actions\" for a model with 10 and 16. AC-01 added `architecture_scan` and `AnalyzeArchitecture` and did not update the comment. Same class as EV-01-DF-03, which RP-05 was opened to repair. Add the counts to whatever check RP-05 used for architecture_components.yaml so the next variable cannot leave it stale. G-7. Two manifest comments cite \"the 2026-07-22 scope amendment\" as their authority; no such amendment exists in this plan, and the restored ruling is dated 2026-08-01. One of them says case generation is \"EXPERIMENTAL surface, deliberately unmodeled\" -- which becomes AFFIRMATIVELY FALSE the moment G-6 lands. Both comments are edited by hand; classification cannot fix a stale pointer. G-8. AC-04's `architecture_delta` ledger member and its four attribution verdicts (code_only, unattributable, unverified, improved-with-RED-FLAG) are externally observable results of `analyze architecture --baseline` with no modeled state. The refusals AC-04 shipped are exactly the ones a reader would want the model to guarantee. Record the state-count cost the way AC-01's 4.6x was recorded. G-9. THE DEAD PORT, verified independently by the owner. `cli_artifact` is the ONLY port declared for BuildSkillCli and InstallLocalCli and it targets **/.venv/**, while `grep -rn '\\.venv' scripts/*.py skill-scripts/*.sh` returns ZERO hits. It is dead model surface by the manifest's own rule, and `port-cli_artifact` is seeded in kill_mutants.toml and listed in kill_tests -- SO THE KILL TEST HAS BEEN SEEDING A FAULT FOR A PORT NOTHING EXERCISES. What the install path actually does: mkdir into $SKILL_MANAGER_BIN_DIR / $SKILL_MANAGER_CACHE_DIR, cat > \"$WRAPPER\", spawn \"$WRAPPER\" --help, mkdir \"$JAR_DIR\", curl -fL \"$JAR_URL\", mv the jar into place. Declare what it does, INCLUDING the network port ESC-6 named -- the standing proviso is that an out-of-model FILE does not make an out-of-model EFFECT. PLUS the owner decision that is not a numbered gap: MODEL THE SIX GUARD-WEAKENING FLAGS (--accept-new, --allow-open, --no-promote-current, --validate-only, --force, --dry-run) as a weakened-close transition, so a close taken under one is a DIFFERENT STATE from one taken under the guard. CloseTicket guards on TicketSpecUnitTestsPassed and TLC proves ClosedTicketsPassedSpecUnitTests over 1,292,951 states, while --accept-new and --allow-open exist specifically to bypass that precondition and no oracle could see the difference. Six of 78; the granularity limitation covering the other 72 is untouched.",
+    "promotion_order": 150,
+    "promotion_predecessor": "EV-03",
+    "result": "All nine in-scope gaps closed, each by modelling it or by changing the program. No gap closed by a justification, an accepted risk or a scope waiver. Per-gap record with the disposition for each: specs/results/rc01-gap-closure.md. Two closed by CHANGING THE PROGRAM and then modelling: G-2/G-3 (the three unconstrained `--out` writes now resolve through spec_paths.resolve_evidence_out and are REFUSED outside `results/`, so the evidence_report declaration is true of every caller rather than of the documented one) and G-6 (`tla-spec-dev generate cases` is a shipped subcommand; case generation had no CLI surface at all). One closed differently from what the audit asked, and it is recorded rather than quietly done: G-5 reported all three manifests as stale, but specs/program_model is the ACCEPTED BASELINE, its module really has 9 variables and 15 disjuncts, and its figure was correct. Making it say 10/16 would have made a true record false to satisfy an assertion written from a misclassification. Its comment now names the tree explicitly, and the durable check parses the module beside EACH manifest rather than comparing all three to one global figure. THE GUARD-WEAKENING DECISION COST FIVE INVARIANTS, AND TLC FOUND THE FIRST. TicketClosedWeakened is ordinal 6 and certifies the LEAST, so every property written as `ticket_state[t] >= <stage>` answered TRUE for it. SpecUnitTestsRequireMeasuredCorpus was violated in 1,094 states on the first run: a ticket at stage 6 with corpus_gate = \"unknown\". All five now read through TicketReached, and ClosedTicketsPassedSpecUnitTests is narrowed to GuardedClosedTickets with a tombstone -- it would otherwise have remained true BY ACCIDENT OF THE ENCODING while asserting exactly what --accept-new exists to falsify. EVAL REGRESSION: the null result held where it could be measured. EV-03's worked-example arm was re-run verbatim against this tree and the generated corpus is BYTE-IDENTICAL -- Pipeline_cases cases.py sha256 944189052623960aea..., the same fingerprint EV-03 recorded, with 330/50/6 cases and 330/330 recovered arguments, and CM-F5 still refusing at STEP 6. Evidence: specs/results/rc01-eval-regression-worked-example.txt. The ARM A/B seeded-fault and 12-mutant tables were NOT re-run by this ticket -- that is the MF-026 re-audit's and a later eval's instrument, and this ticket did not touch examples/validation/. SUITE: 987 passed, 0 failed (baseline 967 at d3eb851; the 20 new tests are 12 manifest-record checks, 4 CLI/--out checks, and 4 parametrised parameter-recovery cases for the two new actions). Six existing tests failed on the model delta and were updated with the new measurement rather than relaxed. Project spec-unit tests: 71 passed. ONE FINDING THE TICKET DID NOT EXPECT AND DID NOT FIX: this repository's own model FLIPPED OUT OF THE BLOB CASE. Through AC-04 `analyze architecture` reported one component at Q = 0 and consumable_as_architecture false, asserted as a test so the finding \"cannot quietly reverse\". Adding architecture_delta beside architecture_scan -- one variable, written by the action that already wrote its neighbour -- makes the same measurement report two components meeting ALL THREE shipped criteria at Q = 0.0116, which is 26x below the Newman threshold the tool prints and does not apply, while the report still lists lastCommand and result as single-writer violations across the boundary it just drew. Nothing was tuned. Filed as RC-01-DF-01 rather than repaired: changing what makes a partition a cut is a doctrine decision on AC-01/AC-03's surface, and a reconciliation ticket retuning a criterion while its own model delta was in flight would be indistinguishable from fitting the scanner to the change it just made. Narrowed after filing: the flip is confined to the EMERGENT partition; under this repository's DECLARED four-component partition the model still does not decompose and the reflexion verdict is still `unmappable`, exactly as AC-02/AC-03 recorded. Deferred findings filed: RC-01-DF-01 (major, the decomposition flip), RC-01-DF-02 (minor, specs/desired_program_model's adapter layer was a ticket behind its own model and its spec-unit suite has never been executed -- the desync is repaired here, the mechanism question is deferred), RC-01-DF-03 (minor, three of the six guard-weakening flags cannot be observed at the close).\n",
+    "schedule_revision": 6,
+    "status": "done",
+    "title": "Reconciliation: model the nine MF-026 gaps, including case generation and the six guard-weakening flags",
+    "wave": 9
+  },
+  "ticket_id": "RC-01",
+  "ticket_index": 14,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/architectural-coherence-epic/ticket-014-RC-01/ticket",
+    "source": "specs/tickets/RC-01"
+  },
+  "workflow_name": "architectural-coherence-epic"
+}

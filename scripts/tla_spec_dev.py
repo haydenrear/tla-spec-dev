@@ -152,6 +152,35 @@ def run_analyze_corpus(args: argparse.Namespace) -> int:
     return corpus_diagnostics.run(args)
 
 
+def run_analyze_architecture(args: argparse.Namespace) -> int:
+    from scripts import analyze_architecture
+
+    return analyze_architecture.run(args)
+
+
+def run_generate_cases(args: argparse.Namespace) -> int:
+    """RC-01 (MF-026 G-6): case-module generation, reachable from the CLI.
+
+    The flagship feature of the architectural-coherence epic had no CLI
+    subcommand, no model action and no declared port. `scripts/case_modules.py`
+    and `scripts/generate_cases_from_tlc_dump.py` were reachable only by running
+    the files directly, so an import-closure walk of `build_parser` never saw
+    them -- which is why CM-01 and RP-03 could both close "zero model delta"
+    against surface the model does not contain, and why all four oracles
+    reported green over it. Every oracle in this toolchain is bounded to what is
+    already modeled; unmodeled surface is never generated into a case, never
+    adapted and never mutated.
+
+    The modeled action is `GenerateCases` (TlaSpecDevCli.tla), declaring
+    `corpus_process` (the java/TLC spawn), `spec_tree` (the generated package,
+    the per-action coverage record, and the parameter-recovery audit) and
+    `spec_tree_delete` (the TLC metadir `rmtree`).
+    """
+    from scripts import generate_cases_from_tlc_dump
+
+    return generate_cases_from_tlc_dump.run(args)
+
+
 def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
     """MF-013: report the declared-vs-observed effect diff.
 
@@ -601,7 +630,10 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_parser.set_defaults(
         func=incomplete_command,
         command_path="tla-spec-dev analyze",
-        next_step="Choose a target: tla-spec-dev analyze complexity <spec.tla> [<cfg>].",
+        next_step=(
+            "Choose a target: tla-spec-dev analyze complexity <spec.tla> [<cfg>], "
+            "or tla-spec-dev analyze architecture <spec.tla> [<cfg>]."
+        ),
     )
     analyze_sub = analyze_parser.add_subparsers(dest="analyze_target", metavar="target")
     analyze_complexity_parser = analyze_sub.add_parser(
@@ -625,6 +657,35 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_analyze_complexity,
         command_path="tla-spec-dev analyze complexity",
         next_step="Record the report under the ticket results/ directory as evidence.",
+    )
+
+    analyze_architecture_parser = analyze_sub.add_parser(
+        "architecture",
+        help="Print the architecture descriptor: components, ownership, ports, spanning actions.",
+        description=(
+            "Print the ARCHITECTURE DESCRIPTOR -- the structure the model's diagram "
+            "implies. Names the components (variable clusters with their actions), the "
+            "per-variable writers and every single-writer violation, the ports (the "
+            "crossing actions that would have to become interfaces if the cut were "
+            "taken), and the spanning actions whose write set commits state in more "
+            "than one component. Facts, not judgment: every figure is [MEASURED], it "
+            "proposes no cut and no refactor (CD-01), and it never blocks a close, a "
+            "promotion, or a case generation. A model whose interaction graph does NOT "
+            "decompose says so explicitly, with the criteria that produced that "
+            "finding, instead of inventing a boundary -- and its consumers must then "
+            "report `unmappable`, never `coherent`. Exits nonzero only when the model "
+            "cannot be analyzed at all (an unresolved module hierarchy), or when a "
+            "DECLARED component partition is unreadable."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.analyze_architecture import add_arguments as _add_architecture_arguments
+
+    _add_architecture_arguments(analyze_architecture_parser)
+    analyze_architecture_parser.set_defaults(
+        func=run_analyze_architecture,
+        command_path="tla-spec-dev analyze architecture",
+        next_step="Record the descriptor under the ticket results/ directory as evidence.",
     )
 
     analyze_corpus_parser = analyze_sub.add_parser(
@@ -653,6 +714,49 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_analyze_corpus,
         command_path="tla-spec-dev analyze corpus",
         next_step="Consider whether the architecture can be redesigned to make the program simpler (analyze complexity + references/complexity_intuition.md), or raise the cap with a recorded rationale.",
+    )
+
+    # RC-01 (MF-026 G-6): case generation joins the shipped command surface.
+    # It was always shipped -- references/case_modules.md documents it and the
+    # epic's own tickets ran it -- but only by invoking the script file, which
+    # is why `build_parser`'s import closure never reached it and the model
+    # never represented it.
+    generate_parser = subparsers.add_parser(
+        "generate",
+        help="Generate spec-unit case packages from a TLC state graph.",
+        description="Generate the case corpus a view (or a case module) implies.",
+        allow_abbrev=False,
+    )
+    generate_parser.set_defaults(
+        func=incomplete_command,
+        command_path="tla-spec-dev generate",
+        next_step="Choose a target: tla-spec-dev generate cases <spec.tla> <cfg> --out <dir>.",
+    )
+    generate_sub = generate_parser.add_subparsers(dest="generate_target", metavar="target")
+    generate_cases_parser = generate_sub.add_parser(
+        "cases",
+        help="Generate a view-aware spec-unit case package from a TLC dump.",
+        description=(
+            "Explore the module with TLC, dump the reachable state graph, and render one "
+            "case per action-labeled edge into a generated Python package. When the "
+            "module is declared in the manifest's `case_modules:` block, the per-action "
+            "coverage report is scoped to the aspect that module enters, so the actions "
+            "the slice deliberately does not enter are NOT reported as coverage holes. "
+            "The corpus is never trimmed to fit a budget: the complete package is "
+            "written first and the case caps are measured over it afterwards "
+            "(max_internal_cases_per_component / max_external_cases_per_action), so "
+            "over cap the command reports the distribution and exits nonzero with every "
+            "generated case still on disk."
+        ),
+        allow_abbrev=False,
+    )
+    from scripts.generate_cases_from_tlc_dump import add_arguments as _add_generate_arguments
+
+    _add_generate_arguments(generate_cases_parser)
+    generate_cases_parser.set_defaults(
+        func=run_generate_cases,
+        command_path="tla-spec-dev generate cases",
+        next_step="tla-spec-dev analyze corpus <cases-dir>",
     )
 
     close_parser = subparsers.add_parser(

@@ -1,0 +1,215 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex5_pipeline_divergent/specs/program_model/architecture_map.yaml",
+  "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex5_pipeline_divergent/pipeline",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 7,
+    "component_pairs": 3,
+    "ported_pairs": [
+      [
+        "dispatch",
+        "ingest"
+      ],
+      [
+        "dispatch",
+        "ledger"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "ingest",
+        "ledger"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 2,
+    "external_imports": {
+      "__future__": [
+        "pipeline/dispatch/delivery.py:8",
+        "pipeline/dispatch/failures.py:7",
+        "pipeline/ingest/inbox.py:9",
+        "pipeline/ingest/queue.py:9",
+        "pipeline/ledger/journal.py:17"
+      ],
+      "pipeline_contract": [
+        "pipeline/ledger/journal.py:19"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex5_pipeline_divergent/specs/program_model/architecture_map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:51fc63424ef4a24eebf4123b7cd59dd673e6035a443807b1bce3917ed58f4cc9",
+    "placements": {
+      "dispatch/__init__.py": "dispatch",
+      "dispatch/delivery.py": "dispatch",
+      "dispatch/failures.py": "dispatch",
+      "ingest/__init__.py": "ingest",
+      "ingest/inbox.py": "ingest",
+      "ingest/queue.py": "ingest",
+      "ledger/__init__.py": "ledger",
+      "ledger/journal.py": "ledger"
+    },
+    "code_root": "/Users/hayde/IdeaProjects/wt-125-ev01-eval-fixtures/examples/validation/ex5_pipeline_divergent/pipeline",
+    "scanned_modules": [
+      "dispatch/__init__.py",
+      "dispatch/delivery.py",
+      "dispatch/failures.py",
+      "ingest/__init__.py",
+      "ingest/inbox.py",
+      "ingest/queue.py",
+      "ledger/__init__.py",
+      "ledger/journal.py"
+    ],
+    "architecture_digest": "sha256:96e32621b635a59a5f1da47f51ab29c243572e79ff13e4b3afac7b52343d964f",
+    "architecture_components": [
+      "dispatch",
+      "ingest",
+      "ledger"
+    ],
+    "architecture_ports": [
+      [
+        "dispatch",
+        "ingest"
+      ],
+      [
+        "dispatch",
+        "ledger"
+      ]
+    ],
+    "architecture_port_actions": {
+      "dispatch|ingest": [
+        "Deliver"
+      ],
+      "dispatch|ledger": [
+        "Record"
+      ]
+    },
+    "comparison_ran": true
+  },
+  "convergences": [
+    {
+      "from": "dispatch/delivery.py",
+      "to": "ingest/queue.py",
+      "kind": "import",
+      "symbol": "pipeline.ingest.queue.WorkQueue",
+      "file": "pipeline/dispatch/delivery.py",
+      "line": 10,
+      "site": "pipeline/dispatch/delivery.py:10",
+      "from_component": "dispatch",
+      "to_component": "ingest",
+      "pair": [
+        "dispatch",
+        "ingest"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Deliver"
+      ]
+    }
+  ],
+  "divergences": [
+    {
+      "from": "ingest/inbox.py",
+      "to": "ledger/journal.py",
+      "kind": "import",
+      "symbol": "pipeline.ledger.journal.format_entry",
+      "file": "pipeline/ingest/inbox.py",
+      "line": 11,
+      "site": "pipeline/ingest/inbox.py:11",
+      "from_component": "ingest",
+      "to_component": "ledger",
+      "pair": [
+        "ingest",
+        "ledger"
+      ],
+      "port": null,
+      "why": "no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    },
+    {
+      "from": "ingest/inbox.py",
+      "to": "ledger/journal.py",
+      "kind": "call",
+      "symbol": "format_entry",
+      "file": "pipeline/ingest/inbox.py",
+      "line": 39,
+      "site": "pipeline/ingest/inbox.py:39",
+      "from_component": "ingest",
+      "to_component": "ledger",
+      "pair": [
+        "ingest",
+        "ledger"
+      ],
+      "port": null,
+      "why": "no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    },
+    {
+      "from": "ingest/queue.py",
+      "to": "ledger/journal.py",
+      "kind": "import",
+      "symbol": "pipeline.ledger.journal.Journal",
+      "file": "pipeline/ingest/queue.py",
+      "line": 12,
+      "site": "pipeline/ingest/queue.py:12",
+      "from_component": "ingest",
+      "to_component": "ledger",
+      "pair": [
+        "ingest",
+        "ledger"
+      ],
+      "port": null,
+      "why": "no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    },
+    {
+      "from": "ledger/journal.py",
+      "to": "ingest/inbox.py",
+      "kind": "import",
+      "symbol": "pipeline.ingest.inbox.Inbox",
+      "file": "pipeline/ledger/journal.py",
+      "line": 55,
+      "site": "pipeline/ledger/journal.py:55",
+      "from_component": "ledger",
+      "to_component": "ingest",
+      "pair": [
+        "ingest",
+        "ledger"
+      ],
+      "port": null,
+      "why": "no port between `ingest` and `ledger`: no action of the model touches both components, so the model does not declare that these two parts of the program interact"
+    }
+  ],
+  "absences": [
+    {
+      "port": "P2",
+      "between": [
+        "dispatch",
+        "ledger"
+      ],
+      "actions": [
+        "Record"
+      ],
+      "why": "the model declares a port between `dispatch` and `ledger` (crossed by Record), and no extracted code edge connects the modules mapped to them -- dead architecture, or an interaction the extractor cannot see"
+    }
+  ],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "divergent",
+    "reasons": [
+      "4 code edge(s) cross a component boundary the model declares no port for",
+      "1 declared port(s) are realized by no code edge"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

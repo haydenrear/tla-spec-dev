@@ -1,0 +1,191 @@
+{
+  "schema": "tla-spec-dev/architecture-reflexion",
+  "schema_version": 2,
+  "map": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex4_pipeline_coherent/evidence/df02_nondecomposing_partition/map.yaml",
+  "code_root": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex4_pipeline_coherent/pipeline",
+  "language": "python",
+  "measured": {
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 4,
+    "component_pairs": 6,
+    "ported_pairs": [
+      [
+        "alpha",
+        "beta"
+      ],
+      [
+        "beta",
+        "gamma"
+      ],
+      [
+        "delta",
+        "gamma"
+      ]
+    ],
+    "unported_pairs": [
+      [
+        "alpha",
+        "delta"
+      ],
+      [
+        "alpha",
+        "gamma"
+      ],
+      [
+        "beta",
+        "delta"
+      ]
+    ],
+    "divergence_detectable": true,
+    "internal_edges": 1,
+    "external_imports": {
+      "__future__": [
+        "pipeline/dispatch/delivery.py:8",
+        "pipeline/dispatch/failures.py:7",
+        "pipeline/ingest/inbox.py:6",
+        "pipeline/ingest/queue.py:8",
+        "pipeline/ledger/journal.py:9"
+      ],
+      "pipeline_contract": [
+        "pipeline/ledger/journal.py:11"
+      ]
+    }
+  },
+  "basis": {
+    "map_origin": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex4_pipeline_coherent/evidence/df02_nondecomposing_partition/map.yaml",
+    "map_language": "python",
+    "map_digest": "sha256:46632cde41d8e3f21537c61be11fbe359281e746b3a55c23850a6162281ad34f",
+    "placements": {
+      "dispatch/__init__.py": "gamma",
+      "dispatch/delivery.py": "gamma",
+      "dispatch/failures.py": "gamma",
+      "ingest/__init__.py": "alpha",
+      "ingest/inbox.py": "alpha",
+      "ingest/queue.py": "beta",
+      "ledger/__init__.py": "delta",
+      "ledger/journal.py": "delta"
+    },
+    "code_root": "/Users/hayde/IdeaProjects/wt-126-ev02-fact-finding/examples/validation/ex4_pipeline_coherent/pipeline",
+    "scanned_modules": [
+      "dispatch/__init__.py",
+      "dispatch/delivery.py",
+      "dispatch/failures.py",
+      "ingest/__init__.py",
+      "ingest/inbox.py",
+      "ingest/queue.py",
+      "ledger/__init__.py",
+      "ledger/journal.py"
+    ],
+    "architecture_digest": "sha256:1514a1b5c043d63d0dc81eaf4d251cb51b72fea7562eac8b8c418e18f3b25e6f",
+    "architecture_components": [
+      "alpha",
+      "beta",
+      "delta",
+      "gamma"
+    ],
+    "architecture_ports": [
+      [
+        "alpha",
+        "beta"
+      ],
+      [
+        "beta",
+        "gamma"
+      ],
+      [
+        "delta",
+        "gamma"
+      ]
+    ],
+    "architecture_port_actions": {
+      "alpha|beta": [
+        "Enqueue"
+      ],
+      "beta|gamma": [
+        "Deliver"
+      ],
+      "delta|gamma": [
+        "Record"
+      ]
+    },
+    "comparison_ran": true
+  },
+  "convergences": [
+    {
+      "from": "dispatch/delivery.py",
+      "to": "ingest/queue.py",
+      "kind": "import",
+      "symbol": "pipeline.ingest.queue.WorkQueue",
+      "file": "pipeline/dispatch/delivery.py",
+      "line": 10,
+      "site": "pipeline/dispatch/delivery.py:10",
+      "from_component": "gamma",
+      "to_component": "beta",
+      "pair": [
+        "beta",
+        "gamma"
+      ],
+      "port": "P2",
+      "port_actions": [
+        "Deliver"
+      ]
+    },
+    {
+      "from": "ingest/queue.py",
+      "to": "ingest/inbox.py",
+      "kind": "import",
+      "symbol": "pipeline.ingest.inbox.Inbox",
+      "file": "pipeline/ingest/queue.py",
+      "line": 10,
+      "site": "pipeline/ingest/queue.py:10",
+      "from_component": "beta",
+      "to_component": "alpha",
+      "pair": [
+        "alpha",
+        "beta"
+      ],
+      "port": "P1",
+      "port_actions": [
+        "Enqueue"
+      ]
+    },
+    {
+      "from": "ledger/journal.py",
+      "to": "dispatch/delivery.py",
+      "kind": "import",
+      "symbol": "pipeline.dispatch.delivery.Dispatcher",
+      "file": "pipeline/ledger/journal.py",
+      "line": 13,
+      "site": "pipeline/ledger/journal.py:13",
+      "from_component": "delta",
+      "to_component": "gamma",
+      "pair": [
+        "delta",
+        "gamma"
+      ],
+      "port": "P3",
+      "port_actions": [
+        "Record"
+      ]
+    }
+  ],
+  "divergences": [],
+  "absences": [],
+  "unmapped_modules": [],
+  "unrealized_components": [],
+  "blind_spots": [],
+  "ignored_suppression_keys": [],
+  "verdict": {
+    "architecture_scan": "coherent",
+    "reasons": [
+      "every code edge that crosses a component boundary has a declared port, every declared port is realized, every module in the scanned tree is mapped, and every declared component is realized by code"
+    ],
+    "blocks_promotion": false
+  },
+  "advisory": {
+    "blocks_promotion": false,
+    "suggests_moves": false,
+    "note": "This report states measured facts about the code's dependency graph relative to a declared map. It names no module that should move and proposes no boundary. A divergent verdict never refuses a close, a promotion, or a case generation."
+  }
+}

@@ -1,0 +1,57 @@
+# A DECLARED component partition of this repository's own CLI model, authored
+# for the AC-02 reflexion dogfood (`analyze architecture ... --components`).
+#
+# READ THIS BEFORE READING ANYTHING MEASURED WITH IT. This file is NOT an
+# authority on how tla-spec-dev is designed. It is one plausible cut, written to
+# answer a question the emergent clustering cannot: what does the reflexion
+# check report when the model side IS consumable?
+#
+# The cut is by the STATE each command commits, which is the only grounding the
+# model offers:
+#
+#   surface  setup_phase, spec_root, lastCommand, result -- the CLI entry point
+#            and the commands that set the project up (BuildSkillCli,
+#            InstallLocalCli, RecordBudgets, ScaffoldProject, ScaffoldWorkflow).
+#   tickets  ticket_state -- OpenTicket, CloseTicket, UpdateTicketCurrent,
+#            UpdateTicketDesired, RunSpecUnitTests.
+#   corpus   complexity_gate, corpus_gate, effect_conformance -- the scanners
+#            whose verdicts the corpus and complexity commands record.
+#   kill     kill_test -- RunKillTest, and nothing else in the model.
+#
+# `lastCommand` and `result` are written by all fifteen commands, so whichever
+# component holds them has a port to every other one. That is why the useful
+# question is about the OTHER pairs: `tickets <-> kill` and `corpus <-> kill`
+# have NO port, because no action of the model touches `kill_test` together
+# with `ticket_state` or with any corpus verdict. Those two pairs are the only
+# places a code edge in this repository could diverge -- and the reflexion
+# dogfood found edges across both.
+#
+# A coarser cut is not equivalent. The three-component version of this file
+# (surface / tickets / scanners, folding `kill` into the scanners) has a port
+# between every pair and cannot falsify anything about the code; the check
+# reports `unfalsifiable_coherence` and refuses to call it clean. Recorded in
+# specs/tickets/AC-02/results/dogfood-findings.txt, because the difference
+# between those two files is entirely a choice of the person writing them.
+#
+# The repository's spec_manifest.yaml deliberately does NOT carry an
+# `architecture:` block. Adding one would make every subsequent
+# `analyze architecture` run report against a cut nobody has committed to.
+architecture:
+  components:
+    - name: surface
+      variables:
+        - lastCommand
+        - result
+        - setup_phase
+        - spec_root
+    - name: tickets
+      variables:
+        - ticket_state
+    - name: corpus
+      variables:
+        - complexity_gate
+        - corpus_gate
+        - effect_conformance
+    - name: kill
+      variables:
+        - kill_test

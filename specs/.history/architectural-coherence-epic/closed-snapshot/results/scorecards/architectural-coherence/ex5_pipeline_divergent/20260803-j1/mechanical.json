@@ -1,0 +1,105 @@
+{
+  "example": "ex5_pipeline_divergent",
+  "run_id": "20260803-j1",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. reproduced_by_judge figures were re-run read-only at this commit with python3 scripts/tla_spec_dev.py. from_record figures are transcribed from committed run artifacts.",
+  "complexity_descriptor": {
+    "source": "inherited_from_twin",
+    "note": "Pipeline.tla and Pipeline.cfg are byte-identical to ex4's (check_twins.py enforces it), so the descriptor is ex4's: bound 4,096 COMPLETE over 6 of 6 variables, Q = 0.193878 emergent / 0.132653 declared, one dense row (delivered 3/5), no dense columns, no warnings.",
+    "variables": 6,
+    "actions": 5,
+    "state_space_bound": 4096,
+    "modularity_q_declared": 0.132653,
+    "dense_rows": ["delivered (3/5 actions)"],
+    "dense_columns": []
+  },
+  "architecture_reflexion": {
+    "source": "reproduced_by_judge",
+    "command": "python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg --components ... --code pipeline --map ...",
+    "verdict": "divergent",
+    "exit_code": 0,
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 7,
+    "internal_edges": 2,
+    "convergences": 1,
+    "divergences": 4,
+    "absences": 1,
+    "divergence_detectable": true,
+    "partition_source": "DECLARED",
+    "partition_decomposes": true,
+    "clean_result_supportable": true,
+    "divergence_sites_reproduced": [
+      "pipeline/ingest/inbox.py:11 (import, ingest->ledger)",
+      "pipeline/ingest/inbox.py:39 (call, ingest->ledger)",
+      "pipeline/ingest/queue.py:12 (import, ingest->ledger)",
+      "pipeline/ledger/journal.py:55 (function-local import, ledger->ingest)"
+    ],
+    "absence_reproduced": "P2 dispatch <-> ledger, crossed by Record",
+    "out_of_scope_imports": ["__future__", "pipeline_contract"],
+    "precision_recall_against_committed_key": {"precision": 1.0, "recall": 1.0, "source": "reproduced_by_judge"}
+  },
+  "case_counts": {
+    "source": "n/a",
+    "value": null,
+    "reason": "This fixture ships no corpus arm and no adapters by design (README.md:146-148). The seeded-fault measurement lives in ex4."
+  },
+  "kill_counts": {
+    "source": "n/a",
+    "value": null,
+    "reason": "No corpus, no adapters, no seeded content faults. The seeded faults here are structural and are scored by the reflexion check, not by kills."
+  },
+  "behavioral_suite": {
+    "source": "from_record",
+    "tests": 8,
+    "result_honest_tree": "8 passed",
+    "result_after_blind_repair": "8 passed, file unchanged",
+    "result_under_reexport_attack": "8 passed",
+    "byte_identical_to_ex4": true
+  },
+  "partition_sweep_203": {
+    "source": "from_record",
+    "round1": {"coherent_false_clean": 12, "divergent": 71, "unmappable": 120, "exit_0": "203/203"},
+    "round2": {"coherent_false_clean": 0, "divergent": 91, "unmappable": 112, "exit_0": "203/203"},
+    "transitions": {"unmappable->unmappable": 100, "divergent->divergent": 71, "unmappable->divergent": 20, "coherent->unmappable": 12},
+    "divergence_verdicts_lost": 0,
+    "counterfactual": "67 of round 1's 71 divergent verdicts carry partition_does_not_decompose; filing it as a blind spot would have suppressed 67 real findings to remove 12 false cleans"
+  },
+  "gamed_map_worked_example": {
+    "source": "from_record",
+    "edit": "one variable moved (queue, ingest -> dispatch) and one module re-placed; zero code change",
+    "divergences": "4 -> 3",
+    "absences": "1 -> 0",
+    "verdict": "divergent -> divergent (unchanged)",
+    "delta_attribution": "unattributable; lost edge classified endpoint_reassigned; stable basis 3 -> 3 (+0)"
+  },
+  "dp1_centrepiece": {
+    "source": "from_record",
+    "runs": 2,
+    "declarations_edited": 0,
+    "architecture_digest_after": "sha256:96e32621b… (answer-key value)",
+    "map_digest_after": "sha256:51fc63424… (answer-key value)",
+    "recall_on_answer_key_unprompted": 1.0,
+    "round1_repair_shape": "1 refactor, 3 deletions",
+    "round2_repair_shape": "4 real removals, 0 deletions; deletion considered and rejected in writing",
+    "final_verdict_after_repair": "coherent, exit 0, 2 convergences, 0 divergences, 0 absences, blind_spots [], basis_limits []",
+    "caveat_from_record": "n = 1 twice; evidence about two agents, not about a rate"
+  },
+  "reexport_attack_EV03_DF03": {
+    "source": "from_record",
+    "diff_lines": 41,
+    "declarations_edited": 0,
+    "verdict_before": "divergent (4 divergences / 1 absence)",
+    "verdict_after": "coherent (0 / 0)",
+    "blind_spots_after": [],
+    "basis_limits_after": [],
+    "digests_after": "both identical to the answer key",
+    "behavioural_suite_after": "8 passed",
+    "runtime_coupling_after": "present (inbox.format_entry is journal.format_entry -> True)",
+    "severity": "major",
+    "status": "filed, NOT fixed"
+  },
+  "determinism": {"source": "n/a", "value": null, "reason": "no corpus in this fixture; determinism was measured on ex4"},
+  "runtime": {"judge_rerun_seconds": null, "note": "the single analyze command I ran completed in a few seconds; not instrumented, so recorded null rather than estimated"},
+  "fixture_integrity": {"check_twins": "exit 0 before and after every recorded run", "declarations_unedited_across_all_runs": true}
+}

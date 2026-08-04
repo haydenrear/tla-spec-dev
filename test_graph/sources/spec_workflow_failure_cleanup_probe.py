@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
+import time
 from pathlib import Path
 
 from testgraphsdk import NodeResult, NodeSpec, node, procs
@@ -76,6 +78,81 @@ def node_by_id(summary: dict, node_id: str) -> dict:
     return {}
 
 
+def process_table() -> tuple[dict[int, tuple[int, str]], int]:
+    """``(pid -> (ppid, command line), pid of the ps that produced it)``.
+
+    The executor's process-ownership contract is enforced with
+    ``ProcessHandle.descendants()``; this is the same inventory read
+    through the POSIX ``ps`` the SDK already requires on macOS/Linux.
+    ``ps`` is itself a child of this node, so its own pid is returned
+    and excluded rather than counted as residue. An unavailable ``ps``
+    yields an empty table, which reads as "nothing observed" — the
+    executor stays the authority either way.
+    """
+    try:
+        proc = subprocess.Popen(
+            ["ps", "-eo", "pid=,ppid=,args="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {}, -1
+    try:
+        stdout, _ = proc.communicate(timeout=20)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        return {}, proc.pid
+    table: dict[int, tuple[int, str]] = {}
+    for line in (stdout or "").splitlines():
+        fields = line.split(None, 2)
+        if len(fields) < 2:
+            continue
+        try:
+            pid, ppid = int(fields[0]), int(fields[1])
+        except ValueError:
+            continue
+        table[pid] = (ppid, fields[2] if len(fields) > 2 else "")
+    return table, proc.pid
+
+
+def live_descendants(root_pid: int) -> dict[int, str]:
+    """Every currently-live descendant of ``root_pid``, pid -> command."""
+    table, observer_pid = process_table()
+    children: dict[int, list[int]] = {}
+    for pid, (ppid, _) in table.items():
+        children.setdefault(ppid, []).append(pid)
+    found: dict[int, str] = {}
+    stack = list(children.get(root_pid, []))
+    while stack:
+        pid = stack.pop()
+        if pid in found or pid == observer_pid:
+            continue
+        found[pid] = table.get(pid, (0, ""))[1]
+        stack.extend(children.get(pid, []))
+    return found
+
+
+def await_no_descendants(
+    root_pid: int, budget_seconds: float = 20.0
+) -> dict[int, str]:
+    """Wait up to ``budget_seconds`` for this node's tree to drain.
+
+    Returns whatever is *still* alive at the end. The wait exists for
+    processes that are genuinely shutting down when the nested build
+    returns (Gradle's single-use daemon closes its sockets before the
+    launcher's exit is observable); it is bounded and its residue is
+    reported, so nothing that actually outlives the node is hidden.
+    """
+    deadline = time.monotonic() + budget_seconds
+    lingering = live_descendants(root_pid)
+    while lingering and time.monotonic() < deadline:
+        time.sleep(0.5)
+        lingering = live_descendants(root_pid)
+    return lingering
+
+
 @node(SPEC)
 def main(ctx):
     source_repo = Path(ctx.get("spec.workflow.repo", "sourceRepo") or "").resolve()
@@ -84,18 +161,61 @@ def main(ctx):
 
     env = dict(os.environ)
     gradle_opts = env.get("GRADLE_OPTS", "")
-    env["GRADLE_OPTS"] = f"{gradle_opts} -Dorg.gradle.daemon=false".strip()
+    # `org.gradle.daemon=false` keeps the nested build off a reusable daemon.
+    # `kotlin.compiler.execution.strategy=in-process` is the other half of the
+    # same requirement and is NOT optional: the probe recopies the project on
+    # every run, so the nested build always compiles `build-logic` from
+    # scratch, and the Kotlin Gradle plugin's default `daemon` strategy forks
+    # `KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200`. That daemon
+    # is a deliberately persistent user-scoped service, but it is spawned as a
+    # descendant of this node's launcher, so it survives the node and the
+    # executor's process-ownership contract correctly reports it as a leak
+    # ("node launcher exited with live descendants"). Compiling in-process
+    # keeps the nested toolchain inside the tree this node owns and can reap.
+    env["GRADLE_OPTS"] = " ".join(
+        part
+        for part in (
+            gradle_opts,
+            "-Dorg.gradle.daemon=false",
+            "-Dkotlin.compiler.execution.strategy=in-process",
+        )
+        if part
+    )
     env["TLA_SPEC_DEV_SOURCE_REPO"] = str(source_repo)
 
     result = NodeResult.pass_(SPEC.id)
     record = procs.run(
         ctx,
         "cleanup-failure-probe",
-        [str(probe_root / "gradlew"), "--console=plain", "cleanupFailureProbe"],
+        [
+            str(probe_root / "gradlew"),
+            "--console=plain",
+            # Command-line project properties propagate into included builds
+            # (`build-logic`), which the GRADLE_OPTS system property alone does
+            # not guarantee. Both channels are set on purpose.
+            "-Pkotlin.compiler.execution.strategy=in-process",
+            "cleanupFailureProbe",
+        ],
         cwd=probe_root,
         env=env,
     )
     result.process(record).assertion("probe graph failed as expected", record.exit_code != 0)
+
+    # This node owns everything the nested build started. Assert that here,
+    # where the residue can be named, instead of letting the executor discover
+    # it afterwards and report an opaque node error with bare PIDs.
+    lingering = await_no_descendants(os.getpid())
+    if lingering:
+        residue = "; ".join(
+            f"{pid}: {command[:200]}" for pid, command in sorted(lingering.items())
+        )
+        (ctx.report_dir / "node-logs").mkdir(parents=True, exist_ok=True)
+        residue_log = ctx.report_dir / "node-logs" / f"{SPEC.id}.lingering-descendants.log"
+        residue_log.write_text(residue + "\n", encoding="utf-8")
+        result.artifact("cleanup-failure-probe-lingering-descendants", str(residue_log))
+    result.assertion(
+        "nested probe build left no live descendants", not lingering
+    )
 
     run_dir = latest_probe_run(probe_root)
     summary_path = run_dir / "summary.json" if run_dir else None

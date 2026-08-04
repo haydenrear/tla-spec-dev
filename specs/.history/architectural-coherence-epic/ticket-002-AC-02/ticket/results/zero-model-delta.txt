@@ -1,0 +1,51 @@
+AC-02 -- ZERO TLA+ MODEL DELTA, documented
+==========================================
+
+Expectation from the plan and the work order: "ZERO. Document the no-op model
+result with evidence. Do not invent an action to have a delta."
+
+RESULT: zero delta. specs/tickets/AC-02/current == specs/tickets/AC-02/desired,
+byte for byte.
+
+  $ find specs/tickets/AC-02 -name __pycache__ -type d -exec rm -rf {} +
+  $ diff -r specs/tickets/AC-02/current specs/tickets/AC-02/desired
+  (no output; exit 0)   -> specs/tickets/AC-02/results/zero-model-delta-diff.txt
+
+WHY IT IS ZERO
+--------------
+AC-01 already landed everything this ticket needs on the model side:
+
+  * the `architecture_scan` variable, ranging over
+    unknown | coherent | divergent | unmappable, and
+  * the `AnalyzeArchitecture` action, which sets
+    result' = CommandResult(TRUE, ...) unconditionally and merely records a
+    verdict in that variable.
+
+AC-02 supplies the CODE side of the same command. It adds no CLI command, no
+new externally observable outcome, and no new state: `analyze architecture`
+already existed and already recorded a value in `architecture_scan`. What
+changed is which of the four values it can produce -- `coherent` and
+`divergent` become reachable when `--code` and `--map` are supplied, where
+before only `unmappable` was. The TLA+ variable's domain was authored to
+include all four at AC-01 precisely so this ticket would not have to widen it.
+
+Adding an action for the reflexion check would have modelled a FLAG of an
+existing command as a separate program transition. The plan's
+`semantic_model_rule` forbids exactly that class of addition, and the standing
+objective would then have charged this ticket a state-space increase for a
+distinction the program does not make.
+
+TLC ON TICKET CURRENT
+---------------------
+  $ export PATH="$HOME/.skill-manager/bin/cli:$PATH"
+  $ bash scripts/run_tlc.sh specs/tickets/AC-02/current/TlaSpecDevCli.tla \
+        specs/tickets/AC-02/current/MC.cfg          # wrapped in timeout 180
+
+  Model checking completed. No error has been found.
+  32,122,220 states generated, 1,292,951 distinct states found,
+  0 states left on queue. Depth 26. Finished in 58s.
+
+Identical to AC-01's recorded close figure (32,122,220 / 1,292,951 / depth 26 /
+58s), which is the point: this ticket cost the model nothing.
+
+Full log: specs/tickets/AC-02/results/tlc-current.txt

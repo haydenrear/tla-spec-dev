@@ -1,0 +1,166 @@
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runA-pristine/pipeline/ingest/inbox.py	2026-07-30 17:52:20
++++ pipeline/ingest/inbox.py	2026-07-30 17:59:14
+@@ -2,15 +2,22 @@
+ 
+ Tracks what has arrived and what has been accepted for processing.
+ 
+-`status_line` renders one item for the operator view; it borrows the ledger's
+-formatting so the two reports read alike.
++`status_line` renders one item for the operator view, using this package's own
++renderer. It used to borrow the ledger's `format_entry`, which made `ingest`
++depend on `ledger` -- an edge the model declares no port for, because no action
++touches both components. The two renderings are intentionally alike; that is a
++presentational coincidence, not a shared contract, and paying for it with a
++one-line duplication is what the boundary costs.
+ """
+ 
+ from __future__ import annotations
+ 
+-from pipeline.ledger.journal import format_entry
+ 
++def format_item(item: str) -> str:
++    """Ingest's rendering of one item for the operator view."""
++    return f"[{item}]"
+ 
++
+ class Inbox:
+     """Holds unaccepted items and the set of accepted ones."""
+ 
+@@ -35,5 +42,5 @@
+         return True
+ 
+     def status_line(self) -> str:
+-        """Reporting only. Renders accepted items in the ledger's own format."""
+-        return " ".join(format_entry(item) for item in sorted(self._accepted))
++        """Reporting only. Renders accepted items for the operator view."""
++        return " ".join(format_item(item) for item in sorted(self._accepted))
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runA-pristine/pipeline/ingest/queue.py	2026-07-30 17:52:20
++++ pipeline/ingest/queue.py	2026-07-30 17:59:23
+@@ -2,14 +2,16 @@
+ 
+ Holds accepted items in insertion order until dispatch takes them.
+ 
+-`backlog_report` renders the queue for the operator view; it borrows the
+-ledger's formatting so the two reports read alike.
++`backlog_report` renders the queue for the operator view. It used to take a
++`Journal` and read its entries, which made `ingest` depend on `ledger` -- an
++edge the model declares no port for. What it actually needs is a count, so the
++caller (which is the composition root, and is allowed to know both sides) now
++passes one and this package no longer knows the ledger exists.
+ """
+ 
+ from __future__ import annotations
+ 
+ from pipeline.ingest.inbox import Inbox
+-from pipeline.ledger.journal import Journal
+ 
+ 
+ class WorkQueue:
+@@ -39,6 +41,6 @@
+         self._queue.remove(item)
+         return True
+ 
+-    def backlog_report(self, journal: Journal) -> str:
+-        """Reporting only. Reads the ledger's entries to size the backlog."""
+-        return f"queued={len(self._queue)} recorded={len(journal.entries)}"
++    def backlog_report(self, recorded: int) -> str:
++        """Reporting only. Sizes the backlog against a recorded-entry count."""
++        return f"queued={len(self._queue)} recorded={recorded}"
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runA-pristine/pipeline/ledger/journal.py	2026-07-30 17:52:20
++++ pipeline/ledger/journal.py	2026-07-30 18:01:21
+@@ -3,41 +3,49 @@
+ Holds the append-only record of what the service delivered, and persists it
+ through a store port.
+ 
+-`backlog_hint` is an operator convenience added late: it prints a one-line
+-summary of what is still waiting upstream. The import it needs is written
+-inside the function rather than at module level, because a module-level import
+-there closes an import cycle that Python refuses to load.
++`backlog_hint` is an operator convenience: it summarises what is still waiting
++upstream. It used to import `Inbox` (inside the function body, because at
++module level the import closed a cycle Python refuses to load) and read the
++accepted set off it. That was `ledger` reaching into `ingest`, which the model
++declares no port for -- and the function-level import was the symptom, not the
++fix. It now takes the accepted items as data from its caller.
+ 
+-`record()` takes the delivered set as an argument rather than holding a
+-reference to the dispatcher, so this module can be constructed and tested
+-without one. The composition root in `tests/driver.py` supplies it on each
+-call.
++`record()` reads the delivered set from the dispatcher it is constructed with.
++The model's `Record(i)` reads `delivered` and writes `ledger`, so the model
++does declare a port between `dispatch` and `ledger`; naming the collaborator
++here is what makes that declared interaction visible in the code, and it
++matches how every other part of this service is wired (`WorkQueue` holds an
++`Inbox`, `Dispatcher` holds a `WorkQueue`, `FailureLog` holds a `Dispatcher`).
+ """
+ 
+ from __future__ import annotations
+ 
++from collections.abc import Iterable
++
++from pipeline.dispatch.delivery import Dispatcher
+ from pipeline_contract.types import PersistLedger
+ 
+ 
+ def format_entry(item: str) -> str:
+-    """The ledger's rendering of one item, reused by callers upstream."""
++    """The ledger's rendering of one item."""
+     return f"[{item}]"
+ 
+ 
+ class Journal:
+     """`ledger`: an append-only record of what dispatch delivered."""
+ 
+-    def __init__(self, store: object | None = None) -> None:
++    def __init__(self, dispatcher: Dispatcher, store: object | None = None) -> None:
+         self._entries: list[str] = []
++        self._dispatcher = dispatcher
+         self._store = store
+ 
+     @property
+     def entries(self) -> tuple[str, ...]:
+         return tuple(self._entries)
+ 
+-    def record(self, item: str, delivered: frozenset[str]) -> bool:
++    def record(self, item: str) -> bool:
+         """`Record(i)`: a delivered item, not already recorded, is appended."""
+-        if item not in delivered:
++        if item not in self._dispatcher.delivered:
+             return False
+         if item in self._entries:
+             return False
+@@ -50,10 +58,6 @@
+             return
+         self._store.persist(PersistLedger(entries=",".join(self._entries)))
+ 
+-    def backlog_hint(self, inbox: object) -> int:
+-        """Reporting only. Counts what ingest has accepted but not recorded."""
+-        from pipeline.ingest.inbox import Inbox
+-
+-        if not isinstance(inbox, Inbox):
+-            return 0
+-        return len(inbox.accepted - set(self._entries))
++    def backlog_hint(self, accepted: Iterable[str]) -> int:
++        """Reporting only. Counts accepted items this ledger has not recorded."""
++        return len(set(accepted) - set(self._entries))
+--- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/ev03/blind/runA-pristine/tests/driver.py	2026-07-30 17:52:20
++++ tests/driver.py	2026-07-30 17:59:46
+@@ -31,7 +31,7 @@
+         self.queue = WorkQueue(self.inbox)
+         self.dispatcher = Dispatcher(self.queue)
+         self.failures = FailureLog(self.dispatcher)
+-        self.journal = Journal()
++        self.journal = Journal(self.dispatcher)
+ 
+     def accept(self, item: str) -> bool:
+         return self.inbox.accept(item)
+@@ -46,7 +46,7 @@
+         return self.failures.fail(item)
+ 
+     def record(self, item: str) -> bool:
+-        return self.journal.record(item, self.dispatcher.delivered)
++        return self.journal.record(item)
+ 
+     def state(self) -> dict[str, object]:
+         return {

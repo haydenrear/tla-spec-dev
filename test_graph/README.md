@@ -38,3 +38,37 @@ The graph is intentionally external to the unit tests: it proves the CLI
 work when invoked from a real git-backed repository, including history movement,
 promotion, adapter/test merging, and cleanup after both passing and failing
 downstream graph paths.
+
+## The nested probe build must own every process it starts
+
+`spec.workflow.failure_cleanup_probe` is the only node that runs a *nested*
+Gradle build, so it is the only node that has to think about the executor's
+process-ownership contract: when a node launcher exits while any descendant is
+still alive, the executor reaps the tree and reports the node as errored with
+`node launcher exited with live descendants: <pids>`.
+
+The default Kotlin Gradle plugin compile strategy breaks that contract here.
+The probe recopies the project on every run (`copy_probe_project` ignores
+`build/`), so the nested build always compiles `build-logic` from scratch, and
+the default `daemon` strategy forks
+`KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200`. That daemon is a
+shared, deliberately persistent, user-scoped service — but it is forked as a
+descendant of this node's launcher, so it outlives the node and the contract
+correctly flags it. The daemon is also shared with the *outer* build, so the
+executor's reap of it is not harmless.
+
+The probe therefore pins `kotlin.compiler.execution.strategy=in-process` on
+both channels — the `-P` project property (which propagates into the
+`build-logic` included build) and the `-D` system property in `GRADLE_OPTS`.
+The nested Kotlin compile then happens inside the process tree the node owns
+and can reap. Do not drop either flag; the graph goes red at this node without
+them.
+
+The node also asserts `nested probe build left no live descendants` directly,
+after a bounded drain for processes that are genuinely shutting down (Gradle's
+single-use daemon closes its sockets before its exit is observable). That is a
+strictly narrower window than the executor's own check, and it exists so a
+future regression is reported with the offending command lines in
+`node-logs/spec.workflow.failure_cleanup_probe.lingering-descendants.log`
+instead of as bare PIDs in a build failure. The executor's check remains the
+authority.

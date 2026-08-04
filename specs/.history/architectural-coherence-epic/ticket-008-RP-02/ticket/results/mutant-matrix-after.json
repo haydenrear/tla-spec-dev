@@ -1,0 +1,117 @@
+{
+  "control": {
+    "arm_a": true,
+    "arm_b": true,
+    "pytest": true
+  },
+  "mutants": [
+    {
+      "id": "M1",
+      "fault_class": "guard relaxation",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "KILLED",
+      "arm_a_tail": "",
+      "pytest_tail": "() -> None:\n        p = Pipeline(ITEMS)\n        assert p.accept(\"i1\") is True\n        assert p.state()[\"inbox\"] == [\"i2\"]\n        assert p.state()[\"accepted\"] == [\"i1\"]\n>       assert p.accept(\"i1\") is False\nE       AssertionError: assert True is False\nE        +  where True = accept('i1')\nE        +    where accept = <driver.Pipeline object at 0x106d6da90>.accept\n\ntests/test_behavior.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_accept_moves_inbox_to_accepted - Assertio...\n1 failed, 7 passed in 0.03s\n"
+    },
+    {
+      "id": "M2",
+      "fault_class": "guard relaxation",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "KILLED",
+      "arm_a_tail": "",
+      "pytest_tail": "___ test_enqueue_requires_accepted_and_is_idempotent _______________\n\n    def test_enqueue_requires_accepted_and_is_idempotent() -> None:\n        p = Pipeline(ITEMS)\n>       assert p.enqueue(\"i1\") is False\nE       AssertionError: assert True is False\nE        +  where True = enqueue('i1')\nE        +    where enqueue = <driver.Pipeline object at 0x106d6d950>.enqueue\n\ntests/test_behavior.py:45: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_enqueue_requires_accepted_and_is_idempotent\n1 failed, 7 passed in 0.03s\n"
+    },
+    {
+      "id": "M3",
+      "fault_class": "guard relaxation",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "KILLED",
+      "arm_a_tail": "",
+      "pytest_tail": "____ test_record_requires_delivered_and_is_append_only _______________\n\n    def test_record_requires_delivered_and_is_append_only() -> None:\n        p = Pipeline(ITEMS)\n>       assert p.record(\"i1\") is False\nE       AssertionError: assert True is False\nE        +  where True = record('i1')\nE        +    where record = <driver.Pipeline object at 0x106eb46b0>.record\n\ntests/test_behavior.py:86: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_record_requires_delivered_and_is_append_only\n1 failed, 7 passed in 0.04s\n"
+    },
+    {
+      "id": "M4",
+      "fault_class": "equivalent",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "",
+      "pytest_tail": ""
+    },
+    {
+      "id": "M5",
+      "fault_class": "wrong write",
+      "arm_a": "KILLED",
+      "arm_b": "KILLED",
+      "pytest": "KILLED",
+      "arm_a_tail": "put_assert\", \"providers\": [{\"derived_seed\": 58634109707038814618682085793137505546, \"port\": \"LedgerStorePort\", \"provider\": \"specs.program_model.providers:silent_ledger_store_provider\"}], \"replay\": \"/Users/hayde/.cache/uv/builds-v0/.tmp6yE7vw/bin/python3 /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/scripts/run_generated_case_adapters.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/after-gen/spec-unit/pipeline_cases --mapping /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml --batch --seed 0 --fuzz-runs 1 --fuzz-iteration 0 --case case_0308_record --spec-dir /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model --view internal --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/generated\", \"root_seed\": 0, \"seed_version\": \"tla-spec-dev/effect-seed/v1\"}\n",
+      "pytest_tail": ",\n        }\nE       AssertionError: assert {'inbox': [],...: ['i2'], ...} == {'inbox': [],...: ['i2'], ...}\nE         \nE         Omitting 5 identical items, use -vv to show\nE         Differing items:\nE         {'ledger': ['I2']} != {'ledger': ['i2']}\nE         Use -v to get more diff\n\ntests/test_behavior.py:106: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_record_requires_delivered_and_is_append_only\nFAILED tests/test_behavior.py::test_two_item_interleaving - AssertionError: a...\n2 failed, 6 passed in 0.03s\n"
+    },
+    {
+      "id": "M6",
+      "fault_class": "wrong write",
+      "arm_a": "KILLED",
+      "arm_b": "KILLED",
+      "pytest": "KILLED",
+      "arm_a_tail": "', 'delivered_size': 1, 'ledger_size': 1, 'queue_size': 1, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"replay\": \"/Users/hayde/.cache/uv/builds-v0/.tmp6yE7vw/bin/python3 /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/scripts/run_generated_case_adapters.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/after-gen/spec-unit/pipeline_cases --mapping /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml --batch --seed 0 --fuzz-runs 1 --fuzz-iteration 0 --case case_0212_fail --spec-dir /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model --view internal --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/generated\", \"root_seed\": 0, \"seed_version\": \"tla-spec-dev/effect-seed/v1\"}\n... and 38 more\n",
+      "pytest_tail": " identical items, use -vv to show\nE         Differing items:\nE         {'delivered': ['i1', 'i2']} != {'delivered': ['i2']}\nE         {'failed': []} != {'failed': ['i1']}\nE         Use -v to get more diff\n\ntests/test_behavior.py:106: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_fail_moves_delivered_to_failed_and_excludes\nFAILED tests/test_behavior.py::test_failed_item_cannot_be_redelivered - Asser...\nFAILED tests/test_behavior.py::test_two_item_interleaving - AssertionError: a...\n3 failed, 5 passed in 0.03s\n"
+    },
+    {
+      "id": "M7",
+      "fault_class": "wrong write",
+      "arm_a": "KILLED",
+      "arm_b": "KILLED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "on': 'Deliver', 'delivered_size': 1, 'ledger_size': 2, 'queue_size': 1, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"replay\": \"/Users/hayde/.cache/uv/builds-v0/.tmp6yE7vw/bin/python3 /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/scripts/run_generated_case_adapters.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/after-gen/spec-unit/pipeline_cases --mapping /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml --batch --seed 0 --fuzz-runs 1 --fuzz-iteration 0 --case case_0327_deliver --spec-dir /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model --view internal --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/generated\", \"root_seed\": 0, \"seed_version\": \"tla-spec-dev/effect-seed/v1\"}\n",
+      "pytest_tail": ""
+    },
+    {
+      "id": "M8",
+      "fault_class": "wrong write",
+      "arm_a": "KILLED",
+      "arm_b": "KILLED",
+      "pytest": "KILLED",
+      "arm_a_tail": "tion': 'Accept', 'delivered_size': 0, 'ledger_size': 1, 'queue_size': 1, 'status': 'applied'}\", \"error_type\": \"AssertionError\", \"iteration\": 0, \"phase\": \"output_assert\", \"providers\": [], \"replay\": \"/Users/hayde/.cache/uv/builds-v0/.tmp6yE7vw/bin/python3 /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/scripts/run_generated_case_adapters.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/b726dabf-a199-4b0c-8c2d-dda863fb43b7/scratchpad/after-gen/spec-unit/pipeline_cases --mapping /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model/case_adapters_corpus_only.toml --batch --seed 0 --fuzz-runs 1 --fuzz-iteration 0 --case case_0128_accept --spec-dir /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/specs/program_model --view internal --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage --import-root /Users/hayde/IdeaProjects/wt-rp02-oracle-leakage/examples/validation/ex4_pipeline_coherent/generated\", \"root_seed\": 0, \"seed_version\": \"tla-spec-dev/effect-seed/v1\"}\n",
+      "pytest_tail": "===\n_____________________ test_accept_moves_inbox_to_accepted ______________________\n\n    def test_accept_moves_inbox_to_accepted() -> None:\n        p = Pipeline(ITEMS)\n>       assert p.accept(\"i1\") is True\nE       AssertionError: assert False is True\nE        +  where False = accept('i1')\nE        +    where accept = <driver.Pipeline object at 0x1091a5950>.accept\n\ntests/test_behavior.py:37: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_behavior.py::test_accept_moves_inbox_to_accepted - Assertio...\n1 failed, 7 passed in 0.03s\n"
+    },
+    {
+      "id": "M9",
+      "fault_class": "ordering",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "",
+      "pytest_tail": ""
+    },
+    {
+      "id": "M10",
+      "fault_class": "wrong write, durable side",
+      "arm_a": "SURVIVED",
+      "arm_b": "KILLED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "",
+      "pytest_tail": ""
+    },
+    {
+      "id": "M11",
+      "fault_class": "ordering",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "",
+      "pytest_tail": ""
+    },
+    {
+      "id": "M12",
+      "fault_class": "ordering",
+      "arm_a": "SURVIVED",
+      "arm_b": "SURVIVED",
+      "pytest": "SURVIVED",
+      "arm_a_tail": "",
+      "pytest_tail": ""
+    }
+  ]
+}

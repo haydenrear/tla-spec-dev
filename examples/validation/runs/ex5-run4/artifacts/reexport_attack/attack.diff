@@ -1,0 +1,41 @@
+--- /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex5_pipeline_divergent/pipeline/ingest/inbox.py	2026-07-30 17:38:56
++++ pipeline/ingest/inbox.py	2026-07-30 18:05:59
+@@ -8,7 +8,7 @@
+ 
+ from __future__ import annotations
+ 
+-from pipeline.ledger.journal import format_entry
++from pipeline_contract.shared import format_entry
+ 
+ 
+ class Inbox:
+--- /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex5_pipeline_divergent/pipeline/ingest/queue.py	2026-07-30 17:38:56
++++ pipeline/ingest/queue.py	2026-07-30 18:05:59
+@@ -9,7 +9,7 @@
+ from __future__ import annotations
+ 
+ from pipeline.ingest.inbox import Inbox
+-from pipeline.ledger.journal import Journal
++from pipeline_contract.shared import Journal
+ 
+ 
+ class WorkQueue:
+--- /Users/hayde/IdeaProjects/wt-ev03-rerun/examples/validation/ex5_pipeline_divergent/pipeline/ledger/journal.py	2026-07-30 17:38:56
++++ pipeline/ledger/journal.py	2026-07-30 18:07:10
+@@ -52,8 +52,15 @@
+ 
+     def backlog_hint(self, inbox: object) -> int:
+         """Reporting only. Counts what ingest has accepted but not recorded."""
+-        from pipeline.ingest.inbox import Inbox
++        from pipeline_contract.shared import Inbox
+ 
+         if not isinstance(inbox, Inbox):
+             return 0
+         return len(inbox.accepted - set(self._entries))
++
++
++def _declared_collaborator() -> object:
++    """Names the dispatcher this component is declared to collaborate with."""
++    from pipeline.dispatch.delivery import Dispatcher
++
++    return Dispatcher

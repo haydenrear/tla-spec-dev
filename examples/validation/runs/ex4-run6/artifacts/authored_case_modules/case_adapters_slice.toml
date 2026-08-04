@@ -1,0 +1,35 @@
+# ADDED BY QA (CM-F5 workaround), not part of the service's original two
+# mappings. Identical to case_adapters.toml except that the LedgerStorePort
+# effect provider is REMOVED.
+#
+# Why it exists: run_generated_case_adapters.py refuses a mapping that
+# configures a semantic effect provider no selected case requires. The
+# Scenario_IntakeToDelivery slice deliberately excludes `Record`, the only
+# action that touches LedgerStorePort, so BOTH shipped mappings
+# (case_adapters.toml and case_adapters_corpus_only.toml) refuse its corpus:
+#
+#   ERROR: invalid semantic effect provider configuration: provider configured
+#          for semantic effect port(s) not required by any selected case:
+#          LedgerStorePort
+#
+# No adapter is changed. This is a third instrument, and it checks strictly
+# less than case_adapters.toml: it has no durable-write oracle at all.
+[adapters.Accept]
+adapter = "specs.program_model.adapters:AcceptAdapter"
+kind = "pipeline-internal"
+
+[adapters.Enqueue]
+adapter = "specs.program_model.adapters:EnqueueAdapter"
+kind = "pipeline-internal"
+
+[adapters.Deliver]
+adapter = "specs.program_model.adapters:DeliverAdapter"
+kind = "pipeline-internal"
+
+[adapters.Fail]
+adapter = "specs.program_model.adapters:FailAdapter"
+kind = "pipeline-internal"
+
+[adapters.Record]
+adapter = "specs.program_model.adapters:RecordAdapter"
+kind = "pipeline-internal"

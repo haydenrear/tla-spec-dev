@@ -66,6 +66,30 @@ def previous(**overrides):
     return {"scope_id": "PREV", "verdict": "recorded", "metrics": metrics(**overrides)}
 
 
+def _write_partially_resolved_model(tmp_path: Path) -> tuple[Path, Path]:
+    """A two-variable model where the TypeInvariant sizes only one of them.
+
+    RP-04 / CM-01-DF-03: the smallest shape that reproduces the defect the
+    shipped example hit at 1-of-10 -- a bound of 2 that is a product over half
+    the representation.
+    """
+    tla = tmp_path / "Partial.tla"
+    tla.write_text(
+        "---- MODULE Partial ----\n"
+        "VARIABLES flag, free\n"
+        "TypeInvariant ==\n"
+        "  /\\ flag \\in BOOLEAN\n"
+        "Init == /\\ flag = FALSE /\\ free = 0\n"
+        "Step == /\\ flag' = ~flag /\\ free' = free + 1\n"
+        "Next == Step\n"
+        "====\n",
+        encoding="utf-8",
+    )
+    cfg = tmp_path / "MC.cfg"
+    cfg.write_text("INIT Init\nNEXT Next\nINVARIANT TypeInvariant\n", encoding="utf-8")
+    return tla, cfg
+
+
 def evaluate(current, prev, ledger_input):
     return cl.evaluate(
         scope="ticket",
@@ -493,12 +517,211 @@ class TestPersistence:
 
     def test_budget_utilization_is_recorded_as_percent_of_cap(self):
         util = cl._budget_utilization(
-            {"bound": 699840, "distinct_states": 231621},
+            {
+                "bound": 699840,
+                "bound_complete": True,
+                "bound_resolved_variables": 9,
+                "variables": 9,
+                "distinct_states": 231621,
+            },
             {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
         )
         assert util["max_state_space_bound"]["percent"] == 70.0
+        assert util["max_state_space_bound"]["within_cap"] is True
         assert util["max_distinct_states"]["percent"] == 46.3
         assert util["max_distinct_states"]["within_cap"] is True
+
+
+# ---------------------------------------------------------------------------
+# RP-04 / CM-01-DF-03 -- a percent-of-cap over an INCOMPLETE bound
+# ---------------------------------------------------------------------------
+#
+# The percent above is a measurement only when the bound is a product over the
+# WHOLE declared representation. Before RP-04 the ledger computed `within_cap`
+# as a plain `used <= cap` regardless, which is how a bound of 4 taken over 1
+# of 10 variables was recorded as "0.0% of 1,000,000, within cap" for a model
+# TLC measures at 49,386 distinct states -- while the descriptor TEXT beside it
+# correctly named the nine excluded variables.
+
+
+class TestBoundCompleteness:
+    def test_incomplete_bound_under_the_cap_refuses_the_within_cap_claim(self):
+        util = cl._budget_utilization(
+            {
+                "bound": 4,
+                "bound_complete": False,
+                "bound_resolved_variables": 1,
+                "bound_unresolved_variables": ["accounts", "carts"],
+                "variables": 10,
+                "distinct_states": None,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None, "an incomplete bound is not 'within cap'"
+        assert entry["percent"] is None, "percent-of-cap over an incomplete bound"
+        assert entry["percent_lower_bound"] == 0.0
+        assert entry["bound_complete"] is False
+        assert "1 of 10 declared variables" in entry["caveat"]
+        assert "not a measurement" in entry["caveat"]
+
+    def test_incomplete_bound_over_the_cap_keeps_the_sound_direction(self):
+        """Over the cap stays over the cap: the complete bound is only larger."""
+        util = cl._budget_utilization(
+            {
+                "bound": 2799360,
+                "bound_complete": False,
+                "bound_resolved_variables": 8,
+                "bound_unresolved_variables": ["lastCommand", "result"],
+                "variables": 10,
+            },
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is False
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 279.9
+        assert "LOWER BOUND" in entry["caveat"]
+
+    def test_unrecorded_completeness_is_not_a_licence_to_claim_within_cap(self):
+        """Pre-RP-04 entries carry no completeness; unknown is not complete."""
+        util = cl._budget_utilization(
+            {"bound": 699840, "variables": 9},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        entry = util["max_state_space_bound"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert "not recorded" in entry["caveat"]
+
+    def test_measured_distinct_states_are_unaffected_by_bound_completeness(self):
+        """TLC counted them; there is no partial-resolution question to ask."""
+        util = cl._budget_utilization(
+            {"bound": 4, "bound_complete": False, "distinct_states": 49386},
+            {"max_state_space_bound": 1000000, "max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["percent"] == 9.9
+        assert util["max_distinct_states"]["within_cap"] is True
+
+    def test_collect_metrics_publishes_bound_completeness(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["bound_complete"] is False
+        assert collected["bound_resolved_variables"] == 1
+        assert collected["bound_unresolved_variables"] == ["free"]
+        assert (
+            collected["budget_utilization"]["max_state_space_bound"]["within_cap"] is None
+        )
+
+    def test_report_never_prints_an_incomplete_bound_without_saying_so(self):
+        verdict = evaluate(
+            metrics(
+                bound=4,
+                bound_complete=False,
+                bound_resolved_variables=1,
+                bound_unresolved_variables=["carts"],
+                variables=10,
+                budget_utilization=cl._budget_utilization(
+                    {
+                        "bound": 4,
+                        "bound_complete": False,
+                        "bound_resolved_variables": 1,
+                        "bound_unresolved_variables": ["carts"],
+                        "variables": 10,
+                    },
+                    {"max_state_space_bound": 1000000},
+                ),
+            ),
+            None,
+            make_input(),
+        )
+        rendered = cl.render_report(verdict)
+        assert "INCOMPLETE: 1/10 variables resolved" in rendered
+        assert "cap comparison UNKNOWN -- incomplete bound" in rendered
+        assert "within cap)" not in rendered
+
+    def test_bound_delta_across_a_completeness_change_is_marked_not_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 4, "bound_complete": False},
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["delta"] == -996
+        assert bound["comparable"] is False
+        assert "completeness CHANGED" in bound["note"]
+
+    def test_bound_delta_between_two_complete_bounds_is_comparable(self):
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 1000, "bound_complete": True}},
+            {"bound": 500, "bound_complete": True},
+        )
+        assert delta["metrics"]["bound"]["comparable"] is True
+        assert "note" not in delta["metrics"]["bound"]
+
+    # -- the same pattern, two rows over ---------------------------------
+    # Found while auditing the two files RP-04 owns for other places where the
+    # descriptor's prose is scrupulous and the recorded artifact is not.
+
+    def test_an_unfinished_tlc_run_does_not_claim_within_cap_either(self, tmp_path):
+        """`analyze` checks max_distinct_states only when report.complete."""
+        util = cl._budget_utilization(
+            {"distinct_states": 49386, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        entry = util["max_distinct_states"]
+        assert entry["within_cap"] is None
+        assert entry["percent"] is None
+        assert entry["percent_lower_bound"] == 9.9
+        assert "did not finish" in entry["caveat"]
+
+    def test_an_unfinished_tlc_run_over_the_cap_keeps_the_sound_claim(self):
+        util = cl._budget_utilization(
+            {"distinct_states": 900000, "tlc_run_complete": False},
+            {"max_distinct_states": 500000},
+        )
+        assert util["max_distinct_states"]["within_cap"] is False
+
+    def test_collect_metrics_records_whether_the_tlc_run_finished(self, tmp_path):
+        tla, cfg = _write_partially_resolved_model(tmp_path)
+        truncated = tmp_path / "tlc.txt"
+        truncated.write_text(
+            "1,234 states generated, 567 distinct states found, 89 states left on queue.\n",
+            encoding="utf-8",
+        )
+        collected = cl.collect_metrics(tla, cfg, None, tlc_report=truncated)
+        assert collected["distinct_states"] == 567
+        assert collected["tlc_run_complete"] is False
+
+    def test_a_fallback_action_count_carries_its_attribution(self, tmp_path):
+        """The descriptor says FALLBACK in prose; the ledger recorded a count."""
+        tla = tmp_path / "NoNext.tla"
+        tla.write_text(
+            "---- MODULE NoNext ----\n"
+            "VARIABLES flag\n"
+            "TypeInvariant == flag \\in BOOLEAN\n"
+            "Toggle == flag' = ~flag\n"
+            "====\n",
+            encoding="utf-8",
+        )
+        cfg = tmp_path / "MC.cfg"
+        cfg.write_text("INVARIANT TypeInvariant\n", encoding="utf-8")
+        collected = cl.collect_metrics(tla, cfg, None)
+        assert collected["actions_from_fallback_heuristic"] is True
+        assert collected["action_attribution"].startswith("FALLBACK")
+        verdict = evaluate(metrics(**collected), None, make_input())
+        assert "FALLBACK primes heuristic" in cl.render_report(verdict)
+
+    def test_bound_delta_over_pre_rp04_entries_is_marked_unknown(self):
+        """Every historical entry lacks completeness; the delta says so."""
+        delta = cl.compute_delta(
+            {"scope_id": "prev", "metrics": {"bound": 699840}}, {"bound": 2799360}
+        )
+        bound = delta["metrics"]["bound"]
+        assert bound["comparable"] is False
+        assert "unrecorded" in bound["note"]
+        # The direction rules are deliberately UNCHANGED: relaxing a gate is a
+        # policy call for the owner, not a side effect of a reporting fix.
+        assert delta["direction"] == "increase"
 
 
 # ---------------------------------------------------------------------------
@@ -931,3 +1154,231 @@ class TestValidatedRefactorBasis:
         parsed = cl._load_structured(cl.TEMPLATE)
         members = cl.parse_validated_refactor(parsed["validated_refactor"])
         assert all(m.unverified for m in members.values())
+
+
+# ---------------------------------------------------------------------------
+# AC-04 -- the architecture delta member
+#
+# Three properties, in the order of how much damage their absence would do:
+#
+# 1. It NEVER gates. A ticket that raised structural divergence records that and
+#    closes. A member that could refuse a close would be answered by not
+#    running the scan, and then nothing is recorded at all.
+# 2. It is DERIVED, not typed. The direction comes from the report file. The
+#    only authored field is `claim:`, and it exists so a wrong one is caught.
+# 3. It carries the map's identity. A delta across two different maps is not a
+#    refactor result, and the entry has to still say that years later.
+# ---------------------------------------------------------------------------
+
+
+import json  # noqa: E402
+
+
+def delta_report(tmp_path, **overrides):
+    """A measured architecture-delta report, as `--baseline` writes one."""
+    payload = {
+        "schema": cl.ARCHITECTURE_DELTA_SCHEMA,
+        "schema_version": 1,
+        "divergences": {
+            "before": 2,
+            "after": 0,
+            "delta": -2,
+            "lost": [
+                {
+                    "from": "deliver.py",
+                    "to": "ingest.py",
+                    "kind": "import",
+                    "symbol": "ingest.read_raw",
+                    "sites": ["pkg/deliver.py:3"],
+                }
+            ],
+            "gained": [],
+        },
+        "basis": {
+            "attribution": "code_only",
+            "map_digest_before": "sha256:aaa",
+            "map_digest_after": "sha256:aaa",
+            "architecture_digest_before": "sha256:bbb",
+            "architecture_digest_after": "sha256:bbb",
+        },
+        "verdict": {"direction": "improved", "why": ["two fewer"], "red_flags": []},
+    }
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(payload.get(key), dict):
+            payload[key] = {**payload[key], **value}
+        else:
+            payload[key] = value
+    path = tmp_path / "architecture-delta.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def evaluate_with_delta(tmp_path, architecture_delta, **input_overrides):
+    ledger_input = make_input(architecture_delta=architecture_delta, **input_overrides)
+    return cl.evaluate(
+        scope="ticket",
+        scope_id="AC-TEST",
+        workflow="wf",
+        metrics=metrics(),
+        ledger_input=ledger_input,
+        previous=previous(),
+        input_dir=tmp_path,
+    )
+
+
+class TestArchitectureDeltaIsRecordedAndNeverGates:
+    def test_a_worsened_delta_is_recorded_and_the_close_proceeds(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            divergences={
+                "before": 0,
+                "after": 2,
+                "delta": 2,
+                "lost": [],
+                "gained": [
+                    {
+                        "from": "deliver.py",
+                        "to": "ingest.py",
+                        "kind": "import",
+                        "symbol": "ingest.read_raw",
+                        "sites": ["pkg/deliver.py:3"],
+                    }
+                ],
+            },
+            verdict={"direction": "worsened", "why": ["two more"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert not verdict.rejected, verdict.errors
+        entry = verdict.entry["architecture_delta"]
+        assert entry["status"] == "worsened"
+        assert entry["gates"] is False
+        assert entry["divergent_edges_gained"], "the edges that appeared are enumerated"
+        assert any("ROSE" in note for note in verdict.entry["notes"])
+
+    def test_an_absent_delta_is_recorded_as_not_run_not_dropped(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {})
+        assert not verdict.rejected
+        assert verdict.entry["architecture_delta"]["status"] == "not_run"
+        assert any("architecture delta not_run" in n for n in verdict.entry["notes"])
+
+    def test_an_unreadable_report_does_not_refuse_a_close_but_is_visible(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {"report": "no-such-file.json"})
+        assert not verdict.rejected
+        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
+        assert verdict.entry["architecture_delta"]["problems"]
+
+    def test_a_hand_written_summary_is_not_a_delta(self, tmp_path):
+        path = tmp_path / "architecture-delta.json"
+        path.write_text(json.dumps({"divergences": {"before": 9, "after": 0}}), encoding="utf-8")
+        verdict = evaluate_with_delta(tmp_path, {"report": path.name})
+        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
+        assert not verdict.rejected
+
+
+class TestTheDeltaIsDerivedNotTyped:
+    def test_the_direction_comes_from_the_report(self, tmp_path):
+        report = delta_report(tmp_path)
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        entry = verdict.entry["architecture_delta"]
+        assert entry["status"] == "improved"
+        assert entry["divergences_before"] == 2 and entry["divergences_after"] == 0
+        assert entry["divergent_edges_lost"] == [
+            "deliver.py -import-> ingest.py [ingest.read_raw] pkg/deliver.py:3"
+        ]
+
+    def test_a_claim_the_measurement_contradicts_refuses_the_close(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            verdict={"direction": "unattributable", "why": ["the map moved"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(
+            tmp_path, {"report": report.name, "claim": "improved"}
+        )
+        assert verdict.rejected
+        assert any("claims the architecture delta" in e for e in verdict.errors)
+
+    def test_a_claim_with_no_report_at_all_refuses(self, tmp_path):
+        verdict = evaluate_with_delta(tmp_path, {"claim": "improved"})
+        assert verdict.rejected
+        assert any("unverified by construction" in e for e in verdict.errors)
+
+    def test_a_true_claim_is_recorded_as_verified(self, tmp_path):
+        report = delta_report(tmp_path)
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
+        assert not verdict.rejected, verdict.errors
+        assert any("VERIFIED against the recorded delta" in n for n in verdict.entry["notes"])
+
+
+class TestTheMF020RuleAppliedToStructure:
+    def test_a_drop_with_no_enumerated_edges_is_downgraded_to_unverified(self, tmp_path):
+        """MF-020: a projected reduction that was really a deleted transition.
+
+        The report says `improved` and names no dependency that disappeared. The
+        ledger does not take the direction on trust -- a drop the edges do not
+        explain is unverified by construction, and a report from another build,
+        or edited afterwards, cannot smuggle one in.
+        """
+        report = delta_report(
+            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert verdict.entry["architecture_delta"]["status"] == "unverified"
+        assert not verdict.rejected, "unverified is recorded, not refused"
+
+    def test_claiming_that_unverified_drop_as_an_improvement_refuses(self, tmp_path):
+        report = delta_report(
+            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
+        assert verdict.rejected
+        assert any("MF-020" in e for e in verdict.errors)
+
+    def test_red_flags_from_the_report_are_carried_into_the_notes(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            verdict={
+                "direction": "improved",
+                "why": [],
+                "red_flags": ["every disappeared divergence LEFT THE SCANNED TREE"],
+            },
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        assert any("RED FLAG" in note for note in verdict.entry["notes"])
+
+
+class TestTheMapIdentityIsPartOfTheRecord:
+    def test_both_digests_land_in_the_entry(self, tmp_path):
+        report = delta_report(tmp_path)
+        entry = evaluate_with_delta(tmp_path, {"report": report.name}).entry
+        delta = entry["architecture_delta"]
+        assert delta["map_digest_before"] == delta["map_digest_after"] == "sha256:aaa"
+        assert delta["architecture_digest_before"] == "sha256:bbb"
+        assert delta["attribution"] == "code_only"
+
+    def test_the_report_says_when_the_map_moved_between_the_scans(self, tmp_path):
+        report = delta_report(
+            tmp_path,
+            basis={"attribution": "unattributable", "map_digest_after": "sha256:zzz"},
+            verdict={"direction": "unattributable", "why": ["re-placed"], "red_flags": []},
+        )
+        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
+        text = cl.render_report(verdict)
+        assert "architecture delta (structure, AC-04): unattributable" in text
+        assert "CHANGED between the scans -- this is not a refactor result" in text
+
+    def test_the_report_prints_the_structure_block_next_to_the_complexity_delta(self, tmp_path):
+        report = delta_report(tmp_path)
+        text = cl.render_report(evaluate_with_delta(tmp_path, {"report": report.name}))
+        assert "architecture delta (structure, AC-04): improved (recorded, never gating)" in text
+        assert "map identity: UNCHANGED across both scans" in text
+        assert "- lost:   deliver.py -import-> ingest.py" in text
+
+
+class TestTheTemplateCarriesTheDeltaBlock:
+    def test_the_scaffolded_template_records_an_honest_not_run(self, tmp_path):
+        path = tmp_path / "complexity_ledger.yaml"
+        cl.write_template(path)
+        assert "architecture_delta:" in path.read_text(encoding="utf-8")
+        record = cl.parse_architecture_delta({"report": "", "claim": ""}, tmp_path)
+        assert record.normalized == "not_run"
+        assert record.recorded is False

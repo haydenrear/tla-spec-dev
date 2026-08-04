@@ -359,3 +359,187 @@ def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:
     assert os.access(wrapper, os.X_OK)
     assert installed.returncode == 0
     assert installed.stdout.strip() == f"tla-spec-dev {tla_spec_dev.skill_version()}"
+
+
+# ---------------------------------------------------------------------------
+# RC-01 (MF-026 G-6): case generation is reachable from the shipped parser
+# ---------------------------------------------------------------------------
+
+
+def _import_closure(entry: Path) -> set[str]:
+    """Modules under scripts/ reachable from `entry` by import, transitively.
+
+    The same walk the coverage audit used to establish that
+    `generate_cases_from_tlc_dump` and `case_modules` were reachable only by
+    running their files. Imports inside function bodies count -- the shipped CLI
+    defers almost every import to its handler -- so this reads the AST rather
+    than importing.
+    """
+    import ast
+
+    scripts_dir = ROOT / "scripts"
+    known = {path.stem for path in scripts_dir.glob("*.py")}
+    seen: set[str] = set()
+    queue = [entry.stem]
+    while queue:
+        name = queue.pop()
+        if name in seen or name not in known:
+            continue
+        seen.add(name)
+        tree = ast.parse((scripts_dir / f"{name}.py").read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                queue.extend(alias.name.split(".")[-1] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    queue.append(node.module.split(".")[-1])
+                queue.extend(alias.name for alias in node.names)
+    return seen
+
+
+def test_case_generation_is_reachable_from_the_shipped_parser() -> None:
+    """MF-026 G-6, the headline gap, asserted so it cannot silently reopen.
+
+    Case-module generation is this epic's flagship feature and the CLI had no
+    subcommand for it: `generate_cases_from_tlc_dump.py` and `case_modules.py`
+    were reachable only by running the files. Because every oracle in this
+    toolchain is bounded to what is already modeled, that surface was never
+    generated into a case, never adapted and never mutated -- and CM-01 and
+    RP-03 both closed "zero model delta" against it while all four oracles
+    reported green.
+    """
+    closure = _import_closure(ROOT / "scripts" / "tla_spec_dev.py")
+    assert "generate_cases_from_tlc_dump" in closure
+    assert "case_modules" in closure
+    assert "infer_action_params" in closure
+
+
+def test_generate_cases_is_a_shipped_subcommand() -> None:
+    result = run_cli("generate", "cases", "--help")
+    assert result.returncode == 0
+    assert "--coverage-json" in result.stdout
+
+    incomplete = run_cli("generate")
+    assert incomplete.returncode == 2
+    assert "tla-spec-dev generate cases" in incomplete.stderr
+
+
+# ---------------------------------------------------------------------------
+# RC-01 (MF-026 G-2/G-3): --out is constrained to the declared port's target
+# ---------------------------------------------------------------------------
+
+
+def _tiny_model(directory: Path) -> tuple[Path, Path]:
+    directory.mkdir(parents=True, exist_ok=True)
+    tla = directory / "Tiny.tla"
+    cfg = directory / "MC.cfg"
+    tla.write_text(
+        "---- MODULE Tiny ----\nEXTENDS Naturals\n\nVARIABLES x\n\nvars == << x >>\n\n"
+        "Init == x = 0\nStep == x' = (x + 1) % 3\n\nNext == Step\n\n"
+        "TypeInvariant == x \\in 0..2\n\nSpec == Init /\\ [][Next]_vars\n"
+        "=====================\n",
+        encoding="utf-8",
+    )
+    cfg.write_text("SPECIFICATION Spec\n\nINVARIANTS\n  TypeInvariant\n", encoding="utf-8")
+    return tla, cfg
+
+
+def test_analyze_out_refuses_a_path_the_evidence_port_does_not_cover(tmp_path: Path) -> None:
+    """G-2/G-3: an evidence write that lands outside `**/results/**` is undeclared.
+
+    Both scans took a bare string and did `mkdir(parents=True); write_text(...)`
+    on it, so the file could land anywhere while the only port that could have
+    covered it targets `**/results/**`. The audit's remedy was "declare the port
+    and constrain the path, or drop --out"; the path is constrained, and it is
+    REFUSED rather than silently relocated -- rewriting the operator's path
+    would make the flag lie about where the file went.
+    """
+    tla, cfg = _tiny_model(tmp_path / "spec")
+    stray = tmp_path / "anywhere" / "report.txt"
+    declared = tmp_path / "results" / "report.txt"
+
+    for command in (("analyze", "complexity"), ("analyze", "architecture")):
+        refused = run_cli(*command, str(tla), str(cfg), "--out", str(stray), cwd=tmp_path)
+        assert refused.returncode == 2, f"{command}: {refused.stdout}"
+        assert "results/" in refused.stderr
+        assert "evidence_report" in refused.stderr
+        assert not stray.exists()
+
+        accepted = run_cli(*command, str(tla), str(cfg), "--out", str(declared), cwd=tmp_path)
+        assert accepted.returncode == 0, accepted.stderr
+        assert declared.is_file()
+        declared.unlink()
+
+
+def test_generate_cases_out_is_constrained_to_the_declared_spec_tree(tmp_path: Path) -> None:
+    """N-2: the class G-2/G-3 closed, shipped again on the new command path.
+
+    RC-01 fixed three `--out` flags and shipped a fourth unconstrained one in
+    the same commit. `generate cases --out` was `required=True` with no
+    location constraint, and `--dot` beside it decides where the TLC metadir
+    `shutil.rmtree` lands -- a DESTRUCTIVE delete at a caller-chosen path, on a
+    newly modeled action, declared by ports that target `**/specs/**`.
+
+    Refused before anything expensive runs: no TLC spawn, no directory created,
+    no delete. The refusal is checked at the CLI so it covers the modeled
+    `GenerateCases` path, not just the module function.
+    """
+    tla, cfg = _tiny_model(tmp_path / "spec")
+    stray = tmp_path / "anywhere"
+
+    refused = run_cli(
+        "generate", "cases", str(tla), str(cfg), "--out", str(stray), cwd=tmp_path
+    )
+    assert refused.returncode == 2, refused.stdout
+    assert "specs/" in refused.stderr
+    assert "spec_tree" in refused.stderr
+    assert not stray.exists()
+
+    # --dot is refused for the same reason even when --out is fine, because the
+    # metadir the run deletes is derived from it.
+    declared_out = tmp_path / "specs" / "generated"
+    stray_dot = tmp_path / "elsewhere" / "Tiny.dot"
+    refused_dot = run_cli(
+        "generate", "cases", str(tla), str(cfg),
+        "--out", str(declared_out), "--dot", str(stray_dot), cwd=tmp_path,
+    )
+    assert refused_dot.returncode == 2, refused_dot.stdout
+    assert "spec_tree_delete" in refused_dot.stderr
+    assert not stray_dot.parent.exists()
+
+
+def test_generate_cases_metadir_delete_stays_inside_the_declared_tree(tmp_path: Path) -> None:
+    """The rmtree is constrained BY CONSTRUCTION, not by a second check.
+
+    `run_tlc_dump` derives `metadir = dot_path.parent / ".tlc-states" / stem`
+    and `shutil.rmtree`s it in its finally branch. Constraining `--dot` is what
+    constrains the delete, so the property worth asserting is the derivation:
+    every path this action deletes is under the `spec_tree_delete` target.
+    """
+    from scripts.spec_paths import SPEC_TREE_DIR_NAME, resolve_spec_tree_out
+
+    spec_dir = tmp_path / "specs" / "program_model"
+    spec_dir.mkdir(parents=True)
+    resolved = resolve_spec_tree_out(
+        tmp_path / "specs" / "generated" / "Tiny.dot", spec_dir, is_file=True
+    )
+    metadir = resolved.parent / ".tlc-states" / "Tiny"
+    assert SPEC_TREE_DIR_NAME in metadir.parts
+
+
+def test_reflexion_out_is_constrained_the_same_way(tmp_path: Path) -> None:
+    from scripts import architecture_reflexion
+
+    tla, cfg = _tiny_model(tmp_path / "spec")
+    code = tmp_path / "code"
+    code.mkdir()
+    (code / "mod.py").write_text("VALUE = 1\n", encoding="utf-8")
+    mapping = tmp_path / "map.yaml"
+    mapping.write_text("architecture:\n  map:\n    mod: C1\n", encoding="utf-8")
+
+    stray = tmp_path / "elsewhere" / "reflexion.txt"
+    exit_code = architecture_reflexion.main(
+        [str(tla), str(cfg), "--code", str(code), "--map", str(mapping), "--out", str(stray)]
+    )
+    assert exit_code == 2
+    assert not stray.exists()
