@@ -59,6 +59,10 @@ maximum spread 1, and D1 and D2 identical on all five examples.
 | example | arm | pass | D1 | D2 | D3 | D4 | D5 | total | date |
 |---|---|---|---|---|---|---|---|---|---|
 | ab_quota_ledger | A (control) | 0 owner | 0 | 2 | 1 | 2 | 3 | **8**/20 | 2026-08-04 |
+| ab_quota_ledger | **B (treatment)** | 1 blind | 3 | 2 | **4** | 3 | 3 | **15**/20 | 2026-08-04 |
+| ab_quota_ledger | **B (treatment)** | 2 blind | 3 | 2 | **4** | 3 | 3 | **15**/20 | 2026-08-04 |
+| ab_quota_ledger | **A (control)** | 1 blind | 3 | 2 | 2 | 2 | 4 | **13**/20 | 2026-08-04 |
+| ab_quota_ledger | **A (control)** | 2 blind | 2 | 2 | 2 | 2 | 3 | **11**/20 | 2026-08-04 |
 
 **Pre-treatment reading.** D1 = 0 because no model-derived case exists yet — the
 model ships and TLC is green, but the corpus is HP-03's work; the hand-written
@@ -68,7 +72,9 @@ and no swap. **Both floors are the intended ones**: they are exactly the two
 numbers the epic's goals target, and a control that already scored well would
 have left the experiment nothing to measure.
 
-Arm B has no row yet — HP-02 is authoring the prompt that produces it.
+**HP-06 closed the epic. Zero contested dimensions; maximum spread across ten
+independent scores is 1. Unblinding key and the two ways the blinding leaked:
+`hexagonal-prompting/UNBLINDING.md`.**
 
 ### Movement log (owner tracking, mid-epic)
 
@@ -202,6 +208,120 @@ contributes zero executable cases. **While that control is red, the
 
 Zero model surface: TLC enumerates 3,678,218 states / 118,573 distinct before
 and after, argued rather than asserted.
+
+**HP-06 — the epic's own measurement, and it is mixed on purpose.**
+
+**Two of the three goals are `met` and the third is `missed`, and the two `met`
+verdicts each carry a caveat that must never be separated from them.**
+
+`GOAL-hexagonal-in-fact`: **`met`. D3 = 4 from both judges on the treatment arm,
+against 2 from both on the control.** This is the first 4 the project has ever
+recorded on any dimension other than D5, and the first time D3 has passed 3. Both
+judges earned it by RUNNING the artifact's real-adapter/fake parity suite rather
+than believing its notes, and both checked specifically for the hole HP-02's
+pilot found in an earlier draft of the same prompt (`scenario(fake) ==
+scenario(real)`, which cannot fail for any fault in the rules). HP-02 added one
+sentence to close it and deliberately did not re-measure; **this was that
+sentence's first measurement and it held.**
+
+`GOAL-catch-bugs`: **`met`. D1 = 3 from both judges on the treatment arm** —
+against a baseline where nothing reached 3 on either judge on any example —
+carried entirely by the negative corpus, whose controls are green. Guard
+relaxation **3 of 3** on the seeded catalogue and **1 of 1** on a fresh,
+independently authored one, against 0 of 3 under every other generated
+instrument.
+
+`GOAL-simpler-same-behavior`: **`missed`. D2 = 2 from all four judges on both
+arms.** The target was not moved. It was missed for a reason nobody predicted:
+**neither arm made a simplification and measured one**, because both implemented
+the same specification from scratch. The owner's amendment proposed reading the
+arm pair as the before/after, that reading was supplied to every judge, and **no
+judge accepted it** — two independent artifacts are a comparison, not a
+refactoring. **D2 as written cannot be scored above 2 by an A/B at all**
+(HP-06-DF-05). That is a finding about the card, not about the arms.
+
+**DID D5 HOLD? YES — and it did not move in the direction that would have
+mattered.** D1 rose from a ceiling of 2 to 3 while D5 stayed at 3–4, and the
+higher D5 (a 4) went to the CONTROL arm, not the treatment. A rise in D1 bought
+by a fall in D5 would be the toolchain learning to overclaim; that did not
+happen. Sealed N03 predicted D5 would not separate and it passed.
+
+**DID ANY SCORE MOVE WITHOUT AN ARTIFACT MOVING? NO — the mechanical block and
+the judgement AGREE, and where they disagreed the block was wrong.** D3 = 4 rests
+on a `Protocol` port, a real adapter, a working fake and a parity suite that all
+exist in the tree and were executed by both judges. Where measurement and
+judgement diverged it was the *measurement* that failed: the block's `branches`
+figure said the treatment arm was simpler, and an adversarial pass decomposed the
+entire delta into behavior the treatment arm does not implement plus one
+predicate written on the other side of a `for` — **on matched behavior the two
+trees have identical decision counts.** Its `state_writers` figure is a constant
+2 across all three trees and discriminates nothing.
+
+**FINDINGS BY CHANNEL — 0 : 17 : 13.** Suite re-run **zero** (1130 + 143 tests
+and 56 shared-suite assertions, all green). Fresh adversarial attack **17**, six
+of which falsified a claim HP-06 had already written down. Blind author **13**,
+and once again its **REJECTED** section was the most valuable thing produced.
+Sealed N06 passes for the third round running. **Say it plainly, as HP-01 asked:
+the suite has stopped being informative.**
+
+**FOUR OF THIRTEEN SEALED PREDICTIONS WERE WRONG, AND THREE OF THE FOUR ARE
+NEGATIVES.** P05 (the positive control dies everywhere) — **FAIL**, it survives
+every generated instrument on the control arm, for the same reason HP-05 recorded
+one ticket earlier. P03 (the mapping reproduces its 30%) — **FAIL**; the
+direction now replicates five times on five fixtures and the magnitude has failed
+to reproduce four times. N01 (the treatment's descriptor is not lower) — **FAIL**;
+it is lower on lines, and HP-02's pilot had recorded N01 as confirmed against an
+EARLIER DRAFT of the prompt. N02 (ordering stays zero on every corpus) — **FAIL**,
+reproducing HP-03's retraction on two arms.
+
+**THE UNFLATTERING HALF, and there is a lot of it.**
+
+- **The hand-written suite still beats the generator, and a catalogue nobody
+  tuned beats them both down.** Seeded catalogue: suite 10 of 10, generated
+  corpora 9 of 10, and the one survivor is the positive control. **Fresh
+  independently authored catalogue: corpora 8 of 13, suite 9 of 13, and FOUR
+  whole classes invisible to every instrument including the suite.** A catalogue
+  written by the author of the mechanisms flatters both instruments by roughly a
+  quarter. **On this fixture the generated corpus is still worse than a suite a
+  competent engineer writes in an afternoon**, and that sentence is now two
+  epics old.
+- **The prompt produced the structure and the structure caught nothing.** Every
+  per-mutant verdict is identical between the arms on **49 of 49 comparable
+  cells**. A port did not detect one additional fault, and the treatment arm's
+  own 41 tests appear nowhere in any kill table — both judges said so and both
+  capped D1 for it.
+- **The guard-relaxation zero is not what the sealed catalogue says it is.** This
+  model spells refusals out as first-class actions, so the whole-view corpus DOES
+  contain refusal cases — 39,688 of 43,128 — and HP-06's own oracle skips all of
+  them. The 3-of-3 under the negative corpus survives adversarial tracing; the
+  framing of the zeros beside it does not.
+- **The one measured edge the epic has is a patch over a model that does not
+  refine its own specification.** The blind author found that the model's COMMIT
+  record has three fields where the feature's has four: **R2's running-total
+  clause is absent from the state machine entirely**, and the manifest's own port
+  description describes a line the model never constructs. That is why the
+  durable-content mutant needs the content mapping's hand-written sentence.
+- **The port has a cost nobody predicted.** A fault in the treatment arm's
+  in-memory adapter survives every instrument including the hand-written suite.
+  The control arm has no counterpart. **The structure removes places for some
+  faults to live and creates a region no shared oracle reaches** — the fake that
+  earned the D3 = 4 is verified by nothing outside that arm's own tests.
+- **The two arms differ in UNMUTATED code on crash consistency**, and nothing in
+  this fixture can see it. The control appends then updates memory and R2 holds
+  under a failing write; the treatment updates then appends and R2 breaks. The
+  treatment arm's whole architecture is an injected port, which makes it the
+  easier arm to test for exactly this, and it does not.
+- **HP-06 corrected six of its own written claims** after an adversarial pass,
+  and filed twelve `HP-06-DF-*`. **None was fixed.**
+- **Blinding leaked**, on the control arm, and the judge who found it disclosed it
+  unprompted. It was not re-judged, because discarding cards after seeing scores
+  is the thing this ticket may not do.
+
+**And one thing to carry into the next round before anything else.** Fixing the
+red positive control — repairing `Reserve` argument recovery — is the obvious
+next move, and HP-06-DF-11 says it will turn a **second** control red, because
+the oracle re-derives a reservation id the model does not allocate that way. That
+is the order of work, not an objection to doing it.
 
 ## What would count as self-improvement
 

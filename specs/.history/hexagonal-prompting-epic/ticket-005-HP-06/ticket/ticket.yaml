@@ -1,0 +1,133 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket HP-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "architecture_components.yaml",
+      "architecture_map.yaml",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py",
+      "tlc_projection.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Both arms scored by two judges blind to arm; every scorecard passes the schema check; contested dimensions adjudicated with NEW evidence.",
+        "Every prediction in PREDICTIONS-HP.md scored PASS / FAIL / SUPERSEDED. None amended.",
+        "Each goal reports baseline -> measured -> target with a verdict of met / missed / unmeasured and a reason.",
+        "Findings reported BY CHANNEL with counts, and the ratio stated as a result.",
+        "Findings FILED and NONE fixed."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/hexagonal-prompting",
+        "python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/hexagonal-prompting"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/hexagonal-prompting/",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "depends_on": [
+      "HP-01",
+      "HP-02",
+      "HP-03",
+      "HP-04",
+      "HP-05"
+    ],
+    "desired_actions": [],
+    "github_issue": null,
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-catch-bugs",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-simpler-same-behavior",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-hexagonal-in-fact",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "HP-06",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "none -- a measurement ticket carries no model delta",
+    "objective": "The epic's product and the ticket every other ticket was written against. A MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome; an epic that closes with only good news about itself has not been measured. Run the A/B from HP-01 on the integrated epic tip: same feature, arm A ordinary prompt, arm B the HP-02 prompt. Seed the same catalogue in both. Generate cases from the model, run them through each arm's adapters, and count what dies. Then judge both arms on the scorecard, TWO JUDGES, BLIND TO ARM, per references/eval_scorecard.md -- artifacts not claims, file:line for every score >= 2, a named refusal for every 4, prose quality never an input. Any dimension where the judges differ by more than 1 is `contested` and gets a third pass citing NEW evidence. Report baseline -> measured -> target per goal, with a verdict of `met`, `missed`, or `unmeasured` and a reason. Never edit a target to match a result. Never re-run selectively until a number passes. Report the run that happened. Also report, because the predecessor learned it the hard way: findings BY CHANNEL -- suite re-run, fresh adversarial attack, blind author. Both rounds of the predecessor produced their best finding from an agent asked what it REJECTED and zero from re-running the suite. If this round's findings come only from the suite, say so plainly: the suite has stopped being informative, and that alarm is meant to fire before the tool silently gets worse. FILE FINDINGS, FIX NOTHING. A fix during a measurement destroys the measurement.",
+    "owns_goals": [
+      "GOAL-catch-bugs",
+      "GOAL-simpler-same-behavior",
+      "GOAL-hexagonal-in-fact"
+    ],
+    "promotion_order": 60,
+    "promotion_predecessor": "HP-05",
+    "role": "evaluation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "EVALUATION: run the A/B, judge it blind, decide the three goals",
+    "wave": 4
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/tickets/HP-06",
+  "ticket_id": "HP-06",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-06/specs/tickets"
+}
