@@ -1,0 +1,165 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+validated_refactor:
+  # HP-04 does not claim a complexity DECREASE, so this basis licenses nothing
+  # and is recorded for the record rather than to unlock anything. The model
+  # delta is one existing port attached to one existing action; the measured
+  # delta is `zero`.
+  tlc_before:
+    status: "green"
+    evidence: "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03 (the epic tip this ticket branched from; TLC green there)"
+  tlc_after:
+    status: "green"
+    evidence: "specs/tickets/HP-04/results/tlc-current-mcsmall.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/HP-04/results/pytest-full.txt"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/HP-04/results/tlc-current-mcsmall.txt -- 118,573 distinct states before and after; effects.actions is a declaration table and is not state"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: "the shipped kill test was not run; HP-04's own per-class per-arm mutant table over HP-01's catalogue is in specs/tickets/HP-04/results/kill-table.txt and is 0 of 10 on the oracle arms"
+  effect_conformance:
+    # `unobservable` IS NOT `clean`, and this is the honest value: every adapter
+    # in this model's executable segment spawns a child, and the in-process
+    # sandbox certifies nothing about a child. HP-04 did not change that and
+    # does not claim to. What HP-04 changed is that the run now PRODUCES this
+    # verdict at all -- at the epic tip the same command dies with
+    # ModuleNotFoundError, or with a TypeError, and writes no report.
+    status: "unobservable"
+    evidence: "specs/tickets/HP-04/results/adapter-reach.txt, specs/tickets/HP-04/results/determinism-two-runs.txt"
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
+# step, run after the mechanism tickets land and before final integration. It is
+# recorded and reported either way so that an epic which skipped it is visible.
+# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
+# delta above says whether the representation got smaller; this says whether the
+# code moved toward or away from the boundaries the model draws. A refactor that
+# lowers complexity while scattering the code further is not the refactor anyone
+# wanted, and reading either number alone cannot tell.
+#
+# Produce the report with:
+#
+#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> #       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> #       --format json --out <this path>
+#
+# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
+# written down, printed, and closed through. What is NOT optional is honesty
+# about it: `status` is not yours to write -- the ledger opens the report and
+# derives the direction (improved | worsened | unchanged | unverified |
+# unattributable). `claim:` is optional and exists only so a wrong one can be
+# caught; a claim that disagrees with the measured direction REFUSES the close.
+#
+# Two refusals worth knowing before you run it:
+#   * a divergence DROP whose disappeared edges are not enumerated is
+#     `unverified`, never `improved` (MF-020, applied to structure);
+#   * a comparison across two different maps -- or two different models -- is
+#     `unattributable`. Any divergence disappears if the map moves the offending
+#     module into the component it reaches, so a delta across a changed map
+#     measures the map. Both digests are recorded in the entry.
+architecture_delta:
+  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
+  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: ""
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, and the one candidate was rejected on measurement rather than on
+    taste. The added declaration is `spec_tree_delete` on
+    `RunEffectConformance` -- one existing port on one existing action. The
+    refinement question is whether the DELETE can be avoided so the declaration
+    is not needed at all, and three alternatives were considered:
+
+    (1) leave the work directory persistent -- rejected, that IS the defect
+    (MF026-R4-F-01, 20 / 19 / 19 gaps and 9 / 10 / 10 dead ports over an
+    identical corpus, measured at the epic tip in determinism-two-runs.txt);
+
+    (2) give each RUN a fresh subdirectory instead of resetting the per-case one
+    -- rejected: no delete, but the work root then grows without bound inside
+    the user's spec tree, and every gap message carries the run id, so two runs
+    could agree on a COUNT while no two reports were comparable. HP-04's own
+    kill-table harness reported 10 of 10 false kills for exactly that reason
+    before it was fixed;
+
+    (3) move the default work directory to the system temp, as
+    `run_generated_case_adapters` already does -- rejected: it costs the SAME
+    one-row manifest edit in the other direction (`spec_tree` would become a
+    false declaration on that row) and loses the stable paths that make two
+    reports comparable.
+
+    No option removes the manifest edit; option (1) is the defect and options
+    (2) and (3) cost the same edit and buy less. State-space cost of the chosen
+    option is zero: TLC enumerates 118,573 distinct states before and after.
+  measured: true
+  applied: false
+  approved_by: ""
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "specs/tickets/HP-04/results/narrative.md"

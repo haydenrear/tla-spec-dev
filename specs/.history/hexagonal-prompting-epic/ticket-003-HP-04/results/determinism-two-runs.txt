@@ -1,0 +1,30 @@
+HP-04 -- MF026-R4-F-01: two runs over an IDENTICAL corpus, gap counts compared.
+Reconciled epic tip (HP-01, HP-02, HP-03 merged).
+
+The filed defect: 20 / 15 / 14 gaps across three runs of an identical corpus
+on an identical tree -- a 43% spread on the number every claim rests on.
+
+== EPIC TIP oracle, same corpus, shared work dir, cold then warm x2 ==
+   (PYTHONPATH set: the epic-tip oracle cannot import the adapters at all)
+  run 1: effect conformance unobservable: 67 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s)
+  run 2: effect conformance unobservable: 50 observed effect(s) over 8 case(s), 12 declared port(s), 19 gap(s), 10 dead port(s), 15 unobservable target(s)
+  run 3: effect conformance unobservable: 50 observed effect(s) over 8 case(s), 12 declared port(s), 19 gap(s), 10 dead port(s), 15 unobservable target(s)
+  -> the gap count and the dead-port count both move between run 1 and run 2.
+
+== HP-04 oracle, same corpus, same shared work dir, three runs ==
+  run 1: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+  run 2: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+  run 3: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 0 skipped case(s)
+
+== the WHOLE report compared, not just the count ==
+  report 1 == report 2 == report 3: True
+
+== and over the 18-action corpus, cold then warm ==
+  cold: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 10 skipped case(s)
+  warm: effect conformance unobservable: 84 observed effect(s) over 8 case(s), 12 declared port(s), 20 gap(s), 9 dead port(s), 15 unobservable target(s), 10 skipped case(s)
+  report cold == report warm: True
+
+NOTE the observed-effect count rose from 67 to 84 between the two oracles.
+That is not the determinism fix: HP-04 also patched Path.open, which the
+sandbox never watched, so a path.open("a") durable append used to cross the
+boundary unobserved while open(path, "a") was recorded.

@@ -521,6 +521,10 @@ AnalyzeCorpus(root) ==
 \* @result CliWorkflowResult
 \* @port TlaSpecDevCliPort.evidence_report
 \* @port TlaSpecDevCliPort.spec_tree
+\* HP-04: the per-case work directory is emptied before each case, so the same
+\* corpus on the same tree reports the same gap count. That delete is a real
+\* effect under **/specs/** and is declared rather than left silent.
+\* @port TlaSpecDevCliPort.spec_tree_delete
 RunEffectConformance(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root

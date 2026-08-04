@@ -1,0 +1,39 @@
+# HP-04 M10 run -- the A/B model's actions bound to adapters over HP-01's
+# reference tree. NOT an arm: see quota_adapters.py's docstring.
+#
+# `Release` is bound to an apply()-only adapter ON PURPOSE. That is the seeded
+# condition M10 targets, and it is the shape 9 of this repository's own 17
+# adapters have.
+
+[adapters.Reserve]
+adapter = "quota_adapters:ReserveAdapter"
+
+[adapters.Release]
+adapter = "quota_adapters:ReleaseRunnableAdapter"
+
+[adapters.Commit]
+adapter = "quota_adapters:CommitAdapter"
+
+[adapters.CloseTenant]
+adapter = "quota_adapters:CloseTenantAdapter"
+
+[adapters.RefuseReserveClosed]
+adapter = "quota_adapters:RefuseReserveClosedAdapter"
+
+[adapters.RefuseReserveNotPositive]
+adapter = "quota_adapters:RefuseReserveNotPositiveAdapter"
+
+[adapters.RefuseReserveOverQuota]
+adapter = "quota_adapters:RefuseReserveOverQuotaAdapter"
+
+[adapters.RefuseCommitUnknown]
+adapter = "quota_adapters:RefuseCommitUnknownAdapter"
+
+[adapters.RefuseReleaseUnknown]
+adapter = "quota_adapters:RefuseReleaseUnknownAdapter"
+
+[adapters.RefuseCloseAlreadyClosed]
+adapter = "quota_adapters:RefuseCloseAlreadyClosedAdapter"
+
+[adapters.RefuseCloseOutstanding]
+adapter = "quota_adapters:RefuseCloseOutstandingAdapter"
