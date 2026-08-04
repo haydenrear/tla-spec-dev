@@ -1,0 +1,125 @@
+findings:
+  - id: HP-01-DF-01
+    found_by: "HP-01"
+    found_at_commit: "17601f7"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["tests/test_source_citations.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE EPIC'S OWN ACCEPTANCE COMMAND IS RED AT THE EPIC TIP, and it is red
+      because of the worktree convention this epic mandates. Every ticket in
+      this plan declares
+      `uv run --with pytest --with pyyaml python -m pytest tests -q` as its
+      acceptance command, and the HP-01 dispatch states the baseline as
+      "1039 passed, 14 skipped". The measured baseline on an untouched
+      epic/hexagonal-prompting at 17601f7 is 3 FAILED, 1066 passed, 0 skipped.
+
+      Root cause: tests/test_source_citations.py `resolve_cited` (line 86)
+      resolves a cited file by unique basename via `REPO_ROOT.rglob(...)`,
+      excluding only `.git` and `generated` path parts. Both `wt new` and
+      git-issue-workflow's `bootstrap-home.sh` create a per-checkout Skill
+      Manager home at `<worktree>/.skill-manager`, which contains an INSTALLED
+      COPY of this very skill -- including `skill-scripts/install-tlc2.sh` and
+      `skill-scripts/install-tla-spec-dev.sh`. The rglob therefore finds two
+      matches, `len(matches) != 1`, `resolve_cited` returns None, and seven
+      citations in the spec manifests are reported as "does not resolve to one
+      file".
+
+      The test is correct about its own rule and wrong about its search space.
+      It passes in a plain clone with no Skill Manager home and fails in every
+      checkout provisioned the way this epic requires -- so the failure is
+      invisible to anyone who checks on main and unavoidable for every ticket
+      agent.
+    reproduction: >-
+      On an untouched epic tip:
+      `cd /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting &&
+      uv run --with pytest --with pyyaml python -m pytest tests -q`
+      -> "3 failed, 1066 passed in 24.63s". Failing params:
+      test_every_line_citation_resolves_to_the_line_it_cites for
+      specs/current/spec_manifest.yaml, specs/desired_program_model/spec_manifest.yaml
+      and specs/program_model/spec_manifest.yaml. Confirm the cause with
+      `find . -name install-tlc2.sh` -> two hits, one under ./skill-scripts/
+      and one under ./.skill-manager/skills/spec-double-compiler/skill-scripts/.
+    evidence: ["specs/tickets/HP-01/results/pytest-baseline-epic-tip.txt", "specs/tickets/HP-01/results/pytest-full.txt"]
+    why_out_of_scope: >-
+      tests/** is not in HP-01's implementation_scope (`examples/validation/`)
+      and not in its conflict keys. `tests/` IS in HP-03's, HP-04's and HP-05's
+      implementation scope, so a fix from HP-01 would collide with three
+      unstarted tickets. HP-01 also carries `model_delta_expectation: none` and
+      this is not a model question.
+    suggested_fix: >-
+      Add `.skill-manager` to the excluded path parts in `resolve_cited`
+      alongside `.git` and `generated` -- a one-line change that restores the
+      test's intent (find the repo's own copy of a cited file) in exactly the
+      checkouts the workflow creates. Do NOT fix it by deleting the seven
+      citations or by weakening the resolver to `matches[0]`: the resolver's
+      refusal to guess between two candidates is the property that makes the
+      check trustworthy, and it is doing that correctly here.
+    blast_radius: >-
+      Every ticket in this epic and in any future epic on this repository. The
+      practical damage is worse than three red tests: an agent told the baseline
+      is "1039 passed, 14 skipped" who measures 3 failed either stops to
+      investigate (HP-01 did, costing time) or assumes it broke something and
+      starts hunting. It also degrades the suite's value as a regression signal,
+      which N06 in PREDICTIONS-HP.md already predicts will produce zero findings
+      this epic.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-01-DF-02
+    found_by: "HP-01"
+    found_at_commit: "17601f7"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/ex4_pipeline_coherent/seeded_faults.toml", "scripts/kill_test.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The shipped EV-01 mutant catalogue cannot be loaded by the shipped mutant
+      catalogue parser. `examples/validation/ex4_pipeline_coherent/seeded_faults.toml`
+      declares `boundary_kind = "effect_port"` on F3 and F5, but
+      scripts/kill_test.py:124-126 defines BOUNDARY_KINDS as ("port",
+      "invariant") and parse_mutants raises KillTestCatalogError on anything
+      else. So `kill_test.load_catalog` refuses the repository's only shipped
+      example catalogue, at its first non-conforming mutant.
+
+      This is consistent with, and probably explained by, that catalogue's own
+      header: "the mutants are deliberately NOT run here". The catalogue was
+      written as a human-readable answer key and appears never to have been
+      round-tripped through the parser that is supposed to consume it. The
+      practical consequence is that the worked example a future catalogue
+      author copies is one the tool rejects -- HP-01 copied it and hit the
+      error.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); import kill_test;
+      from pathlib import Path;
+      kill_test.load_catalog(Path('examples/validation/ex4_pipeline_coherent/seeded_faults.toml'))"`
+      -> KillTestCatalogError: mutant F3-off-by-one-durable has boundary_kind
+      'effect_port'; expected one of port, invariant.
+    evidence: ["specs/tickets/HP-01/results/ex4-catalogue-parser-refusal.txt"]
+    why_out_of_scope: >-
+      `examples/validation/ex4_pipeline_coherent/` is not in HP-01's conflict
+      keys, and that file is EV-01's sealed answer key. Its own header states
+      that every row is left exactly as EV-01 committed it and that an answer
+      key is a record which is not edited to agree with a later run. Editing it
+      from here would be exactly the amendment it forbids.
+    suggested_fix: >-
+      Decide which name is canonical, then make the other resolve to it. Either
+      accept "effect_port" as an alias for "port" in kill_test.BOUNDARY_KINDS
+      (cheap, preserves the sealed record, and the alias documents the drift),
+      or leave the record alone and note the incompatibility in the catalogue's
+      header so the next author does not copy a shape the parser refuses. Do
+      not silently rewrite the sealed EV-01 rows.
+    blast_radius: >-
+      Small but recurring: any agent authoring a mutant catalogue by copying the
+      shipped example. HP-01's own `examples/validation/ab/seeded_faults.toml`
+      was written with "effect_port" for exactly this reason and corrected to
+      "port" after the parser refused it.
+    disposition: filed
+    disposition_ticket: null

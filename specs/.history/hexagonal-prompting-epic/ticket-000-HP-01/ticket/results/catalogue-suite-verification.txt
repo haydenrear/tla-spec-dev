@@ -1,0 +1,47 @@
+catalogue: /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/examples/validation/ab/seeded_faults.toml
+root:      /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/examples/validation/ab
+10 mutant(s)
+
+id                                         class              occurs  revert  parses
+--------------------------------------------------------------------------------------
+M01-guard-zero-amount                      guard_relaxation     1      ok      ok  
+M02-guard-over-quota                       guard_relaxation     1      ok      ok  
+M03-guard-close-with-outstanding           guard_relaxation     1      ok      ok  
+M04-durable-stale-total                    durable_content      1      ok      ok  
+M05-durable-close-line-zero-and-swallowed  durable_content      1      ok      ok  
+M08-cross-aspect-commit-refunds-the-hold   cross_aspect         1      ok      ok  
+M06-wrong-status-on-release                output_oracle        1      ok      ok  
+M10-apply-only-double-refund               wrong_value          1      ok      ok  
+M07-positive-control-wrong-hold            wrong_value          1      ok      ok  
+M09-negative-control-ledger-order          ordering             1      ok      ok  
+
+class coverage:
+  cross_aspect         1  M08-cross-aspect-commit-refunds-the-hold
+  durable_content      2  M04-durable-stale-total, M05-durable-close-line-zero-and-swallowed
+  guard_relaxation     3  M01-guard-zero-amount, M02-guard-over-quota, M03-guard-close-with-outstanding
+  ordering             1  M09-negative-control-ledger-order
+  output_oracle        1  M06-wrong-status-on-release
+  wrong_value          2  M10-apply-only-double-refund, M07-positive-control-wrong-hold
+
+controls: 1 positive, 1 negative
+
+suite verification (reference only -- NOT an arm measurement):
+  control (no mutant): suite GREEN
+
+  M01-guard-zero-amount                      KILLED    agrees
+  M02-guard-over-quota                       KILLED    agrees
+  M03-guard-close-with-outstanding           KILLED    agrees
+  M04-durable-stale-total                    KILLED    agrees
+  M05-durable-close-line-zero-and-swallowed  KILLED    agrees
+  M08-cross-aspect-commit-refunds-the-hold   KILLED    agrees
+  M06-wrong-status-on-release                KILLED    agrees
+  M10-apply-only-double-refund               KILLED    agrees
+  M07-positive-control-wrong-hold            KILLED    agrees
+  M09-negative-control-ledger-order          KILLED    agrees
+
+  A disagreement is not a failure of this harness -- it is the catalogue's
+  annotation being wrong, and it must be corrected BEFORE dispatch or
+  recorded as a finding after it.
+
+Catalogue integrity holds: every pattern occurs exactly once, every
+mutant applies and reverts cleanly, and every declared gap is seeded.

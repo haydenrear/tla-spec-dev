@@ -1,0 +1,17 @@
+MODEL DELTA -- HP-01. Declared expectation: 'none -- and that is deliberate'.
+Per the plan's surface_cost_rule, adding modeled surface costs roughly 1.5 new
+coverage gaps and 8x state space per surface-adding ticket. HP-01 adds none.
+
+$ diff -r specs/tickets/HP-01/desired specs/tickets/HP-01/current
+(no differences)
+exit=0
+
+NOTE ON examples/validation/ab/model/QuotaLedger.tla:
+HP-01 ships a TLA+ model for the A/B FIXTURE. It is NOT model surface.
+representation_scope puts 'examples/** -- fixtures and eval subjects; what the
+toolchain is pointed AT' explicitly OUT OF MODEL. The modeled program surface
+is the shipped CLI lifecycle (TlaSpecDevCli), and this ticket changes zero
+actions, zero variables and zero invariants of it.
+
+$ git diff --stat 17601f7 -- specs/program_model specs/desired_program_model/TlaSpecDevCli.tla specs/desired_program_model/MC.cfg specs/desired_program_model/MCsmall.cfg specs/current
+(empty above = no modeled surface changed)

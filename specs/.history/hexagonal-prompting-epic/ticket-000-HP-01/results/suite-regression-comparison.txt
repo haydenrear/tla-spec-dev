@@ -1,0 +1,21 @@
+SUITE REGRESSION COMPARISON -- HP-01
+
+The HP-01 dispatch stated the baseline as '1039 passed, 14 skipped'. That is
+STALE. Measured on an UNTOUCHED epic/hexagonal-prompting at 17601f7:
+  3 failed, 1066 passed
+Measured on feature/HP-01 after this ticket's work:
+  3 failed, 1075 passed
+
+Same three failures, same three parametrizations, both before and after:
+  test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+  test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+  test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+
+NO REGRESSION. +9 passing (the ticket-local spec workflow scaffold).
+The three failures are PRE-EXISTING and caused by the worktree convention
+this epic mandates, not by this ticket. Filed as HP-01-DF-01, NOT fixed:
+tests/** is outside HP-01's implementation_scope and inside HP-03's, HP-04's
+and HP-05's, so a fix from here would collide with three unstarted tickets.
+
+baseline file: specs/tickets/HP-01/results/pytest-baseline-epic-tip.txt
+after file:    specs/tickets/HP-01/results/pytest-full.txt
