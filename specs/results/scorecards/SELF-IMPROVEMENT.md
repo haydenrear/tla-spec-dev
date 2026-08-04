@@ -70,6 +70,56 @@ have left the experiment nothing to measure.
 
 Arm B has no row yet — HP-02 is authoring the prompt that produces it.
 
+### Movement log (owner tracking, mid-epic)
+
+Recorded as tickets land so the deltas are not reconstructed at the end.
+
+**HP-03 — `GOAL-catch-bugs` moved, and this is the first time it ever has.**
+Guard relaxation, the class that measured **0 of 3** (round 1), **0 of 3**
+(round 2, both arms) and **0 of 4** (a blind agent's independent catalogue) —
+three catalogues, five instruments, two rounds — now measures **3 of 3** on
+HP-01's seeded catalogue and **5 of 5** on a fresh independently authored one.
+Verified by the owner from the committed per-mutant table, not from the report:
+M01, M02 and M03 each SURVIVED the whole-view corpus and each was KILLED by the
+negative corpus, in the same run, against the same reference implementation.
+
+Soundness is one-sided by construction — evaluation is three-valued and every
+unimplemented construct is UNKNOWN, which never emits — so an unsupported
+construct costs completeness and never soundness. Controls green on both corpora.
+
+**What that does NOT yet mean.** It is not a D1 score: D1 asks what
+model-derived cases catch on a scored artifact, and the arms do not exist yet.
+It is a mechanism result on the reference implementation. HP-06 turns it into a
+D1 number, or does not.
+
+**Three facts that travel with it, all against the mechanism:**
+
+- **The generator is still worse than the hand-written suite.** Suite **10 of
+  10**; whole-view corpus **5 of 10**; both corpora together **8 of 10**. Below
+  the bar a suite written in an afternoon clears.
+- **A positive control survives.** M07 is seeded in nobody's gap and is supposed
+  to die on every instrument; it survives the whole-view corpus, because
+  `Reserve` contributes zero executable cases. Only **3,440 of 43,128** positive
+  cases (8.0%) are executable at all.
+- **The "profile change" route is measured and does not work.** The fixture
+  already ships explicit `Refuse*` actions — 39,100 cases, **90.7% of the
+  corpus, zero executable**, because their parameters appear nowhere in their
+  bodies. The generator produces the same refusals as 118 executable cases.
+
+**A doctrine claim was retracted by measurement.** The record has said since
+round 1 that ordering is invisible to every layer. HP-03's M09 died on the
+whole-view corpus, because this model represents its ledger as a **sequence**.
+Ordering is invisible when the modelled thing is a **set** — a property of the
+model, not a limit of corpora. Anything citing "ordering is structurally
+invisible" now needs that clause.
+
+**And the negative corpus found something no prior instrument could see.** The
+fixture model guards a reservation id that its own API allocates, so 4 of 118
+negative cases assert rejection of a call the unmutated reference correctly
+accepts — a true statement about a model that does not refine its own
+`FEATURE.md`. Filed as HP-03-DF-01. This is the shape the project has valued
+most: a finding about the *specification*, surfaced by running something.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:
