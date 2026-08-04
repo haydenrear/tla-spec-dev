@@ -1,0 +1,68 @@
+HP-03 GOAL SIGNAL
+
+GOAL-catch-bugs  contribution: direct
+  expected_effect: 'Guard-relaxation kills move off zero for the first time.'
+  local_signal:    'the HP-01 seeded catalogue's guard-relaxation class, per arm'
+  CLASSIFICATION:  MOVED AS EXPECTED
+
+  baseline: guard relaxation 0 of 3 on both arms and 0 of 4 on a blind catalogue
+  measured: 3 of 3 on HP-01's seeded catalogue, 5 of 5 on a fresh independent one
+
+  PER ARM: NOT MEASURABLE AT HP-03, and this is a gap, not a pass. The arms
+  are IMPLEMENTATIONS produced by the A/B at HP-06; arm_b/PROMPT.md's HP-02
+  slot is still declared-and-unfilled and neither arm has any code. Every
+  number below is on examples/validation/ab/reference/quota_ledger.py, the
+  fixture's reference implementation, which is explicitly not an arm.
+  The per-arm axis is HP-06's to fill.
+
+  HP-01 SEEDED CATALOGUE  (catalogue: examples/validation/ab/seeded_faults.toml)
+    class             corpus-whole      corpus-neg        suite             
+    cross_aspect      1 of 1            0 of 1            1 of 1            
+    durable_content   1 of 2            0 of 2            2 of 2            
+    guard_relaxation  0 of 3            3 of 3            3 of 3            
+    ordering          1 of 1            0 of 1            1 of 1            
+    output_oracle     1 of 1            0 of 1            1 of 1            
+    wrong_value       1 of 2            0 of 2            2 of 2            
+    controls (must be 0 failures on the unmutated reference):
+      corpus-neg: {'cases': 118, 'failed_on_green': 0, 'failures': [], 'ran': 94, 'skipped': 24}
+      corpus-whole: {'cases': 43128, 'failed_on_green': 0, 'failures': [], 'ran': 3440, 'skipped': 39688}
+      suite: {'failed_on_green': 0}
+
+  FRESH INDEPENDENT CATALOGUE  (catalogue: specs/tickets/HP-03/measure/fresh_faults.toml)
+    class                           corpus-whole      corpus-neg        suite             
+    guard_relaxation                0 of 5            5 of 5            5 of 5            
+    guard_relaxation_outside_model  0 of 2            0 of 2            2 of 2            
+    guard_relaxation_unexpressible  0 of 1            0 of 1            1 of 1            
+    rejection_side_effect           0 of 1            0 of 1            0 of 1            
+    wrong_value                     1 of 1            0 of 1            1 of 1            
+    controls (must be 0 failures on the unmutated reference):
+      corpus-neg: {'cases': 118, 'failed_on_green': 0, 'failures': [], 'ran': 94, 'skipped': 24}
+      corpus-whole: {'cases': 43128, 'failed_on_green': 0, 'failures': [], 'ran': 3440, 'skipped': 39688}
+      suite: {'failed_on_green': 0}
+
+  DEDUPE COST -- does making the corpus tractable lose kills?
+    (catalogue: examples/validation/ab/seeded_faults.toml)
+      cross_aspect           corpus-both=1 of 1  corpus-neg-exact=0 of 1  suite=1 of 1
+      durable_content        corpus-both=1 of 2  corpus-neg-exact=0 of 2  suite=2 of 2
+      guard_relaxation       corpus-both=3 of 3  corpus-neg-exact=3 of 3  suite=3 of 3
+      ordering               corpus-both=1 of 1  corpus-neg-exact=0 of 1  suite=1 of 1
+      output_oracle          corpus-both=1 of 1  corpus-neg-exact=0 of 1  suite=1 of 1
+      wrong_value            corpus-both=1 of 2  corpus-neg-exact=0 of 2  suite=2 of 2
+    118-case deduped corpus and 39,966-case exact corpus kill IDENTICALLY.
+    The tractability lever costs zero kills on both catalogues.
+
+GOAL-simpler-same-behavior  contribution: guard
+  expected_effect: 'none expected; must not grow the corpus past its cap again'
+  local_signal:    'case count against the manifest cap'
+  CLASSIFICATION:  MOVED LESS THAN EXPECTED
+    negative corpus, QuotaLedger:   118 cases against a cap of 200   PASS
+    positive corpus, QuotaLedger: 43,128 cases against a cap of 200  FAIL (pre-existing, 215x)
+    MCsmall, projected:              541 cases against a cap of 200  FAIL (2.7x, was 18,391x)
+    The negative mode does not grow any corpus past its cap. The MCsmall
+    corpus went from unusable to runnable but is still 2.7x over, and the
+    cap was NOT raised to make it pass. Filed HP-03-DF-02.
+
+GOAL-hexagonal-in-fact  contribution: guard
+  expected_effect: 'none -- generator work, no architecture claim'
+  local_signal:    'N/A'
+  CLASSIFICATION:  no measurable movement (N/A: no architecture claim made)

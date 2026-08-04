@@ -3,6 +3,8 @@ from pathlib import Path
 import sys
 import importlib
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -532,3 +534,277 @@ def test_a_run_that_recovers_nothing_is_audited_as_unrecoverable(tmp_path: Path)
     assert "UNRECOVERABLE ON THIS CORPUS" in audit
     assert "`Accept(i)` -- 0 of 1 cases carry an argument" in audit
     assert "Every parameter of every action is recoverable from its state pair." not in audit
+
+
+# --------------------------------------------------------------------------
+# HP-03: the negative corpus
+# --------------------------------------------------------------------------
+
+from scripts.generate_cases_from_tlc_dump import (  # noqa: E402
+    GuardEvaluator,
+    NEGATIVE_LABEL,
+    Unevaluable,
+    coerce_cfg_constant,
+    extract_action_signatures,
+    negatable_actions,
+    negative_cases_for_corpus,
+    parse_tla_definitions,
+    parse_tla_expression,
+    written_variables,
+)
+from scripts.analyze_complexity import parse_cfg_constants  # noqa: E402
+from scripts.infer_action_params import parse_variables  # noqa: E402
+
+
+TINY_MODULE = """---- MODULE Tiny ----
+EXTENDS Naturals
+
+CONSTANTS Items, Slots
+
+VARIABLES held, closed, outcome
+
+vars == << held, closed, outcome >>
+
+Init ==
+  /\\ held = {}
+  /\\ closed = FALSE
+  /\\ outcome = "init"
+
+Take(i) ==
+  /\\ closed = FALSE
+  /\\ i \\notin held
+  /\\ held' = held \\cup {i}
+  /\\ outcome' = "taken"
+  /\\ UNCHANGED << closed >>
+
+Drop(i) ==
+  /\\ i \\in held
+  /\\ held' = held \\ {i}
+  /\\ outcome' = "dropped"
+  /\\ UNCHANGED << closed >>
+
+RefuseTake(i) ==
+  /\\ closed = TRUE
+  /\\ outcome' = "refused"
+  /\\ UNCHANGED << held, closed >>
+
+Next ==
+  \\/ \\E i \\in Items : Take(i)
+  \\/ \\E i \\in Items : Drop(i)
+  \\/ \\E i \\in Items : RefuseTake(i)
+
+====
+"""
+
+TINY_CFG = """SPECIFICATION Spec
+CONSTANTS
+  Items = {a, b}
+  Slots = {s1}
+"""
+
+
+def tiny_evaluator() -> GuardEvaluator:
+    definitions = parse_tla_definitions(TINY_MODULE)
+    constants = {
+        name: coerce_cfg_constant(value) for name, value in parse_cfg_constants(TINY_CFG).items()
+    }
+    return GuardEvaluator(definitions, constants, parse_variables(TINY_MODULE))
+
+
+def test_guard_evaluator_answers_false_only_when_the_model_says_so() -> None:
+    evaluator = tiny_evaluator()
+    body = evaluator.definitions["Take"].body
+    # `a` is already held, so `i \notin held` is definitely FALSE.
+    truth, witness = evaluator.evaluate(body, {"held": frozenset({"a"}), "closed": False, "i": "a"})
+    assert truth is False
+    assert witness == "i \\notin held"
+
+
+def test_guard_evaluator_is_unknown_rather_than_true_on_a_primed_conjunct() -> None:
+    evaluator = tiny_evaluator()
+    body = evaluator.definitions["Take"].body
+    # Every guard holds, but `held'` cannot be evaluated -- so the answer is
+    # UNKNOWN, never TRUE. Only FALSE is ever acted on.
+    truth, _ = evaluator.evaluate(body, {"held": frozenset(), "closed": False, "i": "a"})
+    assert truth is None
+
+
+def test_a_bulleted_disjunction_is_not_torn_into_top_level_conjuncts() -> None:
+    """The one shape that could produce a false rejection.
+
+    A textual split on ``/\\`` would promote ``x = 1`` to a top-level conjunct
+    of a disjunction and report the whole body FALSE when it is TRUE.
+    """
+    evaluator = tiny_evaluator()
+    body = "  /\\ \\/ /\\ x = 1\n        /\\ y = 9\n     \\/ y = 2\n"
+    truth, _ = evaluator.evaluate(body, {"x": 5, "y": 2})
+    assert truth is True
+    truth, _ = evaluator.evaluate(body, {"x": 5, "y": 3})
+    assert truth is False
+
+
+def test_quantifiers_and_set_operations_evaluate() -> None:
+    evaluator = tiny_evaluator()
+    node = parse_tla_expression("\\A i \\in held : i # \"a\"")
+    assert evaluator.eval_node(node, {"held": frozenset({"b"})}, 0) is True
+    assert evaluator.eval_node(node, {"held": frozenset({"a", "b"})}, 0) is False
+
+
+def test_unsupported_construct_raises_rather_than_defaulting() -> None:
+    with pytest.raises(Unevaluable):
+        parse_tla_expression("LET z == 1 IN z = 1")
+
+
+def test_action_signatures_carry_their_quantifier_domains() -> None:
+    evaluator = tiny_evaluator()
+    signatures, rejected = extract_action_signatures(evaluator.definitions, evaluator)
+    assert set(signatures) == {"Take", "Drop", "RefuseTake"}
+    assert signatures["Take"].params == ("i",)
+    assert signatures["Take"].domains == (("a", "b"),)
+    assert rejected == {}
+
+
+def test_a_modeled_refusal_is_never_negated() -> None:
+    """The complement of a refusal is an acceptance, so negating one would be
+    a false rejection -- the single error this mode may not make."""
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    chosen, excluded = negatable_actions(signatures, evaluator)
+    assert chosen == ["Drop", "Take"]
+    assert "RefuseTake" in excluded
+
+
+def test_written_variables_follows_the_operators_an_action_calls() -> None:
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    assert written_variables(signatures["Take"], evaluator.variables, evaluator.definitions) == frozenset(
+        {"held", "outcome"}
+    )
+
+
+def tiny_states() -> dict[str, dict]:
+    return {
+        "1": {"held": frozenset(), "closed": False, "outcome": "init"},
+        "2": {"held": frozenset({"a"}), "closed": False, "outcome": "taken"},
+        "3": {"held": frozenset({"a"}), "closed": True, "outcome": "taken"},
+    }
+
+
+def negative_corpus(**overrides):
+    kwargs = dict(
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        view="internal",
+        action_metadata={},
+        state_projector=None,
+        dedupe="none",
+        only_actions=(),
+        param_recipes=build_recipes(TINY_MODULE),
+        start_index=1,
+    )
+    kwargs.update(overrides)
+    return negative_cases_for_corpus(**kwargs)
+
+
+def test_negative_cases_are_emitted_for_every_disabled_argument() -> None:
+    cases, report = negative_corpus()
+    emitted = {(case.edge.source, case.edge.action, case.params["i"]) for case in cases}
+    # State 1 holds nothing: every Drop is disabled, no Take is.
+    assert ("1", "Drop", "a") in emitted
+    assert ("1", "Drop", "b") in emitted
+    assert ("1", "Take", "a") not in emitted
+    # State 2 holds `a`: Take(a) is disabled, Drop(b) is.
+    assert ("2", "Take", "a") in emitted
+    assert ("2", "Drop", "b") in emitted
+    # State 3 is closed: every Take is disabled.
+    assert ("3", "Take", "a") in emitted
+    assert ("3", "Take", "b") in emitted
+    assert report.negated == ("Drop", "Take")
+
+
+def test_a_negative_case_asserts_refusal_and_inertness() -> None:
+    cases, report = negative_corpus()
+    case = next(case for case in cases if case.edge.action == "Take" and case.edge.source == "3")
+    assert case.before == case.after
+    assert case.edge.source == case.edge.target
+    assert NEGATIVE_LABEL in case.labels
+    assert "expect:rejected" in case.labels
+    assert "closed = FALSE" in case.output_expression
+    # Derived from the model's own refusal action, not named by hand.
+    assert report.outcome_fields == ("outcome",)
+
+
+def test_no_negative_case_names_an_argument_the_model_enables() -> None:
+    """Zero false rejections, checked against the guard rather than the dump."""
+    cases, _ = negative_corpus()
+    evaluator = tiny_evaluator()
+    signatures, _ = extract_action_signatures(evaluator.definitions, evaluator)
+    states = tiny_states()
+    for case in cases:
+        body = signatures[case.edge.action].body
+        truth, _ = evaluator.evaluate(body, {**states[case.edge.source], **case.params})
+        assert truth is False, case.name
+
+
+def test_negative_generation_is_deterministic() -> None:
+    first, _ = negative_corpus()
+    second, _ = negative_corpus()
+    assert [case.name for case in first] == [case.name for case in second]
+    assert [case.output_expression for case in first] == [case.output_expression for case in second]
+
+
+def test_guard_reads_dedupe_collapses_only_identical_tests() -> None:
+    exact, exact_report = negative_corpus(dedupe="none")
+    collapsed, collapsed_report = negative_corpus(dedupe="guard-reads")
+    assert len(collapsed) < len(exact)
+    assert collapsed_report.deduped_from == len(exact) - len(collapsed)
+    # Every reason present in the exact corpus survives the collapse: a dedupe
+    # may drop a duplicate, never a distinct refusal.
+    assert set(exact_report.per_reason) == set(collapsed_report.per_reason)
+
+
+def test_negative_action_override_selects_exactly_what_was_named() -> None:
+    _, report = negative_corpus(only_actions=("Drop",))
+    assert report.negated == ("Drop",)
+
+
+def test_only_mode_writes_a_package_of_rejections(tmp_path: Path) -> None:
+    reports: list = []
+    cases = render_python_package(
+        module="Tiny",
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        package_dir=tmp_path / "neg",
+        negative="only",
+        negative_dedupe="none",
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        negative_report_out=reports,
+    )
+    assert cases and all(NEGATIVE_LABEL in case.labels for case in cases)
+    assert reports and reports[0].emitted == len(cases)
+    text = (tmp_path / "neg" / "cases.py").read_text()
+    assert "StateGraphRejection" in text
+    assert "StateGraphRejection" in (tmp_path / "neg" / "types.py").read_text()
+    docs = (tmp_path / "neg" / "docs.md").read_text()
+    assert "State projection: `none`" in docs
+    assert "Negative corpus: `only`" in docs
+
+
+def test_with_positive_keeps_every_enabled_edge_and_appends_rejections(tmp_path: Path) -> None:
+    reports: list = []
+    cases = render_python_package(
+        module="Tiny",
+        states=tiny_states(),
+        edges=[Edge(source="1", target="2", action="Take")],
+        package_dir=tmp_path / "both",
+        negative="with-positive",
+        tla_source=TINY_MODULE,
+        cfg_text=TINY_CFG,
+        negative_report_out=reports,
+    )
+    positive = [case for case in cases if NEGATIVE_LABEL not in case.labels]
+    assert len(positive) == 1
+    assert len(cases) == 1 + reports[0].emitted

@@ -1,0 +1,25 @@
+HP-03 DETERMINISM: two independent generations, byte-compared, INCLUDING failing executions
+Commands and results are as run; nothing was re-run selectively.
+
+1. QuotaLedger, --negative-cases with-positive (43,246 cases). TWO FULL RUNS,
+   each with its own TLC exploration -- not one generation copied.
+   IDENTICAL  cases.py
+   IDENTICAL  types.py
+   IDENTICAL  validators.py
+   IDENTICAL  docs.md
+   IDENTICAL  __init__.py
+   IDENTICAL  doubles.py
+
+2. TlaSpecDevCli / MCsmall, projected and deduped (541 cases). TWO FULL RUNS.
+   IDENTICAL  cases.py
+   IDENTICAL  types.py
+   IDENTICAL  docs.md
+
+3. A FAILING EXECUTION, twice. The shipped runner over the 118-case negative
+   corpus against the UNMUTATED reference, which fails 4 cases (HP-03-DF-01).
+   Byte-comparing a green run proves little; this compares the failure text,
+   case order and message included.
+   IDENTICAL  run 1 vs run 2 (4 failures, same cases, same order, same text)
+
+4. In-process determinism of the negative pass itself is asserted by
+   tests/test_generate_cases_from_tlc_dump.py::test_negative_generation_is_deterministic.

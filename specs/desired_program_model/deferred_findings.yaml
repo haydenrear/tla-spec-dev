@@ -123,3 +123,242 @@ findings:
       "port" after the parser refused it.
     disposition: filed
     disposition_ticket: null
+
+  - id: HP-03-DF-01
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: ["examples/validation/ab/model/QuotaLedger.tla"]
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/FEATURE.md"]
+    summary: >-
+      The A/B fixture's model guards an argument its own API does not accept,
+      and the negative corpus is what found it. `QuotaLedger.tla` declares
+      `Reserve(t, a, r)` with the reservation id as a CALLER ARGUMENT, guarded
+      by `r \notin live` and `holder[r] = NoTenant`. `FEATURE.md` and
+      `reference/quota_ledger.py` declare `reserve(tenant, amount)` and ALLOCATE
+      the id internally. So the model states two refusal conditions on an input
+      no caller can supply, and there is no argument to make stale.
+
+      This was invisible to every existing instrument. The positive corpus never
+      asks for a refusal, so no enabled edge ever depended on `r`; the
+      hand-written suite calls the real API and so cannot express the case at
+      all. It surfaced the moment a corpus containing rejected inputs was run
+      against the reference: 4 of the 118 negative cases assert the rejection of
+      a call the UNMUTATED reference correctly accepts.
+
+      This is a REFINEMENT defect, not a generator defect. The generator is
+      sound with respect to the model -- it emitted no case asserting rejection
+      of an input the MODEL enables, on any of the 118 -- and the four cases are
+      a true statement about a model that does not refine the feature it
+      specifies.
+    reproduction: >-
+      `QUOTA_LEDGER_DIR=$PWD/examples/validation/ab/reference python3
+      scripts/run_generated_case_adapters.py <negative-corpus> --mapping
+      specs/tickets/HP-03/measure/case_adapters.toml --batch` -> 4 failures,
+      all `reason='r \notin live'`, all `('ACCEPTED', 'accepted', 'r3')`.
+    evidence:
+      - "specs/tickets/HP-03/results/shipped-runner-negative.txt"
+      - "specs/tickets/HP-03/results/false-rejection-analysis.txt"
+    why_out_of_scope: >-
+      `examples/validation/ab/` is HP-01's conflict key and its model is the ONE
+      model both arms are measured through -- the fixture's whole design rests
+      on holding it fixed, and HP-06 has not run yet. Changing `Reserve`'s
+      signature now would change the instrument between the ticket that built it
+      and the ticket that reads it, and would silently move every count in this
+      epic. HP-03 skips the four cases in its own adapter, states the skip in
+      the adapter, and counts them nowhere.
+    suggested_fix: >-
+      Either drop `r` from `Reserve` and model id allocation as the model's own
+      choice (`\E r \in ResIds \ live`), which makes the model refine the stated
+      API; or change `FEATURE.md` so `reserve` accepts a caller-supplied id,
+      which makes the API refine the model. The first is almost certainly right
+      -- FEATURE.md is the requirement -- but it is a fixture change and belongs
+      to whoever owns the fixture.
+    blast_radius: >-
+      Bounded to this fixture today. The GENERAL shape is not: any model whose
+      action takes an argument the implementation derives rather than receives
+      will produce negative cases that cannot be executed. There is currently no
+      way for a model to declare which of an action's parameters are caller
+      INPUTS, so the distinction has to live in an adapter's `can_run`. Worth a
+      manifest field if a second model hits it.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-02
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/current/spec_manifest.yaml"]
+    summary: >-
+      This repository's own corpus still exceeds its own cap by 2.7x after the
+      projection HP-03 added, and HP-03 declines to close the gap by raising the
+      cap. Measured on MCsmall: 3,678,217 cases / 7.4 GB before, 541 cases /
+      667 KB after -- a 6,800x reduction that makes the corpus importable for
+      the first time -- against `max_internal_cases_per_component: 200`.
+
+      The residual is not slack. 200 of the 541 are `AnalyzeArchitecture`, whose
+      cases are the honest enumeration of its own nondeterministic outcome
+      product; 108 are `Stutter`, a modeled no-op with one case per control
+      state. Both are real distinctions under the projection, and shrinking
+      either would mean deleting an oracle rather than a duplicate.
+
+      The cap gate's own accept path offers exactly this: raise the cap with a
+      recorded rationale. HP-03 does not take it, because the number the tool
+      suggests is 541 -- the number this ticket just produced -- and a budget
+      fitted to the result it must admit is not a budget. `budgets.source` is
+      still `defaults` and `budgets.rationale` is still `{}`, so 200 was never
+      negotiated for this program either. Both numbers are now unowned, and one
+      of them has to be chosen by someone who is not also being measured by it.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out <dir>
+      --state-projector tlc_projection:project_visible_state --output-projector
+      tlc_projection:project_adapter_output --dedupe projected`
+      -> `corpus gate FAIL: 541 internal case(s), cap = 200`.
+    evidence:
+      - "specs/tickets/HP-03/results/mcsmall-tractability.txt"
+    why_out_of_scope: >-
+      Negotiating a budget is an owner decision the manifest itself describes as
+      one ("propose the budgets below to the user, ask which to adjust for this
+      program, and record a one-line rationale per changed value"). The
+      alternative route -- splitting the model into declared case modules so the
+      per-component cap applies per component -- needs slice modules this model
+      does not have and runs straight into CM-F5, which HP-04 owns.
+    suggested_fix: >-
+      Owner decision between three: (1) negotiate the cap with a derivation that
+      does not start from 541; (2) declare case modules for the four components
+      `architecture_components.yaml` already names, so the per-component cap
+      applies per component as it was designed to; (3) reconsider whether
+      `Stutter` belongs in `Next` at all -- it contributes 108 cases and models
+      no command, and TLA+ already admits stuttering through `[][Next]_vars`.
+    blast_radius: >-
+      The cap gate is `run spec-unit-tests`' corpus_gate, so this model's own
+      spec-unit run reports `fail` on a corpus that is now perfectly runnable.
+      That is a worse signal than the 7.4 GB one it replaces, because it looks
+      like a small overage rather than an unusable artifact.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-03
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: ["examples/validation/ab/model/QuotaLedger.tla"]
+      adapters: []
+      test_graph: []
+    summary: >-
+      Spelling refusals out as their own TLA+ actions -- the profile change --
+      produces cases no adapter can execute, and HP-03 measured the cost.
+      `QuotaLedger.tla`'s seven `Refuse*` actions take `(t, a, r)` and use none
+      of them in their bodies, so no recovery mechanism can recover an argument
+      and every one of their cases carries `params={}`. They are 39,100 of the
+      fixture's 43,128 cases -- 90.7% -- and each one says only that A rejection
+      happened, never WHICH call was rejected. There is no call for an adapter
+      to make.
+
+      Measured together with the rest of the corpus: 3,440 of 43,128 cases
+      (8.0%) are executable at all. 588 more are `Reserve` edges whose `a`
+      argument does not recover, and the remaining 39,100 are these.
+
+      The consequence is not academic. `M07-positive-control-wrong-hold` -- a
+      mutant the catalogue declares "must die on every instrument on every arm"
+      -- SURVIVES the whole-view corpus, because `Reserve` contributes zero
+      executable cases and M07 is inside `reserve`. The positive control is
+      currently dying on the hand-written suite and nothing else.
+
+      HP-03's generator route produces the same refusals as 118 executable cases
+      carrying exact arguments, which is the comparison worth recording: the
+      profile change costs 39,100 unusable cases, the generator costs none.
+    reproduction: >-
+      `python3 scripts/generate_cases_from_tlc_dump.py
+      examples/validation/ab/model/QuotaLedger.tla
+      examples/validation/ab/model/QuotaLedger.cfg --out <dir>` -> `parameter
+      recovery: 4028/43128 cases carry arguments`.
+    evidence:
+      - "specs/tickets/HP-03/results/kill-table-hp01.json"
+      - "specs/tickets/HP-03/results/corpus-shape.txt"
+    why_out_of_scope: >-
+      The fix is either a model change to HP-01's sealed fixture (out of HP-03's
+      conflict keys, and the fixture must not move between the ticket that built
+      it and HP-06 which reads it) or a new recovery mechanism in
+      `scripts/infer_action_params.py`, which is not in HP-03's
+      implementation_scope and would not help: an argument a body never mentions
+      is not recoverable by any mechanism, because the state pair does not
+      contain it.
+    suggested_fix: >-
+      For the fixture: either drop the unused parameters from the `Refuse*`
+      actions (they are already unused, so this loses nothing and makes the
+      zero-argument cases honest) or give each refusal an explicit argument
+      marker the model states, which is what `params_from_action_marker`
+      already reads. For the toolchain: report a declared action whose
+      parameters are unreferenced in its own body as a coverage warning, the way
+      an alias wrapper already is -- it is the same silent hole.
+    blast_radius: >-
+      Any model that follows the standing recommendation to spell refusals out.
+      The recommendation is good for TLC and for invariant checking; what it
+      does NOT buy is executable cases, and nothing currently says so.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-04
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      A documented limit was retracted by measurement and should be corrected
+      before HP-06 reads it. `ticket_plan.yaml` `known_gaps` states that ORDERING
+      is "measured invisible to all five corpus instruments AND the hand-written
+      suite", and `seeded_faults.toml` seeds `M09-negative-control-ledger-order`
+      as a negative control "predicted to survive every corpus instrument; a
+      kill here RETRACTS a documented limit and is a finding".
+
+      M09 was KILLED by the whole-view corpus on this fixture. The reason is
+      structural rather than lucky: `QuotaLedger.tla` models `ledger` as a
+      SEQUENCE, and the corpus compares it field by field with order preserved,
+      so a write that prepends instead of appends is a visible difference. The
+      predecessor's limit was measured on a model whose corresponding state was
+      a SET. Ordering is invisible when it is not modeled, which is a statement
+      about the model, not about corpora.
+    reproduction: >-
+      `specs/tickets/HP-03/results/kill-table-hp01.json`, `per_mutant`,
+      `M09-negative-control-ledger-order` -> `corpus-whole: KILLED`.
+    evidence: ["specs/tickets/HP-03/results/kill-table-hp01.json"]
+    why_out_of_scope: >-
+      `ticket_plan.yaml` `known_gaps` and `PREDICTIONS-HP.md` are the epic
+      owner's and HP-06's; the predictions file is explicitly sealed and may not
+      be amended by a contributor. Recording the retraction here is the route
+      that does not touch either.
+    suggested_fix: >-
+      Restate the ordering gap with its actual precondition -- ordering is
+      invisible to a corpus when the model represents the ordered thing as a
+      set, and visible when it represents it as a sequence -- and let HP-06
+      score M09 against the sealed prediction as it stands rather than against
+      an amended one.
+    blast_radius: >-
+      One sentence in a plan and one scored prediction. It matters because the
+      gap is currently stated as a property of corpora, which makes it look
+      unfixable, when it is a property of a modeling choice and is therefore a
+      thing an author can decide.
+    disposition: filed
+    disposition_ticket: null
