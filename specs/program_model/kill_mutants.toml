@@ -361,3 +361,25 @@ replace = '        "model_action": "CloseTicket",  # MUTANT: a weakened close is
 description = "the append-only history records every close as a guarded close, so a bypassed precondition leaves no trace"
 refine_variable = "ticket_state"
 refine_action = "CloseTicketWeakened"
+
+[[mutants]]
+id = "port-case_work_dir_delete"
+boundary_kind = "port"
+boundary_ref = "case_work_dir_delete"
+path = "scripts/effect_conformance.py"
+find = "        shutil.rmtree(case_dir)"
+replace = "        pass  # MUTANT: the per-case work dir is not emptied between cases"
+description = "the per-case scratch directory survives between cases, so a warm run observes fewer effects than a cold one -- the MF026-R4-F-01 nondeterminism, re-seeded as a fault"
+refine_variable = "effect_conformance"
+refine_action = "RunEffectConformance"
+
+[[mutants]]
+id = "port-case_program_process"
+boundary_kind = "port"
+boundary_ref = "case_program_process"
+path = "scripts/run_generated_case_adapters.py"
+find = "        result = subprocess.run([*python, str(program)])"
+replace = "        result = subprocess.run([*python, \"-c\", \"pass\"])  # MUTANT: the per-case program is never executed"
+description = "--no-batch spawns a no-op instead of the generated per-case program, so every case reports success without running"
+refine_variable = "ticket_state"
+refine_action = "RunSpecUnitTests"

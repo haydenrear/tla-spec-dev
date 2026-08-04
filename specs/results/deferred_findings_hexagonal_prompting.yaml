@@ -67,7 +67,7 @@ findings:
       starts hunting. It also degrades the suite's value as a regression signal,
       which N06 in PREDICTIONS-HP.md already predicts will produce zero findings
       this epic.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-01-DF-02
@@ -121,7 +121,7 @@ findings:
       shipped example. HP-01's own `examples/validation/ab/seeded_faults.toml`
       was written with "effect_port" for exactly this reason and corrected to
       "port" after the parser refused it.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-02-DF-01
@@ -198,7 +198,7 @@ findings:
       also reaches HP-01's `expected_effect` ("supplies the before/after
       descriptor capture D2 anchor 3 requires"), which is not satisfiable as
       written for this fixture.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-02-DF-02
@@ -240,7 +240,7 @@ findings:
       Discoverability of two documentation pages. Nothing imports them, nothing
       executes them, and no test enumerates them (tests/test_source_citations.py
       scopes references/ OUT deliberately).
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-03-DF-01
@@ -305,7 +305,7 @@ findings:
       way for a model to declare which of an action's parameters are caller
       INPUTS, so the distinction has to live in an adapter's `can_run`. Worth a
       manifest field if a second model hits it.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-03-DF-02
@@ -366,7 +366,7 @@ findings:
       spec-unit run reports `fail` on a corpus that is now perfectly runnable.
       That is a worse signal than the 7.4 GB one it replaces, because it looks
       like a small overage rather than an unusable artifact.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-03-DF-03
@@ -430,7 +430,7 @@ findings:
       Any model that follows the standing recommendation to spell refusals out.
       The recommendation is good for TLC and for invariant checking; what it
       does NOT buy is executable cases, and nothing currently says so.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
 
   - id: HP-03-DF-04
@@ -479,7 +479,7 @@ findings:
       gap is currently stated as a property of corpora, which makes it look
       unfixable, when it is a property of a modeling choice and is therefore a
       thing an author can decide.
-    disposition: filed
+    disposition: carried
     disposition_ticket: null
   - id: HP-04-DF-01
     found_by: "HP-04"
@@ -543,7 +543,7 @@ findings:
       are proven dead. RC-02's "9 DEAD PORTS" therefore over-read by 7, and any
       future manifest edit made on the strength of that column would have been
       removing live surface.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Found by running the fixed oracle, then by asking what would happen if the
@@ -599,7 +599,7 @@ findings:
       providers -- which is the configuration HP-05 is about to make the
       DEFAULT. It is also the reason HP-04's M10 measurement needed a manifest
       of its own rather than reusing HP-01's.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Hit while building the M10 instrument, not while reading the schemas.
@@ -648,7 +648,7 @@ findings:
       Guard relaxation, which is 0 on every instrument in every round. If the
       negative corpus emits refusal cases with no recoverable argument, the class
       stays at zero for a reason nobody would look for.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Filed toward HP-03, not fixed. Measured on a different model than RP-02's,
@@ -716,7 +716,7 @@ findings:
       is the order the documentation implies (measure, then open the ticket that
       fixes what you measured). The failure is silent at open time and permanent
       at close time.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Found by inspecting HP-04's own ticket.yaml rather than by any check. No
@@ -776,7 +776,7 @@ findings:
       Every project scaffolded from this toolchain that later grows a durable
       side. The failure mode is not an error; it is a green run whose kills are
       a floor.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       NOT BLOCKING for HP-05's own acceptance: a project that declares an effect
@@ -831,7 +831,7 @@ findings:
       Any kill number quoted from a shipped runner invocation without its
       mapping. The measured cost of that ambiguity is 30% of an instrument's
       yield on one fixture and one of ten mutants on another.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Small, and the reason it is worth filing anyway is that the workaround
@@ -886,7 +886,7 @@ findings:
     blast_radius: >-
       Every A/B this project runs against a complexity goal. HP-06's
       GOAL-simpler-same-behavior is `missed` on a target no A/B could have hit.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       The goal is still correctly reported as MISSED. A target is not repaired
@@ -929,7 +929,7 @@ findings:
     blast_radius: >-
       The independence of every blind-authored catalogue on this fixture, past
       and future. HP-06's own blind author was affected and said so.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Cheap to fix and it should be fixed before the fixture is used again.
@@ -977,7 +977,7 @@ findings:
     blast_radius: >-
       Every citation of "a corpus cannot see refusals" that does not first check
       whether the model spells refusals out. Two epics of prose say it flatly.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       The narrower true statement is HP-03's own and is already on the record:
@@ -1020,7 +1020,7 @@ findings:
     blast_radius: >-
       The whole-view control on every future round that fixes Reserve argument
       recovery, which is the first thing this round tells the next one to do.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Recorded as the ORDER OF WORK rather than as an objection to doing it.
@@ -1064,7 +1064,7 @@ findings:
     blast_radius: >-
       Every kill table this project has published, including HP-03's and HP-05's,
       which share this driver's ancestry.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       The seven remaining HP-06 findings are in

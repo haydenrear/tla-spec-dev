@@ -523,8 +523,14 @@ AnalyzeCorpus(root) ==
 \* @port TlaSpecDevCliPort.spec_tree
 \* HP-04: the per-case work directory is emptied before each case, so the same
 \* corpus on the same tree reports the same gap count. That delete is a real
-\* effect under **/specs/** and is declared rather than left silent.
+\* effect and is declared rather than left silent.
 \* @port TlaSpecDevCliPort.spec_tree_delete
+\* MF-026 G-1: HP-04 declared that delete under spec_tree_delete (**/specs/**),
+\* which is true of the DEFAULT work dir and false of the --work-dir FLAG, which
+\* has no resolver. Constraining the flag to specs/ was tried and reverted --
+\* a scratch dir is not spec-tree content and three legitimate callers use a
+\* temp directory. So the DECLARATION widens to match the behaviour instead.
+\* @port TlaSpecDevCliPort.case_work_dir_delete
 RunEffectConformance(root) ==
   /\ setup_phase >= 4
   /\ root = spec_root
@@ -622,6 +628,11 @@ RunKillTest(root) ==
 \* @port TlaSpecDevCliPort.test_process
 \* @port TlaSpecDevCliPort.runner_process
 \* @port TlaSpecDevCliPort.spec_tree
+\* MF-026 G-2, PRE-EXISTING AT THE EPIC BASE and surfaced by no previous audit
+\* round: --no-batch spawns <python> <work_dir>/programs/case_*.py, matching
+\* neither test_process (*pytest*) nor runner_process. Declared rather than
+\* constrained -- the per-case program IS the unit under test on that path.
+\* @port TlaSpecDevCliPort.case_program_process
 RunSpecUnitTests(root, ticket) ==
   /\ setup_phase >= 2
   /\ root = spec_root

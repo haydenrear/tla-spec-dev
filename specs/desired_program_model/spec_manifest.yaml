@@ -254,6 +254,34 @@ effects:
         spec_tree_delete:
           type: filesystem.delete
           target: "**/specs/**"
+        # MF-026 (hexagonal-prompting, gap G-1). RunEffectConformance resets a
+        # PER-CASE SCRATCH directory -- scripts/effect_conformance.py:1685 (shutil.rmtree)
+        # via scripts/effect_conformance.py:1809 (reset_case_work_dir)
+        # -- and `--work-dir` is `type=Path` with no
+        # resolver, so the caller can point it anywhere. HP-04 declared this
+        # under spec_tree_delete (`**/specs/**`), which is true of the DEFAULT
+        # and false of the FLAG. The owner tried constraining the path to
+        # `specs/` with the guard RC-02 built for generation output and
+        # REVERTED it: three legitimate callers run the oracle against a temp
+        # directory, and a scratch dir is not spec-tree content. The honest fix
+        # is to declare what it actually deletes, so the declaration stops being
+        # narrower than the behaviour.
+        case_work_dir_delete:
+          type: filesystem.delete
+          target: "**"
+        # MF-026 (hexagonal-prompting, gap G-2). PRE-EXISTING AT THE EPIC BASE
+        # and surfaced by no previous audit round. RunSpecUnitTests --no-batch
+        # spawns `<python> <work_dir>/programs/case_*.py` --
+        # scripts/run_generated_case_adapters.py:2178 (subprocess.run) -- which
+        # matches neither test_process (`*pytest*`) nor runner_process
+        # (`*run_generated_case_adapters*`), and `work_dir` defaults to
+        # tempfile.mkdtemp, outside spec_tree and evidence_report. Declared
+        # rather than constrained: the per-case program IS the unit under test
+        # on that path, and forcing it into the spec tree would move real
+        # execution output into the model's own directory.
+        case_program_process:
+          type: process.spawn
+          target: "*programs/case_*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
         # (scripts/spec_evolution.py:99 (subprocess.run), via
@@ -429,7 +457,7 @@ effects:
     # same states before and after. What it buys is HP-04's own acceptance
     # criterion: two runs over an identical corpus reporting an identical gap
     # count.
-    RunEffectConformance: [evidence_report, spec_tree, spec_tree_delete]
+    RunEffectConformance: [evidence_report, spec_tree, spec_tree_delete, case_work_dir_delete]
     # CD-11 (audit run 4, gap R4-1): mutation_write + corpus_process ADDED,
     # test_process REMOVED from this row (it stays declared, and exercised,
     # via RunSpecUnitTests). The kill test's spawn is the user-supplied
@@ -437,7 +465,7 @@ effects:
     # one value; its writes are the mutation seed/restore into production
     # source (mutation_write) and the JSON evidence report (evidence_report).
     RunKillTest: [evidence_report, mutation_write, corpus_process]
-    RunSpecUnitTests: [test_process, runner_process, spec_tree]
+    RunSpecUnitTests: [test_process, runner_process, spec_tree, case_program_process]
     CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
     # RC-01 (owner decision 2026-08-01, MF-026 round-2 reservation): the same
     # shipped close path taken under a guard-weakening flag. Identical port set
