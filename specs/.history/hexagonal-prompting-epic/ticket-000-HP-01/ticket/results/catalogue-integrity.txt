@@ -1,0 +1,41 @@
+catalogue: /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/examples/validation/ab/seeded_faults.toml
+root:      /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/examples/validation/ab
+10 mutant(s)
+
+id                                         class              occurs  revert  parses
+--------------------------------------------------------------------------------------
+M01-guard-zero-amount                      guard_relaxation     1      ok      ok  
+M02-guard-over-quota                       guard_relaxation     1      ok      ok  
+M03-guard-close-with-outstanding           guard_relaxation     1      ok      ok  
+M04-durable-stale-total                    durable_content      1      ok      ok  
+M05-durable-close-line-zero-and-swallowed  durable_content      1      ok      ok  
+M08-cross-aspect-commit-refunds-the-hold   cross_aspect         1      ok      ok  
+M06-wrong-status-on-release                output_oracle        1      ok      ok  
+M10-apply-only-double-refund               wrong_value          1      ok      ok  
+M07-positive-control-wrong-hold            wrong_value          1      ok      ok  
+M09-negative-control-ledger-order          ordering             1      ok      ok  
+
+class coverage:
+  cross_aspect         1  M08-cross-aspect-commit-refunds-the-hold
+  durable_content      2  M04-durable-stale-total, M05-durable-close-line-zero-and-swallowed
+  guard_relaxation     3  M01-guard-zero-amount, M02-guard-over-quota, M03-guard-close-with-outstanding
+  ordering             1  M09-negative-control-ledger-order
+  output_oracle        1  M06-wrong-status-on-release
+  wrong_value          2  M10-apply-only-double-refund, M07-positive-control-wrong-hold
+
+controls: 1 positive, 1 negative
+
+arms:
+  examples/validation/ab/arm_a/PROMPT.md  (73 lines)
+  examples/validation/ab/arm_b/PROMPT.md  (115 lines)
+  shared verbatim: 38 lines (the controlled envelope)
+  unique to A:     16 lines
+  unique to B:     47 lines
+  The shared envelope is deliberate: the arms differ in the TREATMENT
+  (arm B section 1), not in the delivery, the feature, or the ground rules.
+
+  ARM B SLOT: **UNFILLED** -- HP-02 owns it. Arm B must not be
+  dispatched in this state. Reported, not refused: nothing here gates.
+
+Catalogue integrity holds: every pattern occurs exactly once, every
+mutant applies and reverts cleanly, and every declared gap is seeded.

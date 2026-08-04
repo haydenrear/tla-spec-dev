@@ -1,0 +1,219 @@
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 20%]
+........................................................................ [ 26%]
+........................................................................ [ 33%]
+........................................................................ [ 40%]
+........................................................................ [ 47%]
+........................................................................ [ 53%]
+........................................................................ [ 60%]
+........................................................................ [ 67%]
+........................................................................ [ 74%]
+........................................................................ [ 80%]
+..........................................................FFF........... [ 87%]
+........................................................................ [ 94%]
+.............................................................            [100%]
+=================================== FAILURES ===================================
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting/specs/current/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/current/spec_manifest.yaml:157: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:158: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:159: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:160: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:161: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:162: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/current/spec_manifest.yaml:198: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E       assert ['specs/curre...ne file', ...] == []
+E         
+E         Left contains 7 more items, first extra item: "specs/current/spec_manifest.yaml:157: cited file 'install-tla-spec-dev.sh' does not resolve to one file"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:146: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting/specs/desired_program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/desired_program_model/spec_manifest.yaml:154: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:155: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:156: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:157: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:158: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:159: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/desired_program_model/spec_manifest.yaml:195: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E       assert ['specs/desir...ne file', ...] == []
+E         
+E         Left contains 7 more items, first extra item: "specs/desired_program_model/spec_manifest.yaml:154: cited file 'install-tla-spec-dev.sh' does not resolve to one file"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:146: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting/specs/program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more."""
+        text = path.read_text(encoding="utf-8")
+        problems: list[str] = []
+    
+        for match in CITATION.finditer(text):
+            source_line = text[: match.start()].count("\n") + 1
+            where = f"{path.relative_to(REPO_ROOT)}:{source_line}"
+            cited_name = match.group("file")
+            start = int(match.group("start"))
+            end = int(match.group("end") or start)
+            anchor = match.group("anchor")
+    
+            if anchor is None:
+                problems.append(
+                    f"{where}: citation `{cited_name}:{match.group('start')}"
+                    f"{'-' + match.group('end') if match.group('end') else ''}` has no "
+                    "(anchor). Write `file.py:12 (some_token_on_that_line)` -- an "
+                    "unanchored line number cannot be checked and goes stale silently."
+                )
+                continue
+    
+            cited = resolve_cited(cited_name)
+            if cited is None:
+                problems.append(f"{where}: cited file {cited_name!r} does not resolve to one file")
+                continue
+    
+            lines = cited.read_text(encoding="utf-8").splitlines()
+            if not 1 <= start <= end <= len(lines):
+                problems.append(
+                    f"{where}: {cited_name}:{start}-{end} is outside the file "
+                    f"({len(lines)} lines)"
+                )
+                continue
+    
+            if not any(anchor in line for line in lines[start - 1 : end]):
+                hits = [
+                    index + 1 for index, line in enumerate(lines) if anchor in line
+                ]
+                hint = f" -- the anchor is at {cited_name}:{hits[0]}" if len(hits) == 1 else ""
+                problems.append(
+                    f"{where}: {cited_name}:{start}"
+                    f"{'-' + str(end) if end != start else ''} does not contain the "
+                    f"anchor {anchor!r}{hint}"
+                )
+    
+>       assert problems == [], "stale or uncheckable citations:\n  " + "\n  ".join(problems)
+E       AssertionError: stale or uncheckable citations:
+E           specs/program_model/spec_manifest.yaml:157: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:158: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:159: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:160: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:161: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:162: cited file 'install-tlc2.sh' does not resolve to one file
+E           specs/program_model/spec_manifest.yaml:198: cited file 'install-tla-spec-dev.sh' does not resolve to one file
+E       assert ['specs/progr...ne file', ...] == []
+E         
+E         Left contains 7 more items, first extra item: "specs/program_model/spec_manifest.yaml:157: cited file 'install-tla-spec-dev.sh' does not resolve to one file"
+E         Use -v to get more diff
+
+tests/test_source_citations.py:146: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+3 failed, 1066 passed in 23.94s

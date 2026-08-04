@@ -1,0 +1,24 @@
+GOAL SIGNAL -- HP-01, GOAL-catch-bugs, contribution: enabling
+declared local_signal: python3 examples/validation/scorecards/score_tools.py check <dir>
+expected_effect: none -- enabling only
+
+Run 1 of 2 -- the sealed predecessor baseline this epic is measured against.
+Purpose: prove the shipped checker still validates the exact cards whose
+numbers PREDICTIONS-HP.md quotes as its baseline. A baseline that no longer
+passes its own schema check is not a baseline.
+$ score_tools.py check specs/.history/architectural-coherence-epic/closed-snapshot/results/scorecards/architectural-coherence
+10 scorecard(s) checked, 0 problem(s)
+exit=0
+
+Run 2 of 2 -- the two-arm scorecard shape HP-01 itself emits.
+$ score_tools.py check examples/validation/ab/scorecard_shape
+2 scorecard(s) checked, 0 problem(s)
+exit=0
+
+CLASSIFICATION: no measurable movement.
+HP-01 is an enabling ticket whose declared expected_effect is 'none'. It
+moves no goal metric and was not supposed to. Recorded rather than omitted:
+an omitted 'no measurable movement' reads as a signal nobody ran.
+
+GOAL-simpler-same-behavior  local_signal: N/A: harness ticket. Nothing to run.
+GOAL-hexagonal-in-fact      local_signal: N/A: harness ticket. Nothing to run.

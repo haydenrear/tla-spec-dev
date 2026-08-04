@@ -1725,3 +1725,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-01
+
+- close_scope: ticket
+- close_id: HP-01
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T12:35:37+00:00
+- summary: The A/B experiment: two declared arms, a 10-mutant seeded catalogue proven exactly-once, and 13 sealed predictions including 6 negatives. No model surface added, deliberately.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

@@ -1,0 +1,121 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket HP-01",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "architecture_components.yaml",
+      "architecture_map.yaml",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Two arms exist as two prompt files; neither is the other with a section removed.",
+        "The seeded catalogue is a committed artifact with exact find/replace, a harness asserting each pattern occurs exactly once, and at least one fault in each mechanism's known gap.",
+        "PREDICTIONS-HP.md is committed before any other ticket is dispatched and contains at least three explicit NEGATIVE predictions."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "HP-03",
+      "HP-04",
+      "HP-05",
+      "HP-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "examples/validation/ab/",
+        "examples/validation/scorecards/",
+        "examples/validation/PREDICTIONS-HP.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": null,
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only; builds the catalogue and the arms every other goal is measured through",
+        "goal": "GOAL-catch-bugs",
+        "local_signal": "python3 examples/validation/scorecards/score_tools.py check <dir>"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only; supplies the before/after descriptor capture D2 anchor 3 requires",
+        "goal": "GOAL-simpler-same-behavior",
+        "local_signal": "N/A: harness ticket"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none -- enabling only; supplies the arm-blind judging protocol",
+        "goal": "GOAL-hexagonal-in-fact",
+        "local_signal": "N/A: harness ticket"
+      }
+    ],
+    "id": "HP-01",
+    "implementation_scope": [
+      "examples/validation/"
+    ],
+    "model_delta_expectation": "none -- and that is deliberate",
+    "objective": "Build the experiment, then get out of the way. Three parts. (1) THE A/B TASK. One feature specification, written once, given to two agents: ARM A with an ordinary implementation prompt, ARM B with HP-02's hexagonal + minimize-complexity prompt. Same feature, same model, same seeded-fault catalogue, same judges. The arms are declared as two prompts in two files, never one prompt with a paragraph switched off, so a reader of the record can see which instrument produced which number. (2) THE SEEDED CATALOGUE, shipped as an artifact -- a `seeded_faults.toml`-shaped file with exact find/replace and a harness asserting each pattern occurs exactly once, so every number is re-derivable. Seed a fault IN THE GAP each mechanism is supposed to lose, including at least one guard-relaxation fault and one requiring a content assertion. A reduction result with no mutant in the gap is not a measurement. (3) COMMIT `examples/validation/PREDICTIONS-HP.md` BEFORE any other ticket is dispatched, with at least three NEGATIVE predictions -- what will NOT move. RP-02 is why: it closed a real oracle leak, took parameter recovery from 0 of 5 to 5 of 5, and moved the mutant matrix by zero cells. Nobody predicted that, and it killed a hypothesis recorded as fact. This ticket adds NO model surface. Per surface_cost_rule that is a feature.",
+    "promotion_order": 10,
+    "promotion_predecessor": null,
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The A/B harness, the scorecard baseline, and the sealed predictions",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/tickets/HP-01",
+  "ticket_id": "HP-01",
+  "ticket_index": 0,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-01/specs/tickets"
+}
