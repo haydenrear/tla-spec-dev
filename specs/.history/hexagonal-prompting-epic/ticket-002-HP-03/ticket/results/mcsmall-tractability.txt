@@ -1,0 +1,59 @@
+HP-03 TRACTABILITY: MCsmall, the config that exists to make a corpus tractable
+Carries RC-02-DF-04 and MF026-R4-F-01.
+
+BEFORE (no projection, as shipped at 386222b)
+  TLC:      118,573 distinct states, 3,678,217 transitions, 16s, depth 16
+  corpus:   3,678,217 cases
+  cases.py: 7.4 GB (reported by RC-02-DF-04; NOT reproduced here -- this
+            machine has 7.2 GB free and writing it would have filled the disk)
+  cap:      max_internal_cases_per_component = 200  ->  18,391x over
+
+AFTER (specs/current/tlc_projection.py, --dedupe projected)
+  corpus:   541 cases
+  cases.py: 666,924 bytes
+  cap:      200  ->  2.7x over.  STILL OVER. Filed as HP-03-DF-02; the cap is
+            NOT raised by this ticket, because the accept path's suggested
+            value is 541 -- the number this ticket produced.
+  ratio:    3,678,217 -> 541 is 6,799x fewer cases; 7.4 GB -> 667 KB
+
+WHICH PROJECTION MADE THAT TRUE (assertion 4). Stated by the run itself:
+  state projection: tlc_projection:project_visible_state; transition dedupe: projected
+  and recorded in the package's docs.md:
+    - Cases: `541`
+    - State projection: `tlc_projection:project_visible_state`
+
+WHAT THE PROJECTION MOVED (nothing was deleted; see the module docstring)
+  out of state, into the asserted OUTPUT:  lastCommand, result
+  out of state, into the asserted OUTPUT:  the six recorded verdicts
+                                           (only the ones an action CHANGED)
+  kept in state:                           setup_phase, spec_root, ticket_state
+
+MEASURED COLLAPSE, one lever at a time (distinct (action, before, after)):
+  identity                       3,678,217
+  drop result                    3,678,217
+  drop lastCommand               2,964,421
+  drop result + lastCommand        628,424
+  drop result + lastCommand + 6 verdicts   76
+  ...and 541 once the OUTPUT projection puts the verdicts and the result
+  record back into the dedupe key, which is the honest number: those 465
+  extra cases are distinct outcomes, not duplicates.
+
+RESIDUAL, per action (why 541 is a floor for this projection):
+  AnalyzeArchitecture        200
+  Stutter                    108
+  RunEffectConformance       64
+  RunSpecUnitTests           52
+  RunKillTest                48
+  AnalyzeComplexity          24
+  AnalyzeCorpus              24
+  GenerateCases              8
+  CloseTicketWeakened        4
+  BuildSkillCli              1
+  InstallLocalCli            1
+  ScaffoldProject            1
+  RecordBudgets              1
+  ScaffoldWorkflow           1
+  OpenTicket                 1
+  UpdateTicketDesired        1
+  UpdateTicketCurrent        1
+  CloseTicket                1

@@ -1,0 +1,35 @@
+HP-03: ZERO FALSE REJECTIONS, and the four cases that look like one
+
+ACCEPTANCE ASSERTION 2 -- 'no case asserts rejection of an input the model
+enables' -- is a property of the algorithm, not of the fixture:
+
+  * a case is emitted only where the action's own body evaluates to a
+    definite FALSE under three-valued logic;
+  * every unsupported construct is UNKNOWN, and UNKNOWN never emits;
+  * checked mechanically over the whole corpus by
+    tests/test_generate_cases_from_tlc_dump.py::test_no_negative_case_names_an_argument_the_model_enables
+
+  INDEPENDENT CROSS-CHECK, run before anything is emitted:
+    3,440 ENABLED edges with fully recovered arguments were re-evaluated at
+    their own source state. 0 evaluated FALSE. If this evaluator disagreed
+    with TLC anywhere, the action would be dropped from the negated set.
+
+THE FOUR. Against the UNMUTATED reference implementation, 4 of 118 negative
+cases fail. They are NOT false rejections with respect to the model:
+
+  case_0073 / 0074 / 0103 / 0104, all Reserve, all reason 'r 
+otin live'
+
+  The model is right: at those states r1 (or r2) IS live, so Reserve(t2,a,r1)
+  is genuinely disabled. The implementation is also right: FEATURE.md says
+  reserve(tenant, amount) and the id is ALLOCATED, so there is no argument to
+  make stale and the call is correctly accepted.
+
+  The model does not refine its own feature specification. Filed HP-03-DF-01.
+  HP-03 does not fix it (examples/validation/ab/ is HP-01's conflict key and
+  the fixture must not move before HP-06 reads it). The measurement adapter
+  declines those 24 cases through can_run with the reason stated in code, and
+  counts them in no kill total.
+
+  This is the second time in this epic that the most valuable finding came
+  from an instrument being pointed at something rather than from a metric.

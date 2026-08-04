@@ -112,9 +112,50 @@ justification: ""
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found nothing in the MODELED representation to reduce, and the
+    measured delta is direction=zero because HP-03 changed no TLA+ at all --
+    TlaSpecDevCli.tla, MC.cfg and MCsmall.cfg are byte-identical to the epic tip
+    (results/zero-model-delta.txt). The plan's model_delta_expectation
+    explicitly permitted a new action if the generation mode needed one; it did
+    not. `--negative-cases` is a per-flag variant of the existing GenerateCases
+    action, performs no effect that action does not already declare, and spawns
+    no second TLC run. Per surface_cost_rule that is the intended outcome: 0 new
+    coverage gaps and 1x state space against the predecessor's measured price of
+    ~1.5 and 8x per surface-adding ticket.
+
+    THE REDUCTION THAT WAS TAKEN, and it was measured before it was trusted:
+    --negative-dedupe guard-reads collapses the exact 39,966-case negative
+    corpus to 118 by keeping one case per (action, arguments, violated conjunct,
+    and every state variable that conjunct reads). Those are the same test by
+    construction, but construction is an argument rather than a measurement, so
+    both corpora were run against both catalogues. They kill IDENTICALLY -- 3 of
+    3 and 5 of 5 guard relaxation, 0 elsewhere
+    (results/kill-table-dedupe-cost.json). Zero kills lost. --negative-dedupe
+    none stays available and both counts print on every run.
+
+    THE LARGER REDUCTION, invisible to this descriptor because the descriptor
+    measures TLA+ and this is generated Python: specs/current/tlc_projection.py
+    takes MCsmall from 3,678,217 cases / 7.4 GB (18,391x its own cap, and
+    unimportable) to 541 cases / 667 KB. 6,799x. Nothing was deleted -- pure
+    outputs and recorded verdicts MOVED from the state into the asserted output,
+    and the one thing genuinely lost is named in the module docstring. A count
+    that improved because an oracle was dropped is the MF-020 trap.
+
+    THE REDUCTION THAT WAS AVAILABLE AND WAS DELIBERATELY REFUSED: raising
+    max_internal_cases_per_component. 541 is still 2.7x the cap of 200, the cap
+    gate's own accept path prints exactly that fix, and budgets.source is still
+    "defaults" with an empty rationale, so 200 was never negotiated for this
+    program either. Not taken: the value the tool suggests is 541, the number
+    this ticket produced, and a budget fitted to the result it must admit is not
+    a budget. It would also have converted an acceptance assertion from
+    PARTIALLY MET to MET by editing the threshold three tickets before the
+    evaluation ticket reads it. Filed HP-03-DF-02 with three dispositions for
+    the owner.
+
+    Full reasoning: specs/tickets/HP-03/results/complexity-narrative.md
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -126,4 +167,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/tickets/HP-03/results/complexity-narrative.md"
