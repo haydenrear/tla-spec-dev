@@ -1,0 +1,88 @@
+{
+  "example": "ex4_pipeline_coherent",
+  "run_id": "20260803-j2",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. Everything under measured_by_judge was re-run or re-derived from raw data at scoring time.",
+  "measured_by_judge": {
+    "complexity_descriptor": {
+      "command": "analyze complexity specs/program_model/Pipeline.tla Pipeline.cfg",
+      "exit": 0,
+      "variables": 6,
+      "actions": 5,
+      "state_space_bound": 4096,
+      "bound_completeness": "COMPLETE: product over 6 of 6 declared variables; domains from TypeInvariant",
+      "modularity_q_emergent": 0.194,
+      "components_emergent": 2,
+      "port_crossing_actions_emergent": ["Enqueue"],
+      "dense_rows": {"delivered": "3/5"},
+      "dense_columns": [],
+      "invariant_coverage": "every variable read by at least one configured invariant",
+      "justification_linkage": "absent -- dead-weight analysis skipped"
+    },
+    "architecture_declared": {
+      "components": 3,
+      "modularity_q": 0.132653,
+      "component_count_rule": "OK (3 >= 2)",
+      "crossing_action_fraction": 0.4,
+      "decomposes": true
+    },
+    "behavioral_suite": {"tests": 8, "result": "8 passed", "note": "run on the byte-identical twin; check_twins.py exit 0"},
+    "kill_matrix_rederived_from_json": {
+      "seeded_faults": {
+        "armA_killed": 4, "armB_killed": 6, "total": 6,
+        "per_fault": {
+          "F1-wrong-value": {"A": {"killed": true, "points": 44, "detectors": ["tla_projected_state"]}, "B": {"killed": true, "points": 88, "detectors": ["provider_content_assertion", "tla_projected_state"]}},
+          "F2-wrong-field": {"A": {"killed": true, "points": 88, "detectors": ["tla_output"]}, "B": {"killed": true, "points": 88, "detectors": ["tla_output"]}},
+          "F3-off-by-one-durable": {"A": {"killed": false, "points": 0}, "B": {"killed": true, "points": 44, "detectors": ["provider_content_assertion"]}},
+          "F4-wrong-status": {"A": {"killed": true, "points": 22, "detectors": ["tla_output"]}, "B": {"killed": true, "points": 22, "detectors": ["tla_output"]}},
+          "F5-swallowed-error": {"A": {"killed": false, "points": 0}, "B": {"killed": true, "points": 44, "detectors": ["provider_content_assertion"]}},
+          "F6-off-by-one-in-memory": {"A": {"killed": true, "points": 15, "detectors": ["tla_output"]}, "B": {"killed": true, "points": 15, "detectors": ["tla_output"]}}
+        }
+      },
+      "catalog12_by_class": {
+        "guard_relaxation": {"n": 3, "armA": 0, "armB": 0, "pytest": 3},
+        "ordering": {"n": 3, "armA": 0, "armB": 0, "pytest": 0},
+        "wrong_write_in_memory": {"n": 4, "armA": 4, "armB": 4, "pytest": 3},
+        "wrong_write_durable": {"n": 1, "armA": 0, "armB": 1, "pytest": 0},
+        "equivalent": {"n": 1, "armA": 0, "armB": 0, "pytest": 0}
+      },
+      "control": {"armA": {"exit": 0, "points": 0}, "armB": {"exit": 0, "points": 0}, "pytest": {"exit": 0}, "stdout_sha256_identical_across_arms": true}
+    },
+    "blind_catalogue_rederived_from_json": {
+      "mutants": 16,
+      "killed_by_instrument": {"view_checking": 10, "view_silent": 7, "pytest": 10, "cm_durable_checking": 6, "cm_durable_silent": 3, "cm_intake_slice": 3},
+      "union_all_instruments": 14,
+      "by_class": {
+        "guard_accepts": {"n": 4, "view_checking": 0, "view_silent": 0, "cm_durable_checking": 0, "cm_durable_silent": 0, "cm_intake_slice": 0, "pytest": 4},
+        "ordering": {"n": 2, "view_checking": 0, "view_silent": 0, "cm_durable_checking": 0, "cm_durable_silent": 0, "cm_intake_slice": 0, "pytest": 0},
+        "durable_write": {"n": 3, "view_checking": 3, "view_silent": 0, "cm_durable_checking": 3, "cm_durable_silent": 0, "cm_intake_slice": 0, "pytest": 0},
+        "guard_rejects": {"n": 3, "view_checking": 3, "view_silent": 3, "cm_durable_checking": 1, "cm_durable_silent": 1, "cm_intake_slice": 1, "pytest": 2},
+        "missing_write": {"n": 3, "view_checking": 3, "view_silent": 3, "cm_durable_checking": 1, "cm_durable_silent": 1, "cm_intake_slice": 2, "pytest": 3},
+        "wrong_value": {"n": 1, "view_checking": 1, "view_silent": 1, "cm_durable_checking": 1, "cm_durable_silent": 1, "cm_intake_slice": 0, "pytest": 1}
+      }
+    },
+    "determinism_rederived_from_json": {"executions": 38, "identical": 38, "differing": 0, "gen1_gen2_cases_py_sha256_equal": true}
+  },
+  "from_run_record": {
+    "case_counts": {
+      "view_corpus": 330, "view_states": 121,
+      "slice_Scenario_DeliveryPath": {"cases": 50, "states": 25, "authored_lines_non_blank": 14},
+      "given_Scenario_RecordAfterDelivery": {"cases": 6, "states": 8, "authored_lines_non_blank": 22},
+      "blind_run_slice": {"cases": 50, "states": 25},
+      "blind_run_given": {"cases": 24, "states": 16},
+      "blind_run_authored_lines": 89,
+      "per_action_view": {"Accept": 22, "Deliver": 66, "Enqueue": 110, "Fail": 88, "Record": 44}
+    },
+    "param_recovery": {"actions": 5, "recovered": 5, "cases_carrying_argument": "330 of 330", "unchecked": 0},
+    "case_module_path": {
+      "validate_exit": 0, "coverage_exit": 0, "uncovered": "none",
+      "given_corpus_executed": "executed 6 cases in batch, exit 0",
+      "slice_corpus_executed": false,
+      "CM_F5": "the slice refuses under BOTH shipped mappings: 'provider configured for semantic effect port(s) not required by any selected case: LedgerStorePort', exit 1 (case_adapters.toml and case_adapters_corpus_only.toml)"
+    },
+    "replay": {"faults": 3, "replays_per_fault": 2, "reproduced": "6 of 6, same failing cases"},
+    "tlc": {"generated": 295, "distinct": 114, "depth": 11},
+    "runtime": {"whole_view_generation_s": 0.95, "whole_view_execution_330_cases_s": 0.23, "source": "blind run B report; not re-timed by this judge"},
+    "known_defect_against_the_answer_key": "EV-03-DF-03: moving generated/pipeline_contract up one directory flips this fixture's `coherent` to `unmappable` with zero bytes of Python changed. Reproduced in round 2; not noted in the fixture README's ANSWER KEY 1."
+  }
+}

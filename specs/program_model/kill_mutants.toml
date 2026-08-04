@@ -345,3 +345,19 @@ replace = "    if False:  # MUTANT: history entry created for a ticket that neve
 description = "close history is written for a ticket that never reached a closed status"
 refine_variable = "ticket_state"
 refine_action = "CloseTicket"
+
+# RC-01 (owner decision 2026-08-01): fault for the weakened-close property. The
+# history entry claims every close went through the guard, so a close taken
+# under --accept-new or --allow-open becomes indistinguishable in the record
+# from one that passed the precondition -- which is the state of affairs this
+# ticket exists to end.
+[[mutants]]
+id = "inv-WeakenedClosesCertifyNothing"
+boundary_kind = "invariant"
+boundary_ref = "WeakenedClosesCertifyNothing"
+path = "scripts/spec_evolution.py"
+find = '        "model_action": "CloseTicketWeakened" if used else "CloseTicket",'
+replace = '        "model_action": "CloseTicket",  # MUTANT: a weakened close is recorded as a guarded one'
+description = "the append-only history records every close as a guarded close, so a bypassed precondition leaves no trace"
+refine_variable = "ticket_state"
+refine_action = "CloseTicketWeakened"

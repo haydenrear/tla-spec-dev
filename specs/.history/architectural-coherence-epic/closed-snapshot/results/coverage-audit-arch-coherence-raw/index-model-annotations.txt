@@ -1,0 +1,56 @@
+214:\* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
+217:\* each action's @port lines mirror its row in effects.actions. Before CD-11
+221:\* deliberately empty (RecordBudgets, AnalyzeCorpus) carry no @port line and
+222:\* say so. Comments only: nothing parses @port, and the model's states,
+225:\* @command BuildSkillCli
+226:\* @result CliWorkflowResult
+227:\* @port TlaSpecDevCliPort.cli_artifact
+242:\* @command InstallLocalCli
+243:\* @result CliWorkflowResult
+244:\* @port TlaSpecDevCliPort.cli_artifact
+260:\* @command ScaffoldProject
+261:\* @result CliWorkflowResult
+262:\* @port TlaSpecDevCliPort.spec_tree
+282:\* @command RecordBudgets
+283:\* @result CliWorkflowResult
+284:\* No @port: the manifest row `RecordBudgets: []` is deliberately empty --
+302:\* @command ScaffoldWorkflow
+303:\* @result CliWorkflowResult
+304:\* @port TlaSpecDevCliPort.spec_tree
+321:\* @command OpenTicket
+322:\* @result CliWorkflowResult
+323:\* @port TlaSpecDevCliPort.spec_tree
+345:\* @command UpdateTicketDesired
+346:\* @result CliWorkflowResult
+347:\* @port TlaSpecDevCliPort.spec_tree
+363:\* @command UpdateTicketCurrent
+364:\* @result CliWorkflowResult
+365:\* @port TlaSpecDevCliPort.spec_tree
+390:\* @command AnalyzeComplexity
+391:\* @result CliWorkflowResult
+392:\* @port TlaSpecDevCliPort.evidence_report
+423:\* @command AnalyzeCorpus
+424:\* @result CliWorkflowResult
+425:\* No @port: `AnalyzeCorpus: []` -- evidence_report removed as a dead
+462:\* @command RunEffectConformance
+463:\* @result CliWorkflowResult
+464:\* @port TlaSpecDevCliPort.evidence_report
+465:\* @port TlaSpecDevCliPort.spec_tree
+517:\* @command RunKillTest
+518:\* @result CliWorkflowResult
+519:\* @port TlaSpecDevCliPort.evidence_report
+520:\* @port TlaSpecDevCliPort.mutation_write
+521:\* @port TlaSpecDevCliPort.corpus_process
+556:\* @command RunSpecUnitTests
+557:\* @result CliWorkflowResult
+558:\* @port TlaSpecDevCliPort.test_process
+559:\* @port TlaSpecDevCliPort.runner_process
+560:\* @port TlaSpecDevCliPort.spec_tree
+614:\* @command CloseTicket
+615:\* @result CliWorkflowResult
+616:\* @port TlaSpecDevCliPort.spec_tree
+617:\* @port TlaSpecDevCliPort.spec_tree_delete
+618:\* @port TlaSpecDevCliPort.git_metadata
+647:\* @command AnalyzeArchitecture
+648:\* @result CliWorkflowResult
+649:\* No @port: the scan reads the model and the source tree and prints.

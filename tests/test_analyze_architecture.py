@@ -287,8 +287,13 @@ class TestAModelThatResistsClusteringSaysSo:
         Asserted here so the next reader meets the fragility rather than the
         headline.
         """
-        spec = REPO_ROOT / "specs" / "current" / "TlaSpecDevCli.tla"
-        cfg = REPO_ROOT / "specs" / "current" / "MC.cfg"
+        # Read the ACCEPTED baseline, not `specs/current`. `current` exists only
+        # while a spec workflow is open; the close prunes it into the sealed
+        # snapshot, so a test pinned to it passes all epic and fails the instant
+        # the epic closes. The two are byte-identical at promotion, so the
+        # baseline is the durable place to assert this.
+        spec = REPO_ROOT / "specs" / "program_model" / "TlaSpecDevCli.tla"
+        cfg = REPO_ROOT / "specs" / "program_model" / "MC.cfg"
         descriptor = analyze(spec, cfg)
         assert descriptor.consumable_as_architecture is True
         assert len(descriptor.components) == 2

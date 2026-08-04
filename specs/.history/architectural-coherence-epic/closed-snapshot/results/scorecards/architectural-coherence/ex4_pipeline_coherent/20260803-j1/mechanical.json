@@ -1,0 +1,126 @@
+{
+  "example": "ex4_pipeline_coherent",
+  "run_id": "20260803-j1",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. Figures marked reproduced_by_judge were re-run read-only at this commit with python3 scripts/tla_spec_dev.py (never the PATH wrapper). Figures marked from_record are transcribed from committed run artifacts and were not re-executed.",
+  "complexity_descriptor": {
+    "source": "reproduced_by_judge",
+    "command": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg",
+    "variables": 6,
+    "actions": 5,
+    "state_space_bound": 4096,
+    "bound_completeness": "COMPLETE: product over 6 of 6 declared variables; domains from TypeInvariant",
+    "modularity_q_emergent": 0.193878,
+    "modularity_q_declared": 0.132653,
+    "dense_rows": ["delivered (3/5 actions)"],
+    "dense_columns": [],
+    "complexity_warnings": 0,
+    "emergent_partition": {"C1": ["delivered", "failed", "ledger", "queue"], "C2": ["accepted", "inbox"]},
+    "readme_discrepancy": "README.md:102 says greedy modularity puts queue with ingest; measured emergent partition puts queue in C1 with dispatch and ledger. Two-component conclusion unaffected."
+  },
+  "architecture_reflexion": {
+    "source": "reproduced_by_judge",
+    "verdict": "coherent",
+    "exit_code": 0,
+    "modules_scanned": 8,
+    "modules_mapped": 8,
+    "edges_extracted": 4,
+    "internal_edges": 2,
+    "convergences": 2,
+    "divergences": 0,
+    "absences": 0,
+    "divergence_detectable": true,
+    "partition_source": "DECLARED",
+    "partition_decomposes": true,
+    "out_of_scope_imports": ["__future__", "pipeline_contract"],
+    "single_writer_violations": ["delivered (Deliver, Fail)", "queue (Deliver, Enqueue)"],
+    "spanning_actions": ["Deliver"]
+  },
+  "tlc": {
+    "source": "from_record",
+    "generated": 295,
+    "distinct": 114,
+    "depth": 11,
+    "invariant_violations": 0
+  },
+  "case_counts": {
+    "source": "reproduced_from_committed_evidence",
+    "view_corpus": 330,
+    "view_states": 121,
+    "slice_Scenario_DeliveryPath": 50,
+    "slice_states": 25,
+    "given_Scenario_RecordAfterDelivery": 6,
+    "given_states": 8,
+    "modules_union": 56,
+    "uncovered_actions": "none",
+    "per_action_view": {"Accept": 22, "Deliver": 66, "Enqueue": 110, "Fail": 88, "Record": 44}
+  },
+  "kill_counts": {
+    "source": "from_record",
+    "arms": {
+      "A_corpus_only": "specs/program_model/case_adapters_corpus_only.toml (silent_ledger_store_provider)",
+      "B_corpus_plus_content_provider": "specs/program_model/case_adapters.toml (ledger_store_provider)"
+    },
+    "control": {"armA": "green exit 0, 330 cases", "armB": "green exit 0, 330 cases", "pytest": "green, 8 tests",
+                "control_stdout_sha256_armA": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095",
+                "control_stdout_sha256_armB": "26bd9bc20196975f82be272df20e33f1995851700877c25de52716aa39f15095"},
+    "seeded_faults_toml": {
+      "armA": "4 of 6", "armB": "6 of 6",
+      "per_fault_points_round1_and_round2_identical": {"F1": "44/88", "F2": "88/88", "F3": "-/44", "F4": "22/22", "F5": "-/44", "F6": "15/15"},
+      "survivors_armA": ["F3-off-by-one-durable", "F5-swallowed-error"]
+    },
+    "catalogue_12_mutant": {
+      "guard_relaxation": {"seeded": 3, "armA": 0, "armB": 0, "pytest": 3},
+      "ordering": {"seeded": 3, "armA": 0, "armB": 0, "pytest": 0},
+      "wrong_write_in_memory": {"seeded": 4, "armA": 4, "armB": 4, "pytest": 3},
+      "wrong_write_durable": {"seeded": 1, "armA": 0, "armB": 1, "pytest": 0},
+      "equivalent": {"seeded": 1}
+    },
+    "blind_catalogue_16_mutant_ex4_run6": {
+      "guard_accepts": {"seeded": 4, "view_checking": 0, "view_silent": 0, "given_checking": 0, "given_silent": 0, "slice": 0, "pytest": 4},
+      "guard_rejects": {"seeded": 2, "view_checking": 2, "pytest": 2},
+      "missing_write": {"seeded": 3, "view_checking": 3, "pytest": 3},
+      "wrong_value": {"seeded": 1, "view_checking": 1, "pytest": 1},
+      "durable_write": {"seeded": 3, "view_checking": 3, "view_silent": 0, "pytest": 0},
+      "ordering": {"seeded": 2, "all_instruments": 0},
+      "totals": {"view_checking": 10, "pytest": 10, "modules_union": 9, "view_plus_pytest": 14, "killed_by_nothing": 2}
+    },
+    "round1_vs_round2_delta": "0 cells moved on either catalogue, either arm, or the pytest column"
+  },
+  "parameter_recovery": {
+    "source": "from_record",
+    "before_RP02": "0 of 5 parameters; 0 of 330 cases carried an argument",
+    "after_RP02": "5 of 5 parameters; 330 of 330 cases carry i1 or i2 (165 each)",
+    "slice": "50 of 50", "given": "6 of 6",
+    "enabled_vs_rejected_arguments": "330 enabled, 0 rejected; 220 refusable pairs exist in the state space the generator can never emit"
+  },
+  "determinism": {
+    "source": "from_record",
+    "generation_regenerations_compared": 2,
+    "generation_identical": true,
+    "cases_py_sha256_round1": "33e07e0de5360fae105466c0ea7869a4face3c3dfa116de63452888c78be6f97",
+    "cases_py_sha256_round2": "944189052623960aea36dd9277c9d714c76ce18d584a67d8ed5b498170648f2e",
+    "fingerprint_change_reason": "RP-02 parameter recovery, recorded in evidence/corpus_fingerprint.txt; not a determinism failure",
+    "executions_compared": 38,
+    "byte_identical": 38,
+    "differing": 0,
+    "failing_executions_among_them": 24,
+    "replays": "6 of 6 reproduced the batch failure exactly, same three cases as round 1",
+    "blind_run_third_instrument": "18 of 18 files identical across three packages; execution identical including under a mutant"
+  },
+  "runtime": {
+    "source": "from_record",
+    "whole_view_generation_seconds": 0.95,
+    "whole_view_execution_330_cases_seconds": 0.23,
+    "judge_reruns_seconds": null,
+    "judge_rerun_note": "The two analyze commands I ran completed in a few seconds each; not instrumented, so recorded as null rather than estimated."
+  },
+  "open_defects_touching_this_example": [
+    "EV-03-DF-03 (major): coherent obtainable on a divergent tree via a 41-line re-export shim, both digests unchanged; and this fixture's coherent flips to unmappable if its generated package is moved up one directory",
+    "EV-03-DF-02 / CM-F5: no shipped mapping allows the Scenario_DeliveryPath slice corpus to execute; both mappings bind a LedgerStorePort provider and both refuse",
+    "EV-03-DF-04: --effect-report PATH silently writes nothing on this fixture, exit 0, no warning",
+    "EV-03-DF-05: analyze architecture without --components silently substitutes an emergent partition",
+    "EV-02-DF-05: no python3 on the eval machine's PATH carries yaml, pytest and tomllib together; no interpreter is pinned anywhere",
+    "EV-03-DF-06: .gitignore line 40 is *.log, so round 1 lost 15 named eval artifacts that its scoring record cites"
+  ]
+}

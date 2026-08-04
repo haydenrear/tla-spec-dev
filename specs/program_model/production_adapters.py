@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -1460,6 +1461,206 @@ class AnalyzeComplexityAdapter:
 
 
 # --------------------------------------------------------------------------
+# AC-01: the architecture descriptor
+# --------------------------------------------------------------------------
+
+# Two separable components joined by one crossing action: a model that DOES
+# decompose.
+ARCH_DECOMPOSES_TLA = """---------------------------- MODULE ArchCut ----------------------------
+EXTENDS Naturals
+
+VARIABLES orders, stock, outbox, shipped
+
+vars == << orders, stock, outbox, shipped >>
+
+Init == orders = 0 /\\ stock = 0 /\\ outbox = 0 /\\ shipped = 0
+
+PlaceOrder == orders' = orders + 1 /\\ UNCHANGED << stock, outbox, shipped >>
+Restock == stock' = stock + 1 /\\ UNCHANGED << orders, outbox, shipped >>
+Reserve ==
+  /\\ stock > 0
+  /\\ orders > 0
+  /\\ stock' = stock - 1
+  /\\ orders' = orders - 1
+  /\\ UNCHANGED << outbox, shipped >>
+Emit == outbox' = outbox + 1 /\\ UNCHANGED << orders, stock, shipped >>
+Ship ==
+  /\\ outbox > 0
+  /\\ outbox' = outbox - 1
+  /\\ shipped' = shipped + 1
+  /\\ UNCHANGED << orders, stock >>
+Dispatch ==
+  /\\ orders > 0
+  /\\ orders' = orders - 1
+  /\\ outbox' = outbox + 1
+  /\\ UNCHANGED << stock, shipped >>
+
+Next == PlaceOrder \\/ Restock \\/ Reserve \\/ Emit \\/ Ship \\/ Dispatch
+
+TypeInvariant ==
+  /\\ orders \\in 0..3
+  /\\ stock \\in 0..3
+  /\\ outbox \\in 0..3
+  /\\ shipped \\in 0..3
+
+Spec == Init /\\ [][Next]_vars
+=============================================================================
+"""
+
+# Every action touches every variable: no cut exists to name.
+ARCH_BLOB_TLA = """---------------------------- MODULE ArchBlob ----------------------------
+EXTENDS Naturals
+
+VARIABLES a, b, c
+
+vars == << a, b, c >>
+
+Init == a = 0 /\\ b = 0 /\\ c = 0
+
+Step1 == a' = a + 1 /\\ b' = b + 1 /\\ c' = c + 1
+Step2 == a' = a + 2 /\\ b' = b + 2 /\\ c' = c + 2
+
+Next == Step1 \\/ Step2
+
+TypeInvariant == a \\in 0..3 /\\ b \\in 0..3 /\\ c \\in 0..3
+
+Spec == Init /\\ [][Next]_vars
+=============================================================================
+"""
+
+ARCH_CFG = """SPECIFICATION Spec
+INVARIANTS
+  TypeInvariant
+"""
+
+
+class AnalyzeArchitectureAdapter:
+    """`tla-spec-dev analyze architecture` DESCRIBES the structure the model implies.
+
+    AC-01. The TLA+ action ``AnalyzeArchitecture`` always succeeds
+    (``result' = CommandResult(TRUE, ...)``), records a verdict in
+    ``architecture_scan``, and is guarded by nothing -- no action in the model
+    reads ``architecture_scan``. This adapter runs the REAL command on two
+    fixture specs, one that decomposes and one that does not, and checks the
+    production behavior matches those model claims:
+
+      * BOTH exit 0 -- a model with no architecture is a finding, not a failure;
+      * the decomposing one names components, ports, and spanning actions;
+      * the blob one REFUSES to describe a cut, reporting the criteria that
+        failed rather than a one-component partition with zero violations;
+      * neither ever reports `coherent` without a code side (MF-027): AC-01
+        measures the model only, so the verdict is `unmappable`;
+      * neither emits a suggested move (CD-01).
+    """
+
+    action_name = "AnalyzeArchitecture"
+
+    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+        root = repo_root()
+        target_repo = Path(target_repo)
+
+        cut_tla, cut_cfg = _write_fixture(
+            target_repo / "cut", "ArchCut", ARCH_DECOMPOSES_TLA, ARCH_CFG
+        )
+        blob_tla, blob_cfg = _write_fixture(
+            target_repo / "blob", "ArchBlob", ARCH_BLOB_TLA, ARCH_CFG
+        )
+
+        def cli(*args: str) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                [sys.executable, str(root / "scripts" / "tla_spec_dev.py"),
+                 "--spec-root", spec_root, "analyze", "architecture", *args],
+                cwd=target_repo, text=True, capture_output=True, check=False,
+            )
+
+        cut = cli(str(cut_tla), str(cut_cfg))
+        blob = cli(str(blob_tla), str(blob_cfg))
+        cut_json = cli(str(cut_tla), str(cut_cfg), "--format", "json")
+        blob_json = cli(str(blob_tla), str(blob_cfg), "--format", "json")
+
+        try:
+            cut_payload = json.loads(cut_json.stdout)
+            blob_payload = json.loads(blob_json.stdout)
+        except json.JSONDecodeError:
+            cut_payload = {}
+            blob_payload = {}
+
+        sections = (
+            "[MEASURED] Component partition",
+            "[MEASURED] State ownership",
+            "[MEASURED] Single-writer violations",
+            "[MEASURED] Ports",
+            "[MEASURED] Spanning actions",
+        )
+        names_the_structure = all(section in cut.stdout for section in sections)
+
+        # The refusal: the blob reports that it does not decompose and does NOT
+        # report a clean zero-violation architecture.
+        refuses_to_invent_a_cut = (
+            "DOES NOT DECOMPOSE" in blob.stdout
+            and "NOT MEASURABLE" in blob.stdout
+            and blob_payload.get("measured", {})
+            .get("partition", {})
+            .get("consumable_as_architecture")
+            is False
+            and blob_payload.get("measured", {})
+            .get("ownership", {})
+            .get("single_writer_violations")
+            is None
+        )
+
+        # MF-027: an unobserved target is never `coherent`.
+        never_coherent_without_code = (
+            cut_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+            and blob_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+        )
+
+        no_suggestions = not any(
+            banned in stream
+            for stream in (cut.stdout, blob.stdout)
+            for banned in ("SUGGESTED MOVE", "RECOMMENDATION", "recommendation:", "[PROJECTED]")
+        )
+        measured_facts_only = "[MEASURED]" in cut.stdout and "[MEASURED]" in blob.stdout
+
+        # No action in the model guards on architecture_scan, and no production
+        # path may either: the scan blocks nothing.
+        blocks_nothing = (
+            cut_payload.get("advisory", {}).get("blocks_promotion") is False
+            and blob_payload.get("verdict", {}).get("blocks_promotion") is False
+        )
+
+        cut_measured = cut_payload.get("measured", {})
+        describes_ports_and_span = (
+            len(cut_measured.get("ports", [])) == 1
+            and [row["action"] for row in cut_measured.get("spanning_actions", [])] == ["Dispatch"]
+        )
+
+        return {
+            "accepted": (
+                cut.returncode == 0
+                and blob.returncode == 0
+                and names_the_structure
+                and refuses_to_invent_a_cut
+                and never_coherent_without_code
+                and no_suggestions
+                and measured_facts_only
+                and blocks_nothing
+                and describes_ports_and_span
+            ),
+            "decomposing_exit_code": cut.returncode,
+            "blob_exit_code": blob.returncode,
+            "names_components_ownership_ports_and_span": names_the_structure,
+            "refuses_to_invent_a_cut": refuses_to_invent_a_cut,
+            "never_coherent_without_code": never_coherent_without_code,
+            "descriptor_makes_no_suggestions": no_suggestions,
+            "reports_measured_facts": measured_facts_only,
+            "blocks_nothing": blocks_nothing,
+            "describes_ports_and_span": describes_ports_and_span,
+            "stderr": cut.stderr + blob.stderr,
+        }
+
+
+# --------------------------------------------------------------------------
 # MF-014: corpus diagnostics and hard case caps
 # --------------------------------------------------------------------------
 
@@ -2096,4 +2297,262 @@ class ComplexityLedgerCloseOutAdapter:
             ),
             "stdout": good.stdout + unfilled.stdout + degraded.stdout + validated.stdout,
             "stderr": good.stderr + unfilled.stderr + degraded.stderr + validated.stderr,
+        }
+
+
+# --------------------------------------------------------------------------
+# RC-01 (MF-026 G-6): case generation, and the weakened close
+# --------------------------------------------------------------------------
+
+# A two-action model small enough that TLC explores it in well under a second,
+# so the generation adapter measures the CLI path rather than a state space.
+GENERATE_CASES_TLA = """--------------------------- MODULE GenProbe ---------------------------
+EXTENDS Naturals
+
+VARIABLES counter, flag
+
+vars == << counter, flag >>
+
+Init == counter = 0 /\\ flag = FALSE
+
+Bump == counter < 2 /\\ counter' = counter + 1 /\\ UNCHANGED flag
+Flip == flag' = ~flag /\\ UNCHANGED counter
+
+Next == Bump \\/ Flip
+
+TypeInvariant == counter \\in 0..2 /\\ flag \\in BOOLEAN
+
+Spec == Init /\\ [][Next]_vars
+=============================================================================
+"""
+
+GENERATE_CASES_CFG = """SPECIFICATION Spec
+
+INVARIANTS
+  TypeInvariant
+"""
+
+
+class GenerateCasesAdapter:
+    """`tla-spec-dev generate cases` GENERATES the corpus a view implies.
+
+    RC-01, closing MF-026's headline gap. Until this ticket case-module
+    generation had no CLI subcommand, no model action and no declared port:
+    `scripts/generate_cases_from_tlc_dump.py` and `scripts/case_modules.py`
+    were reachable only by running the files, so an import-closure walk of
+    `build_parser` never saw the java/TLC spawn, the metadir `rmtree` or the
+    package writes -- and CM-01 and RP-03 both closed "zero model delta"
+    against surface the model did not contain.
+
+    Checks the three things the model now claims. The command is reachable from
+    the shipped parser; it performs the declared effects (a package on disk,
+    a per-action coverage record beside it, and the parameter-recovery audit);
+    and it records no verdict, matching `GenerateCases` leaving every gate
+    variable UNCHANGED.
+
+    NO SILENT PASS when TLC is absent (MF-027). The corpus_process port is a
+    java spawn, and an adapter that reports success on a machine where the
+    spawn never happened is exactly the "unobservable read as clean" defect the
+    effect oracle was changed to stop producing -- so a missing `tlc2` is
+    reported as its own outcome and `accepted` is False.
+    """
+
+    action_name = "GenerateCases"
+
+    def apply(self, target_repo: Path, *, spec_root: str = "specs") -> dict[str, object]:
+        root = repo_root()
+        target_repo = Path(target_repo)
+        # RC-02 (MF-026 round-3 N-2): the probe generates INSIDE a `specs/`
+        # tree, because that is the tree `spec_tree` and `spec_tree_delete`
+        # declare and `generate cases` now refuses anything outside it. The
+        # fixture moved; the effects asserted below did not.
+        spec_dir = target_repo / "specs" / "genprobe"
+        tla_path, cfg_path = _write_fixture(
+            spec_dir, "GenProbe", GENERATE_CASES_TLA, GENERATE_CASES_CFG
+        )
+
+        tlc2 = shutil.which("tlc2")
+        if tlc2 is None:
+            return {
+                "accepted": False,
+                "verdict": "unobservable",
+                "reason": (
+                    "tlc2 is not on PATH, so the corpus_process spawn this action "
+                    "declares never happened. Reported rather than passed: an oracle "
+                    "that cannot see the boundary has no evidence about it (MF-027)."
+                ),
+            }
+
+        out_root = target_repo / "specs" / "generated"
+        package = out_root / "genprobe_cases"
+        coverage_json = package / "case_module_coverage.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(root / "scripts" / "tla_spec_dev.py"),
+                "--spec-root",
+                spec_root,
+                "generate",
+                "cases",
+                str(tla_path),
+                str(cfg_path),
+                "--out",
+                str(out_root),
+                "--package",
+                "genprobe_cases",
+                "--coverage-json",
+                str(coverage_json),
+            ],
+            cwd=target_repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        # The undeclared-destination refusal: `--coverage-json` outside the
+        # generated package is the same undeclared-write shape G-2 closed on
+        # `--out`, and it is refused rather than relocated.
+        stray = subprocess.run(
+            [
+                sys.executable,
+                str(root / "scripts" / "tla_spec_dev.py"),
+                "--spec-root",
+                spec_root,
+                "generate",
+                "cases",
+                str(tla_path),
+                str(cfg_path),
+                "--out",
+                str(out_root),
+                "--package",
+                "genprobe_cases",
+                "--coverage-json",
+                str(target_repo / "elsewhere.json"),
+            ],
+            cwd=target_repo,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        metadirs = sorted(str(p) for p in out_root.rglob(".tlc-metadir")) if out_root.exists() else []
+        return {
+            "accepted": (
+                result.returncode == 0
+                and (package / "cases.py").is_file()
+                and (package / "case_coverage.json").is_file()
+                and (package / "param_recovery_audit.md").is_file()
+                and coverage_json.is_file()
+                and not metadirs
+                and stray.returncode != 0
+            ),
+            "exit_code": result.returncode,
+            "package_written": (package / "cases.py").is_file(),
+            "coverage_record_written": (package / "case_coverage.json").is_file(),
+            "param_audit_written": (package / "param_recovery_audit.md").is_file(),
+            "coverage_report_written": coverage_json.is_file(),
+            "metadir_removed": not metadirs,
+            "stray_coverage_json_refused": stray.returncode != 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr + stray.stderr,
+        }
+
+
+class CloseTicketWeakenedAdapter:
+    """`close ticket` under a GUARD-WEAKENING FLAG is a different state.
+
+    RC-01, owner decision 2026-08-01. `CloseTicket` guards on the ticket having
+    reached `TicketSpecUnitTestsPassed`, and TLC proves
+    `ClosedTicketsPassedSpecUnitTests` over the whole reachable state space --
+    while `--accept-new` and `--allow-open` exist specifically to get past that
+    precondition. No modeled state recorded their use and no oracle in this
+    toolchain could see the difference, because the kill test seeds faults per
+    declared port and per invariant, i.e. only inside modeled boundaries.
+
+    Drives the REAL close twice against throwaway repositories -- once through
+    the guard, once around it with `--allow-open` -- and asserts the append-only
+    history entry distinguishes them, naming the flag and what it bypassed. The
+    weakened close still SUCCEEDS: the flags ship and have legitimate uses, and
+    an adapter asserting a refusal the CLI does not perform would be the same
+    false assurance this ticket exists to remove.
+    """
+
+    action_name = "CloseTicketWeakened"
+
+    def apply(
+        self,
+        target_repo: Path,
+        *,
+        spec_root: str = "specs",
+        ticket_id: str = "CLI-901",
+        title: str = "CLI weakened close",
+    ) -> dict[str, object]:
+        root = repo_root()
+        target_repo = Path(target_repo)
+
+        def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+            repo.mkdir(parents=True, exist_ok=True)
+            setup = prepare_ticket_workflow(
+                root, repo, spec_root=spec_root, ticket_id=ticket_id, title=title
+            )
+            assert all(record.returncode == 0 for record in setup)
+            run_cli(root, repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+            fill_complexity_ledger(repo, spec_root, ticket_id)
+            plan_path = repo / spec_root / "desired_program_model" / "ticket_plan.yaml"
+            if not extra and plan_path.exists():
+                plan_path.write_text(
+                    plan_path.read_text(encoding="utf-8").replace("status: next", "status: done", 1),
+                    encoding="utf-8",
+                )
+            record = run_cli(
+                root,
+                repo,
+                "--spec-root",
+                spec_root,
+                "close",
+                "ticket",
+                ticket_id,
+                "--summary",
+                "weakened-close adapter",
+                *extra,
+            )
+            manifest_path = (
+                repo
+                / spec_root
+                / ".history"
+                / "desired-ticket-workflow"
+                / f"ticket-000-{ticket_id}"
+                / "manifest.json"
+            )
+            manifest = (
+                json.loads(manifest_path.read_text(encoding="utf-8"))
+                if manifest_path.is_file()
+                else {}
+            )
+            return record, manifest
+
+        guarded, guarded_manifest = close(target_repo / "guarded")
+        # `--allow-open` closes a ticket the plan still calls open: the
+        # precondition is not met and the close happens anyway.
+        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+
+        guarded_record = guarded_manifest.get("guard_weakening") or {}
+        weakened_record = weakened_manifest.get("guard_weakening") or {}
+        return {
+            "accepted": (
+                guarded.returncode == 0
+                and weakened.returncode == 0
+                and guarded_record.get("weakened") is False
+                and guarded_record.get("model_action") == "CloseTicket"
+                and weakened_record.get("weakened") is True
+                and weakened_record.get("model_action") == "CloseTicketWeakened"
+                and weakened_record.get("flags") == ["--allow-open"]
+                and bool(weakened_record.get("bypassed"))
+            ),
+            "guarded_exit_code": guarded.returncode,
+            "weakened_exit_code": weakened.returncode,
+            "guarded_record": guarded_record,
+            "weakened_record": weakened_record,
+            "stdout": guarded.stdout + weakened.stdout,
+            "stderr": guarded.stderr + weakened.stderr,
         }

@@ -56,9 +56,20 @@ def load_production_adapters():
     return module
 
 
-def test_the_model_has_the_expected_fourteen_command_actions() -> None:
+def test_the_model_has_the_expected_seventeen_command_actions() -> None:
+    """AC-01 added the 15th; RC-01 added the 16th and 17th.
+
+    RC-01 (MF-026 G-6 and the owner's guard-weakening decision): GenerateCases
+    -- case-module generation, this epic's flagship feature, which had no
+    action, no port and no CLI subcommand at all -- and CloseTicketWeakened,
+    the close taken around the precondition TLC proves over the whole state
+    space.
+    """
     actions = model_actions()
-    assert len(actions) == 14, sorted(actions)
+    assert len(actions) == 17, sorted(actions)
+    assert "AnalyzeArchitecture" in actions
+    assert "GenerateCases" in actions
+    assert "CloseTicketWeakened" in actions
     assert "Stutter" not in actions
 
 

@@ -35,11 +35,21 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# `program_model` is the accepted baseline and is always present. `current` and
+# `desired_program_model` exist ONLY while a spec workflow is open -- the
+# workflow close prunes them into the sealed snapshot. Parametrizing over all
+# three unconditionally made these tests pass during the epic and fail the
+# moment it closed, which is a defect in the test rather than in the manifests.
+# Skip the transient trees when they are absent; never skip the baseline.
 MANIFEST_TREES = ("program_model", "current", "desired_program_model")
+ALWAYS_PRESENT = "program_model"
 
 
 def tree_paths(tree: str) -> tuple[Path, Path]:
     base = REPO_ROOT / "specs" / tree
+    if tree != ALWAYS_PRESENT and not base.is_dir():
+        pytest.skip(f"specs/{tree} is absent -- no spec workflow is open")
     return base / "TlaSpecDevCli.tla", base / "spec_manifest.yaml"
 
 

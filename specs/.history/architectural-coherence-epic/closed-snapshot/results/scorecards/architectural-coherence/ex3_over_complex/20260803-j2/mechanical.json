@@ -1,0 +1,57 @@
+{
+  "example": "ex3_over_complex",
+  "run_id": "20260803-j2",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored.",
+  "measured_by_judge": {
+    "command": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity examples/validation/ex3_over_complex/order_hub/specs/program_model/OrderHub.tla OrderHub.cfg",
+    "exit": 0,
+    "shipped_fixture_descriptor": {
+      "variables": 6,
+      "actions": 4,
+      "state_space_bound": 8388608,
+      "bound_completeness": "COMPLETE: product over 6 of 6 declared variables; domains from TypeOK",
+      "dominant_dimensions": {"auditLog": 64, "retries": 32, "orders": 16},
+      "modularity_q": 0.0,
+      "components": 1,
+      "dense_rows": {"auditLog": "4/4", "dirty": "4/4", "mode": "4/4"},
+      "dense_columns": ["PlaceOrder", "RetrySweep", "ShipOrder"],
+      "invariant_coverage": "every variable read by at least one configured invariant",
+      "justification_linkage": "absent -- dead-weight analysis skipped",
+      "warnings": ["state-space upper bound 8,388,608 exceeds max_state_space_bound 1,000,000"]
+    },
+    "source_facts_verified": {
+      "guards_reading_mode_or_dirty": 0,
+      "tests_reading_mode_or_dirty": 0,
+      "guard_read_set": ["orders", "shipped", "retries", "auditLog"]
+    }
+  },
+  "from_run_record": {
+    "descriptor_after": {
+      "run1": {"bound": 624, "components": 1, "modularity_q": 0.0, "dense_rows": {"auditLog": "4/4"}, "warnings": 0},
+      "run2": {"bound": 6240, "components": 1, "modularity_q": 0.0, "dense_rows": {"auditLog": "4/4", "dirty": "4/4", "mode": "4/4"}, "warnings": 0},
+      "run3": {"bound": 624, "dense_rows_count": 1},
+      "run4": {"bound": 624, "components": 1, "modularity_q": 0.0, "dense_rows": {"auditLog": "4/4"}, "warnings": 0}
+    },
+    "tlc": {
+      "before": {"generated": 1878, "distinct": 717, "depth": 13},
+      "after_run1_run3_run4": {"generated": 717, "distinct": 270, "depth": 13},
+      "after_run2": {"generated": 1878, "distinct": 717, "depth": 13, "note": "representation-only refactor; state graph byte-identical"}
+    },
+    "case_counts": {"run4_internal_exhaustive": 716},
+    "kill_counts": {
+      "arms": "single arm (one content-asserting provider); no silent-provider arm exists for ex3",
+      "probes_seeded": 2,
+      "probes_killed": 2,
+      "by_class": {"dropped_effect": {"seeded": 1, "killed": 1, "detector": "provider count assertion"}, "wrong_content": {"seeded": 1, "killed": 1, "detector": "provider per-entry content assertion"}},
+      "ordering": {"seeded": 0, "killed": null, "note": "the provider asserts consecutive seq (providers.py:72-77, :96-99) but no ordering fault was ever seeded"},
+      "guard_relaxation": {"seeded": 0, "killed": null}
+    },
+    "campaign": {"points": 3580, "cases": 716, "iterations": 5, "seed": 20260722, "exit": 0},
+    "project_tests": {"before": "6/6", "after": "6/6", "assertions": "byte-identical"},
+    "fitness_functions": {"run1": 3, "run2": 2, "run3": 3, "run4": 2, "all_hold": true, "non_vacuity_probed": true},
+    "determinism": {"cross_run_convergence": "runs 1, 3, 4 made the identical call; run 2 diverged (VAL-15)", "replay": null},
+    "runtime": null,
+    "runtime_null_reason": "No wall-clock figures recorded in any ex3 run artifact."
+  }
+}

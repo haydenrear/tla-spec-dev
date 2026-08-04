@@ -58,8 +58,18 @@ def test_current_model_carries_the_ticket_state_ordinal() -> None:
     model = (SPEC_ROOT / "current/TlaSpecDevCli.tla").read_text(encoding="utf-8")
 
     assert "ticket_state" in model
-    assert "ticket_state \\in [Tickets -> 0..5]" in model, (
-        "TypeInvariant must bound the ordinal to 0..5"
+    # RC-01 widened the ordinal to 0..6: TicketClosedWeakened is the sixth
+    # stage, recording a close taken under a guard-weakening flag. Note that 6
+    # is the HIGHEST number and certifies the LEAST, which is why the module
+    # reads the lifecycle through TicketReached rather than through `>=` -- five
+    # invariants would otherwise have gone on holding, by accident of the
+    # encoding, about a ticket that passed nothing.
+    assert "ticket_state \\in [Tickets -> 0..6]" in model, (
+        "TypeInvariant must bound the ordinal to 0..6"
+    )
+    assert "TicketClosedWeakened      == 6" in model
+    assert "TicketReached(t, stage) ==" in model, (
+        "the lifecycle reader must stay named: `>=` reads the weakened stage as progress"
     )
 
     # Check code lines only: the module carries an explanatory comment that

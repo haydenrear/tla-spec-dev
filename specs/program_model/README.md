@@ -1,21 +1,27 @@
-# TlaSpecDevCli Program Model
+# Current Program Model
 
-This is the accepted baseline model for the shipped `tla-spec-dev` CLI after
-the CLI workflow tickets have closed.
+This directory is the executable whole-program model of what the repository
+implements right now for the active ticket workflow.
 
-The model records the command workflow agents and users follow:
+Active ticket: `CM-01` - Architectural coherence and case modules
 
-- `tla-spec-dev --spec-root <root> scaffold project`
-- `tla-spec-dev --spec-root <root> scaffold workflow`
-- `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
-- desired-first ticket editing
-- current reconciliation after implementation lands
-- `tla-spec-dev --spec-root <root> run spec-unit-tests`
-- `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
+Baseline:
 
-It also includes production adapters and spec tests for the shipped CLI surface,
-including the parent `specWorkflow` Test Graph validation.
+- Program model manifest: `../program_model/spec_manifest.yaml`
+- Program model TLA module: `../program_model/TlaSpecDevCli.tla`
 
-Closed workflow history lives under
-`../.history/tla-spec-dev-cli-workflow/`. New desired/current directories should
-be scaffolded only when starting the next ticket workflow.
+Workflow:
+
+1. Keep this model equivalent to the entire `specs/program_model` before
+   implementation. Do not copy only the feature or ticket-local subset.
+2. After each ticket slice lands in production code, update this directory with
+   the implemented whole-program state, actions, invariants, adapter mappings,
+   and tests while preserving existing modeled behavior.
+3. Run TLC and current-model adapter/unit tests before adding broader
+   integration or graph coverage.
+4. Record validation evidence in `spec_manifest.yaml` and keep
+   `../desired_program_model/ticket_plan.yaml` synchronized.
+
+Do not model tests, test graph nodes, CI jobs, integration harnesses, or
+validation workflow mechanics as TLA+ state/actions. Those belong in manifest
+status, ticket evidence, or adapter validation commands.

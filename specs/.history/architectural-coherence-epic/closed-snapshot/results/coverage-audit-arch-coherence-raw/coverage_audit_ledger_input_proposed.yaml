@@ -1,0 +1,49 @@
+# PROPOSED workflow-ledger input for owner reconciliation (MF-026 gate,
+# architectural-coherence epic). ROUND 2 -- re-classified against the owner
+# scope amendment fa5762a (schedule_revision 4). Supersedes the round-1
+# `incomplete` block.
+#
+# NOT applied by the auditing agent: a gate that writes its own verdict into the
+# ledger it reports on is self-clearing, and the dispatching instruction
+# restricts this agent to its report and evidence.
+#
+# The verdict is FAIL. It refuses the workflow close. Do not promote and do not
+# rewrite it as a justification or a waiver -- the nine gaps are hard and there
+# is no fourth disposition.
+coverage_audit:
+  status: "fail"
+  report: "specs/results/coverage_audit_report_architectural_coherence.md"
+  in_scope_gaps: 9
+  out_of_model_inventoried: 441          # Sweep-1 rows; + 83 external-view items, + 5,402 history files
+  escalations: 4                          # 121 Sweep-1 rows still unclassifiable
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:220-240 (representation_scope), governed by :26-67 (semantic_model_rule incl. the standing proviso at :60-67) and :68-77 (representation_scope_rule), with the inventory rulings at :211-219"
+  model_audited: "specs/desired_program_model/TlaSpecDevCli.tla (byte-identical to specs/current/TlaSpecDevCli.tla)"
+  enumerations_commit: "3467051"
+  classification_commit: "fa5762a"
+  raw_evidence: "specs/results/coverage-audit-arch-coherence-raw/"
+  round_1:
+    status: "incomplete"
+    in_scope_gaps: 12
+    escalations: 7
+    note: "HALTED at Step 0; superseded by this round after the owner amendment answered all seven escalations."
+  gaps:
+    - "G-1  AnalyzeArchitecture has no effects.actions row in any of the three spec_manifest.yaml trees"
+    - "G-2  the architecture scan's --out writes (analyze_architecture.py:1114-1118, architecture_reflexion.py:2288-2292) are undeclared and unconstrained"
+    - "G-3  analyze complexity --out (analyze_complexity.py:2293-2294) has the same unconstrained write"
+    - "G-4  TlaSpecDevCli.tla:649 asserts the architecture scan only prints; it writes"
+    - "G-5  all three manifests state '9 variables and 15 actions' for a 10/16 model"
+    - "G-6  case-module generation is unrepresented -- no action, no port, no CLI subcommand [OWNER DECISION: model it]"
+    - "G-7  two manifest comments cite a ticket_plan.yaml amendment that does not exist; one is contradicted by the G-6 decision"
+    - "G-8  AC-04's architecture_delta and its four attribution verdicts have no modeled state"
+    - "G-9  the install path's effects are undeclared and cli_artifact (**/.venv/**) matches nothing either installer writes -- dead port, missing network.*, and a kill-test mutant seeded against it"
+  remaining_escalations:
+    - "ESC-8   specs/tickets/** (110 rows) -- covered by no representation_scope line; one line closes 110 of the 121"
+    - "ESC-9   specs/*/production_adapters.py and specs/*/adapter_case_runtime.py (6 rows) -- the spec-unit adapters, named by the PREDECESSOR plan and skipped by this amendment"
+    - "ESC-10  specs/results/** (5 rows) -- previous audits' own sweep tooling"
+    - "ESC-11  semantic_model_rule ruling (2) names a `generate` command the CLI does not have, and now contradicts the owner's G-6 decision"
+  coverage_limits_not_fixed_by_the_amendment:
+    - "No oracle has ever executed against this model: case_codegen.generation_status is `planned`, state_fields/actions/ports are empty, binding discovery returned 0. Every `declared` verdict is unchecked. G-9 is what that costs."
+    - "Effects and behaviors were found by pattern, not by execution."
+    - "Sweeps 2 and 3 still do not run over YAML/TLA/CFG; four of the nine gaps are manifest defects and none was produced by a sweep."
+  owner_reservation_on_record:
+    - "Inventorying the six guard-weakening flags under ruling (3) is legitimate and quoted, but it leaves the model proving ClosedTicketsPassedSpecUnitTests over 1,292,951 states while --accept-new and --allow-open exist to bypass exactly that precondition, with no oracle able to see the difference. Read the inventory row as a cost, not a clearance."

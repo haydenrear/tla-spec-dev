@@ -97,6 +97,13 @@ TICKET_DESIRED_READY = 2
 TICKET_CURRENT_READY = 3
 TICKET_SPEC_UNIT_PASSED = 4
 TICKET_CLOSED = 5
+# RC-01: the weakened close (CloseTicketWeakened). Mirrored here so the
+# constants remain the whole lifecycle, but note it is NOT reachable through
+# this seam: `materialize_before` already refuses every stage at or beyond
+# TICKET_SPEC_UNIT_PASSED as out-of-segment, and 6 is beyond it. Read the
+# ordinal through the model's TicketReached, never through `>=` -- 6 is the
+# HIGHEST number and certifies the LEAST.
+TICKET_CLOSED_WEAKENED = 6
 
 # MF-031: the two agent steps (UpdateTicketDesired / UpdateTicketCurrent) have no
 # CLI command -- they are the model's record of the human editing the ticket's

@@ -1,7 +1,9 @@
 # Map generated program-model action labels to production adapters.
 #
 # CD-09 (coverage-audit run 2, gap G5): this file binds EXACTLY the model's
-# @command action set -- all 14 actions of TlaSpecDevCli.tla, nothing else.
+# @command action set -- all 17 actions of TlaSpecDevCli.tla, nothing else
+# (AC-01 added the 15th, AnalyzeArchitecture; RC-01 added GenerateCases and
+# CloseTicketWeakened -- MF-026 G-6 and the guard-weakening flag decision).
 # The audit found 11 bindings for 14 actions plus `ValidateTestGraphCli`,
 # which is not a model action (it was a Test Graph CLI probe label; the
 # TestGraphCliAdapter class remains available to the test graph, unbound
@@ -40,6 +42,9 @@ adapter = "production_adapters:AnalyzeComplexityAdapter"
 [adapters.AnalyzeCorpus]
 adapter = "production_adapters:AnalyzeCorpusAdapter"
 
+[adapters.AnalyzeArchitecture]
+adapter = "production_adapters:AnalyzeArchitectureAdapter"
+
 [adapters.RunEffectConformance]
 adapter = "production_adapters:RunEffectConformanceAdapter"
 
@@ -51,3 +56,9 @@ adapter = "production_adapters:RunSpecUnitTestsAdapter"
 
 [adapters.CloseTicket]
 adapter = "production_adapters:CloseTicketAdapter"
+
+[adapters.GenerateCases]
+adapter = "production_adapters:GenerateCasesAdapter"
+
+[adapters.CloseTicketWeakened]
+adapter = "production_adapters:CloseTicketWeakenedAdapter"

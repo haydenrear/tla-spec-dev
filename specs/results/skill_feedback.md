@@ -1713,3 +1713,15 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - status: recorded-local
 
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow architectural-coherence-epic
+
+- close_scope: workflow
+- close_id: architectural-coherence-epic
+- workflow: architectural-coherence-epic
+- closed_at: 2026-08-04T00:54:24+00:00
+- summary: Architectural coherence and case modules: four architecture levers, case modules, two measured eval rounds, four MF-026 audit rounds, two reconciliation tickets, and a standardized scorecard baseline
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
