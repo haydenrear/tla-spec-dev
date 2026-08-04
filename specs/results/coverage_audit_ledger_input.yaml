@@ -1,7 +1,43 @@
-# Proposed workflow-ledger input for owner reconciliation. This audit is a
-# hard FAIL; do not promote or rewrite it as a justification/waiver.
+# PROPOSED workflow-ledger input for owner reconciliation (MF-026 gate,
+# architectural-coherence epic). ROUND 4 -- re-audited against RC-02 at ab0dfee.
+# Supersedes round 3's `fail`. NOT applied by the auditing agent.
+#
+# Verdict PASS. The gate no longer refuses the workflow close. Whether the epic
+# SHOULD close is an owner decision -- see `judgement` below, which is input to
+# that decision and not a gate condition.
 coverage_audit:
-  status: "fail"
-  report: "specs/results/coverage_audit_report.md"
-  in_scope_gaps: 12
-  scope_source: "specs/desired_program_model/ticket_plan.yaml:538-663"
+  status: "pass"
+  report: "specs/results/coverage_audit_report_architectural_coherence.md"
+  in_scope_gaps: 0
+  escalations: 0
+  gaps_created_by_the_remediation: 0
+  out_of_model_inventoried: 6170
+  scope_source: "specs/desired_program_model/ticket_plan.yaml:259-282 (representation_scope), governed by :26-96 (semantic_model_rule) and :97-106 (representation_scope_rule)"
+  model_audited: "specs/desired_program_model/TlaSpecDevCli.tla -- 11 variables, 18 Next disjuncts, 17 @command actions, 12 ports"
+  commit: "ab0dfee"
+  raw_evidence: "specs/results/coverage-audit-arch-coherence-raw/round4/"
+  history:
+    - "round 1 (b1fc5fe): incomplete, 12 gaps, 7 escalations (187 rows) -- HALTED at Step 0"
+    - "round 2 (b76eaf1): fail, 9 gaps, 4 escalations (121 rows)"
+    - "round 3 (31a6061): fail, 3 gaps, 0 escalations -- all 3 created by RC-01"
+    - "round 4 (this):   pass, 0 gaps, 0 escalations, 0 created by RC-02"
+  rc02_verification:
+    n1: "CLOSED (model it). 12 ports declared / 12 referenced by an action row / 12 annotated, in ALL THREE trees. DECLARED-BUT-UNUSED = NONE."
+    n2: "CLOSED (change the program). resolve_spec_tree_out at spec_paths.py:131 applied to --out and --dot; four in-repo callers moved, not exempted; the metadir rmtree is constrained by construction."
+    n3: "CLOSED (model it) and the class killed by a file-qualified, content-anchored citation check."
+    diff_swept_as_surface: "yes -- zero new effect sites; model semantics byte-identical after comment stripping in all three trees, so the state space is provably unmoved without re-running TLC."
+    forbidden_dispositions_used: 0
+  loop_termination:
+    convergent: true
+    rule: "New gaps scale with new MODELLED SURFACE, not with remediation. RC-01 added 2 actions + 1 variable + 4 ports + 1 subcommand and produced 3 gaps; RC-02 added none and produced none."
+    measured_price_of_coverage: "~1.5 new gaps and ~8x state space per remediation that adds model surface (1,292,951 -> 10,331,543 distinct; bound 9.53x)."
+  judgement_for_the_redirect:
+    remaining_unmodelled_surface: "BOOKKEEPING. None of it is load-bearing for case generation or for effect observation."
+    generation_blocker: "Already-modelled surface. `generate cases` on MCsmall -- the config built expressly to be tractable -- yields 3,678,217 cases and a 7.4 GB cases.py CPython cannot import, 18,391x the manifest's own cap. Closing coverage gaps grew the state space 7.99x and the corpus with it. Coverage and generation are directly opposed on this model."
+    oracle_blocker: "The process boundary, not coverage. 9 of 12 ports report dead; 0 of 14 stable gaps are effects of the action under test; all 14 are the adapter's precondition replay. effect_conformance.py patches the current interpreter only. No amount of added coverage moves this."
+    what_modelling_bought: "One real, otherwise-invisible defect in four rounds: ClosedTicketsPassedSpecUnitTests held over 1,292,951 states for the WRONG reason, because --accept-new's bypass was not in the state space. Reproduced independently with TLC in round 3."
+    recommendation: "The remaining gaps are bookkeeping and the number is zero. Close on it."
+  findings_recorded_not_counted_as_gaps:
+    - "F-1 [major, new this round] The effect oracle's gap count is NOT REPRODUCIBLE: 20 / 15 / 14 / 14 over four runs of an identical corpus against an identical tree (observed effects 57 / 67 / 50 / 50). Verdict, case count, port count, DEAD-PORT count (9) and exit code are stable. Mechanism: specs/current/.effect-conformance-work/ persists between runs, so a first run observes directory creation a later run does not. Contradicts EV-02 eval aim (3). Fidelity defect in scripts/effect_conformance.py, not a coverage gap."
+    - "F-2 [major, confirming RC-02] 0 of 14 gaps are program effects -- 13 are the adapter spawning tla_spec_dev.py to replay preconditions, 1 is the sandbox's own work dir. 9 of 12 ports dead because the sandbox does not cross the process boundary (effect_conformance.py:1141-1145). RC-02 characterised this correctly; this is independent reproduction."
+    - "F-3 [minor] ticket_plan.yaml:63 and :255 say '72 of the 78 options' and 'five group subcommands'; the surface is 82 options, 11 positionals and six group subcommands. The RULE covers them; the appended arithmetic drifted. Fourth consecutive ticket to ship a stale internal figure, and test_source_citations.py does not cover the plan's counts."

@@ -1519,8 +1519,8 @@ findings:
       shaped like it. Nothing gates on it (the epic's coherence_doctrine keeps
       the scanner advisory), so no close, promotion or generation changes
       behaviour.
-    disposition: open
-    disposition_ticket: null
+    disposition: carried
+    disposition_ticket: "HP-02"
     disposition_note: >-
       Filed by RC-01 rather than fixed. RC-01 verified the flip is caused by the
       model delta and not by any change to the scanner: `git stash` of the
@@ -1598,8 +1598,8 @@ findings:
       depends on it. The cost is that a class of desync -- model grows, adapters
       do not -- is undetectable in the desired tree, which is precisely the tree
       a ticket is supposed to author FIRST.
-    disposition: open
-    disposition_ticket: null
+    disposition: carried
+    disposition_ticket: "HP-01"
     disposition_note: >-
       The desync itself is repaired in RC-01 (desired's adapter layer, bindings
       and tests are now byte-identical to current's, and the reconciliation test
@@ -1658,7 +1658,7 @@ findings:
       but a close following a `--validate-only` run is recorded as a GUARDED
       close, so the invariant's scope is slightly wider in the record than it is
       in fact. Three flags of six are covered; before RC-01 it was zero of six.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Recorded on TlaSpecDevCli.tla's CloseTicketWeakened as a named limit of
@@ -1733,7 +1733,7 @@ findings:
       not have been. The cost is to the record: the standing objective's own
       history cannot show the reachable-state trajectory of the epic that grew
       the model most.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Found by RC-01 while checking that its own 7.99x had landed in the ledger.
@@ -1799,7 +1799,7 @@ findings:
       into a gap and cannot make a dead port live -- `diff_effects` computes
       dead surface globally over declared ports and gaps per action -- so the
       current rows are conservative in the safe direction.
-    disposition: open
+    disposition: carried
     disposition_ticket: null
     disposition_note: >-
       Recorded in the manifest comment beside the row RC-02 did change, so the
@@ -1860,8 +1860,8 @@ findings:
       survived even after RC-01 made the corpus path reachable: the first
       operator to try it hits an import error and cannot tell whether the
       oracle or their project is at fault.
-    disposition: open
-    disposition_ticket: null
+    disposition: carried
+    disposition_ticket: "HP-04"
     disposition_note: >-
       Found by running the command, not by reading it. Three MF-026 audit
       rounds read this file and none could have seen this.
@@ -1920,8 +1920,8 @@ findings:
       an abort rather than a partial report for any corpus that is not
       hand-restricted to those 8. Every dead-port finding this oracle produces
       for this repository is therefore a statement about a third of the model.
-    disposition: open
-    disposition_ticket: null
+    disposition: carried
+    disposition_ticket: "HP-04"
     disposition_note: >-
       RC-02's own evidence corpus is restricted to the 8 executable actions for
       this reason, and says so where it is used.
@@ -1984,8 +1984,92 @@ findings:
       model to execute, the kill test's corpus command has nothing to run, and
       every `declared` verdict about this model remains a declaration checked
       only by the always-on manifest tests.
-    disposition: open
-    disposition_ticket: null
+    disposition: carried
+    disposition_ticket: "HP-03"
     disposition_note: >-
       RC-02 deliberately left `generation_status: planned`. Moving it would
       have asserted the thing this finding disproves.
+
+  - id: MF026-R4-F-01
+    found_by: "MF-026 coverage audit round 4"
+    found_at_commit: "ab0dfee"
+    schedule_revision: 7
+    severity: major
+    surface:
+      production: ["scripts/effect_conformance.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE EFFECT ORACLE'S GAP COUNT IS NOT REPRODUCIBLE. Identical corpus,
+      identical tree, identical documented command, three runs: 20 gaps / 15
+      gaps / 14 gaps -- a 43% spread on the number that would gate. Stable
+      across all runs: the `unobservable` verdict, 8 cases, 12 declared ports,
+      9 dead ports, exit 1. Unstable: the observed-effect count (57 / 67 / 50)
+      and the gap count. Mechanism identified by the auditor:
+      `specs/current/.effect-conformance-work/` PERSISTS BETWEEN RUNS, so a
+      first run observes directory creation that a later run does not.
+    reproduction: >-
+      Run `python3 scripts/tla_spec_dev.py --spec-root specs run
+      effect-conformance --cases-dir <corpus>` three times without deleting
+      `specs/current/.effect-conformance-work/` in between.
+    evidence:
+      - "specs/results/coverage-audit-arch-coherence-raw/round4/"
+      - "specs/results/rc02-effect-conformance/"
+    why_out_of_scope: >-
+      MF-026 measures COMPLETENESS of what is modeled; this is a FIDELITY defect
+      in the oracle. The auditor deliberately did not count it as a gap, because
+      counting it would have inflated the verdict with a defect of a different
+      kind. Found by RERUNNING rather than by asserting.
+    suggested_fix: >-
+      Clear or namespace the work directory per run, and make the observed-effect
+      set a function of the corpus alone. Until then no gap count from this
+      oracle may be quoted as a measurement.
+    blast_radius: >-
+      Directly contradicts EV-02 eval aim (3), determinism -- "the same aspect,
+      rerun, produces the same corpus and the same verdict". The dead-port half
+      IS stable, so RC-02's N-1 counterfactual, which leaned on dead ports,
+      survives. Any future claim resting on the GAP count does not.
+    disposition: carried
+    disposition_ticket: "HP-03"
+    disposition_note: >-
+      Filed by the owner from the round-4 report; the auditor reported it and
+      did not file it. Load-bearing for the successor epic, whose whole subject
+      is the generator and the oracle.
+
+  - id: MF026-R4-F-03
+    found_by: "MF-026 coverage audit round 4"
+    found_at_commit: "ab0dfee"
+    schedule_revision: 7
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Stale internal arithmetic in the plan itself. `ticket_plan.yaml` says "72
+      of the 78 options" and "five group subcommands"; the shipped surface is 82
+      options and six group subcommands. The RULE covers them correctly -- only
+      the arithmetic drifted. This is the FOURTH CONSECUTIVE TICKET to ship a
+      stale internal figure, and RC-02's new content-anchored citation checker
+      does not cover the plan's counts.
+    reproduction: >-
+      Compare `ticket_plan.yaml` semantic_model_rule (3) and service_catalog
+      known_gaps against the argparse tree enumerated by
+      `specs/results/coverage-audit-arch-coherence-raw/round4/`.
+    evidence:
+      - "specs/results/coverage_audit_report_architectural_coherence.md"
+    why_out_of_scope: >-
+      A planning-document figure, not program surface. It changes no verdict:
+      the ruling it appears in covers the whole option set either way.
+    suggested_fix: >-
+      Extend the citation checker to counts asserted in planning documents, or
+      stop asserting counts in prose that a command can print.
+    blast_radius: >-
+      None to behavior. The pattern is the finding: four tickets running, every
+      shipped figure that nothing checks has drifted.
+    disposition: carried
+    disposition_ticket: null
+    disposition_note: >-
+      Filed by the owner from the round-4 report.

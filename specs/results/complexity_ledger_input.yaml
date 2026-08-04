@@ -1,77 +1,101 @@
-# Complexity ledger input — workflow close of complexity-descriptor-main-readiness
-# (owner-authored 2026-07-23). Zero TLA+ model delta across the entire
-# workflow: CD-04..CD-08 were all zero-delta by design, and the
-# effect-provider merge (86865d2) carried zero host-model delta. TLC at
-# close: 6,209,780 generated / 283,805 distinct / depth 25 — identical to the
-# CD-11 baseline the previous workflow closed on.
-
+# Workflow-ledger input. The coverage_audit block is the MF-026 round-4
+# verdict for the architectural-coherence epic, replacing a STALE block
+# carried over from the complexity-descriptor-main-readiness close.
 retention:
-  # Direction: unchanged — these members are recorded, not gating. The
-  # fuzzing-era members remain EXPERIMENTAL and not run; the validated-refactor
-  # basis (CD-09) is the licensing basis for decreases, and no decrease is
-  # claimed here.
   kill_rate:
-    status: "not_run"
-    evidence: "EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md) — recorded as context, not as this repository's kill rate."
+    status: not_run
+    evidence: 'EXPERIMENTAL per the pivot; no decrease claimed. NOTE: the merged effect-provider evals
+      measured 36/36 preregistered mutant kills on their three fixtures (examples/effect_providers/RESULTS.md)
+      — recorded as context, not as this repository''s kill rate.'
   effect_conformance:
-    status: "not_run"
-    evidence: "EXPERIMENTAL per the pivot; no decrease claimed."
+    status: not_run
+    evidence: EXPERIMENTAL per the pivot; no decrease claimed.
   external_coverage:
-    status: "not_run"
-    evidence: "EXPERIMENTAL per the pivot; no decrease claimed."
-
+    status: not_run
+    evidence: EXPERIMENTAL per the pivot; no decrease claimed.
 coverage_audit:
-  # Close-2 audit, 2026-07-23: fresh full enumeration (572 surface files, 13
-  # category/behavior sweeps, raws in specs/results/finalization/sweep-raw-close2/).
-  # Zero in-scope gaps; modeled-surface spot-verification confirms the eleven
-  # zero-model-delta claims (model files byte-identical to 5f84937; 688 repo
-  # units + 67 spec-unit conformance cases green fresh at HEAD). One advisory
-  # escalation surfaced for owner text, NOT resolved by the audit: ESC-C2-1 —
-  # the successor plan does not restate the predecessor's recorded rulings
-  # (PS:597-599 + semantic_model_rule amendments), which this audit quoted
-  # from the sealed complexity-descriptor-epic closed-snapshot per the
-  # dispatching instruction; fold them into the plan to make the gate's scope
-  # self-contained.
-  status: "pass"
-  report: "specs/results/finalization/coverage_audit_report_close2.md"
+  status: pass
+  report: specs/results/coverage_audit_report_architectural_coherence.md
   in_scope_gaps: 0
-  scope_source: "specs/desired_program_model/ticket_plan.yaml:49,:53,:63-82,:128-132,:199-202,:270-273,:338-340,:419-425 (schedule_revision 2, :80 AMENDED 2026-07-23) + specs/.history/complexity-descriptor-epic/closed-snapshot/snapshots/desired_program_model/ticket_plan.yaml:520-562,:576-599 (recorded owner rulings, incorporated per plan header :7-8 and dispatch; see ESC-C2-1)"
-
-justification: ""
-
-transition_diff: ""
-
+  escalations: 0
+  gaps_created_by_the_remediation: 0
+  out_of_model_inventoried: 6170
+  scope_source: specs/desired_program_model/ticket_plan.yaml:259-282 (representation_scope), governed
+    by :26-96 (semantic_model_rule) and :97-106 (representation_scope_rule)
+  model_audited: specs/desired_program_model/TlaSpecDevCli.tla -- 11 variables, 18 Next disjuncts, 17
+    @command actions, 12 ports
+  commit: ab0dfee
+  raw_evidence: specs/results/coverage-audit-arch-coherence-raw/round4/
+  history:
+  - 'round 1 (b1fc5fe): incomplete, 12 gaps, 7 escalations (187 rows) -- HALTED at Step 0'
+  - 'round 2 (b76eaf1): fail, 9 gaps, 4 escalations (121 rows)'
+  - 'round 3 (31a6061): fail, 3 gaps, 0 escalations -- all 3 created by RC-01'
+  - 'round 4 (this):   pass, 0 gaps, 0 escalations, 0 created by RC-02'
+  rc02_verification:
+    n1: CLOSED (model it). 12 ports declared / 12 referenced by an action row / 12 annotated, in ALL THREE
+      trees. DECLARED-BUT-UNUSED = NONE.
+    n2: CLOSED (change the program). resolve_spec_tree_out at spec_paths.py:131 applied to --out and --dot;
+      four in-repo callers moved, not exempted; the metadir rmtree is constrained by construction.
+    n3: CLOSED (model it) and the class killed by a file-qualified, content-anchored citation check.
+    diff_swept_as_surface: yes -- zero new effect sites; model semantics byte-identical after comment
+      stripping in all three trees, so the state space is provably unmoved without re-running TLC.
+    forbidden_dispositions_used: 0
+  loop_termination:
+    convergent: true
+    rule: New gaps scale with new MODELLED SURFACE, not with remediation. RC-01 added 2 actions + 1 variable
+      + 4 ports + 1 subcommand and produced 3 gaps; RC-02 added none and produced none.
+    measured_price_of_coverage: ~1.5 new gaps and ~8x state space per remediation that adds model surface
+      (1,292,951 -> 10,331,543 distinct; bound 9.53x).
+  judgement_for_the_redirect:
+    remaining_unmodelled_surface: BOOKKEEPING. None of it is load-bearing for case generation or for effect
+      observation.
+    generation_blocker: Already-modelled surface. `generate cases` on MCsmall -- the config built expressly
+      to be tractable -- yields 3,678,217 cases and a 7.4 GB cases.py CPython cannot import, 18,391x the
+      manifest's own cap. Closing coverage gaps grew the state space 7.99x and the corpus with it. Coverage
+      and generation are directly opposed on this model.
+    oracle_blocker: The process boundary, not coverage. 9 of 12 ports report dead; 0 of 14 stable gaps
+      are effects of the action under test; all 14 are the adapter's precondition replay. effect_conformance.py
+      patches the current interpreter only. No amount of added coverage moves this.
+    what_modelling_bought: 'One real, otherwise-invisible defect in four rounds: ClosedTicketsPassedSpecUnitTests
+      held over 1,292,951 states for the WRONG reason, because --accept-new''s bypass was not in the state
+      space. Reproduced independently with TLC in round 3.'
+    recommendation: The remaining gaps are bookkeeping and the number is zero. Close on it.
+  findings_recorded_not_counted_as_gaps:
+  - 'F-1 [major, new this round] The effect oracle''s gap count is NOT REPRODUCIBLE: 20 / 15 / 14 / 14
+    over four runs of an identical corpus against an identical tree (observed effects 57 / 67 / 50 / 50).
+    Verdict, case count, port count, DEAD-PORT count (9) and exit code are stable. Mechanism: specs/current/.effect-conformance-work/
+    persists between runs, so a first run observes directory creation a later run does not. Contradicts
+    EV-02 eval aim (3). Fidelity defect in scripts/effect_conformance.py, not a coverage gap.'
+  - F-2 [major, confirming RC-02] 0 of 14 gaps are program effects -- 13 are the adapter spawning tla_spec_dev.py
+    to replay preconditions, 1 is the sandbox's own work dir. 9 of 12 ports dead because the sandbox does
+    not cross the process boundary (effect_conformance.py:1141-1145). RC-02 characterised this correctly;
+    this is independent reproduction.
+  - F-3 [minor] ticket_plan.yaml:63 and :255 say '72 of the 78 options' and 'five group subcommands';
+    the surface is 82 options, 11 positionals and six group subcommands. The RULE covers them; the appended
+    arithmetic drifted. Fourth consecutive ticket to ship a stale internal figure, and test_source_citations.py
+    does not cover the plan's counts.
+justification: ''
+transition_diff: ''
 refinement:
   searched: true
-  outcome: "none"
-  detail: >-
-    Searched at workflow scope: the model is unchanged (TLC byte-identical to
-    the CD-11 baseline through CD-04..08, the effect-provider merge, and the
-    owner spot fixes). Refinement THIS workflow earned happened on the
-    validation examples, not this model: run-3/run-4 agents took validated
-    refactors on taskq (424 -> 63 distinct via the corpus-priced
-    representation fix) and order_hub (bound 8,388,608 -> 624, four
-    convergent runs), evidence under examples/validation/runs/.
+  outcome: none
+  detail: 'Searched at workflow scope: the model is unchanged (TLC byte-identical to the CD-11 baseline
+    through CD-04..08, the effect-provider merge, and the owner spot fixes). Refinement THIS workflow
+    earned happened on the validation examples, not this model: run-3/run-4 agents took validated refactors
+    on taskq (424 -> 63 distinct via the corpus-priced representation fix) and order_hub (bound 8,388,608
+    -> 624, four convergent runs), evidence under examples/validation/runs/.'
   applied: false
-  approved_by: ""
-
-narrative: >-
-  Workflow close of complexity-descriptor-main-readiness, the promotion
-  gate for merging to main. The batch (CD-04..08, PRs #94-#98) removed every
-  negative side effect the six earlier validation runs catalogued: the corpus
-  gate now states measurements and asks the redesign question; the
-  descriptor's domain resolution and R/W attribution are accurate on the
-  standard patterns real agents write; every surface speaks the advisory
-  doctrine; the shipped example passes its own documented workflow.
-  The effect-provider epic then merged (86865d2 + integration) with zero
-  host-model delta, adding the agent-authored provider runtime whose evals
-  reproduced here (80/80 tests; atomic_publisher and reminder_worker fresh
-  validations pass), and the composed surface was validated by run 4:
-  content-asserting providers killed the exact bug class the MF-038 probe
-  measured at 0/9 (taskq: 45/45 points, exact replay; order_hub: two probes;
-  distributed_history: one-boundary migration with the legacy path proven).
-  Four adoption-path defects were owner spot-fixed with regression tests
-  (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog carried as
-  #112-#115. Measured alternatives and the findings the machine-checked core
-  cannot express live in examples/validation/runs/ and the run 2-5 audit
-  reports of the predecessor workflow, all sealed.
+  approved_by: ''
+narrative: 'Workflow close of complexity-descriptor-main-readiness, the promotion gate for merging to
+  main. The batch (CD-04..08, PRs #94-#98) removed every negative side effect the six earlier validation
+  runs catalogued: the corpus gate now states measurements and asks the redesign question; the descriptor''s
+  domain resolution and R/W attribution are accurate on the standard patterns real agents write; every
+  surface speaks the advisory doctrine; the shipped example passes its own documented workflow. The effect-provider
+  epic then merged (86865d2 + integration) with zero host-model delta, adding the agent-authored provider
+  runtime whose evals reproduced here (80/80 tests; atomic_publisher and reminder_worker fresh validations
+  pass), and the composed surface was validated by run 4: content-asserting providers killed the exact
+  bug class the MF-038 probe measured at 0/9 (taskq: 45/45 points, exact replay; order_hub: two probes;
+  distributed_history: one-boundary migration with the legacy path proven). Four adoption-path defects
+  were owner spot-fixed with regression tests (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog
+  carried as #112-#115. Measured alternatives and the findings the machine-checked core cannot express
+  live in examples/validation/runs/ and the run 2-5 audit reports of the predecessor workflow, all sealed.'
