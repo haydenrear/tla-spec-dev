@@ -1773,3 +1773,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-05
+
+- close_scope: ticket
+- close_id: HP-05
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T15:28:40+00:00
+- summary: Content assertion is the default: codegen generates and binds the content-asserting effect provider, every mapping states its oracles unprompted, and M04 moves from surviving every corpus to dying under the default mapping (durable_content 1 of 2 -> 2 of 2). The generator is still worse than the suite, now by one mutant instead of two.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

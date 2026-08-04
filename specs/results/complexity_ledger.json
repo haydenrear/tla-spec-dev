@@ -12428,6 +12428,199 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "HP-05",
+      "workflow": "hexagonal-prompting-epic",
+      "recorded_at_utc": "2026-08-04T15:28:40.883569+00:00",
+      "metrics": {
+        "variables": 11,
+        "actions": 18,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 26671680,
+        "bound_complete": false,
+        "bound_resolved_variables": 9,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.011604840309462296,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 26671680,
+            "bound_complete": false,
+            "percent_lower_bound": 2667.2,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "HP-04",
+        "metrics": {
+          "variables": {
+            "before": 11,
+            "after": 11,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 18,
+            "after": 18,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 26671680,
+            "after": 26671680,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "specs/tickets/HP-05/results/kill-table-mapping.json, specs/tickets/HP-05/results/kill-table-comparison.txt -- durable_content 1 of 2 under a silent mapping, 2 of 2 under the checking one",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "HP-04-DF-04; specs/tickets/HP-05 holds 63 authored files and no .effect-conformance-work tree",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/ticket/results/tlc-current-mcsmall.txt -- the epic tip this ticket branched from",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/tickets/HP-05/results/tlc-current-mcsmall.txt",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/HP-05/results/pytest-full.txt -- 1130 passed (1115 at the epic tip + this ticket's 15)",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/HP-05/results/zero-model-delta.txt -- 3,678,218 states generated / 118,573 distinct BEFORE and AFTER, the same two figures to the digit",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched, and the candidate was rejected on measurement. HP-05 adds no TLA+ construct, so there is no representation to refine; the refinement question available to this ticket is whether the `content:` declaration could be DERIVED instead of written, which would remove the one thing a project author still supplies. Three routes were considered and all three fail on this fixture. (1) Compare the durable artifact against the modeled state field the port writes: the model's COMMIT element is << \"COMMIT\", holder[r], amt[r] >> and carries no running total, so the comparison is blind to M04 by construction -- which is exactly why M04 survived both of HP-03's corpora. (2) Auto-correspond payload fields to after-state variables by NAME: the fixture's payload fields are `kind`, `tenant`, `amount`, `total` and the model's variables are `available`, `committed`, `closed`, `live`, `holder`, `amt`, `ledger`; not one name matches, and `total` refines `committed[tenant]`, which no naming rule recovers. (3) Infer the refinement from the implementation's line format: that is reading the code under test to build the oracle for the code under test, and it agrees with itself by construction (MF-028 lost a spike to exactly that shape). So the sentence stays authored. What HP-05 removed is the PROVIDER around it, which was the part every author wrote from scratch and the part the measured failure was in.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/HP-05/results/narrative.md",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

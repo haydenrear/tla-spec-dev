@@ -853,6 +853,113 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def default_binding_block(manifest: dict[str, Any]) -> str:
+    """The `[effect_providers.*]` tables codegen binds by default."""
+    package = str(manifest["package"])
+    lines = [
+        "\n# WRITTEN BY CODEGEN (generate_python.py). Content assertion is the DEFAULT.\n",
+        "# Rebinding a port to its generated `silent_*_provider` is allowed and is\n",
+        "# ANNOUNCED on every run, because a mapping with no durable-write oracle\n",
+        "# produces kills that are a floor rather than a total.\n",
+    ]
+    for port_name in effect_ports(manifest):
+        lines.append(f"\n[effect_providers.{port_name}]\n")
+        lines.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
+    return "".join(lines)
+
+
+def bind_default_providers(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+    """Add a default content-asserting binding for every unbound effect port.
+
+    ADVISORY, and additive only. It never rewrites, reorders or removes a line
+    somebody wrote: a port that already has an `[effect_providers.<Port>]` table
+    is left exactly as it is, whichever provider that table names. The point is
+    that the DEFAULT stops being "nothing", not that the author loses the choice.
+    """
+    ports = effect_ports(manifest)
+    if not ports or not mapping_path.is_file():
+        return []
+    text = mapping_path.read_text(encoding="utf-8")
+    missing = [name for name in ports if f"[effect_providers.{name}]" not in text]
+    if not missing:
+        return []
+    package = str(manifest["package"])
+    additions = ["\n# WRITTEN BY CODEGEN (generate_python.py): content assertion is the DEFAULT.\n"]
+    for port_name in missing:
+        additions.append(f"\n[effect_providers.{port_name}]\n")
+        additions.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
+    mapping_path.write_text(text.rstrip("\n") + "\n" + "".join(additions), encoding="utf-8")
+    return missing
+
+
+def mapping_audit(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+    """What oracles this mapping carries, and -- louder -- which it does not.
+
+    A report, never a gate. Nothing here refuses, and a project with no durable
+    side at all produces a single line saying so.
+    """
+    ports = effect_ports(manifest)
+    boundaries = declared_effect_boundaries(manifest)
+    if not ports and not boundaries:
+        return [f"{ANNOUNCE_PREFIX} mapping {mapping_path}: no effect ports declared; no durable-write oracle is expected."]
+
+    bound: dict[str, str] = {}
+    if mapping_path.is_file():
+        text = mapping_path.read_text(encoding="utf-8")
+        current: str | None = None
+        for raw in text.splitlines():
+            line = raw.strip()
+            if line.startswith("[effect_providers.") and line.endswith("]"):
+                current = line[len("[effect_providers.") : -1]
+            elif current and line.startswith("provider"):
+                _, _, value = line.partition("=")
+                bound[current] = value.strip().strip('"').strip("'")
+                current = None
+
+    report = [f"{ANNOUNCE_PREFIX} mapping {mapping_path}"]
+    for port_name, port in ports.items():
+        kind = str(port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect")
+        content = port_content_spec(port)
+        reference = bound.get(port_name)
+        if reference is None:
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared "
+                f"role: effect but this mapping binds no provider to it. {NO_ORACLE_SENTENCE}"
+            )
+        elif reference.endswith(silent_provider_symbol(port_name)):
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to the "
+                f"SILENT provider {reference}. {NO_ORACLE_SENTENCE}"
+            )
+        elif not content:
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to "
+                f"{reference}, which records every crossing but declares no `content:` block, so no "
+                f"payload field is compared to anything. {NO_ORACLE_SENTENCE}"
+            )
+        else:
+            fields = sorted(
+                f"{method}.{field} == {expression}"
+                for method, spec in content.items()
+                for field, expression in spec.items()
+            )
+            report.append(
+                f"{ANNOUNCE_PREFIX} DURABLE-WRITE ORACLE ACTIVE: {port_name} (kind: {kind}) is bound to "
+                f"{reference}, asserting {len(fields)} content field(s) against the modeled after-state: "
+                + "; ".join(fields)
+            )
+    for port_name, spec in boundaries.items():
+        if port_name in ports:
+            continue
+        kind = str(spec.get("kind") or "effect")
+        report.append(
+            f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared under "
+            f"`effects:` but has no `ports:` entry with role: effect, so no provider can be bound to it "
+            f"and nothing reads what crosses it. {NO_ORACLE_SENTENCE}"
+        )
+    return report
+
+
 def generate(manifest_path: Path, out_dir: Path) -> Path:
     manifest = load_manifest(manifest_path)
     errors = validate_manifest(manifest, manifest_path)
@@ -871,6 +978,9 @@ def generate(manifest_path: Path, out_dir: Path) -> Path:
         "contract_tests.py": render_contract_tests(manifest, manifest_path),
         "docs.md": render_docs(manifest, manifest_path),
     }
+    if effect_ports(manifest):
+        files["effect_providers.py"] = render_effect_providers(manifest, manifest_path)
+        write(out_dir / "case_adapters.effects.toml", default_binding_block(manifest).lstrip("\n"))
     for filename, content in files.items():
         write(package_dir / filename, content)
     return package_dir
@@ -880,10 +990,26 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--mapping",
+        type=Path,
+        help="Adapter mapping to bind default providers into. Defaults to case_adapters.toml beside the manifest.",
+    )
     args = parser.parse_args()
 
     package_dir = generate(args.manifest, args.out)
     print(f"generated {package_dir}")
+
+    manifest = load_manifest(args.manifest)
+    mapping_path = args.mapping or args.manifest.parent / "case_adapters.toml"
+    for port_name in bind_default_providers(manifest, mapping_path):
+        print(
+            f"{ANNOUNCE_PREFIX} bound {port_name} to its generated content-asserting provider "
+            f"in {mapping_path} (nobody had to configure it)"
+        )
+    # Unprompted, every time, whether or not anybody asked for a report.
+    for line in mapping_audit(manifest, mapping_path):
+        print(line)
     return 0
 
 

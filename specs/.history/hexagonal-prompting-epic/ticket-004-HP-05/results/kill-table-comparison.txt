@@ -1,0 +1,109 @@
+HP-05 -- ONE CORPUS, THREE MAPPINGS. Per class, per instrument.
+================================================================
+
+Every column names its mapping. There is no aggregate kill rate here and none
+may be computed: an average over classes whose whole point is that they behave
+differently is a number about nothing (HP-01's catalogue header).
+
+Catalogue  examples/validation/ab/seeded_faults.toml (HP-01's, unamended)
+Corpus     the whole-view corpus, 43,128 cases, 3,440 executable
+Reference  examples/validation/ab/reference/quota_ledger.py (NOT an arm)
+
+  map-none      specs/tickets/HP-05/measure/case_adapters.map-none.toml
+                no [effect_providers.*] table.        NO DURABLE-WRITE ORACLE
+  map-silent    ...case_adapters.map-silent.toml
+                the generated silent provider.        NO DURABLE-WRITE ORACLE
+  map-checking  ...case_adapters.map-checking.toml
+                the generated content-asserting provider -- and this is the
+                one scripts/generate_python.py now writes BY DEFAULT.
+  suite         examples/validation/ab/tests/test_behavior.py (hand-written)
+
+CONTROLS -- all four green on the unmutated reference. A red control makes
+every kill below unreadable.
+  map-none      43,128 cases / 3,440 ran / 39,688 skipped / 0 failed on green
+  map-silent    43,128 cases / 3,440 ran / 39,688 skipped / 0 failed on green
+  map-checking  43,128 cases / 3,440 ran / 39,688 skipped / 0 failed on green
+  suite         0 failed on green
+
+PER CLASS
+  class              n   map-none   map-silent   map-checking   suite
+  cross_aspect       1     1 of 1       1 of 1         1 of 1    1 of 1
+  durable_content    2     1 of 2       1 of 2         2 of 2    2 of 2
+  guard_relaxation   3     0 of 3       0 of 3         0 of 3    3 of 3
+  ordering           1     1 of 1       1 of 1         1 of 1    1 of 1
+  output_oracle      1     1 of 1       1 of 1         1 of 1    1 of 1
+  wrong_value        2     1 of 2       1 of 2         1 of 2    2 of 2
+
+PER MUTANT
+  M01-guard-zero-amount                       S    S    S    K
+  M02-guard-over-quota                        S    S    S    K
+  M03-guard-close-with-outstanding            S    S    S    K
+  M04-durable-stale-total                     S    S    K    K   <-- THE CELL
+  M05-durable-close-line-zero-and-swallowed   K    K    K    K
+  M06-wrong-status-on-release                 K    K    K    K
+  M07-positive-control-wrong-hold             S    S    S    K
+  M08-cross-aspect-commit-refunds-the-hold    K    K    K    K
+  M09-negative-control-ledger-order           K    K    K    K
+  M10-apply-only-double-refund                K    K    K    K
+                                            (map-none / map-silent /
+                                             map-checking / suite)
+
+THE REPRODUCTION CONTROL, and it is why map-none is in the table at all.
+HP-03's `corpus-whole` column, over the same catalogue and the same reference:
+
+  M01 S  M02 S  M03 S  M04 S  M05 K  M06 K  M07 S  M08 K  M09 K  M10 K
+
+map-none reproduces it cell for cell, all ten. The seam this instrument
+installs -- routing the durable append through the port while still writing the
+file -- did not change the baseline, so the map-checking column can be read as a
+mapping effect and nothing else.
+
+THE RESULT, stated narrowly.
+  * The mapping choice is worth EXACTLY ONE CELL on this catalogue: M04, and
+    only M04. map-checking and map-silent are otherwise identical in all ten
+    rows.
+  * durable_content moves 1 of 2 -> 2 of 2 under the checking mapping. That is
+    the third independent reproduction of the checking/silent split (round 1
+    and round 2 at 2 of 6 vs 4 of 6 on ex4; a blind agent at 3 of 3 vs 0 of 3
+    on a fresh 16-mutant catalogue) and the first on this fixture.
+  * The mapping cost nothing anywhere: map-checking >= map-none in every one of
+    the ten rows. The guard on GOAL-catch-bugs holds.
+
+AND THE PART THAT IS UNFLATTERING TO THE HEADLINE.
+
+M05 WAS ALREADY A CORPUS KILL. The dispatch brief said M04 and M05 "both
+currently survive both corpora and die only on the hand-written suite." That is
+true of M04 and false of M05: HP-03's own committed kill table records M05 as
+KILLED by corpus-whole, and this run reproduces it under all three mappings
+including map-none. The reason is in the model -- the CLOSE element is
+<< "CLOSE", t, committed[t] >>, so its third slot IS the total and the ordinary
+projected-state comparison already sees a zeroed one. Only the COMMIT element
+(<< "COMMIT", holder[r], amt[r] >>) drops the total, and only M04 lives there.
+So the durable_content row was 1 of 2 before this ticket, not 0 of 2, and the
+honest claim is ONE mutant moved, not two.
+
+M07 STILL SURVIVES EVERY CORPUS INSTRUMENT. It is the catalogue's declared
+POSITIVE CONTROL -- it is supposed to die everywhere -- and it does not,
+because it is seeded inside reserve() and Reserve contributes zero executable
+cases (HP-03 measured this and filed it). Nothing in HP-05 touches that, and by
+the catalogue's own P05 doctrine the wrong_value row is not citeable as a clean
+kill measurement while its control is red.
+
+GUARD RELAXATION IS 0 of 3 IN EVERY COLUMN HERE, including map-checking. That
+is expected and is not a regression: the whole-view corpus contains no rejected
+input at all, and the class is HP-03's negative corpus's, not this ticket's.
+
+THE STANDING COMPARISON, which HP-05 improves and does not win.
+  hand-written suite                                   10 of 10
+  whole-view corpus, map-none / map-silent              5 of 10
+  whole-view corpus, map-checking                       6 of 10
+  whole-view (map-checking) + HP-03's negative corpus   9 of 10   (was 8 of 10)
+
+THE GENERATOR IS STILL WORSE THAN A SUITE WRITTEN IN AN AFTERNOON. The gap
+narrows from two mutants to one. The one that remains is M07, the positive
+control, which is a corpus-executability problem rather than an oracle problem.
+
+PER ARM: NOT MEASURABLE AT HP-05, for the same reason HP-03 recorded. The arms
+are implementations the A/B produces at HP-06 and neither has any code yet.
+Every number above is on the fixture's reference implementation, which is
+explicitly not an arm.
