@@ -6,6 +6,13 @@
 - **Date:** 2026-08-04
 - **Verdict:** **`FAIL`**
 
+> **ROUND 2 IS AT THE END OF THIS FILE.** Re-verified at `0a05eed` after the
+> owner's closure: **G-1 closed** (by a declaration I argue is the wrong width),
+> **G-2 still open** (the new port's glob cannot match the spawn it declares),
+> **G-3 retired** (verified against the standing proviso), **escalations 0**.
+> Round-2 verdict `FAIL`, 1 in-scope gap. Everything below this line is round 1
+> at `f431c62` and is preserved unedited.
+
 > This audit checks **completeness of what is modeled**, not fidelity. The four
 > oracles are bounded to what is already represented and cannot see this class
 > of defect. See `prompts/coverage_audit.md`.
@@ -852,3 +859,405 @@ The proposed ledger block is at
 `specs/results/coverage-audit-hexagonal-prompting-raw/coverage_audit_ledger_input_proposed.yaml`
 and is **NOT applied**. A gate that edits the ledger it reports into is the
 self-clearing this doctrine forbids.
+
+---
+---
+
+# ROUND 2 — targeted re-verification at `0a05eed`
+
+- **Scope source:** `specs/desired_program_model/ticket_plan.yaml:102-146` (`representation_scope` @ schedule_revision 3, commit `475bc9a`)
+- **Model audited:** `specs/program_model/TlaSpecDevCli.tla` @ `0a05eed` — 11 variables, 18 `Next` disjuncts, 17 `@command` actions, **14 ports**
+- **Date:** 2026-08-04
+- **Verdict:** **`FAIL`** — 1 of 3 gaps remains open
+
+Targeted, not a fresh sweep: round 1's enumerations stand, and the model
+semantics have not moved. What was re-run is listed in §R8.
+
+| | round 1 (`f431c62`) | **round 2 (`0a05eed`)** |
+|---|---|---|
+| Verdict | `fail` | **`fail`** |
+| In-scope gaps | 3 | **1** |
+| Escalations | 3 | **0** |
+| Row set | 14,575 | **14,658** |
+| In-model surface | 52 | **57** |
+| Declared ports | 12 | **14** |
+| **Dead ports (oracle)** | **9** | **11** |
+| Suite (clean tree) | 1,122 | **1,123** — and the `+1` is my own round-1 evidence file, not a new test (§R6) |
+
+---
+
+## R1. G-1 — **CLOSED**, by a declaration I think is the wrong width
+
+**Status: closed as a coverage gap. Not closed as a good declaration.**
+
+The gap I filed was *"the declaration is narrower than the behaviour"*. It no
+longer is: `case_work_dir_delete` (`filesystem.delete` → `**`) is declared on
+`RunEffectConformance` (`spec_manifest.yaml:260-271`, `TlaSpecDevCli.tla:526-533`),
+and `**` accepts the delete at `effect_conformance.py:1685` wherever `--work-dir`
+points. **No undeclared effect remains on that path. G-1 is closed and I am not
+re-counting it.**
+
+### You asked whether `**` is too permissive to be a real declaration. **Yes.**
+
+Verified mechanically (`reverify_port_globs.py`, `reverify-port-glob-check.txt`).
+`_target_matches` (`effect_conformance.py:513-524`) collapses `**` → `*`, and
+`fnmatch`'s `*` crosses separators, so **`target: "**"` accepts every string** —
+`/`, `""`, `/Users/me/important-project`, everything.
+
+Two consequences, both concrete:
+
+1. **It switches off the check for that action.** The manifest's rule is *"an
+   observed effect matching no port declared for its action is a GAP"*. With a
+   `filesystem.delete` port at `**`, **no delete `RunEffectConformance` ever
+   performs can be a gap** — including the exact regression
+   `reset_case_work_dir`'s docstring exists to prevent. The docstring
+   (`:1678-1681`) says: *"Only the per-case subdirectory is removed … leaving
+   the parent alone is what keeps `--work-dir` a directory the caller can point
+   anywhere without the oracle emptying it."* If a future edit deletes the
+   parent instead, `**` declares it and the oracle reports clean.
+2. **It subsumes `spec_tree_delete` on the same row.** Both are
+   `filesystem.delete`; `**` accepts every target `**/specs/**` accepts. That row
+   entry can no longer be the unique explanation of anything.
+
+**The manifest's own precedent does not cover this.** `cli_artifact`,
+`cli_download` and `corpus_process` use `*` with a stated test — *"any glob
+narrower than `*` would assert a constraint the code does not enforce"*. Here the
+code **does** enforce a constraint, and documents it as a designed invariant:
+the deleted path is always exactly one level below a caller-supplied root, and
+never the root. `**` fails that test. HP-04's declaration was narrower than the
+behaviour; this one is wider. **Same defect class, opposite sign.**
+
+### Did I close this the wrong way? Partly — my disposition was wrong, and so is the replacement
+
+**Your revert was right in direction and I was wrong to propose the constraint.**
+`--work-dir` is documented as pointable, the per-case dir is scratch, and forcing
+scratch into `specs/` would have made the model's own directory a dumping ground.
+I should have seen that from the docstring, which predates my report.
+
+**One correction to the evidence, though:** the three callers that broke are all
+**tests** — `tests/test_effect_conformance.py:1263` (`work_dir="/tmp/w"`), `:1331`,
+`:1532` (`tmp_path / "work"`). The only non-test caller of `execute_corpus` is
+`effect_conformance_report._execute_corpus:153`. Tests are out-of-model by
+`ticket_plan.yaml:130`, so *"it broke three legitimate callers"* is not itself
+evidence about shipped behaviour. The flag's documented contract is, and that
+argument stands on its own.
+
+### The third option neither of us took, which I think is the right one
+
+Neither "constrain the flag" nor "widen to `**`". **Give the delete a path shape
+the glob can express, which the sibling runner already does.**
+`run_generated_case_adapters.py:1256` puts per-case trees under a fixed
+`case-work/` component; `effect_conformance.reset_case_work_dir:1683` does not.
+Change `case_dir = Path(work_dir) / case_name` to
+`Path(work_dir) / "case-work" / case_name` and declare:
+
+```yaml
+case_work_dir_delete:
+  type: filesystem.delete
+  target: "**/case-work/*"          # not "**"
+```
+
+`--work-dir` stays pointable anywhere, the three tests keep passing, and the
+declaration becomes **falsifiable again**: a delete of the parent, or of anything
+outside a `case-work/` directory, is a gap. That is a small program change plus a
+narrower glob, and it makes the two runners consistent with each other.
+
+---
+
+## R2. G-2 — **NOT CLOSED.** The new port cannot match the spawn, and the write half was never addressed
+
+### R2.1 The glob is off by one character
+
+`case_program_process` declares `target: "*programs/case_*"` — **underscore**.
+The shipped path component is built by
+`run_generated_case_adapters._opaque_path_component:1358`:
+
+```python
+return f"{role}-{hashlib.sha256(payload).hexdigest()[:32]}"     # role='case'  ->  "case-<hex>"
+```
+
+— **hyphen**. So the program is `<work_dir>/programs/case-<32 hex>.py`, the
+recorded spawn target (`_command_target:1071-1076` joins argv with spaces) is
+`<python> <work_dir>/programs/case-<hex>.py`, and:
+
+```
+case.name = 'case_0002_install_local_cli'
+  recorded target = /opt/homebrew/.../python3.14 /var/.../programs/case-182e6983c2ecf596e977c78e1c118b7a.py
+  matches '*programs/case_*' -> False
+```
+
+**False for every case name tested, and false for all of them by construction** —
+the component never contains `case_`. Reproduced with the oracle's own matcher in
+`reverify_port_globs.py`; raw output in `reverify-port-glob-check.txt`.
+
+| glob | accepts the real target? |
+|---|---|
+| `*programs/case_*` (shipped) | **False** |
+| `*programs/case-*` | True |
+| `*/programs/*` | True |
+
+**The effect at `run_generated_case_adapters.py:2178` therefore still matches no
+declared port. G-2's spawn half is open, and the port is dead by construction —
+not because no case exercises it, but because no case *can*.**
+
+One-character fix: `target: "*programs/case-*"`. What is actually missing is the
+test — see R6.
+
+### R2.2 The write half was not addressed at all
+
+G-2 as filed had two halves. The closure added a `process.spawn` port and nothing
+else. `RunSpecUnitTests` is now
+`[test_process, runner_process, spec_tree, case_program_process]`, and with no
+`--work-dir` the runner still does `work_dir = tempfile.mkdtemp(...)`
+(`:2294`) and writes:
+
+- `<work_dir>/programs/case-<hex>.py`, one per case (`:1255`)
+- `<work_dir>/case-work/case-<hex>/` (`:1256`)
+
+both outside `spec_tree` (`**/specs/**`) and `evidence_report` (`**/results/**`).
+**No declared write port accepts them.** Undeclared, unchanged from round 1.
+
+### R2.3 Was `--no-batch` even in scope? The closure answers a question the plan does not
+
+`semantic_model_rule:48-49` puts *"per-flag variants"* out-of-model except six
+guard-weakening flags it never enumerates. `--no-batch` (`tla_spec_dev.py:537`)
+appears **nowhere else in the repository** — no doc, no adapter, no corpus
+command. A reading exists on which G-2 was always inventory.
+
+**You resolved it by declaring a port, which rules that an out-of-model flag
+branch still owes a port for its effects.** I think that is the right ruling and
+it is consistent with the standing proviso's spirit. But **the plan does not say
+it**, and the standing proviso is written about FILES, not flags. One sentence in
+`semantic_model_rule` would make the ruling quotable by the next audit instead of
+inferable from a commit.
+
+---
+
+## R3. G-3 — **RETIRED**, verified rather than accepted
+
+You asked me to test the retirement against the standing proviso rather than take
+it. Three checks, all mechanical:
+
+1. **The carve-out exists and covers the file.** `ticket_plan.yaml:145` restores
+   *"`scripts/run_generated_case_adapters.py` provider machinery,
+   `scripts/generate_python.py` codegen … out-of-model"*.
+2. **No modelled action reaches the codegen path.** `cli_closure.py` re-run at
+   `0a05eed`: `generate_python` is still unreachable from `tla_spec_dev.py`. Its
+   only in-repo importer is `generate_docs.py:14`, itself unreachable; the only
+   other mention is a docstring at `scaffold_spec.py:5`. **No modelled action
+   spawns or imports it** — `grep -rn generate_python scripts/ specs/*/production_adapters.py`
+   returns exactly those two lines.
+3. **So the proviso does not fire.** The write at `generate_python.py:891` is not
+   performed on a modelled action path, and no port is owed. **G-3 genuinely
+   retires.**
+
+**Tripwire, recorded because the retirement is conditional and nothing enforces
+the condition:** the moment `generate python` becomes a CLI subcommand — or any
+modelled action imports the codegen — G-3 reopens automatically, and it will
+reopen silently, because no test asserts that `generate_python` stays outside
+`build_parser`'s import closure. `cli_closure.py` is committed and is that test
+if you want it.
+
+Note the shape the plan now holds, which is coherent but load-bearing:
+`specs/*/case_adapters.toml` is **in-model** (`:126`) while the only module that
+mutates it is **out-of-model** (`:145`). That is fine exactly as long as check (2)
+holds, and no longer.
+
+---
+
+## R4. Escalations — **genuinely answered**, with one precedence gap
+
+Re-run of the partition against schedule_revision 3
+(`classify_scope_v2.py`, `reverify-scope-partition.txt`):
+
+```
+[specific-wins] N=14658 M=14658  IN=57  OUT=14599  CONFLICT=2  ESCALATION=0
+[in-wins]       N=14658 M=14658  IN=59  OUT=14599  CONFLICT=0  ESCALATION=0
+```
+
+**ESC-1 — answered, all 19 rows.** Every round-1 escalation now classifies, and
+the classifier prints each one against its new line. `specs/*/tlc_projection.py`
+IN (`:128`), `case_adapters.toml` IN (`:126`), `kill_mutants.toml` IN (`:127`),
+`architecture_*.yaml` OUT (`:142`), plan artifacts OUT (`:143`), root config OUT
+(`:144`). **Still unclassified: 0.** Swept the 5 newly-in-scope files for effect
+surface: **zero hits** — `tlc_projection.py` imports only `typing.Any` and
+defines two pure functions; the two `.toml`s are declarations. The scope
+expansion creates no new gap.
+
+**ESC-2 — answered.** `representation_scope.view_split:146` restores the ruling,
+nested under the block the procedure reads, so Sweep 4 now has a line to classify
+against. §5.2's External rows become inventory under it rather than an
+escalation. This is the row-count consequence I flagged, closed by one sentence.
+
+**ESC-3 — answered, but the plan does not state precedence.** The carve-out at
+`:145` overlaps `in_model: scripts/**/*.py` at `:122`, so a mechanical classifier
+must guess which wins. **It does not change any verdict** — both readings give
+`ESCALATION=0`, and the amendment's own words ("that asymmetry was an accident of
+copying") make the intent unambiguous. But `classify_scope_v2.py` reports 2
+CONFLICT rows under specific-wins, and the next auditor will hit the same fork.
+One clause — *"a named file in `out_of_model` overrides a directory glob in
+`in_model`"* — removes it. **Minor, and not an escalation.**
+
+**On the correction you recorded.** You wrote the structural-guarantee finding
+into the plan and attributed it. For the record, the amendment's own framing is
+the right one and I would not soften it: a carried-forward scope block must be
+diffed against its source, not copied and trusted.
+
+---
+
+## R5. What the closure cost, swept as surface
+
+**No code changed.** `git diff --name-only f58d2a2..0a05eed -- 'scripts/*.py' 'specs/*/production_adapters.py' 'specs/*/adapter_case_runtime.py' 'specs/*/tlc_projection.py'` is **empty**. The closure is declarations, catalogue, two test constants, plan and docs.
+
+**Model semantics unmoved, proved not asserted.** `specs/program_model/TlaSpecDevCli.tla` is **byte-identical at `b68cbd5` and `0a05eed` after comment stripping**; `MC.cfg`/`MCsmall.cfg` unchanged. The `@port` lines are `\*` comments. TLC cannot have moved.
+
+**The two new mutants apply and revert** (`reverify_mutants.py`, `reverify-mutants.txt`) — checked in all three trees:
+
+| mutant | file | `find` occurrences | applies | reverts byte-for-byte | refine |
+|---|---|---|---|---|---|
+| `port-case_work_dir_delete` | `effect_conformance.py:1685` | **1** | yes | **yes** | `effect_conformance` / `RunEffectConformance` |
+| `port-case_program_process` | `run_generated_case_adapters.py:2178` | **1** | yes | **yes** | `ticket_state` / `RunSpecUnitTests` |
+
+`refine_variable` corrections land correctly (`effect_conformance` for the oracle
+mutant matches the variable that carries its verdict; `ticket_state` for the
+runner mutant matches the existing `port-test_process` precedent).
+`run kill-test --list-boundaries` → **`28/28 declared boundaries carry a seeded
+fault.`**, exit 0, zero `NO MUTANT`, and **the production tree is unmutated
+afterwards** (`git status` clean). 14 declared ports, 14 port mutants, none
+missing.
+
+**But both new mutants are structurally un-killable by the shipped corpus:**
+
+- `port-case_program_process` seeds a fault at `:2178`, on the `--no-batch`
+  branch. `tla_spec_dev.py:369-370` appends `--batch` unless `--no-batch` is
+  passed, and `--no-batch` appears nowhere in the repository outside its own
+  argparse line. The mutated line **never executes**, so the mutant is a
+  guaranteed survivor against any documented corpus command.
+- `port-case_work_dir_delete` seeds "the work dir is not emptied between cases".
+  Its symptom is *cross-run* nondeterminism (the MF026-R4-F-01 defect). A corpus
+  executed once cannot observe it.
+
+Neither is a coverage gap. Both mean the kill rate will move down, not up, if
+oracle 4 is ever run against this catalogue — worth knowing before, not after.
+
+**Citations: clean.** All **84** content-anchored citations across the three
+manifests and three model files resolve, checked independently of
+`tests/test_source_citations.py` (`reverify_citations.py`). The three new ones
+are exact: `effect_conformance.py:1685 (shutil.rmtree)`,
+`:1809 (reset_case_work_dir)`, `run_generated_case_adapters.py:2178 (subprocess.run)`.
+
+---
+
+## R6. Findings from round 2
+
+| # | Finding | Severity |
+|---|---|---|
+| **F-7** | **`case_work_dir_delete` target `**` is too permissive to be a declaration.** It accepts every string, switches off gap detection for every `filesystem.delete` on `RunEffectConformance`, and subsumes `spec_tree_delete` on the same row. The manifest's `*`-glob precedent does not apply, because here the code *does* constrain the target and documents the constraint as a designed invariant. Fix in R1. | **major** |
+| **F-8** | **Both new ports report DEAD MODEL SURFACE.** Dead ports **9 → 11** of 14, two oracle runs, identical. Distinguish the causes: `case_work_dir_delete` is dead because the reset runs *outside* the sandbox window (`:1809` resets, `:1824` enters), so no corpus could ever exercise it; `case_program_process` is dead because its glob cannot match. Both are HARD FAILURES by the manifest's own rule, and both are attributable to this closure. | **major** |
+| **F-9** | **The closure added zero tests that could detect a wrong glob.** The only test changes are two literal counts (`26 → 28`, `test_kill_test.py:734,813`) — precisely the assertions that pass whether or not a port is correct. `grep -rn '_target_matches\|target_matches' tests/` returns **nothing**: no test anywhere asserts that a declared glob accepts a target the shipped code actually produces. One such test, parametrised over the 14 ports, would have caught F-8's second half before commit. **This is the single highest-value follow-up in this report.** | **major** |
+| **F-10** | **`ticket_plan.yaml:165` still cites `effect_conformance.py:1141-1145`** for "in-process CPython only". Round 1 filed this as F-6; the plan was amended at schedule_revision 3 and the citation was not fixed. Line 1141 is now an `OutOfProcessObservation` field; the text is at `:1441`. `tests/test_source_citations.py` still does not cover `ticket_plan.yaml`. | minor |
+| **F-11** | `semantic_model_rule` does not say whether an out-of-model **flag branch** owes a port for its effects. The standing proviso is written about files. The G-2 closure rules "yes" by action; one sentence would make it quotable. Related: the plan names *"the six guard-weakening flags"* and never enumerates them. | minor |
+| **F-12** | **The `+1` in the suite count is my own evidence.** 1,122 at `f431c62`, 1,123 at `0a05eed`, both measured in a **fresh worktree**. `tests/test_spec_yaml_valid.py::test_spec_yaml_parses` is parametrised over discovered YAML, and round 1's `coverage_audit_ledger_input_proposed.yaml` is one more file to parse. **The closure added no test.** (Also: running the oracle leaves `specs/current/.effect-conformance-work/` behind, which inflates that parametrisation by ~94 — removed after each run here.) | informational |
+
+Round-1 findings F-1, F-2, F-4, F-5 stand unchanged. F-3 is superseded by F-8.
+
+---
+
+## R7. Did I close these the wrong way? — plainly
+
+- **G-1: your call was better than mine, and the width is still wrong.** Reverting
+  my disposition was correct and I would not argue it back. `**` is not a
+  declaration, it is the absence of one written in the declaration's slot. R1
+  gives a third option that keeps your direction and restores falsifiability.
+- **G-2: declaring rather than constraining was right; the declaration is wrong.**
+  Your reasoning — *"forcing it into the spec tree would move real execution
+  output into the model's own directory"* — is correct and I accept it over my
+  proposal. But the port does not match, and half the gap was not addressed.
+- **G-3: right, and verified.**
+- **The escalations: genuinely answered, not answered-looking.** I re-ran the
+  partition rather than reading the amendment: 19 of 19 classified, 0 remaining,
+  under both readings of the one overlap.
+- **The pattern worth naming.** Round 1 found a declaration narrower than the
+  behaviour. Round 2 found one wider than the behaviour and one that misses it by
+  a character. Three declaration/behaviour mismatches in three consecutive
+  attempts, none catchable by any shipped test. **F-9 is the fix for the class,
+  and it is cheaper than any of the individual repairs.**
+
+---
+
+## R8. What was re-run, and what was not
+
+**Re-run:** the scope partition against the amended block (both readings); the
+CLI import closure; the effect oracle ×2; `run kill-test --list-boundaries`; the
+mutant apply/revert check ×3 trees; the citation check (84); the TLA
+comment-stripped equality proof; the full suite in a **fresh worktree** at
+`f431c62`, `f58d2a2` and `0a05eed`; an effect sweep over the 5 newly-in-scope
+files; the port-glob match check against the oracle's own matcher.
+
+**Not re-run, deliberately:** Sweeps 2 and 3 in full — no code changed, so round
+1's 1,536 collapsed effect sites and 2,180 behaviour rows are unchanged by
+construction. TLC — proved unnecessary by byte equality. `generate cases` — the
+541-case figure remains **unverified**, as in round 1, and remains the most
+decision-relevant unverified claim in this epic. Oracle 4 end-to-end — it cannot
+run inside the effect sandbox (`kill_test.py:598-606`), and running it seeds
+faults into production source.
+
+**Read vs inferred:** 8 files read in the load-bearing regions this round
+(`effect_conformance.py`, `run_generated_case_adapters.py`, all three
+`spec_manifest.yaml` diffs, `TlaSpecDevCli.tla` diff, `kill_mutants.toml`,
+`ticket_plan.yaml` amendment, `tlc_projection.py`). Every claim above is backed
+by a committed reproducer.
+
+---
+
+## R9. What this verdict does not tell you (kept, per your instruction)
+
+Unchanged in substance from round 1, and **worse on one axis**:
+
+```
+effect conformance unobservable: 84 observed effect(s) over 8 case(s),
+  14 declared port(s), 15 gap(s), 11 dead port(s),
+  15 unobservable target(s), 0 skipped case(s)          [exit 1, both runs]
+```
+
+- **11 of 14 ports are now DEAD**, up from 9 of 12. Only `cli_artifact`,
+  `cli_selftest_process` and `spec_tree` are ever exercised. **Declaring more
+  made the dead-surface number worse, not better** — which is the honest price of
+  closing a coverage gap on a model whose oracle cannot reach the actions the
+  new ports belong to.
+- **0 of the 15 gaps are effects of the action under test.** Unchanged: 13 are
+  the adapter replaying preconditions, 2 are the sandbox's own work dir.
+- **The verdict is still `unobservable`, exit 1.** Neither closure moved it, and
+  neither could: `RunEffectConformance` and `RunSpecUnitTests` are not among the
+  8 executed cases, and the MF-033 out-of-process observer emitted nothing.
+- **So "declared" still means "a declaration exists and matches by glob"** — and
+  F-8 shows that for one of the two new ports it does not even mean that. Nothing
+  in this toolchain would have told you. I found it by reproducing the oracle's
+  matcher against the shipped path builder, not by running a gate.
+- **Determinism holds.** 84/15/11 identical across both runs — HP-04's repair
+  survives the closure.
+
+**Read this as: the model is now more honest about two effects it performs, one
+of those two declarations is wrong, and the instrument that would tell you still
+cannot see either action.**
+
+---
+
+## R10. Round-2 verdict
+
+- In-scope gaps: **1** — G-2 (spawn glob does not match; write half never declared)
+- Escalations: **0**
+- Gaps created by the closure: **0** (F-7 and F-8 are declaration-quality
+  findings, not unmodelled surface — counting them would inflate)
+- Out-of-scope inventoried: **14,599**
+- **Verdict: `FAIL`**
+
+G-2 is a one-character glob fix plus one write port. What I would not ship
+without is **F-9** — the test that asserts every declared glob accepts a target
+the shipped code actually produces. Three declaration/behaviour mismatches in
+three attempts is a class, and it is the only finding here that closes the class
+rather than an instance.
+
+The updated ledger block is at
+`specs/results/coverage-audit-hexagonal-prompting-raw/coverage_audit_ledger_input_proposed.yaml`
+and remains **NOT applied**.
