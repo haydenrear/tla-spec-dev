@@ -27,7 +27,6 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 SCRIPTS = Path(__file__).resolve().parent
 if str(SCRIPTS) not in sys.path:
