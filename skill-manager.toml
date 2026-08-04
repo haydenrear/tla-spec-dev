@@ -1,19 +1,24 @@
 # skill-manager 0.18.1 traverses table references through the legacy `name`
 # projection. Keep the full pinned git coordinate in `name`; bare string direct
 # git references parse but are skipped by that release's transitive walker.
-# git-integration-skill (-> skill "git-integration-repo") is listed DIRECTLY
-# rather than left to arrive through git-issue-workflow-skill: this skill's own
-# pages now name scripts/bootstrap-home.sh and scripts/wt by resolved path
-# ($SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/...), and a file a
-# page instructs you to run should not depend on another unit's dependency list
-# staying as it is. It is a reference and not a skill-import on purpose — what is
-# needed is the file on disk, not integration-repo semantics in context.
+# git-issue-workflow-skill is listed DIRECTLY, and it is the one that matters:
+# this skill's own pages name scripts/bootstrap-home.sh and scripts/wt by
+# resolved path ($SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/...), and
+# a file a page instructs you to run should not depend on another unit's
+# dependency list staying as it is. It is a reference and not a skill-import on
+# purpose — what is needed is the file on disk, not the whole ticket-execution
+# skill in context.
+#
+# git-integration-skill was ALSO listed here, for exactly those two files. They
+# moved to git-issue-workflow (a worktree and a home are things every repo has;
+# an integration repository is a specialization), so the reference moved with
+# them and the integration unit is no longer pulled into every epic. An epic on
+# an integration repo gets it from that repo's own skill-project.toml.
 #
 # git-issue-skill was listed twice; deduplicated.
 skill_references = [
 	"github:haydenrear/git-issue-skill",
 	"github:haydenrear/git-issue-workflow-skill",
-	"github:haydenrear/git-integration-skill",
 	"github:haydenrear/tla-spec-dev",
 	"github:haydenrear/test_graph_skill",
 	"github:haydenrear/skill-manager-skill",

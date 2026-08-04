@@ -87,7 +87,7 @@ binds, or resolves — those all write into whatever `SKILL_MANAGER_HOME` names,
 before the local home exists that is the operator's global home:
 
 ```bash
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/bootstrap-home.sh" \
+"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
   --root ../wt-epic-<slug>
 ```
 

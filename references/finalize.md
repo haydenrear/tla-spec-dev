@@ -229,7 +229,7 @@ a worktree can be used again between the audit and the teardown.
 # it runs the gate and, only on a clean verdict, removes the worktree
 # (refusing with exit 4 otherwise). It resolves <ticket> by searching where
 # ticket worktrees live, so the declared ../wt-<issue>-<slug> path is found.
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/wt"
+WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
 "$WT" close <ticket>
 
 # The two steps it wraps, if you need a flag it does not forward. Keep the `&&`:

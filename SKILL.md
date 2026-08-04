@@ -9,7 +9,11 @@ description: >-
   evaluation/perf/integration ticket that decides them, and composes git-issue
   issue authoring, git-issue-workflow ticket execution, tla-spec-dev ticket
   promotion, and Test Graph validation while allowing dependency-aware parallel
-  work and serialized integration.
+  work and serialized integration. Epic and ticket worktrees are branched by
+  hand from the declared epic branch and then given their own per-checkout Skill
+  Manager home with git-issue-workflow's `scripts/bootstrap-home.sh`; teardown
+  is that skill's `scripts/wt close <ticket>`. A bare `git worktree add` with no
+  home step leaves the ticket agent writing the operator's global home.
 skill-imports:
   - unit: git-issue
     path: SKILL.md
@@ -96,7 +100,7 @@ This skill has three roles:
     add` on its own leaves the agent writing the operator's global home:
 
     ```bash
-    SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+    SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
 
     git worktree add <declared-worktree> -b <declared-branch> "$commit_oid"
     "$SKILLS/bootstrap-home.sh" --root <declared-worktree>    # never skip this
