@@ -475,7 +475,7 @@ tickets:
 
   - id: HP-03
     title: "The negative corpus: TLC's disabled edges, asserted rejected -- and a corpus that fits its own cap"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 1
     depends_on: [HP-01]
@@ -542,11 +542,116 @@ tickets:
         - "Byte-identical across two independent generations, INCLUDING its failing executions."
         - "This model produces a corpus its own cap accepts, and the run states which projection made that true."
         - "Per-class per-arm kill table reported. Never a single kill rate."
+      evidence:
+        - "specs/tickets/HP-03/results/negative-corpus-generation.txt"
+        - "specs/tickets/HP-03/results/kill-table-hp01.json"
+        - "specs/tickets/HP-03/results/kill-table-fresh.json"
+        - "specs/tickets/HP-03/results/kill-table-dedupe-cost.json"
+        - "specs/tickets/HP-03/results/false-rejection-analysis.txt"
+        - "specs/tickets/HP-03/results/determinism.txt"
+        - "specs/tickets/HP-03/results/mcsmall-tractability.txt"
+        - "specs/tickets/HP-03/results/corpus-shape.txt"
+        - "specs/tickets/HP-03/results/shipped-runner-negative.txt"
+        - "specs/tickets/HP-03/results/goal-signal.txt"
+        - "specs/tickets/HP-03/results/zero-model-delta.txt"
+        - "specs/tickets/HP-03/results/spec-unit-tests.txt"
+        - "specs/tickets/HP-03/results/pytest-full.txt"
+      close_note: >-
+        THE HEADLINE, AND IT IS THE FIRST TIME: guard relaxation moved off zero.
+        3 of 3 on HP-01's seeded catalogue and 5 of 5 on a fresh independently
+        authored one, against 0 of 3 and 0 of 5 for the whole-view corpus on the
+        same reference implementation and the same run. Baseline was 0 of 3, 0 of
+        3 and 0 of 4 across three catalogues, five instruments and two rounds.
+
+        Assertion 1 MET. The mode evaluates each action's own body at every
+        reachable state over every argument tuple its quantifier domains admit,
+        and emits a case wherever it is definitely FALSE. 118 cases on the
+        fixture, each carrying exact arguments and the violated conjunct verbatim
+        as its rejection reason.
+
+        Assertion 2 MET, and it is a property of the algorithm rather than of the
+        fixture. Evaluation is three-valued; every unimplemented construct is
+        UNKNOWN and UNKNOWN never emits, so an unsupported construct costs
+        completeness and can never cost soundness. Cross-checked: 3,440 ENABLED
+        edges re-evaluated at their own source states, 0 evaluated FALSE. The
+        disabled set is computed by EVALUATING the model and never by subtracting
+        the dump's edges -- measured, the dump holds 4,028 edges where 7,716
+        argument tuples are not disabled, so the subtraction would have reported
+        enabled inputs as refusable.
+
+        Assertion 3 MET including failing executions. Two full generations of a
+        43,246-case corpus (each with its own TLC run) are byte-identical across
+        all six package files; two generations of the projected 541-case MCsmall
+        corpus likewise; and two runs of the shipped runner over a corpus that
+        FAILS 4 cases produce identical failure text, case order included.
+
+        Assertion 4 PARTIALLY MET, and the shortfall is recorded rather than
+        closed. `specs/current/tlc_projection.py` did not exist; it does now, and
+        MCsmall goes from 3,678,217 cases / 7.4 GB (18,391x the cap) to 541 cases
+        / 667 KB -- 6,799x -- by moving pure outputs and recorded verdicts out of
+        the state into the asserted output, deleting no oracle. Every run now
+        names its projection unprompted, in stdout and in docs.md. But 541 is
+        still 2.7x the cap of 200, and HP-03 did NOT raise the cap: the accept
+        path's suggested value is 541, the number this ticket produced, and a
+        budget fitted to the result it must admit is not a budget. Filed
+        HP-03-DF-02 for the owner.
+
+        Assertion 5 PARTIALLY MET. Per-class per-instrument tables are reported
+        for both catalogues with controls, and no aggregate rate is computed
+        anywhere. The PER-ARM axis is NOT measurable at HP-03: the arms are
+        implementations the A/B produces at HP-06 and neither has any code yet.
+        Every number is on the fixture's reference implementation, which is
+        explicitly not an arm.
+
+        THE UNFLATTERING HALF, recorded here rather than only in the fixture.
+        The hand-written suite kills 10 of 10. The whole-view corpus kills 5 of
+        10 and the two corpora together 8 of 10 -- so on this fixture the
+        generator is still worse than a suite written in an afternoon, and HP-06
+        must say so. M07, a positive control the catalogue declares must die on
+        every instrument on every arm, SURVIVES the whole-view corpus, because
+        Reserve contributes zero executable cases. Only 3,440 of 43,128 positive
+        cases (8.0%) are executable at all.
+
+        THE COMPARISON THIS TICKET EXISTS TO MAKE. HP-01's fixture already
+        contains the profile change -- seven explicit Refuse* actions. They
+        produce 39,100 cases (90.7% of the corpus) carrying NO arguments, because
+        their parameters appear nowhere in their bodies and no recovery mechanism
+        can recover what the state pair does not contain. Zero of them are
+        executable. The generator produces the same refusals as 118 executable
+        cases. The negative corpus did not need a profile change; the profile
+        change did not produce a usable negative corpus.
+
+        ZERO MODEL SURFACE ADDED, per surface_cost_rule, argued rather than
+        asserted in results/zero-model-delta.txt: a per-flag variant of the
+        existing GenerateCases action, no new port, no second TLC run, 1x state
+        space.
+
+        Four findings FILED and none fixed. HP-03-DF-01 is the one worth reading:
+        the fixture's model guards a reservation id its own API allocates rather
+        than accepts, so 4 of 118 negative cases assert the rejection of a call
+        the UNMUTATED reference correctly accepts. It is a true statement about a
+        model that does not refine its own FEATURE.md, it was invisible to every
+        existing instrument, and the negative corpus is what found it.
+        HP-03-DF-04 retracts a documented limit: ordering is NOT invisible to
+        corpora, it is invisible when the model represents the ordered thing as a
+        set, and M09 died on the whole-view corpus because this model uses a
+        sequence.
+
+        Reconciled onto epic tip 757de49 (schedule_revision 2, HP-02 merged).
+        Re-checked HP-03's entry field by field against the amended plan: goals,
+        contributions, expected effects, local signals, conflict keys, wave,
+        promotion order and predecessor are all unchanged by the amendment, which
+        touched only GOAL-simpler-same-behavior's metric and harness.
     model_delta_expectation: >-
       A generation mode may need an action. If so, state what it buys and what
       the state space costs BEFORE dispatch, per surface_cost_rule -- the
       predecessor measured ~1.5 new coverage gaps and 8x state space per
       surface-adding ticket.
+
+      OUTCOME: none needed. The mode is a per-flag variant of GenerateCases,
+      which semantic_model_rule places out-of-model, and it performs no effect
+      that action does not already declare. 1x state space, zero new coverage
+      gaps.
 
   - id: HP-04
     title: "Make the adapters actually run: load a scaffolded project's adapters, skip what cannot execute, run a slice"
