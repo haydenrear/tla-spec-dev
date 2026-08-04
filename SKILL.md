@@ -1283,5 +1283,22 @@ current change.
 - `references/examples.md`: checked-in examples and when to use them.
 - `references/spec_evolution.md`: append-only history and search guidance.
 - `references/workflows.md`: project, spec, ticket, and close-out workflows.
+- `references/eval_scorecard.md`: THE EVALUATION RUBRIC. Five judged dimensions
+  (bug detection, complexity, modularity, behavior preservation, honesty), the
+  anchors that make two blind judges agree, and the structural rules that make a
+  score hard to game — artifacts not claims, an uncited score mechanically capped
+  at 1, and a top score reachable only by naming something the artifact refuses
+  to claim. Results live in `specs/results/scorecards/<epic>/`, which the
+  workflow close seals into the snapshot, so every epic's scorecards travel with
+  the epic that produced them. `SELF-IMPROVEMENT.md` beside them is the
+  cross-epic ledger, where the metric is the DELTA and not the total. Checker and
+  indexer: `examples/validation/scorecards/score_tools.py`.
+- `references/hexagonal_prompting.md`: architecture guidance as a PROMPT rather
+  than a check, and what it deliberately does not do. Shipped after four static
+  architecture levers were measured twice and moved bug detection by zero cells.
+  The ask itself is `prompts/hexagonal_implementation.md`: ports and adapters in
+  fact, plus the simplest design that keeps every behavior — with no number, no
+  threshold, and no report to turn green, because "make the check clean" was
+  measured to be a standing instruction to duplicate across boundaries.
 - `examples/distributed_history/`: fully worked internal/external Test Graph
   example with local and k3d modes.
