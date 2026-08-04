@@ -12,13 +12,14 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib
+import itertools
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,15 @@ VIEW_GENERATES = {"internal": "spec_unit", "external": "testgraph"}
 DEFAULT_CONTROLLABILITY = {"internal": "unit_direct", "external": "e2e_direct"}
 SUPPORTED_VIEWS = frozenset(VIEW_GENERATES)
 SUPPORTED_CONTROLLABILITY = frozenset({"unit_direct", "e2e_direct", "environment", "observable", "hidden"})
+
+#: Labels every negative case carries. An adapter selects the negative corpus
+#: on ``NEGATIVE_LABEL`` and asserts refusal on ``REJECTED_LABEL``; both are
+#: present so a consumer can tell "this case came from the negative pass" apart
+#: from "this case expects a rejection", which need not always coincide.
+NEGATIVE_LABEL = "negative"
+REJECTED_LABEL = "expect:rejected"
+NEGATIVE_MODES = ("off", "with-positive", "only")
+NEGATIVE_DEDUPE_MODES = ("none", "guard-reads")
 
 
 @dataclass(frozen=True)
@@ -648,31 +658,82 @@ def render_python_package(
     output_projector: Any | None = None,
     dedupe: str = "none",
     param_recipes: dict[str, ActionRecipe] | None = None,
+    negative: str = "off",
+    negative_dedupe: str = "guard-reads",
+    negative_actions: tuple[str, ...] = (),
+    tla_source: str | None = None,
+    cfg_text: str | None = None,
+    projector_description: str = "none",
+    negative_report_out: "list[NegativeCorpusReport] | None" = None,
 ) -> list[PreparedCase]:
+    """Write the generated package and return its cases.
+
+    The return type is deliberately unchanged from before HP-03 -- twelve call
+    sites read it as a list. The negative pass reports through
+    ``negative_report_out``, which the caller appends to, so adding a mode did
+    not force an unrelated signature change on every existing consumer.
+    """
     metadata = action_metadata or {}
     emitted_edges = [
         edge
         for edge in edges
         if should_emit_action(action_metadata_for(edge.action, view, metadata), view)
     ]
-    prepared_cases = prepare_cases(
-        states=states,
-        edges=emitted_edges,
-        view=view,
-        action_metadata=metadata,
-        labelers=labelers or [],
-        state_projector=state_projector,
-        output_projector=output_projector,
-        dedupe=dedupe,
-        param_recipes=param_recipes,
-    )
+    if negative == "only":
+        prepared_cases: list[PreparedCase] = []
+    else:
+        prepared_cases = prepare_cases(
+            states=states,
+            edges=emitted_edges,
+            view=view,
+            action_metadata=metadata,
+            labelers=labelers or [],
+            state_projector=state_projector,
+            output_projector=output_projector,
+            dedupe=dedupe,
+            param_recipes=param_recipes,
+        )
+    negative_report: NegativeCorpusReport | None = None
+    if negative != "off":
+        if tla_source is None or cfg_text is None:
+            raise ValueError("negative generation needs the module and config text")
+        negative_cases, negative_report = negative_cases_for_corpus(
+            states=states,
+            edges=edges,
+            tla_source=tla_source,
+            cfg_text=cfg_text,
+            view=view,
+            action_metadata=metadata,
+            state_projector=state_projector,
+            dedupe=negative_dedupe,
+            only_actions=negative_actions,
+            param_recipes=param_recipes,
+            start_index=len(prepared_cases) + 1,
+        )
+        prepared_cases = prepared_cases + negative_cases
+        if negative_report_out is not None:
+            negative_report_out.append(negative_report)
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
     write(package_dir / "types.py", render_types())
     write(package_dir / "cases.py", render_cases(module, states, prepared_cases, view))
     write(package_dir / "doubles.py", render_doubles())
     write(package_dir / "validators.py", render_validators())
-    write(package_dir / "docs.md", render_docs(module, view, len(states), len(prepared_cases), len(emitted_edges), len(edges), dedupe))
+    write(
+        package_dir / "docs.md",
+        render_docs(
+            module,
+            view,
+            len(states),
+            len(prepared_cases),
+            len(emitted_edges),
+            len(edges),
+            dedupe,
+            negative=negative,
+            negative_report=negative_report,
+            projector_description=projector_description,
+        ),
+    )
     # Every prepared case has now been written. The caller gates the corpus
     # AFTER this point, so a failing cap gate never removes anything -- the
     # package on disk is complete either way (MF-014).
@@ -683,8 +744,8 @@ def render_init() -> str:
     return (
         "from .cases import CASES, CASES_BY_NAME, SOURCE_MODULE, SOURCE_VIEW\n"
         "from .doubles import ScriptedTransitionDouble\n"
-        "from .types import UNCHECKED, StateGraphCase, StateGraphInput, StateGraphOutput\n"
-        "from .validators import assert_case_replays\n\n"
+        "from .types import UNCHECKED, StateGraphCase, StateGraphInput, StateGraphOutput, StateGraphRejection\n"
+        "from .validators import assert_case_replays, assert_rejection_is_inert\n\n"
         "__all__ = [\n"
         "    \"CASES\",\n"
         "    \"CASES_BY_NAME\",\n"
@@ -695,7 +756,9 @@ def render_init() -> str:
         "    \"StateGraphCase\",\n"
         "    \"StateGraphInput\",\n"
         "    \"StateGraphOutput\",\n"
+        "    \"StateGraphRejection\",\n"
         "    \"assert_case_replays\",\n"
+        "    \"assert_rejection_is_inert\",\n"
         "]\n"
     )
 
@@ -747,6 +810,31 @@ def render_types() -> str:
         "class StateGraphOutput:\n"
         "    changed: dict[str, dict[str, Any]]\n\n\n"
         "@dataclass(frozen=True)\n"
+        "class StateGraphRejection:\n"
+        "    \"\"\"The expected outcome of a call the model does not enable (HP-03).\n\n"
+        "    Emitted by the negative corpus: at this before-state the action's own\n"
+        "    body evaluates to a definite FALSE, so the program must REFUSE the\n"
+        "    call. ``reason`` is the violated conjunct copied verbatim out of the\n"
+        "    module -- it is the model's words, not a classification invented here,\n"
+        "    so an adapter comparing rejection reasons is comparing against the\n"
+        "    specification rather than against this generator.\n\n"
+        "    ``changed`` is always empty and is spelled out rather than implied: a\n"
+        "    refused call changes no modeled variable, which is the second half of\n"
+        "    the assertion and the half a status-only oracle would miss.\n"
+        "    \"\"\"\n\n"
+        "    action: str\n"
+        "    params: dict[str, Any]\n"
+        "    reason: str\n"
+        "    changed: dict[str, dict[str, Any]] = field(default_factory=dict)\n"
+        "    #: Variables that record the OUTCOME of a call rather than the state it\n"
+        "    #: left behind, derived from the model: the write set of every action\n"
+        "    #: this module uses to spell a refusal out. A real program's refusal\n"
+        "    #: does change these -- it reports that it refused -- so an adapter must\n"
+        "    #: report them unobservable, and `after == before` is asserted over\n"
+        "    #: everything else. When a model declares no refusal actions this tuple\n"
+        "    #: is empty and full inertness is asserted.\n"
+        "    outcome_fields: tuple[str, ...] = ()\n\n\n"
+        "@dataclass(frozen=True)\n"
         "class StateGraphCase:\n"
         "    name: str\n"
         "    before: dict[str, Any]\n"
@@ -772,7 +860,7 @@ def render_cases(
 ) -> str:
     lines = [
         "from __future__ import annotations\n\n",
-        "from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
+        "from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput, StateGraphRejection\n\n\n",
         f'SCHEMA_VERSION = {TRACE_SCHEMA_VERSION!r}\n',
         f'SOURCE_MODULE = {module!r}\n',
         f'SOURCE_VIEW = {view!r}\n',
@@ -844,7 +932,17 @@ def render_doubles() -> str:
 def render_validators() -> str:
     return (
         "from __future__ import annotations\n\n"
-        "from .types import StateGraphCase\n\n\n"
+        "from .types import StateGraphCase, StateGraphRejection\n\n\n"
+        "def assert_rejection_is_inert(case: StateGraphCase) -> None:\n"
+        "    \"\"\"A negative case must assert refusal AND that nothing moved.\n\n"
+        "    Checking only the status would let a program that refuses the call and\n"
+        "    still mutates state pass, which is half a guard.\n"
+        "    \"\"\"\n"
+        "    if not isinstance(case.output, StateGraphRejection):\n"
+        "        return\n"
+        "    assert case.after == case.before, (\n"
+        "        f\"negative case {case.name} is not inert: a refused call changed state\"\n"
+        "    )\n\n\n"
         "def assert_case_replays(case: StateGraphCase) -> None:\n"
         "    changed = {\n"
         "        field: {\"before\": case.before.get(field), \"after\": case.after.get(field)}\n"
@@ -864,18 +962,44 @@ def render_docs(
     emitted_transition_count: int,
     total_transition_count: int,
     dedupe: str,
+    *,
+    negative: str = "off",
+    negative_report: "NegativeCorpusReport | None" = None,
+    projector_description: str = "none",
 ) -> str:
-    return (
+    body = (
         f"# {module} TLC Cases\n\n"
         "Generated from a TLC DOT state graph dump.\n\n"
         f"- View: `{view}`\n"
         f"- States: `{state_count}`\n"
-        f"- Transitions: `{transition_count}`\n\n"
+        f"- Cases: `{transition_count}`\n\n"
         f"- Emitted transitions before dedupe: `{emitted_transition_count}`\n"
         f"- TLC transitions before view filtering: `{total_transition_count}`\n\n"
-        f"- Dedupe mode: `{dedupe}`\n\n"
-        "Each case is one action-labeled edge in the reachable state graph.\n"
+        f"- Dedupe mode: `{dedupe}`\n"
+        # RC-02-DF-04 / MF026-R4-F-01: a corpus that fits its cap must say what
+        # made it fit. A count with no projection named is unciteable -- the
+        # next reader cannot tell a tractable model from a discarded one.
+        f"- State projection: `{projector_description}`\n"
+        f"- Negative corpus: `{negative}`\n\n"
+        "Each positive case is one action-labeled edge in the reachable state graph.\n"
     )
+    if negative_report is not None:
+        body += (
+            "\n## Negative cases\n\n"
+            f"- Emitted: `{negative_report.emitted}` of `{negative_report.candidates}` "
+            "candidate (state, action, argument) triples\n"
+            f"- Negated actions: `{', '.join(negative_report.negated) or 'none'}`\n"
+            f"- Negative dedupe: `{negative_report.dedupe_mode}` "
+            f"(collapsed `{negative_report.emitted + negative_report.deduped_from}` -> "
+            f"`{negative_report.emitted}`)\n"
+            f"- Enabled edges cross-checked against the same evaluator: "
+            f"`{negative_report.crosschecked_edges}`, of which "
+            f"`{sum(negative_report.crosscheck_failures.values())}` disagreed\n\n"
+            "A negative case asserts that the program REFUSES the call and that no\n"
+            "modeled variable changes. Its `output` is a `StateGraphRejection` whose\n"
+            "`reason` is the violated conjunct, verbatim from the module.\n"
+        )
+    return body
 
 
 def write(path: Path, content: str) -> None:
@@ -1134,6 +1258,1307 @@ def report_action_coverage(
     return record
 
 
+# ==========================================================================
+# THE NEGATIVE CORPUS -- disabled edges, asserted rejected (HP-03)
+# ==========================================================================
+#
+# THE MEASURED ZERO THIS EXISTS FOR. A corpus built from a TLC state graph
+# replays only ENABLED edges, so it contains no rejected inputs, so a service
+# that accepts what the model forbids passes every case. Guard relaxation
+# measured 0 of 3 (round 1), 0 of 3 on both arms (round 2) and 0 of 4 on an
+# independent blind catalogue. RP-02 then counted the mechanism: all 330
+# recovered arguments were arguments the guard ACCEPTS, 0 were rejected
+# inputs, and 220 refusable pairs existed in the state space that a state
+# graph can never emit. Parameter recovery is NOT the cause and fixing it
+# moved nothing -- that hypothesis is dead and retracted.
+#
+# WHAT THIS DOES INSTEAD. At every reachable state, for every action, over
+# every argument tuple its quantifier domains admit, evaluate the action's own
+# body against that state. Where it is definitely FALSE the action is
+# DISABLED there, and the corpus emits one case saying so: the program must
+# REJECT this call, and no modeled variable may change.
+#
+# SOUNDNESS, AND WHY IT IS ONE-SIDED ON PURPOSE. Evaluation is three-valued
+# (Kleene): TRUE, FALSE, or UNKNOWN. Anything this evaluator does not
+# implement -- a primed variable, EXCEPT, CASE, LET, an unresolvable operator,
+# a domain it cannot enumerate -- is UNKNOWN, never a default. A conjunction
+# is FALSE only when some conjunct is FALSE; a disjunction only when every
+# disjunct is. So an unsupported construct costs COMPLETENESS (a refusable
+# input nobody tests) and can never cost SOUNDNESS (an accepted input asserted
+# rejected). That asymmetry is the whole design: the acceptance criterion
+# "zero false rejections on the green control" is a property of the algorithm,
+# not of how carefully the fixture was chosen.
+#
+# NO MODEL SURFACE IS ADDED. surface_cost_rule: this is a per-flag variant of
+# the existing `generate cases` command, which semantic_model_rule places
+# out-of-model, and it performs no effect the GenerateCases action does not
+# already declare -- it reads the same .tla/.cfg and writes into the same
+# generated package under the same `spec_tree` port. No new action, no new
+# variable, no new port, 1x the state space, and no second TLC run.
+
+
+class Unevaluable(Exception):
+    """A fragment this generator declines to evaluate.
+
+    Raised and caught, never absorbed into a truth value. Every catch site
+    turns it into UNKNOWN, which can only ever suppress a negative case.
+    """
+
+
+#: Maximum operator-expansion depth. A model that needs more than this is
+#: reported as unevaluable rather than explored further.
+_MAX_EXPANSION_DEPTH = 16
+
+#: Largest set ``SUBSET`` will expand. Beyond it the expression is UNKNOWN.
+_MAX_POWERSET_BASE = 12
+
+_TLA_TOKEN_RE = re.compile(
+    r"""
+      (?P<STRING>"(?:[^"\\]|\\.)*")
+    | (?P<NUMBER>\d+)
+    | (?P<WORDOP>\\(?:notin|subseteq|subset|union|intersect|cup|cap|times|div|leq|geq|neq|land|lor|lnot|in|A|E|X|o)(?![A-Za-z0-9_]))
+    | (?P<OR>\\/)
+    | (?P<AND>/\\)
+    | (?P<SETMINUS>\\)
+    | (?P<SYM><=>|=>|<<|>>|\|->|:>|@@|\.\.|->|<=|>=|/=|\#|~|=|<|>|\+|-|\*|\(|\)|\[|\]|\{|\}|,|:|')
+    | (?P<NAME>[A-Za-z_][A-Za-z0-9_]*)
+    | (?P<WS>\s+)
+    """,
+    re.VERBOSE,
+)
+
+_WORDOP_CANON = {
+    r"\leq": "<=",
+    r"\geq": ">=",
+    r"\neq": "#",
+    r"\land": "/\\",
+    r"\lor": "\\/",
+    r"\lnot": "~",
+    r"\union": "\\cup",
+    r"\intersect": "\\cap",
+}
+
+_TLA_KEYWORDS = frozenset(
+    {"IF", "THEN", "ELSE", "TRUE", "FALSE", "DOMAIN", "SUBSET", "UNION", "EXCEPT", "LET", "IN", "CASE", "OTHER", "CHOOSE"}
+)
+
+
+def tokenize_tla(text: str) -> list[str]:
+    """Tokens of a TLA+ expression, or ``Unevaluable`` on an unknown character."""
+    tokens: list[str] = []
+    index = 0
+    length = len(text)
+    while index < length:
+        match = _TLA_TOKEN_RE.match(text, index)
+        if match is None:
+            raise Unevaluable(f"unrecognized character at offset {index}: {text[index:index + 12]!r}")
+        index = match.end()
+        kind = match.lastgroup
+        if kind == "WS":
+            continue
+        value = match.group()
+        if kind == "WORDOP":
+            value = _WORDOP_CANON.get(value, value)
+        tokens.append(value)
+    return tokens
+
+
+class _TlaParser:
+    """A recursive-descent parser for the constrained profile's expressions.
+
+    Deliberately partial. Every construct it does not implement raises
+    ``Unevaluable``, which the three-valued evaluator turns into UNKNOWN.
+    """
+
+    def __init__(self, tokens: list[str]):
+        self.tokens = tokens
+        self.pos = 0
+
+    # -- token helpers ---------------------------------------------------
+    def peek(self, offset: int = 0) -> str | None:
+        index = self.pos + offset
+        return self.tokens[index] if index < len(self.tokens) else None
+
+    def next(self) -> str:
+        token = self.peek()
+        if token is None:
+            raise Unevaluable("unexpected end of expression")
+        self.pos += 1
+        return token
+
+    def accept(self, token: str) -> bool:
+        if self.peek() == token:
+            self.pos += 1
+            return True
+        return False
+
+    def expect(self, token: str) -> None:
+        if not self.accept(token):
+            raise Unevaluable(f"expected {token!r}, found {self.peek()!r}")
+
+    # -- grammar ---------------------------------------------------------
+    def parse(self) -> Any:
+        node = self.expression()
+        if self.pos != len(self.tokens):
+            raise Unevaluable(f"trailing tokens from {self.peek()!r}")
+        return node
+
+    def expression(self) -> Any:
+        return self.equivalence()
+
+    def equivalence(self) -> Any:
+        node = self.implication()
+        while self.peek() == "<=>":
+            self.next()
+            node = ("binop", "<=>", node, self.implication())
+        return node
+
+    def implication(self) -> Any:
+        node = self.disjunction()
+        while self.peek() == "=>":
+            self.next()
+            node = ("binop", "=>", node, self.disjunction())
+        return node
+
+    def disjunction(self) -> Any:
+        node = self.conjunction()
+        while self.peek() == "\\/":
+            self.next()
+            node = ("binop", "\\/", node, self.conjunction())
+        return node
+
+    def conjunction(self) -> Any:
+        node = self.negation()
+        while self.peek() == "/\\":
+            self.next()
+            node = ("binop", "/\\", node, self.negation())
+        return node
+
+    def negation(self) -> Any:
+        if self.accept("~"):
+            return ("unop", "~", self.negation())
+        return self.comparison()
+
+    _COMPARISONS = ("=", "#", "/=", "<", ">", "<=", ">=", "\\in", "\\notin", "\\subseteq", "\\subset")
+
+    def comparison(self) -> Any:
+        node = self.additive()
+        token = self.peek()
+        if token in self._COMPARISONS:
+            self.next()
+            return ("binop", token, node, self.additive())
+        return node
+
+    def additive(self) -> Any:
+        node = self.multiplicative()
+        while self.peek() in ("+", "-", "\\cup", "\\"):
+            operator = self.next()
+            node = ("binop", operator, node, self.multiplicative())
+        return node
+
+    def multiplicative(self) -> Any:
+        node = self.rangeexpr()
+        while self.peek() in ("*", "\\div", "\\cap"):
+            operator = self.next()
+            node = ("binop", operator, node, self.rangeexpr())
+        return node
+
+    def rangeexpr(self) -> Any:
+        node = self.postfix()
+        if self.peek() == "..":
+            self.next()
+            return ("range", node, self.postfix())
+        return node
+
+    def postfix(self) -> Any:
+        node = self.primary()
+        while True:
+            token = self.peek()
+            if token == "[":
+                self.next()
+                index = self.expression()
+                self.expect("]")
+                node = ("apply", node, index)
+                continue
+            if token == "'":
+                self.next()
+                node = ("primed", node)
+                continue
+            break
+        return node
+
+    def primary(self) -> Any:
+        token = self.peek()
+        if token is None:
+            raise Unevaluable("unexpected end of expression")
+        if token.startswith('"'):
+            self.next()
+            return ("const", ast.literal_eval(token))
+        if token.isdigit():
+            self.next()
+            return ("const", int(token))
+        if token == "-":
+            self.next()
+            return ("unop", "-", self.postfix())
+        if token == "(":
+            self.next()
+            node = self.expression()
+            self.expect(")")
+            return node
+        if token == "<<":
+            self.next()
+            items = []
+            if self.peek() != ">>":
+                items.append(self.expression())
+                while self.accept(","):
+                    items.append(self.expression())
+            self.expect(">>")
+            return ("tuple", tuple(items))
+        if token == "{":
+            return self.set_expression()
+        if token == "[":
+            return self.bracket_expression()
+        if token in ("\\A", "\\E"):
+            self.next()
+            bindings = self.bindings()
+            self.expect(":")
+            return ("quant", token, bindings, self.expression())
+        if token == "IF":
+            self.next()
+            condition = self.expression()
+            self.expect("THEN")
+            consequent = self.expression()
+            self.expect("ELSE")
+            return ("if", condition, consequent, self.expression())
+        if token in ("DOMAIN", "SUBSET", "UNION"):
+            self.next()
+            return ("unop", token, self.postfix())
+        if token == "TRUE":
+            self.next()
+            return ("const", True)
+        if token == "FALSE":
+            self.next()
+            return ("const", False)
+        if token in _TLA_KEYWORDS:
+            raise Unevaluable(f"unsupported construct: {token}")
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", token):
+            self.next()
+            if self.peek() == "(":
+                self.next()
+                args = []
+                if self.peek() != ")":
+                    args.append(self.expression())
+                    while self.accept(","):
+                        args.append(self.expression())
+                self.expect(")")
+                return ("call", token, tuple(args))
+            return ("name", token)
+        raise Unevaluable(f"unsupported token {token!r}")
+
+    def bindings(self) -> tuple[tuple[tuple[str, ...], Any], ...]:
+        bindings: list[tuple[tuple[str, ...], Any]] = []
+        while True:
+            names = [self.next()]
+            while self.accept(","):
+                names.append(self.next())
+            self.expect("\\in")
+            domain = self.multiplicative()
+            for name in names:
+                if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+                    raise Unevaluable(f"bad binding name {name!r}")
+            bindings.append((tuple(names), domain))
+            if self.peek() == "," and self.peek(2) == "\\in":
+                self.next()
+                continue
+            if self.peek() == "," and self.peek(1) is not None and self.peek(3) == "\\in":
+                self.next()
+                continue
+            break
+        return tuple(bindings)
+
+    def set_expression(self) -> Any:
+        self.expect("{")
+        if self.accept("}"):
+            return ("set", ())
+        mark = self.pos
+        # {x \in S : P}
+        if self.peek(1) == "\\in":
+            try:
+                bindings = self.bindings()
+                self.expect(":")
+                predicate = self.expression()
+                self.expect("}")
+                return ("setfilter", bindings, predicate)
+            except Unevaluable:
+                self.pos = mark
+        items = [self.expression()]
+        while self.accept(","):
+            items.append(self.expression())
+        if self.accept(":"):
+            bindings = self.bindings()
+            self.expect("}")
+            return ("setmap", items[0], bindings)
+        self.expect("}")
+        return ("set", tuple(items))
+
+    def bracket_expression(self) -> Any:
+        self.expect("[")
+        mark = self.pos
+        # [x \in S |-> e]
+        if self.peek(1) == "\\in":
+            try:
+                bindings = self.bindings()
+                self.expect("|->")
+                body = self.expression()
+                self.expect("]")
+                return ("funcctor", bindings, body)
+            except Unevaluable:
+                self.pos = mark
+        # [a |-> e, b |-> e]
+        try:
+            fields: list[tuple[str, Any]] = []
+            while True:
+                key = self.next()
+                self.expect("|->")
+                fields.append((key, self.expression()))
+                if not self.accept(","):
+                    break
+            self.expect("]")
+            return ("record", tuple(fields))
+        except Unevaluable:
+            self.pos = mark
+        raise Unevaluable("unsupported bracket expression (EXCEPT, function set, ...)")
+
+
+_PARSE_CACHE: dict[str, Any] = {}
+
+
+def parse_tla_expression(text: str) -> Any:
+    """Parse one TLA+ expression, memoized on its exact source text."""
+    cached = _PARSE_CACHE.get(text)
+    if cached is not None:
+        if isinstance(cached, Unevaluable):
+            raise cached
+        return cached
+    try:
+        node = _TlaParser(tokenize_tla(text)).parse()
+    except Unevaluable as error:
+        _PARSE_CACHE[text] = error
+        raise
+    except RecursionError as error:  # pragma: no cover - pathological input
+        wrapped = Unevaluable("expression nesting too deep")
+        _PARSE_CACHE[text] = wrapped
+        raise wrapped from error
+    _PARSE_CACHE[text] = node
+    return node
+
+
+@dataclass(frozen=True)
+class TlaDefinition:
+    name: str
+    params: tuple[str, ...]
+    body: str
+
+
+def parse_tla_definitions(source: str) -> dict[str, TlaDefinition]:
+    """Top-level ``Name(params) == body`` definitions of a module."""
+    try:
+        from scripts.analyze_complexity import parse_definitions, strip_comments
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import parse_definitions, strip_comments  # type: ignore[no-redef]
+
+    definitions: dict[str, TlaDefinition] = {}
+    for definition in parse_definitions(strip_comments(source)):
+        definitions[definition.name] = TlaDefinition(
+            name=definition.name,
+            params=tuple(definition.params),
+            body=definition.body,
+        )
+    return definitions
+
+
+def coerce_cfg_constant(value: Any) -> Any:
+    """A ``.cfg`` constant assignment as an evaluable value.
+
+    A set assignment becomes a ``frozenset`` of atoms; a scalar becomes its
+    atom. TLC model values (``NoRoot = NoRoot``) stay strings, which is what
+    the DOT parser produces for them too, so the two sides compare.
+    """
+    if isinstance(value, list):
+        return frozenset(parse_atom(str(item)) for item in value)
+    return parse_atom(str(value))
+
+
+def _tla_function_key(value: Any) -> str:
+    return str(value)
+
+
+class GuardEvaluator:
+    """Three-valued evaluation of an action body against one concrete state.
+
+    ``evaluate`` answers TRUE / FALSE / UNKNOWN (``None``). Only FALSE is ever
+    acted on. See the section header for why that asymmetry is the soundness
+    argument rather than a convenience.
+    """
+
+    def __init__(
+        self,
+        definitions: dict[str, TlaDefinition],
+        constants: dict[str, Any],
+        variables: tuple[str, ...],
+    ):
+        self.definitions = definitions
+        self.constants = constants
+        self.variables = variables
+        self._bullets: dict[str, tuple[str | None, tuple[str, ...]]] = {}
+
+    # -- bullet structure -------------------------------------------------
+    def split_bullets(self, text: str) -> tuple[str | None, tuple[str, ...]]:
+        """TLA+'s indentation-delimited ``/\\``/``\\/`` list, if this text is one.
+
+        Returns ``(kind, items)`` with ``kind`` in ``{"/\\", "\\/", None}``.
+        ``None`` means the text is a leaf to be parsed as one expression.
+
+        This is the real bulleted-list rule -- the bullets of one list share a
+        column -- and not a textual split on ``/\\``. A textual split tears
+        ``/\\ \\/ /\\ a /\\ b \\/ c`` into fragments and would promote ``a`` to
+        a top-level conjunct it is not, which is the one way this design could
+        emit a false rejection.
+        """
+        cached = self._bullets.get(text)
+        if cached is not None:
+            return cached
+        result = self._compute_bullets(text)
+        self._bullets[text] = result
+        return result
+
+    def _compute_bullets(self, text: str) -> tuple[str | None, tuple[str, ...]]:
+        positions: list[tuple[int, int, str]] = []  # (column, offset, kind)
+        depth = 0
+        in_string = False
+        column = 0
+        line_has_content = False
+        index = 0
+        while index < len(text):
+            char = text[index]
+            if char == "\n":
+                column = 0
+                line_has_content = False
+                in_string = False
+                index += 1
+                continue
+            if in_string:
+                if char == '"' and not is_escaped(text, index):
+                    in_string = False
+                column += 1
+                index += 1
+                continue
+            if char == '"':
+                in_string = True
+                column += 1
+                index += 1
+                continue
+            pair = text[index : index + 2]
+            if pair in ("/\\", "\\/") and depth == 0 and not line_has_content:
+                positions.append((column, index, pair))
+                line_has_content = True
+                column += 2
+                index += 2
+                continue
+            if pair == "<<":
+                depth += 1
+                column += 2
+                index += 2
+                continue
+            if pair == ">>":
+                depth -= 1
+                column += 2
+                index += 2
+                continue
+            if char in "([{":
+                depth += 1
+            elif char in ")]}":
+                depth -= 1
+            if not char.isspace():
+                line_has_content = True
+            column += 1
+            index += 1
+        if not positions:
+            return (None, ())
+        least = min(position[0] for position in positions)
+        bullets = [position for position in positions if position[0] == least]
+        kinds = {position[2] for position in bullets}
+        if len(kinds) != 1:
+            # Mixed bullets at one column is not a well-formed list. Refuse to
+            # guess its structure: the whole body becomes one leaf, and a leaf
+            # that will not parse is UNKNOWN.
+            return (None, ())
+        kind = bullets[0][2]
+        if text[: bullets[0][1]].strip():
+            # Content before the first bullet means this is not a pure list.
+            return (None, ())
+        items: list[str] = []
+        for order, (_, offset, _) in enumerate(bullets):
+            end = bullets[order + 1][1] if order + 1 < len(bullets) else len(text)
+            # Blank the bullet token so every remaining line keeps its column.
+            item = "  " + text[offset + 2 : end]
+            items.append(item)
+        return (kind, tuple(items))
+
+    # -- three-valued evaluation ------------------------------------------
+    def evaluate(self, text: str, env: dict[str, Any]) -> tuple[bool | None, str | None]:
+        """``(truth, witness)``. ``witness`` is the FALSE fragment, verbatim."""
+        kind, items = self.split_bullets(text)
+        if kind == "/\\":
+            unknown = False
+            for item in items:
+                truth, witness = self.evaluate(item, env)
+                if truth is False:
+                    return False, witness
+                if truth is None:
+                    unknown = True
+            return (None, None) if unknown else (True, None)
+        if kind == "\\/":
+            unknown = False
+            for item in items:
+                truth, _ = self.evaluate(item, env)
+                if truth is True:
+                    return True, None
+                if truth is None:
+                    unknown = True
+            return (None, None) if unknown else (False, collapse_whitespace(text))
+        try:
+            value = self.eval_node(parse_tla_expression(text.strip()), env, 0)
+        except Unevaluable:
+            return None, None
+        except RecursionError:  # pragma: no cover - pathological input
+            return None, None
+        if value is True:
+            return True, None
+        if value is False:
+            return False, collapse_whitespace(text)
+        return None, None
+
+    # -- two-valued expression evaluation ---------------------------------
+    def eval_node(self, node: Any, env: dict[str, Any], depth: int) -> Any:
+        if depth > _MAX_EXPANSION_DEPTH:
+            raise Unevaluable("operator expansion too deep")
+        kind = node[0]
+        if kind == "const":
+            return node[1]
+        if kind == "name":
+            return self.eval_name(node[1], env, depth)
+        if kind == "primed":
+            raise Unevaluable("primed variable")
+        if kind == "call":
+            return self.eval_call(node[1], node[2], env, depth)
+        if kind == "apply":
+            function = self.eval_node(node[1], env, depth)
+            index = self.eval_node(node[2], env, depth)
+            if isinstance(function, dict):
+                key = _tla_function_key(index)
+                if key not in function:
+                    raise Unevaluable(f"index {key!r} outside function domain")
+                return function[key]
+            if isinstance(function, tuple):
+                if not isinstance(index, int) or not 1 <= index <= len(function):
+                    raise Unevaluable("sequence index out of range")
+                return function[index - 1]
+            raise Unevaluable("application of a non-function")
+        if kind == "set":
+            return frozenset(freeze_set_member(self.eval_node(item, env, depth)) for item in node[1])
+        if kind == "tuple":
+            return tuple(self.eval_node(item, env, depth) for item in node[1])
+        if kind == "record":
+            return {key: self.eval_node(value, env, depth) for key, value in node[1]}
+        if kind == "range":
+            low = self.eval_node(node[1], env, depth)
+            high = self.eval_node(node[2], env, depth)
+            if not isinstance(low, int) or not isinstance(high, int):
+                raise Unevaluable("non-integer range bound")
+            return frozenset(range(low, high + 1))
+        if kind == "if":
+            condition = self.eval_node(node[1], env, depth)
+            if not isinstance(condition, bool):
+                raise Unevaluable("non-boolean IF condition")
+            return self.eval_node(node[2] if condition else node[3], env, depth)
+        if kind == "unop":
+            return self.eval_unop(node[1], node[2], env, depth)
+        if kind == "binop":
+            return self.eval_binop(node[1], node[2], node[3], env, depth)
+        if kind == "quant":
+            return self.eval_quantifier(node[1], node[2], node[3], env, depth)
+        if kind == "funcctor":
+            bindings = self.eval_bindings(node[1], env, depth)
+            if len(bindings) != 1 or len(bindings[0][0]) != 1:
+                raise Unevaluable("multi-argument function constructor")
+            name = bindings[0][0][0]
+            return {
+                _tla_function_key(value): self.eval_node(node[2], {**env, name: value}, depth)
+                for value in sorted(bindings[0][1], key=repr)
+            }
+        if kind == "setfilter":
+            bindings = self.eval_bindings(node[1], env, depth)
+            if len(bindings) != 1 or len(bindings[0][0]) != 1:
+                raise Unevaluable("multi-variable set filter")
+            name = bindings[0][0][0]
+            selected = []
+            for value in sorted(bindings[0][1], key=repr):
+                truth = self.eval_node(node[2], {**env, name: value}, depth)
+                if not isinstance(truth, bool):
+                    raise Unevaluable("non-boolean set filter")
+                if truth:
+                    selected.append(freeze_set_member(value))
+            return frozenset(selected)
+        if kind == "setmap":
+            bindings = self.eval_bindings(node[2], env, depth)
+            produced = []
+            for assignment in self.iter_assignments(bindings):
+                produced.append(freeze_set_member(self.eval_node(node[1], {**env, **assignment}, depth)))
+            return frozenset(produced)
+        raise Unevaluable(f"unsupported node {kind}")
+
+    def eval_name(self, name: str, env: dict[str, Any], depth: int) -> Any:
+        if name in env:
+            return env[name]
+        if name in self.constants:
+            return self.constants[name]
+        definition = self.definitions.get(name)
+        if definition is not None and not definition.params:
+            return self.eval_node(parse_tla_expression(definition.body.strip()), {}, depth + 1)
+        if name in self.variables:
+            raise Unevaluable(f"variable {name} absent from this state")
+        raise Unevaluable(f"unbound name {name}")
+
+    def eval_call(self, name: str, args: tuple[Any, ...], env: dict[str, Any], depth: int) -> Any:
+        values = [self.eval_node(argument, env, depth) for argument in args]
+        if name == "Cardinality" and len(values) == 1:
+            if not isinstance(values[0], (frozenset, set)):
+                raise Unevaluable("Cardinality of a non-set")
+            return len(values[0])
+        if name == "IsFiniteSet" and len(values) == 1:
+            return isinstance(values[0], (frozenset, set))
+        if name == "Len" and len(values) == 1:
+            if not isinstance(values[0], tuple):
+                raise Unevaluable("Len of a non-sequence")
+            return len(values[0])
+        if name == "Head" and len(values) == 1:
+            if not isinstance(values[0], tuple) or not values[0]:
+                raise Unevaluable("Head of a non-sequence")
+            return values[0][0]
+        if name == "Tail" and len(values) == 1:
+            if not isinstance(values[0], tuple) or not values[0]:
+                raise Unevaluable("Tail of a non-sequence")
+            return values[0][1:]
+        if name == "Append" and len(values) == 2:
+            if not isinstance(values[0], tuple):
+                raise Unevaluable("Append to a non-sequence")
+            return values[0] + (values[1],)
+        definition = self.definitions.get(name)
+        if definition is None or len(definition.params) != len(values):
+            raise Unevaluable(f"unresolvable operator {name}/{len(values)}")
+        inner = dict(zip(definition.params, values))
+        node = parse_tla_expression(definition.body.strip())
+        return self.eval_node(node, inner, depth + 1)
+
+    def eval_unop(self, operator: str, operand: Any, env: dict[str, Any], depth: int) -> Any:
+        value = self.eval_node(operand, env, depth)
+        if operator == "~":
+            if not isinstance(value, bool):
+                raise Unevaluable("negation of a non-boolean")
+            return not value
+        if operator == "-":
+            if not isinstance(value, int) or isinstance(value, bool):
+                raise Unevaluable("negation of a non-integer")
+            return -value
+        if operator == "DOMAIN":
+            if isinstance(value, dict):
+                return frozenset(value)
+            if isinstance(value, tuple):
+                return frozenset(range(1, len(value) + 1))
+            raise Unevaluable("DOMAIN of a non-function")
+        if operator == "SUBSET":
+            if not isinstance(value, (frozenset, set)) or len(value) > _MAX_POWERSET_BASE:
+                raise Unevaluable("SUBSET of a non-set or an oversized set")
+            members = sorted(value, key=repr)
+            return frozenset(
+                frozenset(combination)
+                for size in range(len(members) + 1)
+                for combination in itertools.combinations(members, size)
+            )
+        if operator == "UNION":
+            if not isinstance(value, (frozenset, set)):
+                raise Unevaluable("UNION of a non-set")
+            result: set[Any] = set()
+            for member in value:
+                if not isinstance(member, (frozenset, set)):
+                    raise Unevaluable("UNION over a non-set member")
+                result |= set(member)
+            return frozenset(result)
+        raise Unevaluable(f"unsupported unary {operator}")
+
+    def eval_binop(self, operator: str, left: Any, right: Any, env: dict[str, Any], depth: int) -> Any:
+        if operator in ("/\\", "\\/", "=>", "<=>"):
+            first = self.eval_node(left, env, depth)
+            if not isinstance(first, bool):
+                raise Unevaluable("non-boolean operand")
+            # Short-circuit so an unevaluable second operand costs nothing when
+            # the first already decides the result.
+            if operator == "/\\" and first is False:
+                return False
+            if operator == "\\/" and first is True:
+                return True
+            if operator == "=>" and first is False:
+                return True
+            second = self.eval_node(right, env, depth)
+            if not isinstance(second, bool):
+                raise Unevaluable("non-boolean operand")
+            if operator == "/\\":
+                return first and second
+            if operator == "\\/":
+                return first or second
+            if operator == "=>":
+                return (not first) or second
+            return first == second
+
+        first = self.eval_node(left, env, depth)
+        second = self.eval_node(right, env, depth)
+        if operator == "=":
+            return first == second
+        if operator in ("#", "/="):
+            return first != second
+        if operator == "\\in":
+            if not isinstance(second, (frozenset, set)):
+                raise Unevaluable("membership in a non-set")
+            return freeze_set_member(first) in second
+        if operator == "\\notin":
+            if not isinstance(second, (frozenset, set)):
+                raise Unevaluable("membership in a non-set")
+            return freeze_set_member(first) not in second
+        if operator in ("\\subseteq", "\\subset"):
+            if not isinstance(first, (frozenset, set)) or not isinstance(second, (frozenset, set)):
+                raise Unevaluable("subset of a non-set")
+            return set(first) <= set(second) if operator == "\\subseteq" else set(first) < set(second)
+        if operator in ("<", ">", "<=", ">="):
+            if not isinstance(first, int) or not isinstance(second, int) or isinstance(first, bool) or isinstance(second, bool):
+                raise Unevaluable("comparison of non-integers")
+            if operator == "<":
+                return first < second
+            if operator == ">":
+                return first > second
+            if operator == "<=":
+                return first <= second
+            return first >= second
+        if operator in ("+", "-", "*", "\\div"):
+            if not isinstance(first, int) or not isinstance(second, int) or isinstance(first, bool) or isinstance(second, bool):
+                raise Unevaluable("arithmetic on non-integers")
+            if operator == "+":
+                return first + second
+            if operator == "-":
+                return first - second
+            if operator == "*":
+                return first * second
+            if second == 0:
+                raise Unevaluable("division by zero")
+            return first // second
+        if operator in ("\\cup", "\\cap", "\\"):
+            if not isinstance(first, (frozenset, set)) or not isinstance(second, (frozenset, set)):
+                raise Unevaluable("set operation on a non-set")
+            if operator == "\\cup":
+                return frozenset(set(first) | set(second))
+            if operator == "\\cap":
+                return frozenset(set(first) & set(second))
+            return frozenset(set(first) - set(second))
+        raise Unevaluable(f"unsupported operator {operator}")
+
+    def eval_bindings(
+        self, bindings: tuple[tuple[tuple[str, ...], Any], ...], env: dict[str, Any], depth: int
+    ) -> list[tuple[tuple[str, ...], Any]]:
+        resolved = []
+        for names, domain_node in bindings:
+            domain = self.eval_node(domain_node, env, depth)
+            if not isinstance(domain, (frozenset, set)):
+                raise Unevaluable("quantifier over a non-set")
+            resolved.append((names, domain))
+        return resolved
+
+    def iter_assignments(self, bindings: list[tuple[tuple[str, ...], Any]]) -> Any:
+        names: list[str] = []
+        domains: list[list[Any]] = []
+        for group, domain in bindings:
+            ordered = sorted(domain, key=repr)
+            for name in group:
+                names.append(name)
+                domains.append(ordered)
+        for combination in itertools.product(*domains):
+            yield dict(zip(names, combination))
+
+    def eval_quantifier(
+        self,
+        quantifier: str,
+        bindings: tuple[tuple[tuple[str, ...], Any], ...],
+        body: Any,
+        env: dict[str, Any],
+        depth: int,
+    ) -> Any:
+        resolved = self.eval_bindings(bindings, env, depth)
+        results = []
+        for assignment in self.iter_assignments(resolved):
+            truth = self.eval_node(body, {**env, **assignment}, depth)
+            if not isinstance(truth, bool):
+                raise Unevaluable("non-boolean quantifier body")
+            results.append(truth)
+        if quantifier == "\\A":
+            return all(results)
+        return any(results)
+
+
+def collapse_whitespace(text: str) -> str:
+    return " ".join(text.split())
+
+
+@dataclass(frozen=True)
+class ActionSignature:
+    """One action of ``Next``, with the domain each argument ranges over."""
+
+    name: str
+    params: tuple[str, ...]
+    domains: tuple[tuple[Any, ...], ...]
+    body: str
+
+    @property
+    def candidate_count(self) -> int:
+        total = 1
+        for domain in self.domains:
+            total *= len(domain)
+        return total
+
+
+def extract_action_signatures(
+    definitions: dict[str, TlaDefinition],
+    evaluator: GuardEvaluator,
+    next_name: str = "Next",
+) -> tuple[dict[str, ActionSignature], dict[str, str]]:
+    """Signatures from the disjuncts of ``Next``, plus a reason per rejection.
+
+    A disjunct must be ``\\E x \\in S, ... : Name(args)`` or a bare ``Name``,
+    with every argument a bound variable of that quantifier and every domain a
+    finite set this evaluator can enumerate. Anything else is reported, never
+    approximated -- an approximated domain would emit arguments the model does
+    not admit.
+    """
+    try:
+        from scripts.analyze_complexity import split_top_level_disjuncts
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import split_top_level_disjuncts  # type: ignore[no-redef]
+
+    signatures: dict[str, ActionSignature] = {}
+    rejected: dict[str, str] = {}
+    definition = definitions.get(next_name)
+    if definition is None:
+        return signatures, {next_name: "no such definition"}
+    for chunk in split_top_level_disjuncts(definition.body):
+        text = collapse_whitespace(chunk)
+        if not text:
+            continue
+        try:
+            node = parse_tla_expression(text)
+        except Unevaluable as error:
+            rejected[text[:60]] = f"disjunct did not parse: {error}"
+            continue
+        bindings: tuple[tuple[tuple[str, ...], Any], ...] = ()
+        if node[0] == "quant" and node[1] == "\\E":
+            bindings = node[2]
+            node = node[3]
+        if node[0] == "name":
+            name, arguments = node[1], ()
+        elif node[0] == "call":
+            name, arguments = node[1], node[2]
+        else:
+            rejected[text[:60]] = "disjunct is not a call to a named action"
+            continue
+        action = definitions.get(name)
+        if action is None:
+            rejected[name] = "action has no definition in this module"
+            continue
+        try:
+            domains_by_name: dict[str, tuple[Any, ...]] = {}
+            for names, domain_node in bindings:
+                domain = evaluator.eval_node(domain_node, {}, 0)
+                if not isinstance(domain, (frozenset, set)):
+                    raise Unevaluable("quantifier domain is not a set")
+                ordered = tuple(sorted(domain, key=repr))
+                for bound in names:
+                    domains_by_name[bound] = ordered
+        except Unevaluable as error:
+            rejected[name] = f"quantifier domain not enumerable: {error}"
+            continue
+        argument_names: list[str] = []
+        for argument in arguments:
+            if argument[0] != "name" or argument[1] not in domains_by_name:
+                argument_names = []
+                break
+            argument_names.append(argument[1])
+        if len(argument_names) != len(arguments):
+            rejected[name] = "an argument is not a plain quantifier-bound variable"
+            continue
+        if len(action.params) != len(argument_names):
+            rejected[name] = "arity of the call does not match the definition"
+            continue
+        signatures[name] = ActionSignature(
+            name=name,
+            params=tuple(action.params),
+            domains=tuple(domains_by_name[bound] for bound in argument_names),
+            body=action.body,
+        )
+    return signatures, rejected
+
+
+def guard_read_variables(
+    signature: ActionSignature, evaluator: GuardEvaluator
+) -> frozenset[str]:
+    """Variables read by the unprimed items of an action body."""
+    reads: set[str] = set()
+
+    def walk(text: str) -> None:
+        kind, items = evaluator.split_bullets(text)
+        if kind is not None:
+            for item in items:
+                walk(item)
+            return
+        stripped = _STRIP_STRINGS_RE.sub(" ", text)
+        if "'" in stripped:
+            return
+        for token in set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", stripped)):
+            if token in evaluator.variables:
+                reads.add(token)
+
+    walk(signature.body)
+    return frozenset(reads)
+
+
+def written_variables(
+    signature: ActionSignature,
+    variables: tuple[str, ...],
+    definitions: dict[str, TlaDefinition] | None = None,
+) -> frozenset[str]:
+    """Variables this action assigns, following the operators it calls.
+
+    The expansion matters: HP-01's fixture writes its refusals as
+    ``RefuseX(...) == guard /\\ Refuse("reason")``, so the action's own text
+    primes nothing at all. Reading only that text reports an empty write set --
+    true by accident here, and wrong the moment a model spells one conjunct
+    through a helper.
+    """
+    seen: set[str] = {signature.name}
+    written: set[str] = set()
+    stack = [signature.body]
+    while stack:
+        text = _STRIP_STRINGS_RE.sub(" ", stack.pop())
+        for variable in variables:
+            if re.search(rf"\b{re.escape(variable)}'", text):
+                written.add(variable)
+        if definitions is None:
+            continue
+        for token in sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text))):
+            if token in definitions and token not in seen and token not in variables:
+                seen.add(token)
+                stack.append(definitions[token].body)
+    return frozenset(written)
+
+
+_STRIP_STRINGS_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
+
+
+def negatable_actions(
+    signatures: dict[str, ActionSignature], evaluator: GuardEvaluator
+) -> tuple[list[str], dict[str, str]]:
+    """Which actions represent a CALL that a program can be asked to refuse.
+
+    A model may spell its refusals out as their own actions -- HP-01's fixture
+    does, and the standing recommendation is to -- and those actions must NOT
+    be negated. The complement of "this call is refused" is "this call is
+    accepted", so emitting it would assert rejection of an input the model
+    ENABLES: precisely the false rejection this mode must never produce.
+
+    The rule that separates them, stated so it can be argued with: an action is
+    a call when it WRITES at least one variable that some guard in this module
+    READS. A refusal changes no domain state -- it only records an outcome
+    nothing is guarded on -- so it fails that test, while every state-advancing
+    command passes it. An operator who disagrees overrides the set with
+    ``--negative-action``; the chosen and rejected sets are both printed, so
+    the decision is visible rather than inferred.
+    """
+    guard_reads: set[str] = set()
+    for signature in signatures.values():
+        guard_reads |= guard_read_variables(signature, evaluator)
+    chosen: list[str] = []
+    excluded: dict[str, str] = {}
+    for name in sorted(signatures):
+        writes = written_variables(signatures[name], evaluator.variables, evaluator.definitions)
+        overlap = writes & guard_reads
+        if overlap:
+            chosen.append(name)
+        else:
+            excluded[name] = (
+                "writes {" + ", ".join(sorted(writes)) + "}, none of which any guard reads -- "
+                "this is a refusal or a pure observation, not a call to be refused"
+            )
+    return chosen, excluded
+
+
+@dataclass
+class NegativeCorpusReport:
+    """Everything the negative pass measured, printed and never summarized away."""
+
+    emitted: int = 0
+    candidates: int = 0
+    #: Triples the evaluator did NOT prove disabled. A whole action body always
+    #: contains primed conjuncts, which are UNKNOWN by construction, so "not
+    #: disabled" is the strongest thing this pass can say about them -- it is
+    #: never the claim that they are enabled.
+    not_disabled: int = 0
+    dump_edges_for_negated: int = 0
+    negated: tuple[str, ...] = ()
+    excluded: dict[str, str] = field(default_factory=dict)
+    suppressed: dict[str, str] = field(default_factory=dict)
+    per_action: dict[str, int] = field(default_factory=dict)
+    per_reason: dict[str, int] = field(default_factory=dict)
+    deduped_from: int = 0
+    dedupe_mode: str = "none"
+    outcome_fields: tuple[str, ...] = ()
+    crosschecked_edges: int = 0
+    crosscheck_failures: dict[str, int] = field(default_factory=dict)
+
+
+def negative_cases_for_corpus(
+    *,
+    states: dict[str, dict[str, Any]],
+    edges: list[Edge],
+    tla_source: str,
+    cfg_text: str,
+    view: str,
+    action_metadata: dict[str, ActionMetadata],
+    state_projector: Any | None,
+    dedupe: str,
+    only_actions: tuple[str, ...],
+    param_recipes: dict[str, ActionRecipe] | None,
+    start_index: int,
+) -> tuple[list[PreparedCase], NegativeCorpusReport]:
+    """The disabled edges of every reachable state, as rejection cases."""
+    try:
+        from scripts.analyze_complexity import parse_cfg_constants
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import parse_cfg_constants  # type: ignore[no-redef]
+
+    try:
+        from scripts.infer_action_params import parse_variables
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from infer_action_params import parse_variables  # type: ignore[no-redef]
+
+    report = NegativeCorpusReport(dedupe_mode=dedupe)
+    variables = parse_variables(tla_source)
+    constants = {
+        name: coerce_cfg_constant(value) for name, value in parse_cfg_constants(cfg_text).items()
+    }
+    definitions = parse_tla_definitions(tla_source)
+    evaluator = GuardEvaluator(definitions, constants, variables)
+    signatures, rejected = extract_action_signatures(definitions, evaluator)
+    report.suppressed.update(rejected)
+
+    if only_actions:
+        chosen = [name for name in only_actions if name in signatures]
+        for name in only_actions:
+            if name not in signatures:
+                report.suppressed[name] = "named by --negative-action but not a Next disjunct"
+        excluded = {name: "not selected by --negative-action" for name in signatures if name not in chosen}
+    else:
+        chosen, excluded = negatable_actions(signatures, evaluator)
+    report.excluded = excluded
+    # The variables an excluded action writes are the ones a refusal reports on.
+    # Derived from the model rather than named by hand: a module that spells its
+    # refusals out has just told the generator which of its variables carry an
+    # outcome, and a module that does not gets an empty tuple and the stronger
+    # assertion.
+    outcome_fields = tuple(
+        sorted(
+            set().union(
+                *(
+                    written_variables(signatures[name], evaluator.variables, definitions)
+                    for name in excluded
+                    if name in signatures
+                )
+            )
+            if excluded
+            else set()
+        )
+    )
+    report.outcome_fields = outcome_fields
+
+    chosen = [
+        name
+        for name in chosen
+        if should_emit_action(action_metadata_for(name, view, action_metadata), view)
+    ]
+
+    # CROSS-CHECK, run before anything is emitted. Every enabled edge in the
+    # dump whose arguments were fully recovered is evaluated at its own source
+    # state; the guard of a transition TLC took must not evaluate FALSE. A
+    # failure means this evaluator disagrees with TLC, so the action is dropped
+    # from the negated set rather than trusted -- the corpus never states
+    # something the checker itself has just been shown to get wrong.
+    for name in list(chosen):
+        failures = 0
+        checked = 0
+        signature = signatures[name]
+        for edge in edges:
+            if edge.action != name:
+                continue
+            params = params_for_case(edge, states[edge.source], states[edge.target], view, param_recipes)
+            if not params or unchecked_param_names(params):
+                continue
+            if set(params) != set(signature.params):
+                continue
+            checked += 1
+            truth, _ = evaluator.evaluate(signature.body, {**states[edge.source], **params})
+            if truth is False:
+                failures += 1
+        report.crosschecked_edges += checked
+        if failures:
+            report.crosscheck_failures[name] = failures
+            report.suppressed[name] = (
+                f"{failures} of {checked} ENABLED edges evaluated FALSE against this "
+                "evaluator -- the disagreement is with TLC and the action is not negated"
+            )
+            chosen.remove(name)
+
+    report.negated = tuple(chosen)
+    prepared: list[PreparedCase] = []
+    seen: set[Any] = set()
+    ordered_states = sorted(states, key=lambda node: (len(node), node))
+    for name in chosen:
+        signature = signatures[name]
+        reads = guard_read_variables(signature, evaluator)
+        for node in ordered_states:
+            state = states[node]
+            for combination in itertools.product(*signature.domains):
+                report.candidates += 1
+                bindings = dict(zip(signature.params, combination))
+                truth, witness = evaluator.evaluate(signature.body, {**state, **bindings})
+                if truth is not False:
+                    report.not_disabled += 1
+                    continue
+                reason = witness or "disabled"
+                if dedupe == "guard-reads":
+                    relevant = {
+                        variable: state[variable]
+                        for variable in sorted(reads)
+                        if variable in state and re.search(rf"\b{re.escape(variable)}\b", reason)
+                    }
+                    signature_key = freeze_for_signature(
+                        {"action": name, "params": bindings, "reason": reason, "reads": relevant}
+                    )
+                    if signature_key in seen:
+                        report.deduped_from += 1
+                        continue
+                    seen.add(signature_key)
+                projected = call_state_projector(state_projector, state)
+                metadata = action_metadata_for(name, view, action_metadata)
+                labels = (
+                    name,
+                    NEGATIVE_LABEL,
+                    REJECTED_LABEL,
+                    f"rejects:{name}",
+                    # Not `params:recovered`: these arguments were ENUMERATED
+                    # from the action's own quantifier domains, never recovered
+                    # from a state pair. A reader of the corpus must be able to
+                    # tell the two provenances apart.
+                    "params:enumerated",
+                )
+                index = start_index + len(prepared)
+                prepared.append(
+                    PreparedCase(
+                        name=f"{case_name(index, name)}_rejected",
+                        edge=Edge(source=node, target=node, action=name),
+                        before=projected,
+                        after=projected,
+                        params=dict(bindings),
+                        output_value=None,
+                        output_expression=(
+                            "StateGraphRejection(action={action!r}, params={params}, "
+                            "reason={reason!r}, outcome_fields={outcome})".format(
+                                action=name,
+                                params=py_repr(dict(bindings)),
+                                reason=reason,
+                                outcome=py_repr(outcome_fields),
+                            )
+                        ),
+                        changes={},
+                        labels=labels,
+                        metadata=metadata,
+                    )
+                )
+                report.per_action[name] = report.per_action.get(name, 0) + 1
+                report.per_reason[reason] = report.per_reason.get(reason, 0) + 1
+    report.emitted = len(prepared)
+    report.dump_edges_for_negated = sum(1 for edge in edges if edge.action in set(chosen))
+    return prepared, report
+
+
+def render_negative_report(report: NegativeCorpusReport) -> str:
+    lines = [
+        "",
+        "negative corpus (HP-03): the DISABLED edges of every reachable state, asserted REJECTED",
+        f"  emitted:        {report.emitted} case(s) from {report.candidates} candidate (state, action, argument) triples",
+        f"  negated:        {', '.join(report.negated) if report.negated else '(none)'}",
+    ]
+    if report.dedupe_mode != "none":
+        lines.append(
+            f"  dedupe:         {report.dedupe_mode} collapsed "
+            f"{report.emitted + report.deduped_from} -> {report.emitted} "
+            "(identical action, arguments, violated conjunct and every state variable that conjunct reads)"
+        )
+    lines.append(
+        f"  cross-check:    {report.crosschecked_edges} ENABLED edge(s) with fully recovered arguments "
+        f"re-evaluated at their own source state; {sum(report.crosscheck_failures.values())} evaluated FALSE"
+    )
+    lines.append(
+        f"  verdicts:       {report.emitted + report.deduped_from} proved DISABLED, "
+        f"{report.not_disabled} NOT PROVED DISABLED (guards hold, or a conjunct was unevaluable)"
+    )
+    if report.not_disabled > report.dump_edges_for_negated:
+        lines.append(
+            f"  NOTE: the dump holds {report.dump_edges_for_negated} edge(s) for these actions while "
+            f"{report.not_disabled} argument tuples were not proved disabled -- at least "
+            f"{report.not_disabled - report.dump_edges_for_negated} (state, action, argument) triples "
+            "have no edge of their own. A DOT dump carries one edge per (source, target, action) and "
+            "collapses arguments that agree on the successor. That is why the disabled set is computed "
+            "by evaluating the model and NOT by subtracting the dump's edges: the subtraction would "
+            "report collapsed-but-enabled inputs as refusable, which is the one error this mode "
+            "may not make."
+        )
+    lines.append(
+        "  outcome fields: "
+        + (", ".join(report.outcome_fields) if report.outcome_fields else "(none -- full inertness asserted)")
+        + " -- variables a refusal legitimately writes, taken from the write set of this "
+        "module's own refusal actions; an adapter reports these unobservable and every other "
+        "variable is asserted unchanged"
+    )
+    for action, count in sorted(report.per_action.items()):
+        lines.append(f"    {action}: {count}")
+    for reason, count in sorted(report.per_reason.items(), key=lambda item: (-item[1], item[0])):
+        lines.append(f"    reason `{reason}`: {count}")
+    for action, why in sorted(report.excluded.items()):
+        lines.append(f"  NOT negated: {action} -- {why}")
+    for action, why in sorted(report.suppressed.items()):
+        lines.append(f"  SUPPRESSED:  {action} -- {why}")
+    lines.append(
+        "  A suppressed or unevaluable action costs COMPLETENESS, never SOUNDNESS: this mode "
+        "emits a case only where the action's own body evaluates to a definite FALSE."
+    )
+    return "\n".join(lines)
+
+
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     """Register the generation arguments.
 
@@ -1142,10 +2567,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     Until that ticket the whole of case-module generation was reachable only by
     running this file directly: `build_parser` in scripts/tla_spec_dev.py never
     referenced it, so an import-closure walk of the shipped CLI never saw the
-    java spawn at scripts/generate_cases_from_tlc_dump.py:116
+    java spawn at scripts/generate_cases_from_tlc_dump.py:126
     (subprocess.run), the metadir delete at
-    scripts/generate_cases_from_tlc_dump.py:140 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:882-883 (path.write_text)
+    scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
+    writes at scripts/generate_cases_from_tlc_dump.py:1006-1007 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.
@@ -1242,6 +2667,46 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument(
+        "--negative-cases",
+        choices=list(NEGATIVE_MODES),
+        default="off",
+        help=(
+            "HP-03. Also emit, per reachable state, the actions whose guards are "
+            "DISABLED there -- one case per refusable argument tuple, asserting the "
+            "call is REJECTED and that no modeled variable changes. `with-positive` "
+            "appends them to the ordinary corpus; `only` emits the negative corpus "
+            "alone, which is how the class is measured on its own. Off by default: "
+            "this changes what a corpus contains, and a mode that silently doubled "
+            "every existing corpus would be a schedule change nobody asked for."
+        ),
+    )
+    parser.add_argument(
+        "--negative-dedupe",
+        choices=list(NEGATIVE_DEDUPE_MODES),
+        default="guard-reads",
+        help=(
+            "How negative cases are collapsed. `guard-reads` keeps one case per "
+            "(action, arguments, violated conjunct, and every state variable that "
+            "conjunct reads) -- cases agreeing on all four are the same test. "
+            "`none` keeps one case per reachable state, which is exact and very "
+            "large. This is a DEDUPE, never a trim: no case is dropped for fitting "
+            "a budget, and the collapsed count is reported either way."
+        ),
+    )
+    parser.add_argument(
+        "--negative-action",
+        action="append",
+        default=[],
+        metavar="ACTION",
+        help=(
+            "Negate exactly these actions, overriding the automatic selection. "
+            "By default an action is negated when it writes a variable some guard "
+            "reads -- which excludes actions that MODEL a refusal, because the "
+            "complement of a refusal is an acceptance and asserting it rejected "
+            "would be a false rejection. Repeatable."
+        ),
+    )
+    parser.add_argument(
         "--coverage-json",
         type=Path,
         help=(
@@ -1314,6 +2779,9 @@ def run(args: argparse.Namespace) -> int:
         None if args.no_infer_params else build_recipes_for_hierarchy(tla_path, search_path)
     )
 
+    negative_mode = getattr(args, "negative_cases", "off")
+    projector_description = args.state_projector or "none"
+    negative_reports: list[NegativeCorpusReport] = []
     prepared = render_python_package(
         module=tla_path.stem,
         states=states,
@@ -1326,9 +2794,21 @@ def run(args: argparse.Namespace) -> int:
         output_projector=load_object(args.output_projector) if args.output_projector else None,
         dedupe=args.dedupe,
         param_recipes=param_recipes,
+        negative=negative_mode,
+        negative_dedupe=getattr(args, "negative_dedupe", "guard-reads"),
+        negative_actions=tuple(getattr(args, "negative_action", []) or ()),
+        tla_source=tla_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
+        cfg_text=cfg_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
+        projector_description=projector_description,
+        negative_report_out=negative_reports,
     )
     print(f"spec directory: {spec_dir}")
-    print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
+    print(f"generated {view} cases from {len(states)} states into {out_path / args.package}")
+    # RC-02-DF-04: say what shaped the corpus, every run, unprompted. A count
+    # whose projection is unnamed cannot be compared with the next one.
+    print(f"state projection: {projector_description}; transition dedupe: {args.dedupe}")
+    for negative_report in negative_reports:
+        print(render_negative_report(negative_report))
 
     coverage_record = report_action_coverage(
         prepared,
@@ -1350,7 +2830,16 @@ def run(args: argparse.Namespace) -> int:
         )
 
     if param_recipes is not None:
-        report_param_recovery(prepared, param_recipes, out_path / args.package)
+        # Negative cases are excluded from the recovery audit on purpose: their
+        # arguments were ENUMERATED from the quantifier domains, not recovered
+        # from a state pair. Counting them would inflate the recovery rate with
+        # arguments recovery never touched -- the exact kind of number RP-02
+        # was retracted over.
+        report_param_recovery(
+            [case for case in prepared if NEGATIVE_LABEL not in case.labels],
+            param_recipes,
+            out_path / args.package,
+        )
 
     # Case-cap hard gate (MF-014). Runs AFTER the complete package is written:
     # the corpus is never trimmed to pass, so the artifacts on disk hold every

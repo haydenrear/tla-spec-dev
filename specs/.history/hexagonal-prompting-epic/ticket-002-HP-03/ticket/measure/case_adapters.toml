@@ -1,0 +1,30 @@
+# HP-03 measurement mapping. Ticket-local instrument, not shipped surface.
+#
+# Two bindings, because a negative case and a positive case assert different
+# things: one that the call is REFUSED and nothing moved, the other that the
+# transition happened exactly as the model says. The negative binding is listed
+# first, because the first matching entry wins and every negative case also
+# carries its action name as a label.
+
+[[adapter]]
+labels = ["negative"]
+adapter = "quota_ledger_adapter:NegativeAdapter"
+kind = "negative"
+
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "quota_ledger_adapter:PositiveAdapter"
+kind = "transition"
+
+[[adapter]]
+labels = [
+  "RefuseReserveClosed",
+  "RefuseReserveNotPositive",
+  "RefuseReserveOverQuota",
+  "RefuseCommitUnknown",
+  "RefuseReleaseUnknown",
+  "RefuseCloseAlreadyClosed",
+  "RefuseCloseOutstanding",
+]
+adapter = "quota_ledger_adapter:PositiveAdapter"
+kind = "modeled-refusal"
