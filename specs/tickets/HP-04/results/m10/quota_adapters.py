@@ -244,8 +244,11 @@ class ReleaseAdapter:
     """
 
     def apply(self) -> dict[str, object]:
-        program = reference.QuotaLedger({"t1": 2}, HERE / "_apply" / "ledger.txt")
-        return {"available": program.available("t1")}
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as scratch:
+            program = reference.QuotaLedger({"t1": 2}, Path(scratch) / "ledger.txt")
+            return {"available": program.available("t1")}
 
 
 class ReleaseRunnableAdapter(_Base):

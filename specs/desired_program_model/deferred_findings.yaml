@@ -414,3 +414,72 @@ findings:
     disposition_note: >-
       Filed toward HP-03, not fixed. Measured on a different model than RP-02's,
       which makes it a replication rather than a restatement.
+
+  - id: HP-04-DF-04
+    found_by: "HP-04"
+    found_at_commit: "386222b"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: ["scripts/new_ticket_workflow.py", "scripts/spec_evolution.py", "scripts/effect_conformance.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `open ticket` SNAPSHOTS THE EFFECT ORACLE'S SCRATCH DIRECTORY INTO THE
+      TICKET, AND `close ticket` WOULD PROMOTE IT INTO THE MODEL. `run
+      effect-conformance` defaults its work tree to
+      `<spec dir>/.effect-conformance-work` -- inside the directory the ticket
+      workflow snapshots -- and the snapshot has no exclusion for it. Running
+      the oracle against `specs/current` before opening a ticket therefore seeds
+      several hundred scratch files into `specs/tickets/<id>/{desired,current}`
+      and into `ticket.yaml`'s `seed_manifest`.
+
+      MEASURED ON THIS TICKET: HP-04 reproduced RC-02-DF-02 (one failing run,
+      which still creates the work tree) and then opened its own ticket. The
+      workspace came out at **706 of 801 tracked files being scratch** -- an
+      entire scaffolded target repo, twice, under `desired/` and `current/`.
+      Close-time promotion copies ticket `desired/` onto project `specs/current`,
+      so an unnoticed close would have written the oracle's scratch tree into
+      the model permanently, and the NEXT ticket would have snapshotted it
+      again.
+
+      HP-04 recovered by deleting the ticket workspace and re-running
+      `open ticket` from a clean `specs/current`, which is a manual step nobody
+      is told to take.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance
+      --target specs/current --cases-dir <corpus>` (any outcome, including a
+      failing one), then
+      `python3 scripts/tla_spec_dev.py --spec-root specs open ticket <id>`, then
+      `git ls-files specs/tickets/<id> | grep -c effect-conformance-work`.
+    evidence:
+      - "specs/tickets/HP-04/results/determinism-two-runs.txt"
+    why_out_of_scope: >-
+      The fix belongs on one of two surfaces, and neither is HP-04's. Either the
+      ticket snapshot learns to exclude tool scratch (`new_ticket_workflow.py` /
+      `spec_evolution.py`, neither in HP-04's implementation_scope), or the
+      oracle's default work directory moves out of the spec tree -- which
+      changes what `RunEffectConformance`'s `spec_tree` row asserts and is a
+      model decision, not a harness one. HP-04's slice is that the work tree is
+      RESET per case, which makes the run reproducible and does nothing about
+      where it lives.
+    suggested_fix: >-
+      Exclude dot-directories the toolchain owns from the ticket snapshot, named
+      explicitly rather than by a blanket dotfile rule, and add a test that
+      opens a ticket with a populated `.effect-conformance-work` present and
+      asserts the seed manifest does not mention it. Separately, decide whether
+      a scratch tree belongs under `specs/` at all; if it moves,
+      `RunEffectConformance`'s manifest row loses `spec_tree` and gains nothing,
+      which is a cheaper declaration than the one it has now.
+    blast_radius: >-
+      Every project that runs the effect oracle before opening a ticket, which
+      is the order the documentation implies (measure, then open the ticket that
+      fixes what you measured). The failure is silent at open time and permanent
+      at close time.
+    disposition: open
+    disposition_ticket: null
+    disposition_note: >-
+      Found by inspecting HP-04's own ticket.yaml rather than by any check. No
+      test, gate or command reports it, and the ticket workspace is not
+      something a reviewer normally reads file by file.
