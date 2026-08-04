@@ -9,7 +9,11 @@ description: >-
   evaluation/perf/integration ticket that decides them, and composes git-issue
   issue authoring, git-issue-workflow ticket execution, tla-spec-dev ticket
   promotion, and Test Graph validation while allowing dependency-aware parallel
-  work and serialized integration.
+  work and serialized integration. Epic and ticket worktrees are branched by
+  hand from the declared epic branch and then given their own per-checkout Skill
+  Manager home with git-issue-workflow's `scripts/bootstrap-home.sh`; teardown
+  is that skill's `scripts/wt close <ticket>`. A bare `git worktree add` with no
+  home step leaves the ticket agent writing the operator's global home.
 skill-imports:
   - unit: git-issue
     path: SKILL.md
@@ -89,6 +93,24 @@ This skill has three roles:
     `skill-manager unit publish`. An epic cannot finalize until every ticket
     worktree has been through `skill-manager home close-out` — see
     `references/plan-and-schedule.md` §2 and `references/finalize.md` §1b.
+
+    **That home does not appear on its own.** An epic branches by hand, because
+    the epic branch and every ticket worktree path are *declared* by the plan and
+    the assignment — so the home is a second, explicit step, and `git worktree
+    add` on its own leaves the agent writing the operator's global home:
+
+    ```bash
+    SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+
+    git worktree add <declared-worktree> -b <declared-branch> "$commit_oid"
+    "$SKILLS/bootstrap-home.sh" --root <declared-worktree>    # never skip this
+    ```
+
+    Teardown is one command in every case, because it resolves a ticket by
+    searching rather than by the path convention:
+    `"$SKILLS/wt" close <ticket>`. A repository that has never been given a home
+    makes `bootstrap-home.sh` the *first* thing run in it, which is the same
+    one-time per-repository step `wt new` prints as its `fix:` line elsewhere.
 11. **Every epic states measurable goals; every ticket relates to one.** Ask the
     user what should be measurably better before scaffolding the workflow.
     Record each goal with its metric, harness command, baseline, and target;

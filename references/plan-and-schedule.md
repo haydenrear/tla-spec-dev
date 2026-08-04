@@ -87,8 +87,15 @@ binds, or resolves — those all write into whatever `SKILL_MANAGER_HOME` names,
 before the local home exists that is the operator's global home:
 
 ```bash
-<git-integration-repo-skill>/scripts/bootstrap-home.sh --root ../wt-epic-<slug>
+"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
+  --root ../wt-epic-<slug>
 ```
+
+That path is the resolution, not a placeholder: an installed unit's files live at
+`$SKILL_MANAGER_HOME/skills/<unit>/`, and the `:-` fallback makes the same line
+work from a bare shell. If this repository has never been given a home of its own,
+this is also the command that gives it one — run it with `--root <repo-root>`
+first, once, then again for the worktree.
 
 Then note two things about the schedule you are about to write:
 
