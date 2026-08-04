@@ -83,7 +83,7 @@ epic:
     Branched from main AFTER the architectural-coherence epic was merged to main
     locally, per owner direction 2026-08-03. Nothing was pushed; the remote is
     untouched and `skill-manager sync` was NOT run.
-  schedule_revision: 1
+  schedule_revision: 2
   review_mode: "epic-owner-post-merge"
   notes: >-
     Never merge to main and never run skill-manager sync without explicit owner
@@ -162,11 +162,41 @@ epic_goals:
       code that is measurably simpler AND demonstrably still correct -- not
       simpler because something was deleted.
     metric: >-
-      Scorecard D2 (complexity) and D4 (behavior preservation) TOGETHER, plus
-      the measured complexity descriptor before and after. D2 anchor 4 requires
-      D4 >= 3 by construction, which is the point: a reduction that costs
-      behavior cannot score.
-    harness: "two blind judges per references/eval_scorecard.md, plus `analyze complexity` before and after on the same artifact"
+      Scorecard D2 (complexity) and D4 (behavior preservation) TOGETHER. D2
+      anchor 4 requires D4 >= 3 by construction, which is the point: a reduction
+      that costs behavior cannot score.
+
+      OWNER AMENDMENT 2026-08-04 (schedule_revision 2), resolving HP-02-DF-01.
+      The instrument was unrunnable as written, and HP-02 escalated it rather
+      than substituting a proxy, which was correct. `analyze complexity` reads
+      TLA+; both arms produce Python; the A/B holds ONE model for both arms by
+      design; and there is no "before", because neither arm refactored anything
+      -- both implement the same spec from scratch.
+
+      The error was mine and it was a category error: I wrote the metric as if
+      this epic were a REFACTORING exercise (one artifact measured at two times)
+      when it is an A/B (two artifacts measured against one spec). THE PAIR IS
+      THE MEASUREMENT: arm A is the "before" and arm B is the "after". D2 anchor
+      3's "before and after figures both recorded" reads against the ARM PAIR,
+      and anchor 4's "shown to be behavior-preserving" is carried by both arms
+      passing the identical shared behavioral suite -- which is the thing that
+      makes them comparable at all.
+
+      Alongside the judgement, a MECHANICAL BLOCK over both arms' produced code
+      -- modules, lines, public surface, pieces of mutable state, branch count --
+      recorded and NEVER scored, so a reader can see when measurement and
+      judgement disagree.
+
+      THE TARGET IS UNCHANGED AND IS NOT UP FOR AMENDMENT. HP-02's pilot already
+      measured arm B as LARGER than arm A (5 files / 274 lines against 1 / 120),
+      reproducing sealed prediction N01, so this goal is on track to be MISSED.
+      Repairing an unrunnable instrument after an unflattering signal is
+      legitimate; moving the target would not be, and is precisely what
+      references/eval_scorecard.md and HP-06's own brief forbid.
+    harness: >-
+      Two blind judges per references/eval_scorecard.md over both arms' produced
+      code, plus a mechanical size/state/branch capture over the same two trees,
+      recorded beside the judgement and never scored.
     baseline:
       value: "Highest D2 in the set is 3 (ex3), and BOTH judges withheld 4 for the same reason -- the reduction was not shown behavior-preserving. It deletes two model variables and two keys from a public dict with no check that could catch an external reader, and a prior run declined the identical deletion. That is the MF-020 trap: a metric can improve because an edge was deleted."
       measured_at: "ab0dfee"
