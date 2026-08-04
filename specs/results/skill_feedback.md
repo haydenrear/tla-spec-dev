@@ -1749,3 +1749,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-03
+
+- close_scope: ticket
+- close_id: HP-03
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T14:51:24+00:00
+- summary: The negative corpus: TLC's disabled edges asserted rejected, and a projection that takes MCsmall from 3,678,217 cases to 541. Guard relaxation moved off zero for the first time -- 3 of 3 seeded, 5 of 5 fresh, against 0 of 3 and 0 of 5 for the whole-view corpus. Zero model surface added. Four findings filed, none fixed. The hand-written suite still kills 10 of 10 where the corpora together kill 8 of 10.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

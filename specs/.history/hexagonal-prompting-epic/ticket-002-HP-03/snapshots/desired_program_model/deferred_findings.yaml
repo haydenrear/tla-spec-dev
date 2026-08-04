@@ -1,0 +1,483 @@
+findings:
+  - id: HP-01-DF-01
+    found_by: "HP-01"
+    found_at_commit: "17601f7"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["tests/test_source_citations.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE EPIC'S OWN ACCEPTANCE COMMAND IS RED AT THE EPIC TIP, and it is red
+      because of the worktree convention this epic mandates. Every ticket in
+      this plan declares
+      `uv run --with pytest --with pyyaml python -m pytest tests -q` as its
+      acceptance command, and the HP-01 dispatch states the baseline as
+      "1039 passed, 14 skipped". The measured baseline on an untouched
+      epic/hexagonal-prompting at 17601f7 is 3 FAILED, 1066 passed, 0 skipped.
+
+      Root cause: tests/test_source_citations.py `resolve_cited` (line 86)
+      resolves a cited file by unique basename via `REPO_ROOT.rglob(...)`,
+      excluding only `.git` and `generated` path parts. Both `wt new` and
+      git-issue-workflow's `bootstrap-home.sh` create a per-checkout Skill
+      Manager home at `<worktree>/.skill-manager`, which contains an INSTALLED
+      COPY of this very skill -- including `skill-scripts/install-tlc2.sh` and
+      `skill-scripts/install-tla-spec-dev.sh`. The rglob therefore finds two
+      matches, `len(matches) != 1`, `resolve_cited` returns None, and seven
+      citations in the spec manifests are reported as "does not resolve to one
+      file".
+
+      The test is correct about its own rule and wrong about its search space.
+      It passes in a plain clone with no Skill Manager home and fails in every
+      checkout provisioned the way this epic requires -- so the failure is
+      invisible to anyone who checks on main and unavoidable for every ticket
+      agent.
+    reproduction: >-
+      On an untouched epic tip:
+      `cd /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting &&
+      uv run --with pytest --with pyyaml python -m pytest tests -q`
+      -> "3 failed, 1066 passed in 24.63s". Failing params:
+      test_every_line_citation_resolves_to_the_line_it_cites for
+      specs/current/spec_manifest.yaml, specs/desired_program_model/spec_manifest.yaml
+      and specs/program_model/spec_manifest.yaml. Confirm the cause with
+      `find . -name install-tlc2.sh` -> two hits, one under ./skill-scripts/
+      and one under ./.skill-manager/skills/spec-double-compiler/skill-scripts/.
+    evidence: ["specs/tickets/HP-01/results/pytest-baseline-epic-tip.txt", "specs/tickets/HP-01/results/pytest-full.txt"]
+    why_out_of_scope: >-
+      tests/** is not in HP-01's implementation_scope (`examples/validation/`)
+      and not in its conflict keys. `tests/` IS in HP-03's, HP-04's and HP-05's
+      implementation scope, so a fix from HP-01 would collide with three
+      unstarted tickets. HP-01 also carries `model_delta_expectation: none` and
+      this is not a model question.
+    suggested_fix: >-
+      Add `.skill-manager` to the excluded path parts in `resolve_cited`
+      alongside `.git` and `generated` -- a one-line change that restores the
+      test's intent (find the repo's own copy of a cited file) in exactly the
+      checkouts the workflow creates. Do NOT fix it by deleting the seven
+      citations or by weakening the resolver to `matches[0]`: the resolver's
+      refusal to guess between two candidates is the property that makes the
+      check trustworthy, and it is doing that correctly here.
+    blast_radius: >-
+      Every ticket in this epic and in any future epic on this repository. The
+      practical damage is worse than three red tests: an agent told the baseline
+      is "1039 passed, 14 skipped" who measures 3 failed either stops to
+      investigate (HP-01 did, costing time) or assumes it broke something and
+      starts hunting. It also degrades the suite's value as a regression signal,
+      which N06 in PREDICTIONS-HP.md already predicts will produce zero findings
+      this epic.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-01-DF-02
+    found_by: "HP-01"
+    found_at_commit: "17601f7"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["examples/validation/ex4_pipeline_coherent/seeded_faults.toml", "scripts/kill_test.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The shipped EV-01 mutant catalogue cannot be loaded by the shipped mutant
+      catalogue parser. `examples/validation/ex4_pipeline_coherent/seeded_faults.toml`
+      declares `boundary_kind = "effect_port"` on F3 and F5, but
+      scripts/kill_test.py:124-126 defines BOUNDARY_KINDS as ("port",
+      "invariant") and parse_mutants raises KillTestCatalogError on anything
+      else. So `kill_test.load_catalog` refuses the repository's only shipped
+      example catalogue, at its first non-conforming mutant.
+
+      This is consistent with, and probably explained by, that catalogue's own
+      header: "the mutants are deliberately NOT run here". The catalogue was
+      written as a human-readable answer key and appears never to have been
+      round-tripped through the parser that is supposed to consume it. The
+      practical consequence is that the worked example a future catalogue
+      author copies is one the tool rejects -- HP-01 copied it and hit the
+      error.
+    reproduction: >-
+      `python3 -c "import sys; sys.path.insert(0,'scripts'); import kill_test;
+      from pathlib import Path;
+      kill_test.load_catalog(Path('examples/validation/ex4_pipeline_coherent/seeded_faults.toml'))"`
+      -> KillTestCatalogError: mutant F3-off-by-one-durable has boundary_kind
+      'effect_port'; expected one of port, invariant.
+    evidence: ["specs/tickets/HP-01/results/ex4-catalogue-parser-refusal.txt"]
+    why_out_of_scope: >-
+      `examples/validation/ex4_pipeline_coherent/` is not in HP-01's conflict
+      keys, and that file is EV-01's sealed answer key. Its own header states
+      that every row is left exactly as EV-01 committed it and that an answer
+      key is a record which is not edited to agree with a later run. Editing it
+      from here would be exactly the amendment it forbids.
+    suggested_fix: >-
+      Decide which name is canonical, then make the other resolve to it. Either
+      accept "effect_port" as an alias for "port" in kill_test.BOUNDARY_KINDS
+      (cheap, preserves the sealed record, and the alias documents the drift),
+      or leave the record alone and note the incompatibility in the catalogue's
+      header so the next author does not copy a shape the parser refuses. Do
+      not silently rewrite the sealed EV-01 rows.
+    blast_radius: >-
+      Small but recurring: any agent authoring a mutant catalogue by copying the
+      shipped example. HP-01's own `examples/validation/ab/seeded_faults.toml`
+      was written with "effect_port" for exactly this reason and corrected to
+      "port" after the parser refused it.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-02-DF-01
+    found_by: "HP-02"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THE MECHANICAL HALF OF `GOAL-simpler-same-behavior`'s HARNESS CANNOT RUN
+      ON THIS EPIC'S A/B FIXTURE. The goal declares its harness as "two blind
+      judges per references/eval_scorecard.md, plus `analyze complexity` before
+      and after on the same artifact", and D2 anchor 3 requires that a
+      simplification was made "and its effect measured -- the before and after
+      figures are both recorded". HP-02's `local_signal` for that goal is the
+      same command.
+
+      There is no artifact in this A/B that the shipped scanner can read.
+      `analyze complexity` measures a TLA+ model (dimension table, state-space
+      bound, R/W matrix, near-decomposability, invariant coverage). Both arms
+      produce PYTHON, and by deliberate design the A/B holds ONE model for both
+      arms (examples/validation/ab/model/QuotaLedger.tla; see
+      examples/validation/ab/README.md, "What is held constant" -- if each arm
+      generated its own, a difference between arms could be a difference
+      between their models and nobody could tell which). So the one model the
+      scanner can read is byte-identical across arms and cannot separate them,
+      and the artifacts that DO differ are not something it reads at all.
+
+      There is also no "before" anywhere: both arms write new code from one
+      feature file, so there is no prior artifact to diff against. "Before and
+      after" presupposes a refactor, and this A/B is not one.
+
+      HP-02 did not paper over this with a proxy metric. Substituting line
+      counts, file counts or a third-party complexity tool would produce a
+      number that looks like the declared harness and is not it -- and the card
+      itself (D2) says a drop in a complexity number is not evidence on its own.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity
+      examples/validation/ab/model/QuotaLedger.tla
+      examples/validation/ab/model/QuotaLedger.cfg` runs and describes the
+      SHARED model -- the same output for arm A and for arm B, because it is the
+      same file. There is no invocation of the shipped scanner that takes an
+      arm's Python tree; see specs/tickets/HP-02/results/goal-signal.md.
+    evidence:
+      - "specs/tickets/HP-02/results/goal-signal.md"
+      - "specs/tickets/HP-02/results/complexity-descriptor-shared-model.txt"
+    why_out_of_scope: >-
+      HP-02's implementation_scope is ["prompts/", "references/"] and its
+      conflict keys are two documentation paths. Deciding what instrument
+      settles the mechanical half of an epic goal is the epic owner's decision,
+      and changing a goal's declared harness from a contributing ticket is
+      exactly the stale-target failure the assignment equality check exists to
+      prevent. HP-06 owns the goal.
+    suggested_fix: >-
+      One of three, and the choice is the owner's. (a) Report the mechanical
+      half as `unmeasured` with this reason and let the two blind judges decide
+      D2 alone -- the judged half needs no scanner and the card's D2 anchors are
+      written about the design, not about the tool's output. (b) Declare a
+      substitute instrument in the plan BEFORE HP-06 runs, naming it as a
+      substitute rather than as "the descriptor". (c) Have each arm's artifact
+      modelled after the fact by a party blind to arm, which is a real
+      measurement but is another whole ticket and introduces a modeller as a
+      confound. Do NOT quietly swap in a line-count: a proxy that inherits the
+      declared harness's name is how a metric acquires authority it never had.
+    blast_radius: >-
+      One half of one goal. GOAL-simpler-same-behavior's judged half (D2 + D4
+      from two blind judges) is unaffected and is the half the target sentence
+      is actually written about ("An arm-B artifact scores D2 = 4 from both
+      judges"). GOAL-catch-bugs and GOAL-hexagonal-in-fact are untouched. It
+      also reaches HP-01's `expected_effect` ("supplies the before/after
+      descriptor capture D2 anchor 3 requires"), which is not satisfiable as
+      written for this fixture.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-02-DF-02
+    found_by: "HP-02"
+    found_at_commit: "386222b"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["SKILL.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      SKILL.md indexes every shipped prompt and reference page (its closing
+      index lists `prompts/implementation_brief.md`,
+      `prompts/aspect_decomposition.md`, `references/complexity_intuition.md`
+      and the rest), and the two pages HP-02 ships --
+      `prompts/hexagonal_implementation.md` and
+      `references/hexagonal_prompting.md` -- are not in it. A shipped prompt
+      that the skill's own index does not mention is a prompt nobody finds
+      except by listing the directory.
+    reproduction: >-
+      `grep -n "hexagonal" SKILL.md` -> no match, while every other page under
+      prompts/ and references/ resolves.
+    evidence: ["specs/tickets/HP-02/results/skill-index-gap.txt"]
+    why_out_of_scope: >-
+      SKILL.md is outside HP-02's implementation_scope (["prompts/",
+      "references/"]) and outside its conflict keys. It is also not owned by any
+      other ticket in this plan, so an unscoped edit from here would be an
+      unreviewed change to the skill's front page made during a measurement
+      round.
+    suggested_fix: >-
+      Two lines in SKILL.md's index at close of the epic, once HP-06 has decided
+      whether the prompt is worth pointing anyone at. Indexing it BEFORE the
+      measurement would advertise as shipped guidance a thing this epic exists
+      to find out is decoration or not, and the reference page's own
+      "Validation status" section says exactly that.
+    blast_radius: >-
+      Discoverability of two documentation pages. Nothing imports them, nothing
+      executes them, and no test enumerates them (tests/test_source_citations.py
+      scopes references/ OUT deliberately).
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-01
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: ["examples/validation/ab/model/QuotaLedger.tla"]
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/FEATURE.md"]
+    summary: >-
+      The A/B fixture's model guards an argument its own API does not accept,
+      and the negative corpus is what found it. `QuotaLedger.tla` declares
+      `Reserve(t, a, r)` with the reservation id as a CALLER ARGUMENT, guarded
+      by `r \notin live` and `holder[r] = NoTenant`. `FEATURE.md` and
+      `reference/quota_ledger.py` declare `reserve(tenant, amount)` and ALLOCATE
+      the id internally. So the model states two refusal conditions on an input
+      no caller can supply, and there is no argument to make stale.
+
+      This was invisible to every existing instrument. The positive corpus never
+      asks for a refusal, so no enabled edge ever depended on `r`; the
+      hand-written suite calls the real API and so cannot express the case at
+      all. It surfaced the moment a corpus containing rejected inputs was run
+      against the reference: 4 of the 118 negative cases assert the rejection of
+      a call the UNMUTATED reference correctly accepts.
+
+      This is a REFINEMENT defect, not a generator defect. The generator is
+      sound with respect to the model -- it emitted no case asserting rejection
+      of an input the MODEL enables, on any of the 118 -- and the four cases are
+      a true statement about a model that does not refine the feature it
+      specifies.
+    reproduction: >-
+      `QUOTA_LEDGER_DIR=$PWD/examples/validation/ab/reference python3
+      scripts/run_generated_case_adapters.py <negative-corpus> --mapping
+      specs/tickets/HP-03/measure/case_adapters.toml --batch` -> 4 failures,
+      all `reason='r \notin live'`, all `('ACCEPTED', 'accepted', 'r3')`.
+    evidence:
+      - "specs/tickets/HP-03/results/shipped-runner-negative.txt"
+      - "specs/tickets/HP-03/results/false-rejection-analysis.txt"
+    why_out_of_scope: >-
+      `examples/validation/ab/` is HP-01's conflict key and its model is the ONE
+      model both arms are measured through -- the fixture's whole design rests
+      on holding it fixed, and HP-06 has not run yet. Changing `Reserve`'s
+      signature now would change the instrument between the ticket that built it
+      and the ticket that reads it, and would silently move every count in this
+      epic. HP-03 skips the four cases in its own adapter, states the skip in
+      the adapter, and counts them nowhere.
+    suggested_fix: >-
+      Either drop `r` from `Reserve` and model id allocation as the model's own
+      choice (`\E r \in ResIds \ live`), which makes the model refine the stated
+      API; or change `FEATURE.md` so `reserve` accepts a caller-supplied id,
+      which makes the API refine the model. The first is almost certainly right
+      -- FEATURE.md is the requirement -- but it is a fixture change and belongs
+      to whoever owns the fixture.
+    blast_radius: >-
+      Bounded to this fixture today. The GENERAL shape is not: any model whose
+      action takes an argument the implementation derives rather than receives
+      will produce negative cases that cannot be executed. There is currently no
+      way for a model to declare which of an action's parameters are caller
+      INPUTS, so the distinction has to live in an adapter's `can_run`. Worth a
+      manifest field if a second model hits it.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-02
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/current/spec_manifest.yaml"]
+    summary: >-
+      This repository's own corpus still exceeds its own cap by 2.7x after the
+      projection HP-03 added, and HP-03 declines to close the gap by raising the
+      cap. Measured on MCsmall: 3,678,217 cases / 7.4 GB before, 541 cases /
+      667 KB after -- a 6,800x reduction that makes the corpus importable for
+      the first time -- against `max_internal_cases_per_component: 200`.
+
+      The residual is not slack. 200 of the 541 are `AnalyzeArchitecture`, whose
+      cases are the honest enumeration of its own nondeterministic outcome
+      product; 108 are `Stutter`, a modeled no-op with one case per control
+      state. Both are real distinctions under the projection, and shrinking
+      either would mean deleting an oracle rather than a duplicate.
+
+      The cap gate's own accept path offers exactly this: raise the cap with a
+      recorded rationale. HP-03 does not take it, because the number the tool
+      suggests is 541 -- the number this ticket just produced -- and a budget
+      fitted to the result it must admit is not a budget. `budgets.source` is
+      still `defaults` and `budgets.rationale` is still `{}`, so 200 was never
+      negotiated for this program either. Both numbers are now unowned, and one
+      of them has to be chosen by someone who is not also being measured by it.
+    reproduction: >-
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out <dir>
+      --state-projector tlc_projection:project_visible_state --output-projector
+      tlc_projection:project_adapter_output --dedupe projected`
+      -> `corpus gate FAIL: 541 internal case(s), cap = 200`.
+    evidence:
+      - "specs/tickets/HP-03/results/mcsmall-tractability.txt"
+    why_out_of_scope: >-
+      Negotiating a budget is an owner decision the manifest itself describes as
+      one ("propose the budgets below to the user, ask which to adjust for this
+      program, and record a one-line rationale per changed value"). The
+      alternative route -- splitting the model into declared case modules so the
+      per-component cap applies per component -- needs slice modules this model
+      does not have and runs straight into CM-F5, which HP-04 owns.
+    suggested_fix: >-
+      Owner decision between three: (1) negotiate the cap with a derivation that
+      does not start from 541; (2) declare case modules for the four components
+      `architecture_components.yaml` already names, so the per-component cap
+      applies per component as it was designed to; (3) reconsider whether
+      `Stutter` belongs in `Next` at all -- it contributes 108 cases and models
+      no command, and TLA+ already admits stuttering through `[][Next]_vars`.
+    blast_radius: >-
+      The cap gate is `run spec-unit-tests`' corpus_gate, so this model's own
+      spec-unit run reports `fail` on a corpus that is now perfectly runnable.
+      That is a worse signal than the 7.4 GB one it replaces, because it looks
+      like a small overage rather than an unusable artifact.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-03
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 2
+    severity: major
+    surface:
+      production: []
+      tla: ["examples/validation/ab/model/QuotaLedger.tla"]
+      adapters: []
+      test_graph: []
+    summary: >-
+      Spelling refusals out as their own TLA+ actions -- the profile change --
+      produces cases no adapter can execute, and HP-03 measured the cost.
+      `QuotaLedger.tla`'s seven `Refuse*` actions take `(t, a, r)` and use none
+      of them in their bodies, so no recovery mechanism can recover an argument
+      and every one of their cases carries `params={}`. They are 39,100 of the
+      fixture's 43,128 cases -- 90.7% -- and each one says only that A rejection
+      happened, never WHICH call was rejected. There is no call for an adapter
+      to make.
+
+      Measured together with the rest of the corpus: 3,440 of 43,128 cases
+      (8.0%) are executable at all. 588 more are `Reserve` edges whose `a`
+      argument does not recover, and the remaining 39,100 are these.
+
+      The consequence is not academic. `M07-positive-control-wrong-hold` -- a
+      mutant the catalogue declares "must die on every instrument on every arm"
+      -- SURVIVES the whole-view corpus, because `Reserve` contributes zero
+      executable cases and M07 is inside `reserve`. The positive control is
+      currently dying on the hand-written suite and nothing else.
+
+      HP-03's generator route produces the same refusals as 118 executable cases
+      carrying exact arguments, which is the comparison worth recording: the
+      profile change costs 39,100 unusable cases, the generator costs none.
+    reproduction: >-
+      `python3 scripts/generate_cases_from_tlc_dump.py
+      examples/validation/ab/model/QuotaLedger.tla
+      examples/validation/ab/model/QuotaLedger.cfg --out <dir>` -> `parameter
+      recovery: 4028/43128 cases carry arguments`.
+    evidence:
+      - "specs/tickets/HP-03/results/kill-table-hp01.json"
+      - "specs/tickets/HP-03/results/corpus-shape.txt"
+    why_out_of_scope: >-
+      The fix is either a model change to HP-01's sealed fixture (out of HP-03's
+      conflict keys, and the fixture must not move between the ticket that built
+      it and HP-06 which reads it) or a new recovery mechanism in
+      `scripts/infer_action_params.py`, which is not in HP-03's
+      implementation_scope and would not help: an argument a body never mentions
+      is not recoverable by any mechanism, because the state pair does not
+      contain it.
+    suggested_fix: >-
+      For the fixture: either drop the unused parameters from the `Refuse*`
+      actions (they are already unused, so this loses nothing and makes the
+      zero-argument cases honest) or give each refusal an explicit argument
+      marker the model states, which is what `params_from_action_marker`
+      already reads. For the toolchain: report a declared action whose
+      parameters are unreferenced in its own body as a coverage warning, the way
+      an alias wrapper already is -- it is the same silent hole.
+    blast_radius: >-
+      Any model that follows the standing recommendation to spell refusals out.
+      The recommendation is good for TLC and for invariant checking; what it
+      does NOT buy is executable cases, and nothing currently says so.
+    disposition: filed
+    disposition_ticket: null
+
+  - id: HP-03-DF-04
+    found_by: "HP-03"
+    found_at_commit: "386222b"
+    schedule_revision: 2
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      A documented limit was retracted by measurement and should be corrected
+      before HP-06 reads it. `ticket_plan.yaml` `known_gaps` states that ORDERING
+      is "measured invisible to all five corpus instruments AND the hand-written
+      suite", and `seeded_faults.toml` seeds `M09-negative-control-ledger-order`
+      as a negative control "predicted to survive every corpus instrument; a
+      kill here RETRACTS a documented limit and is a finding".
+
+      M09 was KILLED by the whole-view corpus on this fixture. The reason is
+      structural rather than lucky: `QuotaLedger.tla` models `ledger` as a
+      SEQUENCE, and the corpus compares it field by field with order preserved,
+      so a write that prepends instead of appends is a visible difference. The
+      predecessor's limit was measured on a model whose corresponding state was
+      a SET. Ordering is invisible when it is not modeled, which is a statement
+      about the model, not about corpora.
+    reproduction: >-
+      `specs/tickets/HP-03/results/kill-table-hp01.json`, `per_mutant`,
+      `M09-negative-control-ledger-order` -> `corpus-whole: KILLED`.
+    evidence: ["specs/tickets/HP-03/results/kill-table-hp01.json"]
+    why_out_of_scope: >-
+      `ticket_plan.yaml` `known_gaps` and `PREDICTIONS-HP.md` are the epic
+      owner's and HP-06's; the predictions file is explicitly sealed and may not
+      be amended by a contributor. Recording the retraction here is the route
+      that does not touch either.
+    suggested_fix: >-
+      Restate the ordering gap with its actual precondition -- ordering is
+      invisible to a corpus when the model represents the ordered thing as a
+      set, and visible when it represents it as a sequence -- and let HP-06
+      score M09 against the sealed prediction as it stands rather than against
+      an amended one.
+    blast_radius: >-
+      One sentence in a plan and one scored prediction. It matters because the
+      gap is currently stated as a property of corpora, which makes it look
+      unfixable, when it is a property of a modeling choice and is therefore a
+      thing an author can decide.
+    disposition: filed
+    disposition_ticket: null
