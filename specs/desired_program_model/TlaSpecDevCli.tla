@@ -633,6 +633,9 @@ RunKillTest(root) ==
 \* neither test_process (*pytest*) nor runner_process. Declared rather than
 \* constrained -- the per-case program IS the unit under test on that path.
 \* @port TlaSpecDevCliPort.case_program_process
+\* MF-026 round 2: the write half of the same gap. With no --work-dir the runner
+\* writes into tempfile.mkdtemp, placing the per-case program under programs/.
+\* @port TlaSpecDevCliPort.case_program_write
 RunSpecUnitTests(root, ticket) ==
   /\ setup_phase >= 2
   /\ root = spec_root

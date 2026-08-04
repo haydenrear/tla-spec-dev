@@ -731,7 +731,7 @@ class TestThisRepositorysCatalogCoversItsOwnBoundaries:
         # a kill-test slot on a boundary no case could exercise. It is
         # retargeted, not removed -- the install path really does write a CLI
         # artifact -- and this count is the obligation recomputed, not promised.
-        assert len(required) == 28, "14 declared ports + 14 invariants"
+        assert len(required) == 29, "15 declared ports + 14 invariants"
         assert len(catalog) >= len(required)
 
     def test_the_real_catalog_declares_no_suppressions(self) -> None:
@@ -810,7 +810,7 @@ class TestCliSurface:
         result = self.run_cli("--target", str(TestThisRepositorysCatalogCoversItsOwnBoundaries.spec_dir.relative_to(REPO_ROOT)), "--list-boundaries")
         assert result.returncode == EXIT_PASS, result.stderr
         assert "NO MUTANT" not in result.stdout
-        assert "28/28 declared boundaries carry a seeded fault." in result.stdout
+        assert "29/29 declared boundaries carry a seeded fault." in result.stdout
 
     def test_a_missing_corpus_command_is_refused_not_defaulted(self) -> None:
         """Without a corpus there is nothing to kill mutants with, so

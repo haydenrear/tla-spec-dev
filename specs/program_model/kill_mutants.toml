@@ -383,3 +383,14 @@ replace = "        result = subprocess.run([*python, \"-c\", \"pass\"])  # MUTAN
 description = "--no-batch spawns a no-op instead of the generated per-case program, so every case reports success without running"
 refine_variable = "ticket_state"
 refine_action = "RunSpecUnitTests"
+
+[[mutants]]
+id = "port-case_program_write"
+boundary_kind = "port"
+boundary_ref = "case_program_write"
+path = "scripts/run_generated_case_adapters.py"
+find = '        program_path = work_dir / "programs" / f"{case_component}.py"'
+replace = '        program_path = work_dir / f"{case_component}.py"  # MUTANT: the per-case program is written outside programs/'
+description = "the per-case program is written outside the programs/ component the port declares"
+refine_variable = "ticket_state"
+refine_action = "RunSpecUnitTests"

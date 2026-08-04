@@ -1680,7 +1680,14 @@ def reset_case_work_dir(work_dir: Path, case_name: str) -> Path:
     and the tree; leaving the parent alone is what keeps ``--work-dir`` a
     directory the caller can point anywhere without the oracle emptying it.
     """
-    case_dir = Path(work_dir) / case_name
+    # MF-026 round 2. The per-case directory lives under a fixed `case-work`
+    # component -- the same shape scripts/run_generated_case_adapters.py:1256 (case-work)
+    # already uses -- so `case_work_dir_delete` can declare `**/case-work/*`
+    # instead of `**`. The first repair declared `**`, which _target_matches
+    # collapses to `*` and fnmatch crosses separators with, so it accepted every
+    # string and no filesystem.delete on this action could ever be a gap again.
+    # `--work-dir` stays pointable anywhere; only the component is fixed.
+    case_dir = Path(work_dir) / "case-work" / case_name
     if case_dir.exists():
         shutil.rmtree(case_dir)
     case_dir.mkdir(parents=True, exist_ok=True)

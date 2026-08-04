@@ -258,8 +258,8 @@ effects:
           type: filesystem.delete
           target: "**/specs/**"
         # MF-026 (hexagonal-prompting, gap G-1). RunEffectConformance resets a
-        # PER-CASE SCRATCH directory -- scripts/effect_conformance.py:1685 (shutil.rmtree)
-        # via scripts/effect_conformance.py:1809 (reset_case_work_dir)
+        # PER-CASE SCRATCH directory -- scripts/effect_conformance.py:1692 (shutil.rmtree)
+        # via scripts/effect_conformance.py:1816 (reset_case_work_dir)
         # -- and `--work-dir` is `type=Path` with no
         # resolver, so the caller can point it anywhere. HP-04 declared this
         # under spec_tree_delete (`**/specs/**`), which is true of the DEFAULT
@@ -271,7 +271,7 @@ effects:
         # narrower than the behaviour.
         case_work_dir_delete:
           type: filesystem.delete
-          target: "**"
+          target: "**/case-work/*"
         # MF-026 (hexagonal-prompting, gap G-2). PRE-EXISTING AT THE EPIC BASE
         # and surfaced by no previous audit round. RunSpecUnitTests --no-batch
         # spawns `<python> <work_dir>/programs/case_*.py` --
@@ -284,7 +284,15 @@ effects:
         # execution output into the model's own directory.
         case_program_process:
           type: process.spawn
-          target: "*programs/case_*"
+          target: "*programs/case-*"
+        # MF-026 round 2, G-2 write half. With no --work-dir the runner writes
+        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2294 (mkdtemp)
+        # (mkdtemp) -- placing the per-case program at
+        # scripts/run_generated_case_adapters.py:1255 (program_path). No
+        # declared write port accepted that path.
+        case_program_write:
+          type: filesystem.write
+          target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
         # (scripts/spec_evolution.py:99 (subprocess.run), via
@@ -424,9 +432,9 @@ effects:
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
     # under the spec dir
-    # (scripts/effect_conformance.py:1765 (work_root.mkdir), default
+    # (scripts/effect_conformance.py:1772 (work_root.mkdir), default
     # spec_dir/.effect-conformance-work;
-    # scripts/effect_conformance.py:1686 (case_dir.mkdir) per-case dirs;
+    # scripts/effect_conformance.py:1693 (case_dir.mkdir) per-case dirs;
     # scripts/effect_conformance.py:714 (self.root.mkdir) and
     # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
     # landing under
@@ -447,7 +455,7 @@ effects:
     # rests on -- because the work tree survived between runs and an adapter
     # that materializes its own before-state writes a file on a cold run that
     # it finds already present on a warm one. Each case now starts from an
-    # EMPTY directory (scripts/effect_conformance.py:1685 (shutil.rmtree)),
+    # EMPTY directory (scripts/effect_conformance.py:1692 (shutil.rmtree)),
     # which is a filesystem.delete under **/specs/** and therefore owes a port
     # by this file's own rule -- the same rule that made CloseTicket declare
     # its TLC states/ rmtree rather than leave it undeclared.
@@ -468,7 +476,7 @@ effects:
     # one value; its writes are the mutation seed/restore into production
     # source (mutation_write) and the JSON evidence report (evidence_report).
     RunKillTest: [evidence_report, mutation_write, corpus_process]
-    RunSpecUnitTests: [test_process, runner_process, spec_tree, case_program_process]
+    RunSpecUnitTests: [test_process, runner_process, spec_tree, case_program_process, case_program_write]
     CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
     # RC-01 (owner decision 2026-08-01, MF-026 round-2 reservation): the same
     # shipped close path taken under a guard-weakening flag. Identical port set
