@@ -1,0 +1,53 @@
+=== ARM A: production files ===
+     120 arm_a/quota_ledger.py
+
+=== ARM A: imports in the only production file ===
+8:from __future__ import annotations
+10:from dataclasses import dataclass
+11:from pathlib import Path
+12:from typing import Optional
+
+=== ARM A: filesystem reached from the same file that holds the rules ===
+11:from pathlib import Path
+45:        self._ledger_path = Path(ledger_path)
+49:        self._ledger_path.write_text("")
+118:        with self._ledger_path.open("a") as fh:
+
+=== ARM A: any port abstraction or second implementation? ===
+  (none in either file)
+
+
+=== ARM B: production files ===
+      61 arm_b/quota_ledger/__init__.py
+       5 arm_b/quota_ledger/adapters/__init__.py
+      26 arm_b/quota_ledger/adapters/file_adapter.py
+      22 arm_b/quota_ledger/adapters/memory_adapter.py
+     134 arm_b/quota_ledger/domain.py
+      26 arm_b/quota_ledger/ports.py
+     274 total
+
+=== ARM B: imports in the domain ===
+10:from __future__ import annotations
+12:from dataclasses import dataclass
+13:from typing import Dict, List, Optional, Set, Tuple
+15:from .ports import DurableLedger
+
+=== ARM B: filesystem reached from the domain? ===
+  NONE -- the domain holds no path and no handle
+
+=== ARM B: the port and its two implementations ===
+arm_b/quota_ledger/adapters/file_adapter.py:9:class FileLedgerAdapter:
+arm_b/quota_ledger/ports.py:10:from typing import List, Protocol
+arm_b/quota_ledger/ports.py:13:class DurableLedger(Protocol):
+arm_b/quota_ledger/adapters/memory_adapter.py:14:class InMemoryLedgerAdapter:
+
+=== ARM B: who imports the adapters (composition point) ===
+arm_b/quota_ledger/__init__.py:22:from .adapters.file_adapter import FileLedgerAdapter
+
+=== ARM B: the identical case list run against both implementations ===
+1:"""The `DurableLedger` port has exactly one real outside dependency behind
+3:list run against both implementations that satisfy it -- the real
+4:(file-backed) adapter and the fake (in-memory) one used elsewhere in this
+46:    first.append("not really appended")
+58:def test_fake_satisfies_the_port_contract():
+63:def test_real_satisfies_the_port_contract(tmp_path):

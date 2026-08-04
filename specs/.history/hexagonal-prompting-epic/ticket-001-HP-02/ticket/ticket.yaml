@@ -1,0 +1,118 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket HP-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "architecture_components.yaml",
+      "architecture_map.yaml",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The prompt asks for ports and adapters and for the simplest behavior-preserving design, and instructs the agent to make NO check pass.",
+        "It ships as a prompt file; nothing in the toolchain refuses anything as a result of this ticket.",
+        "A worked example shows the prompt used end to end."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "HP-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "prompts/hexagonal_implementation.md",
+        "references/hexagonal_prompting.md"
+      ]
+    },
+    "depends_on": [],
+    "desired_actions": [],
+    "github_issue": null,
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "This IS the intervention. Arm B scores D3 >= 3 where arm A scores 1-2; if D3 does not separate, the prompt is decoration and the epic says so.",
+        "goal": "GOAL-hexagonal-in-fact",
+        "local_signal": "Run the prompt against one small fixture in the ticket worktree and read the produced structure; report it whichever way it comes out."
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "Arm B's descriptor shows lower complexity at equal behavior; D2 separates from arm A.",
+        "goal": "GOAL-simpler-same-behavior",
+        "local_signal": "python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity on the produced artifact, before and after"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "Must not REDUCE bug detection. A prompt that produces prettier code whose adapters catch less has failed.",
+        "goal": "GOAL-catch-bugs",
+        "local_signal": "the seeded catalogue from HP-01 against the arm-B artifact"
+      }
+    ],
+    "id": "HP-02",
+    "implementation_scope": [
+      "prompts/",
+      "references/"
+    ],
+    "model_delta_expectation": "none",
+    "objective": "The architecture lever of this epic, and it is a PROMPT. Not a schema, not a check, not a gate. Owner direction 2026-08-03: the hoops already built are not smart enough to provide value and agents spend real time jumping through them, so architecture guidance moves into the ask. The hypothesis being tested, stated so it can fail: an agent working from the DIAGRAM -- far enough from the code that it is not defending existing structure -- will produce a modular, testable design if simply asked for one, and will preserve behavior while reducing complexity if told that is the goal. Build on what already ships: prompts/implementation_brief.md and prompts/aspect_decomposition.md (AC-03). The new prompt asks for ports and adapters explicitly -- a domain that does not import its I/O, driven ports behind interfaces, adapters swappable for fakes -- and asks for the SIMPLEST design that retains the behaviors, feeding the shipped complexity descriptor in AS GUIDANCE rather than gating on it. Two things the prompt must NOT do, both learned the hard way. It must not instruct the agent to make any check pass -- \"make the coherence check clean\" is a standing instruction to duplicate across component boundaries, measured in round 2. And it must not promise that a metric improving means the design improved: MF-020, a metric can improve because an edge was deleted.",
+    "promotion_order": 20,
+    "promotion_predecessor": "HP-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "The prompt: hexagonal architecture and minimize complexity, as instructions",
+    "wave": 1
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/tickets/HP-02",
+  "ticket_id": "HP-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/specs/tickets"
+}

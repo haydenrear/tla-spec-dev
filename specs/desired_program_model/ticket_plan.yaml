@@ -301,7 +301,7 @@ tickets:
 
   - id: HP-02
     title: "The prompt: hexagonal architecture and minimize complexity, as instructions"
-    status: planned
+    status: done
     github_issue: null
     schedule_revision: 1
     depends_on: []
@@ -361,6 +361,86 @@ tickets:
         - "The prompt asks for ports and adapters and for the simplest behavior-preserving design, and instructs the agent to make NO check pass."
         - "It ships as a prompt file; nothing in the toolchain refuses anything as a result of this ticket."
         - "A worked example shows the prompt used end to end."
+      evidence:
+        - "specs/tickets/HP-02/results/goal-signal.md"
+        - "specs/tickets/HP-02/results/pilot-kill-table.txt"
+        - "specs/tickets/HP-02/results/pilot-catalogue-integrity.txt"
+        - "specs/tickets/HP-02/results/structure-reading.txt"
+        - "specs/tickets/HP-02/results/catalogue-arms.txt"
+        - "specs/tickets/HP-02/results/complexity-descriptor-shared-model.txt"
+        - "specs/tickets/HP-02/results/skill-index-gap.txt"
+        - "specs/tickets/HP-02/results/spec-unit-tests.txt"
+        - "specs/tickets/HP-02/results/pytest-full.txt"
+        - "specs/tickets/HP-02/results/suite-regression-comparison.txt"
+        - "specs/tickets/HP-02/results/pilot/"
+      close_note: >-
+        Assertion 1: `prompts/hexagonal_implementation.md` asks for a domain that
+        holds no handle/path/clock/env/network/global, a driven port the DOMAIN
+        declares, a domain module that does not IMPORT its adapters, a working
+        fake plus the identical case list against both, a named swap sentence,
+        and an explicit prohibition on inventing ports for non-I/O. The
+        simplicity half restates references/complexity_intuition.md's reading
+        rules in code terms. NOT ONE NUMBER APPEARS IN THE ASK -- no threshold,
+        no budget, no report to turn green -- and it names the round-2
+        duplication result and MF-020 explicitly. The same ask is inlined as arm
+        B's Section 1 (HP-01's slot), which is the only edit made to
+        examples/validation/.
+
+        Assertion 2: two markdown files and one slot fill. Nothing in the
+        toolchain reads them, no test enumerates them, and no checker was added
+        -- including the "are the two copies still in sync" test that
+        no_new_gates_rule forbids. `check_catalogue.py --arms` reports the slot
+        FILLED; neither arm is a subset of the other.
+
+        Assertion 3: worked end to end at
+        specs/tickets/HP-02/results/pilot/ -- both arms dispatched verbatim to
+        fresh agents against the shared FEATURE.md, both green on the shared
+        suite (28 passed), the HP-01 catalogue re-anchored per arm with
+        exactly-once and byte-identical revert proven per arm, and a per-class
+        per-arm per-instrument kill table.
+
+        THE LOCAL SIGNAL CAME BACK NEGATIVE ON TWO OF THREE GOALS, recorded here
+        and not only in the evidence. GOAL-hexagonal-in-fact moved as expected
+        (arm B: Protocol port, real adapter, working fake, one composition
+        point, domain importing no I/O; arm A: none of them) -- but on my
+        reading, not a judgement, at n=1, with the length confound now measured
+        at 6.6x. GOAL-simpler-same-behavior moved THE WRONG WAY on the only
+        available substitute (5 files / 274 lines against 1 / 120), reproducing
+        the sealed N01, and its DECLARED instrument could not run at all
+        (HP-02-DF-01). GOAL-catch-bugs, the guard, moved THE WRONG WAY BY ONE
+        CELL: the shared suite is flat at 10/10 on both arms, but each arm's own
+        tests scored A 4/10 against B 3/10 -- arm B wrote 3.6x the test code and
+        caught one fault fewer -- and the arm-own instrument's positive control
+        (M07) survives on BOTH arms, so by the catalogue's own P05 doctrine that
+        row is not citeable as a kill measurement.
+
+        AND THE PILOT FOUND A HOLE IN THE PROMPT ITSELF. Arm B's real-vs-fake
+        test asserted `scenario(fake) == scenario(real)` -- two wirings of the
+        SAME domain, so every domain-logic fault moves both sides identically
+        and the test cannot fail for any fault in the rules. The artifact the
+        prompt asked for, and that D3 anchor 4 is written about, was by
+        construction blind to the faults D1 is about. One sentence was added to
+        both copies of the ask afterwards; THE PILOT MEASURED THE TEXT BEFORE IT
+        AND WAS DELIBERATELY NOT RE-RUN, so the shipped text is unmeasured and
+        HP-06's A/B is its first measurement.
+
+        Two findings FILED, not fixed: HP-02-DF-01 (the mechanical half of
+        GOAL-simpler-same-behavior's harness has no runnable instrument on this
+        fixture -- the scanner reads TLA+, both arms produce Python, and the one
+        model is shared by design; three dispositions offered, the choice is the
+        owner's) and HP-02-DF-02 (SKILL.md's index does not list the two new
+        pages; deliberately left until HP-06 decides whether the prompt is worth
+        pointing anyone at).
+
+        PREDICTIONS-HP.md was not touched. Zero model surface added, per
+        surface_cost_rule.
+
+        WHERE THE EVIDENCE ACTUALLY IS: `close ticket` consumes
+        specs/tickets/HP-02/ into the append-only record, so every path listed
+        above now reads
+        specs/.history/hexagonal-prompting-epic/ticket-001-HP-02/ticket/results/.
+        The `evidence:` paths are kept in the pre-close form for consistency
+        with HP-01's entry, which has the same property.
     model_delta_expectation: "none"
 
   - id: HP-03

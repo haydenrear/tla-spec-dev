@@ -17,34 +17,113 @@ record can see which instrument produced which number.
 
 <!-- HP-02-SLOT:BEGIN -->
 
-> **UNFILLED — HP-02 owns this section.**
->
-> HP-01 declares this arm and the envelope around it; it does **not** write the
-> treatment. Writing both the instrument and the experiment that judges it is
-> how an epic ends up measuring its own opinion.
->
-> HP-02 replaces everything between the two slot markers with the hexagonal +
-> minimize-complexity ask, per its plan entry. Per that entry, the content must:
->
-> - ask for **ports and adapters explicitly** — a domain that does not import
->   its I/O, driven ports behind interfaces, adapters swappable for fakes;
-> - ask for the **simplest design that retains the behaviors**, feeding the
->   shipped complexity descriptor in **as guidance**, never as a threshold;
-> - **not** instruct the agent to make any check pass. "Make the coherence
->   check clean" was measured, in round 2, to be a standing instruction to
->   duplicate across component boundaries;
-> - **not** promise that a metric improving means the design improved. MF-020:
->   a metric can improve because an edge was deleted.
->
-> HP-02 should also record, in its own ticket, that a longer and more specific
-> prompt is a **declared confound** of this round — see confound 1 in
-> `examples/validation/PREDICTIONS-HP.md`. This round cannot separate "the
-> hexagonal guidance helped" from "a longer, more specific ask helped." That is
-> a limit to state, not a defect to hide.
->
-> **This arm must not be dispatched while this slot is unfilled.**
-> `check_catalogue.py --arms` reports the slot's state; it reports, it does not
-> refuse, because nothing in this epic gates.
+You are being asked for two things at once. They are in tension, and the tension
+is deliberate.
+
+1. **Ports and adapters, in fact.**
+2. **The simplest design that keeps every behavior.**
+
+### 1. Ports and adapters, in fact
+
+*In fact* means the structure holds when the program runs, not in the file
+names. A package called `adapters/` whose contents the domain constructs for
+itself is not a port; it is a folder.
+
+- **The domain is the rules.** It holds no file handle, no path, no clock, no
+  environment, no network, no global. What it does is a function of what it was
+  given and what it was told.
+
+- **Every outside thing the domain needs is a driven port**: a small interface
+  the *domain* declares, in the *domain's* vocabulary, named for the need rather
+  than for the technology that satisfies it. Two or three methods; a port with
+  ten is a module boundary that got mislabelled.
+
+- **The domain module does not import the modules that implement its ports.**
+  Not "does not use" — does not import. The concrete adapter is built somewhere
+  else and handed in. That somewhere else is one small composition point (a
+  factory, a constructor, the entry point). It is allowed to know about
+  everything, and it is the only thing that is.
+
+- **Write a fake for each driven port, and run the same cases against both.**
+  Not a mock that records calls — a working in-memory implementation of the same
+  interface. Then take the cases that exercise behavior through that port and
+  run the *identical* case list against the real adapter and against the fake.
+  If a case can only be written for one of them, the port is leaking. **Each
+  case asserts an expected value, not merely that the two agree** — two wirings
+  of the same domain agree with each other even when the domain is wrong, so a
+  test that only compares them can never fail for a reason you care about.
+
+- **State the swap in one sentence**, in your notes: "replace *this* adapter
+  with *that* one and no domain file changes." If you cannot write that sentence
+  about a concrete alternative, you have a layer, not a port.
+
+- **Do not invent ports for things that are not outside.** A port in front of
+  pure computation is indirection with nothing behind it to swap. One port per
+  real outside dependency; nothing else indirected.
+
+### 2. The simplest design that keeps every behavior
+
+Simple here does not mean small, or clever, or few files. It means **the
+complexity is proportional to the behavior the program actually has.**
+
+The test is one question: **which distinctions does the behavior actually
+make?** If nothing — no rule, no branch, no observable result, no test — can
+tell two states apart, the difference between them is representation, not
+behavior.
+
+Things that are usually accidental, worth hunting for in your own design:
+
+- **State nothing reads.** A field every operation writes and nothing ever
+  branches on, asserts, or returns. Stated intent is not a reader: name a
+  concrete one, or treat it as bookkeeping.
+- **State written from everywhere.** If most operations write the same piece of
+  state, it couples every operation to every other. Prefer one writer per piece
+  of state where the behavior allows it.
+- **An operation that touches most of the state.** Usually several jobs in one
+  step.
+- **A representation wider than the distinctions.** If the program behaves
+  differently at "none", "some" and "all", it has three cases, however the value
+  happens to be stored.
+
+These are places to look, not rules to satisfy. A small program with an
+irreducible core will look dense by every one of them and be right.
+
+### The two asks pull against each other. How to resolve it
+
+Ports and adapters **add parts**: an interface, a fake, a composition point, an
+indirection at every call. "Minimize complexity", read mechanically, deletes all
+of them.
+
+Neither ask overrides the other. The rule that resolves them:
+
+> **One port per real outside dependency. Nothing else indirected. No layer that
+> exists because a layer seemed due.**
+
+If the design still looks like more parts than the feature deserves after that,
+record it as a decision you made and leave it standing. A decision you write
+down is worth more than a boundary collapsed to make a count go down.
+
+### Two things this is not asking for
+
+**This is not asking you to make any check pass.** Nothing here is scored by a
+tool, there is no threshold, and there is no report to turn green. If you find
+yourself doing something because it would clear a check, stop. That instruction
+has been *measured* to produce duplication across the very boundaries it was
+supposed to protect — the cheapest way to make a structural report clean is to
+copy the shared thing into both sides of the boundary, and the diff does not
+look like a mistake.
+
+**And a smaller number is never, on its own, a better design.** A count of
+anything — variables, branches, lines, files — goes down when you delete
+something, and the count cannot tell you whether what you deleted was carrying
+behavior. So whenever you remove or collapse something, do one of two things
+explicitly:
+
+- point at the code or the test that still holds the behavior it carried; or
+- say plainly that the behavior is gone, and why you think that is correct.
+
+"The tests still pass" is the weakest possible form of the first one, because
+the tests were written against the design you are changing.
 
 <!-- HP-02-SLOT:END -->
 
