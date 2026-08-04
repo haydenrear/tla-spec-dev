@@ -1,0 +1,229 @@
+# The BLIND AUTHOR's independently authored catalogue for arm B,
+# copied verbatim from the channel's scratch output and re-keyed into the
+# field names scripts/kill_test.py requires (target -> path, plus the
+# refine_* fields the shipped parser demands). NOT ONE find/replace PAIR,
+# id, class OR description WAS CHANGED.
+#
+# The author never saw examples/validation/ab/seeded_faults.toml, HP-06's
+# re-anchored catalogues, or any HP-06 result. It DID disclose that
+# QuotaLedger.tla and spec_manifest.yaml name several of the sealed
+# catalogue's mutants in prose -- filed as HP-06-DF-07.
+
+[catalogue]
+id = "HP-06-blind-author-arm-b"
+root = "specs/results/scorecards/hexagonal-prompting/arms/arm_b/"
+
+[[mutants]]
+id = "BA-B01"
+fault_class = "guard_relaxation"
+path = "quota_ledger/domain.py"
+find = "        if amount > self.available(tenant):"
+replace = "        if amount > self.available(tenant) + 1:"
+description = "The quota_exceeded guard is off by one, so a tenant can reserve one unit more than it has available."
+observer = "The status of a reserve that asks for exactly available+1, or available(tenant) going negative afterwards."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B02"
+fault_class = "outcome_misreport"
+path = "quota_ledger/domain.py"
+find = '''            return _rejected("amount_not_positive")'''
+replace = '''            return _rejected("quota_exceeded")'''
+description = "A non-positive amount is still refused and still changes nothing, but the reason reported is quota_exceeded."
+observer = "The reason field of the returned Result; no state observation can distinguish it."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B03"
+fault_class = "guard_order"
+path = "quota_ledger/domain.py"
+find = '''        if tenant in self._closed:
+            return _rejected("tenant_closed")
+        if amount < 1:
+            return _rejected("amount_not_positive")'''
+replace = '''        if amount < 1:
+            return _rejected("amount_not_positive")
+        if tenant in self._closed:
+            return _rejected("tenant_closed")'''
+description = "The tenant_closed check runs after the amount check, so reserving a non-positive amount against a CLOSED tenant reports amount_not_positive."
+observer = "The reason field of reserve(<closed tenant>, 0) -- an input that fails two guards at once."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B04"
+fault_class = "memory_ledger_divergence"
+path = "quota_ledger/domain.py"
+find = "        self._committed[held.tenant] = total"
+replace = "        self._committed[held.tenant] = held.amount"
+description = "commit() OVERWRITES the tenant's committed total with this reservation's amount instead of accumulating, while the line it writes to the journal still carries the correct running total."
+observer = "committed(tenant) (or available(tenant)) after a SECOND commit for the same tenant, compared against the running total on the durable line -- memory and file disagree. Every ledger line is byte-correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B05"
+fault_class = "cross_aspect_leak"
+path = "quota_ledger/domain.py"
+find = "        total = self._committed[held.tenant] + held.amount"
+replace = '''        self._quota[held.tenant] += held.amount
+        total = self._committed[held.tenant] + held.amount'''
+description = "commit() inflates the tenant's quota by the committed amount, so available() is refunded while committed() and every ledger line stay exactly correct."
+observer = "available(tenant) after a commit. NOTE: this had to be seeded by ADDING a statement, not by perturbing one -- see the design-blocked note in the report."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B06"
+fault_class = "durable_content"
+path = "quota_ledger/domain.py"
+find = '''        self._journal.append(f"COMMIT {held.tenant} {held.amount} {total}")'''
+replace = '''        self._journal.append(f"COMMIT {held.tenant} {held.amount} {held.amount}")'''
+description = "The fourth field of a COMMIT line carries the reservation amount instead of the running committed total."
+observer = "The text of the SECOND COMMIT line for a tenant; the first is byte-identical to correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B07"
+fault_class = "durable_cardinality"
+path = "quota_ledger/domain.py"
+find = '''        self._journal.append(f"CLOSE {tenant} {self._committed[tenant]}")'''
+replace = '''        _unwritten = f"CLOSE {tenant} {self._committed[tenant]}"'''
+description = "close_tenant() marks the tenant closed in memory but writes no CLOSE line."
+observer = "ledger_lines() (or the file) after a close; is_closed() and every other query are correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B08"
+fault_class = "durable_cardinality"
+path = "quota_ledger/domain.py"
+find = '''        self._journal.append(f"COMMIT {held.tenant} {held.amount} {total}")
+        return _accepted(reservation_id)'''
+replace = '''        self._journal.append(f"COMMIT {held.tenant} {held.amount} {total}")
+        self._journal.append(f"COMMIT {held.tenant} {held.amount} {total}")
+        return _accepted(reservation_id)'''
+description = "commit() appends the correct COMMIT line twice."
+observer = "The NUMBER of ledger lines after a commit; the content of each line is correct and memory is correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B09"
+fault_class = "durable_extra_write"
+path = "quota_ledger/domain.py"
+find = '''    def release(self, reservation_id: str) -> Result:
+        if self._outstanding.pop(reservation_id, None) is None:
+            return _rejected("unknown_reservation")'''
+replace = '''    def release(self, reservation_id: str) -> Result:
+        gone = self._outstanding.pop(reservation_id, None)
+        if gone is None:
+            return _rejected("unknown_reservation")
+        self._journal.append(f"RELEASE {gone.tenant} {gone.amount}")'''
+description = "release() appends a RELEASE line, though the feature says a release writes nothing to the ledger."
+observer = "ledger_lines() after a release; all numeric state is correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B10"
+fault_class = "id_allocation"
+path = "quota_ledger/domain.py"
+find = "        self._issued += 1"
+replace = "        self._issued = len(self._outstanding) + 1"
+description = "The id counter is rebased on the number of live reservations, so ids ascend within a burst but are REUSED once earlier reservations have been resolved."
+observer = "The id returned by a reserve that follows the resolution of every prior reservation -- you must commit or release everything and then reserve again and look at the id."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B11"
+fault_class = "query_projection"
+path = "quota_ledger/domain.py"
+find = "                self._outstanding.items(), key=lambda item: item[1].number"
+replace = "                self._outstanding.items(), key=lambda item: item[0]"
+description = "outstanding_ids() sorts by the id STRING rather than by allocation order, so the order is wrong once a tenth id exists ('r10' < 'r2')."
+observer = "outstanding_ids() with ten or more simultaneously live reservations; with nine or fewer the two orders coincide exactly."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B12"
+fault_class = "rejection_side_effect"
+path = "quota_ledger/domain.py"
+find = '''        if self._held(tenant):
+            return _rejected("outstanding_reservations")'''
+replace = '''        if self._held(tenant):
+            self._journal.append(f"CLOSE {tenant} {self._committed[tenant]}")
+            return _rejected("outstanding_reservations")'''
+description = "close_tenant() writes the CLOSE line before discovering the tenant still has outstanding reservations, then rejects -- a durable write on a rejected path (R4)."
+observer = "ledger_lines() across a REJECTED close; the returned Result and every in-memory query are correct."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B13"
+fault_class = "durable_encoding"
+path = "quota_ledger/journal_file.py"
+find = '''            handle.write(line + "\n")'''
+replace = '''            handle.write("\n" + line)'''
+description = "The file journal writes a leading newline instead of a trailing one, so the file is no longer newline-terminated and the next appender would concatenate onto the last record."
+observer = "The BYTES of the ledger file. lines() uses splitlines() and drops blanks, so the port's own reader returns the identical list."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"
+
+[[mutants]]
+id = "BA-B14"
+fault_class = "unwired_adapter"
+path = "quota_ledger/journal_memory.py"
+find = "        self._lines.append(line)"
+replace = "        self._lines.insert(0, line)"
+description = "The in-memory CommitJournal prepends instead of appends, so the fake violates the port's ordering contract while the file adapter does not."
+observer = "Anything that drives the domain through InMemoryJournal. The shared behavioral suite constructs QuotaLedger, which the composition point wires to FileJournal, so this code is UNREACHABLE from the shared contract entirely."
+gap_targeted = "authored blind; the author was not shown any gap declaration"
+boundary_kind = "invariant"
+boundary_ref = "authored-blind"
+refine_variable = "available"
+refine_action = "Reserve"

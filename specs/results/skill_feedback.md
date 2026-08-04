@@ -1785,3 +1785,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-06
+
+- close_scope: ticket
+- close_id: HP-06
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T16:29:19+00:00
+- summary: EVALUATION: the A/B judged blind. GOAL-hexagonal-in-fact MET (D3 = 4 from both judges, the first 4 outside D5 in this project's history); GOAL-catch-bugs MET (D1 = 3 from both judges, guard relaxation 3 of 3 under the negative corpus and 1 of 1 on a fresh blind catalogue); GOAL-simpler-same-behavior MISSED (D2 = 2 from all four judges -- an A/B cannot reach anchor 3). The prompt produced the structure and the structure caught nothing: 49 of 49 comparable kill cells identical between the arms. The positive control is RED on arm A. 7 PASS / 4 FAIL on the sealed predictions, three of the four failures negative. Findings by channel 0 suite : 17 adversarial : 13 blind author. Twelve findings filed, none fixed; six of HP-06's own claims falsified and corrected in place.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

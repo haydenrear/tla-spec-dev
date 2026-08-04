@@ -1,0 +1,81 @@
+{
+  "scorecard_version": 1,
+  "epic": "hexagonal-prompting",
+  "example": "ab_quota_ledger",
+  "run_id": "20260804-hp06-X-p2",
+  "arm": "X",
+  "commit": "f65bb9b3c8e3d4e2b5ca50e9d34c27611673c9af",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 3,
+      "citations": [
+        "EVIDENCE_X.md:32-34",
+        "EVIDENCE_X.md:46",
+        "EVIDENCE_X.md:35",
+        "EVIDENCE_X.md:26-27",
+        "artifact_X/tests/test_journal_parity.py:46-53",
+        "artifact_X/tests/test_domain_rules.py:24-54",
+        "EVIDENCE_X.md:63-68"
+      ],
+      "rationale": "Anchor 2 is met on measured evidence: M04-durable-stale-total survives the whole-view corpus and the silent map and is killed only by the content-asserting provider (EVIDENCE_X.md:35), so content assertion rather than shape is what catches it; the artifact's own cases likewise assert literal ledger lines rather than shape (test_journal_parity.py:46-53). Anchor 3 is met: all three guard_relaxation mutants SURVIVE corpus-whole and are KILLED by the generated negative corpus (EVIDENCE_X.md:32-34, per-class row 0 of 3 vs 3 of 3 at EVIDENCE_X.md:46) - a refusal class the whole-view corpus structurally cannot reach. Anchor 4 is NOT fully satisfied and I take the lower of 3/4 for three reasons. (a) The cases that reach the hard class belong to the shared measurement harness, not to this artifact; every case the artifact itself ships is hand-written (tests/test_domain_rules.py, tests/test_journal_parity.py) and none of them was ever run against a mutant, so this artifact's own kill power is unmeasured, not demonstrated. (b) The artifact's own record names unspecified inputs it declined to define, but never names a fault class its cases cannot reach; the only such naming (cross-process, concurrency) is harness-authored and is explicitly framed as 'not seeded, never not caught'. (c) The catalogue's positive control could not be seeded faithfully and was replaced with a broader-reach substitute whose kills are declared non-comparable (EVIDENCE_X.md:63-68), which weakens the calibration of the whole kill table even though the substitute did pass within this arm. Prose quality was not an input; NOTES.md is unusually persuasive and I scored the code and the kill table instead.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "artifact_X/quota_ledger/domain.py:74-80",
+        "artifact_X/quota_ledger/domain.py:111-133",
+        "artifact_X/quota_ledger/domain.py:64-70",
+        "EVIDENCE_X.md:88-90",
+        "artifact_X/NOTES.md:158-160"
+      ],
+      "rationale": "Anchor 2 is met in the code, not just argued. `available` is computed from quota minus committed minus live holds every time it is read (domain.py:74-80), so R1 is arithmetic rather than an invariant four commands must maintain, and `release` performs no arithmetic at all (domain.py:128-133). Each piece of state has one command that writes it: `_issued` only in reserve (domain.py:111), `_committed` only in commit (domain.py:124), `_closed` only in close_tenant (domain.py:143); the measured max_writers_of_one_attribute is 2, i.e. constructor plus one command (EVIDENCE_X.md:90), with 11 branches over four commands and five queries (EVIDENCE_X.md:88). No god-state and no variable written from everywhere. Anchor 3 is not met and cannot be: the artifact states outright that it removed and collapsed nothing to move a count and has no deletion to point at (NOTES.md:158-160), so there is no before/after pair of figures for a simplification it made. The mechanical block's two-artifact table is a cross-arm comparison supplied by the harness, not a measured before and after of a change this artifact performed, and reading it as one would repeat exactly the MF-020 error the card warns about. Note also that this artifact is not uniformly the smaller design - 4 modules against 1 and 21 public names against 17 (EVIDENCE_X.md:85-92) - so 'simpler' is not established even informally.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 4,
+      "citations": [
+        "artifact_X/quota_ledger/domain.py:9-12",
+        "artifact_X/quota_ledger/domain.py:15-28",
+        "artifact_X/quota_ledger/journal_file.py:8-10",
+        "artifact_X/quota_ledger/__init__.py:29-30",
+        "artifact_X/tests/test_journal_parity.py:21-28",
+        "artifact_X/tests/test_journal_parity.py:101-115",
+        "EVIDENCE_X.md:26-27"
+      ],
+      "rationale": "Anchor 3: the domain module imports only dataclasses and typing (domain.py:9-12) - no pathlib, no io, no environment - and declares its one driven port as a Protocol (domain.py:15-28), so the real adapter imports nothing from the domain either (journal_file.py:8-10) and the dependency runs one way. The specific swap: replace `FileJournal(ledger_path)` with `InMemoryJournal()` at quota_ledger/__init__.py:30 and no file under the domain changes. Anchor 4 is met with runtime evidence, not import topology: tests/test_journal_parity.py:21-28 parametrizes one fixture over the real FileJournal and the InMemoryJournal fake and runs the identical eight-case list through both (test_journal_parity.py:101-115). I ran this myself rather than taking the report's word: pytest collects 16 tests from that file (8 cases x 2 adapters) and the artifact's suite is 41 passed. Crucially the cases assert literal expected values ('COMMIT acme 4 4', ...) rather than that the two wirings agree, so they can fail for a reason worth knowing; an agreement-only parity test would have satisfied the anchor's letter and none of its purpose. Independent corroboration that the port is genuinely a seam: the evaluation harness bound the same durable-write port to two providers it wrote itself, one silent and one content-asserting, without touching the domain (EVIDENCE_X.md:26-27) - four bindings of one port, two of them by a third party. The one blemish, which I weighed and did not find disqualifying, is that the spec-mandated `QuotaLedger` is a subclass of the domain class rather than a separate wiring object (__init__.py:21-30), so the composition point and the rules share a type; the domain still holds no path and the parity evidence is taken at the ReservationBook level.",
+      "refuses_to_claim": "That the port abstracts the durable record's format: the domain renders the line 'COMMIT <tenant> <amount> <total>' itself (domain.py:125) and the port carries a bare str, so no adapter swap can vary the format, and the artifact says so rather than claiming a fuller abstraction. It also refuses to claim any second port - quotas, reservations, ids and totals are left as computation with no indirection - and refuses to hide that the class the requirement names is the wired object rather than the rules (NOTES.md:150-156)."
+    },
+    "D4": {
+      "score": 3,
+      "citations": [
+        "EVIDENCE_X.md:10-11",
+        "EVIDENCE_X.md:18",
+        "EVIDENCE_X.md:22-25",
+        "artifact_X/tests/test_domain_rules.py:98-111",
+        "artifact_X/tests/test_domain_rules.py:129-149",
+        "artifact_X/NOTES.md:158-160",
+        "EVIDENCE_X.md:63-68"
+      ],
+      "rationale": "There is no baseline in this eval - both arms implement one specification from scratch - so D4 reads here as spec conformance rather than preservation across a change, and the score should be read that way. Anchor 2: the behaviors are enumerated (FEATURE R1-R5 and the per-command reject orders) and the shared suite that enumerates them executably passes 28 of 28 unchanged against this artifact (EVIDENCE_X.md:10-11); the artifact adds its own enumeration of the rules the shared suite leaves open, including conservation checked after every step of a mixed sequence (test_domain_rules.py:98-111) and close finality (test_domain_rules.py:129-149). Anchor 3: the checks run against it are model-derived, not only hand-written - a whole-model corpus of 3,440 executable cases, a negative corpus of 94, and two aspect slices, all green as controls on the unmutated artifact (EVIDENCE_X.md:18, 22-25). Anchor 4 I decline, taking the lower of 3/4. The demonstration that a check can fail is entirely the harness's: the artifact ships no mutation, no deliberately broken variant, and states that no tool other than pytest was ever run over this code (NOTES.md:160), so nothing shows that its own 41 tests are capable of failing. What the harness demonstrated is also weaker than the all-KILLED `suite` column looks: the catalogue's positive control was unexpressible against this design and had to be replaced by a broader-reach substitute (EVIDENCE_X.md:63-68), and the model-derived corpus - the very instrument anchor 3 credits - misses 4 of the 8 seeded mutants outright, including every guard relaxation. A behavior-preservation argument that would have earned 4 needs the artifact to break itself on purpose and show the check going red; this one does not.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "artifact_X/tests/test_journal_parity.py:1-9",
+        "artifact_X/NOTES.md:114-138",
+        "artifact_X/NOTES.md:100-107",
+        "artifact_X/tests/test_file_journal.py:11-16",
+        "artifact_X/NOTES.md:140-160",
+        "artifact_X/tests/test_file_journal.py:1-3"
+      ],
+      "rationale": "Anchor 2 is met inside the artifact and not only in a report: the parity test file states in its own header why an agreement-only comparison is worthless - two wirings of the same domain agree even when the domain is wrong (test_journal_parity.py:1-9) - and the file-journal test file states the boundary rule that a case writable for only one journal is not a case about the port (test_file_journal.py:1-3). The artifact also flags four open choices as choices rather than settled behavior, including that `available('nobody')` raises rather than returning a sentinel and that a non-integer amount is neither rejected nor specified (NOTES.md:114-138). Anchor 3 is met by refusals that cost it something: it declines to claim the structural half of its prompt ever conflicted with the behavioral half, and declines to claim any simplification at all, saying it has no deletion to point at (NOTES.md:140-160) - both places where a positive claim would have read better and was not supported. Anchor 4 I decline, taking the lower of 3/4. Every result the artifact measures about itself is green (28 passed, 41 passed - I re-ran the 41 and confirm it). The unflattering material is admitted design cost rather than an unflattering measurement: the truncation that destroys a pre-existing file's contents is recorded and pinned by a test (NOTES.md:100-107, test_file_journal.py:11-16), but the artifact argues that cost is intended, and the subclass blur is likewise presented as the better of two trades. Naming a cost you argue is correct is honest; it is not the same as a record containing a result that goes against you. The genuinely unflattering findings in this run - three catalogue mutants unexpressible, a substituted positive control, a higher module and public-name count - are all harness-authored, and the artifact could not have known them.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 15,
+  "contested": [],
+  "verdict": "A genuinely hexagonal implementation whose one port is proved swappable by a real-adapter/fake parity suite asserting literal values (D3=4), but whose own cases were never shown capable of catching anything - all fault-detection and failure-capability evidence is harness-authored, and the artifact records no simplification and no red result of its own."
+}

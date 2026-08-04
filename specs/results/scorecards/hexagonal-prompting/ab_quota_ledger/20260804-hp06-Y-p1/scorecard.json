@@ -1,0 +1,74 @@
+{
+  "scorecard_version": 1,
+  "epic": "hexagonal-prompting",
+  "example": "ab_quota_ledger",
+  "run_id": "20260804-hp06-Y-p1",
+  "arm": "Y",
+  "commit": "f65bb9b3c8e3d4e2b5ca50e9d34c27611673c9af",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 3,
+      "citations": [
+        "EVIDENCE_Y.md:32-34",
+        "EVIDENCE_Y.md:35",
+        "EVIDENCE_Y.md:49",
+        "EVIDENCE_Y.md:61-67",
+        "artifact_Y/test_quota_ledger.py:386-392"
+      ],
+      "rationale": "Anchor 2 is met by measurement, not by claim: M04 (durable_content, stale running total) SURVIVES map-silent and is KILLED by map-checking (EVIDENCE_Y.md:35), which is the exact discrimination the anchor asks for -- content assertion, not shape. Wrong-value M10 is killed on five instruments. Anchor 3 is met because corpus-neg kills all three guard_relaxation mutants (M01/M02/M03) that corpus-whole SURVIVES 0 of 3 (EVIDENCE_Y.md:32-34, :49); that is the refusal class the whole-view corpus structurally cannot reach on its own, and a KILLED cell is a positive observation that a degraded instrument cannot manufacture. Anchor 4 is refused for two independent reasons. First, the catalogue's positive control M07 is RED on every corpus instrument for this artifact -- 0 of 588 cases recover a Reserve argument, so no generated case ever calls reserve (EVIDENCE_Y.md:61-67); I will not certify 'the cases that do it were derived from the model' when the model-derived corpus demonstrably never exercises the artifact's primary command and the packet itself calls its numbers a floor under a broken instrument. Second, the artifact's own record names design limits but names no fault class its cases cannot reach; the not-seeded classes (concurrency, cross-process) are named by the harness packet, not by the artifact. The only instrument that kills all ten mutants is the shared hand-written suite, which the artifact neither wrote nor was allowed to edit, so it carries no credit here. The artifact's own tests do assert content (exact ledger lines including running totals, test_quota_ledger.py:386-392) and would plausibly kill M04, but that was not measured and I do not score it as a kill.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "artifact_Y/quota_ledger.py:87-90",
+        "artifact_Y/quota_ledger.py:195",
+        "artifact_Y/NOTES.md:80-83",
+        "EVIDENCE_Y.md:77-88",
+        "EVIDENCE_Y.md:89-94"
+      ],
+      "rationale": "Complexity is measured and reported (EVIDENCE_Y.md:77-88: 1 module, 147 production lines, 13 branches, max 2 writers of one attribute), and the artifact argues a relationship between a design choice and the figures: `available` is a derived property rather than a fourth stored counter, so R1 conservation holds by construction (quota_ledger.py:87-90, NOTES.md:80-83). Structure is proportional to behavior -- four commands, six rejection reasons, thirteen branches, per-tenant position encapsulated in `_Tenant` rather than a god-state dict; no attribute is written from more than three call sites and each site is a distinct legal transition. That is anchor 2. Anchor 3 is refused: no simplification was made to THIS artifact with before and after figures both recorded. The evidence packet invites reading the pair as before/after, but a cross-artifact table is not a measurement of a reduction performed on this artifact, and the packet's own caveat says the state figures are not directly comparable (EVIDENCE_Y.md:89-94). I also record against the artifact's interest that it is the undercounted side of that caveat: it mutates tenant state through local names (`found.held += amount`, quota_ledger.py:195) rather than through `self`, so its headline mutable_state_count of 5 flatters it and should not be read as a low-state design. MF-020 applies: a favourable number here would be an artifact of the counter, not of the design.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 2,
+      "citations": [
+        "artifact_Y/quota_ledger.py:93-118",
+        "artifact_Y/quota_ledger.py:134",
+        "artifact_Y/quota_ledger.py:11-13",
+        "artifact_Y/NOTES.md:24-26"
+      ],
+      "rationale": "One boundary is declared and the code follows it: `_LedgerFile` owns every filesystem call and exposes exactly append/lines/path (quota_ledger.py:93-118), which is what NOTES.md:24-26 declares, and no other code in the module touches the file. All cross-boundary traffic at runtime goes through those two methods, so a seam identifiable as a port exists -- anchor 2. Anchor 3 fails on both of its clauses. The domain imports its I/O directly: `os` and `pathlib` are imported at the top of the single module that also holds every guard and every state transition (quota_ledger.py:11-13). And the collaborator is hard-wired -- `QuotaLedger.__init__` constructs `_LedgerFile(ledger_path)` itself (quota_ledger.py:134) and takes a path, not a writer, so there is no swap I can name that leaves the domain untouched: substituting an in-memory or content-asserting durable side requires editing `QuotaLedger`. I note that FEATURE.md:118-122 declares file splitting and whether the durable side is reached through an interface to be free choices, so this is not a specification defect; it simply does not clear an anchor that asks for a swap and gets a constructor call.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 2,
+      "citations": [
+        "EVIDENCE_Y.md:11",
+        "artifact_Y/test_quota_ledger.py:315-349",
+        "artifact_Y/test_quota_ledger.py:239-250",
+        "artifact_Y/test_quota_ledger.py:166-187",
+        "EVIDENCE_Y.md:61-67"
+      ],
+      "rationale": "The behaviors at issue are FEATURE.md's R1-R5, and each is enumerated and shown to hold rather than left to a green bar. R1/R2/R3 are re-derived from the file on disk after every step of a mixed ten-step sequence (test_quota_ledger.py:315-349, with the R2 running-total check at :325-336 and the single-CLOSE check at :329-346); R4 is checked as a full observable-state-plus-file-bytes snapshot across nine distinct rejections (:166-187); R5 is checked as a prefix property -- each command only ever extends what was already on disk (:239-250). The shared suite passes 28 (EVIDENCE_Y.md:11); I re-ran both the shared suite (28 passed) and the artifact's own file (38 passed) against a copy and both self-reports hold. Anchor 3 is refused: the artifact owns no model-derived check, and the model-derived corpus that was run against it is not a check I can count for behavior preservation, because its positive control is red and 0 of 588 cases recover a Reserve argument (EVIDENCE_Y.md:61-67) -- a corpus that never calls the artifact's primary command being green is not evidence that the artifact's behavior is preserved. Anchor 4 therefore does not arise.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 4,
+      "citations": [
+        "artifact_Y/NOTES.md:114-121",
+        "artifact_Y/NOTES.md:148-156",
+        "artifact_Y/NOTES.md:76-78",
+        "artifact_Y/NOTES.md:107-113",
+        "artifact_Y/test_quota_ledger.py:126-137",
+        "artifact_Y/quota_ledger.py:62"
+      ],
+      "rationale": "Anchor 2: limits are named unprompted and not only in the prose report -- the code refuses at runtime to emit a rejection reason outside the declared vocabulary (`assert reason in REASONS`, quota_ledger.py:62), and a test docstring states in the test file that 'closed beats outstanding' is unreachable through the public commands and is therefore NOT asserted (test_quota_ledger.py:126-137). Anchor 3: that is the refusal pattern the card wants -- rather than fabricating an assertion for an unreachable case to make the precedence table look complete, it records the case as unreachable and asserts only what the interface can produce; NOTES.md:107-113 does the same for queries on an unknown tenant, naming it a genuine free choice and saying another arm could reasonably decide it differently, instead of presenting a house rule as a requirement. Anchor 4: the record contains results unflattering to the thing being scored, volunteered where nothing forced them. NOTES.md:114-121 admits that a float amount of 2.5 would be ACCEPTED and would land in the durable ledger line, calls this 'the loosest edge of the implementation', and flags it rather than deciding it does not matter -- a self-reported defect in the artifact under score. NOTES.md:148-156 discloses that it ran `ls -la` over a directory containing do-not-open fixtures and enumerates the names it thereby learned, which can only cost it. I record explicitly that prose quality is not why this scores 4: NOTES.md is well written and that tempted me, but every point above is a checkable behavior of the code or the test file, and I discarded the parts of NOTES.md that are merely well-phrased justification. Deducting nothing for the file docstring at test_quota_ledger.py:1 naming the arm, which is a blinding-hygiene problem for the eval rather than a dishonesty of the artifact.",
+      "refuses_to_claim": "Crash safety and durability beyond a bare append: NOTES.md:76-78 states that no fsync and no journal were built and declines to claim the ledger survives a crash, offering the write-before-mutate ordering only as 'the cheaper of two orderings'. It likewise refuses to claim any type validation of `amount` (NOTES.md:114-121), and refuses to claim test coverage of the close-precedence and post-close-commit cases it judges unreachable (NOTES.md:122-131)."
+    }
+  },
+  "total": 13,
+  "contested": [],
+  "verdict": "A correct, unusually self-critical single-module implementation that meets the content-assertion and refusal-class bars for bug detection, but exposes no injectable durable-write port and carries model-derived kill numbers measured under a red positive control -- treat every corpus row for this artifact as a floor and repair Reserve-argument recovery before any D1 comparison between the arms is believed."
+}

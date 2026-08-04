@@ -14,6 +14,107 @@ wrong. Keep the standard.
 
 ---
 
+## 0-A. READ FIRST — AMENDED AGAIN AFTER THE `hexagonal-prompting` EPIC (2026-08-04)
+
+**Everything below §0 was written by the `architectural-coherence` epic. A newer
+epic has since run and has OVERTURNED four of its conclusions.** Every one is
+marked in place with a `HEXAGONAL-PROMPTING —` note; do not read a §1 or §3 claim
+without checking whether it carries one. The four:
+
+1. **"A generated corpus cannot see guard relaxation, ever" is FALSE** (§1). A
+   generator mode that emits, per reachable state, the actions whose guards are
+   DISABLED, asserted REJECTED, took the class **0 of 3 → 3 of 3** on the seeded
+   catalogue, **5 of 5** on one fresh catalogue and **1 of 1** on another, on two
+   real implementations. It was never a property of corpora; it was a property of
+   *positive* corpora.
+2. **"Ordering is invisible at every layer" is FALSE as stated** (§1). It is
+   invisible when the modelled thing is a **set**. On a model whose ledger is a
+   **sequence**, the ordering mutant dies on the whole-view corpus, on an aspect
+   slice and under both provider mappings. Any citation now needs the
+   set/sequence clause.
+3. **"The mapping choice is worth 30% of that instrument's yield" MUST NOT BE
+   QUOTED** (§1, §3). The *direction* has replicated five times on five fixtures
+   and is solid. The *magnitude* has failed to reproduce four times: 1 of 6 on
+   one fixture, **exactly one mutant** on each of two implementations here.
+4. **D3 = 4 has been reached** — the first 4 on any dimension but D5 in this
+   project's history — by asking for ports and adapters **in a prompt**, with no
+   check, no schema and no gate. §2's NE-02 should be read knowing that.
+
+**And the four sentences from the new round that matter most:**
+
+1. **The prompt worked and the structure caught nothing.** D3 went 2/2 → 4/4
+   between the control and the treatment arm. Every per-mutant kill verdict is
+   **identical on 49 of 49 comparable cells**. A port did not detect one
+   additional fault, and the treatment arm's own 41 tests appear in no kill
+   table. If you are tempted to build architecture tooling because "modularity
+   catches bugs", this round is the counter-evidence.
+2. **The hand-written suite still beats the generator, and a catalogue nobody
+   tuned beats them both down.** Seeded catalogue: suite 10 of 10, corpora 9 of
+   10. **Fresh independently-authored catalogue: corpora 8 of 13, suite 9 of 13,
+   and four whole classes invisible to every instrument including the suite.**
+   A catalogue written by the author of the mechanisms flatters both instruments
+   by roughly a quarter.
+3. **The positive control is red and has been for two tickets.** The corpus
+   recovers no `Reserve` argument, so no case that calls the primary command
+   executes, so a fault seeded in it survives everything. **Fix this before
+   anything else** — and know that fixing it turns a *second* control red
+   (HP-06-DF-11), because the oracle re-derives a reservation id the model does
+   not allocate that way.
+4. **Findings by channel: 0 from the suite, 17 from an adversarial pass, 13 from
+   a blind author.** Third round running. **The suite has stopped being
+   informative** — 1,329 green assertions produced nothing anybody did not
+   already know — and for the third time the most valuable single section of the
+   record was an agent's answer to *"what did you reject?"*.
+
+### The best finding of the new round is about a SPECIFICATION, not a tool
+
+A blind author, given only the two implementations and the model, found that
+**the model's COMMIT record has three fields where the feature's has four**. R2's
+running-total clause is absent from the state machine entirely, and the
+manifest's own port description describes a line the model never constructs. The
+one mechanism with a measured, replicated edge — the content-asserting provider —
+is a hand-written sentence patching a model that does not refine its own
+specification.
+
+The same agent found that the two arms **differ in unmutated code on crash
+consistency** and that nothing in the fixture can see it; that the fixture
+**leaks its own answer key** in files blind roles are permitted to read; and that
+two whole fault classes are each held by exactly one assertion.
+
+That is the fourth epic in a row in which the most valuable result came from an
+agent READING something and noticing a specification was false of itself. No
+metric contains it and no gate reaches it. **Budget for that channel explicitly.**
+
+### What the next epic should probably do first
+
+- **Repair `Reserve` argument recovery, then expect HP-06-DF-11 to fire.** Until
+  the positive control is green, no kill number from a whole-view corpus on this
+  fixture is a measurement.
+- **Make a kill table auditable.** `KILLED` currently means "any exception", the
+  failure text for every mutant run is computed and discarded, and 92% of a
+  corpus is skipped with the per-case reason dropped. Every kill table this
+  project has published shares that driver's ancestry.
+- **Do NOT build an architecture checker.** The prompt reached D3 = 4 with no
+  tool, and the epic before it proved every static check it shipped was defeated
+  cheaply. But do not conclude the prompt "worked" either: 105 unique prompt
+  lines against 16 means **this round cannot distinguish hexagonal guidance from
+  a longer, more specific ask.** If that distinction matters, run the third arm.
+- **Fix `eval_scorecard.md`'s D2, or say it is unreachable for an A/B.** Anchor 3
+  needs a before and an after of the same artifact; two arms of one specification
+  have neither, all four judges said so, and a goal was `missed` on a target no
+  A/B could have hit.
+- **Seed the class the blind author was least confident about rejecting**:
+  durability across a failing write. It said, in the shape of the predecessor's
+  wrong rejection, *"I am declining a class because the harness cannot currently
+  reach it, not because the fault is unreal"* — and then proved the arms already
+  diverge on it.
+
+Full record: `specs/results/scorecards/hexagonal-prompting/RESULTS.md`,
+`PREDICTIONS-SCORED.md` (7 PASS, 4 FAIL, and three of the four failures are
+negative predictions), `FINDINGS.md`, `UNBLINDING.md`.
+
+---
+
 ## 0. READ FIRST — this document was written after round 1 and amended after round 2
 
 EV-02 (round 1) found 14 defects. The owner directed that they be **repaired
@@ -107,6 +208,13 @@ Every claim below is a measurement with a run record behind it in
   blind agent on a fresh 16-mutant catalogue: 3 of 3 durable-write mutants killed
   by the checking mapping, 0 of 3 by the silent one — 30% of that instrument's
   entire yield (`runs/ex4-run6/`).**
+  **HEXAGONAL-PROMPTING — THE 30% DOES NOT REPRODUCE AS A PROPORTION. DO NOT
+  QUOTE IT.** HP-05 measured the mapping worth 1 of 6 under the checking mapping
+  and 1 of 10 overall on a second fixture; HP-06 measured it worth **exactly one
+  mutant on each of two further implementations** (`map-checking` 2 of 2,
+  `map-silent` 1 of 2, plain corpus 1 of 2, identical on both arms). The
+  DIRECTION has now replicated five times on five fixtures and is solid. The
+  MAGNITUDE is fixture-dependent and is not a property of the mechanism.
 - **Determinism, including the half nobody had tested.** Generation is
   byte-identical (the same `cases.py` sha256 EV-01 recorded, across worktrees,
   output paths, and two Python interpreters five minor versions apart).
@@ -230,6 +338,18 @@ Every claim below is a measurement with a run record behind it in
   The "4 of 6 is an upper bound" caveat is now **narrower**: the leak is gone, so
   4 of 6 is a measurement rather than a ceiling. It remains one fixture, six
   faults, and a corpus that cannot see two whole classes.
+  **HEXAGONAL-PROMPTING — OVERTURNED. THE HEADLINE OF THIS BULLET IS NOW FALSE.**
+  "A generated corpus cannot see guard relaxation, ever" was true of a corpus
+  built from ENABLED edges only. HP-03 built a generator mode that emits, at each
+  reachable state, the actions whose guards are DISABLED there, asserted
+  REJECTED. Guard relaxation went **0 of 3 -> 3 of 3** on HP-01's seeded
+  catalogue and **5 of 5** on a fresh independent one, and HP-06 reproduced
+  **3 of 3 under `corpus-neg` on two real implementations**, against 0 of 3 for
+  every other generated instrument in the same run. The class is not structurally
+  unreachable; it was unreachable *from a positive corpus*. The rest of the
+  bullet — that recovering the argument does nothing, that the state graph has no
+  edge for a transition that did not fire — is still exactly right, and is why
+  the fix had to be a new emission mode rather than better recovery.
 - **Ordering is invisible at every layer.** `ledger` and `queue` are TLA+ sets;
   the code implements them as ordered lists documented "append-only". The
   projector sorts, the adapter uses `frozenset`, the provider compares
@@ -241,6 +361,17 @@ Every claim below is a measurement with a run record behind it in
   ANYTHING — five corpus instruments and the behavioural suite.** The agent
   traced all four layers unprompted and reached round 1's conclusion
   independently: it needs a MODEL change, not a test change. (`runs/ex4-run6/`)
+  **HEXAGONAL-PROMPTING — OVERTURNED, AND THE CORRECTED CLAIM IS NARROWER.**
+  "Ordering is invisible at every layer" is a property of THIS MODEL, not of
+  corpora. It is invisible when the modelled thing is a **set**; `ledger` and
+  `queue` here are sets, which is the whole of the reason. On a model that
+  represents its ledger as a **sequence**, HP-03's ordering mutant M09 DIED on
+  the whole-view corpus, and HP-06 reproduced that on both arms — killed by
+  `corpus-whole`, by the ledger aspect slice and by both provider mappings,
+  surviving only the negative corpus and the reservations slice, neither of which
+  projects the ledger. **Anything citing "ordering is structurally invisible" now
+  needs the set/sequence clause.** The second half of round 2's note also stands
+  corrected: on a sequence model the hand-written suite kills it easily.
 - **X-P3 fails.** Six of eight friction items in the blind aspect run were
   documentation insufficiency, not tool defects, and the root of most of them is
   that **every published command path assumes an external view**. An
@@ -674,6 +805,9 @@ Everything below this line still stands.
   a fresh catalogue (3 of 3 durable-write mutants under the checking mapping, 0
   of 3 under the silent one). The mapping choice is worth 30% of that
   instrument's yield. Never report a kill number without naming its mapping.**
+  **HEXAGONAL-PROMPTING: the "30% of that instrument's yield" clause is
+  withdrawn — see the note at §1. "Never report a kill number without naming its
+  mapping" is stronger than ever and HP-05 made the announcement automatic.**
 
 ---
 

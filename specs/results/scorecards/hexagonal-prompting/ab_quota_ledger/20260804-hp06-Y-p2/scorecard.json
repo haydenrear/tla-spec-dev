@@ -1,0 +1,75 @@
+{
+  "scorecard_version": 1,
+  "epic": "hexagonal-prompting",
+  "example": "ab_quota_ledger",
+  "run_id": "20260804-hp06-Y-p2",
+  "arm": "Y",
+  "commit": "f65bb9b3c8e3d4e2b5ca50e9d34c27611673c9af",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 2,
+      "citations": [
+        "EVIDENCE_Y.md:26-27",
+        "EVIDENCE_Y.md:35",
+        "EVIDENCE_Y.md:48",
+        "EVIDENCE_Y.md:32-34",
+        "EVIDENCE_Y.md:60-68"
+      ],
+      "rationale": "Anchor 2 is fully satisfied on a differential that the broken control cannot explain away: M04-durable-stale-total SURVIVES map-silent and is KILLED by map-checking (EVIDENCE_Y.md:35), the only difference between the two instruments being that one provider asserts content and the other asserts nothing (EVIDENCE_Y.md:26-27); durable_content goes 1 of 2 to 2 of 2 across that swap (EVIDENCE_Y.md:48). Wrong-value M10 is killed by corpus-whole and corpus-slice-res (EVIDENCE_Y.md:39). Anchor 3 is NOT awarded, and this was the closest call on the card. On its face the table satisfies it: corpus-neg kills all three guard_relaxation mutants that the whole-view corpus survives 0 of 3 (EVIDENCE_Y.md:32-34, 49), which is exactly the 'refusal class the whole-view corpus structurally cannot reach' the anchor describes. But every cell supporting it comes from a family whose positive control is RED on this artifact (EVIDENCE_Y.md:60-68), and the stated cause of that redness contradicts the cells being relied on: the packet says no case that calls reserve ever executes on any corpus instrument, yet M03-guard-close-with-outstanding is credited KILLED by corpus-neg, and that mutant is only reachable with a live reservation, i.e. after an accepting reserve. Two parts of the packet cannot both be true. Per the card's tie-break I take the lower anchor and record the contradiction rather than bank a 3 on it. Prose was not an input; the artifact's NOTES.md is unusually well written and I discarded it as evidence for this dimension entirely -- the artifact ships no model-derived cases of its own, only 38 hand-written ones.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "artifact_Y/quota_ledger.py:86-90",
+        "artifact_Y/quota_ledger.py:195",
+        "artifact_Y/quota_ledger.py:216-217",
+        "EVIDENCE_Y.md:80-86",
+        "EVIDENCE_Y.md:88-94"
+      ],
+      "rationale": "Measured descriptor: 1 module, 147 production lines, 13 branches, 5 self-assignments, max 2 writers of one attribute (EVIDENCE_Y.md:80-86), with the packet itself warning that this artifact's mutable_state_count is an undercount because part of its state is mutated through a local dataclass name rather than through self (EVIDENCE_Y.md:88-94) -- true here: _Tenant.held is written at quota_ledger.py:195, :216 and :230, three sites, none of them self-assignments. Even corrected, the shape is proportional: four commands, five queries, one file collaborator, no god-state, and the widest-written field is confined to a single class. The one genuine structural economy is real and load-bearing: available is a derived property, quota - held - committed (quota_ledger.py:86-90), so R1 conservation is true by construction rather than maintained by three mutations, and commit correspondingly moves one amount between two counters (quota_ledger.py:216-217). Anchor 3 is refused: the artifact records no complexity figures at all and no before/after pair for that or any other simplification, and the cross-artifact figures in the mechanical block are two independent implementations of one spec, not a measured before and after of a change. Under MF-020 a number with no measured predecessor is not a simplification result.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 2,
+      "citations": [
+        "artifact_Y/quota_ledger.py:93-118",
+        "artifact_Y/quota_ledger.py:134",
+        "artifact_Y/quota_ledger.py:11",
+        "artifact_Y/quota_ledger.py:161",
+        "artifact_Y/quota_ledger.py:213",
+        "artifact_Y/quota_ledger.py:243"
+      ],
+      "rationale": "A boundary is declared (_LedgerFile, 'the durable side', quota_ledger.py:93-98) and the code actually honours it at runtime, not merely in imports: every durable interaction in QuotaLedger goes through self._ledger -- the two appends at quota_ledger.py:213 and :243 and the read at :161 -- and no command opens, writes or reads a path itself. That single respected chokepoint is what anchor 2 asks for. Anchor 3 is refused on the code, not on a style preference: the domain and its I/O are one module, os and pathlib are imported at the top of it (quota_ledger.py:11,13), and QuotaLedger constructs its adapter inline with self._ledger = _LedgerFile(ledger_path) (quota_ledger.py:134) with no seam parameter and no export of the class (__all__ at :16). There is no swap I can name: substituting an in-memory durable side requires editing the same file that holds the domain. Note that FEATURE.md:119-120 declares interface-vs-direct a free choice, so this is not a specification violation -- it is the arm difference the eval exists to measure. I could not determine how the harness bound a 'durable-write port' for the map-silent/map-checking rows (EVIDENCE_Y.md:26-27), because this artifact exposes no injection point; whatever it did was done to internals, and I did not credit it as modularity.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 2,
+      "citations": [
+        "artifact_Y/test_quota_ledger.py:315-348",
+        "artifact_Y/test_quota_ledger.py:166-187",
+        "artifact_Y/test_quota_ledger.py:239-250",
+        "EVIDENCE_Y.md:9-11",
+        "EVIDENCE_Y.md:60-68"
+      ],
+      "rationale": "The baseline behaviours are the five rules and the command contract in FEATURE.md, and each is enumerated and checked rather than assumed: _check_invariants asserts R1 conservation, R2 running-total agreement between disk and memory, and R3 close singularity, and is re-run after every step of a mixed sequence (test_quota_ledger.py:315-348, driven at :351-376); R4 is checked as a full observable snapshot including the raw file bytes across nine rejections (test_quota_ledger.py:166-187); R5 is checked as a prefix property of the file after every accepting command (test_quota_ledger.py:239-250). The shared suite passes 28 of 28 (EVIDENCE_Y.md:9-11); I re-ran both suites myself and reproduced 28 passed and 38 passed, so the artifact's pass claims are verified rather than taken. Anchor 3 is refused: every check the artifact ships is a hand-written assertion. The only model-derived checks are the external corpora, and their positive control is red on this artifact (EVIDENCE_Y.md:60-68), so they cannot be said to cover the behaviour they were pointed at -- crediting them would be exactly the flattering-number failure this card was written against. Anchor 4 is refused for the same reason plus a second: the artifact never demonstrates its own check is capable of failing.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 3,
+      "citations": [
+        "artifact_Y/quota_ledger.py:249-253",
+        "artifact_Y/quota_ledger.py:61-63",
+        "artifact_Y/test_quota_ledger.py:126-138",
+        "artifact_Y/NOTES.md:105-121",
+        "artifact_Y/NOTES.md:148-156"
+      ],
+      "rationale": "Anchor 2: blind spots are named unprompted and in the artifact, not only in a report -- a whole section of open questions the feature does not settle, each with the choice made and why (NOTES.md:105-130), including a process disclosure that a directory listing exposed names it was told not to open (NOTES.md:148-156), which nothing compelled it to volunteer. Anchor 3 is met by code and test, not by prose. The refusal shows up three times: an unknown tenant raises KeyError rather than returning a plausible 0 (quota_ledger.py:249-253), with the reasoning that 0 'would make a nonexistent tenant look like a real one' (NOTES.md:107-113); _reject asserts its reason is in the declared vocabulary rather than emitting an undeclared one (quota_ledger.py:61-63); and the precedence test explicitly declines to assert 'closed beats outstanding' because that case is unreachable through the public commands, saying so in the docstring instead of manufacturing a green assertion (test_quota_ledger.py:126-138). That last one is the clearest instance of unobservable-over-false-clean I found. Anchor 4 is refused, and it was close. NOTES.md:114-121 admits floats are accepted and would land in a ledger line as '2.5', calling it 'the loosest edge of the implementation' -- genuinely unflattering and self-found. But it is a declared limitation, not a result: every figure this artifact measured about itself came back green (28 and 38, both of which I reproduced), it never mutated itself to show its checks can fail, and the only unflattering measured result in the record -- the red positive control -- was produced by the external harness, not by the artifact. Under the tie-break I take 3.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 11,
+  "contested": [],
+  "verdict": "A correct, honest, conventionally-structured single module whose durable side is a respected but hard-wired seam -- treat its 5-of-10 corpus kill row as unusable until the red Reserve-argument control is fixed and the corpus-neg rows are reconciled with it, and read the modularity gap as the arm effect rather than a defect."
+}

@@ -12621,6 +12621,395 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "HP-06",
+      "workflow": "hexagonal-prompting-epic",
+      "recorded_at_utc": "2026-08-04T16:28:20.123144+00:00",
+      "metrics": {
+        "variables": 11,
+        "actions": 18,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 26671680,
+        "bound_complete": false,
+        "bound_resolved_variables": 9,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.011604840309462296,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 26671680,
+            "bound_complete": false,
+            "percent_lower_bound": 2667.2,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "HP-05",
+        "metrics": {
+          "variables": {
+            "before": 11,
+            "after": 11,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 18,
+            "after": 18,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 26671680,
+            "after": 26671680,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the pre-change TLC output",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the post-change TLC output",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the behavior-test output",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "TODO -- path to the before/after descriptor comparison",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": false,
+        "outcome": "",
+        "detail": "",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [
+        "REJECTED -- no recursive refinement record. Every close carries either an approved recommendation with evidence, or an explicit 'searched, found none'. Set `refinement.searched: true` and record the outcome.",
+        "REJECTED -- no `narrative:` recorded. The ledger's machine-checked core is deliberately narrow; the narrative carries the reasoning, the measured alternatives, and any finding the core cannot express."
+      ],
+      "verdict": "rejected"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "HP-06",
+      "workflow": "hexagonal-prompting-epic",
+      "recorded_at_utc": "2026-08-04T16:29:19.379997+00:00",
+      "metrics": {
+        "variables": 11,
+        "actions": 18,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 26671680,
+        "bound_complete": false,
+        "bound_resolved_variables": 9,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.011604840309462296,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+          "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 26671680,
+            "bound_complete": false,
+            "percent_lower_bound": 2667.2,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "HP-05",
+        "metrics": {
+          "variables": {
+            "before": 11,
+            "after": 11,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 18,
+            "after": 18,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 26671680,
+            "after": 26671680,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "Not applicable: complexity did not increase. The ledger measures `direction=zero (vs HP-05)`. A measurement ticket carries no model delta and this one added no TLA+ action, variable, port or config value.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "specs/results/scorecards/hexagonal-prompting/GOAL-catch-bugs/kill-table-arm-{a,b}-merged.json and kill-table-blind-author-arm-{a,b}.json. Guard relaxation 3 of 3 under the negative corpus and 0 of 3 under every other generated instrument, on both arms; the POSITIVE CONTROL IS RED on arm A.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "HP-04-DF-04 in specs/desired_program_model/deferred_findings.yaml. Workspace verified at 92 tracked files before close.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "no external view was generated or changed by this ticket",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/.history/hexagonal-prompting-epic/ticket-004-HP-05/ticket/results/tlc-current-mcsmall.txt -- the epic tip this ticket branched from; the model is byte-identical at HEAD",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "identical file. `git diff --stat epic/hexagonal-prompting -- specs/current specs/program_model specs/desired_program_model/TlaSpecDevCli.tla specs/desired_program_model/MC*.cfg` is EMPTY for this ticket, so the pre- and post-change models are the same bytes and re-running TLC would compare a file against itself.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/tickets/HP-06/results/pytest-full.txt -- 1130 passed, unchanged from the epic tip; specs/tickets/HP-06/results/spec-unit-tests.txt -- 73 + 70 passed across both targets",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/HP-06/results/goal-verdicts.md and specs/results/scorecards/hexagonal-prompting/GOAL-simpler-same-behavior/mechanical.json. NOTE, and it is the point of this ticket: the descriptor comparison recorded here is over the two A/B ARMS' PRODUCED CODE, not over this repository's model, because that is what GOAL-simpler-same-behavior measures. Two of its figures were found NOT COMPARABLE between the arms by an adversarial pass and are corrected in place (HP-06-DF-02, HP-06-DF-08).",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched and found none that this ticket may apply. HP-06 is an evaluation ticket: its slice is the measurement, and a ticket whose evaluation changes the thing it evaluates has no measurement left to report. Applying a refinement to the model here would move the artefact the three goals were just decided against, after the numbers were known. THE SEARCH DID FIND REAL REFINEMENT WORK, and it is FILED rather than applied, which is the correct disposition for a measurement: * HP-06-DF-10 / HP-03's committed measurement -- this repository's `Refuse*`-style profile change produces 90.7% of a corpus and ZERO executable cases, because a refusal action's parameters appear nowhere in its body. That is a refinement question about how refusals are modeled, and it is now measured on two fixtures. * The blind-author channel's BA-F1..BA-F5 -- five ways the A/B fixture's model does not refine its own FEATURE.md, including a COMMIT record with three fields where the feature's has four. That is refinement work on HP-01's fixture, not on this repository's model, and HP-01's fixture is sealed evidence this ticket may not edit. * HP-06-DF-11 -- the oracle re-derives a reservation id the model does not allocate that way, which is HP-03-DF-01's \"a model that guards an id its own API allocates rather than accepts\" seen from the other side. None is a refinement of `TlaSpecDevCli`, which is the module this ledger is about, and none was applied.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "architecture_delta": {
+        "status": "not_run",
+        "recorded": false,
+        "gates": false,
+        "report": "",
+        "resolved_report": "",
+        "claim": "",
+        "attribution": "",
+        "divergences_before": null,
+        "divergences_after": null,
+        "divergences_delta": null,
+        "divergent_edges_lost": [],
+        "divergent_edges_gained": [],
+        "map_digest_before": "",
+        "map_digest_after": "",
+        "architecture_digest_before": "",
+        "architecture_digest_after": "",
+        "why": [],
+        "red_flags": [],
+        "problems": []
+      },
+      "transition_diff": "",
+      "narrative": "specs/tickets/HP-06/results/goal-verdicts.md, specs/results/scorecards/hexagonal-prompting/RESULTS.md, specs/results/scorecards/hexagonal-prompting/PREDICTIONS-SCORED.md and specs/results/scorecards/hexagonal-prompting/FINDINGS.md. Read RESULTS.md first: two goals met, one missed, both `met` verdicts carrying a caveat that must not be separated from them, 7 PASS / 4 FAIL on thirteen sealed predictions with three of the four failures being NEGATIVE predictions, findings by channel 0 suite : 17 adversarial : 13 blind author, and twelve findings filed with none fixed -- six of which falsified a claim HP-06 had already written down and are corrected in place with the correction marked.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+        "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
