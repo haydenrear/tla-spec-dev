@@ -167,6 +167,42 @@ is produced by accident.**
 20 / 20 / 20, with the **whole report** byte-identical rather than merely the
 count. MF026-R4-F-01 is closed on measurement.
 
+**HP-05 — one cell moved, and two of the owner's own claims were corrected.**
+
+`M04` (a durable running total goes stale) went SURVIVED / SURVIVED /
+**KILLED** / KILLED across `map-none` / `map-silent` / `map-checking` / suite.
+One corpus, three mappings differing by **one line of TOML**, and
+`map-checking` is what codegen now writes by default. `map-none` was included
+purely as a reproduction control — a seam that shifted the baseline would make
+the checking column unreadable — and it reproduces HP-03's whole-view column in
+all ten rows.
+
+**Two corrections, both of claims the owner made in a ticket brief:**
+
+- **`M05` was never suite-only.** The brief and the ticket objective both said
+  it was. HP-03's committed table already recorded it killed by the whole-view
+  corpus, and the reason is structural: the model's CLOSE element carries the
+  total in its third slot, so the ordinary projected-state comparison already
+  sees a zeroed one. Only COMMIT drops its total, and only M04 lives there.
+  **One mutant moved, not two.**
+- **The "30% of the instrument's yield" figure does not reproduce as a
+  proportion.** 3 of 10 on ex4; 1 of 6 under the checking mapping here, 1 of 10
+  overall. The **direction** has now replicated three times on three fixtures;
+  the **magnitude** is fixture-dependent. It was quoted repeatedly as a property
+  of the mechanism and it is not one.
+
+**Where the generator now stands against the bar:** suite **10 of 10**;
+whole-view corpus under the checking mapping **6 of 10**; whole-view plus HP-03's
+negative corpus **9 of 10**, up from 8. Still behind a suite written in an
+afternoon, by one mutant instead of two. The remaining survivor is **M07 — the
+catalogue's declared positive control**, which is supposed to die on every
+instrument and does not, because it is seeded inside `reserve()` and `Reserve`
+contributes zero executable cases. **While that control is red, the
+`wrong_value` row is not citeable as a clean kill measurement.**
+
+Zero model surface: TLC enumerates 3,678,218 states / 118,573 distinct before
+and after, argued rather than asserted.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:
