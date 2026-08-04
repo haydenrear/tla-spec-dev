@@ -2,26 +2,30 @@ module: TlaSpecDevCli
 package: current_program_cases
 
 status:
-  workflow: complexity-descriptor-main-readiness
-  active_ticket: CD-05
-  active_ticket_title: "Main-readiness batch"
+  workflow: ticket
+  active_ticket: CM-01
+  active_ticket_title: "Architectural coherence and case modules"
   relation_to_program_model: starts_equivalent_then_advances_as_slices_land
   relation_to_desired_program_model: implemented_prefix_of_desired_ticket_plan
   current_model_rule: whole_program_working_copy_not_ticket_projection
   test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior
-  updated: "2026-07-22"
+  updated: null
   current_slice:
     name: baseline
     status: scaffolded
     refines: []
     implemented_actions: []
+    validation:
+      unit: []
+      tlc: []
+      graph: []
+      evidence: []
   next:
-    - CD-04/CD-05/CD-08 (wave 1), CD-06, CD-07 -- see ticket_plan.yaml
+    - Fill in whole-program current state fields, actions, invariants, and adapters after the first production slice lands.
+    - Preserve all existing specs/program_model state/actions unless production behavior changes them.
+    - Run TLC and adapter/unit tests before adding graph execution coverage.
+    - Propose the budgets below to the user, ask which to adjust for this program, and record a one-line rationale per changed value.
 
-# Semantic blocks below are carried VERBATIM from the accepted
-# specs/program_model manifest (scaffold-workflow regenerates a bare template
-# that drops effects/budgets/justification -- owner-corrected 2026-07-22,
-# finding MR-DF-01).
 # Per-program complexity and case budgets. Scaffolding emits this block with
 # the documented defaults from references/modular_fuzzing.md and instructs the
 # agent to negotiate the values with the user, recording a one-line rationale
@@ -80,21 +84,17 @@ case_codegen:
 # scripts/new_ticket_workflow.py and are filled only when
 # case_codegen.generation_status (above) reaches `generated`. Empty here
 # claims "no generated case index yet" -- generation_status is `planned` --
-# NOT "the model has no state, actions, or ports": THIS TREE'S MODEL --
-# specs/program_model/TlaSpecDevCli.tla, the ACCEPTED BASELINE -- has 9
-# variables and 15 Next disjuncts (14 @command actions plus Stutter), and its
+# NOT "the model has no state, actions, or ports": this tree's model has 11
+# variables and 18 Next disjuncts (17 @command actions plus Stutter), and its
 # declared effect ports live in effects.components below.
 #
-# RC-01 (MF-026 G-5): the figure here was never wrong, and the audit's G-5
-# reported it as though it were. G-5 quoted all three manifests as claiming "9
-# variables and 15 actions" for "a model with 10 and 16" -- true of
-# specs/current and specs/desired_program_model, which AC-01 grew and whose
-# comments were not updated, and FALSE of this one. This tree is the accepted
-# baseline; it predates AC-01 and does not contain architecture_scan or
-# AnalyzeArchitecture. The wording now names the tree explicitly so the two
-# models cannot be conflated again, and tests/test_spec_manifest_records.py
-# checks each manifest against the module beside it rather than against a
-# single global figure. An empty stanza and an inapplicable
+# RC-01 (MF-026 G-5): this read "9 variables and 15 actions" for a model that
+# AC-01 had already grown to 10 and 16, and RC-01 grew again -- architecture_delta,
+# GenerateCases and CloseTicketWeakened. A count in a comment goes stale the
+# moment a variable lands, which is why the figure is no longer only a comment:
+# tests/test_spec_manifest_records.py parses the module beside each manifest and
+# fails if the two disagree, the durable form of the check RP-05 applied to
+# architecture_components.yaml. Same defect class as EV-01-DF-03. An empty stanza and an inapplicable
 # stanza are different claims; this comment, and the matching one at the
 # schema source (scripts/new_ticket_workflow.py), record which one is made.
 state_fields: []
@@ -361,6 +361,38 @@ effects:
     # an absent one (the RecordBudgets rule above): the command reads and
     # prints, performing no distinct declared effect.
     AnalyzeCorpus: []
+    # RC-01 (MF-026 G-1): ADDED. AnalyzeArchitecture -- this epic's one new
+    # action -- had NO ROW AT ALL in any of the three manifests, the only
+    # non-stutter action without one, while the rule 90 lines above says an
+    # ABSENT row claims "unmapped" and an EMPTY row claims "performs no
+    # distinct effect". TlaSpecDevCli.tla states that each action's @port lines
+    # mirror its row here; there was no row to mirror, and the model's own
+    # annotation said the scan "only prints". It does not: `--out` writes the
+    # descriptor (analyze_architecture.py) and the reflexion report
+    # (architecture_reflexion.py), and AC-01's acceptance evidence is six files
+    # that path produced (G-2). The row is `evidence_report` and not `[]`
+    # because the program still has --out; RC-01 constrained the path to
+    # resolve under a `results/` directory (scripts/spec_paths.py
+    # resolve_evidence_out) so this declaration is true of every caller rather
+    # than of the documented one.
+    AnalyzeArchitecture: [evidence_report]
+    # RC-01 (MF-026 G-6): case-module generation, previously unrepresented in
+    # its entirety -- no action, no port, no CLI subcommand -- while being this
+    # epic's flagship feature. corpus_process is the java/TLC spawn
+    # (generate_cases_from_tlc_dump.py run_tlc_dump); spec_tree covers the
+    # generated package, the per-action coverage record (case_modules.py
+    # write_coverage_record), the aggregated coverage report and the
+    # parameter-recovery audit (infer_action_params, folded in here as the
+    # generation-time artifact it is, round-1 G-11); spec_tree_delete is the
+    # TLC metadir `rmtree` in run_tlc_dump's finally branch.
+    #
+    # RECORDED RESIDUAL, not a waiver: `--out` accepts an absolute path, and a
+    # corpus deliberately written outside the spec tree lands outside
+    # spec_tree's `**/specs/**`. The relative-path default resolves against the
+    # spec directory, which is the documented and exercised path, and the
+    # owner's ruling names spec_tree. `--coverage-json` is constrained to the
+    # generated package root for the same reason G-2 constrained `--out`.
+    GenerateCases: [corpus_process, spec_tree, spec_tree_delete]
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
     # under the spec dir
@@ -386,6 +418,14 @@ effects:
     RunKillTest: [evidence_report, mutation_write, corpus_process]
     RunSpecUnitTests: [test_process, runner_process, spec_tree]
     CloseTicket: [spec_tree, spec_tree_delete, git_metadata]
+    # RC-01 (owner decision 2026-08-01, MF-026 round-2 reservation): the same
+    # shipped close path taken under a guard-weakening flag. Identical port set
+    # -- it writes the same history entry, clears the same trees and asks git
+    # the same question -- because what differs is the PRECONDITION, not the
+    # effect. The distinction is recorded in the history entry itself
+    # (spec_evolution.py `guard_weakening`), which is what makes the modeled
+    # state externally observable at all.
+    CloseTicketWeakened: [spec_tree, spec_tree_delete, git_metadata]
 
 adapters: case_adapters.toml
 notes:
@@ -444,3 +484,22 @@ justification:
     invariants: [TypeInvariant, KillTestVerdictRequiresBudgets]
     effects: [CliWorkflowResult.kill_test_verdict]
     kill_tests: [inv-KillTestVerdictRequiresBudgets]
+  # RC-01: architecture_scan had NO ROW HERE. AC-01 added the variable and did
+  # not add its justification, so `analyze complexity` -- which reads this table
+  # and flags any variable with no linkage as dead weight -- has been reporting
+  # this epic's own new variable as unjustified since AC-01 closed. Not one of
+  # the audit's nine; found while closing G-5, and fixed rather than filed
+  # because it is the same stanza and the same defect class.
+  architecture_scan:
+    invariants: [TypeInvariant]
+    effects: [CliWorkflowResult.architecture_scan_verdict]
+    kill_tests: []
+  # RC-01 (MF-026 G-8): the AC-04 refactor delta. Advisory like the scan --
+  # TypeInvariant is the only property that reads it, no action guards on it,
+  # and "worsened" is recorded rather than refused. Its linkage is the effect:
+  # the verdict is what `analyze architecture --baseline` reports and what the
+  # complexity ledger records as its `architecture_delta` member.
+  architecture_delta:
+    invariants: [TypeInvariant]
+    effects: [CliWorkflowResult.architecture_delta_verdict]
+    kill_tests: []

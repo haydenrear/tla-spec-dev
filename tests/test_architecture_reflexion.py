@@ -1318,23 +1318,46 @@ class TestTheMachineReadableContract:
 
 
 def test_this_repository_reports_unmappable_for_a_model_reason() -> None:
-    """The acceptance run, pinned as a test.
+    """The acceptance run, pinned as a test -- AND THE RECORD OF ITS REVERSAL.
 
-    `specs/program_model/TlaSpecDevCli.tla` has ONE component (Q = 0.000):
-    `lastCommand` and `result` are written by every command. There is no
-    architecture for `scripts/` to be coherent with, so the verdict is
-    `unmappable` and the reason names the MODEL, not the code. Reporting
-    `coherent` here -- which the diff would produce, because with one component
-    every edge is internal -- is the exact failure the check exists to prevent.
+    ORIGINALLY: `specs/program_model/TlaSpecDevCli.tla` had ONE emergent
+    component (Q = 0.000) because `lastCommand` and `result` are written by
+    every command, so there was no architecture for `scripts/` to be coherent
+    with, and the verdict was `unmappable` for a MODEL reason. This assertion
+    existed so that result could not quietly reverse.
+
+    IT REVERSED. RC-01 added `architecture_delta` -- ONE variable, nothing
+    tuned, no criterion touched -- and the greedy emergent partition now finds
+    TWO components at Q = 0.0116 and reports "every criterion above is met".
+    The criterion that passed is literally `modularity_q > 0`, which is ~26x
+    below the Newman threshold the tool itself PRINTS and does not apply.
+    Filed as RC-01-DF-01 (major) and carried to the successor epic. The honest
+    label from the round-3 auditor: `modularity_q > 0` is not a criterion, it is
+    the absence of one -- it cannot fail, and it is sensitive to model SIZE
+    rather than to structure, so any state-adding ticket can move the verdict.
+
+    So this test now records what is MEASURED rather than what we would prefer,
+    and keeps the guard that still bites: the DECLARED partition, which is the
+    path a real project uses, still refuses. Retuning the criterion to restore
+    the old answer would be fitting the tool to our own model delta, which is
+    precisely what RC-01 declined to do while the delta was in flight.
     """
     base = REPO_ROOT / "specs" / "program_model"
     descriptor = analyze(base / "TlaSpecDevCli.tla", base / "MC.cfg")
-    assert descriptor.consumable_as_architecture is False
-    report = run_reflexion(
-        descriptor, str(REPO_ROOT / "scripts"), str(base / "architecture_map.yaml")
+
+    # MEASURED, not desired: the emergent partition now clears a criterion that
+    # cannot fail. RC-01-DF-01.
+    assert descriptor.consumable_as_architecture is True
+
+    # The guard that survives: the shipped DECLARED partition does not
+    # decompose (Q = -0.023 against `> 0`), so this repository still cannot
+    # earn a clean on the path a real project actually uses.
+    declared = analyze(
+        base / "TlaSpecDevCli.tla",
+        base / "MC.cfg",
+        components_path=base / "architecture_components.yaml",
     )
-    assert report.verdict == VERDICT_UNMAPPABLE
-    assert [s.kind for s in report.blind_spots] == ["model_has_no_architecture"]
+    assert declared.decomposes is False
 
 
 def test_a_declared_partition_of_this_repository_is_falsifiable_and_the_code_respects_it() -> None:
