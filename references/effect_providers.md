@@ -4,6 +4,116 @@ The framework ships one effect extension point. A repository agent implements
 it against the typed ports generated from that repository's
 `spec_manifest.yaml`.
 
+## Content assertion is the default, and the alternative is loud
+
+Read this before anything else on this page, because it decides what a kill
+number from this repository means.
+
+**The measurement.** Content-asserting effect providers caught 2 of 6 seeded
+faults that nothing else caught -- the two durable-side ones -- reproduced cell
+for cell across two rounds, then independently replicated by a blind agent on a
+fresh 16-mutant catalogue: 3 of 3 durable-write mutants died under the checking
+mapping and 0 of 3 under the silent one. That is roughly 30% of the
+instrument's entire yield riding on which provider a mapping file names.
+HP-05 reproduced the split a third time on a different fixture, at 2 of 2
+against 1 of 2 (`specs/.history/hexagonal-prompting-epic/ticket-004-HP-05/`).
+
+**What changed at HP-05.** Codegen now writes the provider and binds it:
+
+- `generate_python.py` emits `effect_providers.py` into the generated package
+  for every manifest port with `role: effect`, containing a **content-asserting
+  provider** and a **silent** one;
+- it adds an `[effect_providers.<Port>]` table naming the content-asserting
+  provider to `case_adapters.toml` for any effect port that has none. It is
+  additive and never rewrites a table somebody already wrote, so a deliberate
+  choice survives regeneration;
+- it prints an audit of the resulting mapping, unprompted, on every run.
+
+Before this, `scaffold project` shipped a `raise NotImplementedError` provider
+stub and a commented-out binding, and the author wrote the assertion -- or, in
+the measured case, did not. A round-2 blind agent authored a mapping to get a
+slice running and did not realise until afterwards that the instrument it had
+built was strictly weaker than the one it thought it had.
+
+**Nothing here refuses.** An unbound port, a silent provider, and a port with
+no `content:` block all run. All three are announced. This is a report, not a
+gate.
+
+### Declaring what a durable write refines
+
+An after-state comparison structurally cannot see a durable write: the
+in-memory projection can be perfect while the persisted bytes are wrong. To
+compare them, something must say what the bytes refine. That is `content:`, and
+it is one line per checked field:
+
+```yaml
+ports:
+  LedgerAppendPort:
+    role: effect
+    kind: durable_write
+    methods:
+      append:
+        command: AppendLedgerLine
+        result: str
+    content:
+      append:
+        total: "committed[tenant]"
+```
+
+Read as: *every `append` crossing carries a `total`, and it must equal the
+modeled after-state's `committed`, indexed by that same crossing's `tenant`.*
+The grammar is deliberately two productions -- `variable` and
+`variable[payload_field]` -- because a third would be the beginning of an
+expression language, and this is a comparison, not an analyzer.
+
+The framework does not and cannot infer this sentence. On the HP-01 quota-ledger
+fixture the modeled ledger element is `<< "COMMIT", tenant, amount >>` and
+carries **no running total at all**, so no amount of corpus generation reaches a
+corrupted total; but the total the implementation writes is a refinement of
+`committed[tenant]`, which the model does have. Somebody writes that down once.
+What HP-05 changed is that the provider around it is generated and bound, and
+that its absence is announced instead of assumed.
+
+### What a run says
+
+Every bound generated provider announces itself once, on stdout, the first time
+it binds -- no flag, no report subcommand. Two shapes, and only two:
+
+```text
+[effect-mapping] DURABLE-WRITE ORACLE ACTIVE: LedgerAppendPort (kind: durable_write)
+  is bound to <provider> under mapping <path>, asserting 1 content field(s)
+  against the modeled after-state: append.total == committed[tenant]
+```
+
+```text
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write)
+  is bound to the SILENT provider <provider> under mapping <path>. Nothing
+  compares what crossed this port against the model, so kills counted under
+  this mapping are a FLOOR, not a total, and a green run over-reads.
+```
+
+The second wording is also emitted when a content-asserting provider is bound to
+a port that declares no `content:` block, and by the codegen audit for a port
+that is declared `role: effect` and bound to nothing, and for a boundary
+declared under `effects:` that has no `ports:` entry and therefore no Protocol
+any provider could implement. All four are the same fact -- *this run has no
+durable-write oracle for this boundary* -- and they say it in the run's own
+output rather than only here.
+
+**Naming the mapping.** The framework does not hand a provider its mapping path,
+so the announcement resolves the name from `TLA_SPEC_DEV_MAPPING` if set, then
+from the run's own `--mapping` argument, and otherwise says
+`<unnamed mapping: set TLA_SPEC_DEV_MAPPING to name it>`. An unnamed mapping is
+itself worth announcing: a kill number whose mapping cannot be named is a kill
+number nobody can reproduce.
+
+**The boundary of this, stated rather than glossed.** A provider announces its
+own binding, so a mapping that names a *hand-written* provider the framework did
+not generate announces nothing, and the framework cannot tell from inside
+whether it asserts content. The codegen audit reports what the mapping file
+says; the run-time announcement reports what generated code was bound. Between
+them they cover the shipped paths and not the third-party one.
+
 The product boundary is strict:
 
 - TLA+ selects the semantic outcome and the state transition.
@@ -54,8 +164,15 @@ Map the port to a repository object in `case_adapters.toml`:
 provider = "specs.program_model.providers:effect_provider"
 ```
 
-Keep provider source outside `generated/`. Generation owns the port Protocols
-and cases; repository code owns the implementation.
+Codegen writes this table for you, naming the generated content-asserting
+provider, if the port has no table yet. Replacing it with a repository-owned
+provider is the supported path -- the sections below are about writing one --
+and so is naming the generated `silent_*_provider`, which announces on every
+run that this mapping carries no durable-write oracle.
+
+Keep hand-written provider source outside `generated/`. Generation owns the port
+Protocols, the cases, and the default providers; repository code owns anything
+richer than a recorded crossing compared against the model.
 
 ## Implement the one interface
 

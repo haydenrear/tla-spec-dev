@@ -481,6 +481,341 @@ def render_contract_tests(manifest: dict[str, Any], manifest_path: Path) -> str:
     return "".join(lines)
 
 
+# ---------------------------------------------------------------------------
+# Effect providers: content assertion is the DEFAULT, and the alternative is loud.
+#
+# Measured and replicated: content-asserting effect providers caught 2 of 6
+# seeded faults that nothing else caught, reproduced cell for cell across two
+# rounds, then replicated by a blind agent on a fresh 16-mutant catalogue at
+# 3 of 3 durable-write mutants under the checking mapping and 0 of 3 under the
+# silent one. That is 30% of the instrument's entire yield riding on a mapping
+# line -- and until HP-05 the scaffold shipped a `raise NotImplementedError`
+# stub and a COMMENTED-OUT binding, so the author wrote the provider, and the
+# one a hurried author writes is the silent one. A round-2 blind agent did
+# exactly that and did not notice until afterwards.
+#
+# So codegen now emits the content-asserting provider and binds it. Nothing
+# here refuses anything: an unbound port, a silent provider and a port with no
+# content declaration are all allowed, and all three are ANNOUNCED, because
+# their kills are a floor and a green run under them over-reads.
+# ---------------------------------------------------------------------------
+
+DURABLE_WRITE = "durable_write"
+
+#: The one sentence every instrument without a durable-write oracle must emit.
+#: Kept as a constant so the provider announcement, the codegen audit and the
+#: reference page cannot drift apart.
+NO_ORACLE_SENTENCE = (
+    "Nothing compares what crossed this port against the model, so kills "
+    "counted under this mapping are a FLOOR, not a total, and a green run "
+    "over-reads."
+)
+
+ANNOUNCE_PREFIX = "[effect-mapping]"
+
+
+def effect_ports(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Semantic effect ports: the ones a provider can be bound to (EP-01)."""
+    return {
+        str(name): as_dict(spec)
+        for name, spec in as_dict(manifest.get("ports")).items()
+        if as_dict(spec).get("role") == "effect"
+    }
+
+
+def declared_effect_boundaries(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Ports declared under `effects:` for passive observation (MF-013).
+
+    A boundary may be declared here and carry no provider at all. That is the
+    exact shape the audit exists to report: a project can say "this is a
+    durable write" and still run with nothing reading the bytes.
+    """
+    found: dict[str, dict[str, Any]] = {}
+    for component in as_dict(as_dict(manifest.get("effects")).get("components")).values():
+        for name, spec in as_dict(as_dict(component).get("ports")).items():
+            found[str(name)] = as_dict(spec)
+    return found
+
+
+def port_content_spec(port: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """`content:` -- per method, which payload field equals which modeled value.
+
+    Two productions, deliberately: `variable` and `variable[payload_field]`.
+    A durable write is only checkable against the model when somebody says what
+    it refines; this is that sentence, and it is the smallest one that kills a
+    stale running total.
+    """
+    spec: dict[str, dict[str, str]] = {}
+    for method_name, fields in as_dict(port.get("content")).items():
+        rendered = {str(field): str(expression) for field, expression in as_dict(fields).items()}
+        if rendered:
+            spec[str(method_name)] = rendered
+    return spec
+
+
+def provider_symbol(port_name: str) -> str:
+    return f"{to_snake(port_name)}_provider"
+
+
+def silent_provider_symbol(port_name: str) -> str:
+    return f"silent_{to_snake(port_name)}_provider"
+
+
+def default_result_expression(result: str) -> str:
+    return {
+        "str": '""',
+        "int": "0",
+        "float": "0.0",
+        "bool": "True",
+        "bytes": 'b""',
+        "None": "None",
+    }.get(result.strip(), "None")
+
+
+def render_effect_providers(manifest: dict[str, Any], manifest_path: Path) -> str:
+    module = str(manifest["module"])
+    ports = effect_ports(manifest)
+    boundaries = declared_effect_boundaries(manifest)
+    lines = [
+        header(module, manifest_path),
+        '"""Generated effect providers. CONTENT ASSERTION IS THE DEFAULT.\n\n',
+        "Two providers per semantic effect port, and shipping two is the point:\n",
+        "the checking one is bound by the generated default mapping, and the\n",
+        "silent one exists so that choosing it is a VISIBLE edit to a mapping\n",
+        "file rather than an assertion somebody quietly did not write.\n\n",
+        "Neither suppresses anything. There is no flag that turns the checking\n",
+        "provider's assertions off -- a suppression key would have been the\n",
+        "shorter route and the wrong one, because a reader of a kill number has\n",
+        "to be able to see which instrument produced it.\n\n",
+        "Nothing here refuses to run. Every degraded configuration is announced\n",
+        "on stdout the first time it binds, and the run proceeds.\n",
+        '"""\n\n',
+        "from __future__ import annotations\n\n",
+        "import dataclasses\n",
+        "import os\n",
+        "import sys\n",
+        "from contextlib import contextmanager\n",
+        "from collections.abc import Iterator\n",
+        "from typing import Any\n\n",
+        f"from .types import {', '.join(class_names(manifest))}\n\n\n",
+        f"NO_ORACLE_SENTENCE = {NO_ORACLE_SENTENCE!r}\n",
+        f"ANNOUNCE_PREFIX = {ANNOUNCE_PREFIX!r}\n\n",
+        "#: port -> method -> payload field -> modeled value it must equal.\n",
+        "CONTENT_ASSERTIONS: dict[str, dict[str, dict[str, str]]] = {\n",
+    ]
+    for port_name, port in ports.items():
+        lines.append(f"    {port_name!r}: {port_content_spec(port)!r},\n")
+    lines.append("}\n\n")
+
+    lines.append("#: port -> declared boundary kind, from `ports:` or `effects:`.\n")
+    lines.append("PORT_KINDS: dict[str, str] = {\n")
+    for port_name, port in ports.items():
+        kind = port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect"
+        lines.append(f"    {port_name!r}: {str(kind)!r},\n")
+    lines.append("}\n\n")
+
+    lines.append("#: Boundaries declared under `effects:` that no provider can be bound to.\n")
+    lines.append("#: They are reported, never repaired -- a declaration without a seam is a\n")
+    lines.append("#: finding for the project, not something codegen may invent a port for.\n")
+    unbindable = {
+        name: str(spec.get("kind") or "effect")
+        for name, spec in boundaries.items()
+        if name not in ports
+    }
+    lines.append(f"UNBOUND_DECLARED_BOUNDARIES: dict[str, str] = {unbindable!r}\n\n\n")
+
+    lines.extend(_effect_provider_runtime())
+
+    for port_name, port in ports.items():
+        methods = as_dict(port.get("methods"))
+        lines.append(f"class Recording{port_name}:\n")
+        lines.append(
+            f'    """The bound {port_name}. Every crossing is recorded so the model can judge it."""\n\n'
+        )
+        lines.append("    def __init__(self) -> None:\n")
+        lines.append("        self.crossings: list[EffectCrossing] = []\n\n")
+        if not methods:
+            lines.append("    pass\n\n")
+        for method_name, method_spec in methods.items():
+            method = as_dict(method_spec)
+            result = str(method.get("result", "object"))
+            command = method.get("command")
+            signature = f"self, command: {command}" if command else "self"
+            lines.append(f"    def {method_name}({signature}) -> {result}:\n")
+            if command:
+                lines.append(
+                    f"        self.crossings.append(EffectCrossing({port_name!r}, {method_name!r}, _payload(command)))\n"
+                )
+            else:
+                lines.append(
+                    f"        self.crossings.append(EffectCrossing({port_name!r}, {method_name!r}, {{}}))\n"
+                )
+            lines.append(f"        return {default_result_expression(result)}\n\n")
+        lines.append("\n")
+
+        lines.append(f"class ContentAsserting{port_name}Provider:\n")
+        lines.append(
+            f'    """THE DEFAULT for {port_name}. Asserts the payload against the modeled after-state."""\n\n'
+        )
+        lines.append(f"    port_name = {port_name!r}\n")
+        lines.append("    asserts_content = True\n\n")
+        lines.append("    @contextmanager\n")
+        lines.append("    def bind(self, context: Any) -> Iterator[Any]:\n")
+        lines.append(f"        binding = Recording{port_name}()\n")
+        lines.append(f"        announce_binding({port_name!r}, _reference(self), asserts_content=True)\n")
+        lines.append("        yield binding\n")
+        lines.append(f"        assert_content({port_name!r}, binding.crossings, context)\n\n\n")
+
+        lines.append(f"class Silent{port_name}Provider:\n")
+        lines.append(
+            f'    """The alternative for {port_name}, and it is LOUD. Binds, asserts nothing."""\n\n'
+        )
+        lines.append(f"    port_name = {port_name!r}\n")
+        lines.append("    asserts_content = False\n\n")
+        lines.append("    @contextmanager\n")
+        lines.append("    def bind(self, context: Any) -> Iterator[Any]:\n")
+        lines.append(f"        binding = Recording{port_name}()\n")
+        lines.append(f"        announce_binding({port_name!r}, _reference(self), asserts_content=False)\n")
+        lines.append("        yield binding\n\n\n")
+
+    for port_name in ports:
+        lines.append(f"{provider_symbol(port_name)} = ContentAsserting{port_name}Provider()\n")
+        lines.append(f"{silent_provider_symbol(port_name)} = Silent{port_name}Provider()\n")
+    if ports:
+        lines.append("\n")
+
+    package = str(manifest["package"])
+    lines.append("#: The default mapping codegen writes. Content-asserting, every port.\n")
+    lines.append("DEFAULT_PROVIDERS: dict[str, str] = {\n")
+    for port_name in ports:
+        lines.append(f"    {port_name!r}: {f'{package}.effect_providers:{provider_symbol(port_name)}'!r},\n")
+    lines.append("}\n\n")
+    lines.append("#: The declared way to run without a durable-write oracle, so that\n")
+    lines.append("#: choosing it is an edit a reviewer can see.\n")
+    lines.append("SILENT_PROVIDERS: dict[str, str] = {\n")
+    for port_name in ports:
+        lines.append(
+            f"    {port_name!r}: {f'{package}.effect_providers:{silent_provider_symbol(port_name)}'!r},\n"
+        )
+    lines.append("}\n")
+    return "".join(lines)
+
+
+def _effect_provider_runtime() -> list[str]:
+    """The port-independent half of the generated module, verbatim."""
+    return [
+        '@dataclasses.dataclass(frozen=True)\n',
+        "class EffectCrossing:\n",
+        "    port: str\n",
+        "    method: str\n",
+        "    payload: dict\n\n\n",
+        "def _payload(command: Any) -> dict:\n",
+        "    if dataclasses.is_dataclass(command):\n",
+        "        return {field.name: getattr(command, field.name) for field in dataclasses.fields(command)}\n",
+        "    if isinstance(command, dict):\n",
+        "        return dict(command)\n",
+        "    return {'value': command}\n\n\n",
+        "def _reference(provider: Any) -> str:\n",
+        "    return f'{type(provider).__module__}:{type(provider).__name__}'\n\n\n",
+        "def mapping_name() -> str:\n",
+        '    """Which mapping produced these numbers.\n\n',
+        "    The framework does not hand a provider its mapping path, so this reads\n",
+        "    the run's own invocation. It is a hint, not a contract, and it says so\n",
+        "    when it cannot tell -- an unnamed mapping is itself worth announcing.\n",
+        '    """\n',
+        "    named = os.environ.get('TLA_SPEC_DEV_MAPPING')\n",
+        "    if named:\n",
+        "        return named\n",
+        "    argv = list(sys.argv)\n",
+        "    for index, token in enumerate(argv):\n",
+        "        if token == '--mapping' and index + 1 < len(argv):\n",
+        "            return argv[index + 1]\n",
+        "        if token.startswith('--mapping='):\n",
+        "            return token.split('=', 1)[1]\n",
+        "    return '<unnamed mapping: set TLA_SPEC_DEV_MAPPING to name it>'\n\n\n",
+        "_ANNOUNCED: set = set()\n\n\n",
+        "def announce_binding(port: str, reference: str, *, asserts_content: bool) -> None:\n",
+        '    """Say which instrument this is, once per port per process, unprompted."""\n',
+        "    mapping = mapping_name()\n",
+        "    key = (port, reference, mapping, asserts_content)\n",
+        "    if key in _ANNOUNCED:\n",
+        "        return\n",
+        "    _ANNOUNCED.add(key)\n",
+        "    for line in describe_binding(port, reference, mapping, asserts_content=asserts_content):\n",
+        "        print(line, flush=True)\n\n\n",
+        "def describe_binding(port: str, reference: str, mapping: str, *, asserts_content: bool) -> list[str]:\n",
+        "    kind = PORT_KINDS.get(port, 'effect')\n",
+        "    fields = sorted(\n",
+        "        f'{method}.{field} == {expression}'\n",
+        "        for method, spec in CONTENT_ASSERTIONS.get(port, {}).items()\n",
+        "        for field, expression in spec.items()\n",
+        "    )\n",
+        "    if asserts_content and fields:\n",
+        "        return [\n",
+        "            f'{ANNOUNCE_PREFIX} DURABLE-WRITE ORACLE ACTIVE: {port} (kind: {kind}) is bound to '\n",
+        "            f'{reference} under mapping {mapping}, asserting ' + str(len(fields)) + ' content field(s) '\n",
+        "            f'against the modeled after-state: ' + '; '.join(fields),\n",
+        "        ]\n",
+        "    if asserts_content:\n",
+        "        return [\n",
+        "            f'{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port} (kind: {kind}) is bound to '\n",
+        "            f'{reference} under mapping {mapping}, which records every crossing but declares no '\n",
+        "            f'`content:` block, so no payload field is compared to anything. ' + NO_ORACLE_SENTENCE,\n",
+        "        ]\n",
+        "    return [\n",
+        "        f'{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port} (kind: {kind}) is bound to the SILENT '\n",
+        "        f'provider {reference} under mapping {mapping}. ' + NO_ORACLE_SENTENCE,\n",
+        "    ]\n\n\n",
+        "def _after(case: Any) -> Any:\n",
+        "    after = getattr(case, 'after', None)\n",
+        "    return {} if after is None else after\n\n\n",
+        "def _lookup(container: Any, key: Any) -> Any:\n",
+        "    try:\n",
+        "        return container[key]\n",
+        "    except (TypeError, KeyError, IndexError):\n",
+        "        return getattr(container, str(key))\n\n\n",
+        "def resolve(expression: str, after: Any, payload: dict) -> Any:\n",
+        '    """`variable` or `variable[payload_field]`, evaluated against the after-state."""\n',
+        "    name, bracket, rest = expression.partition('[')\n",
+        "    value = _lookup(after, name.strip())\n",
+        "    if bracket:\n",
+        "        field = rest.rstrip(']').strip()\n",
+        "        if field not in payload:\n",
+        "            raise AssertionError(\n",
+        "                f'content assertion {expression!r} indexes by payload field {field!r}, '\n",
+        "                f'which this crossing does not carry: {sorted(payload)}'\n",
+        "            )\n",
+        "        value = _lookup(value, payload[field])\n",
+        "    return value\n\n\n",
+        "def assert_content(port: str, crossings: list, context: Any) -> None:\n",
+        '    """Compare what crossed the boundary with what the model says is true after.\n\n',
+        "    A durable write is the one thing an after-state comparison structurally\n",
+        "    cannot see: the in-memory projection can be perfect while the persisted\n",
+        "    bytes are wrong. This is the check that sees it.\n",
+        '    """\n',
+        "    spec = CONTENT_ASSERTIONS.get(port) or {}\n",
+        "    if not spec:\n",
+        "        return\n",
+        "    after = _after(getattr(context, 'case', None))\n",
+        "    for crossing in crossings:\n",
+        "        for field, expression in spec.get(crossing.method, {}).items():\n",
+        "            if field not in crossing.payload:\n",
+        "                raise AssertionError(\n",
+        "                    f'DETECTOR[provider_content_assertion] {port}.{crossing.method} declares a content '\n",
+        "                    f'assertion on {field!r}, which the crossing does not carry: {sorted(crossing.payload)}'\n",
+        "                )\n",
+        "            observed = crossing.payload[field]\n",
+        "            expected = resolve(expression, after, crossing.payload)\n",
+        "            if observed != expected:\n",
+        "                raise AssertionError(\n",
+        "                    f'DETECTOR[provider_content_assertion] {port}.{crossing.method} wrote {field}='\n",
+        "                    f'{observed!r} but the model says {expression} == {expected!r} '\n",
+        "                    f'(action={getattr(context, \"action\", None)!r}, '\n",
+        "                    f'case={getattr(getattr(context, \"case\", None), \"name\", None)!r})'\n",
+        "                )\n\n\n",
+    ]
+
+
 def render_docs(manifest: dict[str, Any], manifest_path: Path) -> str:
     module = str(manifest["module"])
     lines = [
@@ -518,6 +853,113 @@ def write(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def default_binding_block(manifest: dict[str, Any]) -> str:
+    """The `[effect_providers.*]` tables codegen binds by default."""
+    package = str(manifest["package"])
+    lines = [
+        "\n# WRITTEN BY CODEGEN (generate_python.py). Content assertion is the DEFAULT.\n",
+        "# Rebinding a port to its generated `silent_*_provider` is allowed and is\n",
+        "# ANNOUNCED on every run, because a mapping with no durable-write oracle\n",
+        "# produces kills that are a floor rather than a total.\n",
+    ]
+    for port_name in effect_ports(manifest):
+        lines.append(f"\n[effect_providers.{port_name}]\n")
+        lines.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
+    return "".join(lines)
+
+
+def bind_default_providers(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+    """Add a default content-asserting binding for every unbound effect port.
+
+    ADVISORY, and additive only. It never rewrites, reorders or removes a line
+    somebody wrote: a port that already has an `[effect_providers.<Port>]` table
+    is left exactly as it is, whichever provider that table names. The point is
+    that the DEFAULT stops being "nothing", not that the author loses the choice.
+    """
+    ports = effect_ports(manifest)
+    if not ports or not mapping_path.is_file():
+        return []
+    text = mapping_path.read_text(encoding="utf-8")
+    missing = [name for name in ports if f"[effect_providers.{name}]" not in text]
+    if not missing:
+        return []
+    package = str(manifest["package"])
+    additions = ["\n# WRITTEN BY CODEGEN (generate_python.py): content assertion is the DEFAULT.\n"]
+    for port_name in missing:
+        additions.append(f"\n[effect_providers.{port_name}]\n")
+        additions.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
+    mapping_path.write_text(text.rstrip("\n") + "\n" + "".join(additions), encoding="utf-8")
+    return missing
+
+
+def mapping_audit(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
+    """What oracles this mapping carries, and -- louder -- which it does not.
+
+    A report, never a gate. Nothing here refuses, and a project with no durable
+    side at all produces a single line saying so.
+    """
+    ports = effect_ports(manifest)
+    boundaries = declared_effect_boundaries(manifest)
+    if not ports and not boundaries:
+        return [f"{ANNOUNCE_PREFIX} mapping {mapping_path}: no effect ports declared; no durable-write oracle is expected."]
+
+    bound: dict[str, str] = {}
+    if mapping_path.is_file():
+        text = mapping_path.read_text(encoding="utf-8")
+        current: str | None = None
+        for raw in text.splitlines():
+            line = raw.strip()
+            if line.startswith("[effect_providers.") and line.endswith("]"):
+                current = line[len("[effect_providers.") : -1]
+            elif current and line.startswith("provider"):
+                _, _, value = line.partition("=")
+                bound[current] = value.strip().strip('"').strip("'")
+                current = None
+
+    report = [f"{ANNOUNCE_PREFIX} mapping {mapping_path}"]
+    for port_name, port in ports.items():
+        kind = str(port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect")
+        content = port_content_spec(port)
+        reference = bound.get(port_name)
+        if reference is None:
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared "
+                f"role: effect but this mapping binds no provider to it. {NO_ORACLE_SENTENCE}"
+            )
+        elif reference.endswith(silent_provider_symbol(port_name)):
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to the "
+                f"SILENT provider {reference}. {NO_ORACLE_SENTENCE}"
+            )
+        elif not content:
+            report.append(
+                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to "
+                f"{reference}, which records every crossing but declares no `content:` block, so no "
+                f"payload field is compared to anything. {NO_ORACLE_SENTENCE}"
+            )
+        else:
+            fields = sorted(
+                f"{method}.{field} == {expression}"
+                for method, spec in content.items()
+                for field, expression in spec.items()
+            )
+            report.append(
+                f"{ANNOUNCE_PREFIX} DURABLE-WRITE ORACLE ACTIVE: {port_name} (kind: {kind}) is bound to "
+                f"{reference}, asserting {len(fields)} content field(s) against the modeled after-state: "
+                + "; ".join(fields)
+            )
+    for port_name, spec in boundaries.items():
+        if port_name in ports:
+            continue
+        kind = str(spec.get("kind") or "effect")
+        report.append(
+            f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared under "
+            f"`effects:` but has no `ports:` entry with role: effect, so no provider can be bound to it "
+            f"and nothing reads what crosses it. {NO_ORACLE_SENTENCE}"
+        )
+    return report
+
+
 def generate(manifest_path: Path, out_dir: Path) -> Path:
     manifest = load_manifest(manifest_path)
     errors = validate_manifest(manifest, manifest_path)
@@ -536,6 +978,9 @@ def generate(manifest_path: Path, out_dir: Path) -> Path:
         "contract_tests.py": render_contract_tests(manifest, manifest_path),
         "docs.md": render_docs(manifest, manifest_path),
     }
+    if effect_ports(manifest):
+        files["effect_providers.py"] = render_effect_providers(manifest, manifest_path)
+        write(out_dir / "case_adapters.effects.toml", default_binding_block(manifest).lstrip("\n"))
     for filename, content in files.items():
         write(package_dir / filename, content)
     return package_dir
@@ -545,10 +990,26 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--mapping",
+        type=Path,
+        help="Adapter mapping to bind default providers into. Defaults to case_adapters.toml beside the manifest.",
+    )
     args = parser.parse_args()
 
     package_dir = generate(args.manifest, args.out)
     print(f"generated {package_dir}")
+
+    manifest = load_manifest(args.manifest)
+    mapping_path = args.mapping or args.manifest.parent / "case_adapters.toml"
+    for port_name in bind_default_providers(manifest, mapping_path):
+        print(
+            f"{ANNOUNCE_PREFIX} bound {port_name} to its generated content-asserting provider "
+            f"in {mapping_path} (nobody had to configure it)"
+        )
+    # Unprompted, every time, whether or not anybody asked for a report.
+    for line in mapping_audit(manifest, mapping_path):
+        print(line)
     return 0
 
 
