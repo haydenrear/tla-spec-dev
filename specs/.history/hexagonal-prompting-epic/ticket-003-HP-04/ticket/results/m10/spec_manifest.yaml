@@ -1,0 +1,34 @@
+# HP-04 M10 run -- the effect surface of HP-01's quota-ledger reference, in the
+# shape `run effect-conformance` reads (type + target per port).
+#
+# HP-01's own examples/validation/ab/model/spec_manifest.yaml declares the same
+# boundary in the SEMANTIC provider shape (role/kind/asserts_content), which the
+# effect oracle does not parse. Two shapes for one boundary is a real friction
+# and it is FILED (HP-04-DF-02), not papered over here.
+module: QuotaLedger
+package: quota_ledger_contract
+adapters: case_adapters.toml
+
+effects:
+  components:
+    QuotaLedgerPort:
+      ports:
+        ledger_file:
+          type: filesystem.write
+          target: "**/ledger.txt"
+  actions:
+    # The two actions that append a durable ledger line.
+    Commit: [ledger_file]
+    CloseTenant: [ledger_file]
+    # Deliberately EMPTY rows, not absent ones: an empty row claims "performs
+    # no distinct effect", an absent one claims "unmapped", and only the first
+    # is true of these.
+    Reserve: []
+    Release: []
+    RefuseReserveClosed: []
+    RefuseReserveNotPositive: []
+    RefuseReserveOverQuota: []
+    RefuseCommitUnknown: []
+    RefuseReleaseUnknown: []
+    RefuseCloseAlreadyClosed: []
+    RefuseCloseOutstanding: []

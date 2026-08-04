@@ -120,6 +120,53 @@ accepts — a true statement about a model that does not refine its own
 `FEATURE.md`. Filed as HP-03-DF-01. This is the shape the project has valued
 most: a finding about the *specification*, surfaced by running something.
 
+**HP-04 — a PREDICTED null, which is the methodologically valuable kind.**
+The mutant matrix **moved by zero cells**. HP-01 sealed that as negative
+prediction **N05** before dispatch, explicitly modelled on the predecessor's
+RP-02 — which closed a real oracle leak, took a recovery metric 0 of 5 to 5 of
+5, and moved nothing. The difference this time is that it was **predicted rather
+than discovered**, which is what a prediction file is for.
+
+**And the counterfactual says why, which is worth more than the null.** Bind the
+same action to an adapter differing *only* in having a `run(case, work_dir)`,
+and M10 goes from surviving to **dying 8 of 8**. **The oracle's reach was never
+the limit** — 9 of 18 adapters have no `run()` at all, so the oracle drives 8 and
+reports 18. The declared `expected_effect` of "18 of 18" is **not met** and could
+not be from this slice; the nine live in `production_adapters.py`, outside the
+ticket's edit scope. Filed as HP-04-DF-01 rather than quietly rescoped.
+
+**A number this project nearly acted on was wrong.** RC-02 reported **9 dead
+ports**; only **2** are actually dead. The other **7 were never dead** — every
+action declaring them was skipped, so "dead" was an artifact of the run aborting
+early. A manifest edit made on that column would have **removed live surface**.
+This is the second time in two epics that a confident number about our own
+bookkeeping turned out to be a measurement artifact.
+
+**Two defects found only by running, neither of which anyone asked for:**
+
+- **`EffectSandbox` never patched `Path.open`.** `path.open("a")` — the
+  idiomatic durable append — was invisible while `open(path, "a")` was recorded.
+  Surfaced because the oracle appeared to "kill" the **ordering negative
+  control**: the mutant swaps that append for `write_text`, so the oracle had
+  detected a change of *API*, not of behaviour. Patched; the control correctly
+  survives again; observed effects rose 67 → 84.
+- **`open ticket` snapshots the oracle's scratch tree into the ticket workspace**
+  — 706 of 801 tracked files on HP-04's first workspace — and `close ticket`
+  would promote it into the model. Filed as HP-04-DF-04.
+
+**Recorded because it is unflattering and instructive:** HP-04's first
+kill-table harness reported **10 of 10 killed on every class, including the
+negative control**, because it was comparing reports carrying differently-named
+temp directories. Its second reported the ordering control killed for the
+`Path.open` reason above. Both wrong harnesses are kept in the ticket narrative
+alongside the real table — **a reader of a 10-of-10 should know how easily one
+is produced by accident.**
+
+**Determinism, the one thing that did move cleanly:** the epic tip reported
+20 / 19 / 19 gaps across three runs of an identical corpus; HP-04 reports
+20 / 20 / 20, with the **whole report** byte-identical rather than merely the
+count. MF026-R4-F-01 is closed on measurement.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:

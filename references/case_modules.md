@@ -411,8 +411,9 @@ python3 "$REPO/scripts/run_generated_case_adapters.py" \
 # executed 6 cases in batch
 ```
 
-**6 — the same command on the slice refuses, and the refusal is CM-F5.** It is
-published here because it is what actually happens, not to be worked around:
+**6 — the same command on the slice, which now RUNS (CM-F5, closed in HP-04).**
+It used to refuse. The run states, unprompted and before its results, which
+effect oracle the mapping does not carry on this corpus:
 
 ```bash
 python3 "$REPO/scripts/run_generated_case_adapters.py" \
@@ -420,11 +421,70 @@ python3 "$REPO/scripts/run_generated_case_adapters.py" \
   --mapping specs/program_model/case_adapters.toml \
   --spec-dir specs/program_model --view internal --batch \
   --import-root . --import-root ./generated
-# ERROR: invalid semantic effect provider configuration: provider configured for
-#        semantic effect port(s) not required by any selected case: LedgerStorePort
+# validated 5 adapter mappings for 4 labels
+# EFFECT ORACLES **NOT** CARRIED from .../case_adapters.toml: LedgerStorePort.
+#   This corpus enters no action that emits on them -- for a case-module SLICE
+#   that is a fact about the slice, not a misconfiguration. A green result here
+#   is a statement about the ports listed as CARRIED and says NOTHING about the
+#   ports listed here; treat its kill count as a FLOOR.
+# executed 50 cases in batch
 ```
 
-See CM-F5 below.
+No third mapping file, and no edit to the fixture. See CM-F5 below for what the
+notice is for.
+
+## Running the EFFECT ORACLE over a case-module corpus (HP-04)
+
+`run effect-conformance` diffs what an adapter actually did against the ports
+the model declares for its action. Until HP-04 it had **never been executed
+against this repository's own model**, and running it for the first time found
+three defects that four rounds of reading it had not. All three are fixed; the
+part that matters when you point it at a case module is what it now REPORTS.
+
+```bash
+python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance \
+  --target <spec dir> --cases-dir <corpus> --out <report.json>
+```
+
+**It loads the project's own adapters.** `case_adapters.toml` — the file
+`tla-spec-dev scaffold` writes — names adapters as bare module paths
+(`production_adapters:OpenTicketAdapter`). The oracle puts the target spec
+directory, the current directory and the toolchain root on `sys.path`, the same
+set the enforcing runner gets on `PYTHONPATH`. No `PYTHONPATH=` prefix is
+needed, and one being needed used to be the reason nobody could tell whether the
+oracle or their project was broken.
+
+**An adapter it cannot drive is SKIPPED and NAMED.** It never aborts the run —
+that is a report, not a refusal. Three kinds, kept distinct because they mean
+different things:
+
+| kind | what it means |
+|---|---|
+| `not-runnable` | the adapter implements `apply()` and no `run(case, work_dir)`, so no case can drive it. A fact about the **adapter**. |
+| `declined` | the adapter has a `run` and its own `can_run`/`validate` refused this input. A fact about the **case** — usually an argument the corpus could not recover. |
+| `unbound` | the mapping binds no adapter for the case's action. A fact about the **mapping**. |
+
+The report answers "how many actions can this oracle see?" from the run rather
+than from the source:
+
+```
+ADAPTER REACH: 8 of 18 action(s) in this corpus EXECUTED; 10 SKIPPED.
+```
+
+and a declared port whose every declaring action was skipped is reported as
+`UNEXERCISED PORT (NOT proven dead)` rather than as dead surface. On this
+repository's own model that distinction moved **7 of 9** reported dead ports out
+of the "dead" column: they were never dead, nothing had ever been in a position
+to exercise them.
+
+**Two runs over an identical corpus produce an identical report.** The
+per-case work directory is emptied before each case. Before HP-04 it persisted,
+so an adapter that materializes its own before-state wrote a file on a cold run
+and found it already present on a warm one: the gap count was **20 / 15 / 14**
+across three runs of the same corpus on the same tree. Any claim resting on that
+number was unciteable. If you pass `--work-dir`, only the per-case
+subdirectories are reset; the directory you named and anything else in it is
+left alone.
 
 ## Known frictions (measured in the probe, filed as CM-F1..F5)
 
@@ -467,22 +527,31 @@ See CM-F5 below.
   property should need a fault seeded at it — but it is a surprise. `--cfg`
   scoping is the existing lever.
 - **CM-F5 — a slice narrower than the view orphans the view's effect providers.
-  OPEN, measured in RP-03.** `run_generated_case_adapters.py` refuses a mapping
-  that configures a semantic effect provider no *selected* case requires:
-  `provider configured for semantic effect port(s) not required by any selected
-  case: LedgerStorePort`. On the whole view that check is right — an orphan
-  provider is a misconfiguration. On a **slice** it is normal: the ex4
-  `Scenario_DeliveryPath` slice deliberately excludes `Record`, the only action
-  that touches `LedgerStorePort`, so the project's own `case_adapters.toml`
-  cannot run its corpus at all. There is no `--cfg`-style lever here, and the
-  only workaround today is a second mapping file with the provider removed —
-  which pushes back against "a case module needs no adapter of its own". A
-  `form: given` module that *does* enter the effect-carrying action runs against
-  the unmodified mapping (`executed 6 cases in batch`), so this hits slices
-  specifically. It is filed, not fixed: the honest fix is a lever that says
-  "this corpus is a declared case module, so an unused provider is a fact, not a
-  misconfiguration", and that is a decision about the runner, not about case
-  modules.
+  CLOSED in HP-04. Measured in RP-03, sharpened by EV-03-DF-02.**
+  `run_generated_case_adapters.py` used to REFUSE a mapping that configures a
+  semantic effect provider no *selected* case requires: `provider configured for
+  semantic effect port(s) not required by any selected case: LedgerStorePort`.
+  On a **slice** that is not a misconfiguration, it is the definition of a
+  slice: the ex4 `Scenario_DeliveryPath` slice deliberately excludes `Record`,
+  the only action that touches `LedgerStorePort`.
+
+  How bad it was, measured rather than estimated: **both** mappings the ex4
+  fixture ships bind a `LedgerStorePort` provider, so the fixture had **zero
+  working configurations for its own slice**, and the documented workaround
+  needed a third mapping file that existed nowhere in the repository. A round-2
+  blind agent lost 3 of its 15 actions to it and had to author that file.
+
+  HP-04 makes the orphan a **report**, never a refusal (the epic's
+  `no_new_gates_rule`). The slice runs against the mapping the project already
+  ships. Nothing is silently dropped: every run with semantic providers prints
+  which oracles it CARRIES — port and provider reference, so a silent provider
+  and a content-asserting one can be told apart — and which it does **NOT**,
+  with the instruction to read its kill count as a floor. That second half is
+  the important one, and it is in the run output rather than only here for a
+  measured reason: the same blind agent that authored the third mapping observed
+  that the mapping it wrote was a **strictly weaker instrument** with no
+  durable-write oracle, so a green slice run OVER-READS. Documentation cannot
+  reach a reader at the moment they need that; the run can.
 
 ## What is mechanized (CM-01)
 
