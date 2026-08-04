@@ -88,10 +88,18 @@ def resolve_cited(name: str) -> Path | None:
     direct = REPO_ROOT / name
     if direct.is_file():
         return direct
+    # `.skill-manager` is a per-checkout Skill Manager home: a real COPY of every
+    # installed skill, ~15k .py files including copies of scripts this repository
+    # cites by name. It is gitignored, so a plain clone has none and this resolver
+    # looked correct -- but `wt new` creates one in every ticket worktree, which is
+    # the only place ticket agents ever run. The result was a test that passes on
+    # main and fails for every agent the workflow mandates. Excluded by name, and
+    # any future sibling home should be excluded here too. (HP-01-DF-01.)
+    excluded = {".git", "generated", ".skill-manager", ".claude", ".codex", ".gemini"}
     matches = [
         path
         for path in REPO_ROOT.rglob(Path(name).name)
-        if path.is_file() and ".git" not in path.parts and "generated" not in path.parts
+        if path.is_file() and not excluded.intersection(path.parts)
     ]
     return matches[0] if len(matches) == 1 else None
 
