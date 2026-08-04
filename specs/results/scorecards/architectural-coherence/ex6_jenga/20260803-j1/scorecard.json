@@ -1,0 +1,54 @@
+{
+  "scorecard_version": 1,
+  "epic": "architectural-coherence",
+  "example": "ex6_jenga",
+  "run_id": "20260803-j1",
+  "arm": null,
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 0,
+      "citations": [],
+      "rationale": "There is nothing to score. The fixture ships no tests directory, no cases, no adapters, no providers, no corpus and no seeded faults -- I enumerated every file under examples/validation/ex6_jenga and it is a README, three production modules under hub/, four spec files and four evidence transcripts. Anchor 0 says 'cases exist and pass; no seeded fault is caught'; here not even cases exist, so 0 is the floor and the floor is where it lands. This is correct for a refusal control and is not a criticism: the fixture's declared job is to make the unfalsifiable_coherence refusal observable, and PREDICTIONS.md AC-P4 asks it for zero divergences that are NOT a clean result. A bug-detection score for an artifact with no bug-detection apparatus would be an invented number.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 1,
+      "citations": [
+        "examples/validation/ex6_jenga/specs/program_model/Jenga.tla:43-78",
+        "examples/validation/ex6_jenga/specs/program_model/Jenga.tla:12-18"
+      ],
+      "rationale": "Measured by me at this commit: bound = 1,344 COMPLETE over 4 of 4 variables, Q = 0.000, ONE emergent component, FOUR dense rows -- dirty 5/5, lastCommand 5/5, auditLog 4/5, status 4/5 -- and FOUR dense columns (Place, Bill, Notify, Close). Jenga.tla:43-78 shows why: every action assigns all four variables. Anchor 2 requires 'no god-state, no variable written from everywhere' and this artifact is the negation of that clause on every row, by construction. Anchor 1's literal text ('no relationship between the figures and the design is argued') actually understates the artifact -- Jenga.tla:12-18 argues the relationship explicitly and names the three shapes it is reproducing -- but the ladder is monotone in substance and anchor 2's condition is violated, so 1 is the cap. lastCommand is written by all five actions and read by nothing except a TypeInvariant type conjunct, which is dead weight the descriptor cannot flag as such. This is the intended shape of a deliberately over-coupled control.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 0,
+      "citations": [],
+      "rationale": "Anchor 0, measured, and by design. State is written from everywhere: all four variables are written by four or five of the five actions (my descriptor run), so no variable is confined to a component under ANY partition -- Jenga.tla says so in its own header and the declared partition's own file calls itself USELESS. In the code, every module imports both others: hub/orders/lifecycle.py:5-6, hub/billing/audit.py:5 and :20, hub/notify/flags.py:17-18. My reflexion run reproduces 7 convergences, 0 unported pairs, divergence_detectable = FALSE, verdict unmappable with two basis limits. No boundary is discernible, which is anchor 0's exact wording. Scoring it 0 is the correct reading of this fixture and is what it was built to earn. Note for the record and not for the score: the three modules do take their collaborators by constructor injection (lifecycle.py:10), so the runtime wiring is marginally better than the import graph -- it does not reach anchor 1, because no boundary is declared that the code could be said to violate or honour.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 0,
+      "citations": [],
+      "rationale": "Anchor 0, on the plainest reading: nothing checks this artifact's behavior. The fixture ships no tests, no corpus, no invariant check beyond TypeInvariant in its own cfg, and hub/ has no exercise of any kind. I considered scoring 1 on the grounds that ex6-run2 enumerates round 1's measurements and shows each still holding -- but that is a regression check on the TOOL's verdict, not on the fixture's behavior, and anchor 1 requires a test suite to pass, of which there is none. I take the lower per rule 5. As with D1 this is appropriate for a refusal control and is not a criticism; it is recorded so that nobody reads the fixture's stability as behavioral evidence.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 4,
+      "citations": [
+        "examples/validation/ex6_jenga/README.md:1-30",
+        "examples/validation/ex6_jenga/README.md:88-98",
+        "examples/validation/ex6_jenga/README.md:100-115",
+        "examples/validation/ex6_jenga/specs/program_model/architecture_components.yaml:1-8",
+        "examples/validation/runs/ex6-run1/scoring.md:47-67",
+        "examples/validation/runs/ex6-run2/scoring.md:57-72"
+      ],
+      "rationale": "Anchor 4. The artifact argues against its own importance in its own title (README.md:1-30: 'why it is the CONTROL and not the evidence', naming this repository's own model as the better Jenga because 'nobody built it to fail'). Its own declaration file calls itself useless and says why (architecture_components.yaml:1-8). Its scoring rule pre-commits the FAIL conditions including the one that would flatter it -- reporting 0 divergences as a clean result, or 'fixing' the fixture by declaring a partition under which something can diverge (README.md:88-98). It refuses rather than certifies, and I reproduced the refusal verbatim: unmappable, two basis limits, 'there is no flag, key, annotation, or environment variable that turns it into coherent', exit 0. And the record carries results unflattering to the epic that owns it: ex6-run1:47-67 scores the epic's own DP-2 prediction MISSED and shows that a declared one-component partition converted the headline refusal into a clean; ex6-run2:57-72 files EV-03-DF-01, that this repository's own declared four-component partition does not decompose its own model (Q = -0.025485, crossing fraction 0.6), contradicting a ticket note that still stands uncorrected. Prose note: the README is persuasive and I discounted it; every claim above is a file I read or a command I ran. One accuracy defect recorded rather than scored (card rule 7): ex6-run1/scoring.md:11 states 'convergences 6' where its own committed artifact ex6-run1/artifacts/ex6_reflexion.txt:14 says 7, as do the fixture evidence, round 2, and my own run. A miscount in a summary is not a claimed clean, and the primary artifacts are correct, so I did not dock for it -- but it is exactly why the card says score artifacts and not claims.",
+      "refuses_to_claim": "That its zero divergences are a clean result, and that the mechanism it exists to demonstrate is general. README.md:100-115 states that consumable_as_architecture is true for ANY declared partition including one that fails all three criteria, that the criteria table therefore does not stand between a project and a false clean, and that unfalsifiable_coherence 'catches the fully degenerate case only' -- so a partition failing all three criteria AND leaving one pair unported would report a real-looking coherent, filed as its own defect against the epic that ships it."
+    }
+  },
+  "total": 5,
+  "contested": [],
+  "verdict": "A refusal control that earns four near-floor scores exactly as intended and one of the two highest honesty scores in the tree: it names a better piece of evidence than itself, calls its own declared partition useless, pre-commits the ways it could be misread, and files the hole in the mechanism it exists to demonstrate."
+}
