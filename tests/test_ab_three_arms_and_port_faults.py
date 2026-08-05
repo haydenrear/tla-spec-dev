@@ -394,6 +394,105 @@ def test_a_fault_seeded_in_the_fake_is_reachable_only_through_the_fake(rows, tmp
     )
 
 
+# -- the positive control does a control's job -----------------------------
+
+#: The sealed EVAL-RERUN arm trees. Real programs, in this repository, that a
+#: probe can be pointed at -- which is why the non-vacuity test below can use a
+#: measured BROKEN rather than a constructed one.
+RERUN_ARMS = REPO_ROOT / "specs/results/scorecards/hexagonal-prompting-rerun/arms"
+
+
+def _positive_controls(rows):
+    return [r for r in rows if str(r.get("control_role", "")).startswith("positive")]
+
+
+def test_every_positive_control_holds_the_accept_path_property(rows):
+    """A control observable before an accepted reserve stays green through the
+    regression it exists to catch. Run, not asserted."""
+    for row in _positive_controls(rows):
+        tree_name = str(row["path"]).split("/")[0]
+        inner = str(row["path"])[len(tree_name) + 1:]
+        verdict, detail = cc.probe_control_property(
+            AB / tree_name, "quota_ledger", inner, row["find"], row["replace"]
+        )
+        assert verdict == "HOLDS", f"{row['id']} on {tree_name}: {verdict} -- {detail}"
+
+
+def test_the_control_property_probe_is_not_vacuous():
+    """The other half, and the half that matters.
+
+    A probe that returns HOLDS for everything proves nothing about the controls
+    it passes. The negative case is not constructed for this test: it is M07's
+    sealed semantic re-anchored onto arm B's sealed tree, which is the exact
+    configuration EVAL-RERUN's adversarial channel found by building a corpus
+    with every `Reserve` case deleted. If this ever reports HOLDS, the probe has
+    stopped measuring the property and every PASS above is unreadable.
+    """
+    verdict, detail = cc.probe_control_property(
+        RERUN_ARMS / "arm_b",
+        "quota_ledger",
+        "quota_ledger/domain.py",
+        "        return sum(held.amount for held in self._holdings(tenant))",
+        "        return sum(held.amount for held in self._holdings(tenant)) + 1  # MUTANT M07",
+    )
+    assert verdict == "BROKEN", (
+        f"arm B's M07 probed {verdict} ({detail}). It is measured BROKEN: arm B "
+        f"derives available(), so the fault is present from construction. A probe "
+        f"that passes it is not measuring the accept-path property."
+    )
+
+
+def test_the_repaired_semantic_holds_on_the_arm_that_broke_the_old_one():
+    """The repair, checked against the tree that motivated it."""
+    verdict, detail = cc.probe_control_property(
+        RERUN_ARMS / "arm_b",
+        "quota_ledger",
+        "quota_ledger/domain.py",
+        "        self._outstanding[reservation_id] = Reservation(tenant, amount)",
+        "        self._outstanding[reservation_id] = Reservation(tenant, amount + 1)  # PROBE",
+    )
+    assert verdict == "HOLDS", f"the accept-path semantic is {verdict} on arm B: {detail}"
+
+
+def test_positive_controls_do_not_share_a_role_string(rows):
+    """EVAL-RERUN-DF-03: arm B's catalogue carried arm A's role string verbatim
+    over a mutant arm B's own data contradicted. Copied role strings are how a
+    control stops being about the thing it guards."""
+    roles = [str(r.get("control_role", "")) for r in _positive_controls(rows)]
+    assert len(set(roles)) == len(roles), "two positive controls share a role string"
+
+
+def test_every_positive_control_declares_the_property(rows):
+    """Declared in a side table, because M07 is sealed and is not amended."""
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # pragma: no cover
+        import tomli as tomllib  # type: ignore[no-redef]
+    declared = tomllib.loads(
+        (AB / "seeded_faults.toml").read_text(encoding="utf-8")
+    ).get("pa_control_properties", {})
+    for row in _positive_controls(rows):
+        assert declared.get(str(row["id"])) == cc.CONTROL_PROPERTY, (
+            f"{row['id']} is not declared in [pa_control_properties]"
+        )
+
+
+def test_m07_is_neither_deleted_nor_excused(rows):
+    """The audit says arm B's M07 is not a control. It does not say it is gone.
+
+    M07 still runs, is still seeded exactly as the sealed catalogue declares it,
+    and is still scored in its class row. A catalogue that deleted a row after
+    finding it inconvenient would be doing the thing EVAL-SUPPRESS caught.
+    """
+    m07 = next(r for r in rows if r["id"] == "M07-positive-control-wrong-hold")
+    assert m07["find"] == "        self._available[tenant] -= amount"
+    assert m07["fault_class"] == "wrong_value"
+    assert str(m07["control_role"]).startswith("positive")
+    text = (AB / "seeded_faults.toml").read_text(encoding="utf-8")
+    assert "[pa_measured_control_audit]" in text
+    assert "does not license deleting, re-seeding or excusing M07" in text
+
+
 # -- the sealed predictions ------------------------------------------------
 
 

@@ -239,3 +239,10 @@ PA-01's positive control for the ports tree is therefore seeded on the **accept
 path**, which is the one semantic measured to hold the property on every tree
 that exists — and `--controls --tree-root` is what PA-06 runs on arm C's tree
 before citing a kill number from it. **UNMEASURED is not a pass.**
+
+The defect is not in the ports tree — M07's semantic HOLDS there, because that
+tree stores `available`. It is in what happens when the semantic is
+**re-anchored onto an arm**. So `PA-M14` is seeded on the accept path, its
+`re_anchoring_rule` says to re-anchor **by the property, not by the bytes**, and
+`--controls` is what decides whether a given arm has a valid positive control at
+all. Repairing it moved the kill table by **zero cells**.

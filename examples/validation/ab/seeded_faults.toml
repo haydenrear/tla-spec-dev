@@ -115,7 +115,7 @@ pa_predictions = "examples/validation/PREDICTIONS-PA.md"
 # ---------------------------------------------------------------------------
 [pa_control_properties]
 "M07-positive-control-wrong-hold" = "accept-path-only"
-"PA-M14-positive-control-ports-tree" = "accept-path-only"
+"PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
 
 # ---------------------------------------------------------------------------
 # MEASURED AT PA-01, BEFORE ANY REPAIR. The third thing in this file that is a
@@ -609,23 +609,68 @@ predicted_corpus_whole = "SURVIVES on any wiring that does not construct the fak
 refine_variable = "committed"
 refine_action = "Commit"
 
+# ---------------------------------------------------------------------------
+# THE REPAIRED POSITIVE CONTROL. Read [pa_measured_control_audit] first; it was
+# committed, with the predictions that score this repair, BEFORE this row
+# changed. The git history carries that ordering.
+#
+# WHAT WAS WRONG, and it was not wrong on this tree. PA-M14's first form was
+# M07's semantic re-anchored here -- `self._available[tenant] -= amount + 1` --
+# and the probe says it HOLDS the accept-path property on `reference_ports/`,
+# because this tree STORES `available`. The defect is in what happens when the
+# semantic is RE-ANCHORED ONTO AN ARM. Arm B derives `available()`, the nearest
+# perturbation inflates the computed held total, and the result is observable
+# from construction, on every tenant, after a refusal. Measured BROKEN on arm B.
+#
+# A positive control whose declared semantic survives re-anchoring only onto
+# implementations that happen to share the reference's representation is a
+# control about the fixture, not about the instrument.
+#
+# WHAT THIS ROW IS NOW. The one line that runs on an ACCEPTED reserve and
+# nowhere else: the amount recorded ON the reservation at the moment it is
+# granted. `_outstanding` is written here on the accept path and only DELETED
+# by commit and release, and an oracle that installs a before-state builds
+# holdings directly -- so the only way to observe this mutant is to execute an
+# accepted `reserve` during the case. That property is REPRESENTATION-
+# INDEPENDENT, which is the whole reason for the change: it does not care
+# whether an arm stores `available` or derives it.
+#
+# Measured, with the shipped probe, on every tree that exists:
+#   arm_a HOLDS   arm_b HOLDS   reference HOLDS   reference_ports HOLDS
+# and UNMEASURED on arm C, whose tree PA-06 builds. UNMEASURED is not a pass.
+#
+# WHAT THIS DOES NOT DO. It does not weaken what the control asserts -- the
+# accept-path mutant is strictly harder to satisfy than the old one, because it
+# must be invisible everywhere else. It does not touch GOAL-port-reach's target
+# clause. It does not delete, re-seed or excuse M07. And it does not make arm
+# B's M07 cell green: that cell is red, it stays red, and EVAL-SUPPRESS's
+# retirement of it (eval/controls_rerun_arm_b.toml) stands.
+#
+# ROLE STRING WRITTEN FOR THIS TREE, NOT COPIED. EVAL-RERUN-DF-03: arm B's
+# catalogue carried arm A's role string verbatim over a mutant arm B's own data
+# contradicted. `check_catalogue.py --controls` now reports two positive
+# controls sharing a role string verbatim as a problem.
+# ---------------------------------------------------------------------------
+
 [[mutants]]
-id = "PA-M14-positive-control-ports-tree"
+id = "PA-M14-positive-control-accepted-hold-too-large"
 fault_class = "wrong_value"
-control_role = "positive -- must die on every instrument that reaches the reference_ports tree at all, under BOTH wirings"
-gap_targeted = "none. Deliberately in nobody's gap: it is the M07 semantic, re-anchored in the ports tree, and it exists so a column of survivors on `reference_ports/` can be told apart from an instrument that never ran that tree."
+control_role = "positive -- must die on every instrument that executes an accepted Reserve against the reference_ports tree, under BOTH wirings, AND must be invisible until one does. The second half is the half arm B's M07 lacked, and it is the half that makes a survival here mean 'the instrument stopped reaching the accept path' rather than 'something, somewhere, changed'."
+gap_targeted = "none. Deliberately in nobody's gap: it exists so a column of survivors on `reference_ports/` can be told apart from an instrument that never ran that tree, and so that RE-ANCHORING it onto an arm preserves the property rather than the byte pattern."
 boundary_kind = "invariant"
 boundary_ref = "R1-conservation"
+control_property = "accept-path-only -- see [pa_control_properties] and [pa_measured_control_audit]"
 path = "reference_ports/domain.py"
-find = "        self._available[tenant] -= amount"
-replace = "        self._available[tenant] -= amount + 1  # MUTANT PA-M14: the hold is one unit too large"
-description = "reserve deducts one more than it holds in the ported domain, so conservation breaks on the first call"
-semantic = "reserve(t, n) reduces available(t) by n+1 in the ported domain. R1 conservation breaks on the very first accepted reservation, identically under either wiring because the fault is in the domain and neither adapter is involved."
-observable = "available(t) immediately after any accepted reserve, under BOTH wirings. Nothing subtle about it."
+find = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount)"
+replace = "        self._outstanding[reservation_id] = Reservation(reservation_id, tenant, amount + 1)  # MUTANT PA-M14: an accepted reservation holds one unit more than it was granted"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into a before-state is byte-correct"
+semantic = "The reservation created by an ACCEPTED reserve records amount+1. Immediately after the accepting call, available(t) is one too low and the new reservation's amount is one too high. Nothing else, ever: no refusal, no commit, no release and no close changes any observable, and construction is byte-correct."
+observable = "available(t) and the new reservation's amount immediately after an ACCEPTED reserve, and nothing after any other action or any refusal. Under BOTH wirings, because the fault is in the domain and neither adapter is involved."
+re_anchoring_rule = "RE-ANCHOR BY THE PROPERTY, NOT BY THE BYTES. On any arm, seed this at whatever line records the amount on a reservation the API has just accepted, then run `check_catalogue.py --controls --tree-root --root <arm tree> --impl <module>`. If it does not report HOLDS, the arm has no valid positive control and PA-06 says so and leaves the cell RED. It does not make the cell green by weakening what the control asserts. A control that cannot fail is worse than one that is honestly broken."
 predicted_suite_real = "KILLED"
 predicted_suite_fake = "KILLED"
 predicted_corpus_whole = "KILLED"
-refine_variable = "available"
+refine_variable = "amt"
 refine_action = "Reserve"
 
 # ---------------------------------------------------------------------------
