@@ -69,9 +69,19 @@ LABEL_POOL = "DEFGHJKLMNRSTUVWZ"
 # `current` is the only status that asserts a number NOW, so it is the only one
 # R-H3 polices across an era boundary. The others each cost something to use:
 # `sealed` says explicitly that the number is not read forward, `superseded`
-# needs to name its successor, `known_wrong` needs a reason, and `under_review`
-# needs a filed finding id -- so no status can park a number quietly.
-CLAIM_STATUSES = {"current", "sealed", "superseded", "known_wrong", "under_review"}
+# needs to name its successor, `known_wrong` needs a reason, `under_review`
+# needs a filed finding id, and `refuted` needs to name who falsified it and on
+# what -- so no status can park a number quietly.
+#
+# `refuted` is deliberately NOT a synonym for `known_wrong`. `known_wrong` is a
+# MEASUREMENT that stopped being true. `refuted` is an ASSERTION SOMEONE MADE IN
+# REVIEW that was then falsified from data -- typically a filed finding. Keeping
+# them apart is the point: a finding that turned out to be wrong is evidence
+# about the review process, and this project keeps its superseded numbers on the
+# record with a pointer rather than erasing them. A `refuted` claim KEEPS its
+# `filed_as`, so the finding it came from stays reachable from the ledger.
+CLAIM_STATUSES = {"current", "sealed", "superseded", "known_wrong", "under_review",
+                  "refuted"}
 
 
 # --------------------------------------------------------------------------
@@ -914,9 +924,10 @@ def cmd_history(argv: list[str]) -> int:
         out.append("A ledger sentence is a measurement too and goes stale the same way. "
                    "Status is `current` (asserted now, and policed), `sealed` (true of "
                    "its era, not read forward), `superseded` (names its successor), "
-                   "`known_wrong` (names why) or `under_review` — and `under_review` is "
-                   "only legal with a filed finding id, so no status can park a number "
-                   "quietly.")
+                   "`known_wrong` (a measurement that stopped being true, and names why), "
+                   "`refuted` (an assertion someone made in review that was falsified "
+                   "from data, and names who) or `under_review` (only legal with a filed "
+                   "finding id). No status can park a number quietly.")
         out.append("")
         out.append("| claim | status | measured at | delta basis | says |")
         out.append("|" + "---|" * 5)
@@ -927,6 +938,12 @@ def cmd_history(argv: list[str]) -> int:
                 extra = f" → `{c['superseded_by']}`"
             if status == "under_review" and c.get("filed_as"):
                 extra = f" ({c['filed_as']})"
+            if status == "refuted":
+                extra = f" by {c.get('refuted_by', '?')}"
+                if c.get("filed_as"):
+                    extra += f", filed as {c['filed_as']}"
+            if status == "current" and c.get("reaffirmed_at"):
+                extra = f", re-affirmed at `{str(c['reaffirmed_at'])[:7]}`"
             out.append("| " + " | ".join([
                 f"`{c.get('id')}`", f"**{status}**{extra}",
                 f"`{str(c.get('measured_at', ''))[:7]}` {c.get('date', '')}",
@@ -1060,6 +1077,22 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
         if status == "known_wrong" and not str(c.get("why", "")).strip():
             out.append((VIOLATION, f"claim `{cid}`: known_wrong with no `why`. Recording "
                                    f"WHICH number is half of it; WHY is the other half."))
+        if status == "refuted":
+            missing = [f for f in ("refuted_by", "why") if not str(c.get(f, "")).strip()]
+            if missing:
+                out.append((VIOLATION, f"claim `{cid}`: refuted with no "
+                                       f"{' and no '.join('`%s`' % m for m in missing)}. "
+                                       f"An assertion that was falsified stays on the "
+                                       f"record WITH who falsified it and on what -- "
+                                       f"deleting it would hide the review, not the error."))
+            else:
+                out.append((OK, f"claim `{cid}`: refuted by {c['refuted_by']}, kept on the "
+                                f"record"))
+        # `filed_as` is checked on EVERY status, not only under_review: a refuted
+        # or discharged finding must stay reachable from the ledger.
+        if c.get("filed_as") and c["filed_as"] not in filed:
+            out.append((VIOLATION, f"claim `{cid}`: `filed_as = {c['filed_as']}` is not an "
+                                   f"id in deferred_findings.yaml"))
         if status == "superseded" and not c.get("superseded_by"):
             out.append((VIOLATION, f"claim `{cid}`: status superseded with no "
                                    f"`superseded_by` -- superseded BY WHAT?"))
@@ -1068,10 +1101,7 @@ def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
                 out.append((VIOLATION, f"claim `{cid}`: `under_review` with no `filed_as`. "
                                        f"That status is only legal with a filed finding; "
                                        f"otherwise it parks a number quietly."))
-            elif c["filed_as"] not in filed:
-                out.append((VIOLATION, f"claim `{cid}`: `filed_as = {c['filed_as']}` is not "
-                                       f"an id in deferred_findings.yaml"))
-            else:
+            elif c["filed_as"] in filed:
                 out.append((OK, f"claim `{cid}` is under review and filed as {c['filed_as']}"))
         if status != "current":
             continue

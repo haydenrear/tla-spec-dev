@@ -354,68 +354,110 @@ findings:
     found_by: "PA-05"
     found_at_commit: "1cad5ea"
     schedule_revision: 1
-    severity: major
+    severity: minor
+    status: >-
+      FILED BY PA-05, CENTRAL CLAIM REFUTED BY THE EPIC OWNER FROM THE SEALED
+      RAW DATA, GENERAL HAZARD SINCE DISCHARGED BY PA-03. Kept on the record
+      with its original claim stated rather than rewritten out: a finding that
+      turned out to be wrong is evidence about this epic's own review process,
+      and this project keeps superseded numbers with a pointer beside them
+      rather than erasing them. Severity lowered major -> minor on refutation.
     surface:
       production: []
       tla: []
       adapters: []
       test_graph: []
-      workflow: ["specs/desired_program_model/ticket_plan.yaml", "specs/results/scorecards/INSTRUMENT-LOG.toml"]
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml"]
     summary: >-
-      EVERY EVAL-RERUN NUMBER THIS EPIC USES AS A LIVE BASELINE WAS MEASURED
-      BEFORE TWO LATER INSTRUMENT CHANGES, AND NOTHING HAS RE-AFFIRMED ANY OF
-      THEM. The rerun measured at `b3a0199`. `EVAL-SUPPRESS` (`3e721a5`) and
-      PA-01 (`e6d1351`, `46c29c9`) both post-date it.
+      WHAT PA-05 FILED. "Every EVAL-RERUN number this epic uses as a live
+      baseline was measured before two later instrument changes and none has
+      been re-affirmed", and specifically that `GOAL-cases-drive-ports`'
+      56-of-56 baseline "sits on the wrong side of EVAL-SUPPRESS, which flipped
+      exactly one cell INSIDE THE COMPARABLE SET and flipped it on one arm only
+      (arm B's M07 / corpus-slice-led)", with a recommendation that PA-06
+      re-derive the baseline before citing any divergence figure.
 
-      Two of those baselines are load-bearing right now:
+      WHAT IS WRONG WITH IT: the mechanism. The flipped cell is NOT inside the
+      comparable set. "Strictly comparable" is the rerun's own rule -- the same
+      diff on both arms -- and it excludes three of the eleven rows: M07,
+      because arm B's seeding is a declared substitute and all seven of its
+      cells are a different experiment, and M08 and M10, because they are seeded
+      by ADDITION rather than perturbation. Eight remaining rows x 7 instruments
+      = 56. M07 was never in the denominator, so EVAL-SUPPRESS moving one of its
+      cells could not contaminate the 56.
 
-      `ab-cells-identical-56` is `GOAL-cases-drive-ports`' baseline, and the
-      goal's target is that the arms DIVERGE on at least one cell.
-      EVAL-SUPPRESS flipped exactly one cell -- arm B's `M07 / corpus-slice-led`,
-      `NOT_DECIDABLE -> SURVIVED` -- and it flipped it on ONE ARM ONLY. That is
-      a cell inside the comparable set, so the denominator and possibly the
-      identity itself have moved and nobody has re-derived them. PA-01 then took
-      the arms from two to three and changed the fault population.
+      Measured rather than argued: over all 11 x 7 = 77 cells of
+      eval-suppress/arm-a-repaired.json and arm-b-repaired-sealed-catalogue.json
+      at 3e721a5, exactly TWO cells differ between the arms and BOTH are M07 --
+      corpus-neg (A NOT_DECIDABLE / B KILLED) and corpus-slice-led (A
+      NOT_DECIDABLE / B SURVIVED).
 
-      `d1-3-both-arms` is the D1 baseline and is the same shape.
+      WHAT WAS RIGHT WITH IT, AND HAS SINCE BEEN DISCHARGED. The general hazard
+      was real when filed: pre-EVAL-SUPPRESS baselines had not been re-affirmed
+      and nothing in the record said so. PA-03 has now re-derived the whole
+      table on the post-EVAL-SUPPRESS driver and it holds -- over the 77 cells
+      its tables share with the repaired run, ZERO cells moved, on BOTH arms.
+      The finding asked for exactly this and it came back clean.
+      `ab-cells-identical-56` therefore moves under_review -> current with
+      reaffirmed_at = f052d3c.
 
-      The tool now says so rather than a reader having to notice: both are
-      recorded `status = "under_review"` in
-      `specs/results/scorecards/INSTRUMENT-LOG.toml`, which is only a legal
-      status with a `filed_as` naming a real finding -- this one. Flipping
-      either to `current` makes `score_tools.py audit` report
-      SUPERSEDED-UNMARKED.
+      ONE STEP OF THE REFUTATION'S OWN ARITHMETIC DOES NOT REPRODUCE, recorded
+      because a denominator exists in order to be reproducible. The refutation
+      reached 56 as "excluding controls leaves 8 non-control mutants x 7
+      instruments". The three declared CONTROLS are M07, M09 and N01; the three
+      rows excluded as not-the-same-diff are M07, M08 and M10. Both sets have
+      size three, so both give 8 x 7 = 56 -- the agreement is in size, not in
+      construction. The two rules are separable on HP-06: "non-control" gives
+      6 x 7 = 42 and does NOT reproduce the sealed 49, while "not the same diff"
+      gives 7 x 7 = 49 and does. Nothing about the refutation's conclusion
+      changes: M07 is out of the denominator under either rule.
+
+      WHAT THE TOOL COULD AND COULD NOT DO. `score_tools.py audit` correctly
+      reported that the claim straddled an unreaffirmed instrument change, and
+      that is what surfaced the question. It cannot tell whether a change
+      TOUCHED the cells a claim is about, because it reads claims and commits,
+      not kill tables. A straddle is a prompt to go and look, never a finding on
+      its own -- and PA-05 published it as a finding without going and looking,
+      at data sitting in a commit it had already declared an instrument change.
+      That limit is now stated in references/eval_scorecard.md under R-H3.
     reproduction: >-
-      `python3 examples/validation/scorecards/score_tools.py audit` and
-      `python3 examples/validation/scorecards/score_tools.py history --example
-      ab_quota_ledger`. Set either claim's `status` to `current` in
-      `INSTRUMENT-LOG.toml` and the audit reports SUPERSEDED-UNMARKED and exits
-      1; `tests/test_score_tools.py::test_a_current_claim_across_a_change_is_superseded_unmarked`
-      pins that behaviour.
+      The refutation, from the sealed data at 3e721a5: `git show
+      3e721a5:examples/validation/ab/eval/results/eval-suppress/arm-a-repaired.json`
+      and `...arm-b-repaired-sealed-catalogue.json`; intersect `per_mutant` over
+      `instruments` and count differing cells -> 2 of 77, both M07. Excluding
+      M07, M08 and M10 -> 8 x 7 = 56, zero differing. The same computation over
+      f431c62's kill-table-arm-{a,b}-merged.json excluding M07 -> 7 x 7 = 49,
+      zero differing (excluding controls instead gives 42, which does not
+      reproduce the sealed number). The discharge, from PA-03 at f052d3c:
+      specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-{a,b}.json
+      against the repaired tables -> 0 of 77 moved on each arm; PA-03 adds
+      corpus-port as an eighth instrument, so its own strictly-comparable count
+      is 8 x 8 = 64.
     evidence:
-      - "specs/results/scorecards/INSTRUMENT-LOG.toml [[claim]] ab-cells-identical-56 and d1-3-both-arms"
-      - "specs/results/scorecards/SELF-IMPROVEMENT.md -- 'FINAL CORRECTION (2026-08-05)', 'Exactly one cell changed'"
-      - "specs/desired_program_model/ticket_plan.yaml GOAL-cases-drive-ports baseline"
+      - "examples/validation/ab/eval/results/eval-suppress/arm-a-repaired.json @ 3e721a5"
+      - "examples/validation/ab/eval/results/eval-suppress/arm-b-repaired-sealed-catalogue.json @ 3e721a5"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/README.md -- 'CORRECTED IN PLACE (adversarial F6)', the three-of-eleven rule"
+      - "specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json and kill-table-arm-b.json @ f052d3c"
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[claim]] df02-flipped-cell-inside-the-comparable-set and [[note]] PA-05-N-11"
+      - "tests/test_score_tools.py::test_a_refuted_finding_stays_on_the_record_with_its_filing"
     why_out_of_scope: >-
-      A goal `baseline` block is a sealed measurement and the epic's discipline
-      is that a target is never moved after a result is known. Re-deriving the
-      cell count would also be a measurement, and PA-05 is a tooling ticket
-      running mid-epic: measuring here would put a number into the record that
-      nobody predicted and no arm C exists to compare against. Recorded and
-      carried rather than measured.
+      Nothing here is fixed because nothing here is broken. The baseline is
+      sound and is now measured. The record of the wrong finding is kept
+      deliberately, and is the only part of this entry that is load-bearing.
     suggested_fix: >-
-      PA-06 re-derives the comparable-cell count on the repaired driver over all
-      THREE arms before citing any divergence figure, and records the result as
-      a new claim with `measured_at` at its own commit. If the arms turn out to
-      diverge on arm B's `M07 / corpus-slice-led` and nowhere else, say so
-      loudly: a divergence produced by a control repair is not the divergence
-      `GOAL-cases-drive-ports` is asking for, and reading it as one would be the
-      exact mistake this finding exists to prevent.
+      NONE FOR THE BASELINE. Do NOT re-derive it on the grounds this finding
+      originally gave, which were wrong. Two things PA-06 does carry. (a)
+      `reaffirmed_at = f052d3c` is on feature/PA-03, not yet merged into the
+      epic branch; if PA-03 does not merge, `ab-cells-identical-56` returns to
+      under_review and `score_tools.py audit` will say so. (b) PA-03 adds an
+      eighth instrument (corpus-port), so its strictly-comparable cell count is
+      8 x 8 = 64 rather than 56 -- the count moved because a COLUMN was added,
+      not because a verdict moved. When PA-03 merges, add a `[[change]]` for it
+      to INSTRUMENT-LOG.toml, and never quote 64 against 56 without naming PA-03.
     blast_radius: >-
-      `GOAL-cases-drive-ports` is decided by comparing PA-06's divergence
-      against this baseline. If the baseline moved for instrument reasons, a
-      divergence the port did not cause gets credited to the port, or a real one
-      gets absorbed. The same hazard was already found live once in this epic
-      (the 49-of-49 dispatch) and corrected by hand.
-    disposition: carried
+      As filed, it would have cost PA-06 a re-derivation it does not need and
+      seeded a doubt about a sound baseline. Caught in owner review before it
+      reached PA-06, which is exactly where it was aimed and exactly the channel
+      this epic says produces its best material.
+    disposition: refuted
     disposition_ticket: "PA-06"

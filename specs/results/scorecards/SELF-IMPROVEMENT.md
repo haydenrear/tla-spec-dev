@@ -59,11 +59,33 @@ executes drifts exactly like the numbers it is about.
 - **`controls green on both arms` is known-wrong for arm B**, recorded beside the
   two arm-B cards that were judged against a packet that said otherwise.
 
-**Two further stale rows were found while building the view, and filed rather
-than fixed:** `PA-05-DF-01` (the epic document's D5 baseline has the attribution
-inverted — the 4 went to the *treatment* under the rerun) and `PA-05-DF-02`
-(every EVAL-RERUN number this epic uses as a live baseline predates two later
-instrument changes and none has been re-affirmed).
+**Two findings were filed while building the view. One was right, one was wrong,
+and both are on the record:**
+
+- **`PA-05-DF-01` — upheld.** The epic document's D5 baseline had the
+  attribution inverted: the best-ever 4 went to the *treatment* under the rerun,
+  not the control. The owner has corrected it, and the D1 row of the same table
+  with it.
+- **`PA-05-DF-02` — central claim REFUTED, general hazard DISCHARGED.** PA-05
+  said the 56-of-56 baseline was contaminated because `EVAL-SUPPRESS`'s one
+  flipped cell sits inside the comparable set. **It does not.** "Strictly
+  comparable" is the rerun's own rule — *the same diff on both arms* — which
+  excludes M07 (arm B's seeding is a declared substitute), M08 and M10 (seeded
+  by addition): 8 rows × 7 instruments = **56**, and M07 was never in the
+  denominator. Of all 11 × 7 = 77 cells of the repaired tables, exactly **two**
+  differ between the arms and **both are M07**. The owner refuted it from the
+  sealed raw data; PA-05 reproduced the refutation. The *general* hazard it
+  raised — pre-`EVAL-SUPPRESS` baselines not re-affirmed — was real when filed,
+  and PA-03's re-derivation has now discharged it: **zero cells moved on either
+  arm** over the 77 shared cells.
+
+  The wrong finding is kept as `status = "refuted"` in the log rather than
+  deleted, with `refuted_by` and its `filed_as` intact. **A finding that turned
+  out to be wrong is evidence about this epic's own review process**, and what
+  caught it was a person reading raw JSON — not the suite, and not a check.
+  `audit` was right that the claim straddled an unreaffirmed change and *cannot*
+  tell whether the change touched the cells the claim is about. **A straddle is
+  a prompt to go and look, never a finding on its own.**
 
 ## Baseline — architectural-coherence (sealed 2026-08-03, commit `ab0dfee`)
 

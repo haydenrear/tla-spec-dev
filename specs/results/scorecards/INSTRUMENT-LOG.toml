@@ -26,9 +26,13 @@
 #               exactly that twice in one epic's own paperwork. `status` is one
 #               of: current (asserted NOW, and policed), sealed (true of its
 #               era, not read forward), superseded (needs `superseded_by`),
-#               known_wrong (needs `why`), under_review (needs `filed_as`,
-#               naming a real id in deferred_findings.yaml, so a number cannot
-#               be parked quietly).
+#               known_wrong (a MEASUREMENT that stopped being true; needs
+#               `why`), refuted (an ASSERTION SOMEONE MADE IN REVIEW that was
+#               falsified from data; needs `refuted_by` and `why`, and keeps its
+#               `filed_as` so the finding stays reachable), under_review (needs
+#               `filed_as`, naming a real id in deferred_findings.yaml, so a
+#               number cannot be parked quietly). `filed_as` is verified on
+#               EVERY status, not only under_review.
 #
 #   [[sealed]]  digests, appended by `score_tools.py seal`. See the end of file.
 
@@ -319,6 +323,14 @@ better between the two rounds: what changed is that the number stopped being
 attributable to the treatment. A reader who takes the ceiling moving 2 -> 3 as
 progress and the arm attribution as settled has read one instrument's output as
 if it were two rounds of improvement.
+
+STILL UNDER REVIEW, and for a narrower reason than when it was filed. PA-03's
+re-derivation discharges the KILL-TABLE half of PA-05-DF-02 (see
+`ab-cells-identical-56`), but this claim is about four JUDGED D1 scores, and no
+re-judgement has happened across EVAL-SUPPRESS or PA-01. PA-06 re-measures it by
+scoring three arms; until then the 3 is sealed evidence of its own era rather
+than a live baseline. The owner has already corrected the epic document's D1 row
+for the same reason (see PA-05-DF-01).
 """
 
 [[claim]]
@@ -337,24 +349,113 @@ of 49 at f431c62 when EVAL-RERUN at b3a0199 had already superseded it with 56 of
 49 is not wrong -- it is sealed and stands as measured -- it is simply not the
 current number, and nothing in the toolchain could say so. Corrected in the plan
 by the owner on 2026-08-05.
+
+THE DENOMINATOR, so nobody re-litigates it: 8 mutants were seeded on BOTH arms
+at HP-06, M07 is excluded because its arm-A and arm-B seedings are not the same
+diff, and 7 remaining rows x 7 instruments = 49, with zero differing. Verified
+from the sealed kill-table-arm-{a,b}-merged.json at f431c62.
 """
 
 [[claim]]
 id = "ab-cells-identical-56"
 example = "ab_quota_ledger"
-status = "under_review"
+status = "current"
 delta_basis = "across_time"
 measured_at = "b3a0199"
 date = "2026-08-04"
+reaffirmed_at = "f052d3c"
 filed_as = "PA-05-DF-02"
 statement = "EVAL-RERUN: all 56 strictly comparable per-mutant cells are identical between the arms -- the prompt produced the structure and the structure caught nothing."
 why = """
-This is `GOAL-cases-drive-ports`'s live baseline, and it was measured BEFORE
-EVAL-SUPPRESS and before PA-01. EVAL-SUPPRESS flipped exactly one cell and it
-flipped it on ONE ARM ONLY (arm B's M07 / corpus-slice-led), which is a cell in
-the comparable set; PA-01 then changed the arm count from two to three and the
-fault population with it. Neither effect has been re-measured. Until it is, 56
-of 56 is not a like-for-like baseline for anything PA-06 measures.
+THE HAZARD WAS REAL AND HAS BEEN DISCHARGED. Filed as PA-05-DF-02 because this
+is `GOAL-cases-drive-ports`' live baseline and it was measured BEFORE
+EVAL-SUPPRESS and before PA-01, with nothing re-affirming it. PA-03 re-derived
+the whole table on the post-EVAL-SUPPRESS driver and it holds: over the 11 x 7 =
+77 cells the two arms share with the repaired EVAL-SUPPRESS run, **zero cells
+moved on either arm**.
+
+THE DENOMINATOR, so nobody re-litigates it. "Strictly comparable" is the
+rerun's own rule, "the same diff on both arms", and it excludes THREE of the
+eleven rows: M07 (arm B's seeding is a declared substitute -- all seven of its
+cells are a different experiment) and M08 and M10 (seeded by ADDITION rather
+than perturbation). 8 remaining rows x 7 instruments = 56, zero differing.
+
+**M07 IS NOT IN THE 56.** That is why EVAL-SUPPRESS could not contaminate this
+number: the one cell it moved is M07 / corpus-slice-led, and M07 was already out
+of the denominator. Measured directly from the sealed
+`eval-suppress/arm-{a,b}-repaired*.json` at 3e721a5: of all 77 cells exactly TWO
+differ between the arms and BOTH are M07 (`corpus-neg` A NOT_DECIDABLE / B
+KILLED, `corpus-slice-led` A NOT_DECIDABLE / B SURVIVED).
+
+TWO THINGS PA-06 STILL HAS TO CARRY. (a) `reaffirmed_at` points at `f052d3c` on
+`feature/PA-03`, which is NOT yet merged into the epic branch; if PA-03 does not
+merge, this claim returns to `under_review`. (b) PA-03 adds an EIGHTH instrument
+(`corpus-port`), so the strictly-comparable CELL COUNT on its table is 8 x 8 =
+64, not 56. The count moved because a column was added, not because a verdict
+moved. Quoting 64 against 56 without naming PA-03 is an R-H1 violation, and when
+PA-03 merges this log needs a `[[change]]` entry for it.
+"""
+
+[[claim]]
+id = "df02-flipped-cell-inside-the-comparable-set"
+example = "ab_quota_ledger"
+status = "refuted"
+measured_at = "1cad5ea"
+date = "2026-08-05"
+refuted_by = "the epic owner, from the sealed raw kill tables at 3e721a5, and reproduced independently by PA-05"
+filed_as = "PA-05-DF-02"
+statement = "PA-05 asserted that EVAL-SUPPRESS's one flipped cell (arm B's M07 / corpus-slice-led) is INSIDE the 56 strictly comparable cells, and therefore contaminates GOAL-cases-drive-ports' baseline."
+why = """
+FALSE, AND IT IS DECIDABLE FROM THE SEALED RAW DATA RATHER THAN FROM PROSE --
+which is the reproach this ticket earned, because PA-05 reasoned from
+SELF-IMPROVEMENT.md's narrative about "one cell, one arm" instead of opening
+`eval-suppress/arm-a-repaired.json` and `arm-b-repaired-sealed-catalogue.json`
+and counting. Both files were sitting in the commit PA-05 had already declared
+an instrument change.
+
+M07 is excluded from the strictly comparable set under the rerun's own rule, so
+moving one of its cells cannot change the 56. Of all 11 x 7 = 77 cells, exactly
+two differ between the arms and both are M07.
+
+RECORDED RATHER THAN DELETED, and kept `refuted` rather than `known_wrong`: this
+was not a measurement that went stale, it was an assertion made in review that
+was falsified. A finding that turned out to be wrong is evidence about this
+epic's own review process -- and the review that caught it was a human reading
+raw JSON, not a check. Nothing in `score_tools.py` could have caught this: the
+tool can say a claim STRADDLES an instrument change, and it did say so
+correctly, but it cannot say whether the change TOUCHED the cells the claim is
+about. That limit is now stated in the finding.
+
+ONE CORRECTION TRAVELS WITH THE REFUTATION -- see note PA-05-N-11.
+"""
+
+[[note]]
+id = "PA-05-N-11"
+about = "claim:df02-flipped-cell-inside-the-comparable-set"
+kind = "the refutation is right and one step of its arithmetic is not"
+field = "the denominator"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+The refutation reached 56 as "excluding controls leaves 8 non-control mutants x
+7 instruments". The conclusion is right and this step is not the reason.
+
+The three declared CONTROLS are M07, M09 and N01. The three rows the rerun
+excludes as "not the same diff" are M07, M08 and M10. Both sets have size three,
+so both arrive at 8 x 7 = 56 -- but they are different sets, and the coincidence
+is size, not construction.
+
+It is decidable which rule the sealed numbers were computed under, because the
+two rules disagree on HP-06: "non-control" gives 6 x 7 = 42 and DOES NOT
+reproduce the sealed 49, while "not the same diff" gives 7 x 7 = 49 and does.
+The rerun's own record states the rule in words -- "M07's arm-A and arm-B cells
+-- plural, all seven -- are not the same experiment, and M08 and M10 are seeded
+by ADDITION rather than perturbation, so three of eleven rows are not the same
+diff".
+
+Recorded because the whole purpose of writing a denominator down is that the
+next reader can reproduce it, and "non-control" does not reproduce. It changes
+nothing about the refutation: M07 is out of the denominator under BOTH rules.
 """
 
 [[claim]]

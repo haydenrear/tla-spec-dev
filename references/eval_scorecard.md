@@ -289,6 +289,23 @@ boundary applies), and `status = "under_review"`, which is only legal with a
 `filed_as` naming a real id in `deferred_findings.yaml` — so a number cannot be
 parked quietly.
 
+> **A STRADDLE IS A PROMPT TO GO AND LOOK, NEVER A FINDING ON ITS OWN.** `audit`
+> reads claims and commits; it does not read kill tables. It can tell you a
+> number was measured on the far side of a repair — it **cannot** tell you
+> whether the repair touched the cells that number is about. Answer that from
+> the raw data before filing anything. PA-05 did not, and filed `PA-05-DF-02`
+> claiming a repaired cell had contaminated a baseline it was never in the
+> denominator of; two JSON files, in the commit PA-05 had itself declared the
+> instrument change, settled it in one pass.
+
+A claim that was asserted in review and then falsified is `status = "refuted"`,
+which requires `refuted_by` and `why` and **keeps its `filed_as`** so the finding
+stays reachable. It is deliberately not `known_wrong`: that is a *measurement*
+that stopped being true, whereas this is an *assertion someone made* that was
+shown false. Keeping the two apart is the point — a finding that turned out to be
+wrong is evidence about the review, and deleting it hides the review rather than
+the error. `filed_as` is verified on every status, not only `under_review`.
+
 ### R-H4 — A sealed card is never edited
 
 When one goes stale, the ledger records **which** number and **why**, beside it.

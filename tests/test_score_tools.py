@@ -445,6 +445,69 @@ statement = "something inconvenient"
                for level, m in results2["R-H3"] if level == st.VIOLATION)
 
 
+def test_a_refuted_finding_stays_on_the_record_with_its_filing(st, tmp_path):
+    """PA-05-DF-02. A finding that turned out to be wrong is evidence about the
+    review process, so it is recorded rather than deleted -- and `refuted` is
+    not `known_wrong`: one is a measurement that stopped being true, the other
+    an assertion someone made in review that was falsified from data."""
+    root = write_log(tmp_path / "scorecards", CHANGE + """
+[[claim]]
+id = "the-cell-was-inside-the-set"
+example = "ex"
+status = "refuted"
+measured_at = "24ed3fa"
+date = "2026-08-04"
+filed_as = "PA-05-DF-02"
+refuted_by = "the epic owner, from the sealed raw kill tables"
+statement = "the flipped cell is inside the comparable set"
+why = "2 of 77 cells differ and both are a control that is out of the denominator"
+""")
+    put_card(root, "round-one", "20260804-P-p1", "24ed3fa")
+    results, _ = st.run_audit(root)
+    assert not [m for level, m in results["R-H3"] if level == st.VIOLATION]
+    assert any("refuted by the epic owner" in m and "kept on the record" in m
+               for _, m in results["R-H3"])
+
+
+def test_a_refuted_claim_must_name_who_refuted_it(st, tmp_path):
+    """Otherwise `refuted` becomes a way to withdraw a claim without recording
+    that anybody checked it."""
+    root = write_log(tmp_path / "scorecards", CHANGE + """
+[[claim]]
+id = "quietly-withdrawn"
+example = "ex"
+status = "refuted"
+measured_at = "24ed3fa"
+date = "2026-08-04"
+statement = "something I would rather not talk about"
+""")
+    put_card(root, "round-one", "20260804-P-p1", "24ed3fa")
+    results, _ = st.run_audit(root)
+    assert any("`refuted_by`" in m and "`why`" in m
+               for level, m in results["R-H3"] if level == st.VIOLATION)
+
+
+def test_filed_as_is_verified_on_every_status_not_only_under_review(st, tmp_path):
+    """A refuted or discharged finding must stay reachable from the ledger, so a
+    dangling `filed_as` is a violation whatever the status says."""
+    root = write_log(tmp_path / "scorecards", CHANGE + """
+[[claim]]
+id = "dangling"
+example = "ex"
+status = "refuted"
+measured_at = "24ed3fa"
+date = "2026-08-04"
+filed_as = "NO-SUCH-DF-99"
+refuted_by = "somebody"
+statement = "s"
+why = "w"
+""")
+    put_card(root, "round-one", "20260804-P-p1", "24ed3fa")
+    results, _ = st.run_audit(root)
+    assert any("not an id in deferred_findings.yaml" in m
+               for level, m in results["R-H3"] if level == st.VIOLATION)
+
+
 def test_known_wrong_must_say_why(st, tmp_path):
     root = write_log(tmp_path / "scorecards", CHANGE + """
 [[claim]]
@@ -636,6 +699,24 @@ def test_history_marks_the_superseded_49_of_49_baseline(st, capsys):
     assert "ab-cells-identical-49" in out
     assert "superseded" in out
     assert "ab-cells-identical-56" in out
+
+
+def test_history_records_the_refuted_finding_beside_the_claim_it_doubted(st, capsys):
+    """PA-05 filed PA-05-DF-02 claiming EVAL-SUPPRESS's one flipped cell was
+    inside the 56 comparable cells. The owner refuted it from the sealed raw
+    tables; the general hazard was then discharged by PA-03's re-derivation.
+    Both halves are on the record: the baseline is `current` and re-affirmed,
+    and the wrong assertion is kept as `refuted` rather than deleted."""
+    st.main(["history", "--example", "ab_quota_ledger", "--root", str(SCORECARDS)])
+    out = capsys.readouterr().out
+    assert "df02-flipped-cell-inside-the-comparable-set" in out
+    assert "refuted" in out and "the epic owner" in out
+    assert "PA-05-DF-02" in out                      # the filing stays reachable
+    assert "PA-05-N-11" in out                       # and its one arithmetic caveat
+    # the baseline itself is no longer parked
+    line = next(l for l in out.splitlines()
+                if l.startswith("| `ab-cells-identical-56` |"))
+    assert "**current**" in line and "re-affirmed at" in line, line
 
 
 def test_history_marks_the_inverted_d5_attribution(st, capsys):
