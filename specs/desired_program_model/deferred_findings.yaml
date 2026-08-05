@@ -358,6 +358,28 @@ findings:
       the same branching and depth" and scores it as simplification is scoring
       the prompt, not the artifact. A judge who scores it DOWN for being larger
       is scoring size, which is not what D2 asks either.
+    correction: >-
+      AMENDED 2026-08-05 after epic-owner review of PA-02 (CORRECTION-01 in the
+      ticket's history entry). THIS FINDING GETS STRONGER AND IS NOT SOFTENED.
+
+      PA-02's HEADLINE table mixed two denominators -- `totals` for the two
+      sealed arms beside what was effectively `totals_code_only` for the two
+      anchor trees, which ship no test modules -- and made the hexagonal arm
+      look substantially simpler. This finding was NOT affected: it was written
+      from the implementation-only figures throughout, and every number in its
+      summary reproduces unchanged.
+
+      Corrected like for like on `role=code`, the ported tree is larger on MORE
+      figures than the mis-tabled headline showed: `code_lines` 151 -> 202 and
+      `effectful_calls` 5 -> 3 join `public_surface` 20 -> 25, `modules` 1 -> 4
+      and `classes` 4 -> 6, while `branch_points` (10 -> 11), `max_depth`
+      (1 -> 1) and `max_branch_points_in_callable` (4 -> 4) stay flat or move
+      the wrong way. The apparent halving of `branch_points` (37 -> 19) was
+      `arm_a`'s test file, which carries 27 of its 37 all-modules branch points.
+
+      So "the produced-code figures support no simplification claim for either
+      arm" is BETTER supported after the correction than before it. The
+      suggested_fix and blast_radius above stand as written.
     disposition: carried
     disposition_ticket: "PA-06"
 

@@ -534,6 +534,140 @@ def test_documented_keys_actually_appear_in_a_real_record() -> None:
     assert _documented_figure_keys() == emitted
 
 
+# ---------------------------------------------------------------------------
+# 7. one table, one denominator
+# ---------------------------------------------------------------------------
+#
+# PA-02's first report tabled `totals` for the two sealed arms beside what was
+# effectively `totals_code_only` for the two anchor trees -- the anchor trees
+# ship no test modules, so their two blocks coincide and the mixture was
+# invisible by eye. Three figures reversed direction or flattened when the
+# denominator was made uniform: branch_points 37->19 became 10->11 (the ported
+# tree HIGHER), max_depth 5->3 became 1->1, public_surface 52->48 became 20->25.
+# The apparent improvement was arm_a's bigger TEST FILE, which carries 27 of its
+# 37 all-modules branch points. Nothing about either implementation moved.
+#
+# MF-020 wearing a new hat: a figure that improves because of what got counted.
+# Worse than the usual case, because these figures land in the scorecard's
+# MECHANICAL BLOCK, which is recorded and never scored -- so no judge challenges
+# them and nothing else in the protocol catches a wrong one. Hence a test.
+
+#: Column label -> the tree that column reports on. A renamed or reordered
+#: column fails, because each table's header row is asserted against these keys
+#: in order.
+RECORDED_TREES: dict[str, Path] = {
+    "reference": FLAT_TREE,
+    "reference_ports": PORTED_TREE,
+    "arm_a": SEALED_ARMS / "arm_a",
+    "arm_b": SEALED_ARMS / "arm_b",
+}
+
+#: The record blocks a recorded table may draw from. Each table's own `####`
+#: heading names exactly one of these, so renaming a shipped key fails here too.
+RECORDED_BLOCKS = ("totals_code_only", "totals")
+
+
+def _recorded_tables() -> dict[str, dict[str, list[str]]]:
+    """The figure tables in complexity_intuition.md, keyed by their block.
+
+    A table is claimed by a block when its own `####` heading names that block.
+    A heading naming neither, or both, claims nothing, and the callers below
+    fail on the missing block rather than guessing which was meant.
+    """
+
+    tables: dict[str, dict[str, list[str]]] = {}
+    block: str | None = None
+    header_seen = False
+    for line in INTUITION_DOC.read_text(encoding="utf-8").splitlines():
+        if line.startswith("####"):
+            named = [key for key in RECORDED_BLOCKS if f"`{key}`" in line]
+            block = named[0] if len(named) == 1 else None
+            header_seen = False
+            continue
+        if block is None or not line.startswith("|"):
+            continue
+        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        if set("".join(cells)) <= {"-", ":"}:
+            continue
+        if not header_seen:
+            header_seen = True
+            tables.setdefault(block, {})["__header__"] = cells
+            continue
+        tables[block][cells[0]] = cells[1:]
+    return tables
+
+
+def test_recorded_figures_match_a_live_run() -> None:
+    """Every cell of both recorded tables, against a live run, per block.
+
+    The executable form of the denominator rule. A cell taken from the wrong
+    totals block fails here for any tree whose two blocks differ -- which is
+    exactly the trees that ship tests, which is exactly where the mistake is
+    invisible by eye.
+    """
+
+    tables = _recorded_tables()
+    assert set(tables) == set(RECORDED_BLOCKS), sorted(tables)
+
+    live = {label: analyze_tree(path) for label, path in RECORDED_TREES.items()}
+    labels = list(RECORDED_TREES)
+
+    for block, rows in tables.items():
+        assert rows["__header__"] == ["figure"] + labels, (block, rows["__header__"])
+        assert len(rows) > 5, block
+        for figure, cells in rows.items():
+            if figure == "__header__":
+                continue
+            recorded = [int(cell) for cell in cells]
+            actual = [live[label][block][figure] for label in labels]
+            assert recorded == actual, (block, figure, recorded, actual)
+
+
+def test_the_two_denominators_differ_so_a_mixed_table_is_catchable() -> None:
+    """A guard on the guard: the test above is only sharp where the blocks differ.
+
+    If every tree reported the same figures under both blocks, mixing them would
+    be undetectable and `test_recorded_figures_match_a_live_run` would pass on a
+    mixed table. It is sharp precisely for the trees that ship tests, and the
+    two anchor trees are named here as the ones where it is NOT sharp -- stated,
+    not assumed.
+    """
+
+    sharp: list[str] = []
+    flat: list[str] = []
+    for label, path in RECORDED_TREES.items():
+        record = analyze_tree(path)
+        (sharp if record["totals"] != record["totals_code_only"] else flat).append(label)
+
+    assert sharp == ["arm_a", "arm_b"], sharp
+    assert flat == ["reference", "reference_ports"], flat
+
+    # and the specific mixture that was shipped is caught: an arm figure lifted
+    # from `totals` never equals its `totals_code_only` counterpart
+    for label in sharp:
+        record = analyze_tree(RECORDED_TREES[label])
+        for figure in ("branch_points", "code_lines", "public_surface"):
+            assert record["totals"][figure] != record["totals_code_only"][figure], (
+                label,
+                figure,
+            )
+
+
+def test_the_test_modules_carry_the_difference_and_it_is_recorded() -> None:
+    """The fact that explains the mis-tabling, measured rather than narrated."""
+
+    record = analyze_tree(RECORDED_TREES["arm_a"])
+    by_role = {"code": 0, "test": 0}
+    for module in record["modules"]:
+        by_role[module["role"]] += module["branch_points"]
+
+    assert record["totals"]["branch_points"] == 37
+    assert record["totals_code_only"]["branch_points"] == 10
+    assert by_role["test"] == 27
+
+    assert "27 of its 37" in INTUITION_DOC.read_text(encoding="utf-8")
+
+
 def test_excluded_sink_vocabulary_is_printed_with_every_report() -> None:
     """The undercount is stated in the output, not only in the docstring."""
 

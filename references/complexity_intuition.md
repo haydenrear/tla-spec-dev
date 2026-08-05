@@ -691,7 +691,7 @@ completeness block. One-sided, the same way the negative corpus is one-sided.
 ### Reading it
 
 The same intuition as the rest of this document applies: complexity should be
-proportional to the essential behavior. Two cautions specific to code:
+proportional to the essential behavior. Three cautions specific to code:
 
 1. **Totals hide location, and location is usually the question.** The two
    anchor trees under `examples/validation/ab/` implement one feature — the
@@ -707,3 +707,113 @@ proportional to the essential behavior. Two cautions specific to code:
    Introducing a boundary adds a declaration, an implementation and a
    composition point. Whether that purchase was worth it is a judgement, and
    this instrument does not make it.
+3. **NEVER PUT TWO TREES IN ONE TABLE ON TWO DIFFERENT DENOMINATORS.** The
+   instrument prints two totals blocks, `totals` and `totals_code_only`, and a
+   table whose columns mix them manufactures a *direction out of nothing*. Not
+   hypothetical: PA-02's own first report did it, and the section below is both
+   the correction and the reason the rule is written down.
+
+### The denominator rule, and the mistake that bought it
+
+A tree with no test modules reports `totals == totals_code_only`. A tree that
+ships its own tests does not. So a four-column table that takes the all-modules
+figure for the trees that have tests and — silently, because the two blocks
+coincide there — the code-only figure for the trees that do not is **comparing
+different things in adjacent columns.**
+
+PA-02's first report tabled exactly that: `totals` for the two sealed arms
+beside what was effectively `totals_code_only` for the two anchor trees. Three
+figures reverse direction or flatten when the denominator is made uniform:
+
+| figure | as mis-tabled | like for like (`totals_code_only`) |
+|---|---|---|
+| `branch_points` | 37 → 19, apparently halved | **10 → 11, the ported tree is HIGHER** |
+| `max_depth` | 5 → 3 | **1 → 1, identical** |
+| `public_surface` | 52 → 48, apparently smaller | **20 → 25, the ported tree is HIGHER** |
+
+**The apparent improvement was an artifact of `arm_a` shipping a bigger test
+file.** `arm_a`'s single test module carries **27 of its 37** all-modules branch
+points and **15 of its 20** effectful calls; `arm_b`'s carries 8 of 19 and 3 of
+6. Nothing about either implementation moved.
+
+This is MF-020 wearing a new hat — a figure that improves because of *what got
+counted* — and it is worse than the usual case, because these figures land in a
+scorecard's **mechanical block, which is recorded and never scored**. No judge
+is going to challenge them. A wrong number in the unscored block is a wrong
+number nothing in the protocol catches, which is why the correction below is
+executed by a test rather than promised in prose.
+
+The test-inclusive figures are not noise and are not suppressed. "`arm_a`'s
+branch count is 37 all-modules and 10 implementation-only, and the difference is
+its test file" is a real fact about that arm, and a fact about reading this
+instrument. It is reported in its own labelled block, never interleaved.
+
+### The recorded figures for the four subject trees
+
+Two anchor trees implementing one feature (`examples/validation/ab/reference/`
+and `.../reference_ports/`) and the previous epic's two sealed arms
+(`specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/hexagonal-prompting-rerun/arms/arm_a`
+and `.../arm_b`).
+
+`tests/test_code_complexity.py::test_recorded_figures_match_a_live_run` asserts
+**every cell of both tables against a live run**, each from the block its own
+heading names — so a stale figure, a renamed block, or a mixed denominator fails
+a test instead of becoming a directional claim.
+
+#### Like for like — `totals_code_only` in every column
+
+| figure | reference | reference_ports | arm_a | arm_b |
+|---|---|---|---|---|
+| `modules` | 1 | 5 | 1 | 4 |
+| `code_lines` | 122 | 255 | 151 | 202 |
+| `callables` | 13 | 22 | 17 | 23 |
+| `classes` | 3 | 8 | 4 | 6 |
+| `public_surface` | 15 | 26 | 20 | 25 |
+| `instance_state` | 7 | 9 | 8 | 8 |
+| `module_state` | 0 | 0 | 0 | 0 |
+| `branch_points` | 10 | 11 | 10 | 11 |
+| `max_branch_points_in_callable` | 4 | 4 | 4 | 4 |
+| `max_depth` | 1 | 1 | 1 | 1 |
+| `declared_interfaces` | 0 | 1 | 0 | 1 |
+| `declared_interface_methods` | 0 | 2 | 0 | 2 |
+| `internal_import_edges` | 0 | 4 | 0 | 3 |
+| `effectful_calls` | 3 | 3 | 5 | 3 |
+| `modules_with_effectful_calls` | 1 | 1 | 1 | 1 |
+| `branch_points_in_effectful_modules` | 10 | 1 | 10 | 1 |
+| `instance_state_in_effectful_modules` | 7 | 1 | 8 | 1 |
+
+#### All modules — `totals` in every column, tests included
+
+Reported separately and never interleaved with the block above. For the two
+anchor trees these are the same numbers, because neither ships a test module;
+for the two arms they are not, and the difference is the size of each arm's own
+test file.
+
+| figure | reference | reference_ports | arm_a | arm_b |
+|---|---|---|---|---|
+| `modules` | 1 | 5 | 2 | 5 |
+| `code_lines` | 122 | 255 | 422 | 407 |
+| `callables` | 13 | 22 | 50 | 45 |
+| `classes` | 3 | 8 | 4 | 6 |
+| `public_surface` | 15 | 26 | 52 | 48 |
+| `instance_state` | 7 | 9 | 8 | 8 |
+| `module_state` | 0 | 0 | 0 | 0 |
+| `branch_points` | 10 | 11 | 37 | 19 |
+| `max_branch_points_in_callable` | 4 | 4 | 10 | 4 |
+| `max_depth` | 1 | 1 | 5 | 3 |
+| `declared_interfaces` | 0 | 1 | 0 | 1 |
+| `declared_interface_methods` | 0 | 2 | 0 | 2 |
+| `internal_import_edges` | 0 | 4 | 1 | 4 |
+| `effectful_calls` | 3 | 3 | 20 | 6 |
+| `modules_with_effectful_calls` | 1 | 1 | 2 | 2 |
+| `branch_points_in_effectful_modules` | 10 | 1 | 37 | 9 |
+| `instance_state_in_effectful_modules` | 7 | 1 | 8 | 1 |
+
+**What survives the correction is what measures the port rather than the size.**
+Like for like, the arms separate on `declared_interfaces` (0 vs 1),
+`internal_import_edges` (0 vs 3) and the effectful-module partition
+(`branch_points_in_effectful_modules` 10 → 1,
+`instance_state_in_effectful_modules` 8 → 1) — while branching, depth and the
+worst single callable are identical, and surface and code lines go *up*. The
+instrument still tells the pairs apart. It tells them apart on **structure**,
+not on being smaller.

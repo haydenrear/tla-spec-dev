@@ -1,5 +1,16 @@
 # PA-02 — the instrument that was missing, and what it says
 
+> **CORRECTED — read `CORRECTION-01.md` in this directory first.** The
+> "All modules" table in §1 below was used as this ticket's HEADLINE
+> cross-tree comparison, and the four trees do not carry comparable
+> denominators: the two anchor trees ship no test modules, the two arms do.
+> Like for like on `role=code`, `branch_points` is 10 → 11 (not 37 → 19),
+> `max_depth` is 1 → 1 (not 5 → 3) and `public_surface` is 20 → 25 (not
+> 52 → 48) — the ported tree is slightly LARGER, not simpler. §2a below was
+> already correct and is what the table should have led with. **Nothing here
+> is edited**: every figure was measured and reproduces, and the superseded
+> presentation stands on the record as it was reported.
+
 `scripts/code_complexity.py`. Figures over produced Python. Recorded, never
 scored; nothing in this toolchain reads its output as a condition.
 
