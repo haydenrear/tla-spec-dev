@@ -1725,3 +1725,87 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-01
+
+- close_scope: ticket
+- close_id: HP-01
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T12:35:37+00:00
+- summary: The A/B experiment: two declared arms, a 10-mutant seeded catalogue proven exactly-once, and 13 sealed predictions including 6 negatives. No model surface added, deliberately.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-02
+
+- close_scope: ticket
+- close_id: HP-02
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T14:06:33+00:00
+- summary: HP-02: the hexagonal + minimize-complexity ask ships as prompts/hexagonal_implementation.md, is inlined into arm B's HP-01 slot, and is documented in references/hexagonal_prompting.md. No checker, no threshold, no gate. Local pilot ran both arms end to end: hexagonality moved as expected, complexity moved the wrong way (declared instrument could not run -- HP-02-DF-01), and the catch-bugs guard moved the wrong way by one cell on an instrument whose positive control survives. The pilot also found a hole in the prompt (a real-vs-fake test that asserts nothing); one sentence was added afterwards and is UNMEASURED.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-03
+
+- close_scope: ticket
+- close_id: HP-03
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T14:51:24+00:00
+- summary: The negative corpus: TLC's disabled edges asserted rejected, and a projection that takes MCsmall from 3,678,217 cases to 541. Guard relaxation moved off zero for the first time -- 3 of 3 seeded, 5 of 5 fresh, against 0 of 3 and 0 of 5 for the whole-view corpus. Zero model surface added. Four findings filed, none fixed. The hand-written suite still kills 10 of 10 where the corpora together kill 8 of 10.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-04
+
+- close_scope: ticket
+- close_id: HP-04
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T15:03:52+00:00
+- summary: The effect oracle runs: it loads a scaffolded project's adapters unaided, skips and names what it cannot drive, and reports the same numbers twice. CM-F5 closed. The mutant matrix moved by zero cells, exactly as HP-01 predicted.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-05
+
+- close_scope: ticket
+- close_id: HP-05
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T15:28:40+00:00
+- summary: Content assertion is the default: codegen generates and binds the content-asserting effect provider, every mapping states its oracles unprompted, and M04 moves from surviving every corpus to dying under the default mapping (durable_content 1 of 2 -> 2 of 2). The generator is still worse than the suite, now by one mutant instead of two.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out ticket HP-06
+
+- close_scope: ticket
+- close_id: HP-06
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-04T16:29:19+00:00
+- summary: EVALUATION: the A/B judged blind. GOAL-hexagonal-in-fact MET (D3 = 4 from both judges, the first 4 outside D5 in this project's history); GOAL-catch-bugs MET (D1 = 3 from both judges, guard relaxation 3 of 3 under the negative corpus and 1 of 1 on a fresh blind catalogue); GOAL-simpler-same-behavior MISSED (D2 = 2 from all four judges -- an A/B cannot reach anchor 3). The prompt produced the structure and the structure caught nothing: 49 of 49 comparable kill cells identical between the arms. The positive control is RED on arm A. 7 PASS / 4 FAIL on the sealed predictions, three of the four failures negative. Findings by channel 0 suite : 17 adversarial : 13 blind author. Twelve findings filed, none fixed; six of HP-06's own claims falsified and corrected in place.
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow hexagonal-prompting-epic
+
+- close_scope: workflow
+- close_id: hexagonal-prompting-epic
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-05T15:28:59+00:00
+- summary: Hexagonal prompting: architecture as a prompt, a negative corpus that reached a class nothing had reached, static scanners removed, and an A/B decided by judged scorecards on a repaired instrument
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.

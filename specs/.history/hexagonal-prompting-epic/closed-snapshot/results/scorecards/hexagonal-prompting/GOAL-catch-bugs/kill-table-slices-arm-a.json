@@ -1,0 +1,96 @@
+{
+  "arm": "A",
+  "arm_root": "specs/results/scorecards/hexagonal-prompting/arms/arm_a",
+  "catalogue": "specs/results/scorecards/hexagonal-prompting/measure/catalogue_arm_a.toml",
+  "controls": {
+    "corpus-slice-led": {
+      "cases": 56,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 10,
+      "skipped": 46
+    },
+    "corpus-slice-res": {
+      "cases": 2438,
+      "failed_on_green": 0,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "ran": 220,
+      "skipped": 2218
+    }
+  },
+  "instruments": [
+    "corpus-slice-res",
+    "corpus-slice-led"
+  ],
+  "mutants_re_anchored": 10,
+  "per_class": {
+    "cross_aspect": {
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "0 of 1"
+    },
+    "durable_content": {
+      "corpus-slice-led": "0 of 2",
+      "corpus-slice-res": "0 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-slice-led": "0 of 3",
+      "corpus-slice-res": "0 of 3"
+    },
+    "ordering": {
+      "corpus-slice-led": "1 of 1",
+      "corpus-slice-res": "0 of 1"
+    },
+    "output_oracle": {
+      "corpus-slice-led": "0 of 1",
+      "corpus-slice-res": "1 of 1"
+    },
+    "wrong_value": {
+      "corpus-slice-led": "0 of 2",
+      "corpus-slice-res": "1 of 2"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "KILLED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-slice-led": "KILLED",
+      "corpus-slice-res": "SURVIVED"
+    },
+    "M10-apply-only-double-refund": {
+      "corpus-slice-led": "SURVIVED",
+      "corpus-slice-res": "KILLED"
+    }
+  }
+}

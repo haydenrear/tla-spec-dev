@@ -1,0 +1,52 @@
+{
+  "example": "ex1_scaffold_only",
+  "run_id": "20260803-j2",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored. `measured_by_judge` = I ran the command or read the raw data at scoring time. `from_run_record` = the figure as the run record states it; not re-derivable from the artifacts kept.",
+  "measured_by_judge": {
+    "fixture_has_specs": false,
+    "fixture_files": ["taskq/taskq.py (85 lines)", "taskq/README.md", "taskq/tests/test_taskq.py"],
+    "complexity_descriptor": null,
+    "complexity_descriptor_null_reason": "The fixture ships no TLA+ model; every descriptor for ex1 was produced by an agent in a scratch workspace and survives only as run artifacts. Nothing to re-run against."
+  },
+  "from_run_record": {
+    "descriptors": {
+      "run1_external": {"bound": 64, "excluded_dimensions": ["lastInternalAction", "lastCli"], "modularity_q": 0.0, "components": 1, "dense_rows": ["lastCli 9/12", "tasks 7/12"], "warnings": 1},
+      "run2_external": {"bound": 1152, "modularity_q": 0.044, "components": 3, "warnings": 0},
+      "run3_external": {"bound": 1024, "excluded_dimensions": [], "warnings": null},
+      "run4_external_before": {"bound": 64, "excluded_dimensions": ["cli"], "modularity_q": 0.0, "components": 1, "dense_rows": ["cli 9/9", "tasks 7/9"], "warnings": 1},
+      "run4_external_after": {"bound": 64, "excluded_dimensions": [], "modularity_q": 0.0, "components": 1, "warnings": 1},
+      "run4_internal": {"bound": 64, "excluded_dimensions": [], "actions": 7}
+    },
+    "tlc": {
+      "run1": {"external_generated": 15148, "external_distinct": 1377, "depth": 11},
+      "run2": {"internal_distinct": 139, "external_distinct": 1238},
+      "run3": {"internal_distinct": 298, "external_distinct": 488},
+      "run4_external_before_distinct": 424,
+      "run4_external_after_distinct": 63
+    },
+    "case_counts": {
+      "run4_external_before": 3055,
+      "run4_external_after": 454,
+      "run4_internal": 328,
+      "gate_status_before": "FAIL at cap 50/action",
+      "gate_status_after": "PASS at measured-worst cap 63"
+    },
+    "kill_probe": {
+      "faults_seeded": 1,
+      "fault_class": "wrong persisted value, message and exit unchanged",
+      "killed": true,
+      "points_killed_reported": 45,
+      "effect_fuzz_failure_lines_reported": 48,
+      "discrepancy": "scoring.md:5 says 48 EFFECT_FUZZ_FAILURE lines; scoring.md:12 says 45 points killed. Not reconciled in the record.",
+      "artifact_completeness": "kill_probe_head.txt is truncated at 60 lines, mid-traceback, before any assertion message. The kill count and its attribution to the content assertion are not derivable from the artifact.",
+      "replay_reproduced_reported": true
+    },
+    "campaign": {"points": 1640, "exit": 0, "fuzz_runs": 5, "seed": 20260722},
+    "fitness_functions": {"run1": 2, "run2": 2, "run3": 2, "run4": 2, "all_hold": true, "negative_probe_fired": "run1 canary FIRED (artifact kept); run2/run3 negative-tested"},
+    "determinism": null,
+    "determinism_null_reason": "No repeated-execution comparison was recorded for ex1; runs 1-4 are independent onboardings with different models, not replicates.",
+    "runtime": null,
+    "runtime_null_reason": "No wall-clock figures recorded in any ex1 run artifact."
+  }
+}

@@ -1,0 +1,80 @@
+# HP-05 measurement manifest for the HP-01 quota-ledger fixture.
+#
+# TICKET-LOCAL INSTRUMENT, not shipped surface, and NOT an edit to HP-01's
+# sealed fixture. `examples/validation/ab/model/spec_manifest.yaml` declares the
+# durable boundary in the PASSIVE form -- `effects.components.ledger.ports.
+# LedgerAppendPort` with `kind: durable_write` and `asserts_content: true` --
+# which the effect-conformance observer reads and to which NO PROVIDER CAN BE
+# BOUND, because it declares no methods and therefore has no generated Protocol.
+#
+# This file restates the same boundary in the form a provider binds to
+# (`ports:` with `role: effect`), adds the one sentence that makes a durable
+# write checkable against the model, and is fed to the SHIPPED codegen
+# unmodified. The provider under measurement is the one
+# `scripts/generate_python.py` emits -- not one written here.
+#
+# THE ONE SENTENCE, and it is worth reading rather than skimming:
+#
+#     content: append: total: "committed[tenant]"
+#
+# The model's ledger element is << "COMMIT", holder[r], amt[r] >> and carries
+# NO running total, so a corpus that compares the projected `ledger` cannot see
+# a corrupted total at all -- HP-03's adapter says exactly this in its own
+# docstring and M04 survived both its corpora because of it. But the total the
+# implementation writes is a REFINEMENT of a variable the model does have:
+# `committed[tenant]` after the action. Somebody has to say so; no amount of
+# corpus generation discovers it. HP-05's claim is not that the framework can
+# infer this sentence -- it is that the framework should GENERATE THE PROVIDER
+# and BIND IT, and should be loud when the sentence is missing, instead of
+# shipping a `raise NotImplementedError` stub and a commented-out binding and
+# letting the author write the silent one.
+module: QuotaLedger
+package: quota_ledger_effects
+
+types:
+  Tenant:
+    python: str
+  LineKind:
+    python: str
+
+state:
+  LedgerState:
+    fields:
+      committed:
+        type: dict
+      ledger:
+        type: tuple
+
+commands:
+  AppendLedgerLine:
+    fields:
+      kind:
+        type: LineKind
+      tenant:
+        type: Tenant
+      amount:
+        type: int
+      total:
+        type: int
+
+results:
+  AppendResult:
+    fields:
+      path:
+        type: str
+
+ports:
+  LedgerAppendPort:
+    role: effect
+    kind: durable_write
+    description: >-
+      Appends one line to the durable ledger file. COMMIT lines carry tenant,
+      amount and the running total after the commit; CLOSE lines carry tenant
+      and the final committed total.
+    methods:
+      append:
+        command: AppendLedgerLine
+        result: str
+    content:
+      append:
+        total: "committed[tenant]"

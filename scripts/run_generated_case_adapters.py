@@ -21,7 +21,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, get_type_hints
@@ -92,9 +92,51 @@ class EffectProviderPlan:
 
     by_case: Mapping[str, tuple[ResolvedEffectProvider, ...]]
     configured: bool = False
+    #: HP-04 (CM-F5 / EV-03-DF-02): semantic effect ports this mapping binds a
+    #: provider for and that NO selected case requires. Before HP-04 this was a
+    #: hard refusal, which meant a slice narrower than its view -- the normal
+    #: shape of a slice, and the only artifact form writable from action names
+    #: alone -- could not execute under any mapping the project shipped. It is
+    #: now a REPORTED FACT about the corpus, per the epic's no_new_gates_rule.
+    orphan_ports: tuple[str, ...] = ()
+    #: The ports this run's providers actually carry, as ``port -> provider``.
+    #: Reported so a number can name its instrument: a mapping binding a silent
+    #: provider and one binding a content-asserting provider produce different
+    #: kill counts over the same corpus, and 30% of that instrument's entire
+    #: measured yield rides on which one was chosen.
+    carried: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+    #: The mapping file these bindings came from.
+    mapping_source: str = ""
 
     def for_case(self, case: Any) -> tuple[ResolvedEffectProvider, ...]:
         return self.by_case.get(str(case.name), ())
+
+    def render_oracle_coverage(self) -> str:
+        """State which oracles this run carries and which it does NOT.
+
+        EV-03-DF-02's sharpening of CM-F5 is the reason this is printed rather
+        than documented: a blind agent that hit the refusal authored its own
+        third mapping to get past it, and observed that the mapping it wrote was
+        a STRICTLY WEAKER INSTRUMENT with no durable-write oracle -- so a green
+        run under it over-reads. Documentation could not have told it that at
+        the moment it needed to know; the run output can.
+        """
+        lines: list[str] = []
+        source = f" from {self.mapping_source}" if self.mapping_source else ""
+        if self.carried:
+            bound = ", ".join(f"{port} -> {provider}" for port, provider in sorted(self.carried.items()))
+            lines.append(f"EFFECT ORACLES CARRIED{source}: {bound}")
+        if self.orphan_ports:
+            lines.append(
+                f"EFFECT ORACLES **NOT** CARRIED{source}: {', '.join(self.orphan_ports)}. "
+                "This corpus enters no action that emits on them -- for a case-module "
+                "SLICE that is a fact about the slice, not a misconfiguration. A green "
+                "result here is a statement about the ports listed as CARRIED and says "
+                "NOTHING about the ports listed here; treat its kill count as a FLOOR."
+            )
+        if not lines:
+            return ""
+        return "\n".join(lines)
 
 
 @dataclass(frozen=True, eq=False)
@@ -667,14 +709,39 @@ def load_effect_provider_plan(
             )
         by_case[str(case.name)] = tuple(resolved)
 
-    orphan_ports = sorted(set(provider_specs) - used_provider_ports)
-    if orphan_ports:
-        raise EffectProviderConfigurationError(
-            "provider configured for semantic effect port(s) not required by any selected case: "
-            + ", ".join(orphan_ports)
-        )
+    # CM-F5 / EV-03-DF-02, closed by HP-04. This used to raise.
+    #
+    # A case module in `slice` form is narrower than the view it extends -- that
+    # is what a slice IS -- so it routinely enters none of the actions that emit
+    # on some of the view's ports. The view's providers are then orphaned, and
+    # the refusal meant the slice's corpus could not execute. EV-03 measured how
+    # bad that is on the shipped ex4 fixture: BOTH mappings it ships bind the
+    # LedgerStorePort provider, so the fixture had ZERO working configurations
+    # for its own slice and the documented workaround required authoring a third
+    # mapping that exists nowhere. A round-2 blind agent lost 3 of its 15 actions
+    # to this and had to write that file.
+    #
+    # So the orphan is REPORTED, not refused (the epic's no_new_gates_rule: a
+    # ticket that finds itself adding a rule that refuses something has left
+    # scope). Nothing is silently dropped: the ports ride on the plan and
+    # `render_oracle_coverage` says, in the run's own output, which oracles this
+    # mapping does NOT carry -- because the same blind agent's second
+    # observation was that the mapping it wrote was a strictly weaker instrument
+    # with no durable-write oracle, so a green slice run OVER-READS.
+    orphan_ports = tuple(sorted(set(provider_specs) - used_provider_ports))
+    carried = {
+        port: str(spec["provider"])
+        for port, spec in provider_specs.items()
+        if port in used_provider_ports
+    }
 
-    return EffectProviderPlan(MappingProxyType(by_case), configured=configured)
+    return EffectProviderPlan(
+        MappingProxyType(by_case),
+        configured=configured,
+        orphan_ports=orphan_ports,
+        carried=MappingProxyType(carried),
+        mapping_source=str(mapping_path),
+    )
 
 
 def validate_effect_provider_execution_mode(
@@ -2227,6 +2294,12 @@ def main() -> int:
     work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
     work_dir.mkdir(parents=True, exist_ok=True)
     print(f"validated {len(mappings)} adapter mappings for {len(case_labels(cases))} labels")
+    # HP-04: every run with semantic providers states which oracles it carries
+    # and which it does not, unprompted and BEFORE the results, so a reader
+    # cannot reach a kill count without having read what produced it.
+    coverage_note = effect_provider_plan.render_oracle_coverage()
+    if coverage_note:
+        print(coverage_note)
     if args.batch:
         if not args.validate_only:
             try:

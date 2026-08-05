@@ -936,7 +936,7 @@ def create_ticket_history_entry(
     # guard-weakening flag is a DIFFERENT STATE from one taken under the guard
     # (TlaSpecDevCli.tla CloseTicketWeakened), and until this ticket the record
     # could not tell them apart. `--accept-new` and `--allow-open` exist
-    # specifically to bypass the precondition TLC proves over 1,292,951 states;
+    # specifically to bypass the precondition TLC proves over 563,963 states;
     # the manifest recorded only `accept_new`, as an unlabeled boolean beside
     # fifty other keys, and nothing named what it meant. Recorded here so the
     # modeled distinction is externally observable in the append-only history --

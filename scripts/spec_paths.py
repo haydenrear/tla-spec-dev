@@ -62,7 +62,9 @@ class EvidencePathError(ValueError):
     --out` and `architecture_reflexion --out` each took a BARE STRING and did
     `out_path.parent.mkdir(parents=True); out_path.write_text(...)`, so an
     evidence write could land anywhere on the filesystem while the only port
-    that could have covered it targets `**/results/**`. The audit's remediation
+    that could have covered it targets `**/results/**`. The last two were
+    REMOVED 2026-08-04 with the architecture scanners; this refusal is
+    unchanged and is exercised through `analyze complexity`. The audit's remediation
     was "declare the port and constrain the path, or drop --out". The path is
     constrained HERE, in one place, so the declaration in spec_manifest.yaml is
     true of every caller rather than true of the documented one.
@@ -108,8 +110,8 @@ class SpecTreePathError(ValueError):
     RC-02 (MF-026 round-3 N-2). `generate cases` shipped in RC-01 with `--out`
     `required=True` and no location constraint, and `--dot` unconstrained
     beside it -- the SAME class RC-01 fixed for `analyze complexity`,
-    `analyze architecture` and `architecture_reflexion` in the same commit,
-    reintroduced on the new command path. The writes it performs
+    `analyze architecture` and `architecture_reflexion` in the same commit
+    (both since removed), reintroduced on the new command path. The writes it performs
     (`generate_cases_from_tlc_dump.render_python_package`'s package files, the
     per-action coverage record, the parameter-recovery audit) and, more
     seriously, the destructive `shutil.rmtree` of the TLC metadir in

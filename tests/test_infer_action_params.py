@@ -33,6 +33,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from infer_action_params import (  # noqa: E402
     ENTERED,
     EXCEPT_INDEX,
+    EXCEPT_VALUE,
     GUARD_PINNED,
     LEFT,
     SET_MEMBERSHIP,
@@ -55,7 +56,9 @@ LIVE_MODEL = _CURRENT if _CURRENT.exists() else REPO_ROOT / "specs" / "program_m
 
 # Every parameterisable action label of TlaSpecDevCli, exhaustively. The issue
 # said "thirteen"; the module defined FOURTEEN (plus Stutter, which produces no
-# edge under [][Next]_vars), and AC-01 added AnalyzeArchitecture for FIFTEEN.
+# edge under [][Next]_vars), AC-01 added AnalyzeArchitecture for FIFTEEN, RC-01
+# added GenerateCases and CloseTicketWeakened for SEVENTEEN, and 2026-08-04
+# removed AnalyzeArchitecture with the static architecture scanners for SIXTEEN.
 # Auditing the superset is the honest reading of "audit all the labels".
 ALL_ACTIONS = (
     "BuildSkillCli",
@@ -68,7 +71,6 @@ ALL_ACTIONS = (
     "UpdateTicketCurrent",
     "AnalyzeComplexity",
     "AnalyzeCorpus",
-    "AnalyzeArchitecture",
     "GenerateCases",
     "RunEffectConformance",
     "RunKillTest",
@@ -100,8 +102,6 @@ def state(
     corpus_gate: str = "unknown",
     effect_conformance: str = "unknown",
     kill_test: str = "unknown",
-    architecture_scan: str = "unknown",
-    architecture_delta: str = "unknown",
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -115,8 +115,6 @@ def state(
         "corpus_gate": corpus_gate,
         "effect_conformance": effect_conformance,
         "kill_test": kill_test,
-        "architecture_scan": architecture_scan,
-        "architecture_delta": architecture_delta,
     }
 
 
@@ -174,15 +172,6 @@ def pair(action: str) -> tuple[dict, dict]:
         return (
             state(setup_phase=4, spec_root="default_specs"),
             state(setup_phase=4, spec_root="default_specs", corpus_gate="pass"),
-        )
-    if action == "AnalyzeArchitecture":
-        return (
-            state(setup_phase=4, spec_root="default_specs"),
-            state(
-                setup_phase=4,
-                spec_root="default_specs",
-                architecture_scan="unmappable",
-            ),
         )
     if action == "GenerateCases":
         # RC-01 (MF-026 G-6). Writes no verdict: generation produces the corpus,
@@ -257,7 +246,6 @@ EXPECTED = {
     "UpdateTicketCurrent": {"ticket": "cli_entrypoint"},
     "AnalyzeComplexity": {"root": "default_specs"},
     "AnalyzeCorpus": {"root": "default_specs"},
-    "AnalyzeArchitecture": {"root": "default_specs"},
     "GenerateCases": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
     "RunKillTest": {"root": "default_specs"},
@@ -283,7 +271,6 @@ NEGATIVE_CONTROLS = {
     "ScaffoldWorkflow": {"root": "default_specs"},
     "AnalyzeComplexity": {"root": "custom_specs"},
     "AnalyzeCorpus": {"root": "custom_specs"},
-    "AnalyzeArchitecture": {"root": "custom_specs"},
     "GenerateCases": {"root": "custom_specs"},
     "RunEffectConformance": {"root": "custom_specs"},
     "RunKillTest": {"root": "custom_specs"},
@@ -579,13 +566,17 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert recipes["InstallLocalCli"].params == ()
 
 
-def test_all_seventeen_action_labels_are_audited(recipes):
+def test_all_sixteen_action_labels_are_audited(recipes):
     """Completeness: every Next disjunct appears, none is silently skipped.
 
     AC-01 added the fifteenth, AnalyzeArchitecture. RC-01 added the sixteenth
     and seventeenth: GenerateCases (MF-026 G-6, case-module generation, which
     the model did not contain at all) and CloseTicketWeakened (the close taken
-    around the precondition TLC proves over the whole state space).
+    around the precondition TLC proves over the whole state space). 2026-08-04
+    removed AnalyzeArchitecture with the static architecture scanners, which is
+    the first time this count has gone DOWN -- and the reason the assertion is
+    set equality rather than a length: a label that disappears must fail here
+    just as loudly as one that appears.
     """
     audited = set(recipes) - {"Stutter"}
     assert audited == set(ALL_ACTIONS), f"unaudited: {audited ^ set(ALL_ACTIONS)}"
@@ -975,3 +966,143 @@ Process ==
     assert "`Process(scenario)` -- stated by the model on 7 of 7 cases" in audit
     assert "this module recovered nothing and makes no recoverability claim" in audit
     assert "was recovered on every one of its cases" not in audit
+
+
+# ---------------------------------------------------------------------------
+# EVAL-STABLE: `except-value` -- the parameter written INTO a function entry
+# ---------------------------------------------------------------------------
+#
+# The mechanism exists because of a measured red control, not because a shape
+# looked reachable. `Reserve(t, a, r)` in the quota-ledger fixture writes
+# `amt' = [amt EXCEPT ![r] = a]`: the amount is in the state pair as plainly as
+# anything can be, and the four earlier mechanisms all miss it because they only
+# ever look at INDICES and WHOLE variables. The measured consequence was that 0
+# of 588 `Reserve` cases carried an argument, every one was skipped, and the
+# evaluation's positive control -- a fault seeded inside `reserve` -- survived
+# every generated instrument.
+
+VALUE_MODEL = """
+VARIABLES amt, available, holder
+
+Reserve(t, a, r) ==
+  /\\ available' = [available EXCEPT ![t] = @ - a]
+  /\\ holder' = [holder EXCEPT ![r] = t]
+  /\\ amt' = [amt EXCEPT ![r] = a]
+"""
+
+
+@pytest.fixture
+def value_recipes():
+    return build_recipes(VALUE_MODEL)
+
+
+def test_except_value_recovers_the_written_amount(value_recipes):
+    """The whole point: `a` is recoverable and it used to be UNRECOVERABLE."""
+    recovery = {param.name: param for param in value_recipes["Reserve"].params}
+    assert recovery["a"].mechanism == EXCEPT_VALUE
+    assert recovery["a"].variable == "amt"
+    # And the two mechanisms that already worked are untouched.
+    assert recovery["t"].mechanism == EXCEPT_INDEX
+    assert recovery["r"].mechanism == EXCEPT_INDEX
+
+    before = {
+        "amt": {"r1": 0, "r2": 0},
+        "available": {"t1": 2, "t2": 2},
+        "holder": {"r1": "none", "r2": "none"},
+    }
+    after = {
+        "amt": {"r1": 2, "r2": 0},
+        "available": {"t1": 0, "t2": 2},
+        "holder": {"r1": "t1", "r2": "none"},
+    }
+    assert infer_params("Reserve", before, after, value_recipes) == {
+        "t": "t1", "a": 2, "r": "r1",
+    }
+    # NEGATIVE CONTROL: derived by hand from the transition, so a mechanism that
+    # silently returned the INDEX rather than the VALUE would fail here.
+    assert infer_params("Reserve", before, after, value_recipes)["a"] != "r1"
+
+
+def test_an_expression_containing_the_parameter_is_not_recovered_as_its_value():
+    """`![t] = @ - a` writes an EXPRESSION, and the entry is not `a`.
+
+    This is the soundness bound of the mechanism and the one way it could
+    fabricate: matching a right-hand side that merely MENTIONS the parameter
+    would have read `available'[t]` -- the remaining quota -- and called it the
+    amount. Every downstream comparison would then have agreed with a number the
+    oracle invented.
+    """
+    recipes = build_recipes(
+        """
+VARIABLES available
+
+Spend(t, a) ==
+  /\\ available' = [available EXCEPT ![t] = @ - a]
+"""
+    )
+    recovery = {param.name: param for param in recipes["Spend"].params}
+    assert recovery["t"].mechanism == EXCEPT_INDEX
+    assert recovery["a"].mechanism == UNRECOVERABLE
+    assert infer_params(
+        "Spend", {"available": {"t1": 5}}, {"available": {"t1": 3}}, recipes
+    ) == {"t": "t1", "a": UNCHECKED}
+
+
+def test_except_value_is_unchecked_when_the_entry_did_not_change(value_recipes):
+    """Writing the value already there leaves the state pair silent about it."""
+    unchanged = {
+        "amt": {"r1": 0, "r2": 0},
+        "available": {"t1": 2, "t2": 2},
+        "holder": {"r1": "none", "r2": "none"},
+    }
+    assert infer_params("Reserve", unchanged, unchanged, value_recipes)["a"] is UNCHECKED
+
+
+def test_except_value_is_unchecked_when_two_entries_changed(value_recipes):
+    """An ambiguous diff is not a licence to pick one."""
+    before = {"amt": {"r1": 0, "r2": 0}, "available": {"t1": 2}, "holder": {"r1": "none"}}
+    after = {"amt": {"r1": 1, "r2": 2}, "available": {"t1": 1}, "holder": {"r1": "t1"}}
+    assert infer_params("Reserve", before, after, value_recipes)["a"] is UNCHECKED
+
+
+def test_except_value_declares_the_entry_it_read_as_no_longer_checkable(value_recipes):
+    """The MF-028 price, paid out loud: `amt` is tautological for this action."""
+    assert value_recipes["Reserve"].unavailable_checks == ("amt",)
+
+
+def test_except_value_is_last_so_no_existing_recipe_moves():
+    """Every earlier mechanism still wins over the same body.
+
+    Appending at the end is what makes the change incapable of re-classifying a
+    parameter some other mechanism already reached; only `UNRECOVERABLE` can
+    become `except-value`.
+    """
+    recipes = build_recipes(
+        """
+VARIABLES pinned, seen, last, table
+
+PinWins(p) ==
+  /\\ p = pinned
+  /\\ table' = [table EXCEPT ![1] = p]
+
+SetWins(p) ==
+  /\\ seen' = seen \\cup {p}
+  /\\ table' = [table EXCEPT ![1] = p]
+
+WrittenWins(p) ==
+  /\\ last' = p
+  /\\ table' = [table EXCEPT ![1] = p]
+"""
+    )
+    assert recipes["PinWins"].params[0].mechanism == GUARD_PINNED
+    assert recipes["SetWins"].params[0].mechanism == SET_MEMBERSHIP
+    assert recipes["WrittenWins"].params[0].mechanism == WRITTEN_THROUGH
+
+
+def test_the_quota_ledger_fixture_now_recovers_every_reserve_argument():
+    """The regression this mechanism exists for, on the fixture that measured it."""
+    model = REPO_ROOT / "examples/validation/ab/model/QuotaLedger.tla"
+    recipes = build_recipes_from_path(model)
+    mechanisms = {param.name: param.mechanism for param in recipes["Reserve"].params}
+    assert mechanisms == {"t": EXCEPT_INDEX, "a": EXCEPT_VALUE, "r": EXCEPT_INDEX}
+    assert recipes["Reserve"].fully_recoverable

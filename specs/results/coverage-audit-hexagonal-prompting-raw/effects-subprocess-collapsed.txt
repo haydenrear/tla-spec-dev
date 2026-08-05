@@ -1,0 +1,191 @@
+scripts/analyze_complexity.py:743:call = re.fullmatch(
+scripts/analyze_complexity.py:746:if call and call.group(1) in defs_by_name:
+scripts/analyze_complexity.py:747:name = call.group(1)
+scripts/analyze_complexity.py:2260:def run(args: argparse.Namespace) -> int:
+scripts/analyze_complexity.py:2333:return run(parser.parse_args(argv))
+scripts/analyze_architecture.py:1011:def run(args: argparse.Namespace) -> int:
+scripts/analyze_architecture.py:1092:print(  ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
+scripts/analyze_architecture.py:1188:return run(parser.parse_args(argv))
+scripts/architecture_reflexion.py:2242:def run(args: argparse.Namespace) -> int:
+scripts/architecture_reflexion.py:2275:print(  ERROR: the reflexion check could not be run:\n  {exc}", file=sys.stderr)
+scripts/architecture_reflexion.py:2321:return run(parser.parse_args(argv))
+scripts/effect_conformance_report.py:68:def run(args: argparse.Namespace) -> int:
+scripts/effect_conformance_report.py:172:return run(parser.parse_args())
+scripts/corpus_diagnostics.py:909:def run(args: Any) -> int:
+scripts/corpus_diagnostics.py:941:return run(parser.parse_args())
+scripts/complexity_ledger.py:1119:coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
+scripts/effect_conformance.py:120:import subprocess
+scripts/effect_conformance.py:872:original = getattr(subprocess, name, None)
+scripts/effect_conformance.py:875:key =   subprocess.{name}"
+scripts/effect_conformance.py:876:self._originals[key] = (subprocess, name, original)
+scripts/effect_conformance.py:886:setattr(subprocess, name, patched)
+scripts/effect_conformance.py:889:original = subprocess.Popen
+scripts/effect_conformance.py:890:self._originals[                  ] = (subprocess,        , original)
+scripts/effect_conformance.py:900:subprocess.Popen = PatchedPopen
+scripts/effect_conformance.py:1122:was SKIPPED by this run: {    .join(self.blocked_by)}. "
+scripts/generate_cases_from_tlc_dump.py:20:import subprocess
+scripts/generate_cases_from_tlc_dump.py:126:subprocess.run(command, check=True, cwd=spec_dir, env=env)
+scripts/generate_cases_from_tlc_dump.py:127:except subprocess.CalledProcessError as error:
+scripts/generate_cases_from_tlc_dump.py:2722:def run(args: argparse.Namespace) -> int:
+scripts/generate_cases_from_tlc_dump.py:2911:return run(parser.parse_args(argv))
+scripts/new_ticket_workflow.py:450:5. Mark {ticket_id} closed/done in the project ticket plan and run:
+scripts/new_ticket_workflow.py:670:# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
+scripts/new_ticket_workflow.py:739:# an inapplicable stanza are different claims (CD-11, audit run 4 ESC-R4-2).
+scripts/onboard_program_model.py:648:each one with a call into this repository's real boundary. The class names here
+scripts/onboard_program_model.py:668:# Hook order per batch: setup_all -> (run per case) -> teardown_all.
+scripts/onboard_program_model.py:669:# `run` materializes case.before, applies one internal action, and returns the
+scripts/onboard_program_model.py:681:def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:704:raise NotImplementedError("call the real RegisterActor boundary")
+scripts/onboard_program_model.py:709:raise NotImplementedError("call the real AcceptRecord boundary")
+scripts/onboard_program_model.py:714:raise NotImplementedError("call the real PublishRecord boundary")
+scripts/onboard_program_model.py:721:#   setup_all -> for each case: setup -> run -> projected-state assertion ->
+scripts/onboard_program_model.py:742:"""Load `context.case.before` into the real system before each case."""
+scripts/onboard_program_model.py:751:def run(self, case: Any, work_dir: Path | None = None) -> CaseRunResult:
+scripts/onboard_program_model.py:777:# actual   = ProgramStateProjector.observe(context)             (from real system)
+scripts/onboard_program_model.py:790:"observe the real system's externally visible state and pass it "
+scripts/onboard_program_model.py:845:projection. `project_adapter_output` derives the output a correct adapter run
+scripts/onboard_program_model.py:1145:Generates spec-unit cases, run by the spec-unit adapters in `adapters.py`.
+scripts/onboard_program_model.py:1147:from outside. Generates Test Graph cases, run by the Test Graph adapters.
+scripts/onboard_program_model.py:1159:tla-spec-dev --spec-root {spec_root_text} run spec-unit-tests
+scripts/onboard_program_model.py:1232:The external counterpart is NOT a pytest test: External-view cases run as Test
+scripts/onboard_program_model.py:1243:import subprocess
+scripts/onboard_program_model.py:1298:subprocess.run(command, check=True, cwd=REPO_ROOT)
+scripts/kill_test.py:94:import subprocess
+scripts/kill_test.py:608:def _invoke() -> subprocess.CompletedProcess[str]:
+scripts/kill_test.py:609:return subprocess.run(
+scripts/kill_test.py:618:def run(mutant: Mutant | None) -> tuple[bool, list[str], str]:
+scripts/kill_test.py:629:return run
+scripts/kill_test.py:758:generated case exercises the difference). Then re-run; the mutant "
+scripts/infer_action_params.py:646:**Measured over the corpus this run generated: {measurement.total_cases} cases.**",
+scripts/run_kill_test.py:127:return run(args)
+scripts/run_kill_test.py:130:def run(args: argparse.Namespace) -> int:
+scripts/spec_evolution.py:10:import subprocess
+scripts/spec_evolution.py:99:result = subprocess.run([     , *args], check=True, capture_output=True, text=True)
+scripts/spec_evolution.py:100:except (OSError, subprocess.CalledProcessError):
+scripts/run_generated_case_adapters.py:21:import subprocess
+scripts/run_generated_case_adapters.py:905:return asyncio.run(value)
+scripts/run_generated_case_adapters.py:2124:return subprocess.run(command, env=env).returncode
+scripts/run_generated_case_adapters.py:2178:result = subprocess.run([*python, str(program)])
+specs/desired_program_model/adapter_case_runtime.py:22:import subprocess
+specs/desired_program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/adapter_case_runtime.py:36:return subprocess.run(
+specs/desired_program_model/adapter_case_runtime.py:220:return subprocess.CompletedProcess(args=[                  ], returncode=0, stdout=  , stderr=  )
+specs/current/production_adapters.py:8:import subprocess
+specs/current/production_adapters.py:103:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:182:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:215:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:259:install = subprocess.run(
+specs/current/production_adapters.py:268:version = subprocess.run(
+specs/current/production_adapters.py:298:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:344:result = subprocess.run(
+specs/current/production_adapters.py:388:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:455:result = subprocess.run(
+specs/current/production_adapters.py:495:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:531:) -> list[subprocess.CompletedProcess[str]]:
+specs/current/production_adapters.py:713:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:1127:result = subprocess.run(
+specs/current/production_adapters.py:1190:def run(self, case: object, work_dir: Path | None = None):
+specs/current/production_adapters.py:1378:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1379:return subprocess.run(
+specs/current/production_adapters.py:1396:def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1397:return subprocess.run(
+specs/current/production_adapters.py:1569:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1570:return subprocess.run(
+specs/current/production_adapters.py:1756:def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1757:return subprocess.run(
+specs/current/production_adapters.py:1886:def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/current/production_adapters.py:1887:return subprocess.run(
+specs/current/production_adapters.py:2015:def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/production_adapters.py:2019:return subprocess.run(
+specs/current/production_adapters.py:2054:pass_run = run(complete,                   , cmd,        , str(pass_out))
+specs/current/production_adapters.py:2070:surv_run = run(surviving,                   , surv_cmd,        , str(surv_out))
+specs/current/production_adapters.py:2081:unc_run = run(uncovered,                   , unc_cmd,        , str(unc_out))
+specs/current/production_adapters.py:2103:waived_run = run(waived,                   , waived_cmd,        , str(waived_out))
+specs/current/production_adapters.py:2389:result = subprocess.run(
+specs/current/production_adapters.py:2415:stray = subprocess.run(
+specs/current/production_adapters.py:2493:def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+scripts/skill_feedback.py:275:- `observed_on:` the real repository/module/ticket it was run against. A finding
+scripts/tla_spec_dev.py:8:import subprocess
+scripts/tla_spec_dev.py:146:return analyze_complexity.run(args)
+scripts/tla_spec_dev.py:152:return corpus_diagnostics.run(args)
+scripts/tla_spec_dev.py:158:return analyze_architecture.run(args)
+scripts/tla_spec_dev.py:181:return generate_cases_from_tlc_dump.run(args)
+scripts/tla_spec_dev.py:193:return effect_conformance_report.run(args)
+scripts/tla_spec_dev.py:206:return run_kill_test_module.run(args)
+scripts/tla_spec_dev.py:401:result = subprocess.run(command, cwd=repo_root, env=env)
+specs/current/adapter_case_runtime.py:22:import subprocess
+specs/current/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/current/adapter_case_runtime.py:36:return subprocess.run(
+specs/current/adapter_case_runtime.py:220:return subprocess.CompletedProcess(args=[                  ], returncode=0, stdout=  , stderr=  )
+specs/program_model/adapter_case_runtime.py:22:import subprocess
+specs/program_model/adapter_case_runtime.py:33:def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/adapter_case_runtime.py:36:return subprocess.run(
+specs/program_model/adapter_case_runtime.py:220:return subprocess.CompletedProcess(args=[                  ], returncode=0, stdout=  , stderr=  )
+specs/desired_program_model/production_adapters.py:8:import subprocess
+specs/desired_program_model/production_adapters.py:103:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:182:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:215:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:259:install = subprocess.run(
+specs/desired_program_model/production_adapters.py:268:version = subprocess.run(
+specs/desired_program_model/production_adapters.py:298:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:344:result = subprocess.run(
+specs/desired_program_model/production_adapters.py:388:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:455:result = subprocess.run(
+specs/desired_program_model/production_adapters.py:495:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:531:) -> list[subprocess.CompletedProcess[str]]:
+specs/desired_program_model/production_adapters.py:713:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:1127:result = subprocess.run(
+specs/desired_program_model/production_adapters.py:1190:def run(self, case: object, work_dir: Path | None = None):
+specs/desired_program_model/production_adapters.py:1378:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1379:return subprocess.run(
+specs/desired_program_model/production_adapters.py:1396:def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1397:return subprocess.run(
+specs/desired_program_model/production_adapters.py:1569:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1570:return subprocess.run(
+specs/desired_program_model/production_adapters.py:1756:def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1757:return subprocess.run(
+specs/desired_program_model/production_adapters.py:1886:def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/desired_program_model/production_adapters.py:1887:return subprocess.run(
+specs/desired_program_model/production_adapters.py:2015:def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/desired_program_model/production_adapters.py:2019:return subprocess.run(
+specs/desired_program_model/production_adapters.py:2054:pass_run = run(complete,                   , cmd,        , str(pass_out))
+specs/desired_program_model/production_adapters.py:2070:surv_run = run(surviving,                   , surv_cmd,        , str(surv_out))
+specs/desired_program_model/production_adapters.py:2081:unc_run = run(uncovered,                   , unc_cmd,        , str(unc_out))
+specs/desired_program_model/production_adapters.py:2103:waived_run = run(waived,                   , waived_cmd,        , str(waived_out))
+specs/desired_program_model/production_adapters.py:2389:result = subprocess.run(
+specs/desired_program_model/production_adapters.py:2415:stray = subprocess.run(
+specs/desired_program_model/production_adapters.py:2493:def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
+specs/program_model/production_adapters.py:8:import subprocess
+specs/program_model/production_adapters.py:103:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:182:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:215:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:259:install = subprocess.run(
+specs/program_model/production_adapters.py:268:version = subprocess.run(
+specs/program_model/production_adapters.py:298:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:344:result = subprocess.run(
+specs/program_model/production_adapters.py:388:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:455:result = subprocess.run(
+specs/program_model/production_adapters.py:495:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:531:) -> list[subprocess.CompletedProcess[str]]:
+specs/program_model/production_adapters.py:713:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:1127:result = subprocess.run(
+specs/program_model/production_adapters.py:1190:def run(self, case: object, work_dir: Path | None = None):
+specs/program_model/production_adapters.py:1378:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1379:return subprocess.run(
+specs/program_model/production_adapters.py:1396:def generate(*extra: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1397:return subprocess.run(
+specs/program_model/production_adapters.py:1569:def cli(*args: str) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1570:return subprocess.run(
+specs/program_model/production_adapters.py:1756:def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1757:return subprocess.run(
+specs/program_model/production_adapters.py:1886:def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
+specs/program_model/production_adapters.py:1887:return subprocess.run(
+specs/program_model/production_adapters.py:2015:def run(spec_dir: Path, *args: str) -> subprocess.CompletedProcess[str]:
+specs/program_model/production_adapters.py:2019:return subprocess.run(
+specs/program_model/production_adapters.py:2054:pass_run = run(complete,                   , cmd,        , str(pass_out))
+specs/program_model/production_adapters.py:2070:surv_run = run(surviving,                   , surv_cmd,        , str(surv_out))
+specs/program_model/production_adapters.py:2081:unc_run = run(uncovered,                   , unc_cmd,        , str(unc_out))
+specs/program_model/production_adapters.py:2103:waived_run = run(waived,                   , waived_cmd,        , str(waived_out))
+specs/program_model/production_adapters.py:2389:result = subprocess.run(
+specs/program_model/production_adapters.py:2415:stray = subprocess.run(
+specs/program_model/production_adapters.py:2493:def close(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:

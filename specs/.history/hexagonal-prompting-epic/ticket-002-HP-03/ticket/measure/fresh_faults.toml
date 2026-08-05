@@ -1,0 +1,226 @@
+# HP-03's FRESH catalogue. Independent of HP-01's.
+#
+# WHY A SECOND ONE. HP-01's M01-M03 were written to sit in the gap this ticket
+# closes, by an author who knew the mechanism was coming. A generator measured
+# only against faults chosen for it measures the choosing, not the generator.
+# So this catalogue was written against the IMPLEMENTATION -- one mutant per
+# refusal branch that `reference/quota_ledger.py` actually contains -- without
+# consulting which of them the negative corpus happens to emit a case for.
+#
+# It is deliberately unflattering by construction. It includes:
+#
+#   * every guard the implementation has, INCLUDING the two the model does not
+#     contain at all (`unknown_tenant` on both commands). Those are predicted to
+#     SURVIVE, because the model's `Tenants` constant IS the set of known
+#     tenants, so no reachable state can name an unknown one and no negative
+#     case can exist. A corpus cannot catch a fault in a branch its model does
+#     not have, and pretending otherwise by leaving them out would make the
+#     denominator flattering;
+#   * a guard on an argument the API ALLOCATES rather than accepts (N08), which
+#     is HP-03-DF-01 turned into a mutant;
+#   * two non-guard controls, so the table shows what the negative corpus
+#     cannot see as well as what it can.
+#
+# Predictions were written BEFORE the run and are not edited afterwards.
+
+[catalogue]
+id = "HP-03-quota-ledger-fresh"
+anchored_on = "examples/validation/ab/reference/quota_ledger.py"
+authored_against = "the implementation's refusal branches, one mutant each"
+note = """
+There is no aggregate kill rate here and none may be computed from it. The
+table is per class, per instrument. A rate over a denominator containing
+faults the model cannot represent is a number about the catalogue, not the
+instrument.
+"""
+
+[[mutants]]
+id = "N01-commit-accepts-unknown"
+fault_class = "guard_relaxation"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "quota_ledger.py"
+refine_variable = "live"
+refine_action = "Commit"
+description = "commit() no longer refuses an id that is not outstanding"
+find = """    def commit(self, reservation_id: str) -> Result:
+        reservation = self._outstanding.get(reservation_id)
+        if reservation is None:
+            return Result.rejected(\"unknown_reservation\")"""
+replace = """    def commit(self, reservation_id: str) -> Result:
+        reservation = self._outstanding.get(reservation_id)
+        if reservation is None:  # MUTANT N01: the refusal branch is dead
+            reservation = Reservation(reservation_id, sorted(self._quota)[0], 0)
+            self._outstanding[reservation_id] = reservation"""
+predicted_corpus_neg = "KILLED -- `r \\in live` is a conjunct the negative corpus enumerates"
+predicted_corpus_whole = "SURVIVES -- no enabled edge asks Commit to refuse"
+
+[[mutants]]
+id = "N02-release-accepts-unknown"
+fault_class = "guard_relaxation"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "quota_ledger.py"
+refine_variable = "live"
+refine_action = "Release"
+description = "release() no longer refuses an id that is not outstanding"
+find = """    def release(self, reservation_id: str) -> Result:
+        reservation = self._outstanding.get(reservation_id)
+        if reservation is None:
+            return Result.rejected(\"unknown_reservation\")"""
+replace = """    def release(self, reservation_id: str) -> Result:
+        reservation = self._outstanding.get(reservation_id)
+        if reservation is None:  # MUTANT N02: the refusal branch is dead
+            return Result.accepted(reservation_id)"""
+predicted_corpus_neg = "KILLED"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N03-reserve-accepts-closed-tenant"
+fault_class = "guard_relaxation"
+boundary_kind = "invariant"
+boundary_ref = "R3-close-is-final-and-singular"
+path = "quota_ledger.py"
+refine_variable = "closed"
+refine_action = "Reserve"
+description = "reserve() no longer refuses a closed tenant"
+find = """        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if amount < 1:"""
+replace = """        if tenant in self._closed and False:  # MUTANT N03
+            return Result.rejected(\"tenant_closed\")
+        if amount < 1:"""
+predicted_corpus_neg = "KILLED -- `t \\notin closed` is enumerated on Reserve"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N04-close-accepts-already-closed"
+fault_class = "guard_relaxation"
+boundary_kind = "invariant"
+boundary_ref = "R3-close-is-final-and-singular"
+path = "quota_ledger.py"
+refine_variable = "closed"
+refine_action = "CloseTenant"
+description = "close_tenant() no longer refuses a tenant that is already closed"
+find = """        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if any(held.tenant == tenant for held in self._outstanding.values()):"""
+replace = """        if tenant in self._closed and False:  # MUTANT N04
+            return Result.rejected(\"tenant_closed\")
+        if any(held.tenant == tenant for held in self._outstanding.values()):"""
+predicted_corpus_neg = "KILLED -- `t \\notin closed` is enumerated on CloseTenant"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N05-reserve-accepts-unknown-tenant"
+fault_class = "guard_relaxation_outside_model"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "quota_ledger.py"
+refine_variable = "available"
+refine_action = "Reserve"
+control_role = "negative -- the model has no unknown_tenant branch, so no negative case can exist"
+description = "reserve() no longer refuses a tenant it does not know"
+find = """        if tenant not in self._quota:
+            return Result.rejected(\"unknown_tenant\")
+        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if amount < 1:"""
+replace = """        if tenant not in self._quota:  # MUTANT N05
+            self._quota[tenant] = 0
+            self._available[tenant] = 0
+            self._committed[tenant] = 0
+        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if amount < 1:"""
+predicted_corpus_neg = "SURVIVES -- `Tenants` IS the known set; the model cannot name an unknown tenant"
+predicted_corpus_whole = "SURVIVES -- same reason"
+
+[[mutants]]
+id = "N06-close-accepts-unknown-tenant"
+fault_class = "guard_relaxation_outside_model"
+boundary_kind = "invariant"
+boundary_ref = "R3-close-is-final-and-singular"
+path = "quota_ledger.py"
+refine_variable = "closed"
+refine_action = "CloseTenant"
+control_role = "negative -- same gap as N05, on the other command"
+description = "close_tenant() no longer refuses a tenant it does not know"
+find = """        if tenant not in self._quota:
+            return Result.rejected(\"unknown_tenant\")
+        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if any(held.tenant == tenant for held in self._outstanding.values()):"""
+replace = """        if tenant not in self._quota:  # MUTANT N06
+            self._quota[tenant] = 0
+            self._committed[tenant] = 0
+        if tenant in self._closed:
+            return Result.rejected(\"tenant_closed\")
+        if any(held.tenant == tenant for held in self._outstanding.values()):"""
+predicted_corpus_neg = "SURVIVES"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N07-reserve-accepts-over-quota"
+fault_class = "guard_relaxation"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "quota_ledger.py"
+refine_variable = "available"
+refine_action = "Reserve"
+description = "reserve() no longer refuses an amount larger than what remains"
+find = """        if amount > self._available[tenant]:
+            return Result.rejected(\"quota_exceeded\")"""
+replace = """        if amount > self._available[tenant] and False:  # MUTANT N07
+            return Result.rejected(\"quota_exceeded\")"""
+predicted_corpus_neg = "KILLED -- `a <= available[t]` is enumerated"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N08-reserve-reuses-a-live-id"
+fault_class = "guard_relaxation_unexpressible"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "quota_ledger.py"
+refine_variable = "live"
+refine_action = "Reserve"
+control_role = "negative -- HP-03-DF-01: the model guards an argument this API allocates"
+description = "reserve() reuses the lowest id instead of allocating a fresh one"
+find = """        reservation_id = f\"r{self._next_id}\"
+        self._next_id += 1"""
+replace = """        reservation_id = f\"r{self._next_id}\"  # MUTANT N08
+        self._next_id = max(1, self._next_id)"""
+predicted_corpus_neg = "SURVIVES -- the model's `r \\notin live` guards a caller argument the API does not accept"
+predicted_corpus_whole = "SURVIVES"
+
+[[mutants]]
+id = "N09-positive-control-commit-loses-the-amount"
+fault_class = "wrong_value"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "quota_ledger.py"
+refine_variable = "committed"
+refine_action = "Commit"
+control_role = "positive -- an enabled-edge fault; the whole-view corpus must kill it"
+description = "commit() adds nothing to the committed total"
+find = "        self._committed[reservation.tenant] += reservation.amount"
+replace = "        self._committed[reservation.tenant] += 0  # MUTANT N09"
+predicted_corpus_neg = "SURVIVES -- a negative corpus asserts refusal, never a transition"
+predicted_corpus_whole = "KILLED"
+
+[[mutants]]
+id = "N10-negative-control-rejection-is-not-inert"
+fault_class = "rejection_side_effect"
+boundary_kind = "invariant"
+boundary_ref = "R4-rejection-changes-nothing"
+path = "quota_ledger.py"
+refine_variable = "available"
+refine_action = "Reserve"
+description = "a refused reserve still consumes a reservation id"
+find = """        if amount < 1:
+            return Result.rejected(\"amount_not_positive\")"""
+replace = """        if amount < 1:
+            self._next_id += 1  # MUTANT N10: the refusal is not inert
+            return Result.rejected(\"amount_not_positive\")"""
+predicted_corpus_neg = "SURVIVES -- `_next_id` is not a modeled variable, so inertness cannot be asserted over it. A limit worth measuring rather than assuming."
+predicted_corpus_whole = "SURVIVES"

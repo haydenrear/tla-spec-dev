@@ -1,0 +1,18 @@
+HP-05 -- DETERMINISM OF THE MAPPING KILL TABLE
+==============================================
+
+Two independent full runs of specs/tickets/HP-05/measure/run_mapping_kill_table.py
+over the same catalogue, corpus, reference and suite. Each run rebuilds the
+implementation tree in a fresh temp dir, re-imports the adapter per mutant, and
+re-runs all three mappings plus the suite.
+
+  per_mutant identical: True
+  per_class  identical: True
+  controls   identical: True
+
+Including the failing executions: the map-checking column's M04 kill and every
+control's ran/skipped/failed counts are byte-identical between runs.
+
+A nondeterministic oracle is a finding however good its first run
+(HP-04 measured a 43% spread on a gap count and it made the number
+unciteable). This one is not.

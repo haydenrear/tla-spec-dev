@@ -1,0 +1,174 @@
+# EVAL-SUPPRESS: the control record that gives EVAL-RERUN's ARM B a positive
+# control that can fail.
+#
+# Runs beside `specs/results/scorecards/hexagonal-prompting-rerun/measure/`,
+# which is a sealed measurement and is NOT amended here or anywhere. Arm B's
+# tree is copied to a temporary directory by the driver and mutated there; the
+# sealed round is read and never written.
+#
+# WHAT WAS WRONG (EVAL-RERUN-DF-03, adversarial F1). Arm B inherited M07's id,
+# `control_role` and class row from a DECLARED BROADER-REACH SUBSTITUTE that
+# inflates the *computed* held total. `available()` on this arm is derived, so
+# the substitute is observable after ANY command -- including a refusal, on a
+# tenant with no live reservation at all. A positive control exists to go red
+# when the instrument stops reaching the fault, and the failure mode it was
+# written against is HP-06's: `Reserve` stopping executing. The channel built
+# `corpus-whole` with every `Reserve` case deleted and ran it:
+#
+#     ARM A: corpus-noreserve  M07 = SURVIVED   <- control correctly goes RED
+#     ARM B: corpus-noreserve  M07 = KILLED     <- control stays green through it
+#
+# It is visible without that corpus, in arm B's own shipped numbers: `M07 /
+# corpus-neg` is KILLED while that instrument's control block records
+# `"Reserve": {"ran": 64, "ran_accepting": 0}`. Since EVAL-SUPPRESS the driver
+# reads exactly that pair and rejects the limitation whose scope it falsifies,
+# so arm B's M07 no longer passes as a control on anybody's say-so.
+#
+# WHAT THIS FILE DOES ABOUT IT. Two things, and neither is an excuse:
+#
+#   1. It RETIRES arm B's M07 as a control. M07 still runs, is still seeded
+#      exactly as the sealed catalogue declares it, and is still scored in its
+#      class row. What it stops doing is deciding whether the instrument works.
+#
+#   2. It adds P01, a positive control seeded on the ACCEPT PATH of `reserve`
+#      and reachable NOWHERE else, so that "Reserve stopped executing" and
+#      "this control went red" are the same event on arm B as they are on arm A.
+#
+# The alternative the ticket allowed -- declaring that arm B has no valid
+# positive control for this class -- is not taken, because a control that can
+# fail is available for the price of one line and is strictly more informative.
+#
+# Every prediction below was written and committed BEFORE the row it predicts
+# was executed. Where one turns out wrong, the wrong prediction is left in place
+# with the correction beside it.
+
+[catalogue]
+id = "EVAL-SUPPRESS-controls-rerun-arm-b"
+anchored_on = "quota_ledger/domain.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/"
+extends = "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml"
+
+
+# ---------------------------------------------------------------------------
+# 1. RETIREMENT. M07 on arm B is declared "positive" and does not do a
+#    control's job.
+# ---------------------------------------------------------------------------
+
+[[retired_control]]
+mutant = "M07-positive-control-wrong-hold"
+was = "positive"
+reason = '''
+Arm B's M07 is HP-06's declared BROADER-REACH SUBSTITUTE: it inflates the
+COMPUTATION of the held total rather than the amount recorded on an accepted
+reservation. On this arm `available()` is derived on every read, so the fault is
+present from construction, on every tenant, after any command including a
+refusal -- which is a different mutant from the sealed semantic ("breaks on the
+very first accepted reservation") and a different experiment from arm A's M07.
+
+The consequence is the one that matters for a CONTROL. `oracle.py` states M07's
+purpose: if `Reserve` stops executing, M07 must go red. Arm A's does. Arm B's is
+killed by `CloseTenant` cases on states with no live reservation, so it stays
+green through exactly the regression HP-06 shipped -- and arm B's catalogue
+carries arm A's role string over it verbatim, "must die on every instrument that
+can execute an accepted Reserve", which arm B's own data contradicts.
+
+M07 is NOT deleted, NOT re-seeded and NOT excused. It still runs, it is still
+scored in the `wrong_value` class row, and its kills stand as measurements. What
+it stops doing is deciding whether the instrument works.
+
+Its `corpus-slice-led` limitation is separately rejected by the driver, on arm
+B's own numbers, because `corpus-neg` kills M07 while executing zero accepted
+`Reserve` cases -- the very condition that limitation calls undecidable.
+'''
+replaced_by = "P01-positive-control-accepted-hold-too-large"
+
+
+# ---------------------------------------------------------------------------
+# 2. THE REPLACEMENT POSITIVE CONTROL, positive for the right reason.
+# ---------------------------------------------------------------------------
+
+[[mutants]]
+id = "P01-positive-control-accepted-hold-too-large"
+fault_class = "wrong_value"
+boundary_kind = "invariant"
+boundary_ref = "FEATURE.md -- R1: available = quota - held - committed"
+control_role = "positive -- must die on every instrument that can execute an accepted Reserve; a SURVIVAL there means the instrument is not reaching the accept path and every kill it reports is unreadable"
+gap_targeted = '''
+The one line that runs on an ACCEPTED reserve and nowhere else. `_outstanding`
+is written in three places -- here on the accept path, and by `commit` and
+`release`, both of which only DELETE. The oracle's `install()` builds
+pre-existing reservations directly, so a before-state's holdings are untouched
+by this mutant: the only way to observe it is to execute an accepted `Reserve`
+during the case itself.
+
+That is the property arm B's M07 does not have, and it is the whole job. This
+control goes red when, and only when, an instrument stops executing the accept
+path of `reserve` -- which is HP-06's regression, restated as a mutant.
+'''
+seeded_by = "perturbation"
+path = "quota_ledger/domain.py"
+find = "        self._outstanding[reservation_id] = Reservation(tenant, amount)"
+replace = "        self._outstanding[reservation_id] = Reservation(tenant, amount + 1)  # MUTANT P01"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into the before-state is byte-correct"
+semantic = "breaks on the very first reservation this API accepts, and on nothing else: `available` is one too low and `amt` for the new id is one too high, immediately after the accepting call"
+observable = "`available(tenant)` and `amt[r]` after an ACCEPTED Reserve, and nothing after any other action or any refusal"
+
+# PREDICTIONS, written before this mutant was run for the first time.
+predicted_corpus_whole = "KILLED -- 294 accepted Reserve cases execute and the projection compares `available` and `amt`"
+predicted_corpus_neg = "SURVIVES, and NOT as a miss -- every case in the negative corpus is a refusal plus inertness, so the accept path never runs. Declared as a limitation below, with the same witness arm A uses and, unlike arm B's M07, with the mutant actually needing it"
+predicted_corpus_slice_res = "KILLED -- the RESERVATIONS slice executes 100 accepted Reserve cases and projects `live`/`amt`"
+predicted_corpus_slice_led = "SURVIVES -- the LEDGER slice has no `Reserve` edge at all. Declared as a limitation below"
+predicted_map_silent = "KILLED -- identical corpus to corpus-whole"
+predicted_map_checking = "KILLED -- identical corpus to corpus-whole; the port assertion is about ledger lines but the state comparison still fires"
+predicted_suite = "KILLED -- the shared behaviour suite reserves and then asserts `available`"
+
+# What a survivor tells the reader to go and refine.
+refine_variable = "amt"
+refine_action = "Reserve"
+
+
+# ---------------------------------------------------------------------------
+# 3. SCOPE for the replacement. Two instruments cannot execute an accepted
+#    `Reserve`, and for THIS mutant that is the operative constraint -- which
+#    is exactly what the driver now re-derives rather than believes.
+# ---------------------------------------------------------------------------
+
+[[limitation]]
+mutant = "P01-positive-control-accepted-hold-too-large"
+instrument = "corpus-neg"
+reason = '''
+P01 is a fault on the ACCEPT path of `reserve`: a reservation this API grants
+during the case holds one unit too many. The negative corpus contains only
+DISABLED edges -- every case asserts a refusal plus inertness -- so it executes
+no accepted `Reserve` at all. Zero accepted Reserve cases is not "the negative
+corpus missed a blatant fault"; it is the negative corpus doing exactly what it
+is for.
+
+Unlike the same text over arm B's M07, this claim is not falsifiable by this
+run: no instrument can kill P01 without executing the accept path, so no
+instrument satisfying this witness can decide it. If one ever does, the driver
+rejects this limitation and says which instrument broke it.
+'''
+witness_action = "Reserve"
+witness_polarity = "positive"
+witness_ran_must_be = 0
+
+[[limitation]]
+mutant = "P01-positive-control-accepted-hold-too-large"
+instrument = "corpus-slice-led"
+reason = '''
+The LEDGER slice's corpus contains no `Reserve` edge whatsoever (its actions are
+CloseTenant, RefuseCloseAlreadyClosed and RefuseCommitUnknown) and it does not
+project `available` or `amt`. It cannot execute the mutated line and could not
+see the difference if it did. That is the declared shape of an aspect slice, not
+a miss.
+
+Note what makes this sound here and unsound over arm B's M07: this witness is
+verified as "action absent from this instrument's corpus" -- a provable zero
+established from the run's own action vocabulary, not a `.get(key, 0)` default
+(EVAL-RERUN-DF-04) -- and the projection is not doing the work on its own, since
+the mutant genuinely requires an accepted `Reserve` to exist at all.
+'''
+witness_action = "Reserve"
+witness_polarity = "positive"
+witness_ran_must_be = 0

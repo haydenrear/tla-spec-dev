@@ -1,0 +1,85 @@
+# HP-01 A/B fixture -- spec manifest for the quota-ledger feature.
+#
+# ONE model, used by BOTH arms. The A/B varies the implementation prompt and
+# holds the specification fixed; if each arm generated its own model, a D1
+# difference between the arms could be a difference between their models and
+# nobody could tell which. See ../README.md, "What is held constant".
+module: QuotaLedger
+package: quota_ledger_contract
+
+# The measured model is DECLARED, never discovered (CM-F1).
+model:
+  tla: QuotaLedger.tla
+  cfg: QuotaLedger.cfg
+
+# The two aspects the eval slices on, declared as case modules so the
+# `corpus-slice` instrument in ../seeded_faults.toml has something to be.
+#
+# These two slices exist to be LOST BY. M08 (cross_aspect) is seeded precisely
+# where neither of them can see it: its cause is a LEDGER-aspect action and its
+# symptom lands on a RESERVATIONS-aspect variable. Round 1 concluded that case
+# modules kill exactly what the whole view kills; that conclusion was an
+# artifact of a catalogue containing no such mutant, and when one was
+# deliberately placed the claim fell to 9 of 10. If either slice below kills
+# M08, the slice is wider than its declared aspect and THAT is the finding.
+case_modules:
+  Aspect_Reservations:
+    extends: QuotaLedger
+    view: internal
+    form: slice
+    actions:
+      - Reserve
+      - Release
+      - RefuseReserveClosed
+      - RefuseReserveNotPositive
+      - RefuseReserveOverQuota
+      - RefuseReleaseUnknown
+    claim: >-
+      Holding and returning quota is independent of what has been committed.
+      This slice projects available, live, holder, amt and closed; it does NOT
+      project committed or the ledger, and it does not contain Commit.
+
+  Aspect_Ledger:
+    extends: QuotaLedger
+    view: internal
+    form: slice
+    actions:
+      - Commit
+      - CloseTenant
+      - RefuseCommitUnknown
+      - RefuseCloseAlreadyClosed
+      - RefuseCloseOutstanding
+    claim: >-
+      Committing and closing append to a durable ledger whose running totals
+      agree with `committed`. This slice projects committed and the ledger; it
+      does NOT project available, which is why M08 -- a Commit that also
+      refunds the hold -- is invisible to it while every ledger line it writes
+      stays byte-correct.
+
+# The one durable side. `boundary_ref = "LedgerAppendPort"` in
+# ../seeded_faults.toml resolves here.
+#
+# THE MAPPING CHOICE IS WORTH 30% OF THE INSTRUMENT'S YIELD, measured and
+# replicated: 3 of 3 durable-write mutants died under a content-asserting
+# mapping and 0 of 3 under a silent one. HP-05 makes the checking mapping the
+# default. Until it does, any run over this fixture must state which mapping
+# produced its numbers, because a green run under a silent mapping over-reads.
+effects:
+  components:
+    ledger:
+      ports:
+        LedgerAppendPort:
+          kind: durable_write
+          description: >-
+            Appends one line to the durable ledger file. COMMIT lines carry
+            tenant, amount and the running total after the commit; CLOSE lines
+            carry tenant and the final committed total.
+          asserts_content: true
+  actions:
+    Commit: [LedgerAppendPort]
+    CloseTenant: [LedgerAppendPort]
+    # Deliberately EMPTY, not absent. Empty claims "performs no distinct
+    # effect"; absent claims "unmapped". Collapsing the two turns "we checked,
+    # there are none" into "nobody looked".
+    Reserve: []
+    Release: []

@@ -1,0 +1,116 @@
+$ python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity examples/validation/ab/model/QuotaLedger.tla examples/validation/ab/model/QuotaLedger.cfg
+warning: no budgets block in /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/examples/validation/ab/model/spec_manifest.yaml; using documented default budgets (references/modular_fuzzing.md). Run tla-spec-dev scaffold project to emit one, or add it by hand.
+analyze complexity -- QuotaLedger (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/examples/validation/ab/model/QuotaLedger.tla
+  config:   /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/examples/validation/ab/model/QuotaLedger.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/examples/validation/ab/model/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable   domain                               cardinality  source         note
+---------  -----------------------------------  -----------  -------------  -------------------------------------------------------------------------------------------------------------
+available  [Tenants -> 0..Quota]                unknown      TypeInvariant  domain found but not resolvable -- excluded from the bound (explicit UNKNOWN)
+committed  [Tenants -> 0..Quota]                unknown      TypeInvariant  domain found but not resolvable -- excluded from the bound (explicit UNKNOWN)
+closed     SUBSET Tenants                       4            TypeInvariant  powerset of 2 elements
+live       SUBSET ResIds                        4            TypeInvariant  powerset of 2 elements
+holder     [ResIds -> Tenants \cup {NoTenant}]  9            TypeInvariant  3^2 total functions
+amt        [ResIds -> 0..Quota]                 unknown      TypeInvariant  domain found but not resolvable -- excluded from the bound (explicit UNKNOWN)
+ledger     (unconstrained)                      unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+status     { "accepted", "rejected", "init" }   3            TypeInvariant
+reason     Reasons                              unknown      TypeInvariant  domain found but not resolvable -- excluded from the bound (explicit UNKNOWN)
+  (domain sources merge per-variable: TypeInvariant, then TypeOK, then the
+  configured invariants -- first source that resolves wins. What the resolver
+  can and cannot see: references/architecture_tractability.md,
+  'What The Domain Resolver Can And Cannot See'.)
+
+[MEASURED] State-space upper bound
+  bound = 432  [INCOMPLETE: product over 4 of 9 declared variables; domains from TypeInvariant]
+  this number is a LOWER BOUND on the declared-representation bound,
+  not the bound: it cannot be read as a percent of max_state_space_bound, and
+  'within cap' is NOT a claim this scan can make about it.
+  excluded (no resolvable domain): available, committed, amt, ledger, reason
+  dominant dimensions:
+    holder: 9 (36.2% of the bound in log space)
+    closed: 4 (22.8% of the bound in log space)
+    live: 4 (22.8% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+  (actions = top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions)
+variable   Reserve  Commit  Release  CloseTenant  RefuseReserveClosed  RefuseReserveNotPositive  RefuseReserveOverQuota  RefuseCommitUnknown  RefuseReleaseUnknown  RefuseCloseAlreadyClosed  RefuseCloseOutstanding
+---------  -------  ------  -------  -----------  -------------------  ------------------------  ----------------------  -------------------  --------------------  ------------------------  ----------------------
+available  rw       .       rw       .            .                    .                         r                       .                    .                     .                         .
+committed  r        rw      .        r            .                    .                         .                       .                    .                     .                         .
+closed     r        .       .        rw           r                    r                         r                       .                    .                     r                         r
+live       rw       rw      rw       r            .                    .                         .                       r                    r                     .                         r
+holder     rw       r       r        r            .                    .                         .                       .                    .                     .                         r
+amt        rw       r       r        .            .                    .                         .                       .                    .                     .                         .
+ledger     r        rw      .        rw           .                    .                         .                       .                    .                     .                         .
+status     rw       w       w        w            w                    w                         w                       w                    w                     w                         w
+reason     rw       w       w        w            w                    w                         w                       w                    w                     w                         w
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.006 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: available, closed, live, reason, status  (5 variables, 11 actions)
+  C2: amt, committed, holder, ledger  (4 variables, 5 actions)
+  candidate port-crossing actions:
+    CloseTenant crosses C1, C2
+    Commit crosses C1, C2
+    RefuseCloseOutstanding crosses C1, C2
+    Release crosses C1, C2
+    Reserve crosses C1, C2
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    reason touched by 11/11 actions
+    status touched by 11/11 actions
+    closed touched by 7/11 actions
+    live touched by 7/11 actions
+  dense columns (action touching more than half the variables):
+    CloseTenant
+    Commit
+    RefuseCloseOutstanding
+    Release
+    Reserve
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  every variable is read by at least one configured invariant.
+
+[MEASURED] Justification linkage
+  no justification: table in the manifest -- dead-weight analysis skipped.
+  Add one to make every variable's right to exist auditable
+  (references/architecture_tractability.md, 'Grow The Model By Evidence').
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-02/examples/validation/ab/model/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 50,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: state-space upper bound 432 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 4 of 9 declared variables (5 unresolved: available, committed, amt, ledger, reason) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap
+
+  WARNING: component C1 is touched by 11 actions (Reserve, Commit, Release, CloseTenant, RefuseReserveClosed, RefuseReserveNotPositive, RefuseReserveOverQuota, RefuseCommitUnknown, RefuseReleaseUnknown, RefuseCloseAlreadyClosed, RefuseCloseOutstanding), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.
+

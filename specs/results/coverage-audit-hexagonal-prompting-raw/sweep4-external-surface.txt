@@ -1,0 +1,114 @@
+# TOTAL 113
+tla-spec-dev	option	--spec-root
+tla-spec-dev	option	--repo-root
+tla-spec-dev	subcommand	scaffold
+tla-spec-dev scaffold	subcommand	project
+tla-spec-dev scaffold project	option	--name
+tla-spec-dev scaffold project	option	--force
+tla-spec-dev scaffold project	option	--dry-run
+tla-spec-dev scaffold	subcommand	workflow
+tla-spec-dev scaffold workflow	positional	ticket_id
+tla-spec-dev scaffold workflow	positional	title
+tla-spec-dev scaffold workflow	option	--force
+tla-spec-dev scaffold workflow	option	--dry-run
+tla-spec-dev	subcommand	open
+tla-spec-dev open	subcommand	ticket
+tla-spec-dev open ticket	positional	ticket_name
+tla-spec-dev open ticket	option	--ticket-root
+tla-spec-dev open ticket	option	--force
+tla-spec-dev open ticket	option	--dry-run
+tla-spec-dev	subcommand	run
+tla-spec-dev run	subcommand	spec-unit-tests
+tla-spec-dev run spec-unit-tests	option	--ticket
+tla-spec-dev run spec-unit-tests	option	--scope
+tla-spec-dev run spec-unit-tests	option	--target
+tla-spec-dev run spec-unit-tests	option	--tests-dir
+tla-spec-dev run spec-unit-tests	option	--cases-dir
+tla-spec-dev run spec-unit-tests	option	--mapping
+tla-spec-dev run spec-unit-tests	option	--work-dir
+tla-spec-dev run spec-unit-tests	option	--label
+tla-spec-dev run spec-unit-tests	option	--case
+tla-spec-dev run spec-unit-tests	option	--limit
+tla-spec-dev run spec-unit-tests	option	--validate-only
+tla-spec-dev run spec-unit-tests	option	--validate-capabilities
+tla-spec-dev run spec-unit-tests	option	--no-batch
+tla-spec-dev run spec-unit-tests	option	--fuzz-runs
+tla-spec-dev run spec-unit-tests	option	--seed
+tla-spec-dev run spec-unit-tests	option	--fuzz-iteration
+tla-spec-dev run spec-unit-tests	option	--pytest-arg
+tla-spec-dev run	subcommand	effect-conformance
+tla-spec-dev run effect-conformance	option	--ticket
+tla-spec-dev run effect-conformance	option	--target
+tla-spec-dev run effect-conformance	option	--cases-dir
+tla-spec-dev run effect-conformance	option	--mapping
+tla-spec-dev run effect-conformance	option	--work-dir
+tla-spec-dev run effect-conformance	option	--out
+tla-spec-dev run effect-conformance	option	--format
+tla-spec-dev run	subcommand	kill-test
+tla-spec-dev run kill-test	option	--spec-root
+tla-spec-dev run kill-test	option	--ticket
+tla-spec-dev run kill-test	option	--target
+tla-spec-dev run kill-test	option	--catalog
+tla-spec-dev run kill-test	option	--root
+tla-spec-dev run kill-test	option	--cfg
+tla-spec-dev run kill-test	option	--corpus-command
+tla-spec-dev run kill-test	option	--baseline
+tla-spec-dev run kill-test	option	--compare
+tla-spec-dev run kill-test	option	--list-boundaries
+tla-spec-dev run kill-test	option	--out
+tla-spec-dev run kill-test	option	--format
+tla-spec-dev run kill-test	option	--timeout
+tla-spec-dev	subcommand	analyze
+tla-spec-dev analyze	subcommand	complexity
+tla-spec-dev analyze complexity	positional	tla
+tla-spec-dev analyze complexity	positional	cfg
+tla-spec-dev analyze complexity	option	--manifest
+tla-spec-dev analyze complexity	option	--format
+tla-spec-dev analyze complexity	option	--out
+tla-spec-dev analyze complexity	option	--tlc-report
+tla-spec-dev analyze complexity	option	--baseline-tlc
+tla-spec-dev analyze	subcommand	architecture
+tla-spec-dev analyze architecture	positional	tla
+tla-spec-dev analyze architecture	positional	cfg
+tla-spec-dev analyze architecture	option	--manifest
+tla-spec-dev analyze architecture	option	--components
+tla-spec-dev analyze architecture	option	--code
+tla-spec-dev analyze architecture	option	--map
+tla-spec-dev analyze architecture	option	--baseline
+tla-spec-dev analyze architecture	option	--format
+tla-spec-dev analyze architecture	option	--out
+tla-spec-dev analyze	subcommand	corpus
+tla-spec-dev analyze corpus	positional	cases_dir
+tla-spec-dev analyze corpus	option	--view
+tla-spec-dev analyze corpus	option	--manifest
+tla-spec-dev	subcommand	generate
+tla-spec-dev generate	subcommand	cases
+tla-spec-dev generate cases	positional	tla
+tla-spec-dev generate cases	positional	cfg
+tla-spec-dev generate cases	option	--out
+tla-spec-dev generate cases	option	--module-path
+tla-spec-dev generate cases	option	--package
+tla-spec-dev generate cases	option	--view
+tla-spec-dev generate cases	option	--actions-metadata
+tla-spec-dev generate cases	option	--tlc2
+tla-spec-dev generate cases	option	--dot
+tla-spec-dev generate cases	option	--state-projector
+tla-spec-dev generate cases	option	--output-projector
+tla-spec-dev generate cases	option	--dedupe
+tla-spec-dev generate cases	option	--labeler
+tla-spec-dev generate cases	option	--no-infer-params
+tla-spec-dev generate cases	option	--negative-cases
+tla-spec-dev generate cases	option	--negative-dedupe
+tla-spec-dev generate cases	option	--negative-action
+tla-spec-dev generate cases	option	--coverage-json
+tla-spec-dev	subcommand	close
+tla-spec-dev close	subcommand	ticket
+tla-spec-dev close ticket	positional	ticket_name
+tla-spec-dev close ticket	option	--workflow-name
+tla-spec-dev close ticket	option	--entry-name
+tla-spec-dev close ticket	option	--summary
+tla-spec-dev close ticket	option	--result
+tla-spec-dev close ticket	option	--allow-open
+tla-spec-dev close ticket	option	--ticket-root
+tla-spec-dev close ticket	option	--no-promote-current
+tla-spec-dev close ticket	option	--accept-new

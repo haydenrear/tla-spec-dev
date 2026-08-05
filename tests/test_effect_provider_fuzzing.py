@@ -664,10 +664,16 @@ class Adapter:
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report["ok"] is True
     assert report["gaps"] == []
-    assert [effect["type"] for effect in report["observed_effects"]] == [
-        "filesystem.write"
-    ]
-    assert report["observed_effects"][0]["target"].endswith("/payload.txt")
+    # Compared as CROSSINGS, not as raw records. One boundary crossing trips
+    # every patch layer it passes through -- `Path.mkdir` calls `os.mkdir`,
+    # `shutil.copy` calls `open`, and since HP-04 patched `Path.open` (so that
+    # `path.open("a")` is no longer an invisible durable append),
+    # `Path.write_text` trips two. `diff_effects` already collapses the same way
+    # for gaps.
+    crossings = {(effect["type"], effect["target"]) for effect in report["observed_effects"]}
+    assert {effect_type for effect_type, _ in crossings} == {"filesystem.write"}
+    assert len(crossings) == 1
+    assert next(iter(crossings))[1].endswith("/payload.txt")
 
 
 def test_self_installed_patch_remains_effective_inside_passive_observation(
@@ -770,7 +776,8 @@ class Adapter:
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report["ok"] is True
     assert report["gaps"] == []
-    assert len(report["observed_effects"]) == 1
+    # One crossing; see the crossings-not-records note above.
+    assert len({(e["type"], e["target"]) for e in report["observed_effects"]}) == 1
     with pytest.raises(AssertionError, match="provider patch was not installed"):
         patch_effect_fixture.request(tmp_path / "after-cleanup.txt")
 

@@ -1,0 +1,1089 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/HP-04",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/hexagonal-prompting-epic/ticket-003-HP-04 specs/current specs/results/skill_feedback.md specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for HP-04'",
+    "message": "It is recommended to commit this history directory now: specs/.history/hexagonal-prompting-epic/ticket-003-HP-04"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 18,
+        "before": 18,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 26671680,
+        "before": 26671680,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 11,
+        "before": 11,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "HP-03"
+  },
+  "complexity_ledger": {
+    "architecture_delta": {
+      "architecture_digest_after": "",
+      "architecture_digest_before": "",
+      "attribution": "",
+      "claim": "",
+      "divergences_after": null,
+      "divergences_before": null,
+      "divergences_delta": null,
+      "divergent_edges_gained": [],
+      "divergent_edges_lost": [],
+      "gates": false,
+      "map_digest_after": "",
+      "map_digest_before": "",
+      "problems": [],
+      "recorded": false,
+      "red_flags": [],
+      "report": "",
+      "resolved_report": "",
+      "status": "not_run",
+      "why": []
+    },
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 18,
+          "before": 18,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 26671680,
+          "before": 26671680,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 11,
+          "before": 11,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "HP-03"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/HP-04/results/complexity_ledger.yaml",
+    "justification": "",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 18,
+      "actions_from_fallback_heuristic": false,
+      "bound": 26671680,
+      "bound_complete": false,
+      "bound_resolved_variables": 9,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 9 of 11 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent",
+          "percent": null,
+          "percent_lower_bound": 2667.2,
+          "used": 26671680,
+          "within_cap": false
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 26,671,680 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 9 of 11 declared variables, so the complete bound is at least this large)",
+        "component C1 has 9 variables (complexity_gate, corpus_gate, effect_conformance, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 17 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, AnalyzeArchitecture, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.011604840309462296,
+      "variables": 11
+    },
+    "narrative": "specs/tickets/HP-04/results/narrative.md",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit not yet run for this scope (not_run) -- MF-026 is an end-of-epic gate and is REQUIRED before workflow close.",
+      "architecture delta not_run -- no before/after structure comparison was recorded for this close. Recorded as absent rather than dropped; it gates nothing."
+    ],
+    "recorded_at_utc": "2026-08-04T15:03:52.885342+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "Searched, and the one candidate was rejected on measurement rather than on taste. The added declaration is `spec_tree_delete` on `RunEffectConformance` -- one existing port on one existing action. The refinement question is whether the DELETE can be avoided so the declaration is not needed at all, and three alternatives were considered: (1) leave the work directory persistent -- rejected, that IS the defect (MF026-R4-F-01, 20 / 19 / 19 gaps and 9 / 10 / 10 dead ports over an identical corpus, measured at the epic tip in determinism-two-runs.txt); (2) give each RUN a fresh subdirectory instead of resetting the per-case one -- rejected: no delete, but the work root then grows without bound inside the user's spec tree, and every gap message carries the run id, so two runs could agree on a COUNT while no two reports were comparable. HP-04's own kill-table harness reported 10 of 10 false kills for exactly that reason before it was fixed; (3) move the default work directory to the system temp, as `run_generated_case_adapters` already does -- rejected: it costs the SAME one-row manifest edit in the other direction (`spec_tree` would become a false declaration on that row) and loses the stable paths that make two reports comparable. No option removes the manifest edit; option (1) is the defect and options (2) and (3) cost the same edit and buy less. State-space cost of the chosen option is zero: TLC enumerates 118,573 distinct states before and after.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "degraded",
+        "evidence": "specs/tickets/HP-04/results/adapter-reach.txt, specs/tickets/HP-04/results/determinism-two-runs.txt",
+        "status": "unobservable",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "the shipped kill test was not run; HP-04's own per-class per-arm mutant table over HP-01's catalogue is in specs/tickets/HP-04/results/kill-table.txt and is 0 of 10 on the oracle arms",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=unobservable (DEGRADED) -- unobservable IS NOT clean (MF-027)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "HP-04",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/tickets/HP-04/results/pytest-full.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/HP-04/results/tlc-current-mcsmall.txt -- 118,573 distinct states before and after; effects.actions is a declaration table and is not state",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/tickets/HP-04/results/tlc-current-mcsmall.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03 (the epic tip this ticket branched from; TLC green there)",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "hexagonal-prompting-epic"
+  },
+  "created_at_utc": "2026-08-04T15:03:52.942975+00:00",
+  "entry_name": "ticket-003-HP-04",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "git": {
+    "branch": "feature/HP-04",
+    "commit": "2896952",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/HP-04/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/HP-04/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/HP-04/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/HP-04/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/HP-04/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/architecture_components.yaml",
+            "relative": "architecture_components.yaml",
+            "source": "specs/tickets/HP-04/desired/architecture_components.yaml"
+          },
+          {
+            "destination": "specs/current/architecture_map.yaml",
+            "relative": "architecture_map.yaml",
+            "source": "specs/tickets/HP-04/desired/architecture_map.yaml"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/HP-04/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/kill_mutants.toml",
+            "relative": "kill_mutants.toml",
+            "source": "specs/tickets/HP-04/desired/kill_mutants.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/HP-04/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/HP-04/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_kill_test_adapter.py",
+            "relative": "tests/test_tla_spec_dev_kill_test_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_kill_test_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/HP-04/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tlc_projection.py",
+            "relative": "tlc_projection.py",
+            "source": "specs/tickets/HP-04/desired/tlc_projection.py"
+          }
+        ],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/HP-04/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/HP-04"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "Searched, and the one candidate was rejected on measurement rather than on taste. The added declaration is `spec_tree_delete` on `RunEffectConformance` -- one existing port on one existing action. The refinement question is whether the DELETE can be avoided so the declaration is not needed at all, and three alternatives were considered: (1) leave the work directory persistent -- rejected, that IS the defect (MF026-R4-F-01, 20 / 19 / 19 gaps and 9 / 10 / 10 dead ports over an identical corpus, measured at the epic tip in determinism-two-runs.txt); (2) give each RUN a fresh subdirectory instead of resetting the per-case one -- rejected: no delete, but the work root then grows without bound inside the user's spec tree, and every gap message carries the run id, so two runs could agree on a COUNT while no two reports were comparable. HP-04's own kill-table harness reported 10 of 10 false kills for exactly that reason before it was fixed; (3) move the default work directory to the system temp, as `run_generated_case_adapters` already does -- rejected: it costs the SAME one-row manifest edit in the other direction (`spec_tree` would become a false declaration on that row) and loses the stable paths that make two reports comparable. No option removes the manifest edit; option (1) is the defect and options (2) and (3) cost the same edit and buy less. State-space cost of the chosen option is zero: TLC enumerates 118,573 distinct states before and after.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/adapter-reach.txt",
+      "source": "specs/tickets/HP-04/results/adapter-reach.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/scaffolded-project.txt",
+      "source": "specs/tickets/HP-04/results/scaffolded-project.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/dead-ports-reread.txt",
+      "source": "specs/tickets/HP-04/results/dead-ports-reread.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/determinism-two-runs.txt",
+      "source": "specs/tickets/HP-04/results/determinism-two-runs.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/cmf5-baseline.txt",
+      "source": "specs/tickets/HP-04/results/cmf5-baseline.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/cmf5-after.txt",
+      "source": "specs/tickets/HP-04/results/cmf5-after.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/real-and-fake.txt",
+      "source": "specs/tickets/HP-04/results/real-and-fake.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/kill-table.txt",
+      "source": "specs/tickets/HP-04/results/kill-table.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/goal-signal.txt",
+      "source": "specs/tickets/HP-04/results/goal-signal.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/narrative.md",
+      "source": "specs/tickets/HP-04/results/narrative.md"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/suite-comparison.txt",
+      "source": "specs/tickets/HP-04/results/suite-comparison.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/pytest-full.txt",
+      "source": "specs/tickets/HP-04/results/pytest-full.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/spec-unit-tests.txt",
+      "source": "specs/tickets/HP-04/results/spec-unit-tests.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/results/tlc-current-mcsmall.txt",
+      "source": "specs/tickets/HP-04/results/tlc-current-mcsmall.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "degraded",
+      "evidence": "specs/tickets/HP-04/results/adapter-reach.txt, specs/tickets/HP-04/results/determinism-two-runs.txt",
+      "status": "unobservable",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "the shipped kill test was not run; HP-04's own per-class per-arm mutant table over HP-01's catalogue is in specs/tickets/HP-04/results/kill-table.txt and is 0 of 10 on the oracle arms",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": {
+    "close_out_entries": 76,
+    "close_out_entry": "Close-out ticket HP-04",
+    "declared_status": "unreviewed",
+    "deferred_validation": [],
+    "feedback_repository": "spec-double-compiler / tla-spec-dev",
+    "filed": false,
+    "filed_where": [],
+    "findings": [
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/current/production_adapters.py::SkillFeedbackCloseOutAdapter",
+        "filed": false,
+        "id": "SF-001",
+        "observed_on": "tla-spec-dev @ MF-017 (SkillFeedbackCloseOutAdapter)",
+        "recommendation": "(none yet) \u2014 recommend a `--tickets N` option on",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/scaffold_spec_workflow.py \u2014 emitted desired_program_model/ticket_plan.yaml",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/105) \u2014 scaffolded fixture workflow cannot exercise two consecutive closes"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-002",
+        "observed_on": "tla-spec-dev @ MF-017",
+        "recommendation": "(none yet) \u2014 recommend the close path diff prescribed",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 per-ticket",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/106) \u2014 plan prescribed model state that implementation showed to be wrong"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-017/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-003",
+        "observed_on": "tla-spec-dev @ MF-017 (specs/current/spec_manifest.yaml)",
+        "recommendation": "(none yet) \u2014 recommend the promotion report also enumerate",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "manual-workaround",
+        "status": "filed",
+        "target": "scripts/spec_evolution.py::promote_current_tree \u2014 promotion report",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/107) \u2014 promotion silently discards edits to seeded specs/current files"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-004",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 the parse bug is fixed, but the SHAPE of the",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "silent-wrong-result",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::_parse_list",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/108) \u2014 the minimal YAML fallback parser could not read the repository's own manifests"
+      },
+      {
+        "category": "docs-and-examples",
+        "evidence": "specs/tickets/MF-014/results/deferred-validations.md",
+        "filed": false,
+        "id": "SF-005",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 recommend the reference text state explicitly",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "references/examples.md:48, references/edge-cases.md:84,",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/109) \u2014 a corpus documented in four places as committed is not committed"
+      },
+      {
+        "category": "budget-and-metric",
+        "evidence": "specs/tickets/MF-014/results/complexity-ledger.md",
+        "filed": false,
+        "id": "SF-006",
+        "observed_on": "tla-spec-dev @ MF-014",
+        "recommendation": "(none yet) \u2014 reinforces SF-002. A scope replacement should be",
+        "reference": null,
+        "root_cause": "spec",
+        "severity": "friction",
+        "status": "filed",
+        "target": "specs/desired_program_model/ticket_plan.yaml \u2014 MF-014",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/110) \u2014 plan prescribed model state for a scope that had been withdrawn"
+      },
+      {
+        "category": "profile-schema-cli",
+        "evidence": "specs/.history/modular-fuzzing-epic/ticket-006-MF-013/results/manifest_parser_disagreement.txt",
+        "filed": false,
+        "id": "SF-007",
+        "observed_on": "tla-spec-dev @ MF-013, specs/current/spec_manifest.yaml inherited from epic tip 1dcce07 (written by MF-015)",
+        "recommendation": "SF-004's recommendation, unactioned since MF-014, is what",
+        "reference": null,
+        "root_cause": "tool",
+        "severity": "blocks-migration",
+        "status": "filed",
+        "target": "scripts/extract_spec_manifest.py::load_manifest vs scripts/budgets.py::_read_manifest vs the PyYAML parse on the close path",
+        "title": "(filed: https://github.com/haydenrear/tla-spec-dev/issues/111) \u2014 three manifest parsers disagreed on the repository's own manifest, and the strictest one blocked close"
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex5-run4/artifacts/reexport_attack/",
+        "filed": false,
+        "id": "SF-101",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-03 -- resolve first-party-ness against the project root",
+        "reference": null,
+        "root_cause": "",
+        "severity": "major",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt",
+        "filed": false,
+        "id": "SF-102",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-02 -- a lever that treats an unused provider on a",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-103",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-04 -- write the report with an explicit \"no effect",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run6/scoring.md",
+        "filed": false,
+        "id": "SF-104",
+        "observed_on": "",
+        "recommendation": "EV-03-DF-05 -- name a declaration the run did not use (a fact,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "examples/validation/runs/ex4-run4/scoring.md",
+        "filed": false,
+        "id": "SF-105",
+        "observed_on": "",
+        "recommendation": "EV-02-DF-05 -- state an absolute interpreter path, or declare",
+        "reference": null,
+        "root_cause": "",
+        "severity": "minor",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-201",
+        "observed_on": "",
+        "recommendation": "add `tlc_report:` to the scaffolded ledger input with the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-202",
+        "observed_on": "",
+        "recommendation": "either add a scope that includes the desired tree, or stop",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-203",
+        "observed_on": "",
+        "recommendation": "owner's call whether the step is real. If it is, make the",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-301",
+        "observed_on": "",
+        "recommendation": "put the resolved spec directory and the repository root on",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-302",
+        "observed_on": "",
+        "recommendation": "call `adapter_accepts_case` and record a SKIP with its reason,",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-303",
+        "observed_on": "",
+        "recommendation": "name `--state-projector` in the cap-refusal message as a third",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      },
+      {
+        "category": "",
+        "evidence": "",
+        "filed": false,
+        "id": "SF-304",
+        "observed_on": "",
+        "recommendation": "ship the check (or its convention) with the scaffolded",
+        "reference": null,
+        "root_cause": "",
+        "severity": "",
+        "status": "recorded-local",
+        "target": "",
+        "title": ""
+      }
+    ],
+    "findings_filed": 0,
+    "findings_total": 26,
+    "findings_unfiled": [
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-001",
+      "SF-002",
+      "SF-003",
+      "SF-004",
+      "SF-005",
+      "SF-006",
+      "SF-007",
+      "SF-101",
+      "SF-102",
+      "SF-103",
+      "SF-104",
+      "SF-105",
+      "SF-201",
+      "SF-202",
+      "SF-203",
+      "SF-301",
+      "SF-302",
+      "SF-303",
+      "SF-304"
+    ],
+    "path": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-HP-04/specs/results/skill_feedback.md",
+    "prompt_sections": [
+      "surviving-mutants",
+      "unmodelable-effects",
+      "budget-and-metric",
+      "profile-schema-cli"
+    ],
+    "resolved": false,
+    "role": "skill_feedback",
+    "template_emitted": false
+  },
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/ticket",
+      "source": "specs/tickets/HP-04"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "The effect oracle runs: it loads a scaffolded project's adapters unaided, skips and names what it cannot drive, and reports the same numbers twice. CM-F5 closed. The mutant matrix moved by zero cells, exactly as HP-01 predicted.",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The oracle loads the adapters of a freshly scaffolded project without the caller adjusting sys.path.",
+        "An adapter that cannot execute a case is SKIPPED AND REPORTED, never aborting the run.",
+        "Two runs over an identical corpus report an identical gap count. A nondeterministic oracle is a finding, however good its first run.",
+        "A slice narrower than its view runs end to end with no owner writing the author a file, and any derived mapping states which oracles it does NOT carry."
+      ],
+      "close_note": "ALL FOUR ASSERTIONS MET, AND THE HEADLINE RESULT IS THE ONE HP-01 PREDICTED WOULD BE UNFLATTERING: THE MUTANT MATRIX MOVED BY ZERO CELLS. Assertion 1: `run effect-conformance --target specs/current` runs with no PYTHONPATH. Also demonstrated on a project this CLI freshly scaffolded (scaffolded-project.txt), whose mapping uses a different convention again -- `specs.program_model.adapters:X` rather than the bare `production_adapters:X` this repository uses. Both resolve. Assertion 2: the oracle reports on 18 of 18 modeled actions and DRIVES 8. The 10 it does not drive are named with a machine-readable reason: 9 `not-runnable` (apply() and no run(case, work_dir)) and 1 `unbound` (Stutter, deliberately not bound). Skips enter no verdict per no_new_gates_rule and are impossible to miss. A SECOND abort was found on the way and closed the same way: an adapter that ACCEPTS a case and then RAISES used to kill the run on case 1 of 148; it is now collected per case and FAILS the run as `adapter_error`, which is not a new gate because the run already failed by crashing. Assertion 3: 20 / 20 / 20 gaps over three runs of an identical corpus sharing one work dir, with the WHOLE report identical, not merely the count. The same corpus on the epic-tip oracle gives 20 / 19 / 19 gaps and 9 / 10 / 10 dead ports. Assertion 4: the ex4 slice executes 50 cases against `specs/program_model/case_adapters.toml` -- the mapping the fixture already ships -- with no third file. Every run with semantic providers now states which oracles it CARRIES (port -> provider, so a silent provider and a content-asserting one can be told apart) and which it does NOT, with \"treat its kill count as a FLOOR\", in the run output rather than only in documentation. THE KILL TABLE, per class per arm, and it is a zero. oracle-before produced NO REPORT on the control and on all 10 mutants -- the instrument was not merely blind, it was unciteable. oracle-after kills 0 of 10, every class. M10, seeded by HP-01 into this ticket's own blind spot, SURVIVES: prediction N05 confirmed, \"visible without being killable\". The corpus runner (unchanged by this ticket) kills the positive control M07 and the cross-aspect M08, and 0 of 3 guard relaxation and 0 of 2 durable content. THE COUNTERFACTUAL IS THE USEFUL PART. Bind the SAME action to an adapter whose only difference is that it has a run(case, work_dir), and M10 dies on 8 of 8 cases. The oracle's reach was never what limited detection; nine missing methods are. Filed as HP-04-DF-01 with the measurement attached, because a survivor on its own reads as \"HP-04 did not help\". A SEVEN-OF-NINE CORRECTION, found by running rather than by reading. RC-02 reported 9 DEAD PORTS for this model. Only `cli_download` and `cli_artifact_delete` are proven dead; the other 7 are UNEXERCISED -- every action declaring them was skipped. A manifest edit made on the strength of that column would have removed live surface. AND ONE MORE BLIND SPOT, found the same way. `EffectSandbox` never patched `Path.open`, so `path.open(\"a\")` -- the idiomatic durable append -- crossed the boundary unobserved while `open(path, \"a\")` was recorded. It surfaced because the oracle \"killed\" the ORDERING NEGATIVE CONTROL: M09 swaps that append for a `Path.write_text`, so the oracle detected a change of API rather than of behavior. Patched; M09 now survives, as its own prediction says it should. Observed-effect counts rise (67 -> 84) because the oracle now sees writes it used to miss. MODEL DELTA, DECLARED RATHER THAN SLIPPED IN, against a `model_delta_expectation` of \"none expected\". `spec_tree_delete` is attached to `RunEffectConformance` because resetting the per-case work directory is a real `filesystem.delete` under `**/specs/**`, and this manifest's own rule says an undeclared effect on a modeled action path is a gap. Surface cost per surface_cost_rule: ZERO -- no new port (it is already declared and already exercised by CloseTicket, CloseTicketWeakened and GenerateCases), no new action, no new variable, and no change to the TLA state space; TLC enumerates 118,573 distinct states before and after. What it buys is assertion 3. FOUR FINDINGS FILED, NONE FIXED: HP-04-DF-01 (the nine missing run() implementations, with the counterfactual), HP-04-DF-02 (one boundary, two incompatible `effects:` schemas -- the reason the M10 instrument needed a manifest of its own), HP-04-DF-03 (a generated corpus recovers NO arguments for a refusal -- HP-03's territory, replicated on a second model), HP-04-DF-04 (`open ticket` snapshots the oracle's scratch tree into the ticket and `close ticket` would promote it into the model; measured at 706 of 801 tracked files on this ticket's own first workspace). MEASURED AND UNFLATTERING, recorded here rather than only in the fixture: the first version of this ticket's own kill-table harness reported 10 of 10 KILLED on every class, including the negative control. It was comparing reports that carried differently-named temp directories. The flattering number was the bug.",
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run effect-conformance --cases-dir <corpus>"
+      ],
+      "evidence": [
+        "specs/tickets/HP-04/results/adapter-reach.txt",
+        "specs/tickets/HP-04/results/scaffolded-project.txt",
+        "specs/tickets/HP-04/results/dead-ports-reread.txt",
+        "specs/tickets/HP-04/results/determinism-two-runs.txt",
+        "specs/tickets/HP-04/results/cmf5-baseline.txt",
+        "specs/tickets/HP-04/results/cmf5-after.txt",
+        "specs/tickets/HP-04/results/real-and-fake.txt",
+        "specs/tickets/HP-04/results/kill-table.txt",
+        "specs/tickets/HP-04/results/goal-signal.txt",
+        "specs/tickets/HP-04/results/suite-comparison.txt",
+        "specs/tickets/HP-04/results/pytest-full.txt",
+        "specs/tickets/HP-04/results/spec-unit-tests.txt",
+        "specs/tickets/HP-04/results/tlc-current-mcsmall.txt"
+      ]
+    },
+    "blocks": [
+      "HP-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/effect_conformance.py",
+        "scripts/run_generated_case_adapters.py",
+        "tests/test_effect_conformance.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/case_modules.md"
+      ]
+    },
+    "depends_on": [
+      "HP-01"
+    ],
+    "desired_actions": [],
+    "github_issue": null,
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The oracle sees 18 of 18 actions instead of 8, and a hand-written slice executes. More of the corpus reaching real adapters is the mechanism by which D1 can move at all.",
+        "goal": "GOAL-catch-bugs",
+        "local_signal": "run effect-conformance twice over the same corpus; the gap count must be identical"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "An adapter swappable for a fake with the same cases passing is D3 anchor 4; this ticket is what makes that runnable.",
+        "goal": "GOAL-hexagonal-in-fact",
+        "local_signal": "run one aspect's corpus against a real adapter and a fake"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-simpler-same-behavior",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "HP-04",
+    "implementation_scope": [
+      "scripts/effect_conformance.py",
+      "scripts/run_generated_case_adapters.py",
+      "references/case_modules.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "STATED, not \"none\". These are defects in the harness, and the harness fix made one previously-absent effect real: the oracle now DELETES its per-case work directory before each case, under `**/specs/**`. That owes a port by the manifest's own rule, so `spec_tree_delete` is attached to `RunEffectConformance` in all three trees with the `@port` mirror. Per surface_cost_rule: zero new ports, actions or variables, and no change to the state space (effects.actions is a declaration table; TLC enumerates 118,573 distinct states before and after). What it buys is the ticket's own assertion 3 -- a gap count two runs can agree on.",
+    "objective": "The adapters are the half that catches bugs, and three measured defects stop them. All three were found by RUNNING the oracle for the first time in the project's history, not by inspecting it. RC-02-DF-02: the oracle never puts the target spec dir on sys.path, so it cannot import the `case_adapters.toml` convention the CLI itself scaffolds. It cannot read a project it created. RC-02-DF-03: it never consults `can_run` and aborts the whole run on the first apply()-only adapter. NINE OF SEVENTEEN adapters in this model are apply()-only, so it sees 8 of 18 actions. MF026-R4-F-01: the gap count is NOT REPRODUCIBLE -- 20 / 15 / 14 across three runs of an identical corpus, a 43% spread on the number that would gate, because a work directory persists between runs. Any claim resting on that number is currently unciteable. Plus CM-F5, still open and still the cheapest outside-in artifact: a slice narrower than its view orphans the view's effect providers, both shipped mappings bind the port, so a slice has ZERO working configurations and the documented workaround needs a third file that exists nowhere. A round-2 blind agent lost 3 of its 15 actions to it and had to author that file -- and observed that the mapping it wrote is a STRICTLY WEAKER instrument with no durable-write oracle, so a green slice run over-reads.",
+    "promotion_order": 40,
+    "promotion_predecessor": "HP-03",
+    "schedule_revision": 1,
+    "status": "done",
+    "title": "Make the adapters actually run: load a scaffolded project's adapters, skip what cannot execute, run a slice",
+    "wave": 2
+  },
+  "ticket_id": "HP-04",
+  "ticket_index": 3,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "done",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/hexagonal-prompting-epic/ticket-003-HP-04/ticket",
+    "source": "specs/tickets/HP-04"
+  },
+  "workflow_name": "hexagonal-prompting-epic"
+}

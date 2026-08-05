@@ -1,0 +1,57 @@
+
+=== specs/current/kill_mutants.toml -- 28 mutants ===
+  port-case_work_dir_delete
+    path            scripts/effect_conformance.py
+    find occurrences 1   OK   (line 1685)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'effect_conformance'   refine_action 'RunEffectConformance'
+  port-case_program_process
+    path            scripts/run_generated_case_adapters.py
+    find occurrences 1   OK   (line 2178)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'ticket_state'   refine_action 'RunSpecUnitTests'
+
+=== specs/program_model/kill_mutants.toml -- 28 mutants ===
+  port-case_work_dir_delete
+    path            scripts/effect_conformance.py
+    find occurrences 1   OK   (line 1685)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'effect_conformance'   refine_action 'RunEffectConformance'
+  port-case_program_process
+    path            scripts/run_generated_case_adapters.py
+    find occurrences 1   OK   (line 2178)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'ticket_state'   refine_action 'RunSpecUnitTests'
+
+=== specs/desired_program_model/kill_mutants.toml -- 28 mutants ===
+  port-case_work_dir_delete
+    path            scripts/effect_conformance.py
+    find occurrences 1   OK   (line 1685)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'effect_conformance'   refine_action 'RunEffectConformance'
+  port-case_program_process
+    path            scripts/run_generated_case_adapters.py
+    find occurrences 1   OK   (line 2178)
+    replace differs  True
+    applies          True
+    reverts byte-for-byte True
+    refine_variable  'ticket_state'   refine_action 'RunSpecUnitTests'
+
+=== port mutants vs specs/current/spec_manifest.yaml `justification` ===
+  linked in a variable's kill_tests (4): ['port-cli_artifact', 'port-evidence_report', 'port-spec_tree', 'port-test_process']
+  NOT linked (10): ['port-case_program_process', 'port-case_work_dir_delete', 'port-cli_artifact_delete', 'port-cli_download', 'port-cli_selftest_process', 'port-corpus_process', 'port-git_metadata', 'port-mutation_write', 'port-runner_process', 'port-spec_tree_delete']
+
+=== declared ports (14) vs port mutants (14) ===
+  ports with no seeded mutant: NONE
+
+RESULT: all new mutants apply and revert cleanly

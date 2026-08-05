@@ -1,0 +1,2827 @@
+diff --git a/scripts/effect_conformance.py b/scripts/effect_conformance.py
+index c16cd9a..51d21ff 100644
+--- a/scripts/effect_conformance.py
++++ b/scripts/effect_conformance.py
+@@ -61,0 +62,27 @@ Three surfaces:
++4. **Execution.** :func:`execute_corpus` drives a generated case corpus through
++   the mapped adapters inside the sandbox. HP-04 moved it here from the CLI
++   shim, because running it for the first time in the project's history found
++   three defects that four rounds of *reading* the oracle had not:
++
++   - **It could not import the adapters of a project the CLI itself
++     scaffolds** (RC-02-DF-02). ``case_adapters.toml`` names adapters as bare
++     module paths (``production_adapters:BuildSkillCliAdapter``) and nothing
++     put the target spec directory on ``sys.path``, so the very first run died
++     with ``ModuleNotFoundError`` before a single case executed.
++     :func:`corpus_import_roots` now builds the same root set the enforcing
++     runner gets on ``PYTHONPATH``.
++   - **It aborted the whole run on the first adapter that could not take a
++     case** (RC-02-DF-03). Nine of seventeen adapters in this repository's own
++     model implement ``apply()`` and no ``run(case, work_dir)``. A skip is a
++     **report** (:class:`SkippedCase`), never a refusal, and never silence: the
++     summary line carries the executed/skipped/unbound action counts, and a
++     declared port whose every action was skipped is annotated as UNEXERCISED
++     rather than read as proven dead.
++   - **Its findings were not reproducible** (MF026-R4-F-01): 20 / 15 / 14 gaps
++     across three runs of an identical corpus on an identical tree, because the
++     work directory persisted between runs and an adapter that materializes its
++     own before-state writes a file on the first run that it finds already
++     present on the second. A gap count that moves 43% is not a number anything
++     can cite. :func:`reset_case_work_dir` gives every case an empty directory,
++     so the run is a function of the corpus and the tree and of nothing else.
++
+@@ -93,0 +121 @@ import subprocess
++import sys
+@@ -154,0 +183,5 @@ VERDICT_UNOBSERVABLE = "unobservable"
++#: HP-04: an adapter accepted a case and then raised. Ranked below
++#: ``unobservable`` and above ``gaps`` for the same reason ``unobservable``
++#: outranks both: a diff over a case that blew up mid-way is a statement about a
++#: partial observation set.
++VERDICT_ADAPTER_ERROR = "adapter_error"
+@@ -302,0 +336,54 @@ class OutOfProcessObservation:
++#: HP-04 skip reasons. ``not-runnable`` means the adapter has no case-driven
++#: entry point at all (``apply()`` and no ``run(case, work_dir)``);
++#: ``declined`` means the adapter has one and its own ``can_run``/``validate``
++#: refused this particular case; ``unbound`` means the mapping binds no adapter
++#: for the case's action.
++SKIP_NOT_RUNNABLE = "not-runnable"
++SKIP_DECLINED = "declined"
++SKIP_UNBOUND = "unbound"
++#: The adapter accepted the case and then RAISED. Unlike the three above this
++#: one is a FAILURE and enters ``EffectConformanceReport.ok``. It is recorded
++#: rather than allowed to propagate for the same reason as the others -- one bad
++#: case used to hide every case after it -- but recording a failure is not the
++#: same as forgiving one, and an adapter that blew up has told the run nothing
++#: about the effects its action performs.
++SKIP_ERROR = "error"
++
++
++@dataclass(frozen=True)
++class SkippedCase:
++    """A case the runner did not execute, and why. A REPORT, never a refusal.
++
++    RC-02-DF-03. Before HP-04 the oracle called ``call_adapter`` unconditionally
++    and the first ``apply()``-only adapter raised ``TypeError``, killing the run
++    with no report written -- so a corpus containing any analyze/run/close case
++    produced nothing at all rather than a partial measurement.
++
++    A skip is deliberately **not** a verdict input. The epic's
++    ``no_new_gates_rule`` is explicit that skipping an adapter that cannot
++    execute is a report, and adding it to :attr:`EffectConformanceReport.ok`
++    would be shipping a new blocking check under the cover of a bug fix.
++
++    It is equally deliberately **not silent**. MF-027's whole lesson is that an
++    absence of observation must never read as a clean observation, so the skip
++    count rides in :meth:`EffectConformanceReport.summary` beside the gap count,
++    every skip is rendered with its reason, and a declared port whose every
++    declaring action was skipped is annotated as unexercised rather than
++    presented as proven dead surface.
++    """
++
++    case: str
++    action: str
++    adapter: str
++    reason: str
++    kind: str = SKIP_NOT_RUNNABLE
++
++    def describe(self) -> str:
++        adapter = self.adapter or "<unbound>"
++        head = "ADAPTER ERROR" if self.kind == SKIP_ERROR else "SKIPPED"
++        return (
++            f"{head} [{self.kind}]: case {self.case} (action {self.action or '<unmapped>'}) "
++            f"-- adapter {adapter}: {self.reason}"
++        )
++
++
+@@ -579,0 +667,4 @@ class EffectRecorder:
++    #: HP-04 (RC-02-DF-03): cases the runner could not execute, with the reason.
++    #: Like ``unobservable`` this is a fact the run gathered and there is no
++    #: method to withdraw one -- but unlike it, a skip changes no verdict.
++    skipped: list["SkippedCase"] = field(default_factory=list)
+@@ -585,0 +677,4 @@ class EffectRecorder:
++    def record_skip(self, skip: "SkippedCase") -> None:
++        """Record a case the runner did not execute. No ``clear``/``waive``."""
++        self.skipped.append(skip)
++
+@@ -699,0 +795,11 @@ class EffectSandbox:
++        # HP-04: `Path.open` was NOT patched, so `path.open("a")` -- the
++        # idiomatic way to append to a durable file -- crossed the boundary
++        # unobserved while `builtins.open(path, "a")` was recorded. Found by
++        # running the oracle over HP-01's A/B reference: the ordering mutant M09
++        # replaces a `Path.open("a")` append with `Path.write_text`, and the
++        # oracle "killed" it purely because the mutation swapped an INVISIBLE
++        # write for a visible one. An oracle whose observation depends on which
++        # of two equivalent APIs the program picked reports a fact about the
++        # program's style, and the failure direction is the bad one: the more
++        # common idiom was the silent one.
++        self._patch_path_open()
+@@ -741,0 +848,23 @@ class EffectSandbox:
++    def _patch_path_open(self) -> None:
++        """Record ``Path.open`` in a write mode, like ``builtins.open``.
++
++        Same mode test as the ``builtins.open`` patch, so the two idioms are
++        observed identically -- which is the whole point of adding it.
++        """
++        original = getattr(Path, "open", None)
++        if original is None:  # pragma: no cover - defensive
++            return
++        self._originals["Path.open"] = (Path, "open", original)
++        recorder = self.recorder
++
++        def patched(self_path: Path, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
++            if any(char in _WRITE_MODES for char in mode):
++                recorder.record(
++                    ObservedEffect(
++                        type="filesystem.write", target=str(_abspath(self_path)), detail="Path.open"
++                    )
++                )
++            return original(self_path, mode, *args, **kwargs)
++
++        setattr(Path, "open", patched)
++
+@@ -971 +1100,12 @@ class DeadSurface:
+-    """A declared port no case ever exercised. Always a failure."""
++    """A declared port no case ever exercised. Always a failure.
++
++    HP-04 adds :attr:`blocked_by`: the actions that declare this port and whose
++    cases the run SKIPPED (see :class:`SkippedCase`). The verdict is unchanged
++    -- an unexercised port still fails -- but the message is, because "declared
++    but never observed" and "declared, and every action that could have
++    exercised it was skipped" are different claims and only the first is
++    evidence that the surface is dead. Nine of this model's seventeen adapters
++    are ``apply()``-only, so before this annotation the oracle's dead-port list
++    silently mixed proven dead surface with ports nothing had ever been in a
++    position to exercise.
++    """
+@@ -973,0 +1114,2 @@ class DeadSurface:
++    #: Actions declaring this port whose cases were all skipped, if any.
++    blocked_by: tuple[str, ...] = ()
+@@ -975,0 +1118,7 @@ class DeadSurface:
++        if self.blocked_by:
++            return (
++                f"UNEXERCISED PORT (NOT proven dead): port {self.port.qualified} "
++                f"({self.port.type} -> {self.port.target}) -- every action declaring it "
++                f"was SKIPPED by this run: {', '.join(self.blocked_by)}. "
++                "This is an absence of evidence, not evidence of absence."
++            )
+@@ -997,0 +1147,24 @@ class EffectConformanceReport:
++    #: HP-04 (RC-02-DF-03): the cases this run did not execute, with reasons.
++    #: Reported, never a verdict input -- see :class:`SkippedCase`.
++    skipped: list[SkippedCase] = field(default_factory=list)
++    #: HP-04: the modeled actions the corpus offered, whether or not their
++    #: adapters could run. ``executed`` + ``skipped`` action names partition it,
++    #: which is what makes "the oracle sees N of M actions" a statement anyone
++    #: can check against the run instead of against the source.
++    offered_actions: list[str] = field(default_factory=list)
++    executed_actions: list[str] = field(default_factory=list)
++    #: HP-04 (MF026-R4-F-01): the work directory this run used and whether each
++    #: case started from an empty one. A run whose scratch persisted is a run
++    #: whose numbers depend on what ran before it.
++    work_dir: str = ""
++    work_dir_reset: bool = False
++
++    @property
++    def skipped_actions(self) -> list[str]:
++        executed = set(self.executed_actions)
++        return sorted({skip.action for skip in self.skipped if skip.action and skip.action not in executed})
++
++    @property
++    def errored(self) -> list[SkippedCase]:
++        """Cases whose adapter accepted them and then RAISED. A failure."""
++        return [skip for skip in self.skipped if skip.kind == SKIP_ERROR]
+@@ -1010 +1183,14 @@ class EffectConformanceReport:
+-        return not self.gaps and not self.dead_surface and not self.unobservable
++        #
++        # HP-04 deliberately does NOT add `skipped` here. The epic's
++        # no_new_gates_rule says skipping an adapter that cannot execute is a
++        # report, never a refusal, and a bug-fix ticket that quietly turned the
++        # 9 apply()-only adapters in this repository's own model into a hard
++        # failure would have shipped a new blocking check under cover. The skip
++        # is instead impossible to miss: it is in `summary()`, in `render()`,
++        # and it annotates every dead-port finding it could have caused.
++        #
++        # An adapter that RAISED is the one exception, and it is not a new gate:
++        # before HP-04 that exception propagated and killed the whole command,
++        # so the run already failed. Collecting it lets the remaining cases run
++        # and be reported; it does not forgive it.
++        return not self.gaps and not self.dead_surface and not self.unobservable and not self.errored
+@@ -1023,0 +1210,2 @@ class EffectConformanceReport:
++        if self.errored:
++            return VERDICT_ADAPTER_ERROR
+@@ -1031 +1219,5 @@ class EffectConformanceReport:
+-        return (
++        # HP-04: the skip count is APPENDED to the historical summary rather
++        # than folded into it. A reader comparing this line with a pre-HP-04
++        # report should see the same leading counts plus one new fact, not a
++        # reshuffled sentence they have to re-parse.
++        head = (
+@@ -1036,0 +1229,31 @@ class EffectConformanceReport:
++        errored = self.errored
++        if self.skipped or self.offered_actions:
++            head += f", {len(self.skipped) - len(errored)} skipped case(s)"
++        if errored:
++            head += f", {len(errored)} ADAPTER ERROR(S)"
++        return head
++
++    def action_reach(self) -> str:
++        """One line answering "how many actions can this oracle actually see?".
++
++        The question RC-02-DF-03 left open, answered by the run instead of by
++        counting ``hasattr(cls, "run")`` over the mapping by hand.
++        """
++        executed = sorted(set(self.executed_actions))
++        skipped = self.skipped_actions
++        offered = sorted(set(self.offered_actions) | set(executed) | set(skipped))
++        errored = sorted({skip.action for skip in self.errored if skip.action})
++        line = (
++            f"ADAPTER REACH: {len(executed)} of {len(offered)} action(s) in this corpus DRIVEN; "
++            f"{len(skipped)} SKIPPED. Driven: {', '.join(executed) or '(none)'}. "
++            f"Skipped: {', '.join(skipped) or '(none)'}."
++        )
++        if errored:
++            # "Driven" is not "measured": an adapter that raised was called and
++            # told the run nothing, so naming these separately is the difference
++            # between reach and evidence.
++            line += (
++                f" Of the driven, {len(errored)} RAISED on at least one case and are "
++                f"measured by nothing: {', '.join(errored)}."
++            )
++        return line
+@@ -1039,0 +1263,30 @@ class EffectConformanceReport:
++        if self.work_dir:
++            lines.append(
++                f"work dir: {self.work_dir} "
++                + (
++                    "(each case started from an EMPTY directory, so two runs over an "
++                    "identical corpus report identical counts -- MF026-R4-F-01)"
++                    if self.work_dir_reset
++                    else "(NOT reset per case: results may depend on what ran before)"
++                )
++            )
++        if self.skipped or self.offered_actions:
++            lines.append(self.action_reach())
++        errored = self.errored
++        if errored:
++            lines.append("")
++            lines.append(
++                "ADAPTER ERRORS -- these adapters accepted their case and then RAISED. "
++                "This is a FAILURE, not a skip: the run reports every case instead of "
++                "dying on the first, and reports nothing about what these actions do:"
++            )
++            lines.extend(f"  - {skip.describe()}" for skip in errored)
++        reported = [skip for skip in self.skipped if skip.kind != SKIP_ERROR]
++        if reported:
++            lines.append("")
++            lines.append(
++                "SKIPPED CASES -- reported, never a refusal (no_new_gates_rule). The "
++                "oracle certifies NOTHING about the actions below; their ports are "
++                "unexercised by this run rather than proven dead:"
++            )
++            lines.extend(f"  - {skip.describe()}" for skip in reported)
+@@ -1116 +1369,7 @@ class EffectConformanceReport:
+-                {"port": dead.port.qualified, "type": dead.port.type, "target": dead.port.target}
++                {
++                    "port": dead.port.qualified,
++                    "type": dead.port.type,
++                    "target": dead.port.target,
++                    "blocked_by_skipped_actions": list(dead.blocked_by),
++                    "proven_dead": not dead.blocked_by,
++                }
+@@ -1118,0 +1378,41 @@ class EffectConformanceReport:
++            "skipped_cases": [
++                {
++                    "case": skip.case,
++                    "action": skip.action,
++                    "adapter": skip.adapter,
++                    "kind": skip.kind,
++                    "reason": skip.reason,
++                    "message": skip.describe(),
++                }
++                for skip in self.skipped
++            ],
++            "action_reach": {
++                "offered": sorted(set(self.offered_actions) | set(self.executed_actions) | set(self.skipped_actions)),
++                "executed": sorted(set(self.executed_actions)),
++                "skipped": self.skipped_actions,
++                "summary": self.action_reach(),
++            },
++            "determinism": {
++                "work_dir": self.work_dir,
++                "work_dir_reset_per_case": self.work_dir_reset,
++                "note": (
++                    "MF026-R4-F-01: the gap count was 20/15/14 across three runs of an "
++                    "identical corpus because this directory persisted between runs. Each "
++                    "case now starts from an empty one."
++                ),
++            },
++            "adapter_errors": [
++                {
++                    "case": skip.case,
++                    "action": skip.action,
++                    "adapter": skip.adapter,
++                    "reason": skip.reason,
++                }
++                for skip in self.errored
++            ],
++            "skip_policy": (
++                "HP-04: a case whose adapter cannot execute it is SKIPPED AND REPORTED and "
++                "never aborts the run, and the skip enters no verdict -- the epic's "
++                "no_new_gates_rule. It is also never silent: it is in the summary line, in "
++                "the rendered report, and it annotates every dead-port finding it caused"
++            ),
+@@ -1168,0 +1469,5 @@ def diff_effects(
++    skipped: Iterable[SkippedCase] = (),
++    offered_actions: Iterable[str] = (),
++    executed_actions: Iterable[str] = (),
++    work_dir: str = "",
++    work_dir_reset: bool = False,
+@@ -1201,0 +1507 @@ def diff_effects(
++    skipped_list = list(skipped)
+@@ -1208,0 +1515,5 @@ def diff_effects(
++        skipped=skipped_list,
++        offered_actions=list(offered_actions),
++        executed_actions=list(executed_actions),
++        work_dir=work_dir,
++        work_dir_reset=work_dir_reset,
+@@ -1273,0 +1585,4 @@ def diff_effects(
++    # HP-04: which actions were skipped, so a port only those actions declare
++    # can be reported as unexercised rather than as proven dead surface.
++    executed_names = set(report.executed_actions)
++    skipped_names = {skip.action for skip in skipped_list if skip.action and skip.action not in executed_names}
+@@ -1275 +1590,13 @@ def diff_effects(
+-        if name not in exercised:
++        if name in exercised:
++            continue
++        declaring = sorted(
++            action for action, ports in declarations.action_ports.items() if name in ports
++        )
++        blocked = tuple(action for action in declaring if action in skipped_names)
++        # Only an annotation when EVERY declaring action was skipped. If even
++        # one ran and did not exercise the port, the run does carry evidence and
++        # softening the message would be the absence-of-evidence mistake in the
++        # other direction.
++        if declaring and len(blocked) == len(declaring):
++            report.dead_surface.append(DeadSurface(port=decl, blocked_by=blocked))
++        else:
+@@ -1278,0 +1606,233 @@ def diff_effects(
++
++
++# ---------------------------------------------------------------------------
++# Execution (HP-04). Moved here from `scripts/effect_conformance_report.py` so
++# the oracle's own module owns the loop, and so the three defects below have one
++# place to be fixed rather than one per caller.
++# ---------------------------------------------------------------------------
++
++#: The repository root, i.e. the directory holding ``scripts/`` and
++#: ``spec_double_compiler/``. Scaffolded adapters import ``CaseRunResult`` from
++#: the latter, so it belongs on every import path the oracle builds.
++_TOOLCHAIN_ROOT = Path(__file__).resolve().parents[1]
++
++
++def corpus_import_roots(spec_dir: Path, extra: Iterable[Path] = ()) -> list[Path]:
++    """The import roots a scaffolded project's adapters need. RC-02-DF-02.
++
++    ``case_adapters.toml`` -- the file ``tla-spec-dev scaffold`` writes -- names
++    adapters as bare module paths such as
++    ``production_adapters:BuildSkillCliAdapter``. Those resolve only with the
++    target spec directory on ``sys.path``.
++
++    The enforcing runner already gets exactly this set: ``run spec-unit-tests``
++    spawns ``scripts/run_generated_case_adapters.py`` with
++    ``PYTHONPATH=<target dir>:<repo root>:<toolchain root>``
++    (``scripts/tla_spec_dev.py``, ``command_env``). The standalone oracle built
++    none of it, which made it the only one of the pair that could not read a
++    project the CLI itself created -- the exact inverse of the documented
++    relationship between them. The order here mirrors ``command_env``: the spec
++    dir first, so a project's own module wins over a same-named one in the
++    toolchain.
++    """
++    roots: list[Path] = []
++    for candidate in (Path(spec_dir), *[Path(item) for item in extra], Path.cwd(), _TOOLCHAIN_ROOT):
++        try:
++            resolved = candidate.resolve()
++        except OSError:  # pragma: no cover - defensive
++            continue
++        if resolved not in roots:
++            roots.append(resolved)
++    return roots
++
++
++def ensure_import_roots(roots: Iterable[Path]) -> list[str]:
++    """Put ``roots`` at the front of ``sys.path``; return the ones added.
++
++    Front, not back: a scaffolded project's ``production_adapters`` must win
++    over anything already importable under that name, or the oracle silently
++    measures the wrong program.
++    """
++    added: list[str] = []
++    for root in reversed(list(roots)):
++        text = str(root)
++        if text in sys.path:
++            continue
++        sys.path.insert(0, text)
++        added.append(text)
++    return added
++
++
++def reset_case_work_dir(work_dir: Path, case_name: str) -> Path:
++    """Return an EMPTY directory for ``case_name`` under ``work_dir``.
++
++    MF026-R4-F-01. The oracle's gap count was 20 / 15 / 14 across three runs of
++    an identical corpus on an identical tree -- a 43% spread on the number that
++    would gate anything -- and the cause was this directory surviving between
++    runs. Adapters materialize their own before-state by replaying CLI commands
++    into ``<case>/target-repo``; a scaffold command writes a file on a cold run
++    and finds it already present on a warm one, so the cold run observes a
++    ``filesystem.write`` the warm run does not. That is a gap that exists
++    because of what ran yesterday.
++
++    Only the per-case subdirectory is removed, and only under a directory the
++    oracle owns. Recreating it is what makes the run a function of the corpus
++    and the tree; leaving the parent alone is what keeps ``--work-dir`` a
++    directory the caller can point anywhere without the oracle emptying it.
++    """
++    case_dir = Path(work_dir) / case_name
++    if case_dir.exists():
++        shutil.rmtree(case_dir)
++    case_dir.mkdir(parents=True, exist_ok=True)
++    return case_dir
++
++
++def _case_action_name(case: Any) -> str:
++    """The action a generated case exercises, from the case's own input."""
++    action = getattr(getattr(case, "input", None), "action", None)
++    if isinstance(action, str) and action:
++        return action
++    for label in sorted(getattr(case, "labels", ()) or ()):
++        if isinstance(label, str) and label and ":" not in label:
++            return label
++    return ""
++
++
++@dataclass
++class CorpusExecution:
++    """What one corpus execution produced, beside the recorded effects."""
++
++    cases: list[str] = field(default_factory=list)
++    offered_actions: list[str] = field(default_factory=list)
++    executed_actions: list[str] = field(default_factory=list)
++    work_dir: Path | None = None
++    import_roots: list[str] = field(default_factory=list)
++
++
++def adapter_skip_reason(adapter: Any, case: Any) -> tuple[str, str] | None:
++    """Why ``adapter`` cannot run ``case``, or ``None`` if it can. RC-02-DF-03.
++
++    Two distinct facts, kept distinct because they mean different things about
++    the model:
++
++    * **no case-driven entry point at all** -- the adapter implements
++      ``apply()`` and no ``run(case, work_dir)``. Nine of this repository's own
++      seventeen bound adapters are in this state, so the oracle can execute at
++      most 8 of 18 modeled actions, and that is a fact about the ADAPTERS.
++    * **the adapter declined this case** -- it has a ``run`` and its own
++      ``can_run``/``validate`` refused this particular input. That is a fact
++      about the CASE, and it is the check ``run_generated_case_adapters``
++      already applies before executing anything.
++    """
++    from spec_double_compiler.runtime import adapter_accepts_case
++
++    if getattr(adapter, "run", None) is None:
++        return (
++            SKIP_NOT_RUNNABLE,
++            "adapter defines apply() but no run(case, work_dir), so no case can drive it; "
++            "the oracle observes nothing for this action",
++        )
++    accepted, reason = adapter_accepts_case(adapter, case)
++    if not accepted:
++        return (SKIP_DECLINED, reason or "adapter can_run() declined this case")
++    return None
++
++
++def execute_corpus(
++    *,
++    spec_dir: Path,
++    cases_dirs: Iterable[Path],
++    mapping_path: Path,
++    work_dir: Path,
++    recorder: EffectRecorder,
++    import_roots: Iterable[Path] = (),
++) -> CorpusExecution:
++    """Run each mapped adapter for each case in the sandbox.
++
++    The whole loop, with all three HP-04 repairs applied in one place:
++    :func:`corpus_import_roots` before the first import, :func:`reset_case_work_dir`
++    before each case, and :func:`adapter_skip_reason` instead of an unconditional
++    ``call_adapter``.
++    """
++    from run_generated_case_adapters import adapter_for_case, load_cases, load_mappings
++    from spec_double_compiler.runtime import call_adapter, instantiate, load_object
++
++    execution = CorpusExecution(work_dir=Path(work_dir))
++    execution.import_roots = ensure_import_roots(corpus_import_roots(Path(spec_dir), import_roots))
++
++    mappings = load_mappings(Path(mapping_path))
++    work_root = Path(work_dir)
++    work_root.mkdir(parents=True, exist_ok=True)
++
++    adapter_cache: dict[str, Any] = {}
++    for cases_dir in cases_dirs:
++        module = load_cases(Path(cases_dir))
++        for case in module.CASES:
++            mapping = adapter_for_case(case, mappings)
++            # An UNBOUND case still has an action -- that is the whole point of
++            # reporting it -- so the name comes from the case itself when the
++            # mapping has nothing to offer.
++            action = mapping.label if mapping is not None else _case_action_name(case)
++            if action:
++                execution.offered_actions.append(action)
++            if mapping is None or mapping.adapter is None:
++                # An unbound action is a fact about the mapping, and before
++                # HP-04 it was passed over in silence -- indistinguishable in
++                # the report from an action that ran clean.
++                recorder.record_skip(
++                    SkippedCase(
++                        case=case.name,
++                        action=action,
++                        adapter="",
++                        reason="no adapter is bound for this action in " + Path(mapping_path).name,
++                        kind=SKIP_UNBOUND,
++                    )
++                )
++                continue
++            adapter = adapter_cache.get(mapping.adapter)
++            if adapter is None:
++                adapter = instantiate(load_object(mapping.adapter))
++                adapter_cache[mapping.adapter] = adapter
++            skip = adapter_skip_reason(adapter, case)
++            if skip is not None:
++                kind, reason = skip
++                recorder.record_skip(
++                    SkippedCase(
++                        case=case.name,
++                        action=mapping.label,
++                        adapter=mapping.adapter,
++                        reason=reason,
++                        kind=kind,
++                    )
++                )
++                continue
++            case_dir = reset_case_work_dir(Path(work_dir), case.name)
++            sandbox = EffectSandbox(root=case_dir / "sandbox", recorder=recorder)
++            execution.cases.append(case.name)
++            execution.executed_actions.append(mapping.label)
++            # MF-027: same assessment as the enforcing copy in
++            # run_generated_case_adapters. Both runners refuse; neither is the
++            # lenient one.
++            sandbox.require_observable(
++                mapping.adapter or mapping.label,
++                resolved=adapter,
++                runtime=getattr(mapping, "runtime", None),
++                kind=mapping.kind,
++                channel=mapping.channel,
++            )
++            try:
++                with sandbox, sandbox.observe(action=mapping.label, case=case.name):
++                    call_adapter(adapter, case, case_dir)
++            except Exception as exc:  # noqa: BLE001 -- reported, not swallowed
++                # One bad case used to hide every case after it. Collect it,
++                # keep going, and FAIL the run: see SKIP_ERROR.
++                recorder.record_skip(
++                    SkippedCase(
++                        case=case.name,
++                        action=mapping.label,
++                        adapter=mapping.adapter,
++                        reason=f"{type(exc).__name__}: {exc}",
++                        kind=SKIP_ERROR,
++                    )
++                )
++    return execution
+diff --git a/scripts/effect_conformance_report.py b/scripts/effect_conformance_report.py
+index f0ed22d..43f145d 100644
+--- a/scripts/effect_conformance_report.py
++++ b/scripts/effect_conformance_report.py
+@@ -30 +29,0 @@ from pathlib import Path
+-from typing import Any
+@@ -36,0 +36 @@ from effect_conformance import (  # noqa: E402
++    CorpusExecution,
+@@ -39,0 +40 @@ from effect_conformance import (  # noqa: E402
++    execute_corpus,
+@@ -91 +92 @@ def run(args: argparse.Namespace) -> int:
+-    observed_cases: list[str] = []
++    execution = CorpusExecution()
+@@ -97 +98 @@ def run(args: argparse.Namespace) -> int:
+-        _execute_corpus(args, spec_dir, cases_dirs, recorder, observed_cases)
++        execution = _execute_corpus(args, spec_dir, cases_dirs, recorder)
+@@ -102 +103 @@ def run(args: argparse.Namespace) -> int:
+-        cases=observed_cases,
++        cases=execution.cases,
+@@ -103,0 +105,5 @@ def run(args: argparse.Namespace) -> int:
++        skipped=recorder.skipped,
++        offered_actions=execution.offered_actions,
++        executed_actions=execution.executed_actions,
++        work_dir=str(execution.work_dir) if execution.work_dir else "",
++        work_dir_reset=ran_corpus,
+@@ -134,12 +140,11 @@ def _execute_corpus(
+-    observed_cases: list[str],
+-) -> None:
+-    """Run the mapped adapters for each case package inside the sandbox."""
+-    from run_generated_case_adapters import (
+-        AdapterMapping,  # noqa: F401  (re-exported for callers/tests)
+-        adapter_for_case,
+-        load_cases,
+-        load_mappings,
+-    )
+-    from effect_conformance import EffectSandbox
+-    from spec_double_compiler.runtime import call_adapter, instantiate, load_object
+-
++) -> CorpusExecution:
++    """Resolve this invocation's paths and hand the loop to the oracle.
++
++    HP-04 moved the loop itself into ``effect_conformance.execute_corpus``. The
++    three defects it carried -- no ``sys.path`` for the target project
++    (RC-02-DF-02), an abort on the first ``apply()``-only adapter
++    (RC-02-DF-03), and a work directory that survived between runs
++    (MF026-R4-F-01) -- were all defects of the loop, and leaving it in the CLI
++    shim is what let them be invisible to four rounds of reading the oracle's
++    own module.
++    """
+@@ -147 +151,0 @@ def _execute_corpus(
+-    mappings = load_mappings(mapping_path)
+@@ -149,29 +153,7 @@ def _execute_corpus(
+-    work_dir.mkdir(parents=True, exist_ok=True)
+-
+-    adapter_cache: dict[str, Any] = {}
+-    for cases_dir in cases_dirs:
+-        module = load_cases(cases_dir)
+-        for case in module.CASES:
+-            mapping = adapter_for_case(case, mappings)
+-            if mapping is None or mapping.adapter is None:
+-                continue
+-            adapter = adapter_cache.get(mapping.adapter)
+-            if adapter is None:
+-                adapter = instantiate(load_object(mapping.adapter))
+-                adapter_cache[mapping.adapter] = adapter
+-            case_dir = work_dir / case.name
+-            case_dir.mkdir(parents=True, exist_ok=True)
+-            sandbox = EffectSandbox(root=case_dir / "sandbox", recorder=recorder)
+-            observed_cases.append(case.name)
+-            # MF-027: same assessment as the enforcing copy in
+-            # run_generated_case_adapters. Both runners refuse; neither is the
+-            # lenient one.
+-            sandbox.require_observable(
+-                mapping.adapter or mapping.label,
+-                resolved=adapter,
+-                runtime=getattr(mapping, "runtime", None),
+-                kind=mapping.kind,
+-                channel=mapping.channel,
+-            )
+-            with sandbox, sandbox.observe(action=mapping.label, case=case.name):
+-                call_adapter(adapter, case, case_dir)
++    return execute_corpus(
++        spec_dir=spec_dir,
++        cases_dirs=cases_dirs,
++        mapping_path=mapping_path,
++        work_dir=work_dir,
++        recorder=recorder,
++    )
+diff --git a/scripts/generate_cases_from_tlc_dump.py b/scripts/generate_cases_from_tlc_dump.py
+index 3311cd9..f67012e 100644
+--- a/scripts/generate_cases_from_tlc_dump.py
++++ b/scripts/generate_cases_from_tlc_dump.py
+@@ -14,0 +15 @@ import importlib
++import itertools
+@@ -21 +22 @@ import sys
+-from dataclasses import dataclass
++from dataclasses import dataclass, field
+@@ -47,0 +49,9 @@ SUPPORTED_CONTROLLABILITY = frozenset({"unit_direct", "e2e_direct", "environment
++#: Labels every negative case carries. An adapter selects the negative corpus
++#: on ``NEGATIVE_LABEL`` and asserts refusal on ``REJECTED_LABEL``; both are
++#: present so a consumer can tell "this case came from the negative pass" apart
++#: from "this case expects a rejection", which need not always coincide.
++NEGATIVE_LABEL = "negative"
++REJECTED_LABEL = "expect:rejected"
++NEGATIVE_MODES = ("off", "with-positive", "only")
++NEGATIVE_DEDUPE_MODES = ("none", "guard-reads")
++
+@@ -650,0 +661,7 @@ def render_python_package(
++    negative: str = "off",
++    negative_dedupe: str = "guard-reads",
++    negative_actions: tuple[str, ...] = (),
++    tla_source: str | None = None,
++    cfg_text: str | None = None,
++    projector_description: str = "none",
++    negative_report_out: "list[NegativeCorpusReport] | None" = None,
+@@ -651,0 +669,7 @@ def render_python_package(
++    """Write the generated package and return its cases.
++
++    The return type is deliberately unchanged from before HP-03 -- twelve call
++    sites read it as a list. The negative pass reports through
++    ``negative_report_out``, which the caller appends to, so adding a mode did
++    not force an unrelated signature change on every existing consumer.
++    """
+@@ -658,11 +682,34 @@ def render_python_package(
+-    prepared_cases = prepare_cases(
+-        states=states,
+-        edges=emitted_edges,
+-        view=view,
+-        action_metadata=metadata,
+-        labelers=labelers or [],
+-        state_projector=state_projector,
+-        output_projector=output_projector,
+-        dedupe=dedupe,
+-        param_recipes=param_recipes,
+-    )
++    if negative == "only":
++        prepared_cases: list[PreparedCase] = []
++    else:
++        prepared_cases = prepare_cases(
++            states=states,
++            edges=emitted_edges,
++            view=view,
++            action_metadata=metadata,
++            labelers=labelers or [],
++            state_projector=state_projector,
++            output_projector=output_projector,
++            dedupe=dedupe,
++            param_recipes=param_recipes,
++        )
++    negative_report: NegativeCorpusReport | None = None
++    if negative != "off":
++        if tla_source is None or cfg_text is None:
++            raise ValueError("negative generation needs the module and config text")
++        negative_cases, negative_report = negative_cases_for_corpus(
++            states=states,
++            edges=edges,
++            tla_source=tla_source,
++            cfg_text=cfg_text,
++            view=view,
++            action_metadata=metadata,
++            state_projector=state_projector,
++            dedupe=negative_dedupe,
++            only_actions=negative_actions,
++            param_recipes=param_recipes,
++            start_index=len(prepared_cases) + 1,
++        )
++        prepared_cases = prepared_cases + negative_cases
++        if negative_report_out is not None:
++            negative_report_out.append(negative_report)
+@@ -675 +722,15 @@ def render_python_package(
+-    write(package_dir / "docs.md", render_docs(module, view, len(states), len(prepared_cases), len(emitted_edges), len(edges), dedupe))
++    write(
++        package_dir / "docs.md",
++        render_docs(
++            module,
++            view,
++            len(states),
++            len(prepared_cases),
++            len(emitted_edges),
++            len(edges),
++            dedupe,
++            negative=negative,
++            negative_report=negative_report,
++            projector_description=projector_description,
++        ),
++    )
+@@ -686,2 +747,2 @@ def render_init() -> str:
+-        "from .types import UNCHECKED, StateGraphCase, StateGraphInput, StateGraphOutput\n"
+-        "from .validators import assert_case_replays\n\n"
++        "from .types import UNCHECKED, StateGraphCase, StateGraphInput, StateGraphOutput, StateGraphRejection\n"
++        "from .validators import assert_case_replays, assert_rejection_is_inert\n\n"
+@@ -697,0 +759 @@ def render_init() -> str:
++        "    \"StateGraphRejection\",\n"
+@@ -698,0 +761 @@ def render_init() -> str:
++        "    \"assert_rejection_is_inert\",\n"
+@@ -749,0 +813,25 @@ def render_types() -> str:
++        "class StateGraphRejection:\n"
++        "    \"\"\"The expected outcome of a call the model does not enable (HP-03).\n\n"
++        "    Emitted by the negative corpus: at this before-state the action's own\n"
++        "    body evaluates to a definite FALSE, so the program must REFUSE the\n"
++        "    call. ``reason`` is the violated conjunct copied verbatim out of the\n"
++        "    module -- it is the model's words, not a classification invented here,\n"
++        "    so an adapter comparing rejection reasons is comparing against the\n"
++        "    specification rather than against this generator.\n\n"
++        "    ``changed`` is always empty and is spelled out rather than implied: a\n"
++        "    refused call changes no modeled variable, which is the second half of\n"
++        "    the assertion and the half a status-only oracle would miss.\n"
++        "    \"\"\"\n\n"
++        "    action: str\n"
++        "    params: dict[str, Any]\n"
++        "    reason: str\n"
++        "    changed: dict[str, dict[str, Any]] = field(default_factory=dict)\n"
++        "    #: Variables that record the OUTCOME of a call rather than the state it\n"
++        "    #: left behind, derived from the model: the write set of every action\n"
++        "    #: this module uses to spell a refusal out. A real program's refusal\n"
++        "    #: does change these -- it reports that it refused -- so an adapter must\n"
++        "    #: report them unobservable, and `after == before` is asserted over\n"
++        "    #: everything else. When a model declares no refusal actions this tuple\n"
++        "    #: is empty and full inertness is asserted.\n"
++        "    outcome_fields: tuple[str, ...] = ()\n\n\n"
++        "@dataclass(frozen=True)\n"
+@@ -775 +863 @@ def render_cases(
+-        "from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput\n\n\n",
++        "from .types import UNCHECKED, ActionMetadata, StateGraphCase, StateGraphInput, StateGraphOutput, StateGraphRejection\n\n\n",
+@@ -847 +935,11 @@ def render_validators() -> str:
+-        "from .types import StateGraphCase\n\n\n"
++        "from .types import StateGraphCase, StateGraphRejection\n\n\n"
++        "def assert_rejection_is_inert(case: StateGraphCase) -> None:\n"
++        "    \"\"\"A negative case must assert refusal AND that nothing moved.\n\n"
++        "    Checking only the status would let a program that refuses the call and\n"
++        "    still mutates state pass, which is half a guard.\n"
++        "    \"\"\"\n"
++        "    if not isinstance(case.output, StateGraphRejection):\n"
++        "        return\n"
++        "    assert case.after == case.before, (\n"
++        "        f\"negative case {case.name} is not inert: a refused call changed state\"\n"
++        "    )\n\n\n"
+@@ -866,0 +965,4 @@ def render_docs(
++    *,
++    negative: str = "off",
++    negative_report: "NegativeCorpusReport | None" = None,
++    projector_description: str = "none",
+@@ -868 +970 @@ def render_docs(
+-    return (
++    body = (
+@@ -873 +975 @@ def render_docs(
+-        f"- Transitions: `{transition_count}`\n\n"
++        f"- Cases: `{transition_count}`\n\n"
+@@ -876,2 +978,7 @@ def render_docs(
+-        f"- Dedupe mode: `{dedupe}`\n\n"
+-        "Each case is one action-labeled edge in the reachable state graph.\n"
++        f"- Dedupe mode: `{dedupe}`\n"
++        # RC-02-DF-04 / MF026-R4-F-01: a corpus that fits its cap must say what
++        # made it fit. A count with no projection named is unciteable -- the
++        # next reader cannot tell a tractable model from a discarded one.
++        f"- State projection: `{projector_description}`\n"
++        f"- Negative corpus: `{negative}`\n\n"
++        "Each positive case is one action-labeled edge in the reachable state graph.\n"
+@@ -878,0 +986,17 @@ def render_docs(
++    if negative_report is not None:
++        body += (
++            "\n## Negative cases\n\n"
++            f"- Emitted: `{negative_report.emitted}` of `{negative_report.candidates}` "
++            "candidate (state, action, argument) triples\n"
++            f"- Negated actions: `{', '.join(negative_report.negated) or 'none'}`\n"
++            f"- Negative dedupe: `{negative_report.dedupe_mode}` "
++            f"(collapsed `{negative_report.emitted + negative_report.deduped_from}` -> "
++            f"`{negative_report.emitted}`)\n"
++            f"- Enabled edges cross-checked against the same evaluator: "
++            f"`{negative_report.crosschecked_edges}`, of which "
++            f"`{sum(negative_report.crosscheck_failures.values())}` disagreed\n\n"
++            "A negative case asserts that the program REFUSES the call and that no\n"
++            "modeled variable changes. Its `output` is a `StateGraphRejection` whose\n"
++            "`reason` is the violated conjunct, verbatim from the module.\n"
++        )
++    return body
+@@ -1136,0 +1261,1301 @@ def report_action_coverage(
++# ==========================================================================
++# THE NEGATIVE CORPUS -- disabled edges, asserted rejected (HP-03)
++# ==========================================================================
++#
++# THE MEASURED ZERO THIS EXISTS FOR. A corpus built from a TLC state graph
++# replays only ENABLED edges, so it contains no rejected inputs, so a service
++# that accepts what the model forbids passes every case. Guard relaxation
++# measured 0 of 3 (round 1), 0 of 3 on both arms (round 2) and 0 of 4 on an
++# independent blind catalogue. RP-02 then counted the mechanism: all 330
++# recovered arguments were arguments the guard ACCEPTS, 0 were rejected
++# inputs, and 220 refusable pairs existed in the state space that a state
++# graph can never emit. Parameter recovery is NOT the cause and fixing it
++# moved nothing -- that hypothesis is dead and retracted.
++#
++# WHAT THIS DOES INSTEAD. At every reachable state, for every action, over
++# every argument tuple its quantifier domains admit, evaluate the action's own
++# body against that state. Where it is definitely FALSE the action is
++# DISABLED there, and the corpus emits one case saying so: the program must
++# REJECT this call, and no modeled variable may change.
++#
++# SOUNDNESS, AND WHY IT IS ONE-SIDED ON PURPOSE. Evaluation is three-valued
++# (Kleene): TRUE, FALSE, or UNKNOWN. Anything this evaluator does not
++# implement -- a primed variable, EXCEPT, CASE, LET, an unresolvable operator,
++# a domain it cannot enumerate -- is UNKNOWN, never a default. A conjunction
++# is FALSE only when some conjunct is FALSE; a disjunction only when every
++# disjunct is. So an unsupported construct costs COMPLETENESS (a refusable
++# input nobody tests) and can never cost SOUNDNESS (an accepted input asserted
++# rejected). That asymmetry is the whole design: the acceptance criterion
++# "zero false rejections on the green control" is a property of the algorithm,
++# not of how carefully the fixture was chosen.
++#
++# NO MODEL SURFACE IS ADDED. surface_cost_rule: this is a per-flag variant of
++# the existing `generate cases` command, which semantic_model_rule places
++# out-of-model, and it performs no effect the GenerateCases action does not
++# already declare -- it reads the same .tla/.cfg and writes into the same
++# generated package under the same `spec_tree` port. No new action, no new
++# variable, no new port, 1x the state space, and no second TLC run.
++
++
++class Unevaluable(Exception):
++    """A fragment this generator declines to evaluate.
++
++    Raised and caught, never absorbed into a truth value. Every catch site
++    turns it into UNKNOWN, which can only ever suppress a negative case.
++    """
++
++
++#: Maximum operator-expansion depth. A model that needs more than this is
++#: reported as unevaluable rather than explored further.
++_MAX_EXPANSION_DEPTH = 16
++
++#: Largest set ``SUBSET`` will expand. Beyond it the expression is UNKNOWN.
++_MAX_POWERSET_BASE = 12
++
++_TLA_TOKEN_RE = re.compile(
++    r"""
++      (?P<STRING>"(?:[^"\\]|\\.)*")
++    | (?P<NUMBER>\d+)
++    | (?P<WORDOP>\\(?:notin|subseteq|subset|union|intersect|cup|cap|times|div|leq|geq|neq|land|lor|lnot|in|A|E|X|o)(?![A-Za-z0-9_]))
++    | (?P<OR>\\/)
++    | (?P<AND>/\\)
++    | (?P<SETMINUS>\\)
++    | (?P<SYM><=>|=>|<<|>>|\|->|:>|@@|\.\.|->|<=|>=|/=|\#|~|=|<|>|\+|-|\*|\(|\)|\[|\]|\{|\}|,|:|')
++    | (?P<NAME>[A-Za-z_][A-Za-z0-9_]*)
++    | (?P<WS>\s+)
++    """,
++    re.VERBOSE,
++)
++
++_WORDOP_CANON = {
++    r"\leq": "<=",
++    r"\geq": ">=",
++    r"\neq": "#",
++    r"\land": "/\\",
++    r"\lor": "\\/",
++    r"\lnot": "~",
++    r"\union": "\\cup",
++    r"\intersect": "\\cap",
++}
++
++_TLA_KEYWORDS = frozenset(
++    {"IF", "THEN", "ELSE", "TRUE", "FALSE", "DOMAIN", "SUBSET", "UNION", "EXCEPT", "LET", "IN", "CASE", "OTHER", "CHOOSE"}
++)
++
++
++def tokenize_tla(text: str) -> list[str]:
++    """Tokens of a TLA+ expression, or ``Unevaluable`` on an unknown character."""
++    tokens: list[str] = []
++    index = 0
++    length = len(text)
++    while index < length:
++        match = _TLA_TOKEN_RE.match(text, index)
++        if match is None:
++            raise Unevaluable(f"unrecognized character at offset {index}: {text[index:index + 12]!r}")
++        index = match.end()
++        kind = match.lastgroup
++        if kind == "WS":
++            continue
++        value = match.group()
++        if kind == "WORDOP":
++            value = _WORDOP_CANON.get(value, value)
++        tokens.append(value)
++    return tokens
++
++
++class _TlaParser:
++    """A recursive-descent parser for the constrained profile's expressions.
++
++    Deliberately partial. Every construct it does not implement raises
++    ``Unevaluable``, which the three-valued evaluator turns into UNKNOWN.
++    """
++
++    def __init__(self, tokens: list[str]):
++        self.tokens = tokens
++        self.pos = 0
++
++    # -- token helpers ---------------------------------------------------
++    def peek(self, offset: int = 0) -> str | None:
++        index = self.pos + offset
++        return self.tokens[index] if index < len(self.tokens) else None
++
++    def next(self) -> str:
++        token = self.peek()
++        if token is None:
++            raise Unevaluable("unexpected end of expression")
++        self.pos += 1
++        return token
++
++    def accept(self, token: str) -> bool:
++        if self.peek() == token:
++            self.pos += 1
++            return True
++        return False
++
++    def expect(self, token: str) -> None:
++        if not self.accept(token):
++            raise Unevaluable(f"expected {token!r}, found {self.peek()!r}")
++
++    # -- grammar ---------------------------------------------------------
++    def parse(self) -> Any:
++        node = self.expression()
++        if self.pos != len(self.tokens):
++            raise Unevaluable(f"trailing tokens from {self.peek()!r}")
++        return node
++
++    def expression(self) -> Any:
++        return self.equivalence()
++
++    def equivalence(self) -> Any:
++        node = self.implication()
++        while self.peek() == "<=>":
++            self.next()
++            node = ("binop", "<=>", node, self.implication())
++        return node
++
++    def implication(self) -> Any:
++        node = self.disjunction()
++        while self.peek() == "=>":
++            self.next()
++            node = ("binop", "=>", node, self.disjunction())
++        return node
++
++    def disjunction(self) -> Any:
++        node = self.conjunction()
++        while self.peek() == "\\/":
++            self.next()
++            node = ("binop", "\\/", node, self.conjunction())
++        return node
++
++    def conjunction(self) -> Any:
++        node = self.negation()
++        while self.peek() == "/\\":
++            self.next()
++            node = ("binop", "/\\", node, self.negation())
++        return node
++
++    def negation(self) -> Any:
++        if self.accept("~"):
++            return ("unop", "~", self.negation())
++        return self.comparison()
++
++    _COMPARISONS = ("=", "#", "/=", "<", ">", "<=", ">=", "\\in", "\\notin", "\\subseteq", "\\subset")
++
++    def comparison(self) -> Any:
++        node = self.additive()
++        token = self.peek()
++        if token in self._COMPARISONS:
++            self.next()
++            return ("binop", token, node, self.additive())
++        return node
++
++    def additive(self) -> Any:
++        node = self.multiplicative()
++        while self.peek() in ("+", "-", "\\cup", "\\"):
++            operator = self.next()
++            node = ("binop", operator, node, self.multiplicative())
++        return node
++
++    def multiplicative(self) -> Any:
++        node = self.rangeexpr()
++        while self.peek() in ("*", "\\div", "\\cap"):
++            operator = self.next()
++            node = ("binop", operator, node, self.rangeexpr())
++        return node
++
++    def rangeexpr(self) -> Any:
++        node = self.postfix()
++        if self.peek() == "..":
++            self.next()
++            return ("range", node, self.postfix())
++        return node
++
++    def postfix(self) -> Any:
++        node = self.primary()
++        while True:
++            token = self.peek()
++            if token == "[":
++                self.next()
++                index = self.expression()
++                self.expect("]")
++                node = ("apply", node, index)
++                continue
++            if token == "'":
++                self.next()
++                node = ("primed", node)
++                continue
++            break
++        return node
++
++    def primary(self) -> Any:
++        token = self.peek()
++        if token is None:
++            raise Unevaluable("unexpected end of expression")
++        if token.startswith('"'):
++            self.next()
++            return ("const", ast.literal_eval(token))
++        if token.isdigit():
++            self.next()
++            return ("const", int(token))
++        if token == "-":
++            self.next()
++            return ("unop", "-", self.postfix())
++        if token == "(":
++            self.next()
++            node = self.expression()
++            self.expect(")")
++            return node
++        if token == "<<":
++            self.next()
++            items = []
++            if self.peek() != ">>":
++                items.append(self.expression())
++                while self.accept(","):
++                    items.append(self.expression())
++            self.expect(">>")
++            return ("tuple", tuple(items))
++        if token == "{":
++            return self.set_expression()
++        if token == "[":
++            return self.bracket_expression()
++        if token in ("\\A", "\\E"):
++            self.next()
++            bindings = self.bindings()
++            self.expect(":")
++            return ("quant", token, bindings, self.expression())
++        if token == "IF":
++            self.next()
++            condition = self.expression()
++            self.expect("THEN")
++            consequent = self.expression()
++            self.expect("ELSE")
++            return ("if", condition, consequent, self.expression())
++        if token in ("DOMAIN", "SUBSET", "UNION"):
++            self.next()
++            return ("unop", token, self.postfix())
++        if token == "TRUE":
++            self.next()
++            return ("const", True)
++        if token == "FALSE":
++            self.next()
++            return ("const", False)
++        if token in _TLA_KEYWORDS:
++            raise Unevaluable(f"unsupported construct: {token}")
++        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", token):
++            self.next()
++            if self.peek() == "(":
++                self.next()
++                args = []
++                if self.peek() != ")":
++                    args.append(self.expression())
++                    while self.accept(","):
++                        args.append(self.expression())
++                self.expect(")")
++                return ("call", token, tuple(args))
++            return ("name", token)
++        raise Unevaluable(f"unsupported token {token!r}")
++
++    def bindings(self) -> tuple[tuple[tuple[str, ...], Any], ...]:
++        bindings: list[tuple[tuple[str, ...], Any]] = []
++        while True:
++            names = [self.next()]
++            while self.accept(","):
++                names.append(self.next())
++            self.expect("\\in")
++            domain = self.multiplicative()
++            for name in names:
++                if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
++                    raise Unevaluable(f"bad binding name {name!r}")
++            bindings.append((tuple(names), domain))
++            if self.peek() == "," and self.peek(2) == "\\in":
++                self.next()
++                continue
++            if self.peek() == "," and self.peek(1) is not None and self.peek(3) == "\\in":
++                self.next()
++                continue
++            break
++        return tuple(bindings)
++
++    def set_expression(self) -> Any:
++        self.expect("{")
++        if self.accept("}"):
++            return ("set", ())
++        mark = self.pos
++        # {x \in S : P}
++        if self.peek(1) == "\\in":
++            try:
++                bindings = self.bindings()
++                self.expect(":")
++                predicate = self.expression()
++                self.expect("}")
++                return ("setfilter", bindings, predicate)
++            except Unevaluable:
++                self.pos = mark
++        items = [self.expression()]
++        while self.accept(","):
++            items.append(self.expression())
++        if self.accept(":"):
++            bindings = self.bindings()
++            self.expect("}")
++            return ("setmap", items[0], bindings)
++        self.expect("}")
++        return ("set", tuple(items))
++
++    def bracket_expression(self) -> Any:
++        self.expect("[")
++        mark = self.pos
++        # [x \in S |-> e]
++        if self.peek(1) == "\\in":
++            try:
++                bindings = self.bindings()
++                self.expect("|->")
++                body = self.expression()
++                self.expect("]")
++                return ("funcctor", bindings, body)
++            except Unevaluable:
++                self.pos = mark
++        # [a |-> e, b |-> e]
++        try:
++            fields: list[tuple[str, Any]] = []
++            while True:
++                key = self.next()
++                self.expect("|->")
++                fields.append((key, self.expression()))
++                if not self.accept(","):
++                    break
++            self.expect("]")
++            return ("record", tuple(fields))
++        except Unevaluable:
++            self.pos = mark
++        raise Unevaluable("unsupported bracket expression (EXCEPT, function set, ...)")
++
++
++_PARSE_CACHE: dict[str, Any] = {}
++
++
++def parse_tla_expression(text: str) -> Any:
++    """Parse one TLA+ expression, memoized on its exact source text."""
++    cached = _PARSE_CACHE.get(text)
++    if cached is not None:
++        if isinstance(cached, Unevaluable):
++            raise cached
++        return cached
++    try:
++        node = _TlaParser(tokenize_tla(text)).parse()
++    except Unevaluable as error:
++        _PARSE_CACHE[text] = error
++        raise
++    except RecursionError as error:  # pragma: no cover - pathological input
++        wrapped = Unevaluable("expression nesting too deep")
++        _PARSE_CACHE[text] = wrapped
++        raise wrapped from error
++    _PARSE_CACHE[text] = node
++    return node
++
++
++@dataclass(frozen=True)
++class TlaDefinition:
++    name: str
++    params: tuple[str, ...]
++    body: str
++
++
++def parse_tla_definitions(source: str) -> dict[str, TlaDefinition]:
++    """Top-level ``Name(params) == body`` definitions of a module."""
++    try:
++        from scripts.analyze_complexity import parse_definitions, strip_comments
++    except ImportError:  # direct-script import, where sys.path[0] is scripts/
++        from analyze_complexity import parse_definitions, strip_comments  # type: ignore[no-redef]
++
++    definitions: dict[str, TlaDefinition] = {}
++    for definition in parse_definitions(strip_comments(source)):
++        definitions[definition.name] = TlaDefinition(
++            name=definition.name,
++            params=tuple(definition.params),
++            body=definition.body,
++        )
++    return definitions
++
++
++def coerce_cfg_constant(value: Any) -> Any:
++    """A ``.cfg`` constant assignment as an evaluable value.
++
++    A set assignment becomes a ``frozenset`` of atoms; a scalar becomes its
++    atom. TLC model values (``NoRoot = NoRoot``) stay strings, which is what
++    the DOT parser produces for them too, so the two sides compare.
++    """
++    if isinstance(value, list):
++        return frozenset(parse_atom(str(item)) for item in value)
++    return parse_atom(str(value))
++
++
++def _tla_function_key(value: Any) -> str:
++    return str(value)
++
++
++class GuardEvaluator:
++    """Three-valued evaluation of an action body against one concrete state.
++
++    ``evaluate`` answers TRUE / FALSE / UNKNOWN (``None``). Only FALSE is ever
++    acted on. See the section header for why that asymmetry is the soundness
++    argument rather than a convenience.
++    """
++
++    def __init__(
++        self,
++        definitions: dict[str, TlaDefinition],
++        constants: dict[str, Any],
++        variables: tuple[str, ...],
++    ):
++        self.definitions = definitions
++        self.constants = constants
++        self.variables = variables
++        self._bullets: dict[str, tuple[str | None, tuple[str, ...]]] = {}
++
++    # -- bullet structure -------------------------------------------------
++    def split_bullets(self, text: str) -> tuple[str | None, tuple[str, ...]]:
++        """TLA+'s indentation-delimited ``/\\``/``\\/`` list, if this text is one.
++
++        Returns ``(kind, items)`` with ``kind`` in ``{"/\\", "\\/", None}``.
++        ``None`` means the text is a leaf to be parsed as one expression.
++
++        This is the real bulleted-list rule -- the bullets of one list share a
++        column -- and not a textual split on ``/\\``. A textual split tears
++        ``/\\ \\/ /\\ a /\\ b \\/ c`` into fragments and would promote ``a`` to
++        a top-level conjunct it is not, which is the one way this design could
++        emit a false rejection.
++        """
++        cached = self._bullets.get(text)
++        if cached is not None:
++            return cached
++        result = self._compute_bullets(text)
++        self._bullets[text] = result
++        return result
++
++    def _compute_bullets(self, text: str) -> tuple[str | None, tuple[str, ...]]:
++        positions: list[tuple[int, int, str]] = []  # (column, offset, kind)
++        depth = 0
++        in_string = False
++        column = 0
++        line_has_content = False
++        index = 0
++        while index < len(text):
++            char = text[index]
++            if char == "\n":
++                column = 0
++                line_has_content = False
++                in_string = False
++                index += 1
++                continue
++            if in_string:
++                if char == '"' and not is_escaped(text, index):
++                    in_string = False
++                column += 1
++                index += 1
++                continue
++            if char == '"':
++                in_string = True
++                column += 1
++                index += 1
++                continue
++            pair = text[index : index + 2]
++            if pair in ("/\\", "\\/") and depth == 0 and not line_has_content:
++                positions.append((column, index, pair))
++                line_has_content = True
++                column += 2
++                index += 2
++                continue
++            if pair == "<<":
++                depth += 1
++                column += 2
++                index += 2
++                continue
++            if pair == ">>":
++                depth -= 1
++                column += 2
++                index += 2
++                continue
++            if char in "([{":
++                depth += 1
++            elif char in ")]}":
++                depth -= 1
++            if not char.isspace():
++                line_has_content = True
++            column += 1
++            index += 1
++        if not positions:
++            return (None, ())
++        least = min(position[0] for position in positions)
++        bullets = [position for position in positions if position[0] == least]
++        kinds = {position[2] for position in bullets}
++        if len(kinds) != 1:
++            # Mixed bullets at one column is not a well-formed list. Refuse to
++            # guess its structure: the whole body becomes one leaf, and a leaf
++            # that will not parse is UNKNOWN.
++            return (None, ())
++        kind = bullets[0][2]
++        if text[: bullets[0][1]].strip():
++            # Content before the first bullet means this is not a pure list.
++            return (None, ())
++        items: list[str] = []
++        for order, (_, offset, _) in enumerate(bullets):
++            end = bullets[order + 1][1] if order + 1 < len(bullets) else len(text)
++            # Blank the bullet token so every remaining line keeps its column.
++            item = "  " + text[offset + 2 : end]
++            items.append(item)
++        return (kind, tuple(items))
++
++    # -- three-valued evaluation ------------------------------------------
++    def evaluate(self, text: str, env: dict[str, Any]) -> tuple[bool | None, str | None]:
++        """``(truth, witness)``. ``witness`` is the FALSE fragment, verbatim."""
++        kind, items = self.split_bullets(text)
++        if kind == "/\\":
++            unknown = False
++            for item in items:
++                truth, witness = self.evaluate(item, env)
++                if truth is False:
++                    return False, witness
++                if truth is None:
++                    unknown = True
++            return (None, None) if unknown else (True, None)
++        if kind == "\\/":
++            unknown = False
++            for item in items:
++                truth, _ = self.evaluate(item, env)
++                if truth is True:
++                    return True, None
++                if truth is None:
++                    unknown = True
++            return (None, None) if unknown else (False, collapse_whitespace(text))
++        try:
++            value = self.eval_node(parse_tla_expression(text.strip()), env, 0)
++        except Unevaluable:
++            return None, None
++        except RecursionError:  # pragma: no cover - pathological input
++            return None, None
++        if value is True:
++            return True, None
++        if value is False:
++            return False, collapse_whitespace(text)
++        return None, None
++
++    # -- two-valued expression evaluation ---------------------------------
++    def eval_node(self, node: Any, env: dict[str, Any], depth: int) -> Any:
++        if depth > _MAX_EXPANSION_DEPTH:
++            raise Unevaluable("operator expansion too deep")
++        kind = node[0]
++        if kind == "const":
++            return node[1]
++        if kind == "name":
++            return self.eval_name(node[1], env, depth)
++        if kind == "primed":
++            raise Unevaluable("primed variable")
++        if kind == "call":
++            return self.eval_call(node[1], node[2], env, depth)
++        if kind == "apply":
++            function = self.eval_node(node[1], env, depth)
++            index = self.eval_node(node[2], env, depth)
++            if isinstance(function, dict):
++                key = _tla_function_key(index)
++                if key not in function:
++                    raise Unevaluable(f"index {key!r} outside function domain")
++                return function[key]
++            if isinstance(function, tuple):
++                if not isinstance(index, int) or not 1 <= index <= len(function):
++                    raise Unevaluable("sequence index out of range")
++                return function[index - 1]
++            raise Unevaluable("application of a non-function")
++        if kind == "set":
++            return frozenset(freeze_set_member(self.eval_node(item, env, depth)) for item in node[1])
++        if kind == "tuple":
++            return tuple(self.eval_node(item, env, depth) for item in node[1])
++        if kind == "record":
++            return {key: self.eval_node(value, env, depth) for key, value in node[1]}
++        if kind == "range":
++            low = self.eval_node(node[1], env, depth)
++            high = self.eval_node(node[2], env, depth)
++            if not isinstance(low, int) or not isinstance(high, int):
++                raise Unevaluable("non-integer range bound")
++            return frozenset(range(low, high + 1))
++        if kind == "if":
++            condition = self.eval_node(node[1], env, depth)
++            if not isinstance(condition, bool):
++                raise Unevaluable("non-boolean IF condition")
++            return self.eval_node(node[2] if condition else node[3], env, depth)
++        if kind == "unop":
++            return self.eval_unop(node[1], node[2], env, depth)
++        if kind == "binop":
++            return self.eval_binop(node[1], node[2], node[3], env, depth)
++        if kind == "quant":
++            return self.eval_quantifier(node[1], node[2], node[3], env, depth)
++        if kind == "funcctor":
++            bindings = self.eval_bindings(node[1], env, depth)
++            if len(bindings) != 1 or len(bindings[0][0]) != 1:
++                raise Unevaluable("multi-argument function constructor")
++            name = bindings[0][0][0]
++            return {
++                _tla_function_key(value): self.eval_node(node[2], {**env, name: value}, depth)
++                for value in sorted(bindings[0][1], key=repr)
++            }
++        if kind == "setfilter":
++            bindings = self.eval_bindings(node[1], env, depth)
++            if len(bindings) != 1 or len(bindings[0][0]) != 1:
++                raise Unevaluable("multi-variable set filter")
++            name = bindings[0][0][0]
++            selected = []
++            for value in sorted(bindings[0][1], key=repr):
++                truth = self.eval_node(node[2], {**env, name: value}, depth)
++                if not isinstance(truth, bool):
++                    raise Unevaluable("non-boolean set filter")
++                if truth:
++                    selected.append(freeze_set_member(value))
++            return frozenset(selected)
++        if kind == "setmap":
++            bindings = self.eval_bindings(node[2], env, depth)
++            produced = []
++            for assignment in self.iter_assignments(bindings):
++                produced.append(freeze_set_member(self.eval_node(node[1], {**env, **assignment}, depth)))
++            return frozenset(produced)
++        raise Unevaluable(f"unsupported node {kind}")
++
++    def eval_name(self, name: str, env: dict[str, Any], depth: int) -> Any:
++        if name in env:
++            return env[name]
++        if name in self.constants:
++            return self.constants[name]
++        definition = self.definitions.get(name)
++        if definition is not None and not definition.params:
++            return self.eval_node(parse_tla_expression(definition.body.strip()), {}, depth + 1)
++        if name in self.variables:
++            raise Unevaluable(f"variable {name} absent from this state")
++        raise Unevaluable(f"unbound name {name}")
++
++    def eval_call(self, name: str, args: tuple[Any, ...], env: dict[str, Any], depth: int) -> Any:
++        values = [self.eval_node(argument, env, depth) for argument in args]
++        if name == "Cardinality" and len(values) == 1:
++            if not isinstance(values[0], (frozenset, set)):
++                raise Unevaluable("Cardinality of a non-set")
++            return len(values[0])
++        if name == "IsFiniteSet" and len(values) == 1:
++            return isinstance(values[0], (frozenset, set))
++        if name == "Len" and len(values) == 1:
++            if not isinstance(values[0], tuple):
++                raise Unevaluable("Len of a non-sequence")
++            return len(values[0])
++        if name == "Head" and len(values) == 1:
++            if not isinstance(values[0], tuple) or not values[0]:
++                raise Unevaluable("Head of a non-sequence")
++            return values[0][0]
++        if name == "Tail" and len(values) == 1:
++            if not isinstance(values[0], tuple) or not values[0]:
++                raise Unevaluable("Tail of a non-sequence")
++            return values[0][1:]
++        if name == "Append" and len(values) == 2:
++            if not isinstance(values[0], tuple):
++                raise Unevaluable("Append to a non-sequence")
++            return values[0] + (values[1],)
++        definition = self.definitions.get(name)
++        if definition is None or len(definition.params) != len(values):
++            raise Unevaluable(f"unresolvable operator {name}/{len(values)}")
++        inner = dict(zip(definition.params, values))
++        node = parse_tla_expression(definition.body.strip())
++        return self.eval_node(node, inner, depth + 1)
++
++    def eval_unop(self, operator: str, operand: Any, env: dict[str, Any], depth: int) -> Any:
++        value = self.eval_node(operand, env, depth)
++        if operator == "~":
++            if not isinstance(value, bool):
++                raise Unevaluable("negation of a non-boolean")
++            return not value
++        if operator == "-":
++            if not isinstance(value, int) or isinstance(value, bool):
++                raise Unevaluable("negation of a non-integer")
++            return -value
++        if operator == "DOMAIN":
++            if isinstance(value, dict):
++                return frozenset(value)
++            if isinstance(value, tuple):
++                return frozenset(range(1, len(value) + 1))
++            raise Unevaluable("DOMAIN of a non-function")
++        if operator == "SUBSET":
++            if not isinstance(value, (frozenset, set)) or len(value) > _MAX_POWERSET_BASE:
++                raise Unevaluable("SUBSET of a non-set or an oversized set")
++            members = sorted(value, key=repr)
++            return frozenset(
++                frozenset(combination)
++                for size in range(len(members) + 1)
++                for combination in itertools.combinations(members, size)
++            )
++        if operator == "UNION":
++            if not isinstance(value, (frozenset, set)):
++                raise Unevaluable("UNION of a non-set")
++            result: set[Any] = set()
++            for member in value:
++                if not isinstance(member, (frozenset, set)):
++                    raise Unevaluable("UNION over a non-set member")
++                result |= set(member)
++            return frozenset(result)
++        raise Unevaluable(f"unsupported unary {operator}")
++
++    def eval_binop(self, operator: str, left: Any, right: Any, env: dict[str, Any], depth: int) -> Any:
++        if operator in ("/\\", "\\/", "=>", "<=>"):
++            first = self.eval_node(left, env, depth)
++            if not isinstance(first, bool):
++                raise Unevaluable("non-boolean operand")
++            # Short-circuit so an unevaluable second operand costs nothing when
++            # the first already decides the result.
++            if operator == "/\\" and first is False:
++                return False
++            if operator == "\\/" and first is True:
++                return True
++            if operator == "=>" and first is False:
++                return True
++            second = self.eval_node(right, env, depth)
++            if not isinstance(second, bool):
++                raise Unevaluable("non-boolean operand")
++            if operator == "/\\":
++                return first and second
++            if operator == "\\/":
++                return first or second
++            if operator == "=>":
++                return (not first) or second
++            return first == second
++
++        first = self.eval_node(left, env, depth)
++        second = self.eval_node(right, env, depth)
++        if operator == "=":
++            return first == second
++        if operator in ("#", "/="):
++            return first != second
++        if operator == "\\in":
++            if not isinstance(second, (frozenset, set)):
++                raise Unevaluable("membership in a non-set")
++            return freeze_set_member(first) in second
++        if operator == "\\notin":
++            if not isinstance(second, (frozenset, set)):
++                raise Unevaluable("membership in a non-set")
++            return freeze_set_member(first) not in second
++        if operator in ("\\subseteq", "\\subset"):
++            if not isinstance(first, (frozenset, set)) or not isinstance(second, (frozenset, set)):
++                raise Unevaluable("subset of a non-set")
++            return set(first) <= set(second) if operator == "\\subseteq" else set(first) < set(second)
++        if operator in ("<", ">", "<=", ">="):
++            if not isinstance(first, int) or not isinstance(second, int) or isinstance(first, bool) or isinstance(second, bool):
++                raise Unevaluable("comparison of non-integers")
++            if operator == "<":
++                return first < second
++            if operator == ">":
++                return first > second
++            if operator == "<=":
++                return first <= second
++            return first >= second
++        if operator in ("+", "-", "*", "\\div"):
++            if not isinstance(first, int) or not isinstance(second, int) or isinstance(first, bool) or isinstance(second, bool):
++                raise Unevaluable("arithmetic on non-integers")
++            if operator == "+":
++                return first + second
++            if operator == "-":
++                return first - second
++            if operator == "*":
++                return first * second
++            if second == 0:
++                raise Unevaluable("division by zero")
++            return first // second
++        if operator in ("\\cup", "\\cap", "\\"):
++            if not isinstance(first, (frozenset, set)) or not isinstance(second, (frozenset, set)):
++                raise Unevaluable("set operation on a non-set")
++            if operator == "\\cup":
++                return frozenset(set(first) | set(second))
++            if operator == "\\cap":
++                return frozenset(set(first) & set(second))
++            return frozenset(set(first) - set(second))
++        raise Unevaluable(f"unsupported operator {operator}")
++
++    def eval_bindings(
++        self, bindings: tuple[tuple[tuple[str, ...], Any], ...], env: dict[str, Any], depth: int
++    ) -> list[tuple[tuple[str, ...], Any]]:
++        resolved = []
++        for names, domain_node in bindings:
++            domain = self.eval_node(domain_node, env, depth)
++            if not isinstance(domain, (frozenset, set)):
++                raise Unevaluable("quantifier over a non-set")
++            resolved.append((names, domain))
++        return resolved
++
++    def iter_assignments(self, bindings: list[tuple[tuple[str, ...], Any]]) -> Any:
++        names: list[str] = []
++        domains: list[list[Any]] = []
++        for group, domain in bindings:
++            ordered = sorted(domain, key=repr)
++            for name in group:
++                names.append(name)
++                domains.append(ordered)
++        for combination in itertools.product(*domains):
++            yield dict(zip(names, combination))
++
++    def eval_quantifier(
++        self,
++        quantifier: str,
++        bindings: tuple[tuple[tuple[str, ...], Any], ...],
++        body: Any,
++        env: dict[str, Any],
++        depth: int,
++    ) -> Any:
++        resolved = self.eval_bindings(bindings, env, depth)
++        results = []
++        for assignment in self.iter_assignments(resolved):
++            truth = self.eval_node(body, {**env, **assignment}, depth)
++            if not isinstance(truth, bool):
++                raise Unevaluable("non-boolean quantifier body")
++            results.append(truth)
++        if quantifier == "\\A":
++            return all(results)
++        return any(results)
++
++
++def collapse_whitespace(text: str) -> str:
++    return " ".join(text.split())
++
++
++@dataclass(frozen=True)
++class ActionSignature:
++    """One action of ``Next``, with the domain each argument ranges over."""
++
++    name: str
++    params: tuple[str, ...]
++    domains: tuple[tuple[Any, ...], ...]
++    body: str
++
++    @property
++    def candidate_count(self) -> int:
++        total = 1
++        for domain in self.domains:
++            total *= len(domain)
++        return total
++
++
++def extract_action_signatures(
++    definitions: dict[str, TlaDefinition],
++    evaluator: GuardEvaluator,
++    next_name: str = "Next",
++) -> tuple[dict[str, ActionSignature], dict[str, str]]:
++    """Signatures from the disjuncts of ``Next``, plus a reason per rejection.
++
++    A disjunct must be ``\\E x \\in S, ... : Name(args)`` or a bare ``Name``,
++    with every argument a bound variable of that quantifier and every domain a
++    finite set this evaluator can enumerate. Anything else is reported, never
++    approximated -- an approximated domain would emit arguments the model does
++    not admit.
++    """
++    try:
++        from scripts.analyze_complexity import split_top_level_disjuncts
++    except ImportError:  # direct-script import, where sys.path[0] is scripts/
++        from analyze_complexity import split_top_level_disjuncts  # type: ignore[no-redef]
++
++    signatures: dict[str, ActionSignature] = {}
++    rejected: dict[str, str] = {}
++    definition = definitions.get(next_name)
++    if definition is None:
++        return signatures, {next_name: "no such definition"}
++    for chunk in split_top_level_disjuncts(definition.body):
++        text = collapse_whitespace(chunk)
++        if not text:
++            continue
++        try:
++            node = parse_tla_expression(text)
++        except Unevaluable as error:
++            rejected[text[:60]] = f"disjunct did not parse: {error}"
++            continue
++        bindings: tuple[tuple[tuple[str, ...], Any], ...] = ()
++        if node[0] == "quant" and node[1] == "\\E":
++            bindings = node[2]
++            node = node[3]
++        if node[0] == "name":
++            name, arguments = node[1], ()
++        elif node[0] == "call":
++            name, arguments = node[1], node[2]
++        else:
++            rejected[text[:60]] = "disjunct is not a call to a named action"
++            continue
++        action = definitions.get(name)
++        if action is None:
++            rejected[name] = "action has no definition in this module"
++            continue
++        try:
++            domains_by_name: dict[str, tuple[Any, ...]] = {}
++            for names, domain_node in bindings:
++                domain = evaluator.eval_node(domain_node, {}, 0)
++                if not isinstance(domain, (frozenset, set)):
++                    raise Unevaluable("quantifier domain is not a set")
++                ordered = tuple(sorted(domain, key=repr))
++                for bound in names:
++                    domains_by_name[bound] = ordered
++        except Unevaluable as error:
++            rejected[name] = f"quantifier domain not enumerable: {error}"
++            continue
++        argument_names: list[str] = []
++        for argument in arguments:
++            if argument[0] != "name" or argument[1] not in domains_by_name:
++                argument_names = []
++                break
++            argument_names.append(argument[1])
++        if len(argument_names) != len(arguments):
++            rejected[name] = "an argument is not a plain quantifier-bound variable"
++            continue
++        if len(action.params) != len(argument_names):
++            rejected[name] = "arity of the call does not match the definition"
++            continue
++        signatures[name] = ActionSignature(
++            name=name,
++            params=tuple(action.params),
++            domains=tuple(domains_by_name[bound] for bound in argument_names),
++            body=action.body,
++        )
++    return signatures, rejected
++
++
++def guard_read_variables(
++    signature: ActionSignature, evaluator: GuardEvaluator
++) -> frozenset[str]:
++    """Variables read by the unprimed items of an action body."""
++    reads: set[str] = set()
++
++    def walk(text: str) -> None:
++        kind, items = evaluator.split_bullets(text)
++        if kind is not None:
++            for item in items:
++                walk(item)
++            return
++        stripped = _STRIP_STRINGS_RE.sub(" ", text)
++        if "'" in stripped:
++            return
++        for token in set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", stripped)):
++            if token in evaluator.variables:
++                reads.add(token)
++
++    walk(signature.body)
++    return frozenset(reads)
++
++
++def written_variables(
++    signature: ActionSignature,
++    variables: tuple[str, ...],
++    definitions: dict[str, TlaDefinition] | None = None,
++) -> frozenset[str]:
++    """Variables this action assigns, following the operators it calls.
++
++    The expansion matters: HP-01's fixture writes its refusals as
++    ``RefuseX(...) == guard /\\ Refuse("reason")``, so the action's own text
++    primes nothing at all. Reading only that text reports an empty write set --
++    true by accident here, and wrong the moment a model spells one conjunct
++    through a helper.
++    """
++    seen: set[str] = {signature.name}
++    written: set[str] = set()
++    stack = [signature.body]
++    while stack:
++        text = _STRIP_STRINGS_RE.sub(" ", stack.pop())
++        for variable in variables:
++            if re.search(rf"\b{re.escape(variable)}'", text):
++                written.add(variable)
++        if definitions is None:
++            continue
++        for token in sorted(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text))):
++            if token in definitions and token not in seen and token not in variables:
++                seen.add(token)
++                stack.append(definitions[token].body)
++    return frozenset(written)
++
++
++_STRIP_STRINGS_RE = re.compile(r'"(?:[^"\\]|\\.)*"')
++
++
++def negatable_actions(
++    signatures: dict[str, ActionSignature], evaluator: GuardEvaluator
++) -> tuple[list[str], dict[str, str]]:
++    """Which actions represent a CALL that a program can be asked to refuse.
++
++    A model may spell its refusals out as their own actions -- HP-01's fixture
++    does, and the standing recommendation is to -- and those actions must NOT
++    be negated. The complement of "this call is refused" is "this call is
++    accepted", so emitting it would assert rejection of an input the model
++    ENABLES: precisely the false rejection this mode must never produce.
++
++    The rule that separates them, stated so it can be argued with: an action is
++    a call when it WRITES at least one variable that some guard in this module
++    READS. A refusal changes no domain state -- it only records an outcome
++    nothing is guarded on -- so it fails that test, while every state-advancing
++    command passes it. An operator who disagrees overrides the set with
++    ``--negative-action``; the chosen and rejected sets are both printed, so
++    the decision is visible rather than inferred.
++    """
++    guard_reads: set[str] = set()
++    for signature in signatures.values():
++        guard_reads |= guard_read_variables(signature, evaluator)
++    chosen: list[str] = []
++    excluded: dict[str, str] = {}
++    for name in sorted(signatures):
++        writes = written_variables(signatures[name], evaluator.variables, evaluator.definitions)
++        overlap = writes & guard_reads
++        if overlap:
++            chosen.append(name)
++        else:
++            excluded[name] = (
++                "writes {" + ", ".join(sorted(writes)) + "}, none of which any guard reads -- "
++                "this is a refusal or a pure observation, not a call to be refused"
++            )
++    return chosen, excluded
++
++
++@dataclass
++class NegativeCorpusReport:
++    """Everything the negative pass measured, printed and never summarized away."""
++
++    emitted: int = 0
++    candidates: int = 0
++    #: Triples the evaluator did NOT prove disabled. A whole action body always
++    #: contains primed conjuncts, which are UNKNOWN by construction, so "not
++    #: disabled" is the strongest thing this pass can say about them -- it is
++    #: never the claim that they are enabled.
++    not_disabled: int = 0
++    dump_edges_for_negated: int = 0
++    negated: tuple[str, ...] = ()
++    excluded: dict[str, str] = field(default_factory=dict)
++    suppressed: dict[str, str] = field(default_factory=dict)
++    per_action: dict[str, int] = field(default_factory=dict)
++    per_reason: dict[str, int] = field(default_factory=dict)
++    deduped_from: int = 0
++    dedupe_mode: str = "none"
++    outcome_fields: tuple[str, ...] = ()
++    crosschecked_edges: int = 0
++    crosscheck_failures: dict[str, int] = field(default_factory=dict)
++
++
++def negative_cases_for_corpus(
++    *,
++    states: dict[str, dict[str, Any]],
++    edges: list[Edge],
++    tla_source: str,
++    cfg_text: str,
++    view: str,
++    action_metadata: dict[str, ActionMetadata],
++    state_projector: Any | None,
++    dedupe: str,
++    only_actions: tuple[str, ...],
++    param_recipes: dict[str, ActionRecipe] | None,
++    start_index: int,
++) -> tuple[list[PreparedCase], NegativeCorpusReport]:
++    """The disabled edges of every reachable state, as rejection cases."""
++    try:
++        from scripts.analyze_complexity import parse_cfg_constants
++    except ImportError:  # direct-script import, where sys.path[0] is scripts/
++        from analyze_complexity import parse_cfg_constants  # type: ignore[no-redef]
++
++    try:
++        from scripts.infer_action_params import parse_variables
++    except ImportError:  # direct-script import, where sys.path[0] is scripts/
++        from infer_action_params import parse_variables  # type: ignore[no-redef]
++
++    report = NegativeCorpusReport(dedupe_mode=dedupe)
++    variables = parse_variables(tla_source)
++    constants = {
++        name: coerce_cfg_constant(value) for name, value in parse_cfg_constants(cfg_text).items()
++    }
++    definitions = parse_tla_definitions(tla_source)
++    evaluator = GuardEvaluator(definitions, constants, variables)
++    signatures, rejected = extract_action_signatures(definitions, evaluator)
++    report.suppressed.update(rejected)
++
++    if only_actions:
++        chosen = [name for name in only_actions if name in signatures]
++        for name in only_actions:
++            if name not in signatures:
++                report.suppressed[name] = "named by --negative-action but not a Next disjunct"
++        excluded = {name: "not selected by --negative-action" for name in signatures if name not in chosen}
++    else:
++        chosen, excluded = negatable_actions(signatures, evaluator)
++    report.excluded = excluded
++    # The variables an excluded action writes are the ones a refusal reports on.
++    # Derived from the model rather than named by hand: a module that spells its
++    # refusals out has just told the generator which of its variables carry an
++    # outcome, and a module that does not gets an empty tuple and the stronger
++    # assertion.
++    outcome_fields = tuple(
++        sorted(
++            set().union(
++                *(
++                    written_variables(signatures[name], evaluator.variables, definitions)
++                    for name in excluded
++                    if name in signatures
++                )
++            )
++            if excluded
++            else set()
++        )
++    )
++    report.outcome_fields = outcome_fields
++
++    chosen = [
++        name
++        for name in chosen
++        if should_emit_action(action_metadata_for(name, view, action_metadata), view)
++    ]
++
++    # CROSS-CHECK, run before anything is emitted. Every enabled edge in the
++    # dump whose arguments were fully recovered is evaluated at its own source
++    # state; the guard of a transition TLC took must not evaluate FALSE. A
++    # failure means this evaluator disagrees with TLC, so the action is dropped
++    # from the negated set rather than trusted -- the corpus never states
++    # something the checker itself has just been shown to get wrong.
++    for name in list(chosen):
++        failures = 0
++        checked = 0
++        signature = signatures[name]
++        for edge in edges:
++            if edge.action != name:
++                continue
++            params = params_for_case(edge, states[edge.source], states[edge.target], view, param_recipes)
++            if not params or unchecked_param_names(params):
++                continue
++            if set(params) != set(signature.params):
++                continue
++            checked += 1
++            truth, _ = evaluator.evaluate(signature.body, {**states[edge.source], **params})
++            if truth is False:
++                failures += 1
++        report.crosschecked_edges += checked
++        if failures:
++            report.crosscheck_failures[name] = failures
++            report.suppressed[name] = (
++                f"{failures} of {checked} ENABLED edges evaluated FALSE against this "
++                "evaluator -- the disagreement is with TLC and the action is not negated"
++            )
++            chosen.remove(name)
++
++    report.negated = tuple(chosen)
++    prepared: list[PreparedCase] = []
++    seen: set[Any] = set()
++    ordered_states = sorted(states, key=lambda node: (len(node), node))
++    for name in chosen:
++        signature = signatures[name]
++        reads = guard_read_variables(signature, evaluator)
++        for node in ordered_states:
++            state = states[node]
++            for combination in itertools.product(*signature.domains):
++                report.candidates += 1
++                bindings = dict(zip(signature.params, combination))
++                truth, witness = evaluator.evaluate(signature.body, {**state, **bindings})
++                if truth is not False:
++                    report.not_disabled += 1
++                    continue
++                reason = witness or "disabled"
++                if dedupe == "guard-reads":
++                    relevant = {
++                        variable: state[variable]
++                        for variable in sorted(reads)
++                        if variable in state and re.search(rf"\b{re.escape(variable)}\b", reason)
++                    }
++                    signature_key = freeze_for_signature(
++                        {"action": name, "params": bindings, "reason": reason, "reads": relevant}
++                    )
++                    if signature_key in seen:
++                        report.deduped_from += 1
++                        continue
++                    seen.add(signature_key)
++                projected = call_state_projector(state_projector, state)
++                metadata = action_metadata_for(name, view, action_metadata)
++                labels = (
++                    name,
++                    NEGATIVE_LABEL,
++                    REJECTED_LABEL,
++                    f"rejects:{name}",
++                    # Not `params:recovered`: these arguments were ENUMERATED
++                    # from the action's own quantifier domains, never recovered
++                    # from a state pair. A reader of the corpus must be able to
++                    # tell the two provenances apart.
++                    "params:enumerated",
++                )
++                index = start_index + len(prepared)
++                prepared.append(
++                    PreparedCase(
++                        name=f"{case_name(index, name)}_rejected",
++                        edge=Edge(source=node, target=node, action=name),
++                        before=projected,
++                        after=projected,
++                        params=dict(bindings),
++                        output_value=None,
++                        output_expression=(
++                            "StateGraphRejection(action={action!r}, params={params}, "
++                            "reason={reason!r}, outcome_fields={outcome})".format(
++                                action=name,
++                                params=py_repr(dict(bindings)),
++                                reason=reason,
++                                outcome=py_repr(outcome_fields),
++                            )
++                        ),
++                        changes={},
++                        labels=labels,
++                        metadata=metadata,
++                    )
++                )
++                report.per_action[name] = report.per_action.get(name, 0) + 1
++                report.per_reason[reason] = report.per_reason.get(reason, 0) + 1
++    report.emitted = len(prepared)
++    report.dump_edges_for_negated = sum(1 for edge in edges if edge.action in set(chosen))
++    return prepared, report
++
++
++def render_negative_report(report: NegativeCorpusReport) -> str:
++    lines = [
++        "",
++        "negative corpus (HP-03): the DISABLED edges of every reachable state, asserted REJECTED",
++        f"  emitted:        {report.emitted} case(s) from {report.candidates} candidate (state, action, argument) triples",
++        f"  negated:        {', '.join(report.negated) if report.negated else '(none)'}",
++    ]
++    if report.dedupe_mode != "none":
++        lines.append(
++            f"  dedupe:         {report.dedupe_mode} collapsed "
++            f"{report.emitted + report.deduped_from} -> {report.emitted} "
++            "(identical action, arguments, violated conjunct and every state variable that conjunct reads)"
++        )
++    lines.append(
++        f"  cross-check:    {report.crosschecked_edges} ENABLED edge(s) with fully recovered arguments "
++        f"re-evaluated at their own source state; {sum(report.crosscheck_failures.values())} evaluated FALSE"
++    )
++    lines.append(
++        f"  verdicts:       {report.emitted + report.deduped_from} proved DISABLED, "
++        f"{report.not_disabled} NOT PROVED DISABLED (guards hold, or a conjunct was unevaluable)"
++    )
++    if report.not_disabled > report.dump_edges_for_negated:
++        lines.append(
++            f"  NOTE: the dump holds {report.dump_edges_for_negated} edge(s) for these actions while "
++            f"{report.not_disabled} argument tuples were not proved disabled -- at least "
++            f"{report.not_disabled - report.dump_edges_for_negated} (state, action, argument) triples "
++            "have no edge of their own. A DOT dump carries one edge per (source, target, action) and "
++            "collapses arguments that agree on the successor. That is why the disabled set is computed "
++            "by evaluating the model and NOT by subtracting the dump's edges: the subtraction would "
++            "report collapsed-but-enabled inputs as refusable, which is the one error this mode "
++            "may not make."
++        )
++    lines.append(
++        "  outcome fields: "
++        + (", ".join(report.outcome_fields) if report.outcome_fields else "(none -- full inertness asserted)")
++        + " -- variables a refusal legitimately writes, taken from the write set of this "
++        "module's own refusal actions; an adapter reports these unobservable and every other "
++        "variable is asserted unchanged"
++    )
++    for action, count in sorted(report.per_action.items()):
++        lines.append(f"    {action}: {count}")
++    for reason, count in sorted(report.per_reason.items(), key=lambda item: (-item[1], item[0])):
++        lines.append(f"    reason `{reason}`: {count}")
++    for action, why in sorted(report.excluded.items()):
++        lines.append(f"  NOT negated: {action} -- {why}")
++    for action, why in sorted(report.suppressed.items()):
++        lines.append(f"  SUPPRESSED:  {action} -- {why}")
++    lines.append(
++        "  A suppressed or unevaluable action costs COMPLETENESS, never SOUNDNESS: this mode "
++        "emits a case only where the action's own body evaluates to a definite FALSE."
++    )
++    return "\n".join(lines)
++
++
+@@ -1145 +2570 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
+-    java spawn at scripts/generate_cases_from_tlc_dump.py:116
++    java spawn at scripts/generate_cases_from_tlc_dump.py:126
+@@ -1147,2 +2572,2 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
+-    scripts/generate_cases_from_tlc_dump.py:140 (shutil.rmtree), the package
+-    writes at scripts/generate_cases_from_tlc_dump.py:882-883 (path.write_text)
++    scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
++    writes at scripts/generate_cases_from_tlc_dump.py:1006-1007 (path.write_text)
+@@ -1243,0 +2669,40 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
++    parser.add_argument(
++        "--negative-cases",
++        choices=list(NEGATIVE_MODES),
++        default="off",
++        help=(
++            "HP-03. Also emit, per reachable state, the actions whose guards are "
++            "DISABLED there -- one case per refusable argument tuple, asserting the "
++            "call is REJECTED and that no modeled variable changes. `with-positive` "
++            "appends them to the ordinary corpus; `only` emits the negative corpus "
++            "alone, which is how the class is measured on its own. Off by default: "
++            "this changes what a corpus contains, and a mode that silently doubled "
++            "every existing corpus would be a schedule change nobody asked for."
++        ),
++    )
++    parser.add_argument(
++        "--negative-dedupe",
++        choices=list(NEGATIVE_DEDUPE_MODES),
++        default="guard-reads",
++        help=(
++            "How negative cases are collapsed. `guard-reads` keeps one case per "
++            "(action, arguments, violated conjunct, and every state variable that "
++            "conjunct reads) -- cases agreeing on all four are the same test. "
++            "`none` keeps one case per reachable state, which is exact and very "
++            "large. This is a DEDUPE, never a trim: no case is dropped for fitting "
++            "a budget, and the collapsed count is reported either way."
++        ),
++    )
++    parser.add_argument(
++        "--negative-action",
++        action="append",
++        default=[],
++        metavar="ACTION",
++        help=(
++            "Negate exactly these actions, overriding the automatic selection. "
++            "By default an action is negated when it writes a variable some guard "
++            "reads -- which excludes actions that MODEL a refusal, because the "
++            "complement of a refusal is an acceptance and asserting it rejected "
++            "would be a false rejection. Repeatable."
++        ),
++    )
+@@ -1316,0 +2782,3 @@ def run(args: argparse.Namespace) -> int:
++    negative_mode = getattr(args, "negative_cases", "off")
++    projector_description = args.state_projector or "none"
++    negative_reports: list[NegativeCorpusReport] = []
+@@ -1328,0 +2797,7 @@ def run(args: argparse.Namespace) -> int:
++        negative=negative_mode,
++        negative_dedupe=getattr(args, "negative_dedupe", "guard-reads"),
++        negative_actions=tuple(getattr(args, "negative_action", []) or ()),
++        tla_source=tla_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
++        cfg_text=cfg_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
++        projector_description=projector_description,
++        negative_report_out=negative_reports,
+@@ -1331 +2806,6 @@ def run(args: argparse.Namespace) -> int:
+-    print(f"generated {view} transition cases from {len(states)} states into {out_path / args.package}")
++    print(f"generated {view} cases from {len(states)} states into {out_path / args.package}")
++    # RC-02-DF-04: say what shaped the corpus, every run, unprompted. A count
++    # whose projection is unnamed cannot be compared with the next one.
++    print(f"state projection: {projector_description}; transition dedupe: {args.dedupe}")
++    for negative_report in negative_reports:
++        print(render_negative_report(negative_report))
+@@ -1353 +2833,10 @@ def run(args: argparse.Namespace) -> int:
+-        report_param_recovery(prepared, param_recipes, out_path / args.package)
++        # Negative cases are excluded from the recovery audit on purpose: their
++        # arguments were ENUMERATED from the quantifier domains, not recovered
++        # from a state pair. Counting them would inflate the recovery rate with
++        # arguments recovery never touched -- the exact kind of number RP-02
++        # was retracted over.
++        report_param_recovery(
++            [case for case in prepared if NEGATIVE_LABEL not in case.labels],
++            param_recipes,
++            out_path / args.package,
++        )
+diff --git a/scripts/generate_python.py b/scripts/generate_python.py
+index 53e3f93..d4e2965 100755
+--- a/scripts/generate_python.py
++++ b/scripts/generate_python.py
+@@ -483,0 +484,335 @@ def render_contract_tests(manifest: dict[str, Any], manifest_path: Path) -> str:
++# ---------------------------------------------------------------------------
++# Effect providers: content assertion is the DEFAULT, and the alternative is loud.
++#
++# Measured and replicated: content-asserting effect providers caught 2 of 6
++# seeded faults that nothing else caught, reproduced cell for cell across two
++# rounds, then replicated by a blind agent on a fresh 16-mutant catalogue at
++# 3 of 3 durable-write mutants under the checking mapping and 0 of 3 under the
++# silent one. That is 30% of the instrument's entire yield riding on a mapping
++# line -- and until HP-05 the scaffold shipped a `raise NotImplementedError`
++# stub and a COMMENTED-OUT binding, so the author wrote the provider, and the
++# one a hurried author writes is the silent one. A round-2 blind agent did
++# exactly that and did not notice until afterwards.
++#
++# So codegen now emits the content-asserting provider and binds it. Nothing
++# here refuses anything: an unbound port, a silent provider and a port with no
++# content declaration are all allowed, and all three are ANNOUNCED, because
++# their kills are a floor and a green run under them over-reads.
++# ---------------------------------------------------------------------------
++
++DURABLE_WRITE = "durable_write"
++
++#: The one sentence every instrument without a durable-write oracle must emit.
++#: Kept as a constant so the provider announcement, the codegen audit and the
++#: reference page cannot drift apart.
++NO_ORACLE_SENTENCE = (
++    "Nothing compares what crossed this port against the model, so kills "
++    "counted under this mapping are a FLOOR, not a total, and a green run "
++    "over-reads."
++)
++
++ANNOUNCE_PREFIX = "[effect-mapping]"
++
++
++def effect_ports(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
++    """Semantic effect ports: the ones a provider can be bound to (EP-01)."""
++    return {
++        str(name): as_dict(spec)
++        for name, spec in as_dict(manifest.get("ports")).items()
++        if as_dict(spec).get("role") == "effect"
++    }
++
++
++def declared_effect_boundaries(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
++    """Ports declared under `effects:` for passive observation (MF-013).
++
++    A boundary may be declared here and carry no provider at all. That is the
++    exact shape the audit exists to report: a project can say "this is a
++    durable write" and still run with nothing reading the bytes.
++    """
++    found: dict[str, dict[str, Any]] = {}
++    for component in as_dict(as_dict(manifest.get("effects")).get("components")).values():
++        for name, spec in as_dict(as_dict(component).get("ports")).items():
++            found[str(name)] = as_dict(spec)
++    return found
++
++
++def port_content_spec(port: dict[str, Any]) -> dict[str, dict[str, str]]:
++    """`content:` -- per method, which payload field equals which modeled value.
++
++    Two productions, deliberately: `variable` and `variable[payload_field]`.
++    A durable write is only checkable against the model when somebody says what
++    it refines; this is that sentence, and it is the smallest one that kills a
++    stale running total.
++    """
++    spec: dict[str, dict[str, str]] = {}
++    for method_name, fields in as_dict(port.get("content")).items():
++        rendered = {str(field): str(expression) for field, expression in as_dict(fields).items()}
++        if rendered:
++            spec[str(method_name)] = rendered
++    return spec
++
++
++def provider_symbol(port_name: str) -> str:
++    return f"{to_snake(port_name)}_provider"
++
++
++def silent_provider_symbol(port_name: str) -> str:
++    return f"silent_{to_snake(port_name)}_provider"
++
++
++def default_result_expression(result: str) -> str:
++    return {
++        "str": '""',
++        "int": "0",
++        "float": "0.0",
++        "bool": "True",
++        "bytes": 'b""',
++        "None": "None",
++    }.get(result.strip(), "None")
++
++
++def render_effect_providers(manifest: dict[str, Any], manifest_path: Path) -> str:
++    module = str(manifest["module"])
++    ports = effect_ports(manifest)
++    boundaries = declared_effect_boundaries(manifest)
++    lines = [
++        header(module, manifest_path),
++        '"""Generated effect providers. CONTENT ASSERTION IS THE DEFAULT.\n\n',
++        "Two providers per semantic effect port, and shipping two is the point:\n",
++        "the checking one is bound by the generated default mapping, and the\n",
++        "silent one exists so that choosing it is a VISIBLE edit to a mapping\n",
++        "file rather than an assertion somebody quietly did not write.\n\n",
++        "Neither suppresses anything. There is no flag that turns the checking\n",
++        "provider's assertions off -- a suppression key would have been the\n",
++        "shorter route and the wrong one, because a reader of a kill number has\n",
++        "to be able to see which instrument produced it.\n\n",
++        "Nothing here refuses to run. Every degraded configuration is announced\n",
++        "on stdout the first time it binds, and the run proceeds.\n",
++        '"""\n\n',
++        "from __future__ import annotations\n\n",
++        "import dataclasses\n",
++        "import os\n",
++        "import sys\n",
++        "from contextlib import contextmanager\n",
++        "from collections.abc import Iterator\n",
++        "from typing import Any\n\n",
++        f"from .types import {', '.join(class_names(manifest))}\n\n\n",
++        f"NO_ORACLE_SENTENCE = {NO_ORACLE_SENTENCE!r}\n",
++        f"ANNOUNCE_PREFIX = {ANNOUNCE_PREFIX!r}\n\n",
++        "#: port -> method -> payload field -> modeled value it must equal.\n",
++        "CONTENT_ASSERTIONS: dict[str, dict[str, dict[str, str]]] = {\n",
++    ]
++    for port_name, port in ports.items():
++        lines.append(f"    {port_name!r}: {port_content_spec(port)!r},\n")
++    lines.append("}\n\n")
++
++    lines.append("#: port -> declared boundary kind, from `ports:` or `effects:`.\n")
++    lines.append("PORT_KINDS: dict[str, str] = {\n")
++    for port_name, port in ports.items():
++        kind = port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect"
++        lines.append(f"    {port_name!r}: {str(kind)!r},\n")
++    lines.append("}\n\n")
++
++    lines.append("#: Boundaries declared under `effects:` that no provider can be bound to.\n")
++    lines.append("#: They are reported, never repaired -- a declaration without a seam is a\n")
++    lines.append("#: finding for the project, not something codegen may invent a port for.\n")
++    unbindable = {
++        name: str(spec.get("kind") or "effect")
++        for name, spec in boundaries.items()
++        if name not in ports
++    }
++    lines.append(f"UNBOUND_DECLARED_BOUNDARIES: dict[str, str] = {unbindable!r}\n\n\n")
++
++    lines.extend(_effect_provider_runtime())
++
++    for port_name, port in ports.items():
++        methods = as_dict(port.get("methods"))
++        lines.append(f"class Recording{port_name}:\n")
++        lines.append(
++            f'    """The bound {port_name}. Every crossing is recorded so the model can judge it."""\n\n'
++        )
++        lines.append("    def __init__(self) -> None:\n")
++        lines.append("        self.crossings: list[EffectCrossing] = []\n\n")
++        if not methods:
++            lines.append("    pass\n\n")
++        for method_name, method_spec in methods.items():
++            method = as_dict(method_spec)
++            result = str(method.get("result", "object"))
++            command = method.get("command")
++            signature = f"self, command: {command}" if command else "self"
++            lines.append(f"    def {method_name}({signature}) -> {result}:\n")
++            if command:
++                lines.append(
++                    f"        self.crossings.append(EffectCrossing({port_name!r}, {method_name!r}, _payload(command)))\n"
++                )
++            else:
++                lines.append(
++                    f"        self.crossings.append(EffectCrossing({port_name!r}, {method_name!r}, {{}}))\n"
++                )
++            lines.append(f"        return {default_result_expression(result)}\n\n")
++        lines.append("\n")
++
++        lines.append(f"class ContentAsserting{port_name}Provider:\n")
++        lines.append(
++            f'    """THE DEFAULT for {port_name}. Asserts the payload against the modeled after-state."""\n\n'
++        )
++        lines.append(f"    port_name = {port_name!r}\n")
++        lines.append("    asserts_content = True\n\n")
++        lines.append("    @contextmanager\n")
++        lines.append("    def bind(self, context: Any) -> Iterator[Any]:\n")
++        lines.append(f"        binding = Recording{port_name}()\n")
++        lines.append(f"        announce_binding({port_name!r}, _reference(self), asserts_content=True)\n")
++        lines.append("        yield binding\n")
++        lines.append(f"        assert_content({port_name!r}, binding.crossings, context)\n\n\n")
++
++        lines.append(f"class Silent{port_name}Provider:\n")
++        lines.append(
++            f'    """The alternative for {port_name}, and it is LOUD. Binds, asserts nothing."""\n\n'
++        )
++        lines.append(f"    port_name = {port_name!r}\n")
++        lines.append("    asserts_content = False\n\n")
++        lines.append("    @contextmanager\n")
++        lines.append("    def bind(self, context: Any) -> Iterator[Any]:\n")
++        lines.append(f"        binding = Recording{port_name}()\n")
++        lines.append(f"        announce_binding({port_name!r}, _reference(self), asserts_content=False)\n")
++        lines.append("        yield binding\n\n\n")
++
++    for port_name in ports:
++        lines.append(f"{provider_symbol(port_name)} = ContentAsserting{port_name}Provider()\n")
++        lines.append(f"{silent_provider_symbol(port_name)} = Silent{port_name}Provider()\n")
++    if ports:
++        lines.append("\n")
++
++    package = str(manifest["package"])
++    lines.append("#: The default mapping codegen writes. Content-asserting, every port.\n")
++    lines.append("DEFAULT_PROVIDERS: dict[str, str] = {\n")
++    for port_name in ports:
++        lines.append(f"    {port_name!r}: {f'{package}.effect_providers:{provider_symbol(port_name)}'!r},\n")
++    lines.append("}\n\n")
++    lines.append("#: The declared way to run without a durable-write oracle, so that\n")
++    lines.append("#: choosing it is an edit a reviewer can see.\n")
++    lines.append("SILENT_PROVIDERS: dict[str, str] = {\n")
++    for port_name in ports:
++        lines.append(
++            f"    {port_name!r}: {f'{package}.effect_providers:{silent_provider_symbol(port_name)}'!r},\n"
++        )
++    lines.append("}\n")
++    return "".join(lines)
++
++
++def _effect_provider_runtime() -> list[str]:
++    """The port-independent half of the generated module, verbatim."""
++    return [
++        '@dataclasses.dataclass(frozen=True)\n',
++        "class EffectCrossing:\n",
++        "    port: str\n",
++        "    method: str\n",
++        "    payload: dict\n\n\n",
++        "def _payload(command: Any) -> dict:\n",
++        "    if dataclasses.is_dataclass(command):\n",
++        "        return {field.name: getattr(command, field.name) for field in dataclasses.fields(command)}\n",
++        "    if isinstance(command, dict):\n",
++        "        return dict(command)\n",
++        "    return {'value': command}\n\n\n",
++        "def _reference(provider: Any) -> str:\n",
++        "    return f'{type(provider).__module__}:{type(provider).__name__}'\n\n\n",
++        "def mapping_name() -> str:\n",
++        '    """Which mapping produced these numbers.\n\n',
++        "    The framework does not hand a provider its mapping path, so this reads\n",
++        "    the run's own invocation. It is a hint, not a contract, and it says so\n",
++        "    when it cannot tell -- an unnamed mapping is itself worth announcing.\n",
++        '    """\n',
++        "    named = os.environ.get('TLA_SPEC_DEV_MAPPING')\n",
++        "    if named:\n",
++        "        return named\n",
++        "    argv = list(sys.argv)\n",
++        "    for index, token in enumerate(argv):\n",
++        "        if token == '--mapping' and index + 1 < len(argv):\n",
++        "            return argv[index + 1]\n",
++        "        if token.startswith('--mapping='):\n",
++        "            return token.split('=', 1)[1]\n",
++        "    return '<unnamed mapping: set TLA_SPEC_DEV_MAPPING to name it>'\n\n\n",
++        "_ANNOUNCED: set = set()\n\n\n",
++        "def announce_binding(port: str, reference: str, *, asserts_content: bool) -> None:\n",
++        '    """Say which instrument this is, once per port per process, unprompted."""\n',
++        "    mapping = mapping_name()\n",
++        "    key = (port, reference, mapping, asserts_content)\n",
++        "    if key in _ANNOUNCED:\n",
++        "        return\n",
++        "    _ANNOUNCED.add(key)\n",
++        "    for line in describe_binding(port, reference, mapping, asserts_content=asserts_content):\n",
++        "        print(line, flush=True)\n\n\n",
++        "def describe_binding(port: str, reference: str, mapping: str, *, asserts_content: bool) -> list[str]:\n",
++        "    kind = PORT_KINDS.get(port, 'effect')\n",
++        "    fields = sorted(\n",
++        "        f'{method}.{field} == {expression}'\n",
++        "        for method, spec in CONTENT_ASSERTIONS.get(port, {}).items()\n",
++        "        for field, expression in spec.items()\n",
++        "    )\n",
++        "    if asserts_content and fields:\n",
++        "        return [\n",
++        "            f'{ANNOUNCE_PREFIX} DURABLE-WRITE ORACLE ACTIVE: {port} (kind: {kind}) is bound to '\n",
++        "            f'{reference} under mapping {mapping}, asserting ' + str(len(fields)) + ' content field(s) '\n",
++        "            f'against the modeled after-state: ' + '; '.join(fields),\n",
++        "        ]\n",
++        "    if asserts_content:\n",
++        "        return [\n",
++        "            f'{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port} (kind: {kind}) is bound to '\n",
++        "            f'{reference} under mapping {mapping}, which records every crossing but declares no '\n",
++        "            f'`content:` block, so no payload field is compared to anything. ' + NO_ORACLE_SENTENCE,\n",
++        "        ]\n",
++        "    return [\n",
++        "        f'{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port} (kind: {kind}) is bound to the SILENT '\n",
++        "        f'provider {reference} under mapping {mapping}. ' + NO_ORACLE_SENTENCE,\n",
++        "    ]\n\n\n",
++        "def _after(case: Any) -> Any:\n",
++        "    after = getattr(case, 'after', None)\n",
++        "    return {} if after is None else after\n\n\n",
++        "def _lookup(container: Any, key: Any) -> Any:\n",
++        "    try:\n",
++        "        return container[key]\n",
++        "    except (TypeError, KeyError, IndexError):\n",
++        "        return getattr(container, str(key))\n\n\n",
++        "def resolve(expression: str, after: Any, payload: dict) -> Any:\n",
++        '    """`variable` or `variable[payload_field]`, evaluated against the after-state."""\n',
++        "    name, bracket, rest = expression.partition('[')\n",
++        "    value = _lookup(after, name.strip())\n",
++        "    if bracket:\n",
++        "        field = rest.rstrip(']').strip()\n",
++        "        if field not in payload:\n",
++        "            raise AssertionError(\n",
++        "                f'content assertion {expression!r} indexes by payload field {field!r}, '\n",
++        "                f'which this crossing does not carry: {sorted(payload)}'\n",
++        "            )\n",
++        "        value = _lookup(value, payload[field])\n",
++        "    return value\n\n\n",
++        "def assert_content(port: str, crossings: list, context: Any) -> None:\n",
++        '    """Compare what crossed the boundary with what the model says is true after.\n\n',
++        "    A durable write is the one thing an after-state comparison structurally\n",
++        "    cannot see: the in-memory projection can be perfect while the persisted\n",
++        "    bytes are wrong. This is the check that sees it.\n",
++        '    """\n',
++        "    spec = CONTENT_ASSERTIONS.get(port) or {}\n",
++        "    if not spec:\n",
++        "        return\n",
++        "    after = _after(getattr(context, 'case', None))\n",
++        "    for crossing in crossings:\n",
++        "        for field, expression in spec.get(crossing.method, {}).items():\n",
++        "            if field not in crossing.payload:\n",
++        "                raise AssertionError(\n",
++        "                    f'DETECTOR[provider_content_assertion] {port}.{crossing.method} declares a content '\n",
++        "                    f'assertion on {field!r}, which the crossing does not carry: {sorted(crossing.payload)}'\n",
++        "                )\n",
++        "            observed = crossing.payload[field]\n",
++        "            expected = resolve(expression, after, crossing.payload)\n",
++        "            if observed != expected:\n",
++        "                raise AssertionError(\n",
++        "                    f'DETECTOR[provider_content_assertion] {port}.{crossing.method} wrote {field}='\n",
++        "                    f'{observed!r} but the model says {expression} == {expected!r} '\n",
++        "                    f'(action={getattr(context, \"action\", None)!r}, '\n",
++        "                    f'case={getattr(getattr(context, \"case\", None), \"name\", None)!r})'\n",
++        "                )\n\n\n",
++    ]
++
++
+@@ -520,0 +856,107 @@ def write(path: Path, content: str) -> None:
++def default_binding_block(manifest: dict[str, Any]) -> str:
++    """The `[effect_providers.*]` tables codegen binds by default."""
++    package = str(manifest["package"])
++    lines = [
++        "\n# WRITTEN BY CODEGEN (generate_python.py). Content assertion is the DEFAULT.\n",
++        "# Rebinding a port to its generated `silent_*_provider` is allowed and is\n",
++        "# ANNOUNCED on every run, because a mapping with no durable-write oracle\n",
++        "# produces kills that are a floor rather than a total.\n",
++    ]
++    for port_name in effect_ports(manifest):
++        lines.append(f"\n[effect_providers.{port_name}]\n")
++        lines.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
++    return "".join(lines)
++
++
++def bind_default_providers(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
++    """Add a default content-asserting binding for every unbound effect port.
++
++    ADVISORY, and additive only. It never rewrites, reorders or removes a line
++    somebody wrote: a port that already has an `[effect_providers.<Port>]` table
++    is left exactly as it is, whichever provider that table names. The point is
++    that the DEFAULT stops being "nothing", not that the author loses the choice.
++    """
++    ports = effect_ports(manifest)
++    if not ports or not mapping_path.is_file():
++        return []
++    text = mapping_path.read_text(encoding="utf-8")
++    missing = [name for name in ports if f"[effect_providers.{name}]" not in text]
++    if not missing:
++        return []
++    package = str(manifest["package"])
++    additions = ["\n# WRITTEN BY CODEGEN (generate_python.py): content assertion is the DEFAULT.\n"]
++    for port_name in missing:
++        additions.append(f"\n[effect_providers.{port_name}]\n")
++        additions.append(f'provider = "{package}.effect_providers:{provider_symbol(port_name)}"\n')
++    mapping_path.write_text(text.rstrip("\n") + "\n" + "".join(additions), encoding="utf-8")
++    return missing
++
++
++def mapping_audit(manifest: dict[str, Any], mapping_path: Path) -> list[str]:
++    """What oracles this mapping carries, and -- louder -- which it does not.
++
++    A report, never a gate. Nothing here refuses, and a project with no durable
++    side at all produces a single line saying so.
++    """
++    ports = effect_ports(manifest)
++    boundaries = declared_effect_boundaries(manifest)
++    if not ports and not boundaries:
++        return [f"{ANNOUNCE_PREFIX} mapping {mapping_path}: no effect ports declared; no durable-write oracle is expected."]
++
++    bound: dict[str, str] = {}
++    if mapping_path.is_file():
++        text = mapping_path.read_text(encoding="utf-8")
++        current: str | None = None
++        for raw in text.splitlines():
++            line = raw.strip()
++            if line.startswith("[effect_providers.") and line.endswith("]"):
++                current = line[len("[effect_providers.") : -1]
++            elif current and line.startswith("provider"):
++                _, _, value = line.partition("=")
++                bound[current] = value.strip().strip('"').strip("'")
++                current = None
++
++    report = [f"{ANNOUNCE_PREFIX} mapping {mapping_path}"]
++    for port_name, port in ports.items():
++        kind = str(port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect")
++        content = port_content_spec(port)
++        reference = bound.get(port_name)
++        if reference is None:
++            report.append(
++                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared "
++                f"role: effect but this mapping binds no provider to it. {NO_ORACLE_SENTENCE}"
++            )
++        elif reference.endswith(silent_provider_symbol(port_name)):
++            report.append(
++                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to the "
++                f"SILENT provider {reference}. {NO_ORACLE_SENTENCE}"
++            )
++        elif not content:
++            report.append(
++                f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is bound to "
++                f"{reference}, which records every crossing but declares no `content:` block, so no "
++                f"payload field is compared to anything. {NO_ORACLE_SENTENCE}"
++            )
++        else:
++            fields = sorted(
++                f"{method}.{field} == {expression}"
++                for method, spec in content.items()
++                for field, expression in spec.items()
++            )
++            report.append(
++                f"{ANNOUNCE_PREFIX} DURABLE-WRITE ORACLE ACTIVE: {port_name} (kind: {kind}) is bound to "
++                f"{reference}, asserting {len(fields)} content field(s) against the modeled after-state: "
++                + "; ".join(fields)
++            )
++    for port_name, spec in boundaries.items():
++        if port_name in ports:
++            continue
++        kind = str(spec.get("kind") or "effect")
++        report.append(
++            f"{ANNOUNCE_PREFIX} NO DURABLE-WRITE ORACLE: {port_name} (kind: {kind}) is declared under "
++            f"`effects:` but has no `ports:` entry with role: effect, so no provider can be bound to it "
++            f"and nothing reads what crosses it. {NO_ORACLE_SENTENCE}"
++        )
++    return report
++
++
+@@ -538,0 +981,3 @@ def generate(manifest_path: Path, out_dir: Path) -> Path:
++    if effect_ports(manifest):
++        files["effect_providers.py"] = render_effect_providers(manifest, manifest_path)
++        write(out_dir / "case_adapters.effects.toml", default_binding_block(manifest).lstrip("\n"))
+@@ -547,0 +993,5 @@ def main() -> int:
++    parser.add_argument(
++        "--mapping",
++        type=Path,
++        help="Adapter mapping to bind default providers into. Defaults to case_adapters.toml beside the manifest.",
++    )
+@@ -551,0 +1002,11 @@ def main() -> int:
++
++    manifest = load_manifest(args.manifest)
++    mapping_path = args.mapping or args.manifest.parent / "case_adapters.toml"
++    for port_name in bind_default_providers(manifest, mapping_path):
++        print(
++            f"{ANNOUNCE_PREFIX} bound {port_name} to its generated content-asserting provider "
++            f"in {mapping_path} (nobody had to configure it)"
++        )
++    # Unprompted, every time, whether or not anybody asked for a report.
++    for line in mapping_audit(manifest, mapping_path):
++        print(line)
+diff --git a/scripts/run_generated_case_adapters.py b/scripts/run_generated_case_adapters.py
+index 835ebac..3a28e53 100644
+--- a/scripts/run_generated_case_adapters.py
++++ b/scripts/run_generated_case_adapters.py
+@@ -24 +24 @@ import tempfile
+-from dataclasses import dataclass
++from dataclasses import dataclass, field
+@@ -94,0 +95,15 @@ class EffectProviderPlan:
++    #: HP-04 (CM-F5 / EV-03-DF-02): semantic effect ports this mapping binds a
++    #: provider for and that NO selected case requires. Before HP-04 this was a
++    #: hard refusal, which meant a slice narrower than its view -- the normal
++    #: shape of a slice, and the only artifact form writable from action names
++    #: alone -- could not execute under any mapping the project shipped. It is
++    #: now a REPORTED FACT about the corpus, per the epic's no_new_gates_rule.
++    orphan_ports: tuple[str, ...] = ()
++    #: The ports this run's providers actually carry, as ``port -> provider``.
++    #: Reported so a number can name its instrument: a mapping binding a silent
++    #: provider and one binding a content-asserting provider produce different
++    #: kill counts over the same corpus, and 30% of that instrument's entire
++    #: measured yield rides on which one was chosen.
++    carried: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
++    #: The mapping file these bindings came from.
++    mapping_source: str = ""
+@@ -98,0 +114,27 @@ class EffectProviderPlan:
++    def render_oracle_coverage(self) -> str:
++        """State which oracles this run carries and which it does NOT.
++
++        EV-03-DF-02's sharpening of CM-F5 is the reason this is printed rather
++        than documented: a blind agent that hit the refusal authored its own
++        third mapping to get past it, and observed that the mapping it wrote was
++        a STRICTLY WEAKER INSTRUMENT with no durable-write oracle -- so a green
++        run under it over-reads. Documentation could not have told it that at
++        the moment it needed to know; the run output can.
++        """
++        lines: list[str] = []
++        source = f" from {self.mapping_source}" if self.mapping_source else ""
++        if self.carried:
++            bound = ", ".join(f"{port} -> {provider}" for port, provider in sorted(self.carried.items()))
++            lines.append(f"EFFECT ORACLES CARRIED{source}: {bound}")
++        if self.orphan_ports:
++            lines.append(
++                f"EFFECT ORACLES **NOT** CARRIED{source}: {', '.join(self.orphan_ports)}. "
++                "This corpus enters no action that emits on them -- for a case-module "
++                "SLICE that is a fact about the slice, not a misconfiguration. A green "
++                "result here is a statement about the ports listed as CARRIED and says "
++                "NOTHING about the ports listed here; treat its kill count as a FLOOR."
++            )
++        if not lines:
++            return ""
++        return "\n".join(lines)
++
+@@ -670,6 +712,25 @@ def load_effect_provider_plan(
+-    orphan_ports = sorted(set(provider_specs) - used_provider_ports)
+-    if orphan_ports:
+-        raise EffectProviderConfigurationError(
+-            "provider configured for semantic effect port(s) not required by any selected case: "
+-            + ", ".join(orphan_ports)
+-        )
++    # CM-F5 / EV-03-DF-02, closed by HP-04. This used to raise.
++    #
++    # A case module in `slice` form is narrower than the view it extends -- that
++    # is what a slice IS -- so it routinely enters none of the actions that emit
++    # on some of the view's ports. The view's providers are then orphaned, and
++    # the refusal meant the slice's corpus could not execute. EV-03 measured how
++    # bad that is on the shipped ex4 fixture: BOTH mappings it ships bind the
++    # LedgerStorePort provider, so the fixture had ZERO working configurations
++    # for its own slice and the documented workaround required authoring a third
++    # mapping that exists nowhere. A round-2 blind agent lost 3 of its 15 actions
++    # to this and had to write that file.
++    #
++    # So the orphan is REPORTED, not refused (the epic's no_new_gates_rule: a
++    # ticket that finds itself adding a rule that refuses something has left
++    # scope). Nothing is silently dropped: the ports ride on the plan and
++    # `render_oracle_coverage` says, in the run's own output, which oracles this
++    # mapping does NOT carry -- because the same blind agent's second
++    # observation was that the mapping it wrote was a strictly weaker instrument
++    # with no durable-write oracle, so a green slice run OVER-READS.
++    orphan_ports = tuple(sorted(set(provider_specs) - used_provider_ports))
++    carried = {
++        port: str(spec["provider"])
++        for port, spec in provider_specs.items()
++        if port in used_provider_ports
++    }
+@@ -677 +738,7 @@ def load_effect_provider_plan(
+-    return EffectProviderPlan(MappingProxyType(by_case), configured=configured)
++    return EffectProviderPlan(
++        MappingProxyType(by_case),
++        configured=configured,
++        orphan_ports=orphan_ports,
++        carried=MappingProxyType(carried),
++        mapping_source=str(mapping_path),
++    )
+@@ -2229,0 +2297,6 @@ def main() -> int:
++    # HP-04: every run with semantic providers states which oracles it carries
++    # and which it does not, unprompted and BEFORE the results, so a reader
++    # cannot reach a kill count without having read what produced it.
++    coverage_note = effect_provider_plan.render_oracle_coverage()
++    if coverage_note:
++        print(coverage_note)

@@ -64,42 +64,48 @@ rule that does not hold on a scan FIRES as a notification to future agents —
 advisory, never blocking, and there are no built-in rules. See
 `references/fitness_functions.md`.
 
-**SHIPPED — the architecture descriptor (`analyze architecture`).** The same
-structure, named and made addressable (AC-01). From the model alone it reports
-the **components** (variable clusters, with the actions internal to each and
-the actions that cross), the **ownership** of every variable (which actions
-write it, and every single-writer violation — a variable whose writes are not
-confined to one component), the **ports** (the component pairs actions cross:
-what would have to become an interface if the cut were taken), and the
-**spanning actions** whose write set commits in more than one component in one
-step. Same stance as the complexity descriptor: every figure is `[MEASURED]`,
-it makes no suggestions, and it exits nonzero only when it cannot analyze the
-model. Two things distinguish it. First, it **refuses rather than invents**: a
-model whose interaction graph does not decompose gets the criteria that failed
-and a `null` where the ownership figures would be, not a one-component
-partition reporting zero violations — a flawless architecture report for a
-model with no architecture is indistinguishable from the real thing. Both of
-this repository's own real targets currently land there. Second, its component
-partition may be **declared** by the project (`architecture:` in
-`spec_manifest.yaml`, or `--components`); the tool measures the partition you
-name and never writes one. A machine-readable form (`--format json`) is the
-contract downstream consumers read. See `references/architecture_coherence.md`.
+**REMOVED 2026-08-04 — the architecture descriptor and reflexion check
+(`analyze architecture`).** AC-01/AC-02/AC-04 shipped a model-side architecture
+descriptor, a reflexion diff of production code against it, and a before/after
+divergence delta. All of it is gone — `scripts/analyze_architecture.py` (1,192
+lines), `scripts/architecture_reflexion.py` (2,325), the subcommand, the
+`architecture_scan` / `architecture_delta` model variables, and the ledger
+member — because each check was measured and each was defeated cheaply. A
+41-line re-export file took a divergent codebase to `coherent` with every
+declaration digest unchanged and the coupling live at run time; a module taking
+its collaborator as a *parameter* was reported as dead architecture; the
+decomposition rule was `modularity_q > 0`, ~26x below the threshold the tool
+itself printed, and adding one variable with nothing tuned flipped this
+repository's own verdict to "every criterion met" — on a component consisting of
+the scanner's own two state variables. **Across two full eval rounds and seven
+repair tickets, bug detection did not move by a single cell.** That is why
+guidance goes in prompts and verdicts come from judged scorecards.
 
-**SHIPPED — the descriptor as a constrained ask (`prompts/implementation_brief.md`).**
-The generation-time half (AC-03). A descriptor is advice until it constrains
-the request: "implement checkout" and "implement this action inside the
-component that owns `orders` and `outbox`, reaching cart only through its
-declared port, with effects at the boundary and one externally visible
-commitment" are different asks, and only the second is derivable from a model
-the project already has. The prompt renders one descriptor + one action into
+Everything those three tickets actually established is written down in
+`references/architecture_advice.md`: nine rules to follow now, and the nine
+acceptance criteria any replacement must satisfy before it is allowed to say
+anything binding. If a static architecture check is built here again it must be
+architected deliberately against that page.
+
+**SHIPPED — the model as a constrained ask (`prompts/implementation_brief.md`).**
+The generation-time half (AC-03). Structure is advice until it constrains the
+request: "implement checkout" and "implement this action inside the component
+that owns `orders` and `outbox`, reaching cart only through its declared port,
+with effects at the boundary and one externally visible commitment" are
+different asks, and only the second is derivable from a model the project
+already has. The prompt renders one action, one partition and one model into
 `templates/implementation_brief.md` — a self-contained page for a coding agent
 that will not open the model, naming the component and what it owns, the ports
-it may reach through, the declared effect ports for that action, the atomicity
-the model asserts, and an explicit list of what may **not** be done. It
-proposes nothing (CD-01) and gates nothing. Its precondition is load-bearing:
-a brief rendered from a partition that does not decompose is vacuous, so the
-prompt refuses rather than emitting a flawless-looking brief about a model with
-no architecture. Its companion `prompts/aspect_decomposition.md` is the BDD ask
+it may reach through **and in which direction**, the declared effect ports for
+that action, the atomicity the model asserts, and an explicit list of what may
+**not** be done. It proposes nothing (CD-01) and gates nothing. **The partition
+comes from the CALLER, in writing** — nothing in this toolchain picks one, since
+a tool that picks the boundary makes every edge legal by construction. Its
+precondition is load-bearing: a brief rendered from a boundary that constrains
+nothing is vacuous, so the prompt refuses rather than emitting a
+flawless-looking brief about a model with no architecture. (Reworked 2026-08-04:
+it read the removed `analyze architecture` JSON and now derives the same facts
+from `analyze complexity --format json` plus the module.) Its companion `prompts/aspect_decomposition.md` is the BDD ask
 from the user's side — enumerate the public surface, name each aspect's Given
 and what the Given asserts is irrelevant, and emit the `case_modules:` block.
 
@@ -1135,7 +1141,7 @@ back to centralized semantic state.
 5. Regression tests from counterexamples: TLC counterexamples,
    Hypothesis failures, and production bugs become named Python traces,
    TLA+ model changes, or validator improvements.
-6. **Coverage audit — completeness, not fidelity. Required once per epic.**
+6. **Coverage audit — completeness, not fidelity. Once per epic, advisory.**
 
    Layers 1-4 are all bounded to what is **already modeled**: conformance
    checks cases that exist, effect conformance checks a corpus generated *from
@@ -1145,10 +1151,10 @@ back to centralized semantic state.
    representation is invisible to every layer above while all of them report
    green.** Fidelity and completeness are independent properties.
 
-   **Ordering — a required end-of-epic step: after every mechanism ticket has
-   landed, and before final end-to-end integration.** After the mechanisms, so
-   it measures the model as the epic actually leaves it; before integration,
-   because it is a promotion gate rather than a report.
+   **Ordering — an end-of-epic step: after every mechanism ticket has landed,
+   and before final end-to-end integration.** After the mechanisms, so it
+   measures the model as the epic actually leaves it. It is a REVIEW, not a
+   gate: see below.
 
    Dispatch `prompts/coverage_audit.md` to a sub-agent; it fills
    `templates/coverage_audit_report.md`. Four sweeps — program surface, effects
@@ -1164,10 +1170,21 @@ back to centralized semantic state.
    finding**; N per-finding justifications would be the escape hatch that one
    reviewable boundary decision is not.
 
-   The verdict is recorded in the complexity ledger's `coverage_audit` block so
-   an epic that skipped the audit is visible. It defaults to `not_run` and
-   refuses the workflow close at anything but `pass`; `incomplete` is not a
-   pass. See `references/coverage_audit.md`.
+   The verdict is recorded in the complexity ledger's `coverage_audit` block at
+   every close, so an epic that skipped the audit is visible. It defaults to
+   `not_run`, and `incomplete` is still not a pass.
+
+   **RETIRED AS A BLOCKING GATE 2026-08-04 (owner direction).** It refused a
+   workflow close at anything but `pass`, with no override flag. It is now an
+   optional review whose verdict is recorded and read by a person. The reason is
+   not that it was useless — it is the only sweep here that looks at UNMODELED
+   surface, and it found `generate cases` with no action, no port and no CLI
+   subcommand at all, plus two shipped port globs that could never fail. The
+   reason is that the verdict is a word the audited party types about a sweep the
+   audited party performed, and a gate with that input is a place to type `pass`
+   rather than a check — the same "make the check clean" pressure measured on the
+   architecture side (`references/architecture_advice.md`). Run it when you want
+   the read; nothing waits on it. See `references/coverage_audit.md`.
 
 When example or repository tests need pytest but the project does not have a
 managed Python environment, make the test file directly runnable with a PEP 723
@@ -1216,6 +1233,17 @@ current change.
 - Do not use TLA+ ceremony for trivial CRUD or early exploratory UI work.
 - Do not confuse centralized semantic state with centralized production
   architecture.
+- **Do not build a mechanical architecture or coherence check, and do not let
+  one gate anything.** The standing measured verdict, 2026-08-04: across two
+  full eval rounds and seven repair tickets, **bug detection did not move by a
+  single cell** — 4 of 6, 6 of 6, 0 of 3, 0 of 3, identical before and after —
+  and every check shipped was defeated cheaply, once by six lines of YAML and
+  once by a 41-line re-export file with every declaration digest unchanged.
+  Guidance goes in prompts; verdicts come from judged scorecards. If you think
+  you have a check worth building, read `references/architecture_advice.md`
+  Part 2 first: it is nine acceptance criteria, each earned by a specific
+  defeat, and a check that does not meet all nine has already been built here
+  and has already been gamed.
 
 ## References
 
@@ -1240,23 +1268,28 @@ current change.
 - `references/effect_providers.md`: project-owned provider interfaces,
   the domain-neutral agent contract, deterministic representative campaigns,
   exact replay, usage evidence, and honest isolation/validation limits.
-- `references/coverage_audit.md`: the end-of-epic completeness gate — why
-  the four oracles cannot see unmodeled surface, the required ordering
-  (after mechanisms land, before final integration), and the gate semantics.
-  Procedure: `prompts/coverage_audit.md`; report shape:
+- `references/coverage_audit.md`: the end-of-epic completeness REVIEW — why
+  the four oracles cannot see unmodeled surface, the ordering (after mechanisms
+  land, before final integration), and why it stopped being a blocking gate on
+  2026-08-04. Procedure: `prompts/coverage_audit.md`; report shape:
   `templates/coverage_audit_report.md`.
 - `references/architecture_tractability.md`: the owner's three design moves
   when the descriptor shows a squeeze (the descriptor itself suggests
   nothing), user-approval rules, creative representations for irreducible
   pieces, and the grow-by-evidence modeling loop.
-- `references/architecture_coherence.md`: the architecture descriptor
-  (`analyze architecture`) — components, per-variable writers and
-  single-writer violations, ports, spanning actions; the criteria that decide
-  whether a partition is a cut at all; the refusal a model that does not
-  decompose gets instead of an invented cut; the `architecture_scan` values
-  (`unmappable` is not `unknown`); and the JSON contract its consumers read.
-  Rendering it into a constrained implementation ask is
-  `prompts/implementation_brief.md` + `templates/implementation_brief.md`.
+- `references/architecture_advice.md`: what three epics of static architecture
+  checking actually established, after the scanners were removed on 2026-08-04.
+  Part 1 is nine rules to follow now — import topology is not modularity, a
+  criterion that cannot fail is not a criterion, a metric improving is not
+  evidence the design improved, a declaration drifts unless something executes
+  it, "make the check clean" is a standing instruction to duplicate, advice may
+  describe a boundary but must not choose one, anything outside the scanned root
+  is free, direction is part of a boundary, and refuse rather than certify what
+  you could not see. Part 2 states the same nine as acceptance criteria a
+  replacement must satisfy, each with its measurement. Read it before building
+  any check that consumes a declaration. Rendering structure into a constrained
+  implementation ask is `prompts/implementation_brief.md` +
+  `templates/implementation_brief.md`.
 - `references/complexity_intuition.md`: how to read a complexity descriptor
   as refactoring input — good vs bad descriptor shapes with worked real-run
   examples, how complex a program should be (proportional to essential
@@ -1283,5 +1316,22 @@ current change.
 - `references/examples.md`: checked-in examples and when to use them.
 - `references/spec_evolution.md`: append-only history and search guidance.
 - `references/workflows.md`: project, spec, ticket, and close-out workflows.
+- `references/eval_scorecard.md`: THE EVALUATION RUBRIC. Five judged dimensions
+  (bug detection, complexity, modularity, behavior preservation, honesty), the
+  anchors that make two blind judges agree, and the structural rules that make a
+  score hard to game — artifacts not claims, an uncited score mechanically capped
+  at 1, and a top score reachable only by naming something the artifact refuses
+  to claim. Results live in `specs/results/scorecards/<epic>/`, which the
+  workflow close seals into the snapshot, so every epic's scorecards travel with
+  the epic that produced them. `SELF-IMPROVEMENT.md` beside them is the
+  cross-epic ledger, where the metric is the DELTA and not the total. Checker and
+  indexer: `examples/validation/scorecards/score_tools.py`.
+- `references/hexagonal_prompting.md`: architecture guidance as a PROMPT rather
+  than a check, and what it deliberately does not do. Shipped after four static
+  architecture levers were measured twice and moved bug detection by zero cells.
+  The ask itself is `prompts/hexagonal_implementation.md`: ports and adapters in
+  fact, plus the simplest design that keeps every behavior — with no number, no
+  threshold, and no report to turn green, because "make the check clean" was
+  measured to be a standing instruction to duplicate across boundaries.
 - `examples/distributed_history/`: fully worked internal/external Test Graph
   example with local and k3d modes.

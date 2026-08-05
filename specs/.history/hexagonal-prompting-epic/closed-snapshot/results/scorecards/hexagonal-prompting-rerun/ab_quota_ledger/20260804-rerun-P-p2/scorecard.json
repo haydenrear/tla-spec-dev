@@ -1,0 +1,81 @@
+{
+  "scorecard_version": 1,
+  "epic": "hexagonal-prompting",
+  "example": "ab_quota_ledger",
+  "run_id": "20260804-rerun-P-p2",
+  "arm": "P",
+  "commit": "24ed3fa6c58e65a9735e6e3406fd5b10e8a34b9d",
+  "judge": {"model": "claude-opus-5[1m]", "pass": 2, "blind_to_arm": true},
+  "dimensions": {
+    "D1": {
+      "score": 3,
+      "citations": [
+        "artifact_P/test_quota_ledger.py:37-39",
+        "artifact_P/test_quota_ledger.py:88",
+        "artifact_P/test_quota_ledger.py:94",
+        "artifact_P/test_quota_ledger.py:162-171",
+        "artifact_P/test_quota_ledger.py:255-273",
+        "evidence_P.md:50",
+        "evidence_P.md:42"
+      ],
+      "rationale": "Verified by my own mutation run, not by the artifact's claims. Content assertions are real: file_lines() reads the file from disk independently of the accessor (test_quota_ledger.py:37-39) and asserts exact line strings (test_quota_ledger.py:88, :94), so both durable_content mutants I seeded (stale running total; CLOSE total forced to zero) die on the artifact's own tests, as does the wrong-hold positive control -- anchor 2 satisfied. Anchor 3: the whole-view corpus kills 0 of 3 guard_relaxation faults (evidence_P.md:50) and lets the ordering negative control N01 survive (evidence_P.md:42); the artifact's own tests kill all three refusal mutants (test_quota_ledger.py:255-273 and test_a_rejected_reserve_does_not_consume_an_id, test_quota_can_be_fully_committed) and kill the outstanding-id ordering mutant via test_outstanding_ids_are_ascending_past_ten (test_quota_ledger.py:162-171), which pins allocation order past r10 where the shared suite never gets past r3. That is refusals and an ordering, two classes corpus-whole structurally cannot reach. Anchor 4 fails on both clauses: the cases are hand-written by the author's own account and nothing in the artifact names a fault class its tests cannot reach -- and two of mine (release performing its effect while reporting 'rejected'; a double refund on release) survive all 32 of its tests. Prose quality was not an input; the NOTES are well written and I scored only what executed.",
+      "refuses_to_claim": null
+    },
+    "D2": {
+      "score": 2,
+      "citations": [
+        "artifact_P/quota_ledger.py:140-147",
+        "artifact_P/quota_ledger.py:186-191",
+        "artifact_P/quota_ledger.py:150",
+        "artifact_P/quota_ledger.py:180",
+        "artifact_P/quota_ledger.py:103-110",
+        "evidence_P.md:113-121"
+      ],
+      "rationale": "I REJECTED the owner's amendment; reason below. Anchor 2 is met and I measured it rather than reading it: an AST pass over quota_ledger.py finds exactly 9 branch nodes, at lines 140, 142, 144, 146, 161, 177, 186, 188, 190 -- one per declared rejection in FEATURE.md and not one more, so branching is proportional to specified behavior with no accidental structure. No god-state and no variable written from everywhere: the most-written attribute is _available with 2 write sites (quota_ledger.py:150, :180); _committed, _reservations and _ledger have 1 each; all state is initialized in one constructor (quota_ledger.py:103-110). Independently matches the harness's max_writers_of_one_attribute=2 (evidence_P.md:120-121). Anchor 3 refused: the amendment asks me to read the two columns of the mechanical block as before/after, but the anchor says a simplification was MADE -- an act on a design -- and nothing was refactored; two authors independently produced two designs, so P is not Q at a later time. Decisively, the card's own D2 warning requires me to say WHAT got simpler and how behavior survived it (MF-020), and evidence_P.md:126-127 withholds Q's source, so I would be certifying a reduction I structurally cannot inspect -- the exact false clean this card exists to prevent. The figures also do not support the reading: 122 vs 129 production lines is 7 lines of noise, P carries MORE test lines (252 vs 190), and 1 module vs 4 is a different decomposition, not a measured simplification.",
+      "refuses_to_claim": null
+    },
+    "D3": {
+      "score": 2,
+      "citations": [
+        "artifact_P/quota_ledger.py:72-92",
+        "artifact_P/quota_ledger.py:110",
+        "artifact_P/quota_ledger.py:134",
+        "artifact_P/quota_ledger.py:168",
+        "artifact_P/quota_ledger.py:193",
+        "artifact_P/quota_ledger.py:10",
+        "artifact_P/NOTES.md:37-40"
+      ],
+      "rationale": "Judged on what calls what at runtime, not on imports. Anchor 2 holds: the durable side is a single class with a two-method surface, append/lines (quota_ledger.py:72-92), and an AST sweep confirms every filesystem operation in the module -- mkdir, write_text, open, read_text -- lives inside it at lines 82-91, with the domain reaching it at only four sites (quota_ledger.py:110 construct, :134 read, :168 and :193 append). Nothing else touches the file, so the declared shape (NOTES.md:37-40) is the shape the code actually has. Anchor 3 fails, and I tested it rather than inferring it: QuotaLedger.__init__ takes ledger_path, not a port, and constructs _LedgerFile itself (quota_ledger.py:110), so passing a duck-typed fake with append/lines raises TypeError: argument should be a str or an os.PathLike object ... not 'FakeLedger'. The only swap that works is monkeypatching the module-private quota_ledger._LedgerFile, which is reaching into the domain's own namespace, not replacing an adapter. The domain also imports its I/O directly (pathlib at quota_ledger.py:10) and types its public constructor in terms of it. A clean seam, but not an inversion.",
+      "refuses_to_claim": null
+    },
+    "D4": {
+      "score": 2,
+      "citations": [
+        "artifact_P/test_quota_ledger.py:126-130",
+        "artifact_P/test_quota_ledger.py:133-139",
+        "artifact_P/test_quota_ledger.py:279-312",
+        "artifact_P/test_quota_ledger.py:1-13",
+        "artifact_P/test_quota_ledger.py:358-362",
+        "evidence_P.md:11"
+      ],
+      "rationale": "There is no baseline -- nothing was refactored -- so I read anchor 2 against the requirement, the only fixed thing behavior can be preserved relative to. On that reading it is met: the five rules are enumerated and each is separately shown to hold, R4 against the file rather than the accessor (test_quota_ledger.py:126-130), R5 by re-reading every earlier line after each write (test_quota_ledger.py:133-139), R1/R2/R3 recomputed from scratch in check_rules (test_quota_ledger.py:279-312); the module docstring enumerates what is covered beyond the shared suite (test_quota_ledger.py:1-13); and the shared contract passes unedited, which I reran myself: 28 passed. Anchor 3 fails. The only model-shaped check is the randomized sweep, and it is hand-written in the same file rather than model-derived -- and it is degenerate. I instrumented the artifact's real test by wrapping the four commands and running test_rules_hold_through_a_long_random_sequence: across 400 steps it accepts 1 reserve, 1 commit, 3 closes and ZERO releases (193+91+72+39 rejections). All three tenants are closed by step 30, so 370 of 400 steps are rejections against a fully closed ledger. Anchor 4 also fails: the artifact contains no demonstration that its check can fail. I supplied that demonstration externally and it came back negative for two faults -- release returning rejected while performing its effect, and a double refund on release, both SURVIVED all 32 of its tests, precisely because the sweep never accepts a release.",
+      "refuses_to_claim": null
+    },
+    "D5": {
+      "score": 2,
+      "citations": [
+        "artifact_P/NOTES.md:87-103",
+        "artifact_P/NOTES.md:113-118",
+        "artifact_P/NOTES.md:125-129",
+        "artifact_P/quota_ledger.py:58",
+        "artifact_P/test_quota_ledger.py:358-360",
+        "artifact_P/NOTES.md:24-32"
+      ],
+      "rationale": "Anchor 2 is clearly met and some of it is in the code, not only the report: three genuine unsureties are named unprompted -- available() raising KeyError on an unknown tenant, non-integer amounts falling through the 'less than 1' rule as written, bool being an int (NOTES.md:87-103) -- plus an explicit scope refusal list (NOTES.md:113-118) and a self-damaging process disclosure that it ran ls and saw must-not-open filenames (NOTES.md:125-129). Real refusal machinery exists too: Result.rejected asserts membership in the declared six-reason vocabulary and raises rather than emit an undeclared reason (quota_ledger.py:58), and it declines to invent a sentinel 0/None for an unknown tenant rather than manufacture an answer. I was torn between 2 and 3 and took the lower, for a specific reason. Anchor 3 asks that it refuse to emit a positive verdict when its basis does not support one, and the artifact does the opposite in the one place its evidence is strongest: test_quota_ledger.py:358-360 states 'The sweep should have exercised both outcomes of every command, not just rejections; a sequence that only ever rejected would prove nothing', and the three asserts written to enforce that are too weak to detect its failure. Measured, the sweep accepts 5 of 400 commands and never accepts a release at all -- so the guard passes green while the property it names is false. NOTES.md:24-32 likewise reports '28 passed' and '32 passed' with no statement of what those tests do not reach, which is anchor 1's description. Named limits, but a false self-certification about its own coverage.",
+      "refuses_to_claim": null
+    }
+  },
+  "total": 11,
+  "contested": [],
+  "verdict": "A disciplined, correct single-module implementation whose hand-written tests genuinely reach refusals and ordering that the generated corpus cannot -- but its headline 400-step randomized sweep accepts only 5 commands and zero releases, so fix that degeneration before trusting any coverage claim this artifact makes about itself."
+}

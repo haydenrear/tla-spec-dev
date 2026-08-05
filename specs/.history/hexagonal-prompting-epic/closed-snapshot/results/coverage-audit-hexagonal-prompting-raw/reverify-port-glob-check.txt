@@ -1,0 +1,57 @@
+_WORK_PATH_KEY_VERSION = 'tla-spec-dev/work-path/v1'
+
+=== G-2  case_program_process  target '*programs/case_*' ===
+    spawn site: run_generated_case_adapters.py:2178  subprocess.run([*python, str(program)])
+    program   : run_generated_case_adapters.py:1255  work_dir/'programs'/f'{case_component}.py'
+    component : run_generated_case_adapters.py:1358  f'{role}-{sha256[:32]}'   <-- HYPHEN
+
+  case.name = 'case_0002_install_local_cli'
+    recorded target = /opt/homebrew/opt/python@3.14/bin/python3.14 /var/folders/xy/T/spec-double-cases-abc123/programs/case-182e6983c2ecf596e977c78e1c118b7a.py
+    matches '*programs/case_*' -> False
+  case.name = 'case_0004_record_budgets'
+    recorded target = /opt/homebrew/opt/python@3.14/bin/python3.14 /var/folders/xy/T/spec-double-cases-abc123/programs/case-5087ef80d845620e4542a4257089d0e9.py
+    matches '*programs/case_*' -> False
+  case.name = 'case_0008_update_ticket_desired'
+    recorded target = /opt/homebrew/opt/python@3.14/bin/python3.14 /var/folders/xy/T/spec-double-cases-abc123/programs/case-8ff0689892becd504768d2b7a4b023d5.py
+    matches '*programs/case_*' -> False
+  case.name = 'RunSpecUnitTests-0'
+    recorded target = /opt/homebrew/opt/python@3.14/bin/python3.14 /var/folders/xy/T/spec-double-cases-abc123/programs/case-d2276ccb8cce9dc8ec0f0f3e28be8399.py
+    matches '*programs/case_*' -> False
+  case.name = 'anything'
+    recorded target = /opt/homebrew/opt/python@3.14/bin/python3.14 /var/folders/xy/T/spec-double-cases-abc123/programs/case-f3e32318e1225617dd82e08af5b4e92e.py
+    matches '*programs/case_*' -> False
+
+  ANY MATCH ACROSS ALL CASE NAMES: False
+  The component is `case-<hex>`; the glob requires `case_`. The declared
+  port cannot accept the spawn it was written for, for ANY case name.
+
+  Globs that WOULD accept it:
+    '*programs/case_*'       -> False
+    '*programs/case-*'       -> True
+    '*/programs/*'           -> True
+    '*programs*'             -> True
+
+=== G-1  case_work_dir_delete  target '**' ===
+    '**' collapses to '*' at effect_conformance.py:521-523, and fnmatch '*'
+    crosses separators. So it accepts every string.
+
+    delete target '/anything/at/all'                 -> True
+    delete target '/Users/me/important-project'      -> True
+    delete target '/'                                -> True
+    delete target 'relative/path'                    -> True
+    delete target '/var/folders/T/x/case_0004'       -> True
+    delete target ''                                 -> True
+
+  What the code actually constrains (effect_conformance.py:1683-1687):
+    case_dir = Path(work_dir) / case_name   # exactly ONE level under work_dir
+    'Only the per-case subdirectory is removed, and only under a directory
+     the oracle owns.  ... leaving the parent alone' (docstring :1678-1681)
+  A glob expressing that is '**/*' at minimum, or '**/case_*' if case names
+  are prefixed. '**' expresses no constraint at all.
+
+=== G-1  does '**' subsume spec_tree_delete on the SAME action row? ===
+    observed delete: /repo/specs/current/.effect-conformance-work/case_0004/x
+      spec_tree_delete      '**/specs/**' -> True
+      case_work_dir_delete  '**'          -> True
+    Both accept it. RunEffectConformance now declares two filesystem.delete
+    ports where the wider one accepts every target of the narrower one.

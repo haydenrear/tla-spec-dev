@@ -1,0 +1,40 @@
+HP-03 MODEL DELTA: NONE. Stated before the work, per surface_cost_rule.
+
+The plan's model_delta_expectation said 'a generation mode MAY need an
+action. If so, state what it buys and what the state space costs BEFORE
+dispatch.' It did not need one, and here is the argument rather than the
+assertion:
+
+  * --negative-cases / --negative-dedupe / --negative-action are PER-FLAG
+    VARIANTS of the existing GenerateCases action. semantic_model_rule:
+    'refusal branches and per-flag variants are out-of-model EXCEPT the six
+    guard-weakening flags'. These are not guard-weakening flags -- they
+    weaken nothing, refuse nothing, and gate nothing.
+
+  * THE STANDING PROVISO ('an out-of-model FILE does not make an
+    out-of-model EFFECT') is satisfied. The negative pass performs no
+    effect GenerateCases does not already declare:
+      - it reads the .tla and .cfg the same run already read;
+      - it writes into the same generated package under the same
+        TlaSpecDevCliPort.spec_tree port;
+      - it spawns NO second TLC run. There is one java spawn per run,
+        before and after, and the negative pass consumes the same dump.
+    No new port, no new subprocess, no new filesystem target.
+
+  * specs/current/tlc_projection.py is a NEW FILE and NOT new model
+    surface. representation_scope in_model names four things under
+    specs/*/: spec_manifest.yaml, TlaSpecDevCli.tla, MC*.cfg,
+    production_adapters.py and adapter_case_runtime.py. A projection module
+    is a generation-time hook loaded by --state-projector, performs no
+    effect, and every worked example in this repository has one.
+
+STATE SPACE COST: 1x. No action added, no variable added, no CONSTANT
+changed. The predecessor's measured price for a surface-adding ticket was
+~1.5 new coverage gaps and 8x state space; this ticket pays neither.
+
+VERIFICATION
+  TlaSpecDevCli.tla   identical to project current
+  MC.cfg              identical
+  MCsmall.cfg         identical
+  spec_manifest.yaml  identical (budgets NOT raised -- see HP-03-DF-02)
+  ticket desired == ticket current

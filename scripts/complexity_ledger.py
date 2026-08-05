@@ -63,18 +63,13 @@ Escapes"). A rule with an escape hatch is not a rule.
   targets it cannot see rather than reporting them clean. The member keeps its
   DEGRADED classification in the record for exactly that reason, even though
   it no longer gates.
-- AC-04 STRUCTURE MEMBER. ``architecture_delta`` records the before/after
-  reflexion comparison -- divergences before, divergences after, and the
-  specific dependencies gained and lost -- next to the complexity delta, and
-  GATES NOTHING. A ticket that raised structural divergence records that and
-  closes. The member is DERIVED from the report file rather than typed: the only
-  authored field is ``claim:``, and the only refusal is a claim the measurement
-  contradicts. Two properties are load-bearing and both are recorded in the
-  entry: a drop whose disappeared edges are not enumerated is ``unverified``
-  (MF-020 applied to structure), and a comparison whose two scans used different
-  maps or different models is ``unattributable`` -- any divergence disappears if
-  the map moves the offending module into the component it reaches, so the map's
-  identity is part of the result.
+- AC-04's ``architecture_delta`` member was REMOVED 2026-08-04 with the static
+  architecture scanners. It was derived from a report only
+  ``analyze architecture --baseline`` could produce, so with that command gone
+  the member could never again be anything but ``not_run``. What it was for --
+  "the representation got smaller" and "the code moved toward the boundaries"
+  are different claims -- survives as advice rather than as a field:
+  references/architecture_advice.md.
 - A generated-states drop at constant distinct states and constant depth is a
   RED FLAG, not a win. MF-020 withdrew a projected -13.1% reduction that turned
   out to require deleting a legitimate idempotent re-fire transition; the
@@ -94,10 +89,14 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover - import shim for direct script execution
-    from . import analyze_complexity, spec_paths
+    from . import analyze_complexity
 except ImportError:  # pragma: no cover
     import analyze_complexity
-    import spec_paths
+
+# `spec_paths` was imported here for the AC-04 architecture_delta member, whose
+# report path it resolved. The member was removed 2026-08-04 with the scanners
+# that produced the report; the import went with it rather than being left as a
+# dependency nothing exercises.
 
 try:  # pragma: no cover
     import yaml
@@ -165,15 +164,15 @@ DEGRADED_VERDICTS = {
 
 UNVERIFIED_VERDICTS = {"unknown", "deferred", "not_run", "n/a", "na", ""}
 
-# MF-026 -- the coverage audit gate. The four oracles check FIDELITY of what is
+# MF-026 -- the coverage audit. The four oracles check FIDELITY of what is
 # modeled; the coverage audit checks COMPLETENESS. Neither implies the other, so
 # the ledger records the audit verdict separately from the retention set.
 #
-# Recorded at EVERY close, including ticket closes where the audit has not run.
-# That is the point: the audit is an end-of-epic step, so most ticket closes
-# legitimately carry `not_run` -- but an epic that reached its workflow close
-# without ever running it must be VISIBLE rather than silent. Omitting the block
-# is never treated as passing.
+# NO LONGER A GATE (2026-08-04, owner direction). It is recorded at EVERY close
+# and refuses none of them -- see the block in `evaluate` for the argument, and
+# note that `passing` below is still computed and still printed, because
+# "recorded" and "recorded as a pass" are different facts. Omitting the block is
+# still never treated as passing.
 COVERAGE_AUDIT_VERDICTS = {
     "pass": "no in-scope gaps",
     "fail": "in-scope gaps -- model it or change the program",
@@ -184,39 +183,13 @@ COVERAGE_AUDIT_VERDICTS = {
 # Only `pass` is a pass. `incomplete` sits with `fail` deliberately: a sweep that
 # did not walk the surface carries no information about it, and promoting that to
 # a pass would dress an absence of evidence as a measurement (MF-027's lesson).
+# This distinction survives the gate's retirement: what was withdrawn is the
+# REFUSAL, not the vocabulary.
 COVERAGE_AUDIT_PASSING = {"pass"}
 
 # Sentinel the scaffolded template carries. It must fail every gate it touches,
 # so an unfilled template can never be closed through.
 TEMPLATE_SENTINEL = "TODO"
-
-# AC-04 -- the architecture delta member. RECORDED at every close, and it gates
-# NOTHING about the code: a ticket that raised structural divergence records
-# that fact and closes.
-#
-# It is not read from a status word. The ledger opens the delta report produced
-# by `analyze architecture ... --baseline` and DERIVES the direction from it,
-# because a member whose verdict is typed in by the author being graded is not a
-# measurement. The only thing the author may assert is a `claim:`, and the only
-# gate here checks that assertion against the derived direction.
-ARCHITECTURE_DELTA_SCHEMA = "tla-spec-dev/architecture-delta"
-
-#: Directions a delta report may carry, with what each licenses. `unverified`
-#: and `unattributable` are refusals to call the number a refactor result; both
-#: are recorded and neither refuses a close.
-ARCHITECTURE_DELTA_DIRECTIONS = {
-    "improved": "fewer divergent dependencies, each disappearance enumerated",
-    "worsened": "more divergent dependencies -- recorded, never refused",
-    "unchanged": "the divergence count did not move",
-    "unverified": "the count fell and the enumerated edges do not explain why (MF-020)",
-    "unattributable": "the two scans did not share a declared map and model",
-    "not_run": "no before/after comparison was recorded for this close",
-    "unreadable": "a delta report was named and could not be read as one",
-}
-
-#: The only direction a `claim:` may assert as an improvement. Everything else
-#: an author might type is compared verbatim against the derived direction.
-ARCHITECTURE_DELTA_IMPROVEMENT = "improved"
 
 # Metrics whose growth counts as a complexity increase. Deliberately the
 # representation-size and reachable-size measures, not counts of files or tests.
@@ -322,65 +295,6 @@ class CoverageAuditRecord:
         note = COVERAGE_AUDIT_VERDICTS[self.normalized]
         flag = "" if self.passing else "  <-- does not pass"
         return f"coverage_audit={self.normalized} ({note}){flag}"
-
-
-@dataclass
-class ArchitectureDeltaRecord:
-    """AC-04 -- the before/after STRUCTURE comparison, recorded at every close.
-
-    The complexity delta answers "is the representation smaller?". This answers
-    "did the code move toward or away from the boundaries the model draws?", and
-    the two can disagree: a change that lowers complexity while scattering the
-    code further is not the refactor anyone wanted, and until this member existed
-    the ledger could not see the difference.
-
-    Everything here except ``claim`` is DERIVED from the report file. The map and
-    architecture digests are copied into the ledger entry on purpose -- a delta
-    across two different maps is not a refactor result, and the entry has to
-    carry enough to prove which case it was long after the scans are gone.
-    """
-
-    status: str = "not_run"
-    report: str = ""
-    resolved_report: str = ""
-    claim: str = ""
-    attribution: str = ""
-    divergences_before: Any = None
-    divergences_after: Any = None
-    divergences_delta: Any = None
-    edges_lost: list[str] = field(default_factory=list)
-    edges_gained: list[str] = field(default_factory=list)
-    map_digest_before: str = ""
-    map_digest_after: str = ""
-    architecture_digest_before: str = ""
-    architecture_digest_after: str = ""
-    red_flags: list[str] = field(default_factory=list)
-    problems: list[str] = field(default_factory=list)
-    why: list[str] = field(default_factory=list)
-
-    @property
-    def normalized(self) -> str:
-        value = str(self.status or "").strip().lower()
-        return value if value in ARCHITECTURE_DELTA_DIRECTIONS else "unreadable"
-
-    @property
-    def recorded(self) -> bool:
-        """Whether a comparison was actually read. Never a pass/fail judgment."""
-        return self.normalized not in {"not_run", "unreadable"}
-
-    @property
-    def verified_improvement(self) -> bool:
-        return self.normalized == ARCHITECTURE_DELTA_IMPROVEMENT
-
-    def describe(self) -> str:
-        note = ARCHITECTURE_DELTA_DIRECTIONS[self.normalized]
-        if not self.recorded:
-            return f"architecture_delta={self.normalized} ({note})"
-        return (
-            f"architecture_delta={self.normalized} ({note}); divergences "
-            f"{self.divergences_before} -> {self.divergences_after}, "
-            f"attribution={self.attribution or 'unknown'}"
-        )
 
 
 @dataclass
@@ -817,115 +731,6 @@ def parse_coverage_audit(raw: dict[str, Any] | None) -> CoverageAuditRecord:
     )
 
 
-def _edge_line(row: Any) -> str:
-    """One enumerated dependency, in the form a person can navigate."""
-    if not isinstance(row, dict):
-        return str(row)
-    sites = row.get("sites") or []
-    where = ", ".join(str(s) for s in sites) if sites else row.get("site") or "(no site)"
-    return (
-        f"{row.get('from')} -{row.get('kind')}-> {row.get('to')} "
-        f"[{row.get('symbol')}] {where}"
-    )
-
-
-def parse_architecture_delta(
-    raw: dict[str, Any] | None, input_dir: Path | None = None
-) -> ArchitectureDeltaRecord:
-    """AC-04 -- read the delta REPORT and derive the direction from it.
-
-    Deliberately not a status word. Every other member of this ledger takes the
-    author's verdict on trust because no machine-readable artifact exists for it;
-    here one does, so the ledger opens it. What the author may supply is a
-    ``claim:``, which exists only so that a wrong one can be caught.
-
-    The MF-020 rule is re-applied here rather than delegated: an ``improved``
-    direction whose report enumerates no disappeared edges is downgraded to
-    ``unverified``. The delta tool already refuses that case, and this check
-    means a report produced by something else, or edited afterwards, cannot
-    smuggle an unexplained drop into the ledger.
-    """
-    raw = raw if isinstance(raw, dict) else {}
-    report = str(raw.get("report", "") or "").strip()
-    if TEMPLATE_SENTINEL in report:
-        report = ""
-    claim = str(raw.get("claim", "") or "").strip().lower()
-    if TEMPLATE_SENTINEL.lower() in claim:
-        claim = ""
-
-    record = ArchitectureDeltaRecord(report=report, claim=claim)
-    if not report:
-        record.status = "not_run"
-        return record
-
-    base = Path(input_dir) if input_dir else Path.cwd()
-    resolved = spec_paths.resolve_existing_spec_input(Path(report), base)
-    record.resolved_report = str(resolved)
-    if not resolved.is_file():
-        record.status = "unreadable"
-        record.problems.append(f"delta report not found: {resolved}")
-        return record
-    try:
-        payload = json.loads(resolved.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        record.status = "unreadable"
-        record.problems.append(f"{resolved}: not a JSON delta report ({exc})")
-        return record
-    if isinstance(payload, dict) and isinstance(payload.get("delta"), dict):
-        # A whole `analyze architecture --format json` run was recorded. Fine --
-        # that is the artifact the command actually produces.
-        payload = payload["delta"]
-    if not isinstance(payload, dict) or payload.get("schema") != ARCHITECTURE_DELTA_SCHEMA:
-        record.status = "unreadable"
-        record.problems.append(
-            f"{resolved}: schema is `{payload.get('schema') if isinstance(payload, dict) else None}`, "
-            f"not `{ARCHITECTURE_DELTA_SCHEMA}`. The ledger records a MEASURED delta; it "
-            "does not accept a hand-written summary of one."
-        )
-        return record
-
-    verdict = payload.get("verdict") or {}
-    divergences = payload.get("divergences") or {}
-    basis = payload.get("basis") or {}
-    record.status = str(verdict.get("direction", "") or "").strip().lower()
-    record.why = [str(x) for x in (verdict.get("why") or [])]
-    record.red_flags = [str(x) for x in (verdict.get("red_flags") or [])]
-    record.attribution = str(basis.get("attribution", "") or "")
-    record.divergences_before = divergences.get("before")
-    record.divergences_after = divergences.get("after")
-    record.divergences_delta = divergences.get("delta")
-    record.edges_lost = [_edge_line(row) for row in (divergences.get("lost") or [])]
-    record.edges_gained = [_edge_line(row) for row in (divergences.get("gained") or [])]
-    record.map_digest_before = str(basis.get("map_digest_before", "") or "")
-    record.map_digest_after = str(basis.get("map_digest_after", "") or "")
-    record.architecture_digest_before = str(basis.get("architecture_digest_before", "") or "")
-    record.architecture_digest_after = str(basis.get("architecture_digest_after", "") or "")
-
-    if record.normalized == "unreadable":
-        record.problems.append(
-            f"{resolved}: direction `{verdict.get('direction')}` is not one of "
-            f"{', '.join(sorted(ARCHITECTURE_DELTA_DIRECTIONS))}. An unrecognized verdict "
-            "is never assumed to be good news."
-        )
-        return record
-
-    # The MF-020 rule, applied to structure and re-checked here.
-    if (
-        record.normalized == ARCHITECTURE_DELTA_IMPROVEMENT
-        and isinstance(record.divergences_delta, int)
-        and record.divergences_delta < 0
-        and not record.edges_lost
-    ):
-        record.status = "unverified"
-        record.problems.append(
-            "the report claims a divergence DROP and enumerates none of the dependencies "
-            "that disappeared. A drop reported without the specific edges is unverified by "
-            "construction -- the structural form of MF-020, where a projected reduction "
-            "turned out to be a deleted transition the distinct-state count could not see."
-        )
-    return record
-
-
 def load_input(path: Path) -> dict[str, Any]:
     path = Path(path)
     if not path.exists():
@@ -965,9 +770,6 @@ def evaluate(
     validated_refactor = parse_validated_refactor(ledger_input.get("validated_refactor"))
     refinement = parse_refinement(ledger_input.get("refinement"))
     coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
-    architecture_delta = parse_architecture_delta(
-        ledger_input.get("architecture_delta"), input_dir
-    )
     justification = str(ledger_input.get("justification", "") or "").strip()
     if TEMPLATE_SENTINEL in justification:
         justification = ""
@@ -1086,91 +888,54 @@ def evaluate(
             "never auto-applied."
         )
 
-    # ---- Gate 6: the coverage audit (MF-026) -------------------------------
-    # Scope-sensitive by design, and the asymmetry is deliberate.
+    # ---- The coverage audit (MF-026): RECORDED, no longer a gate -----------
+    # RETIRED AS A BLOCKING GATE 2026-08-04 (owner direction), with the static
+    # architecture scanners. Until then a workflow close was REFUSED unless
+    # `coverage_audit.status` was `pass`, with no override flag anywhere.
     #
-    # The audit is an END-OF-EPIC step -- it runs after every mechanism ticket
-    # has landed and before final integration. So a ticket close carrying
-    # `not_run` is the normal, correct case, and failing it there would force
-    # every ticket to run a whole-epic audit or to fake a verdict. Both are
-    # worse than recording the absence.
+    # WHAT THE AUDIT IS, and why it is kept: it is the only thing in this
+    # toolchain that looks at UNMODELED surface. The four oracles all check
+    # FIDELITY of what is modeled and are bounded to it, so unmodeled surface is
+    # invisible to every one of them while they report green. That is not a
+    # theoretical hole -- the audit found `generate cases`, this project's
+    # flagship feature, with no action, no port and no CLI subcommand at all
+    # (G-6), two shipped port globs that could never fail (F-7, F-8), and the
+    # absence of any test able to detect a wrong glob (F-9). Those are real
+    # finds. Nothing else here produced any.
     #
-    # At WORKFLOW close the epic is over, and there is no later opportunity. A
-    # missing or failing audit refuses, exactly like every other gate here: a
-    # check that silently passes when its input is absent is not a check.
+    # WHY IT NO LONGER REFUSES. It is an AGENT-RUN REVIEW, not a measurement.
+    # Its verdict is a word an agent types after a sweep it also performed, and
+    # the sweep's completeness is exactly what the word asserts. A gate whose
+    # input is the graded party's own summary of their own work is not a gate;
+    # it is a place to type `pass`. The gate also had no override, which meant
+    # the cheapest way past it was always to type the word rather than to widen
+    # the sweep -- the same "make the check clean" pressure that got a format
+    # string copied across a component boundary to clear an architecture
+    # divergence (references/architecture_advice.md).
     #
-    # `incomplete` refuses alongside `fail`. A sweep that did not walk the
-    # surface carries no information about it; promoting that to a pass would
-    # dress an absence of evidence as a measurement.
-    if scope == "workflow" and not coverage_audit.passing:
-        errors.append(
-            "REJECTED -- coverage audit (MF-026) verdict is "
-            f"`{coverage_audit.normalized}`: {COVERAGE_AUDIT_VERDICTS[coverage_audit.normalized]}. "
-            "The four oracles check FIDELITY of what is modeled and are all bounded to "
-            "it; unmodeled surface is invisible to every one of them while they report "
-            "green. Run `prompts/coverage_audit.md` and record `coverage_audit.status: "
-            "pass` with its report path. In-scope gaps are closed by modeling them or "
-            "changing the program -- there is no justified/accept-as-is disposition."
-        )
-    elif not coverage_audit.passing:
-        # Recorded and printed, never silently dropped: an epic that never ran
-        # the audit must be legible from the ledger alone.
+    # WHAT REPLACES IT: nothing mechanical, deliberately. The audit runs when
+    # the owner asks for it, its report is read by a person, and its verdict is
+    # recorded here in every entry -- including `not_run`, including `fail`,
+    # including `incomplete`. Recorded is not the same as unrecorded, and it is
+    # all this member ever honestly supported.
+    if not coverage_audit.passing:
         notes.append(
-            f"coverage audit not yet run for this scope ({coverage_audit.normalized}) -- "
-            "MF-026 is an end-of-epic gate and is REQUIRED before workflow close."
-        )
-
-    # ---- The architecture delta (AC-04): recorded, NEVER gating -------------
-    # A rise in structural divergence is a fact about this ticket, and it is
-    # written down and printed. It does not refuse the close: the delta has not
-    # earned a gate, and a structural finding that blocks work would be answered
-    # by not running the scan.
-    #
-    # The ONE thing that refuses here is a false claim. `architecture_delta.claim`
-    # is optional; if it is present and the measured direction is something else,
-    # the close is refused -- not because the structure got worse, but because
-    # the record would say something the evidence does not. That is the same rule
-    # the complexity side applies to a decrease: there is no flag that records a
-    # rejected improvement as an improvement.
-    for problem in architecture_delta.problems:
-        notes.append(f"architecture delta: {problem}")
-    for flag in architecture_delta.red_flags:
-        notes.append(f"architecture delta RED FLAG: {flag}")
-    if not architecture_delta.recorded:
-        notes.append(
-            f"architecture delta {architecture_delta.normalized} -- no before/after "
-            "structure comparison was recorded for this close. Recorded as absent rather "
-            "than dropped; it gates nothing."
+            f"coverage audit (MF-026) is `{coverage_audit.normalized}`: "
+            f"{COVERAGE_AUDIT_VERDICTS[coverage_audit.normalized]}. RECORDED, NOT "
+            "REFUSED (2026-08-04). The four oracles check fidelity of what is modeled "
+            "and are bounded to it; unmodeled surface is invisible to all of them while "
+            "they report green, and this is the only sweep that looks at it. Run "
+            "`prompts/coverage_audit.md` if you want that read on this scope."
         )
     else:
-        notes.append(architecture_delta.describe())
-        if architecture_delta.normalized == "worsened":
-            notes.append(
-                "structural divergence ROSE. Recorded, not refused -- the edges are "
-                "enumerated in the entry so a person can read what moved."
-            )
-    if architecture_delta.claim:
-        if architecture_delta.claim != architecture_delta.normalized:
-            errors.append(
-                f"REJECTED -- the ledger claims the architecture delta is "
-                f"`{architecture_delta.claim}` and the recorded delta measures "
-                f"`{architecture_delta.normalized}`"
-                + (
-                    f" ({'; '.join(architecture_delta.problems)})"
-                    if architecture_delta.problems
-                    else ""
-                )
-                + ". The claim is the only part of this member an author writes; every "
-                "other figure is derived from the report. Withdraw the claim or record a "
-                "delta that supports it. A structural improvement asserted without the "
-                "edges that disappeared is unverified by construction (MF-020)."
-            )
-        elif architecture_delta.verified_improvement:
-            notes.append(
-                "structural improvement claimed and VERIFIED against the recorded delta: "
-                f"{len(architecture_delta.edges_lost)} divergent dependenc(ies) enumerated "
-                "as disappeared, measured against an unchanged map and model."
-            )
+        notes.append(coverage_audit.describe())
+
+    # The architecture delta (AC-04) stood here: recorded, never gating. REMOVED
+    # 2026-08-04 with the scanners that produced its input. The rule it carried
+    # is not lost, only relocated -- a structural improvement asserted without
+    # the edges that disappeared is unverified by construction (MF-020), and
+    # that is now stated as advice (references/architecture_advice.md) and
+    # still enforced for the COMPLEXITY half by the transition-diff gate above.
 
     # ---- Gate 7: the narrative is required ---------------------------------
     # The machine-checked core is narrow by design; the narrative is where the
@@ -1234,30 +999,6 @@ def evaluate(
             "report": coverage_audit.report,
             "in_scope_gaps": coverage_audit.in_scope_gaps,
             "scope_source": coverage_audit.scope_source,
-        },
-        # AC-04. Non-gating, and carrying the identity of what it was measured
-        # against: a delta whose two scans used different maps is not a refactor
-        # result, and the entry must still say so years later.
-        "architecture_delta": {
-            "status": architecture_delta.normalized,
-            "recorded": architecture_delta.recorded,
-            "gates": False,
-            "report": architecture_delta.report,
-            "resolved_report": architecture_delta.resolved_report,
-            "claim": architecture_delta.claim,
-            "attribution": architecture_delta.attribution,
-            "divergences_before": architecture_delta.divergences_before,
-            "divergences_after": architecture_delta.divergences_after,
-            "divergences_delta": architecture_delta.divergences_delta,
-            "divergent_edges_lost": architecture_delta.edges_lost,
-            "divergent_edges_gained": architecture_delta.edges_gained,
-            "map_digest_before": architecture_delta.map_digest_before,
-            "map_digest_after": architecture_delta.map_digest_after,
-            "architecture_digest_before": architecture_delta.architecture_digest_before,
-            "architecture_digest_after": architecture_delta.architecture_digest_after,
-            "why": architecture_delta.why,
-            "red_flags": architecture_delta.red_flags,
-            "problems": architecture_delta.problems,
         },
         "transition_diff": transition_diff,
         "narrative": narrative,
@@ -1369,46 +1110,14 @@ def render_report(verdict: LedgerVerdict) -> str:
 
     # Completeness is printed next to fidelity, always -- including `not_run`.
     # The four oracles above are all bounded to what is modeled; this line is
-    # the only one that speaks to what is not.
+    # the only one that speaks to what is not. It gates nothing (2026-08-04) and
+    # is printed exactly as loudly as when it did.
     audit = entry.get("coverage_audit") or {}
     audit_status = audit.get("status", "not_run")
-    audit_flag = "" if audit.get("passing") else "  <-- does not pass"
+    audit_flag = "" if audit.get("passing") else "  <-- does not pass (recorded, not refused)"
     lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
     if audit.get("report"):
         lines.append(f"            report: {audit['report']}")
-
-    # Structure is printed next to representation size, always. The complexity
-    # delta above says whether the model got smaller; this says whether the code
-    # moved toward or away from the boundaries the model draws. A change can do
-    # one without the other, and reading either alone is how a refactor gets
-    # celebrated for scattering the code.
-    structure = entry.get("architecture_delta") or {}
-    lines.append(
-        f"  architecture delta (structure, AC-04): {structure.get('status', 'not_run')} "
-        "(recorded, never gating)"
-    )
-    if structure.get("recorded"):
-        lines.append(
-            f"            divergences: {structure.get('divergences_before')} -> "
-            f"{structure.get('divergences_after')} "
-            f"({structure.get('divergences_delta')}); attribution="
-            f"{structure.get('attribution') or 'unknown'}"
-        )
-        same_map = structure.get("map_digest_before") == structure.get("map_digest_after")
-        lines.append(
-            "            map identity: "
-            + (
-                "UNCHANGED across both scans"
-                if same_map
-                else "CHANGED between the scans -- this is not a refactor result"
-            )
-        )
-        for edge in structure.get("divergent_edges_lost") or []:
-            lines.append(f"            - lost:   {edge}")
-        for edge in structure.get("divergent_edges_gained") or []:
-            lines.append(f"            + gained: {edge}")
-    for flag in structure.get("red_flags") or []:
-        lines.append(f"            RED FLAG: {flag}")
 
     for note in entry.get("notes", []):
         lines.append(f"  note:     {note}")
@@ -1481,17 +1190,18 @@ retention:
     status: "not_run"
     evidence: ""
 
-# Coverage audit -- MF-026. The completeness gate, distinct from the three
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
 # retention members above, which are all FIDELITY measures bounded to what is
-# already modeled. Unmodeled surface is invisible to every one of them.
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
 #
 #   status: pass | fail | incomplete | not_run
 #
-# `not_run` is the CORRECT value at a ticket close: the audit is an end-of-epic
-# step, run after the mechanism tickets land and before final integration. It is
-# recorded and reported either way so that an epic which skipped it is visible.
-# At WORKFLOW close anything but `pass` REFUSES -- and `incomplete` IS NOT
-# `pass`, because a sweep that did not walk the surface says nothing about it.
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
 #
 # Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
 coverage_audit:
@@ -1499,36 +1209,6 @@ coverage_audit:
   report: ""          # path to the filled templates/coverage_audit_report.md
   in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
   scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
-
-# Architecture delta -- AC-04. The STRUCTURE half of the ledger: the complexity
-# delta above says whether the representation got smaller; this says whether the
-# code moved toward or away from the boundaries the model draws. A refactor that
-# lowers complexity while scattering the code further is not the refactor anyone
-# wanted, and reading either number alone cannot tell.
-#
-# Produce the report with:
-#
-#   tla-spec-dev analyze architecture <spec.tla> <cfg> --components <components.yaml> \
-#       --code <tree> --map <map.yaml> --baseline <a previous --format json scan> \
-#       --format json --out <this path>
-#
-# RECORDED AT EVERY CLOSE AND GATING NOTHING. A rise in structural divergence is
-# written down, printed, and closed through. What is NOT optional is honesty
-# about it: `status` is not yours to write -- the ledger opens the report and
-# derives the direction (improved | worsened | unchanged | unverified |
-# unattributable). `claim:` is optional and exists only so a wrong one can be
-# caught; a claim that disagrees with the measured direction REFUSES the close.
-#
-# Two refusals worth knowing before you run it:
-#   * a divergence DROP whose disappeared edges are not enumerated is
-#     `unverified`, never `improved` (MF-020, applied to structure);
-#   * a comparison across two different maps -- or two different models -- is
-#     `unattributable`. Any divergence disappears if the map moves the offending
-#     module into the component it reaches, so a delta across a changed map
-#     measures the map. Both digests are recorded in the entry.
-architecture_delta:
-  report: ""   # path to the --baseline delta JSON; empty is an honest `not_run`
-  claim: ""    # optional: improved | worsened | unchanged | unverified | unattributable
 
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the

@@ -1,0 +1,24 @@
+HP-05 -- THE EXACT WORDING A RUN EMITS, captured from real runs.
+==============================================================
+
+1. A RUN UNDER THE DEFAULT (CHECKING) MAPPING -- codegen, unprompted:
+
+generated /tmp/hp05scaffold/specs/program_model/generated/ledger_program_cases
+[effect-mapping] mapping specs/program_model/case_adapters.toml
+[effect-mapping] DURABLE-WRITE ORACLE ACTIVE: RecordStorePort (kind: durable_write) is bound to ledger_program_cases.effect_providers:record_store_port_provider, asserting 1 content field(s) against the modeled after-state: persist.record_id == published[actor]
+
+2. A RUN UNDER A MAPPING WITH NO DURABLE-WRITE ORACLE -- silent provider,
+   announced by the provider itself at bind time, in the RUN's output:
+
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write) is bound to the SILENT provider quota_ledger_effects.effect_providers:SilentLedgerAppendPortProvider under mapping specs/tickets/HP-05/measure/case_adapters.map-silent.toml. Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.
+
+3. THE SAME PORT DECLARED role: effect AND BOUND TO NOTHING -- codegen audit:
+
+[effect-mapping] mapping specs/tickets/HP-05/measure/case_adapters.map-none.toml
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write) is declared role: effect but this mapping binds no provider to it. Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.
+
+4. A BOUNDARY DECLARED UNDER `effects:` THAT NO PROVIDER CAN BIND --
+   which is exactly how HP-01's A/B fixture declares LedgerAppendPort:
+
+[effect-mapping] mapping examples/validation/ab/model/case_adapters.toml
+[effect-mapping] NO DURABLE-WRITE ORACLE: LedgerAppendPort (kind: durable_write) is declared under `effects:` but has no `ports:` entry with role: effect, so no provider can be bound to it and nothing reads what crosses it. Nothing compares what crossed this port against the model, so kills counted under this mapping are a FLOOR, not a total, and a green run over-reads.

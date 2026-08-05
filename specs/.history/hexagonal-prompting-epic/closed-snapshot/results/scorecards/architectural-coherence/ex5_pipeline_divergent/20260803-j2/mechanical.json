@@ -1,0 +1,62 @@
+{
+  "example": "ex5_pipeline_divergent",
+  "run_id": "20260803-j2",
+  "commit": "ab0dfee51c52f65f7c175307dff1a8a65eb56dfa",
+  "note": "Recorded, never scored.",
+  "measured_by_judge": {
+    "reflexion": {
+      "command": "analyze architecture specs/program_model/Pipeline.tla Pipeline.cfg --components architecture_components.yaml --code pipeline --map architecture_map.yaml",
+      "exit": 0,
+      "verdict": "divergent",
+      "modules_scanned": 8, "modules_mapped": 8, "components": 3,
+      "edges_extracted": 7, "internal_edges": 2,
+      "convergences": 1, "divergences": 4, "absences": 1,
+      "divergence_sites": ["pipeline/ingest/inbox.py:11", "pipeline/ingest/inbox.py:39", "pipeline/ingest/queue.py:12", "pipeline/ledger/journal.py:55"],
+      "absence": "P2 dispatch <-> ledger",
+      "partition_decomposes": true,
+      "modularity_q": 0.132653,
+      "crossing_action_fraction": 0.4,
+      "divergence_detectable": true,
+      "out_of_scope_imports": ["__future__", "pipeline_contract"],
+      "answer_key_match": "exact -- 4 divergences at the four stated file:line, 1 absence; recall 1.000, precision 1.000"
+    },
+    "complexity_descriptor": {"state_space_bound": 4096, "variables": 6, "actions": 5, "modularity_q_emergent": 0.194, "dense_rows": {"delivered": "3/5"}, "dense_columns": [], "note": "model byte-identical to ex4's"},
+    "twin_integrity": {"check_twins_exit": 0, "files_compared": 5, "all_identical": true},
+    "behavioral_suite": {"tests": 8, "result": "8 passed"},
+    "sweep_rederived_from_blast_json": {
+      "round2": {"rows": 203, "coherent": 0, "divergent": 91, "unmappable": 112},
+      "round1": {"rows": 203, "coherent": 12, "divergent": 71, "unmappable": 120},
+      "transition": {"unmappable->unmappable": 100, "divergent->divergent": 71, "unmappable->divergent": 20, "coherent->unmappable": 12},
+      "round1_divergent_carrying_partition_does_not_decompose_in_round2": 67,
+      "round2_divergent_with_no_basis_limit": 4,
+      "divergence_verdicts_lost": 0
+    }
+  },
+  "from_run_record": {
+    "gamed_map_example": {"divergences_honest": 4, "divergences_gamed": 3, "absences_honest": 1, "absences_gamed": 0, "verdict_both": "divergent", "attribution": "unattributable", "stable_basis": "3 -> 3 (+0)"},
+    "one_component_declared_partition": {"round1": "coherent, blind_spots []", "round2": "unmappable, basis_limits [unfalsifiable_coherence, partition_does_not_decompose]"},
+    "blind_run_A": {
+      "declarations_edited": 0,
+      "architecture_digest": "unchanged", "map_digest": "unchanged", "test_behavior_py": "unchanged",
+      "recall_on_answer_key_unprompted": 1.0,
+      "how_cleared": "4 real removals, 0 deletions; deletion considered and rejected in writing"
+    },
+    "reexport_attack": {
+      "lines_added": 41,
+      "verdict_before": "divergent", "verdict_after": "coherent",
+      "divergences_after": 0, "absences_after": 0,
+      "blind_spots_after": [], "basis_limits_after": [],
+      "digests": "both unchanged", "behavioral_suite_after": "8 passed",
+      "runtime_coupling_after": "inbox.format_entry IS journal.format_entry -> True; queue.Journal IS journal.Journal -> True",
+      "filed_as": "EV-03-DF-03, severity major"
+    },
+    "kill_counts": null,
+    "kill_counts_null_reason": "This fixture ships no corpus arm and no seeded behavioral faults; the seeded-fault measurement lives in ex4 (README:146).",
+    "case_counts": null,
+    "case_counts_null_reason": "No cases are generated on this fixture.",
+    "determinism": null,
+    "determinism_null_reason": "No repeated-execution comparison recorded for ex5; the determinism arm is ex4-run5.",
+    "runtime": null,
+    "runtime_null_reason": "No wall-clock figures recorded in any ex5 run artifact."
+  }
+}

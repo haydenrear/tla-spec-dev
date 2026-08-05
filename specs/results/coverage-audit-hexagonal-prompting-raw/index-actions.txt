@@ -1,0 +1,42 @@
+175:vars ==
+194:TicketSpecUnitTestsPassed == 4
+214:ActiveTickets == {t \in Tickets : ticket_state[t] \in TicketOpened..TicketSpecUnitTestsPassed}
+219:ClosedTickets == {t \in Tickets : ticket_state[t] \in {TicketClosed, TicketClosedWeakened}}
+223:WeakenedClosedTickets == {t \in Tickets : ticket_state[t] = TicketClosedWeakened}
+234:TicketReached(t, stage) == ticket_state[t] \in stage..TicketClosed
+236:CommandResult(ok, reason, nextStep) ==
+239:Init ==
+266:BuildSkillCli ==
+294:InstallLocalCli ==
+313:ScaffoldProject(root) ==
+337:RecordBudgets(root) ==
+357:ScaffoldWorkflow(root) ==
+377:OpenTicket(root, ticket) ==
+402:UpdateTicketDesired(ticket) ==
+421:UpdateTicketCurrent(ticket) ==
+449:AnalyzeComplexity(root) ==
+484:AnalyzeCorpus(root) ==
+528:RunEffectConformance(root) ==
+585:RunKillTest(root) ==
+625:RunSpecUnitTests(root, ticket) ==
+684:CloseTicket(root, ticket) ==
+751:CloseTicketWeakened(root, ticket) ==
+805:AnalyzeArchitecture(root) ==
+856:GenerateCases(root) ==
+871:Stutter ==
+874:Next ==
+909:TypeInvariant ==
+940:CliInstalledRequiresBuilt ==
+943:WorkflowRequiresProject ==
+947:BudgetsRequireProject ==
+953:WorkflowRequiresBudgets ==
+958:ProjectChoosesKnownSpecRoot ==
+965:NoOpenClosedOverlap ==
+971:CurrentRequiresDesired ==
+976:SpecUnitTestsRequireCurrent ==
+1009:SpecUnitTestsRequireMeasuredCorpus ==
+1043:SpecUnitTestsRequireMeasuredEffects ==
+1066:ClosedTicketsPassedSpecUnitTests ==
+1082:WeakenedClosesCertifyNothing ==
+1100:KillTestVerdictRequiresBudgets ==
+1103:Spec ==

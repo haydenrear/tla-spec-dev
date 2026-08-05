@@ -1,0 +1,32 @@
+HP-03: THE SHAPE OF THE FIXTURE CORPUS -- what is executable, and what is not
+
+QuotaLedger, 2,649 states, no projection.
+
+  positive corpus, total cases                 43,128
+    carrying any argument                       4,028   ( 9.3%)
+    carrying a FULLY recovered argument set     3,440   ( 8.0%)  <- executable
+    Reserve edges with a = UNCHECKED              588   ( 1.4%)
+    Refuse* cases with params={}               39,100   (90.7%)  <- HP-03-DF-03
+
+  The 39,100 are the cost of the PROFILE CHANGE. Each Refuse* action takes
+  (t, a, r) and mentions none of them in its body, so no recovery mechanism
+  can recover an argument from the state pair -- there is nothing to recover
+  from. Each case says a rejection happened and never which call was rejected.
+
+  negative corpus, guard-reads dedupe               118   (100% carry exact arguments)
+    executable against this API                      94
+    declined, HP-03-DF-01 ('r' is allocated)         24
+
+  negative corpus, --negative-dedupe none        39,966
+    executable                                    36,474
+
+  So the two routes to the same refusals:
+    profile change (Refuse* actions):  39,100 cases, 0 executable
+    generator (guard complement):         118 cases, 94 executable, 3 of 3
+                                          and 5 of 5 guard-relaxation kills
+
+  CONSEQUENCE, and it is not academic: M07-positive-control-wrong-hold, which
+  the catalogue declares 'must die on every instrument on every arm', SURVIVES
+  the whole-view corpus. It is seeded inside reserve(), and Reserve contributes
+  zero executable cases. The positive control currently dies on the
+  hand-written suite and on nothing else.
