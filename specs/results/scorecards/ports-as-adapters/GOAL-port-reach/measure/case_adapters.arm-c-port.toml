@@ -1,0 +1,27 @@
+# PA-06, ARM C: the SAME port table again, on the LENGTH-MATCHED CONTROL arm.
+#
+# Byte-for-byte the same bindings as `case_adapters.arm-a-port.toml`, and that
+# is the point rather than a copy-paste. Arm C, like arm A, is one flat module.
+# It declares no port, so it ships no Protocol, no driven adapter and nothing a
+# swap could swap to, and the runner says so on every run:
+#
+#   ! PORT ledger.LedgerAppendPort: NO FAKE DECLARED, so --wiring fake ran its
+#     REAL adapter. This column decides nothing about a fake for this port
+#     because there is not one.
+#
+# Arm C got a prompt matched to arm B's in unique content (109 lines vs 105,
+# +3.8%) that asked for nothing architectural, and its author explicitly
+# CONSIDERED and REJECTED a `LedgerWriter` seam -- see
+# `specs/results/scorecards/ports-as-adapters/arms/arm_c/REJECTED.md`, "splitting
+# reservations and the ledger writer into separate objects/modules behind an
+# interface". So the absence of a fake here is a MEASURED OUTCOME of the control
+# prompt, not an omission by whoever wrote this file.
+
+[ports."ledger.LedgerAppendPort"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+kind = "ledger-journal-port"
+
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+kind = "transition"

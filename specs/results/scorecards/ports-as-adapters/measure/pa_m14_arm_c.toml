@@ -1,0 +1,41 @@
+# PA-06: PA-M14, the REPAIRED positive control, re-anchored onto arm C.
+#
+# Read `pa_m14_arm_a.toml`'s header first; the rule and the discipline are the
+# same. This is the cell PA-01 recorded as UNMEASURED, and UNMEASURED is not a
+# pass. `[pa_measured_control_audit].arm_c_is_unmeasured_not_green`:
+#
+#   "PA-06 runs `--controls` on arm C's tree before citing a single kill number
+#    from arm C. A control assumed to work on an arm nobody has built is the
+#    assumption this whole audit exists to stop."
+#
+# Arm C stores an outstanding reservation as a PLAIN `(tenant, amount)` TUPLE
+# written on the accept path of `reserve` and read nowhere else, so the line
+# below is the one line that runs on an accepted reserve and nowhere else.
+
+[catalogue]
+id = "PA-06-control-property-arm-c"
+anchored_on = "quota_ledger.py"
+root = "specs/results/scorecards/ports-as-adapters/arms/arm_c/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+[pa_control_properties]
+"PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
+
+[[mutants]]
+id = "PA-M14-positive-control-accepted-hold-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Reserve against arm C, AND must be invisible until one does. Written for THIS tree: arm C records an outstanding reservation as a `(tenant, amount)` tuple assigned in `reserve`, so that tuple's second element is the amount recorded on an accepted reservation. Not copied from arm A's or arm B's file (EVAL-RERUN-DF-03)."
+control_property = "accept-path-only -- see [pa_control_properties]"
+gap_targeted = "none. Deliberately in nobody's gap."
+seeded_by = "perturbation"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "quota_ledger.py"
+find = "        self._outstanding[rid] = (tenant, amount)"
+replace = "        self._outstanding[rid] = (tenant, amount + 1)  # MUTANT PA-M14"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into a before-state is byte-correct"
+semantic = "The reservation created by an ACCEPTED reserve records amount+1. Immediately after the accepting call, available(t) is one too low and the new reservation's amount is one too high. Nothing else, ever."
+observable = "available(t) and the new reservation's amount immediately after an ACCEPTED reserve, and nothing after any other action or any refusal."
+re_anchoring_note = "Arm C STORES `_available` and deducts in `reserve` before this line, so inflating the stored hold makes the deficit appear on the next commit or release rather than immediately -- unlike arm A, where the deduction and the record are the same quantity. The probe decides whether that difference breaks the accept-path property; it is not asserted here."
+refine_variable = "amt"
+refine_action = "Reserve"

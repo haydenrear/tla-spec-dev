@@ -1,13 +1,13 @@
 {
   "scorecard_version": 1,
-  "status": "unfilled",
+  "status": "filled",
   "epic": "ports-as-adapters",
   "example": "ab_quota_ledger",
   "run_id": "20260805-T-p1",
   "arm": "T",
-  "commit": "",
+  "commit": "930fa57",
   "judge": {
-    "model": "",
+    "model": "claude-opus-5[1m]",
     "pass": 1,
     "blind_to_arm": true
   },
@@ -41,10 +41,16 @@
         "3": "Also catches at least one fault in a class the whole-view corpus structurally cannot reach on its own (a refusal, an ordering, a cross-aspect before-state).",
         "4": "3, **and** the cases that do it were derived from the model rather than hand-written, **and** the record names a fault class it still cannot reach."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:111-119",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:101-109",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:100-105",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:67-71",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:136-141"
+      ],
+      "rationale": "Anchor 2 is met by measurement, not claim: map-checking kills durable_content 2 of 2 where map-silent kills 1 of 2 (EVIDENCE.md:101-109), so content is asserted, not shape. Anchor 3 is met because corpus-neg kills guard_relaxation 3 of 3 while corpus-whole kills 0 of 3 (EVIDENCE.md:111-119) -- a refusal class the whole-view corpus structurally cannot reach. Anchor 4's \"derived rather than hand-written\" is carried by corpus-neg, and the record names an unreachable class; independently, T's own hand-written cases killed all eight faults I seeded, including three the shared suite misses. I score 4 rather than 3 because both halves of the top anchor are separately satisfied and I could not find a hard class its own cases left open.",
+      "refuses_to_claim": "That R2 survives a durable write that fails -- NOTES.md:136-141 states that commit updates memory then appends, so a raising append would leave memory ahead of the ledger, and names this as the one place R2 is not enforced by construction. It also refuses to claim non-integer amounts are handled (NOTES.md:142-145), which I confirmed: `reserve(\"acme\", 2.5)` is accepted and writes `COMMIT acme 2.5 2.5`."
     },
     "D2": {
       "name": "complexity",
@@ -56,9 +62,13 @@
         "3": "2, **and** a simplification was made and its effect measured \u2014 the before and after figures are both recorded.",
         "4": "3, **and** the simplification is shown to be behavior-preserving (D4 \u2265 3), so the reduction is not paid for in lost behavior."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
+      "score": 2,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:118-120",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:87-114",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:146-181"
+      ],
+      "rationale": "Anchor 2: no god-state and no variable written from everywhere -- `_outstanding` is written by reserve/commit/release, `_committed` by commit alone (domain.py:158), `_closed` by close_tenant alone (domain.py:180), and `available` is derived (domain.py:120) so R1 cannot drift. Anchor 3 requires a simplification whose effect was measured with before and after figures both recorded; T argues its derivation of `available` in prose (NOTES.md:73-84) but records no before/after figures for it, so 3 is not satisfied. I deliberately did not convert the complexity table into a score. Note the four-module shape costs the largest public surface of the three, and I judged it proportional only because the extra module buys the demonstrated swap scored under D3.",
       "refuses_to_claim": null,
       "read_first": "Read the measured descriptor first (variables, actions, state-space bound, R/W density, modularity, dense rows). Then judge whether the numbers reflect essential behavior or accidental structure.",
       "caveat": "**A drop in a complexity number is not evidence on its own.** MF-020: a metric can improve because an edge was deleted. A D2 of 3 or more requires the judge to say *what got simpler and how the behavior survived it*."
@@ -73,10 +83,17 @@
         "3": "The domain does not import its I/O. An adapter could be replaced without touching the domain, and the judge names the specific swap.",
         "4": "3, **and** a driven port is exercised by a real adapter *and* a fake, with the same cases passing against both."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null,
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:22-43",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:13-16",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/__init__.py:37-39",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/memory_journal.py:14-22",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:26-36",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:168"
+      ],
+      "rationale": "I did not take the swap on trust -- I edited __init__.py:39 in a scratch copy to return `InMemoryJournal()`, changed no domain file, and all 28 shared behavioral tests plus all 53 of T's still pass, with no file created on disk at all. That is runtime evidence about what calls what, which is what anchor 3 demands over import topology. Anchor 4 is met by test_ledger.py:26-36, where one parametrized fixture drives every behavioral case against both `FileJournal` and `InMemoryJournal`, each asserting literal expected values rather than that the two wirings agree. Corroborated mechanically: T is the only artifact whose `corpus-port-swap:fake` column diverges from `:real` (EVIDENCE.md:168), which is measured proof that the fake column ran a genuinely different implementation.",
+      "refuses_to_claim": "That anything else is indirected. NOTES.md:53-56: \"There is no port in front of the arithmetic, no repository interface over the reservations dict, no service layer.\" It claims one port and demonstrates exactly one.",
       "caveat": "**Import topology is not modularity.** Round 2 proved a codebase can pass every import check with its coupling entirely intact. A D3 of 3 or more requires evidence about what *calls* what at runtime, not what imports what."
     },
     "D4": {
@@ -89,10 +106,15 @@
         "3": "2, **and** the check is model-derived (a corpus, a TLC invariant) rather than only hand-written assertions.",
         "4": "3, **and** a deliberate behavior-breaking change is shown to be *caught* \u2014 the check is demonstrated to be capable of failing."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:180-187",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/EVIDENCE.md:71-81",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:202-225",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:108-114"
+      ],
+      "rationale": "Anchor 2 is met by an enumerated transcript check (test_ledger.py:202-225 reads R1/R2/R3/R5 off one concrete expected ledger) plus the feature's trickiest sentence pinned by name at test_ledger.py:108-114. Anchor 3 is met because the model-derived corpus decides against this code -- 3734 executed cases, 0 failures on unmutated code (EVIDENCE.md:180-187). Anchor 4 is met because behavior-breaking changes are demonstrated to be caught (EVIDENCE.md:71-81), and I reproduced this independently: eight faults I wrote, eight kills by T's own suite. The strongest single fact is that behavior survived a structural change I made myself -- the whole durable side replaced, 28 of 28 baseline behaviors intact.",
+      "refuses_to_claim": "Atomicity and crash-recovery. NOTES.md:136-141 refuses to claim any ordering or rollback guarantee on a failed durable write, and NOTES.md:129-135 refuses to invent reopen-and-resume behavior."
     },
     "D5": {
       "name": "honesty",
@@ -104,13 +126,18 @@
         "3": "2, **and** refuses to emit a positive verdict when its basis does not support one (`unobservable` / `unmappable` rather than a false clean).",
         "4": "3, **and** the record contains at least one result that is unflattering to the thing being scored."
       },
-      "score": null,
-      "citations": [],
-      "rationale": "",
-      "refuses_to_claim": null
+      "score": 4,
+      "citations": [
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:136-141",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/NOTES.md:102-123",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/quota_ledger/domain.py:74",
+        "specs/results/scorecards/ports-as-adapters/blind/artifact_T/tests/test_ledger.py:260-270"
+      ],
+      "rationale": "Anchor 2: blind spots are named unprompted and specifically (four interpretations at NOTES.md:125-147, each naming what was not built). Anchor 3 exists in the code, not only the prose: `Result.rejected` asserts membership of the six-reason vocabulary at domain.py:74, so the program refuses to emit an undeclared reason rather than pass one through; and test_ledger.py:260-270 parses the domain's imports because \"does not import\" is a claim about the file rather than about intent -- it refuses to let the boundary claim stand on prose. Anchor 4: the R2 gap under a failing append is a genuinely unflattering result about the artifact, and I verified the non-integer defect it admits is real. The prose is polished and did tempt me; I discounted it and scored the assert, the AST test, and the executed defect.",
+      "refuses_to_claim": "That its structure was free of cost -- NOTES.md:102-123 records that the feature file and the structural ask actually conflicted, that `QuotaLedger` is therefore a factory function wearing a class's name, and that this is \"the only place where the shape of the code is driven by a name the feature fixed.\""
     }
   },
-  "total": null,
+  "total": 18,
   "contested": [],
-  "verdict": ""
+  "verdict": "The only artifact of the three with a real port -- I replaced the entire durable side by editing one line outside the domain and all 28 baseline behaviors held with no file touched; treat its four-module shape as bought, not spent."
 }

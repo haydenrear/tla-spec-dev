@@ -1117,3 +1117,891 @@ findings:
       instrument changes ago.
     disposition: carried
     disposition_ticket: "PA-06"
+  - id: PA-06-DF-01
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      THE FIXTURE-INTEGRITY HARNESS NOW REFUSES EVERY PER-ARM CATALOGUE,
+      INCLUDING THE TWO SEALED ONES THIS EPIC TELLS PA-06 TO USE, AND THE SEALED
+      RECORD BESIDE THEM SAYS THEY HOLD.
+
+      `python3 examples/validation/ab/check_catalogue.py --root <arm tree>
+      --catalogue <arm catalogue>` EXITS 1 on arm A, on arm B and on arm C, with
+      six complaints in each case:
+
+        no mutant in required class 'adapter_internal'
+        no mutant declares a fault in the 'behind a port' gap
+        declared adapter implementation 'reference_ports/journal_file.py' does
+          not exist under <arm tree>   (and the same for journal_memory.py)
+        0 adapter-internal mutant(s); the plan's PA-01 acceptance requires at
+          least 2
+        every adapter-internal mutant is in the same file
+
+      Every one of those requirements is applied GLOBALLY, to whatever catalogue
+      is handed in, including an arm-anchored one for an arm that ships no
+      adapter. It is therefore UNSATISFIABLE BY CONSTRUCTION for any flat arm:
+      the harness demands a fault seeded inside an adapter implementation that
+      the tree under test does not have, and it resolves the declared adapter
+      paths relative to `--root`, which for an arm is the arm.
+
+      The load-bearing checks all PASS on all three trees -- every `find` occurs
+      exactly once, every mutant applies, reverts byte-identically and leaves a
+      file that parses, one positive and one negative control are present. The
+      exit code says otherwise, so the one number a caller can read is wrong on
+      every arm.
+
+      THE SEALED RECORD DISAGREES WITH THE HARNESS, AND THE HARNESS IS THE THING
+      THAT MOVED. `specs/results/scorecards/hexagonal-prompting-rerun/measure/
+      catalogue-integrity-arm-a.txt` records "Catalogue integrity holds: every
+      pattern occurs exactly once, every mutant applies and reverts cleanly, and
+      every declared gap is seeded" and EXIT 0. That was true when written; the
+      adapter-internal requirements were added at PA-01 (`e6d1351`), after it.
+      A sealed integrity certificate that silently stops describing the harness
+      that issued it is the exact class PA-05 was chartered to make visible, and
+      nothing in the instrument log records this one.
+    reproduction: >-
+      `python3 examples/validation/ab/check_catalogue.py --root
+      specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a --catalogue
+      specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_a.toml;
+      echo $?` -> 1, with the six complaints. The same command on arm B and on
+      PA-06's arm C -> 1, identically. `python3
+      examples/validation/ab/check_catalogue.py` with no arguments (the sealed
+      catalogue on its own anchor trees) -> 0.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue-integrity-arm-a.txt -- EXIT 0, 'integrity holds'"
+      - "specs/results/scorecards/ports-as-adapters/RESULTS.md"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's implementation_scope, not PA-06's, and
+      `check_catalogue.py` is an instrument this ticket is measuring with.
+      Widening or narrowing a check during the measurement that uses it is the
+      forbidden half of the repair rule, and it would also mean PA-06's
+      integrity evidence and PA-06's shipped harness describe different things.
+    suggested_fix: >-
+      Scope the adapter-internal requirements to the catalogue that DECLARES an
+      adapter tree, rather than to every catalogue. Concretely: the requirement
+      belongs to `[catalogue]` blocks whose `anchored_on` names an adapter-
+      bearing tree, and a catalogue that declares none should report "no adapter
+      declared on this tree; the adapter-internal class is NOT SEEDED here"
+      rather than failing. Then re-issue the per-arm integrity certificates so
+      the sealed text and the harness agree again, and add a `[[change]]` to
+      INSTRUMENT-LOG.toml for `PA-01-three-arms` recording that it invalidated
+      the two sealed certificates.
+    blast_radius: >-
+      Every per-arm catalogue in this project, on every future round. A caller
+      that trusts the exit code cannot use the harness on an arm at all; a
+      caller that reads the table past it gets the right answer and no signal
+      that it did. It did not corrupt any PA-06 number -- the per-mutant
+      integrity table was read directly and every row passes -- but the next
+      round has no way to tell a real integrity failure from this one.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-02
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/check_catalogue.py", "examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      `extends` IS DOCUMENTATION, SO A RE-ANCHORED POSITIVE CONTROL IS REPORTED
+      AS UNDECLARED NO MATTER WHAT ITS PARENT SAYS.
+
+      `[pa_control_properties]` lives in `examples/validation/ab/
+      seeded_faults.toml` and is what PA-01 added so that a positive control's
+      PROPERTY -- "invisible until an accepted reserve executes" -- is declared
+      rather than assumed. Every per-arm catalogue carries `extends =
+      "examples/validation/ab/seeded_faults.toml"`, and `check_catalogue.py`
+      reads the property table only out of the file it is handed. So
+
+        check_catalogue.py --controls --tree-root --root <arm> \
+          --catalogue <arm catalogue>
+
+      reports, for a control the sealed parent DOES declare:
+
+        M07-positive-control-wrong-hold: `[pa_control_properties]` does not
+        declare it as 'accept-path-only'. The property is the whole job; a
+        control that does not state it cannot be checked against it, and an
+        undeclared control is how a role string gets copied.
+
+      The message is right about the hazard and wrong about this catalogue. The
+      probe still RUNS -- it reported HOLDS on arm A and arm C and BROKEN on arm
+      B -- so nothing is suppressed; what is produced is a false complaint that
+      a reader has to know to discount.
+
+      PA-06 worked around it by repeating `[pa_control_properties]` in each of
+      its three PA-M14 re-anchoring files, which is a duplicated declaration and
+      therefore the `declaration_executability_rule`'s own failure shape: five
+      copies of one property, and nothing checks them against each other.
+    reproduction: >-
+      `python3 examples/validation/ab/check_catalogue.py --controls --tree-root
+      --root specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a
+      --catalogue specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_a.toml
+      --impl quota_ledger` -> the probe reports HOLDS and the complaint appears
+      in the same output. `grep -n 'pa_control_properties'
+      examples/validation/ab/check_catalogue.py` -> read from the loaded
+      catalogue only; `extends` is never followed.
+    evidence:
+      - "examples/validation/ab/check_catalogue.py"
+      - "specs/results/scorecards/ports-as-adapters/measure/pa_m14_arm_a.toml -- the duplicated declaration and why"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's scope, and following `extends` changes
+      what every catalogue in the round declares -- an instrument change taken
+      during the measurement that instrument is serving.
+    suggested_fix: >-
+      Follow `extends` when reading `[pa_control_properties]` (one level is
+      enough for every catalogue that exists), and ship a test that a
+      re-anchored control inherits its parent's property. Then delete the
+      duplicated tables PA-06 had to write.
+    blast_radius: >-
+      Every re-anchored control in every round. Low today because the probe's
+      verdict is unaffected, but the complaint trains a reader to ignore a
+      message whose real form -- an undeclared control -- is the thing
+      PA-01-DF-05 exists to catch.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-03
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/PREDICTIONS-PA.md"]
+    summary: >-
+      A SEALED NEGATIVE PREDICTION WAS SEALED AGAINST DATA THAT ALREADY
+      FALSIFIED IT, IN A FILE THE SEALING TICKET HAD READ.
+
+      `N05` predicts: "ordering stays at zero on every generated corpus, on
+      every arm ... M09 under corpus-whole, corpus-slice, corpus-neg, both
+      mappings, three arms. Direction: FLAT at zero for every corpus
+      instrument."
+
+      Measured at PA-06: `M09` is KILLED by `corpus-whole`, `corpus-slice-led`,
+      `corpus-port`, `map-silent` and `map-checking` on ALL THREE ARMS. N05
+      FAILS on five of eight columns.
+
+      IT WAS ALREADY FALSE WHEN SEALED, AND THE RECORD SAID SO. N05's stated
+      basis is "Sets in the model, ordered lists in the code, `sorted()` at
+      every oracle layer". That is true of `N01` and false of `M09`:
+      `examples/validation/ab/eval/controls.toml` RETIRED M09 as a control at
+      EVAL-STABLE precisely because this model represents its ledger as a
+      SEQUENCE (`ledger' = Append(ledger, ...)`, projected as a tuple and
+      compared positionally), "so ordering is expressible and the corpus sees
+      it". PA-03's sealed `kill-table-arm-a.json` records `M09 / corpus-whole =
+      KILLED`.
+
+      This is NOT scored SUPERSEDED. Nothing about the instrument changed, and
+      that escape requires that it did. It is a wrong prediction, which is what
+      a predictions file is for -- but it is wrong in a way that could have been
+      caught by reading one field of the control record it cites, which makes it
+      a defect in the SEALING rather than a surprise in the measurement.
+    reproduction: >-
+      `grep -n 'M09' examples/validation/ab/eval/controls.toml` -> the
+      retirement and its reason. `python3 -c` over
+      `specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json`
+      -> `per_mutant["M09-negative-control-ledger-order"]["corpus-whole"] ==
+      "KILLED"`, sealed before PREDICTIONS-PA was written. PA-06's three tables
+      reproduce it on all three arms.
+    evidence:
+      - "examples/validation/PREDICTIONS-PA.md -- N05"
+      - "examples/validation/ab/eval/controls.toml -- M09's retirement"
+      - "specs/results/scorecards/ports-as-adapters/PREDICTIONS-SCORED.md"
+    why_out_of_scope: >-
+      `PREDICTIONS-PA.md` is SEALED and PA-06 may not amend it. That is the
+      whole point of the file and this row is filed rather than fixed for
+      exactly that reason.
+    suggested_fix: >-
+      Nothing to fix in the sealed file. What the next round should adopt is a
+      cheap check at SEALING time rather than at scoring time: for every
+      prediction naming a mutant and an instrument, look the cell up in the most
+      recent sealed kill table and refuse to seal a prediction the record
+      already contradicts -- or, if it is sealed deliberately as a re-test, say
+      so in the row. The ordering class's real negative control is `N01`, which
+      SURVIVED all eight instruments on all three arms and is the row N05's
+      reasoning actually describes.
+    blast_radius: >-
+      One prediction row. The wider cost is to the file's authority: a
+      predictions file whose negatives include one that was already known false
+      makes "five of fifteen failed" harder to read as information.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-04
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      NO ARM CARRIES AN ADAPTER-INTERNAL FAULT. THE CLASS THIS EPIC EXISTS FOR
+      IS MEASURED ONLY ON A FIXTURE THAT IS DECLARED NOT TO BE AN ARM.
+
+      `GOAL-port-reach` clause 1 is reported MET on `PA-M12`, seeded in
+      `reference_ports/journal_memory.py`. `PREDICTIONS-PA.md` confound 3 states
+      plainly: "`reference_ports/` is not an arm ... Its numbers are never
+      placed beside an arm's." Confound 4 adds that the fixture and the mutants
+      seeded into it have the SAME AUTHOR.
+
+      So the epic's flagship result -- a fault behind a port stops hiding -- is
+      demonstrated on a tree built by the person who wrote the mutant, and has
+      never been demonstrated on an artifact any prompt produced.
+
+      THIS IS NOT A GAP IN THE CATALOGUE'S DESIGN; IT IS A GAP NOBODY WAS
+      SCHEDULED TO CLOSE. Arm B ships a real driven adapter
+      (`quota_ledger/file_journal.py`) AND a working fake
+      (`quota_ledger/memory_journal.py`), and PA-04 already composes the fake in
+      the measurement tree. The half-pair exists and was measured: `M09` is
+      seeded in arm B's REAL adapter with `boundary_kind = "port"`, and it is
+      the one diverging cell in the entire three-arm table -- KILLED under the
+      real wiring, SURVIVED under the fake. What has never been seeded is the
+      OTHER half: the same semantic in arm B's own fake. That row would be
+      `PA-M11`/`PA-M12` on an arm rather than on a fixture, and it is the only
+      thing that would let clause 1 be stated about an artifact a prompt
+      produced.
+    reproduction: >-
+      `grep -n 'adapter_internal' examples/validation/ab/seeded_faults.toml` ->
+      PA-M11, PA-M12, PA-M13, all under `reference_ports/`. `grep -n
+      'adapter_internal'` on the three per-arm catalogues -> no hits.
+      `specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/pa06-swap-arm_b.json`
+      -> `per_mutant["M09-negative-control-ledger-order"].cells` is KILLED on
+      `corpus-port-swap:real` and SURVIVED on `corpus-port-swap:fake`.
+    evidence:
+      - "examples/validation/PREDICTIONS-PA.md -- stated confounds 3 and 4"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/pa06-swap-arm_b.json"
+      - "specs/results/scorecards/ports-as-adapters/RESULTS.md"
+    why_out_of_scope: >-
+      Seeding it is amending the catalogue, which is PA-01's scope AND the
+      instrument PA-06 is measuring with. PA-06 has seen the round's numbers;
+      adding a mutant now is adding to an instrument after an unflattering
+      signal, which PA-01 schedule_revision 2 names as the forbidden act. The
+      same argument PA-04 used to decline PA-03-DF-03 applies here and applies
+      more strongly, because PA-06 IS the measurement.
+    suggested_fix: >-
+      In a ticket that is NOT the one deciding a goal: seed the `PA-M11` /
+      `PA-M12` semantic into arm B's own `file_journal.py` and
+      `memory_journal.py`, seal the prediction BEFORE running it, and report the
+      difference between the two rows rather than their total. Arm B's `M09`
+      result says the region is reachable, so the pair will be decidable. Until
+      then, `GOAL-port-reach` clause 1 should be quoted as "met on the ported
+      REFERENCE" and never as "met on an arm".
+    blast_radius: >-
+      The epic's headline. `PA-M12`'s kill is a real, reproducible kill and
+      nothing here retracts it; what is bounded is what it is a kill ABOUT. A
+      reader who takes clause 1 as evidence that asking an agent for ports makes
+      its adapter faults visible is reading a result about a hand-built fixture.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-05
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py"
+        - "tests/test_code_complexity.py"
+    summary: >-
+      THE THERMOMETER TRIPWIRE IS A SUBSTRING GREP, SO IT CANNOT TELL A MENTION
+      FROM A GATE -- AND IT SCANS A TREE THE PLAN DECLARES OUT OF MODEL.
+      **THE ONLY FINDING THE SUITE CHANNEL HAS PRODUCED IN FOUR ROUNDS, AND IT
+      FIRED AT THE MEASURING TICKET.**
+
+      `tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument`
+      is PA-02's guard on the thermostat rule: "A thermometer nothing consumes
+      cannot have become a thermostat." It greps every file under
+      `scripts/`, `skill-scripts/`, `spec_double_compiler/`, `templates/`,
+      `test_graph/` AND every `*.py` under `specs/` outside `.history` for the
+      literal string `code_complexity`, and asserts the list is empty.
+
+      PA-06's `measure/build_evidence_packets.py` trips it. It (a) reads the
+      instrument's `--json` output and transcribes figures into a MECHANICAL
+      BLOCK that is explicitly never scored, and (b) writes the sentence
+      "printed by `python3 scripts/code_complexity.py <target>`" into that
+      block so a judge can re-derive the definitions.
+
+      BOTH DIRECTIONS ARE WRONG. A file that names the script in a docstring and
+      gates nothing FAILS the check; a file that imports the module under an
+      alias, or reads the JSON without ever writing the string, PASSES it. The
+      invariant the docstring states -- nothing GATES on the output -- is not
+      the invariant the assertion tests.
+
+      AND THE SCAN REACHES OUT OF MODEL. `specs/results/**` is declared
+      `out_of_model` by this epic's own `representation_scope` -- "sealed
+      history, ticket workspaces, RECORDED EVIDENCE" -- yet the second loop
+      scans every `.py` under `specs/`. The first eval to write a helper into
+      its own results tree turns the tripwire red, which is what happened.
+
+      LEFT RED ON PURPOSE. The acceptance run reports **1 failed, 1177 passed**
+      and this is the failure. It was not fixed: repairing a check during the
+      measurement that check is watching is the forbidden act, and evading it by
+      renaming a string would be the six-lines-of-YAML defeat this epic exists
+      to prevent, performed by the ticket that exists to catch it.
+    reproduction: >-
+      `uv run --with pytest --with pyyaml python -m pytest
+      tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument -q`
+      -> `AssertionError: assert ['specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py'] == []`.
+      `sed -n '290,335p' tests/test_code_complexity.py` -> `EXECUTABLE_SURFACES`
+      and the second `(REPO_ROOT / "specs").rglob("*.py")` loop.
+    evidence:
+      - "tests/test_code_complexity.py:290-333"
+      - "specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py"
+      - "specs/desired_program_model/ticket_plan.yaml -- representation_scope.out_of_model"
+    why_out_of_scope: >-
+      `tests/` is not in PA-06's `implementation_scope`
+      (`specs/results/scorecards/`, `NEXT-EPIC.md`), and the standing rule is
+      that a fix during a measurement destroys the measurement. Moving the
+      helper out of `specs/results/` would hide the consumption rather than
+      report it, which is worse than a red test.
+    suggested_fix: >-
+      Two halves. (1) Exclude `specs/results/**` from the scan, per
+      `representation_scope`: recorded evidence is not executable surface, and
+      an eval that transcribes an unscored figure into an unscored block is the
+      thermometer working as designed. (2) Replace the substring grep with
+      something that tests the stated invariant -- an import/AST check for
+      `code_complexity` being imported or invoked, plus a check that no CALLER
+      branches on, compares, or exits on its output. A grep for a name is
+      exactly the shape of check three epics of this project defeated cheaply.
+    blast_radius: >-
+      One test, red at PA-06's tip. No product behaviour and no measurement:
+      nothing in this round reads the complexity figures as a condition, and
+      both judges independently recorded refusing to convert the mechanical
+      block into a score. The wider value is the opposite of the cost -- this is
+      the first suite finding in four rounds, and it says the suite is not
+      entirely uninformative after all.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-06
+    found_by: "PA-06"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["references/eval_scorecard.md", "specs/results/scorecards/SELF-IMPROVEMENT.md"]
+    summary: >-
+      FOUR DIMENSION-POINTS MOVED ON ARTIFACTS THAT DID NOT CHANGE BY A BYTE.
+      THIS IS ITEM THREE ON THE LEDGER'S OWN "EVIDENCE WE ARE FOOLING OURSELVES"
+      LIST, AND IT HAPPENED.
+
+      Arms A and B are the sealed EVAL-RERUN trees, unedited. Between
+      EVAL-RERUN's cards and PA-06's:
+
+        arm A  D4  2 / 2  ->  4 / 4      arm B  D4  3 / 2  ->  4 / 4
+        arm A  D5  3 / 2  ->  4 / 4      arm B  D5  4 / 3  ->  4 / 4
+        arm A  D1  3 / 3  ->  4 / 3      arm B  D1  3 / 3  ->  4 / 3
+        arm A  D2, D3     unchanged      arm B  D2, D3     unchanged
+
+      R-H1 forbids reading that as improvement and PA-06 does not: the era
+      boundary is named (`PA-03-corpus-port`, `PA-04-port-swap-columns`), the
+      rubric gained R-H1..R-H4 at PA-05, and the judges are different agents.
+
+      WHAT MAKES IT A FINDING RATHER THAN A CAVEAT IS THAT THE MECHANISM IS
+      IDENTIFIABLE AND IT IS NOT THE RUBRIC. Both PA-06 judges wrote, unprompted
+      and independently, that they SEEDED THEIR OWN FAULTS and ran them against
+      each author's own suite rather than scoring the evidence packet -- one
+      wrote seven, one wrote one -- and both said that doing so is what moved a
+      score. D4 anchor 4 requires "a deliberate behavior-breaking change is
+      shown to be CAUGHT". A judge who executes one can award it; a judge
+      reading a table cannot.
+
+      So the card's top anchors are sensitive to JUDGING PRACTICE, which nothing
+      in the rubric mandates and nothing records. Two rounds scored the same
+      artifacts four points apart because of a choice each judge made privately.
+      Note which dimensions did NOT move: D2 and D3, the two about the
+      artifact's shape, moved zero points on either arm.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py index
+      specs/results/scorecards/ports-as-adapters` beside
+      `specs/results/scorecards/hexagonal-prompting-rerun/INDEX.md` (P = arm A,
+      Q = arm B). `git diff` between the sealed arm trees and the ones PA-06
+      judged -> empty; the blind copies are proved AST-identical with docstrings
+      blanked by `measure/make_blind_copies.py`.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/INDEX.md"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/INDEX.md"
+      - "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/*/scorecard.md -- both judges' REJECTED sections"
+      - "specs/results/scorecards/SELF-IMPROVEMENT.md -- 'What would count as evidence we are fooling ourselves'"
+    why_out_of_scope: >-
+      `references/eval_scorecard.md` is the rubric this round was scored
+      against. Amending it after the round produced its numbers is moving the
+      instrument after a result is known, which is the epic's forbidden act
+      whichever direction it moves the score.
+    suggested_fix: >-
+      Make the practice a REQUIREMENT rather than a private choice, and record
+      it on the card. D1 anchor 4 and D4 anchor 4 both turn on a demonstrated
+      catch; the rubric should say plainly that the judge must seed and run at
+      least one fault against the artifact's OWN cases, and the card should
+      carry a field naming what was seeded and what happened. Then a delta
+      across rounds is a delta in artifacts rather than in how hard the judge
+      worked. Do it BETWEEN epics, bump `scorecard_version`, and re-score one
+      prior example under both versions so the discontinuity is measured -- the
+      procedure `references/eval_scorecard.md` already prescribes for a card
+      change.
+    blast_radius: >-
+      Every cross-round comparison this ledger exists to support. It does not
+      invalidate PA-06's own within-round comparison, which is what the goals
+      turn on: all three arms were scored by the same two judges on the same day
+      under the same practice, and D3 -- the dimension arm C was built to
+      settle -- did not move on either carried-forward arm.
+    disposition: escalated
+    disposition_ticket: null
+
+  # -------------------------------------------------------------------------
+  # DEFERMENT BUDGET EXCEEDED, DELIBERATELY AND ON THE RECORD.
+  # deferment_policy.budget is 5 and PA-06 files 11. Every one is
+  # `disposition: escalated` rather than carried, which is the policy's own
+  # `blocking: escalate` path: nothing below is handed to a sibling ticket,
+  # because there is no sibling ticket left -- PA-06 is the last one. The
+  # alternative to exceeding the budget was to not report findings during the
+  # ticket whose entire purpose is to report them.
+  # -------------------------------------------------------------------------
+
+  - id: PA-06-DF-07
+    found_by: "PA-06 (fresh adversarial channel, AD-F4 + AD-F5)"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/ab/check_catalogue.py"
+        - "examples/validation/ab/seeded_faults.toml"
+    summary: >-
+      THE REPAIRED POSITIVE CONTROL IS UNOBSERVABLE IN ONE STEP ON THREE OF THE
+      FOUR TREES IT IS DECLARED ON, AND THE PROBE THAT CERTIFIES IT CANNOT FAIL.
+      THIS IS THE DEFECT THE REPAIR EXISTED TO REMOVE, RECREATED WITH THE SIGN
+      FLIPPED, AND `PREDICTIONS-PA.md` P07 NAMED IT IN ADVANCE AS "THIS EPIC'S
+      WORST POSSIBLE OWN GOAL".
+
+      (a) `PA-M14` declares: "available(t) is one too low ... immediately after
+      an ACCEPTED reserve." Measured directly, after one accepted
+      `reserve("t1", 2)`, clean tree vs mutated:
+
+        reference_ports (both wirings)   available 1 -> 1, nothing else moves
+        arm A                            available 1 -> 1
+        arm C                            available 1 -> 1
+        arm B                            available 1 -> 0
+
+      The three trees that STORE `available` deduct the PARAMETER and then
+      record the inflated amount on the reservation; only arm B, which DERIVES
+      `available()` from the recorded amounts, shows it in one step. EVERY
+      GENERATED CORPUS CASE IS SINGLE-ACTION, so `PA-M14` CANNOT BE KILLED BY
+      ANY CORPUS on `reference_ports`, arm A or arm C -- regardless of
+      projection, regardless of reach. Its RED on four of six reference columns
+      is a property of the control, not of the instrument.
+
+      (b) `check_catalogue.py --controls` tests only "invisible BEFORE an
+      accepted reserve" and nothing tests "visible WITH one". Demonstrated with
+      a control whose mutation is `self._next_id: int = 1` -> THE IDENTICAL LINE
+      PLUS A COMMENT, declared `control_role = "positive"`:
+
+        NOOP-control   arm_c   HOLDS
+                               invisible until an accepted reserve executes
+
+      A NO-OP PASSES. So P07's "HOLDS on all three arms" is PASS on its stated
+      instrument and worth nothing as evidence that the control works.
+
+      (c) `PA-03-DF-03`'s diagnosis is measurably wrong on the point the repair
+      turned on: it says "M07 inflates a held total and PA-M14 inflates it on the
+      accept path. Both land on `available`." PA-M14 lands on `amt`.
+
+      SAME SHAPE AS `PA-01-DF-05`, WHOSE WHOLE SUBJECT IS THAT NOTHING EVER
+      CHECKED A POSITIVE CONTROL AGAINST THE PROPERTY THAT MAKES IT ONE. PA-01
+      built the check. The check is one-sided.
+    reproduction: >-
+      A three-line probe: construct each tree clean and with PA-M14 applied,
+      execute one accepted `reserve`, and compare the full projection. And:
+      write a catalogue whose single mutant replaces a line with itself plus a
+      comment, declare `control_role = "positive"` and
+      `[pa_control_properties] = "accept-path-only"`, then
+      `python3 examples/validation/ab/check_catalogue.py --controls --tree-root
+      --root <any arm tree> --catalogue <it> --impl quota_ledger` -> HOLDS.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md -- AD-F4, AD-F5"
+      - "examples/validation/ab/seeded_faults.toml -- PA-M14 `observable` and `re_anchoring_rule`"
+      - "examples/validation/PREDICTIONS-PA.md -- P07"
+      - "specs/results/scorecards/ports-as-adapters/RESULTS.md"
+    why_out_of_scope: >-
+      Both files are PA-01's implementation_scope and both are instruments PA-06
+      is measuring with. Repairing a control probe during the measurement it
+      certifies is the forbidden act in its purest form, and it would also mean
+      PA-06's P07 verdict and PA-06's shipped probe describe different things.
+    suggested_fix: >-
+      Make the probe TWO-SIDED: a declared positive control must be invisible
+      before an accepted `reserve` AND OBSERVABLE AFTER ONE, on the tree under
+      test, in the number of steps the instruments actually execute. A control
+      that fails the second half is BROKEN on that tree and reported so. Then
+      re-anchor `PA-M14` by an observable that survives both representations --
+      the most likely candidate is the ledger line a commit writes, which is in
+      the port's derived region and is what `PA-04-DF-01` already suggested
+      ("a COMMIT line written with the wrong tenant"). Seal the prediction
+      first, in a ticket that is not deciding a goal.
+    blast_radius: >-
+      Every positive-control cell in this epic, and the P07 row of the sealed
+      predictions. It does NOT retract `M07`'s red -- M07 IS observable in one
+      step on the trees that store `available`, and AD-F3 gives the independent
+      reason it survives the port columns -- nor `PA-M12`'s kill, which
+      EVAL-SUPPRESS settled cannot be erased by a declaration and cannot be
+      erased by a broken control either. What it retracts is any reading of
+      "the repaired control HOLDS on all three arms" as evidence the repair
+      worked.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-08
+    found_by: "PA-06 (fresh adversarial channel, AD-F1 + AD-F2)"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+        - "specs/results/scorecards/hexagonal-prompting-rerun/measure/"
+    summary: >-
+      `GOAL-cases-drive-ports` CANNOT BE MET BY THIS EXPERIMENT. THE NULL IS
+      ENTAILED BY THE CATALOGUE DESIGN, AND THE DESIGN IS THE RIGHT ONE.
+
+      An exhaustive observational fingerprint -- every command sequence of
+      length 4 over a 13-action alphabet, 28,561 sequences, 2 tenants, quota 2,
+      full projection after every step, run per arm per mutant -- measures the
+      three arms' MUTATED trees to be observationally IDENTICAL ON 10 OF 11
+      ROWS. Only `M07` on arm B differs, and that row is a declared substitute.
+
+      Two trees with the same observational fingerprint cannot be told apart by
+      any black-box instrument. So "the arms' per-mutant verdicts are identical"
+      is a CONSEQUENCE OF THE RE-ANCHORING SUCCEEDING, not a measurement about
+      detection, and THE EXPERIMENT CAN ONLY PRODUCE A DIVERGENCE WHERE THE
+      RE-ANCHORING FAILS.
+
+      The obvious rival explanation is measured FALSE: the trees are not
+      near-identical. 78 vs 151 vs 202 code lines; `dict[str, bool]` vs `set`
+      for `closed`; plain tuple vs dataclass vs derived computation for a held
+      reservation.
+
+      AND THE RULE THAT PRODUCES THIS IS CORRECT AND WAS ADOPTED FOR A GOOD
+      REASON. EVAL-RERUN's blind-author channel states it: hold the `semantic`
+      equal across arms "so that a per-arm score compares two implementations
+      rather than two catalogues". That is exactly right for comparing
+      DETECTION, and it makes comparing VALIDATION-SHAPE impossible in the same
+      table.
+
+      SECOND, SMALLER: the strictly comparable denominator is too small. The
+      exclusion of `M08` and `M10` rests on the SYNTACTIC rule `seeded_by =
+      "addition"`. The fingerprint measures both to be the SAME EXPERIMENT on
+      all three arms, so the comparable set is 10 of 11 rows and the result is
+      80 OF 80 IDENTICAL on every pairing rather than 64 of 64. PA-06 reports
+      both and uses 64 -- the number the plan and the ledger carry -- because a
+      denominator is not swapped after a result is known.
+    reproduction: >-
+      The fingerprint script and its output are described in
+      specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md, AD-F1
+      and AD-F2. Cheap partial check: the three arms' `kill-table-arm-*.json`
+      agree on 64 of 64 strictly comparable cells and on 80 of 80 under the
+      measured rule.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-cases-drive-ports/results/"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/README.md -- the same-semantic rule"
+    why_out_of_scope: >-
+      Changing the catalogue rule is changing the experiment, and PA-06 is the
+      measurement of the experiment as designed. It is also a goal-design
+      question rather than a defect: the goal and the catalogue are each
+      defensible and they are incompatible.
+    suggested_fix: >-
+      Stop asking one catalogue to do both jobs. Keep the same-semantic
+      catalogue for DETECTION comparisons, where holding it equal is what makes
+      the comparison mean anything. For "is a ported codebase VALIDATED
+      differently", the mutant has to be defined by WHERE IT SITS rather than by
+      what it does -- one fault per DECLARED REGION on each arm, accepting that
+      the two arms' faults are different faults, and reporting the pair as a
+      difference the way PA-M11/PA-M12 are reported. Note that the goal's own
+      metric ("the count of comparable cells where the arms AGREE") is what
+      encodes the impossibility, so the metric moves with the catalogue.
+    blast_radius: >-
+      `GOAL-cases-drive-ports` across this whole epic, and its predecessor's
+      49-of-49 and 56-of-56 baselines. None of those numbers is wrong; what is
+      wrong is reading any of them as evidence that generation cannot see a
+      port. They are evidence that the catalogue holds the observable constant,
+      which is what it was built to do.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-09
+    found_by: "PA-06 (fresh adversarial channel, AD-F3 + AD-F6 + AD-F7 + AD-F8)"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["scripts/generate_cases_from_tlc_dump.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+    summary: >-
+      THE PORT MACHINERY THIS EPIC BUILT ADDED NO KILL THAT SOMETHING ELSE DID
+      NOT ALREADY HAVE, AND THE HAND-WRITTEN SUITE STRICTLY DOMINATES IT.
+
+      (a) In each 8-instrument arm table, NO INSTRUMENT HAS A UNIQUE KILL AT
+      ALL -- `corpus-port` included. On every arm, `corpus-action-bound` (the
+      declared PRE-PA-04 world) kills exactly the same set as
+      `corpus-port-swap`.
+
+      (b) `suite-fake` STRICTLY DOMINATES `corpus-port-swap:fake`: it kills
+      everything that column kills PLUS `PA-M13`, which the port corpus misses
+      because `_project_ledger` takes `parts[0:3]` and a COMMIT line truncated
+      to three fields projects identically. So the measured "a fault behind a
+      port stops hiding" is produced by the FOUR-LINE `quota_ledger_fake.py`
+      composition point plus the PRE-EXISTING hand-written suite; the
+      `[ports.*]` binding machinery adds a strictly weaker instrument.
+
+      (c) All 1,855 port-corpus cases compare an `after` of exactly
+      `{closed, committed, ledger}` -- measured with a Counter over
+      `frozenset(case.after)`, not inferred. `M07`'s observable is `available`
+      and `PA-M14`'s is `amt`; neither is compared. So the
+      `witness_ran_accepting: 294` carried in every `control_red` entry is TRUE
+      AND IS NOT THE OPERATIVE FACT. This is `PA-03-DF-02` -- a projected
+      corpus's real limitation is inexpressible in the driver's witness
+      vocabulary -- realized as a misleading witness on twelve control cells.
+
+      (d) `run_port_swap.py` keeps NO EXECUTABILITY ACCOUNTING AT THE
+      MUTATED-LINE LEVEL, so it attaches a 294-accepting-`Reserve` witness to a
+      cell in which the mutant executed ZERO TIMES. Demonstrated by the mirror
+      experiment on arm B's `M09`: the catalogued seeding fails 854 cases under
+      `real` and 0 under `fake`; the same semantic moved to `memory_journal.py`
+      gives the exact mirror.
+
+      (e) `corpus-port` in the 8-instrument table IS NOT PORT-BOUND -- its
+      mapping is `case_adapters.map-none.toml`. It is the port CORPUS through
+      the ordinary action oracle. No column in that table is port-bound, and the
+      name reads otherwise.
+    reproduction: >-
+      `python3 -c "import json;d=json.load(open('kill-table-arm-a.json'));
+      print(d['controls_on_unmutated_code']['corpus-port']['mapping'])"` ->
+      `case_adapters.map-none.toml`. The projection Counter and the mirror
+      experiment are in
+      specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md -- AD-F3, AD-F6, AD-F7, AD-F8"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/pa06-swap-reference_ports.json"
+    why_out_of_scope: >-
+      (c) is a change to the generated projection, (d) is a change to the driver
+      PA-06's own numbers came from, and both are instrument changes taken
+      during the measurement they serve. (a), (b) and (e) are findings about
+      what the numbers mean rather than requests to change anything.
+    suggested_fix: >-
+      For (c): widen the port case's `after` to carry the variables the port's
+      declared actions WRITE rather than only its derived region, or add
+      PA-03-DF-02's projection witness so a control's survival on a projected
+      instrument states the real reason. For (d): thread the per-cell executed
+      count of the mutated FILE into the verdict record, so "SURVIVED because
+      nothing ran it" and "SURVIVED because it ran and nothing saw it" are
+      different cells. For (e): rename the column, or bind it.
+    blast_radius: >-
+      Every port-scoped number in this epic, and the epic's thesis. The
+      mechanism works -- the pair genuinely reaches a region a single wiring
+      does not, and the mirror experiment separates it from the alternatives --
+      but on this fixture a competent engineer's afternoon of tests plus four
+      lines of composition reached further, and the epic should say so before
+      anyone builds on the binding machinery.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-10
+    found_by: "PA-06 (fresh adversarial channel, AD-F11)"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/arm_c/PROMPT.md", "examples/validation/ab/check_catalogue.py"]
+    summary: >-
+      THE LENGTH-MATCH HEADLINE WAS MEASURED ON A FILE THAT IS NOT THE PROMPT
+      ARM C RECEIVED, AND PA-06 DID NOT PRESERVE WHAT IT SENT.
+
+      `check_catalogue.py --arms` measures `examples/validation/ab/arm_c/
+      PROMPT.md` and reports arm C / arm B = 1.038, "+3.8%, inside the declared
+      +/-10% tolerance", with 0 of 109 unique lines carrying architectural
+      vocabulary. PA-06 dispatched that file with FOUR ADDITIONS: a
+      working-directory preamble, a run hint under Section 4, three extra
+      entries on the do-not-open list, and a SECTION 8 asking for a
+      `REJECTED.md` -- and arm C did produce one.
+
+      Reconstructed at `specs/results/scorecards/ports-as-adapters/measure/
+      arm_c_dispatched_prompt.md` and re-measured:
+
+                                   on disk    AS DISPATCHED
+        distinct non-blank lines       146              160
+        unique content vs arm A        109              124
+        ratio to arm B's 105         1.038            1.181
+        inside +/-10%                  yes               NO
+        architectural vocabulary  0 of 109         4 of 124
+
+      THE TOLERANCE CLAIM IS RETRACTED. And TWO OF THE FOUR VOCABULARY HITS ARE
+      PATHS PA-06 ITSELF INTRODUCED: the working directory
+      `specs/results/scorecards/PORTS-AS-ADAPTERS/arms/arm_c/` and the forbidden
+      file `PORTS-AS-ADAPTERS-EPIC.md`. **PA-06 told the arm whose entire job is
+      to be architecturally silent what the epic is called**, in its first
+      sentence and again in its forbidden list.
+
+      WHICH WAY BOTH CUT IS FIXED IN ADVANCE BY THE SEALED FILE AND IS HONOURED.
+      PREDICTIONS-PA: "if arm C matches arm B it is a slightly stronger case for
+      length, and if arm C fails to match it is a slightly weaker case against
+      it. Nobody may pick the reading after seeing the result." Arm C did not
+      match, so a LARGER residual weakens the case against length MORE. And an
+      author told the round is about ports and adapters is MORE likely to build
+      one; arm C built none and wrote down why. Both defects point against this
+      round's conclusion, which is why the conclusion survives them -- but
+      neither is explained away.
+    reproduction: >-
+      Diff `examples/validation/ab/arm_c/PROMPT.md` against
+      `specs/results/scorecards/ports-as-adapters/measure/arm_c_dispatched_prompt.md`
+      -> 17 lines present only in the dispatched form, 3 present only on disk
+      (two slot comments and one wrapped path). Re-run the distinct-line and
+      vocabulary measures over the dispatched file.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/measure/arm_c_dispatched_prompt.md"
+      - "specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md -- AD-F11"
+      - "specs/results/scorecards/ports-as-adapters/RESULTS.md -- the corrected table"
+    why_out_of_scope: >-
+      `examples/validation/ab/arm_c/PROMPT.md` is PA-01's scope and is the
+      instrument the sealed length match was measured on; editing it now would
+      put an instrument change between this round's number and the sealed one.
+      The reconstruction is filed as EVIDENCE beside the result rather than
+      substituted for the file.
+    suggested_fix: >-
+      Make the dispatched prompt an ARTIFACT rather than a reconstruction: the
+      harness should write the exact bytes sent to each arm into the round's
+      evidence tree, and `--arms` should measure THOSE. A dispatch delta that
+      nobody records is a declaration nothing executes, which is the class this
+      epic's `declaration_executability_rule` exists for. Separately, keep every
+      path handed to a blind arm free of the epic's own name -- a neutral
+      working directory costs nothing.
+    blast_radius: >-
+      The length-match number, which is arm C's entire reason for existing, and
+      the blinding of the one arm this round dispatched. The D3 result (1/1
+      against arm B's 4/4) is far outside anything either defect could account
+      for, so the conclusion holds; the stated tolerance and the "0 of 109" do
+      not.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-06-DF-11
+    found_by: "PA-06 (fresh adversarial channel, AD-F12)"
+    found_at_commit: "930fa57"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"]
+    summary: >-
+      THE SANITISER'S OWN VERIFICATION CANNOT CATCH A LEAK PHRASED IN ITS OWN
+      SUBSTITUTION VOCABULARY. IT IS VACUOUS BY CONSTRUCTION, WHICH IS THE SAME
+      DEFECT AS `PA-06-DF-07`(b), IN A SECOND SCRIPT WRITTEN FOR THE SAME ROUND.
+
+      `make_blind_copies.py` applies its substitutions and THEN greps the result
+      for a FORBIDDEN vocabulary that is almost exactly the set it just
+      substituted away. So the grep can only fire on tokens with no substitution
+      rule.
+
+      Demonstrated. Injected: "This is ARM B, the hexagonal treatment arm of the
+      ports-as-adapters comparison. I was given the HEXAGONAL prompt by HP-02
+      and PA-01; the other arm (arm A) got the plain one." The verifier flagged
+      ONE line, on `ports-as-adapters` -- the only forbidden token with no
+      substitution. The sentence "I was given the structured prompt by
+      <ticket> and <ticket>; another artifact (this artifact) got the plain one"
+      passed CLEAN, as did a docstring reading "this artifact, produced by the
+      structured prompt."
+
+      TWO REAL LEAKS IN THIS ROUND'S OWN PACKETS, neither caught by the
+      verifier:
+
+      * `artifact_T`'s `EVIDENCE.md` is the only one carrying `seeded_by =
+        "addition"` rows (on M08 and M10). That is a per-artifact signal in a
+        document the judges were told to read in full, and it identifies the arm
+        whose catalogue needed substitutes -- i.e. the one with the different
+        structure.
+      * `artifact_U`'s and `artifact_W`'s packets are byte-identical apart from
+        one label cell, so a judge reading both learns that the apparatus does
+        not distinguish them -- which is a true and important fact, and one both
+        judges used, but it is not a per-artifact measurement.
+
+      The blinding held anyway on the real copies: 0 FORBIDDEN hits across all
+      three trees, and both judges' independent inference about which arm was
+      which came from the NOTES rather than from anything the sanitiser could
+      have removed.
+    reproduction: >-
+      Point `make_blind_copies.py`'s `SOURCES` at a tree containing the injected
+      sentence above and run it: `VERIFY` reports one problem, on
+      `ports-as-adapters`, and the sanitised text still says the artifact was
+      given "the structured prompt".
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/measure/make_blind_copies.py"
+      - "specs/results/scorecards/ports-as-adapters/channels/ADVERSARIAL.md -- AD-F12"
+      - "specs/results/scorecards/ports-as-adapters/UNBLINDING.md"
+    why_out_of_scope: >-
+      The script is in PA-06's implementation_scope and could be edited, but the
+      blind copies it produced are the artifacts this round's six judged cards
+      were scored against. Re-sanitising them now would mean the cards and the
+      copies describe different inputs, which is worse than a filed defect.
+    suggested_fix: >-
+      Verify the ORIGINAL, not the OUTPUT. Grep the source tree for the
+      forbidden vocabulary, require that every hit is covered by a substitution
+      rule, and fail on any hit that is not -- then the pass is a proof that
+      every leak it can name was rewritten, rather than a tautology. Ship a test
+      that injects a known leak and asserts the verifier FAILS; a sanitiser with
+      no negative test is what produced this row. Separately, drop `seeded_by`
+      from the packets or emit it for every row on every artifact.
+    blast_radius: >-
+      Every blinded round that reuses this script. This round's cards are not
+      invalidated -- the copies are clean by the same grep on the real inputs,
+      and the leak both judges actually found is one no sanitiser can close --
+      but "VERIFY: clean" carried more weight in `UNBLINDING.md` than it had
+      earned, and that sentence is corrected there.
+    disposition: escalated
+    disposition_ticket: null
