@@ -323,6 +323,67 @@ next move, and HP-06-DF-11 says it will turn a **second** control red, because
 the oracle re-derives a reservation id the model does not allocate that way. That
 is the order of work, not an objection to doing it.
 
+## POST-EVALUATION CORRECTION (2026-08-04) — read before citing any number above
+
+The eval instrument was repaired **after** HP-06 measured, and the repair
+invalidates part of what HP-06 recorded. Both facts are kept: the sealed
+scorecards are not edited, and this section says which of their numbers no longer
+describe the instrument.
+
+**The red positive control was a missing regex.** `Reserve(t, a, r)` writes
+`amt' = [amt EXCEPT ![r] = a]`. All four parameter-recovery mechanisms looked at
+*indices* and *whole variables*; **none looked at the value written into a
+function entry**. So the amount was `UNRECOVERABLE`, **0 of 588** positive
+`Reserve` cases carried an argument, every one was skipped, and M07 — seeded
+inside `reserve` — could not be reached by anything. A fifth mechanism
+(`except-value`, ordered last so it can only reclassify an already-unrecoverable
+parameter) took recovery to **4,028 of 4,028**.
+
+Note what the repair refused to do: it rejects an RHS that merely *mentions* the
+parameter (`![t] = @ - a`), because matching that would have read `available'[t]`
+and called it the amount — and every downstream comparison would then have agreed
+with a number the oracle invented.
+
+**WE HAD NO VALID NEGATIVE CONTROL FOR TWO ROUNDS.** M09 reverses a *sequence*,
+and this model's ledger **is** a sequence — projected as a tuple, compared
+positionally. It was never negative here. It is retired as a control (it still
+runs, still scored in the `ordering` row) and replaced by **N01**, seeded against
+a set-typed collection, surviving all seven instruments, with a **reality
+witness** run against both trees so that "survived" is not silently "equivalent
+mutant".
+
+**The finding that most changes how to read the record: N01 survives the
+hand-written suite too.** The suite that scores **10 of 10** has no assertion on
+the order of two or more live ids. So the standing bar this whole epic was
+measured against — *"the generator is still worse than a suite written in an
+afternoon"* — rests on a catalogue containing **no mutant that suite could
+miss**. The 10-of-10 was partly an artifact of what was seeded. Quote it with
+that clause or not at all.
+
+**Reach is smaller than the record claims, and is now printed beside the
+verdict rather than inferable by nobody:**
+
+- `corpus-whole` executes **3,734 of 43,128** cases (**8.7%**). The other 91% is
+  39,100 refusal edges carrying no arguments — nothing to call.
+- **Half of `Reserve` is structurally unreachable**: 294 of 588 cases fail on
+  *unmutated* code, because the model chooses an id where the API allocates one.
+  HP-06-DF-11 predicted this and reasoned about an id outside the declared set;
+  the common case is simpler and broader.
+- HP-06-DF-11's own suggested fix was **rejected on principle without running
+  it**: installing the id counter from the case's own `r` would configure the
+  program to produce the id the oracle then compares — a tautology one level
+  below MF-028.
+
+**Numbers above that no longer describe the instrument:** arm A's `wrong_value`
+row, and the "union of every generated instrument: 9 of 10, survivor M07" line.
+Both describe an instrument that executed **zero** `Reserve` cases. The repaired
+instrument decides M07 on 5 of 7 instruments, with the other two recorded as
+declared limitations carrying verified witnesses rather than as failures.
+
+**This is why the epic does not close on HP-06's run.** The instrument changed
+after the measurement; the measurement has to be taken again on the repaired one,
+and whatever it says is what gets recorded.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:
