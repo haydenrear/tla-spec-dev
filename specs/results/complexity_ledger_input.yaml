@@ -1,6 +1,4 @@
-# Workflow-ledger input. coverage_audit is the MF-026 verdict for the
-# hexagonal-prompting epic, replacing a STALE block carried over from the
-# architectural-coherence close -- the second time that has happened.
+# Workflow-ledger input for the hexagonal-prompting close.
 retention:
   kill_rate:
     status: not_run
@@ -200,3 +198,29 @@ narrative: 'Workflow close of complexity-descriptor-main-readiness, the promotio
   were owner spot-fixed with regression tests (e7fcd09). SF-001..007 filed as #105-#111; remaining backlog
   carried as #112-#115. Measured alternatives and the findings the machine-checked core cannot express
   live in examples/validation/runs/ and the run 2-5 audit reports of the predecessor workflow, all sealed.'
+validated_refactor:
+  tlc_before:
+    status: green
+    value: 1,292,951 distinct / 32.1M generated / depth 26
+    evidence: MC.cfg at 24ed3fa~, recorded by the SCAN-REMOVE ticket BEFORE deleting a line. No error.
+  tlc_after:
+    status: green
+    value: 563,963 distinct / 13.0M generated / depth 25
+    evidence: MC.cfg at 24ed3fa. No error. Declared bound 26,671,680 -> 1,111,320. This is the FIRST DIVISION
+      in this ledger's history; every prior entry multiplies.
+  behavior_tests:
+    status: green
+    value: 986 passed / 0 failed at 24ed3fa; 1,004 / 0 at d8608ce
+    evidence: 'The -164 against the pre-removal 1,150 is EXACTLY the 135 deleted scanner tests plus their
+      parametrisations, verified test-by-test -- no test newly failing. specs/{program_model,current,desired_program_model}/tests:
+      69 each, green.'
+  descriptor_comparison:
+    status: recorded
+    evidence: 'The decrease is pure DELETION of two variables (architecture_scan, architecture_delta)
+      and their sole writer (AnalyzeArchitecture), which left together. No invariant weakened, no guard
+      relaxed, no domain narrowed, no reachable behaviour quotiented away. Checked against MF-020, whose
+      whole point is that a metric can improve because an edge was DELETED: here the edge was deleted
+      deliberately, with the behaviour it carried removed in the same commit rather than orphaned, and
+      the four oracles'' scope shrank with it rather than staying wide over a smaller model. Every other
+      action, variable and invariant is byte-identical after comment stripping. Full diff: commit 24ed3fa
+      (9,552 deletions / 1,842 insertions / 60 files).'

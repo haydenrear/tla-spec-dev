@@ -1,0 +1,905 @@
+scripts/budgets.py:187:    block = manifest.get("budgets")
+scripts/analyze_architecture.py:186:        source = source.get("architecture")
+scripts/analyze_architecture.py:188:        source = source.get("components")
+scripts/analyze_architecture.py:201:        name = str(entry.get("name") or "").strip()
+scripts/analyze_architecture.py:207:        members = entry.get("variables")
+scripts/analyze_architecture.py:625:        if isinstance(manifest, dict) and isinstance(manifest.get("architecture"), dict):
+scripts/close_spec_workflow.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting when ticket_plan.yaml still has open tickets.")
+scripts/close_spec_workflow.py:27:        "--no-skill-feedback",
+scripts/case_modules.py:167:       a flag. It is one level, never recursive, and a module found in two
+scripts/case_modules.py:198:    were searched, and the flag that fixes it. Nothing here inspects the
+scripts/case_modules.py:299:    TLC exposes no ``-lib`` flag; SANY reads the ``TLA-Library`` **system
+scripts/case_modules.py:310:    existing = base.get("JAVA_TOOL_OPTIONS", "").strip()
+scripts/case_modules.py:347:        extends = raw.get("extends")
+scripts/case_modules.py:354:        actions = _as_str_list(raw.get("actions"))
+scripts/case_modules.py:364:        form = raw.get("form", "slice")
+scripts/case_modules.py:369:        claim = raw.get("claim")
+scripts/case_modules.py:381:        view = raw.get("view")
+scripts/case_modules.py:397:        form = str(raw.get("form", "slice")).strip()
+scripts/case_modules.py:398:        claim = raw.get("claim")
+scripts/case_modules.py:402:            actions=tuple(_as_str_list(raw.get("actions")) or ()),
+scripts/case_modules.py:405:            view=str(raw["view"]).strip() if isinstance(raw.get("view"), str) else None,
+scripts/case_modules.py:529:            name: int(record.get("actions", {}).get(action, 0))
+scripts/case_modules.py:537:            int(record.get("actions", {}).get(action, 0))
+scripts/case_modules.py:572:        declared.update(record.get("declared_view_actions") or [])
+scripts/case_modules.py:584:    resolved_view = view or (corpora[0].get("view") if corpora else None) or "external"
+scripts/case_modules.py:586:    scoped = [record for record in corpora if record.get("view") == resolved_view]
+scripts/case_modules.py:590:        name = str(record.get("module"))
+scripts/case_modules.py:684:        outside = record.get("generated_outside_declared_scope") or []
+scripts/case_modules.py:687:        unknown = record.get("scope_actions_not_declared_for_view") or []
+scripts/corpus_diagnostics.py:29:   interchangeable values, an unconstrained ordering, or an action enabled
+scripts/corpus_diagnostics.py:123:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:124:        return str(steps[0].get("action", "?"))
+scripts/corpus_diagnostics.py:134:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:135:        raw = (steps[0].get("raw") or {}).get("labels", ())
+scripts/corpus_diagnostics.py:143:        return str(case.get("trace_id", "?"))
+scripts/corpus_diagnostics.py:149:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:150:        params = steps[0].get("params") or {}
+scripts/corpus_diagnostics.py:160:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:161:        return dict(steps[0].get("pre") or {})
+scripts/corpus_diagnostics.py:167:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:168:        return dict(steps[0].get("post") or {})
+scripts/corpus_diagnostics.py:174:        steps = case.get("steps") or [{}]
+scripts/corpus_diagnostics.py:175:        return str((steps[0].get("raw") or {}).get("source_node", ""))
+scripts/corpus_diagnostics.py:382:    action enabled across many equivalent states.
+scripts/corpus_diagnostics.py:492:    # 3. Action enabled across many equivalent states. One structural
+scripts/corpus_diagnostics.py:497:            "action enabled across equivalent states",
+scripts/corpus_diagnostics.py:905:    view = loaded[0].get("view") if loaded else None
+scripts/close_ticket.py:24:    parser.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/close_ticket.py:26:    parser.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+scripts/close_ticket.py:28:        "--no-skill-feedback",
+scripts/architecture_reflexion.py:42:**Nothing downgrades an unmappable verdict.** There is no flag, key,
+scripts/architecture_reflexion.py:251:        source = source.get("architecture_map")
+scripts/architecture_reflexion.py:262:    language = str(source.get("language") or "python").strip().lower()
+scripts/architecture_reflexion.py:273:    entries = source.get("components")
+scripts/architecture_reflexion.py:287:        name = str(entry.get("component") or entry.get("name") or "").strip()
+scripts/architecture_reflexion.py:292:        modules = entry.get("modules")
+scripts/architecture_reflexion.py:892:        Reads ``self`` only. No flag, key, annotation, or environment variable
+scripts/architecture_reflexion.py:1271:        str(row.get("from", "")),
+scripts/architecture_reflexion.py:1272:        str(row.get("to", "")),
+scripts/architecture_reflexion.py:1273:        str(row.get("kind", "")),
+scripts/architecture_reflexion.py:1274:        str(row.get("symbol", "")),
+scripts/architecture_reflexion.py:1288:                "from": row.get("from"),
+scripts/architecture_reflexion.py:1289:                "to": row.get("to"),
+scripts/architecture_reflexion.py:1290:                "kind": row.get("kind"),
+scripts/architecture_reflexion.py:1291:                "symbol": row.get("symbol"),
+scripts/architecture_reflexion.py:1292:                "from_component": row.get("from_component"),
+scripts/architecture_reflexion.py:1293:                "to_component": row.get("to_component"),
+scripts/architecture_reflexion.py:1294:                "pair": row.get("pair"),
+scripts/architecture_reflexion.py:1295:                "port": row.get("port"),
+scripts/architecture_reflexion.py:1299:        site = row.get("site") or f"{row.get('file')}:{row.get('line')}"
+scripts/architecture_reflexion.py:1306:    between = row.get("between") or []
+scripts/architecture_reflexion.py:1319:    if isinstance(payload.get("reflexion"), dict):
+scripts/architecture_reflexion.py:1353:    if block.get("schema") not in (SCHEMA, None):
+scripts/architecture_reflexion.py:1358:    basis = block.get("basis")
+scripts/architecture_reflexion.py:1359:    if isinstance(basis, dict) and not basis.get("comparison_ran"):
+scripts/architecture_reflexion.py:1369:    if not isinstance(basis, dict) or not basis.get("map_digest"):
+scripts/architecture_reflexion.py:1387:    before_placements = before.get("placements") or {}
+scripts/architecture_reflexion.py:1388:    after_placements = after.get("placements") or {}
+scripts/architecture_reflexion.py:1406:    architecture_changed = before.get("architecture_digest") != after.get("architecture_digest")
+scripts/architecture_reflexion.py:1407:    before_ports = {tuple(p) for p in (before.get("architecture_ports") or [])}
+scripts/architecture_reflexion.py:1408:    after_ports = {tuple(p) for p in (after.get("architecture_ports") or [])}
+scripts/architecture_reflexion.py:1453:        "map_digest_before": before.get("map_digest"),
+scripts/architecture_reflexion.py:1454:        "map_digest_after": after.get("map_digest"),
+scripts/architecture_reflexion.py:1455:        "map_unchanged": before.get("map_digest") == after.get("map_digest"),
+scripts/architecture_reflexion.py:1456:        "architecture_digest_before": before.get("architecture_digest"),
+scripts/architecture_reflexion.py:1457:        "architecture_digest_after": after.get("architecture_digest"),
+scripts/architecture_reflexion.py:1469:            "components_before": before.get("architecture_components") or [],
+scripts/architecture_reflexion.py:1470:            "components_after": after.get("architecture_components") or [],
+scripts/architecture_reflexion.py:1486:    after_placements = after.get("placements") or {}
+scripts/architecture_reflexion.py:1487:    after_scanned = set(after.get("scanned_modules") or [])
+scripts/architecture_reflexion.py:1488:    before_placements = before.get("placements") or {}
+scripts/architecture_reflexion.py:1577:                if str(row.get("from")) in stable and str(row.get("to")) in stable
+scripts/architecture_reflexion.py:1620:    before_basis = baseline.get("basis") or {}
+scripts/architecture_reflexion.py:1631:        baseline.get("divergences") or [],
+scripts/architecture_reflexion.py:1638:        baseline.get("convergences") or [],
+scripts/architecture_reflexion.py:1644:    absences = _absence_delta(baseline.get("absences") or [], current["absences"] or [])
+scripts/architecture_reflexion.py:1656:    red_flags: list[str] = []
+scripts/architecture_reflexion.py:1658:    if not after_basis.get("comparison_ran"):
+scripts/architecture_reflexion.py:1721:        red_flags.append(
+scripts/architecture_reflexion.py:1728:        red_flags.append(
+scripts/architecture_reflexion.py:1734:        red_flags.append(
+scripts/architecture_reflexion.py:1743:            "map_origin": before_basis.get("map_origin"),
+scripts/architecture_reflexion.py:1744:            "map_digest": before_basis.get("map_digest"),
+scripts/architecture_reflexion.py:1745:            "architecture_digest": before_basis.get("architecture_digest"),
+scripts/architecture_reflexion.py:1746:            "code_root": before_basis.get("code_root"),
+scripts/architecture_reflexion.py:1747:            "verdict": (baseline.get("verdict") or {}).get("architecture_scan"),
+scripts/architecture_reflexion.py:1748:            "modules_scanned": len(before_basis.get("scanned_modules") or []),
+scripts/architecture_reflexion.py:1751:            "map_origin": after_basis.get("map_origin"),
+scripts/architecture_reflexion.py:1752:            "map_digest": after_basis.get("map_digest"),
+scripts/architecture_reflexion.py:1753:            "architecture_digest": after_basis.get("architecture_digest"),
+scripts/architecture_reflexion.py:1754:            "code_root": after_basis.get("code_root"),
+scripts/architecture_reflexion.py:1756:            "modules_scanned": len(after_basis.get("scanned_modules") or []),
+scripts/architecture_reflexion.py:1767:            "red_flags": red_flags,
+scripts/architecture_reflexion.py:1849:    for flag in verdict["red_flags"]:
+scripts/architecture_reflexion.py:1850:        add(f"    RED FLAG: {flag}")
+scripts/architecture_reflexion.py:1998:        add("  no flag, key, annotation, or environment variable that turns it into a")
+scripts/architecture_reflexion.py:2157:        add("  this: there is no flag, key, annotation, or environment variable that turns")
+scripts/extract_spec_manifest.py:328:    module_name = str(manifest.get("module", ""))
+scripts/extract_spec_manifest.py:347:    for command_name, command in dict(manifest.get("commands", {})).items():
+scripts/extract_spec_manifest.py:348:        action = command.get("action") if isinstance(command, dict) else None
+scripts/extract_spec_manifest.py:352:    for invariant in manifest.get("invariants", []) or []:
+scripts/extract_spec_manifest.py:361:    commands = ", ".join(dict(manifest.get("commands", {})).keys()) or "(none)"
+scripts/extract_spec_manifest.py:362:    ports = ", ".join(dict(manifest.get("ports", {})).keys()) or "(none)"
+scripts/extract_spec_manifest.py:363:    invariants = ", ".join(str(x) for x in manifest.get("invariants", []) or []) or "(none)"
+scripts/analyze_complexity.py:38:* variables with no justification linkage, flagged as dead weight, when the
+scripts/analyze_complexity.py:107:    text = re.sub(r"\(\*.*?\*\)", " ", text, flags=re.DOTALL)
+scripts/analyze_complexity.py:428:            line = re.sub(r"^CONSTANTS?\s*", "", line, flags=re.IGNORECASE).strip()
+scripts/analyze_complexity.py:601:        match = re.match(rf"^{keyword}\b\s*(.*)$", line, flags=re.IGNORECASE)
+scripts/analyze_complexity.py:744:            r"([A-Za-z_][A-Za-z0-9_]*)\s*(?:\((.*)\))?", stripped, flags=re.DOTALL
+scripts/analyze_complexity.py:781:_FUNCTION_SET_RE = re.compile(r"\[(.+?)\s*->\s*(.+)\]", flags=re.DOTALL)
+scripts/analyze_complexity.py:803:    literal = re.fullmatch(r"\{(.*)\}", expr, flags=re.DOTALL)
+scripts/analyze_complexity.py:903:        flags=re.DOTALL,
+scripts/analyze_complexity.py:914:        flags=re.DOTALL,
+scripts/analyze_complexity.py:1452:    table = manifest.get("justification")
+scripts/analyze_complexity.py:1462:    flagged: list[str] = []
+scripts/analyze_complexity.py:1466:            flagged.append(variable)
+scripts/analyze_complexity.py:1474:            flagged.append(variable)
+scripts/analyze_complexity.py:1475:    return flagged
+scripts/effect_conformance.py:90:annotation, no manifest entry, and no flag that turns a gap into a pass. The
+scripts/effect_conformance.py:555:    block = data.get("effects", data) if "effects" in data else data
+scripts/effect_conformance.py:564:    components = block.get("components") or {}
+scripts/effect_conformance.py:571:        ports = spec.get("ports") or {}
+scripts/effect_conformance.py:577:            effect_type = port_spec.get("type")
+scripts/effect_conformance.py:578:            target = port_spec.get("target")
+scripts/effect_conformance.py:596:    actions = block.get("actions") or {}
+scripts/effect_conformance.py:665:    #: not a flag.
+scripts/effect_conformance.py:1174:        # Note the shape: no flag, no manifest entry, and no justification is
+scripts/effect_conformance.py:1329:                "is no flag, annotation, or manifest entry that turns this into a "
+scripts/close_tickets.py:141:    tickets = plan.get("tickets")
+scripts/close_tickets.py:149:        ticket_id = ticket.get("id", f"#{index}")
+scripts/close_tickets.py:150:        status = str(ticket.get("status", "")).strip().lower()
+scripts/close_tickets.py:220:        if feedback and not feedback.get("resolved"):
+scripts/close_tickets.py:247:        "--no-skill-feedback",
+scripts/generate_python.py:53:    names.extend(as_dict(manifest.get("types")).keys())
+scripts/generate_python.py:54:    names.extend(as_dict(manifest.get("state")).keys())
+scripts/generate_python.py:55:    names.extend(as_dict(manifest.get("commands")).keys())
+scripts/generate_python.py:56:    names.extend(as_dict(manifest.get("results")).keys())
+scripts/generate_python.py:61:    states = list(as_dict(manifest.get("state")).keys())
+scripts/generate_python.py:68:    fake = as_dict(manifest.get("fake"))
+scripts/generate_python.py:69:    return str(fake.get("class") or f"{manifest['module']}SpecDouble")
+scripts/generate_python.py:74:    for port in as_dict(manifest.get("ports")).values():
+scripts/generate_python.py:75:        for method_name, method in as_dict(as_dict(port).get("methods")).items():
+scripts/generate_python.py:76:            command = as_dict(method).get("command")
+scripts/generate_python.py:83:    for port in as_dict(manifest.get("ports")).values():
+scripts/generate_python.py:84:        for method in as_dict(as_dict(port).get("methods")).values():
+scripts/generate_python.py:85:            if as_dict(method).get("command") == command_name:
+scripts/generate_python.py:86:                return str(as_dict(method).get("result"))
+scripts/generate_python.py:100:    for name, spec in as_dict(manifest.get("types")).items():
+scripts/generate_python.py:102:    if manifest.get("types"):
+scripts/generate_python.py:109:            fields = as_dict(as_dict(spec).get("fields"))
+scripts/generate_python.py:132:    for port_name, port in as_dict(manifest.get("ports")).items():
+scripts/generate_python.py:135:        methods = as_dict(as_dict(port).get("methods"))
+scripts/generate_python.py:141:            result = method.get("result", "object")
+scripts/generate_python.py:142:            command = method.get("command")
+scripts/generate_python.py:156:    fake = as_dict(manifest.get("fake"))
+scripts/generate_python.py:157:    action_specs = as_dict(fake.get("actions"))
+scripts/generate_python.py:158:    state_fields = list(as_dict(as_dict(manifest["state"])[state]).get("fields", {}).keys())
+scripts/generate_python.py:173:        if action.get("template") == "bounded_set_add":
+scripts/generate_python.py:178:            reason = action.get("reject_reason", "REJECTED")
+scripts/generate_python.py:230:    invariant_templates = as_dict(manifest.get("invariant_templates"))
+scripts/generate_python.py:231:    actions = as_dict(as_dict(manifest.get("fake")).get("actions"))
+scripts/generate_python.py:236:    for invariant in manifest.get("invariants", []) or []:
+scripts/generate_python.py:238:    if not manifest.get("invariants"):
+scripts/generate_python.py:265:    for invariant in manifest.get("invariants", []) or []:
+scripts/generate_python.py:270:        if spec.get("template") == "bounded_set_size":
+scripts/generate_python.py:273:            item_label = spec.get("item_label", "items")
+scripts/generate_python.py:298:        if action.get("template") == "bounded_set_add":
+scripts/generate_python.py:303:            reason = action.get("reject_reason", "REJECTED")
+scripts/generate_python.py:335:    return as_dict(as_dict(manifest.get("finite_model")).get(source)).get("values", [])
+scripts/generate_python.py:340:    for type_name, spec in as_dict(manifest.get("types")).items():
+scripts/generate_python.py:341:        source = as_dict(spec).get("source")
+scripts/generate_python.py:362:    state_fields = as_dict(as_dict(manifest["state"])[state]).get("fields", {})
+scripts/generate_python.py:365:    generators = as_dict(manifest.get("generators"))
+scripts/generate_python.py:366:    max_depth = as_dict(generators.get("traces")).get("max_depth", 8)
+scripts/generate_python.py:367:    command_names = list(as_dict(manifest.get("commands")).keys())
+scripts/generate_python.py:388:    owned_type = as_dict(state_fields.get("owned")).get("type")
+scripts/generate_python.py:412:        fields = as_dict(command.get("fields"))
+scripts/generate_python.py:415:            field_type = as_dict(field).get("type")
+scripts/generate_python.py:438:    traces = as_dict(manifest.get("example_traces"))
+scripts/generate_python.py:457:    port_names = list(as_dict(manifest.get("ports")).keys())
+scripts/generate_python.py:521:        for name, spec in as_dict(manifest.get("ports")).items()
+scripts/generate_python.py:522:        if as_dict(spec).get("role") == "effect"
+scripts/generate_python.py:534:    for component in as_dict(as_dict(manifest.get("effects")).get("components")).values():
+scripts/generate_python.py:535:        for name, spec in as_dict(as_dict(component).get("ports")).items():
+scripts/generate_python.py:549:    for method_name, fields in as_dict(port.get("content")).items():
+scripts/generate_python.py:586:        "Neither suppresses anything. There is no flag that turns the checking\n",
+scripts/generate_python.py:613:        kind = port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect"
+scripts/generate_python.py:621:        name: str(spec.get("kind") or "effect")
+scripts/generate_python.py:630:        methods = as_dict(port.get("methods"))
+scripts/generate_python.py:641:            result = str(method.get("result", "object"))
+scripts/generate_python.py:642:            command = method.get("command")
+scripts/generate_python.py:830:    for port_name, port in as_dict(manifest.get("ports")).items():
+scripts/generate_python.py:833:    for command_name in as_dict(manifest.get("commands")):
+scripts/generate_python.py:836:    for result_name in as_dict(manifest.get("results")):
+scripts/generate_python.py:839:    for invariant in manifest.get("invariants", []) or []:
+scripts/generate_python.py:921:        kind = str(port.get("kind") or boundaries.get(port_name, {}).get("kind") or "effect")
+scripts/generate_python.py:954:        kind = str(spec.get("kind") or "effect")
+scripts/effect_conformance_report.py:15:2 malformed declarations. No flag changes that mapping.
+scripts/effect_conformance_report.py:20:never reports clean on a target it could not see, and there is no flag here
+scripts/effect_conformance_report.py:63:        if isinstance(data, dict) and data.get("effects"):
+scripts/fitness_functions.py:82:    measured = descriptor.get("measured", {}) if isinstance(descriptor, dict) else {}
+scripts/fitness_functions.py:83:    components: list[list[str]] = measured.get("components") or []
+scripts/fitness_functions.py:84:    actions: list[dict[str, Any]] = measured.get("actions") or []
+scripts/fitness_functions.py:85:    dimensions: list[dict[str, Any]] = measured.get("dimensions") or []
+scripts/fitness_functions.py:93:            if (set(a.get("reads") or []) | set(a.get("writes") or [])) & members
+scripts/fitness_functions.py:97:    unjustified = measured.get("unjustified_variables")
+scripts/fitness_functions.py:99:        "bound": measured.get("state_space_upper_bound"),
+scripts/fitness_functions.py:100:        "bound_known": bool(measured.get("state_space_bound_known")),
+scripts/fitness_functions.py:101:        "modularity": measured.get("modularity"),
+scripts/fitness_functions.py:107:        "god_state_count": len(measured.get("dense_rows") or {}),
+scripts/fitness_functions.py:108:        "dense_column_count": len(measured.get("dense_columns") or []),
+scripts/fitness_functions.py:109:        "port_crossing_action_count": len(measured.get("port_crossing_actions") or {}),
+scripts/fitness_functions.py:110:        "unread_by_invariant_count": len(measured.get("unread_by_invariant") or []),
+scripts/fitness_functions.py:113:            d.get("variable"): d.get("cardinality") for d in dimensions
+scripts/fitness_functions.py:137:    fact = node.get("fact")
+scripts/fitness_functions.py:142:    op_name = node.get("op")
+scripts/fitness_functions.py:150:        var = node.get("var")
+scripts/fitness_functions.py:153:        domains: dict[str, Any] = facts.get("variable_domain") or {}
+scripts/fitness_functions.py:253:        name = entry.get("name")
+scripts/fitness_functions.py:264:                description=str(entry.get("description") or ""),
+scripts/complexity_ledger.py:48:  a recorded before/after descriptor comparison, and -- when the red flag
+scripts/complexity_ledger.py:52:  check (the 2026-07-18 audit's core finding), and there is no flag to record
+scripts/complexity_ledger.py:121:# transition-level diff -- is enforced by the red-flag gate (MF-020), which
+scripts/complexity_ledger.py:234:# rather than a reduction, so it is reported and red-flagged but never on its
+scripts/complexity_ledger.py:323:        flag = "" if self.passing else "  <-- does not pass"
+scripts/complexity_ledger.py:324:        return f"coverage_audit={self.normalized} ({note}){flag}"
+scripts/complexity_ledger.py:357:    red_flags: list[str] = field(default_factory=list)
+scripts/complexity_ledger.py:458:        # flag and compared it against the cap regardless. Publish the flag.
+scripts/complexity_ledger.py:504:            if metrics.get("tlc_run_complete") is False:
+scripts/complexity_ledger.py:523:        complete = metrics.get("bound_complete")
+scripts/complexity_ledger.py:544:    resolved = metrics.get("bound_resolved_variables")
+scripts/complexity_ledger.py:545:    total = metrics.get("variables")
+scripts/complexity_ledger.py:546:    unresolved = metrics.get("bound_unresolved_variables") or []
+scripts/complexity_ledger.py:547:    if metrics.get("bound_complete") is None:
+scripts/complexity_ledger.py:622:    entries = [e for e in ledger.get("entries", []) if isinstance(e, dict)]
+scripts/complexity_ledger.py:626:    recorded = [e for e in entries if e.get("verdict") != "rejected"]
+scripts/complexity_ledger.py:651:    delta["previous_scope_id"] = previous.get("scope_id")
+scripts/complexity_ledger.py:652:    previous_metrics = previous.get("metrics", {}) or {}
+scripts/complexity_ledger.py:690:    before = previous_metrics.get("bound_complete")
+scripts/complexity_ledger.py:691:    after = current.get("bound_complete")
+scripts/complexity_ledger.py:725:        pm = previous.get("metrics", {}) or {}
+scripts/complexity_ledger.py:726:        before.generated = pm.get("generated_states")
+scripts/complexity_ledger.py:727:        before.distinct = pm.get("distinct_states")
+scripts/complexity_ledger.py:728:        before.depth = pm.get("depth")
+scripts/complexity_ledger.py:729:    after.generated = current.get("generated_states")
+scripts/complexity_ledger.py:730:    after.distinct = current.get("distinct_states")
+scripts/complexity_ledger.py:731:    after.depth = current.get("depth")
+scripts/complexity_ledger.py:751:            status = str(value.get("status", "") or "")
+scripts/complexity_ledger.py:757:                evidence=str(value.get("evidence", "") or ""),
+scripts/complexity_ledger.py:758:                value=value.get("value"),
+scripts/complexity_ledger.py:780:    outcome = str(raw.get("outcome", "") or "").strip().lower()
+scripts/complexity_ledger.py:783:    detail = str(raw.get("detail", "") or "")
+scripts/complexity_ledger.py:787:        searched=bool(raw.get("searched", False)),
+scripts/complexity_ledger.py:790:        measured=bool(raw.get("measured", False)),
+scripts/complexity_ledger.py:791:        applied=bool(raw.get("applied", False)),
+scripts/complexity_ledger.py:792:        approved_by=str(raw.get("approved_by", "") or ""),
+scripts/complexity_ledger.py:803:    status = str(raw.get("status", "") or "").strip()
+scripts/complexity_ledger.py:806:    report = str(raw.get("report", "") or "")
+scripts/complexity_ledger.py:809:    scope_source = str(raw.get("scope_source", "") or "")
+scripts/complexity_ledger.py:815:        in_scope_gaps=raw.get("in_scope_gaps"),
+scripts/complexity_ledger.py:824:    sites = row.get("sites") or []
+scripts/complexity_ledger.py:825:    where = ", ".join(str(s) for s in sites) if sites else row.get("site") or "(no site)"
+scripts/complexity_ledger.py:849:    report = str(raw.get("report", "") or "").strip()
+scripts/complexity_ledger.py:852:    claim = str(raw.get("claim", "") or "").strip().lower()
+scripts/complexity_ledger.py:874:    if isinstance(payload, dict) and isinstance(payload.get("delta"), dict):
+scripts/complexity_ledger.py:878:    if not isinstance(payload, dict) or payload.get("schema") != ARCHITECTURE_DELTA_SCHEMA:
+scripts/complexity_ledger.py:887:    verdict = payload.get("verdict") or {}
+scripts/complexity_ledger.py:888:    divergences = payload.get("divergences") or {}
+scripts/complexity_ledger.py:889:    basis = payload.get("basis") or {}
+scripts/complexity_ledger.py:890:    record.status = str(verdict.get("direction", "") or "").strip().lower()
+scripts/complexity_ledger.py:891:    record.why = [str(x) for x in (verdict.get("why") or [])]
+scripts/complexity_ledger.py:892:    record.red_flags = [str(x) for x in (verdict.get("red_flags") or [])]
+scripts/complexity_ledger.py:893:    record.attribution = str(basis.get("attribution", "") or "")
+scripts/complexity_ledger.py:894:    record.divergences_before = divergences.get("before")
+scripts/complexity_ledger.py:895:    record.divergences_after = divergences.get("after")
+scripts/complexity_ledger.py:896:    record.divergences_delta = divergences.get("delta")
+scripts/complexity_ledger.py:897:    record.edges_lost = [_edge_line(row) for row in (divergences.get("lost") or [])]
+scripts/complexity_ledger.py:898:    record.edges_gained = [_edge_line(row) for row in (divergences.get("gained") or [])]
+scripts/complexity_ledger.py:899:    record.map_digest_before = str(basis.get("map_digest_before", "") or "")
+scripts/complexity_ledger.py:900:    record.map_digest_after = str(basis.get("map_digest_after", "") or "")
+scripts/complexity_ledger.py:901:    record.architecture_digest_before = str(basis.get("architecture_digest_before", "") or "")
+scripts/complexity_ledger.py:902:    record.architecture_digest_after = str(basis.get("architecture_digest_after", "") or "")
+scripts/complexity_ledger.py:964:    retention = parse_retention(ledger_input.get("retention"))
+scripts/complexity_ledger.py:965:    validated_refactor = parse_validated_refactor(ledger_input.get("validated_refactor"))
+scripts/complexity_ledger.py:966:    refinement = parse_refinement(ledger_input.get("refinement"))
+scripts/complexity_ledger.py:967:    coverage_audit = parse_coverage_audit(ledger_input.get("coverage_audit"))
+scripts/complexity_ledger.py:969:        ledger_input.get("architecture_delta"), input_dir
+scripts/complexity_ledger.py:971:    justification = str(ledger_input.get("justification", "") or "").strip()
+scripts/complexity_ledger.py:974:    narrative = str(ledger_input.get("narrative", "") or "").strip()
+scripts/complexity_ledger.py:990:            if k in DIRECTION_METRICS and isinstance(v.get("delta"), int) and v["delta"] > 0
+scripts/complexity_ledger.py:997:            "flag that skips this."
+scripts/complexity_ledger.py:1038:    # ---- Gate 4: the self-loop red flag (MF-020) ---------------------------
+scripts/complexity_ledger.py:1042:    red_flags = [f for f in tlc_findings if f.get("level") == "RED FLAG"]
+scripts/complexity_ledger.py:1043:    transition_diff = str(ledger_input.get("transition_diff", "") or "").strip()
+scripts/complexity_ledger.py:1046:    if red_flags:
+scripts/complexity_ledger.py:1050:                + " ".join(f["message"] for f in red_flags)
+scripts/complexity_ledger.py:1061:        if finding.get("level") in {"OK", "INFO", "NOTE"}:
+scripts/complexity_ledger.py:1133:    # the complexity side applies to a decrease: there is no flag that records a
+scripts/complexity_ledger.py:1137:    for flag in architecture_delta.red_flags:
+scripts/complexity_ledger.py:1138:        notes.append(f"architecture delta RED FLAG: {flag}")
+scripts/complexity_ledger.py:1259:            "red_flags": architecture_delta.red_flags,
+scripts/complexity_ledger.py:1285:    bound = metrics.get("bound")
+scripts/complexity_ledger.py:1291:    if isinstance(bound, int) and metrics.get("bound_complete") is False:
+scripts/complexity_ledger.py:1293:            resolved=metrics.get("bound_resolved_variables"),
+scripts/complexity_ledger.py:1294:            total=metrics.get("variables"),
+scripts/complexity_ledger.py:1296:    elif isinstance(bound, int) and metrics.get("bound_complete") is None:
+scripts/complexity_ledger.py:1300:            variables=metrics.get("variables"),
+scripts/complexity_ledger.py:1301:            actions=metrics.get("actions"),
+scripts/complexity_ledger.py:1305:    if metrics.get("actions_from_fallback_heuristic"):
+scripts/complexity_ledger.py:1311:    if isinstance(metrics.get("distinct_states"), int):
+scripts/complexity_ledger.py:1316:    for key, util in (metrics.get("budget_utilization") or {}).items():
+scripts/complexity_ledger.py:1320:        within = util.get("within_cap")
+scripts/complexity_ledger.py:1322:            flag = "cap comparison UNKNOWN -- incomplete bound"
+scripts/complexity_ledger.py:1324:            flag = "within cap" if within else "OVER CAP"
+scripts/complexity_ledger.py:1325:        percent = util.get("percent")
+scripts/complexity_ledger.py:1326:        if percent is None and util.get("percent_lower_bound") is not None:
+scripts/complexity_ledger.py:1333:            f"            {key}: {util['used']:,} / {util['cap']:,} ({percent_text}, {flag})"
+scripts/complexity_ledger.py:1335:        if util.get("caveat"):
+scripts/complexity_ledger.py:1340:    for key, change in delta.get("metrics", {}).items():
+scripts/complexity_ledger.py:1341:        if isinstance(change.get("delta"), int) and change["delta"]:
+scripts/complexity_ledger.py:1346:            if change.get("note") and change.get("comparable") is False:
+scripts/complexity_ledger.py:1354:    for line in entry.get("validated_refactor_summary", []):
+scripts/complexity_ledger.py:1373:    audit = entry.get("coverage_audit") or {}
+scripts/complexity_ledger.py:1374:    audit_status = audit.get("status", "not_run")
+scripts/complexity_ledger.py:1375:    audit_flag = "" if audit.get("passing") else "  <-- does not pass"
+scripts/complexity_ledger.py:1376:    lines.append(f"  coverage audit (completeness, MF-026): {audit_status}{audit_flag}")
+scripts/complexity_ledger.py:1377:    if audit.get("report"):
+scripts/complexity_ledger.py:1385:    structure = entry.get("architecture_delta") or {}
+scripts/complexity_ledger.py:1390:    if structure.get("recorded"):
+scripts/complexity_ledger.py:1397:        same_map = structure.get("map_digest_before") == structure.get("map_digest_after")
+scripts/complexity_ledger.py:1406:        for edge in structure.get("divergent_edges_lost") or []:
+scripts/complexity_ledger.py:1408:        for edge in structure.get("divergent_edges_gained") or []:
+scripts/complexity_ledger.py:1410:    for flag in structure.get("red_flags") or []:
+scripts/complexity_ledger.py:1411:        lines.append(f"            RED FLAG: {flag}")
+scripts/complexity_ledger.py:1413:    for note in entry.get("notes", []):
+scripts/complexity_ledger.py:1441:# whenever the MF-020 red flag fires.)
+scripts/onboard_program_model.py:198:\\* registered and every record is accepted and published, no action is enabled.
+scripts/onboard_program_model.py:824:        "owners": sorted(state.get("owners", [])),
+scripts/onboard_program_model.py:825:        "records": dict(state.get("records", {{}})),
+scripts/onboard_program_model.py:826:        "projections": dict(state.get("projections", {{}})),
+scripts/onboard_program_model.py:859:    owners = sorted(str(owner) for owner in _as_list(state.get("owners", [])))
+scripts/onboard_program_model.py:865:        for record_id, record in _as_dict(state.get("records", {{}})).items()
+scripts/onboard_program_model.py:866:        if _as_dict(record).get("status") != "none"
+scripts/onboard_program_model.py:870:        for record_id, status in _as_dict(state.get("projections", {{}})).items()
+scripts/onboard_program_model.py:902:    response_key = params.get("client")
+scripts/onboard_program_model.py:903:    responses = _as_dict(state.get("responses", {{}}))
+scripts/onboard_program_model.py:975:# variable flagged DEAD WEIGHT. Example:
+scripts/export_testgraph_cases.py:195:            "export fails asking for this flag rather than silently using "
+scripts/export_testgraph_cases.py:209:            "there is no flag that skips it."
+scripts/export_testgraph_cases.py:222:    # selection would let a narrow flag silently satisfy a budget, which is
+scripts/export_testgraph_cases.py:235:    # narrow flag hide an unchecked binding.
+scripts/generate_cases_from_tlc_dump.py:351:    raw_actions = loaded.get("actions", loaded)
+scripts/generate_cases_from_tlc_dump.py:361:        layer = str(raw_spec.get("layer", "internal"))
+scripts/generate_cases_from_tlc_dump.py:364:        controllability = str(raw_spec.get("controllability", DEFAULT_CONTROLLABILITY[layer]))
+scripts/generate_cases_from_tlc_dump.py:371:            generates=normalize_string_list(raw_spec.get("generates", (VIEW_GENERATES[layer],))),
+scripts/generate_cases_from_tlc_dump.py:372:            tags=normalize_string_list(raw_spec.get("tags", ())),
+scripts/generate_cases_from_tlc_dump.py:417:    if not isinstance(marker, dict) or marker.get("name") != edge.action:
+scripts/generate_cases_from_tlc_dump.py:419:    params = marker.get("params", {})
+scripts/generate_cases_from_tlc_dump.py:1025:        if f"-D{case_modules.TLA_LIBRARY_PROPERTY}" in os.environ.get("JAVA_TOOL_OPTIONS", ""):
+scripts/generate_cases_from_tlc_dump.py:1292:# NO MODEL SURFACE IS ADDED. surface_cost_rule: this is a per-flag variant of
+scripts/generate_cases_from_tlc_dump.py:2319:    #: never the claim that they are enabled.
+scripts/generate_cases_from_tlc_dump.py:2404:    # CROSS-CHECK, run before anything is emitted. Every enabled edge in the
+scripts/generate_cases_from_tlc_dump.py:2537:            "report collapsed-but-enabled inputs as refusable, which is the one error this mode "
+scripts/generate_cases_from_tlc_dump.py:2618:            "searched automatically, so the documented layout needs no flag; use "
+scripts/generate_cases_from_tlc_dump.py:2660:        "--no-infer-params",
+scripts/generate_cases_from_tlc_dump.py:2872:    epic's flagship reporting artifact, so it is reachable from the shipped CLI
+scripts/generate_cases_from_tlc_dump.py:2878:    the audit filed as G-2/G-3 against the three `--out` flags.
+specs/current/spec_manifest.yaml:355:    # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
+specs/current/spec_manifest.yaml:381:    # epic's flagship feature. corpus_process is the java/TLC spawn
+specs/current/spec_manifest.yaml:446:    # shipped close path taken under a guard-weakening flag. Identical port set
+specs/current/spec_manifest.yaml:463:# this table and flags any variable with no linkage as dead weight.
+specs/current/spec_manifest.yaml:513:  # and flags any variable with no linkage as dead weight -- has been reporting
+scripts/new_ticket_workflow.py:120:    module = str(manifest.get("module") or fallback_module)
+scripts/new_ticket_workflow.py:121:    package = str(manifest.get("package") or f"{_slug(module).replace('-', '_')}_cases")
+scripts/new_ticket_workflow.py:342:    if not isinstance(plan, dict) or not isinstance(plan.get("tickets"), list):
+scripts/new_ticket_workflow.py:348:    tickets = plan.get("tickets")
+scripts/new_ticket_workflow.py:352:        if isinstance(ticket, dict) and str(ticket.get("id", "")) == ticket_ref:
+scripts/new_ticket_workflow.py:364:    value = ticket.get("title")
+scripts/new_ticket_workflow.py:648:# variable flagged DEAD WEIGHT. Example:
+scripts/new_ticket_workflow.py:717:# variable flagged DEAD WEIGHT. Example:
+scripts/new_ticket_workflow.py:958:    resolved_ticket_id = str(ticket.get("id") or f"ticket-{ticket_index}")
+scripts/run_generated_case_adapters.py:201:    adapter_tables = loaded.get("adapters")
+scripts/run_generated_case_adapters.py:206:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:209:            projection = spec.get("output_projection")
+scripts/run_generated_case_adapters.py:212:            expected_projection = spec.get("expected_projection")
+scripts/run_generated_case_adapters.py:220:                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:224:    adapter_list = loaded.get("adapter")
+scripts/run_generated_case_adapters.py:229:            labels = spec.get("labels", spec.get("label"))
+scripts/run_generated_case_adapters.py:230:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:241:                    output_projection=spec.get("output_projection") if isinstance(spec.get("output_projection"), str) else None,
+scripts/run_generated_case_adapters.py:242:                    expected_projection=spec.get("expected_projection") if isinstance(spec.get("expected_projection"), str) else None,
+scripts/run_generated_case_adapters.py:243:                    kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:247:    action_tables = loaded.get("actions")
+scripts/run_generated_case_adapters.py:252:            adapter = spec.get("adapter")
+scripts/run_generated_case_adapters.py:255:            projection = spec.get("output_projection")
+scripts/run_generated_case_adapters.py:258:            expected_projection = spec.get("expected_projection")
+scripts/run_generated_case_adapters.py:261:            projector = spec.get("projector")
+scripts/run_generated_case_adapters.py:264:            assertion = spec.get("assertion")
+scripts/run_generated_case_adapters.py:272:                view=spec.get("view") if isinstance(spec.get("view"), str) else None,
+scripts/run_generated_case_adapters.py:273:                layer=spec.get("layer") if isinstance(spec.get("layer"), str) else None,
+scripts/run_generated_case_adapters.py:274:                controllability=spec.get("controllability") if isinstance(spec.get("controllability"), str) else None,
+scripts/run_generated_case_adapters.py:277:                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
+scripts/run_generated_case_adapters.py:278:                channel=spec.get("channel") if isinstance(spec.get("channel"), str) else None,
+scripts/run_generated_case_adapters.py:408:    raw = mapping_data.get("effect_providers")
+scripts/run_generated_case_adapters.py:425:        reference = raw_spec.get("provider")
+scripts/run_generated_case_adapters.py:546:        expected_return = expected_annotations.get("return", inspect.Signature.empty)
+scripts/run_generated_case_adapters.py:547:        actual_return = actual_annotations.get("return", inspect.Signature.empty)
+scripts/run_generated_case_adapters.py:602:    raw_ports = manifest.get("ports", {})
+scripts/run_generated_case_adapters.py:603:    raw_actions = actions_document.get("actions", {})
+scripts/run_generated_case_adapters.py:623:        if isinstance(raw_spec, dict) and raw_spec.get("role") == "effect":
+scripts/run_generated_case_adapters.py:638:    package = manifest.get("package")
+scripts/run_generated_case_adapters.py:753:    if plan.configured and not batch and not validate_only:
+scripts/run_generated_case_adapters.py:831:    flag. A mixed corpus run without the flag would otherwise execute external
+scripts/run_generated_case_adapters.py:1022:        declared = semantic.get("unobservable")
+scripts/run_generated_case_adapters.py:1098:def assert_projected_state_if_configured(case_context: Any, mapping: AdapterMapping, object_cache: dict[str, Any]) -> None:
+scripts/run_generated_case_adapters.py:1186:from scripts.run_generated_case_adapters import AdapterMapping, adapter_kind, assert_case_result_per_field, assert_projected_state_if_configured
+scripts/run_generated_case_adapters.py:1228:    assert_projected_state_if_configured(case_context, MAPPING, {{}})
+scripts/run_generated_case_adapters.py:1444:    if not plan.configured:
+scripts/run_generated_case_adapters.py:1508:        if isinstance(data, dict) and data.get("effects"):
+scripts/run_generated_case_adapters.py:1575:    if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1587:        if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1593:        if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1619:                    if not provider_plan.configured:
+scripts/run_generated_case_adapters.py:1636:                    if not provider_plan.configured:
+scripts/run_generated_case_adapters.py:1684:                    if provider_plan.configured
+scripts/run_generated_case_adapters.py:1699:                                if not provider_plan.configured:
+scripts/run_generated_case_adapters.py:1825:                                    assert_projected_state_if_configured(case_context, mapping, object_cache)
+scripts/run_generated_case_adapters.py:1876:                        if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1894:                        if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1924:                        if provider_plan.configured:
+scripts/run_generated_case_adapters.py:1954:                            if provider_plan.configured
+scripts/run_generated_case_adapters.py:1973:                            if provider_plan.configured
+scripts/run_generated_case_adapters.py:2005:                        if provider_plan.configured
+scripts/run_generated_case_adapters.py:2070:    if fuzz_requested and not provider_plan.configured:
+scripts/run_generated_case_adapters.py:2096:    if not args.batch or not args.python or os.environ.get("SPEC_DOUBLE_BATCH_REEXEC") == "1":
+scripts/run_generated_case_adapters.py:2164:    for entry in (os.environ.get("PYTHONPATH") or "").split(os.pathsep):
+scripts/run_generated_case_adapters.py:2283:    if fuzz_requested and not effect_provider_plan.configured:
+scripts/scaffold_spec.py:547:    return {"owned": {str(actor): sorted(items) for actor, items in dict(state.get("owned", {})).items()}}
+scripts/scaffold_spec.py:564:        for actor, items in _as_dict(state.get("owned", {})).items()
+scripts/scaffold_spec.py:589:    response_key = params.get("client")
+scripts/scaffold_spec.py:590:    responses = _as_dict(state.get("responses", {}))
+scripts/scaffold_spec.py:755:- `spec_manifest.yaml` — ports, invariants, finite model, codegen config
+scripts/scaffold_spec.py:860:        help="Views to scaffold. Both internal and external are always emitted; this flag is additive.",
+scripts/kill_test.py:33:So there is deliberately NO waiver here. No ``--allow-below-floor``, no
+scripts/kill_test.py:81:Exit codes (the toolchain-wide convention; no flag changes this mapping):
+scripts/kill_test.py:233:    entries = raw.get("mutants")
+scripts/kill_test.py:353:    effects = data.get("effects")
+scripts/kill_test.py:356:    components = effects.get("components")
+scripts/kill_test.py:363:        declared = component.get("ports")
+scripts/kill_test.py:368:                if isinstance(item, dict) and item.get("id"):
+scripts/kill_test.py:793:                "for a surviving mutant and no flag that accepts a sub-floor kill rate."
+scripts/kill_test.py:904:                "construction. There is no flag that skips the control."
+scripts/kill_test.py:909:                "boundary above. There is no flag that skips a boundary."
+scripts/kill_test.py:985:        rate = baseline.get("kill_rate")
+scripts/kill_test.py:1005:    before_rate = before.get("kill_rate")
+scripts/kill_test.py:1006:    after_rate = after.get("kill_rate")
+scripts/kill_test.py:1012:        row["mutant_id"] for row in before.get("kill_matrix", []) if row.get("killed")
+scripts/kill_test.py:1015:        row["mutant_id"] for row in after.get("kill_matrix", []) if row.get("killed")
+specs/desired_program_model/adapter_case_runtime.py:78:#: independently flagged exactly this pair ("no configured invariant reads
+specs/desired_program_model/adapter_case_runtime.py:151:    spec_root_token = str(before.get("spec_root", "NoRoot"))
+specs/desired_program_model/adapter_case_runtime.py:205:    ticket_state = dict(before.get("ticket_state") or {})
+specs/desired_program_model/adapter_case_runtime.py:267:    prior_result = dict(prior.get("result") or {})
+specs/desired_program_model/adapter_case_runtime.py:270:        "reason": prior_result.get("reason", "NoReason"),
+specs/desired_program_model/adapter_case_runtime.py:274:        "next": prior_result.get("next"),
+specs/desired_program_model/adapter_case_runtime.py:337:    disagreements = comparison.get("disagreements") or []
+specs/desired_program_model/adapter_case_runtime.py:499:    before = dict(getattr(case, "before").get("ticket_state") or {})
+specs/desired_program_model/adapter_case_runtime.py:500:    after = dict(getattr(case, "after").get("ticket_state") or {})
+scripts/skill_feedback.py:111:        return self.fields.get("category", "").strip()
+scripts/skill_feedback.py:115:        return self.fields.get("status", "").strip().lower()
+scripts/skill_feedback.py:119:        return self.fields.get("recommendation", "").strip()
+scripts/skill_feedback.py:143:            "severity": self.fields.get("severity", ""),
+scripts/skill_feedback.py:144:            "root_cause": self.fields.get("root_cause", ""),
+scripts/skill_feedback.py:145:            "target": self.fields.get("target", ""),
+scripts/skill_feedback.py:146:            "observed_on": self.fields.get("observed_on", ""),
+scripts/skill_feedback.py:147:            "evidence": self.fields.get("evidence", ""),
+scripts/skill_feedback.py:162:        return self.fields.get("feedback_status", "").strip().lower()
+scripts/skill_feedback.py:458:    if record.get("template_emitted"):
+scripts/skill_feedback.py:462:    total = record.get("findings_total", 0)
+scripts/skill_feedback.py:463:    declared = record.get("declared_status", "unreviewed")
+scripts/skill_feedback.py:464:    if record.get("resolved"):
+scripts/skill_feedback.py:467:            for where in record.get("filed_where", []):
+scripts/skill_feedback.py:473:        for unfiled in record.get("findings_unfiled", []):
+scripts/spec_paths.py:71:    path would make the flag lie about where the file went, which is the same
+scripts/spec_paths.py:126:    `EvidencePathError` is: rewriting the operator's path would make the flag
+scripts/run_kill_test.py:10:Exit codes -- no flag changes this mapping:
+scripts/run_kill_test.py:15:There is deliberately no ``--allow-below-floor``, no ``--accept-survivors``,
+scripts/testgraph_channels.py:29:Escapes"). There is no override flag, no "when present" conditional, and no
+scripts/testgraph_channels.py:155:    block = data.get("external")
+scripts/testgraph_channels.py:174:    package = block.get("production_package")
+scripts/testgraph_channels.py:189:    raw_ports = block.get("port_bindings")
+scripts/testgraph_channels.py:232:    raw_additional = block.get("additional_channels", [])
+scripts/testgraph_channels.py:366:    channel = spec.get("channel")
+scripts/testgraph_channels.py:396:    action_table = data.get("actions")
+scripts/testgraph_channels.py:428:        adapter_ref = spec.get("adapter")
+specs/program_model/spec_manifest.yaml:355:    # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
+specs/program_model/spec_manifest.yaml:381:    # epic's flagship feature. corpus_process is the java/TLC spawn
+specs/program_model/spec_manifest.yaml:446:    # shipped close path taken under a guard-weakening flag. Identical port set
+specs/program_model/spec_manifest.yaml:463:# this table and flags any variable with no linkage as dead weight.
+specs/program_model/spec_manifest.yaml:513:  # and flags any variable with no linkage as dead weight -- has been reporting
+specs/current/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/current/TlaSpecDevCli.tla:198:\* --no-promote-current, --validate-only, --force, --dry-run -- is a DIFFERENT
+specs/current/TlaSpecDevCli.tla:200:\* it. Before this ticket the flags were inventoried as presentation under the
+specs/current/TlaSpecDevCli.tla:201:\* per-flag granularity limitation, and the cost of that was specific rather
+specs/current/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/current/TlaSpecDevCli.tla:206:\* the shipped program has two documented flags to violate, no modeled state
+specs/current/TlaSpecDevCli.tla:611:\* --allow-over-budget flag (generate_cases_from_tlc_dump.py, the scan-first
+specs/current/TlaSpecDevCli.tla:615:\* modeled the withdrawn blocking gate: doctrine withdrew the flag on
+specs/current/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/current/TlaSpecDevCli.tla:710:\* modeled with the precondition REMOVED rather than with a flag input: a flag
+specs/current/TlaSpecDevCli.tla:715:\* be ACTIVE -- a ticket that was never opened cannot be closed by any flag --
+specs/current/TlaSpecDevCli.tla:721:\* Which of the six was used is NOT distinguished, and that is per-flag
+specs/current/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/current/TlaSpecDevCli.tla:730:\*   --no-promote-current (close ticket)        closes without promoting ticket
+specs/current/TlaSpecDevCli.tla:743:\* while the close path cannot see which flag did it. The model represents the
+specs/current/TlaSpecDevCli.tla:745:\* names the flags it can name.
+specs/current/TlaSpecDevCli.tla:757:  /\ result' = CommandResult(TRUE, NoReason, "Closed under a guard-weakening flag -- the spec-unit precondition was not checked")
+specs/current/TlaSpecDevCli.tla:830:\* flagship feature -- was ENTIRELY UNREPRESENTED. scripts/case_modules.py
+specs/current/TlaSpecDevCli.tla:1032:\* re-measurement enabled at any point after setup, so a later run can legally
+specs/current/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/current/TlaSpecDevCli.tla:1077:\* offers the flags, they have legitimate uses, and an invariant asserting a
+specs/current/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+scripts/tla_spec_dev.py:32:    skill = parsed.get("skill")
+scripts/tla_spec_dev.py:35:    version = skill.get("version")
+scripts/tla_spec_dev.py:164:    The flagship feature of the architectural-coherence epic had no CLI
+scripts/tla_spec_dev.py:201:    There is no flag that accepts a surviving mutant or a sub-floor rate: this
+scripts/tla_spec_dev.py:241:    status = plan.get("status")
+scripts/tla_spec_dev.py:242:    if isinstance(status, dict) and status.get("active_ticket"):
+scripts/tla_spec_dev.py:310:        python_path = [str(target_dir), str(repo_root), str(ROOT), env.get("PYTHONPATH", "")]
+scripts/tla_spec_dev.py:537:    run_spec_units.add_argument("--no-batch", action="store_true", help="Run generated cases as one Python program per case instead of batched hooks.")
+scripts/tla_spec_dev.py:577:            "override flag, and out-of-contract justifications were withdrawn 2026-07-18."
+scripts/tla_spec_dev.py:608:            "THERE IS NO WAIVER: no --allow-below-floor, no --accept-survivors, and no "
+scripts/tla_spec_dev.py:785:    close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
+scripts/tla_spec_dev.py:787:    close_ticket.add_argument("--no-promote-current", action="store_true", help="Do not replace project current/ with ticket desired/ during ticket close.")
+scripts/spec_evolution.py:184:    if not isinstance(plan.get("tickets"), list):
+scripts/spec_evolution.py:192:    if isinstance(plan.get("name"), str) and plan["name"].strip():
+scripts/spec_evolution.py:194:    status = plan.get("status")
+scripts/spec_evolution.py:195:    if isinstance(status, dict) and isinstance(status.get("workflow"), str) and status["workflow"].strip():
+scripts/spec_evolution.py:201:    return str(ticket.get("status", "")).strip().lower()
+scripts/spec_evolution.py:205:    value = ticket.get("id")
+scripts/spec_evolution.py:210:    tickets = plan.get("tickets")
+scripts/spec_evolution.py:215:        if isinstance(ticket, dict) and str(ticket.get("id", "")) == ticket_ref:
+scripts/spec_evolution.py:260:    if manifest.get("ticket_id"):
+scripts/spec_evolution.py:427:    seed = payload.get("seed_manifest")
+scripts/spec_evolution.py:430:    desired = seed.get("desired")
+scripts/spec_evolution.py:521:#: RC-01 (MF-026, owner decision 2026-08-01). The three guard-weakening flags
+scripts/spec_evolution.py:529:    "--allow-open": "snapshots a ticket whose ticket_plan.yaml status is not closed/done",
+scripts/spec_evolution.py:530:    "--no-promote-current": "closes without promoting ticket desired/ into project current/",
+scripts/spec_evolution.py:534:def weakening_flags_record(
+scripts/spec_evolution.py:537:    """Name the guard-weakening flags this close was taken under.
+scripts/spec_evolution.py:542:    `--accept-new` and `--allow-open` exist precisely to get past that
+scripts/spec_evolution.py:549:    Reports, never refuses. The flags ship, they have legitimate uses, and a
+scripts/spec_evolution.py:558:        used.append("--allow-open")
+scripts/spec_evolution.py:560:        used.append("--no-promote-current")
+scripts/spec_evolution.py:563:        "flags": used,
+scripts/spec_evolution.py:564:        "bypassed": [CLOSE_GUARD_WEAKENING_FLAGS[flag] for flag in used],
+scripts/spec_evolution.py:567:            "RC-01: a close taken under a guard-weakening flag is a different modeled "
+scripts/spec_evolution.py:674:        tla_name = str(declared.get("tla") or "").strip()
+scripts/spec_evolution.py:675:        cfg_name = str(declared.get("cfg") or "").strip()
+scripts/spec_evolution.py:708:    module_name = str(manifest.get("module") or "").strip()
+scripts/spec_evolution.py:901:            "Complexity is minimized under behavior retention. There is no override flag."
+scripts/spec_evolution.py:936:    # guard-weakening flag is a DIFFERENT STATE from one taken under the guard
+scripts/spec_evolution.py:938:    # could not tell them apart. `--accept-new` and `--allow-open` exist
+scripts/spec_evolution.py:944:    guard_weakening_record = weakening_flags_record(
+scripts/spec_evolution.py:971:    # There is deliberately no flag, parameter, or environment variable that
+scripts/spec_evolution.py:1071:        # RC-01: which guard-weakening flags this close was taken under, and
+scripts/spec_evolution.py:1073:        # model. Never a refusal -- the flags are shipped and have legitimate
+scripts/spec_evolution.py:1078:        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+scripts/spec_evolution.py:1079:        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
+scripts/spec_evolution.py:1084:        "complexity_delta": (complexity_record or {}).get("delta"),
+scripts/spec_evolution.py:1085:        "retention_evidence": (complexity_record or {}).get("retention"),
+scripts/spec_evolution.py:1086:        "refinement_record": (complexity_record or {}).get("refinement"),
+scripts/spec_evolution.py:1183:        "complexity_delta": (complexity_record or {}).get("delta"),
+scripts/spec_evolution.py:1184:        "retention_evidence": (complexity_record or {}).get("retention"),
+scripts/spec_evolution.py:1185:        "refinement_record": (complexity_record or {}).get("refinement"),
+scripts/spec_evolution.py:1187:        "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
+scripts/spec_evolution.py:1188:        "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),
+scripts/spec_evolution.py:1207:    for record in promotion.get("merged", []):
+scripts/spec_evolution.py:1208:        if record.get("role") != "current":
+scripts/spec_evolution.py:1210:        removed = record.get("removed") or []
+scripts/spec_evolution.py:1211:        preserved = record.get("preserved") or []
+scripts/spec_evolution.py:1235:    delta = record.get("delta") or {}
+specs/current/production_adapters.py:95:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/current/production_adapters.py:98:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/current/production_adapters.py:126:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/current/production_adapters.py:127:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/current/production_adapters.py:212:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/current/production_adapters.py:295:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/current/production_adapters.py:385:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/current/production_adapters.py:492:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/current/production_adapters.py:541:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/current/production_adapters.py:704:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/current/production_adapters.py:705:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/current/production_adapters.py:708:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/current/production_adapters.py:739:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/current/production_adapters.py:740:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/current/production_adapters.py:1006:        first_filed = first_manifest.get("feedback_filed")
+specs/current/production_adapters.py:1007:        second_filed = second_manifest.get("feedback_filed")
+specs/current/production_adapters.py:1008:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/current/production_adapters.py:1187:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/current/production_adapters.py:1433:        # refuses, and there is no over-budget override flag to honor.
+specs/current/production_adapters.py:1602:            and blob_payload.get("measured", {})
+specs/current/production_adapters.py:1603:            .get("partition", {})
+specs/current/production_adapters.py:1604:            .get("consumable_as_architecture")
+specs/current/production_adapters.py:1606:            and blob_payload.get("measured", {})
+specs/current/production_adapters.py:1607:            .get("ownership", {})
+specs/current/production_adapters.py:1608:            .get("single_writer_violations")
+specs/current/production_adapters.py:1614:            cut_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/current/production_adapters.py:1615:            and blob_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/current/production_adapters.py:1628:            cut_payload.get("advisory", {}).get("blocks_promotion") is False
+specs/current/production_adapters.py:1629:            and blob_payload.get("verdict", {}).get("blocks_promotion") is False
+specs/current/production_adapters.py:1632:        cut_measured = cut_payload.get("measured", {})
+specs/current/production_adapters.py:1634:            len(cut_measured.get("ports", [])) == 1
+specs/current/production_adapters.py:1635:            and [row["action"] for row in cut_measured.get("spanning_actions", [])] == ["Dispatch"]
+specs/current/production_adapters.py:2108:        survivors = surv_payload.get("surviving_mutants", [])
+specs/current/production_adapters.py:2114:            "pass_verdict": pass_payload.get("verdict"),
+specs/current/production_adapters.py:2116:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/current/production_adapters.py:2117:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/current/production_adapters.py:2119:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/current/production_adapters.py:2122:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/current/production_adapters.py:2124:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/current/production_adapters.py:2125:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/current/production_adapters.py:2127:            "waived_verdict": waived_payload.get("verdict"),
+specs/current/production_adapters.py:2130:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/current/production_adapters.py:2131:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/current/production_adapters.py:2135:                waived_payload.get("ignored_suppression_keys")
+specs/current/production_adapters.py:2138:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/current/production_adapters.py:2139:            "survivor_names_action": pointer.get("refine_action"),
+specs/current/production_adapters.py:2140:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/current/production_adapters.py:2145:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/current/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/current/production_adapters.py:2252:                if candidate.get("scope_id") == validated_ticket:
+specs/current/production_adapters.py:2265:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/current/production_adapters.py:2266:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/current/production_adapters.py:2267:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/current/production_adapters.py:2269:                manifest.get("complexity_delta") is not None
+specs/current/production_adapters.py:2270:                and manifest.get("retention_evidence") is not None
+specs/current/production_adapters.py:2286:                (validated_entry.get("delta") or {}).get("direction")
+specs/current/production_adapters.py:2287:                if isinstance(validated_entry.get("delta"), dict)
+specs/current/production_adapters.py:2292:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/current/production_adapters.py:2296:                validated_entry.get("validated_refactor")
+specs/current/production_adapters.py:2312:VARIABLES counter, flag
+specs/current/production_adapters.py:2314:vars == << counter, flag >>
+specs/current/production_adapters.py:2316:Init == counter = 0 /\\ flag = FALSE
+specs/current/production_adapters.py:2318:Bump == counter < 2 /\\ counter' = counter + 1 /\\ UNCHANGED flag
+specs/current/production_adapters.py:2319:Flip == flag' = ~flag /\\ UNCHANGED counter
+specs/current/production_adapters.py:2323:TypeInvariant == counter \\in 0..2 /\\ flag \\in BOOLEAN
+specs/current/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/current/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/current/production_adapters.py:2474:    history entry distinguishes them, naming the flag and what it bypassed. The
+specs/current/production_adapters.py:2475:    weakened close still SUCCEEDS: the flags ship and have legitimate uses, and
+specs/current/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/current/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/current/production_adapters.py:2539:        guarded_record = guarded_manifest.get("guard_weakening") or {}
+specs/current/production_adapters.py:2540:        weakened_record = weakened_manifest.get("guard_weakening") or {}
+specs/current/production_adapters.py:2545:                and guarded_record.get("weakened") is False
+specs/current/production_adapters.py:2546:                and guarded_record.get("model_action") == "CloseTicket"
+specs/current/production_adapters.py:2547:                and weakened_record.get("weakened") is True
+specs/current/production_adapters.py:2548:                and weakened_record.get("model_action") == "CloseTicketWeakened"
+specs/current/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+specs/current/production_adapters.py:2550:                and bool(weakened_record.get("bypassed"))
+specs/current/adapter_case_runtime.py:78:#: independently flagged exactly this pair ("no configured invariant reads
+specs/current/adapter_case_runtime.py:151:    spec_root_token = str(before.get("spec_root", "NoRoot"))
+specs/current/adapter_case_runtime.py:205:    ticket_state = dict(before.get("ticket_state") or {})
+specs/current/adapter_case_runtime.py:267:    prior_result = dict(prior.get("result") or {})
+specs/current/adapter_case_runtime.py:270:        "reason": prior_result.get("reason", "NoReason"),
+specs/current/adapter_case_runtime.py:274:        "next": prior_result.get("next"),
+specs/current/adapter_case_runtime.py:337:    disagreements = comparison.get("disagreements") or []
+specs/current/adapter_case_runtime.py:499:    before = dict(getattr(case, "before").get("ticket_state") or {})
+specs/current/adapter_case_runtime.py:500:    after = dict(getattr(case, "after").get("ticket_state") or {})
+specs/desired_program_model/spec_manifest.yaml:352:    # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
+specs/desired_program_model/spec_manifest.yaml:378:    # epic's flagship feature. corpus_process is the java/TLC spawn
+specs/desired_program_model/spec_manifest.yaml:443:    # shipped close path taken under a guard-weakening flag. Identical port set
+specs/desired_program_model/spec_manifest.yaml:460:# this table and flags any variable with no linkage as dead weight.
+specs/desired_program_model/spec_manifest.yaml:510:  # and flags any variable with no linkage as dead weight -- has been reporting
+specs/desired_program_model/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/desired_program_model/TlaSpecDevCli.tla:198:\* --no-promote-current, --validate-only, --force, --dry-run -- is a DIFFERENT
+specs/desired_program_model/TlaSpecDevCli.tla:200:\* it. Before this ticket the flags were inventoried as presentation under the
+specs/desired_program_model/TlaSpecDevCli.tla:201:\* per-flag granularity limitation, and the cost of that was specific rather
+specs/desired_program_model/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/desired_program_model/TlaSpecDevCli.tla:206:\* the shipped program has two documented flags to violate, no modeled state
+specs/desired_program_model/TlaSpecDevCli.tla:611:\* --allow-over-budget flag (generate_cases_from_tlc_dump.py, the scan-first
+specs/desired_program_model/TlaSpecDevCli.tla:615:\* modeled the withdrawn blocking gate: doctrine withdrew the flag on
+specs/desired_program_model/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/desired_program_model/TlaSpecDevCli.tla:710:\* modeled with the precondition REMOVED rather than with a flag input: a flag
+specs/desired_program_model/TlaSpecDevCli.tla:715:\* be ACTIVE -- a ticket that was never opened cannot be closed by any flag --
+specs/desired_program_model/TlaSpecDevCli.tla:721:\* Which of the six was used is NOT distinguished, and that is per-flag
+specs/desired_program_model/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/desired_program_model/TlaSpecDevCli.tla:730:\*   --no-promote-current (close ticket)        closes without promoting ticket
+specs/desired_program_model/TlaSpecDevCli.tla:743:\* while the close path cannot see which flag did it. The model represents the
+specs/desired_program_model/TlaSpecDevCli.tla:745:\* names the flags it can name.
+specs/desired_program_model/TlaSpecDevCli.tla:757:  /\ result' = CommandResult(TRUE, NoReason, "Closed under a guard-weakening flag -- the spec-unit precondition was not checked")
+specs/desired_program_model/TlaSpecDevCli.tla:830:\* flagship feature -- was ENTIRELY UNREPRESENTED. scripts/case_modules.py
+specs/desired_program_model/TlaSpecDevCli.tla:1032:\* re-measurement enabled at any point after setup, so a later run can legally
+specs/desired_program_model/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/desired_program_model/TlaSpecDevCli.tla:1077:\* offers the flags, they have legitimate uses, and an invariant asserting a
+specs/desired_program_model/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+specs/desired_program_model/production_adapters.py:95:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/desired_program_model/production_adapters.py:98:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/desired_program_model/production_adapters.py:126:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/desired_program_model/production_adapters.py:127:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/desired_program_model/production_adapters.py:212:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/desired_program_model/production_adapters.py:295:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/desired_program_model/production_adapters.py:385:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/desired_program_model/production_adapters.py:492:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/desired_program_model/production_adapters.py:541:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/desired_program_model/production_adapters.py:704:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/desired_program_model/production_adapters.py:705:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/desired_program_model/production_adapters.py:708:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/desired_program_model/production_adapters.py:739:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/desired_program_model/production_adapters.py:740:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/desired_program_model/production_adapters.py:1006:        first_filed = first_manifest.get("feedback_filed")
+specs/desired_program_model/production_adapters.py:1007:        second_filed = second_manifest.get("feedback_filed")
+specs/desired_program_model/production_adapters.py:1008:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/desired_program_model/production_adapters.py:1187:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/desired_program_model/production_adapters.py:1433:        # refuses, and there is no over-budget override flag to honor.
+specs/desired_program_model/production_adapters.py:1602:            and blob_payload.get("measured", {})
+specs/desired_program_model/production_adapters.py:1603:            .get("partition", {})
+specs/desired_program_model/production_adapters.py:1604:            .get("consumable_as_architecture")
+specs/desired_program_model/production_adapters.py:1606:            and blob_payload.get("measured", {})
+specs/desired_program_model/production_adapters.py:1607:            .get("ownership", {})
+specs/desired_program_model/production_adapters.py:1608:            .get("single_writer_violations")
+specs/desired_program_model/production_adapters.py:1614:            cut_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/desired_program_model/production_adapters.py:1615:            and blob_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/desired_program_model/production_adapters.py:1628:            cut_payload.get("advisory", {}).get("blocks_promotion") is False
+specs/desired_program_model/production_adapters.py:1629:            and blob_payload.get("verdict", {}).get("blocks_promotion") is False
+specs/desired_program_model/production_adapters.py:1632:        cut_measured = cut_payload.get("measured", {})
+specs/desired_program_model/production_adapters.py:1634:            len(cut_measured.get("ports", [])) == 1
+specs/desired_program_model/production_adapters.py:1635:            and [row["action"] for row in cut_measured.get("spanning_actions", [])] == ["Dispatch"]
+specs/desired_program_model/production_adapters.py:2108:        survivors = surv_payload.get("surviving_mutants", [])
+specs/desired_program_model/production_adapters.py:2114:            "pass_verdict": pass_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:2116:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/desired_program_model/production_adapters.py:2117:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:2119:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/desired_program_model/production_adapters.py:2122:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:2124:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/desired_program_model/production_adapters.py:2125:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/desired_program_model/production_adapters.py:2127:            "waived_verdict": waived_payload.get("verdict"),
+specs/desired_program_model/production_adapters.py:2130:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/desired_program_model/production_adapters.py:2131:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/desired_program_model/production_adapters.py:2135:                waived_payload.get("ignored_suppression_keys")
+specs/desired_program_model/production_adapters.py:2138:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/desired_program_model/production_adapters.py:2139:            "survivor_names_action": pointer.get("refine_action"),
+specs/desired_program_model/production_adapters.py:2140:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/desired_program_model/production_adapters.py:2145:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/desired_program_model/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/desired_program_model/production_adapters.py:2252:                if candidate.get("scope_id") == validated_ticket:
+specs/desired_program_model/production_adapters.py:2265:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/desired_program_model/production_adapters.py:2266:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/desired_program_model/production_adapters.py:2267:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/desired_program_model/production_adapters.py:2269:                manifest.get("complexity_delta") is not None
+specs/desired_program_model/production_adapters.py:2270:                and manifest.get("retention_evidence") is not None
+specs/desired_program_model/production_adapters.py:2286:                (validated_entry.get("delta") or {}).get("direction")
+specs/desired_program_model/production_adapters.py:2287:                if isinstance(validated_entry.get("delta"), dict)
+specs/desired_program_model/production_adapters.py:2292:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/desired_program_model/production_adapters.py:2296:                validated_entry.get("validated_refactor")
+specs/desired_program_model/production_adapters.py:2312:VARIABLES counter, flag
+specs/desired_program_model/production_adapters.py:2314:vars == << counter, flag >>
+specs/desired_program_model/production_adapters.py:2316:Init == counter = 0 /\\ flag = FALSE
+specs/desired_program_model/production_adapters.py:2318:Bump == counter < 2 /\\ counter' = counter + 1 /\\ UNCHANGED flag
+specs/desired_program_model/production_adapters.py:2319:Flip == flag' = ~flag /\\ UNCHANGED counter
+specs/desired_program_model/production_adapters.py:2323:TypeInvariant == counter \\in 0..2 /\\ flag \\in BOOLEAN
+specs/desired_program_model/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/desired_program_model/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/desired_program_model/production_adapters.py:2474:    history entry distinguishes them, naming the flag and what it bypassed. The
+specs/desired_program_model/production_adapters.py:2475:    weakened close still SUCCEEDS: the flags ship and have legitimate uses, and
+specs/desired_program_model/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/desired_program_model/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/desired_program_model/production_adapters.py:2539:        guarded_record = guarded_manifest.get("guard_weakening") or {}
+specs/desired_program_model/production_adapters.py:2540:        weakened_record = weakened_manifest.get("guard_weakening") or {}
+specs/desired_program_model/production_adapters.py:2545:                and guarded_record.get("weakened") is False
+specs/desired_program_model/production_adapters.py:2546:                and guarded_record.get("model_action") == "CloseTicket"
+specs/desired_program_model/production_adapters.py:2547:                and weakened_record.get("weakened") is True
+specs/desired_program_model/production_adapters.py:2548:                and weakened_record.get("model_action") == "CloseTicketWeakened"
+specs/desired_program_model/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+specs/desired_program_model/production_adapters.py:2550:                and bool(weakened_record.get("bypassed"))
+specs/program_model/adapter_case_runtime.py:78:#: independently flagged exactly this pair ("no configured invariant reads
+specs/program_model/adapter_case_runtime.py:151:    spec_root_token = str(before.get("spec_root", "NoRoot"))
+specs/program_model/adapter_case_runtime.py:205:    ticket_state = dict(before.get("ticket_state") or {})
+specs/program_model/adapter_case_runtime.py:267:    prior_result = dict(prior.get("result") or {})
+specs/program_model/adapter_case_runtime.py:270:        "reason": prior_result.get("reason", "NoReason"),
+specs/program_model/adapter_case_runtime.py:274:        "next": prior_result.get("next"),
+specs/program_model/adapter_case_runtime.py:337:    disagreements = comparison.get("disagreements") or []
+specs/program_model/adapter_case_runtime.py:499:    before = dict(getattr(case, "before").get("ticket_state") or {})
+specs/program_model/adapter_case_runtime.py:500:    after = dict(getattr(case, "after").get("ticket_state") or {})
+specs/program_model/TlaSpecDevCli.tla:197:\* six GUARD-WEAKENING FLAGS -- --accept-new, --allow-open,
+specs/program_model/TlaSpecDevCli.tla:198:\* --no-promote-current, --validate-only, --force, --dry-run -- is a DIFFERENT
+specs/program_model/TlaSpecDevCli.tla:200:\* it. Before this ticket the flags were inventoried as presentation under the
+specs/program_model/TlaSpecDevCli.tla:201:\* per-flag granularity limitation, and the cost of that was specific rather
+specs/program_model/TlaSpecDevCli.tla:204:\* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
+specs/program_model/TlaSpecDevCli.tla:206:\* the shipped program has two documented flags to violate, no modeled state
+specs/program_model/TlaSpecDevCli.tla:611:\* --allow-over-budget flag (generate_cases_from_tlc_dump.py, the scan-first
+specs/program_model/TlaSpecDevCli.tla:615:\* modeled the withdrawn blocking gate: doctrine withdrew the flag on
+specs/program_model/TlaSpecDevCli.tla:708:\* and `--allow-open` accepts a ticket whose plan status is not closed/done.
+specs/program_model/TlaSpecDevCli.tla:710:\* modeled with the precondition REMOVED rather than with a flag input: a flag
+specs/program_model/TlaSpecDevCli.tla:715:\* be ACTIVE -- a ticket that was never opened cannot be closed by any flag --
+specs/program_model/TlaSpecDevCli.tla:721:\* Which of the six was used is NOT distinguished, and that is per-flag
+specs/program_model/TlaSpecDevCli.tla:728:\*   --allow-open         (close ticket)        snapshots a ticket whose plan
+specs/program_model/TlaSpecDevCli.tla:730:\*   --no-promote-current (close ticket)        closes without promoting ticket
+specs/program_model/TlaSpecDevCli.tla:743:\* while the close path cannot see which flag did it. The model represents the
+specs/program_model/TlaSpecDevCli.tla:745:\* names the flags it can name.
+specs/program_model/TlaSpecDevCli.tla:757:  /\ result' = CommandResult(TRUE, NoReason, "Closed under a guard-weakening flag -- the spec-unit precondition was not checked")
+specs/program_model/TlaSpecDevCli.tla:830:\* flagship feature -- was ENTIRELY UNREPRESENTED. scripts/case_modules.py
+specs/program_model/TlaSpecDevCli.tla:1032:\* re-measurement enabled at any point after setup, so a later run can legally
+specs/program_model/TlaSpecDevCli.tla:1059:\* exactly what `--accept-new` and `--allow-open` exist to make false.
+specs/program_model/TlaSpecDevCli.tla:1077:\* offers the flags, they have legitimate uses, and an invariant asserting a
+specs/program_model/TlaSpecDevCli.tla:1080:\* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
+specs/program_model/production_adapters.py:95:        before_stage = int(dict(getattr(case, "before").get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/program_model/production_adapters.py:98:                f"{self.action_name} is enabled only when the ticket is at stage "
+specs/program_model/production_adapters.py:126:        ticket_tokens = sorted(set(dict(getattr(case, "before").get("ticket_state") or {})) |
+specs/program_model/production_adapters.py:127:                               set(dict(getattr(case, "after").get("ticket_state") or {})))
+specs/program_model/production_adapters.py:212:            return False, "BuildSkillCli is enabled only at setup_phase = 0"
+specs/program_model/production_adapters.py:295:            return False, "InstallLocalCli is enabled only at setup_phase = 1"
+specs/program_model/production_adapters.py:385:            return False, "ScaffoldProject is enabled only at setup_phase = 2"
+specs/program_model/production_adapters.py:492:            return False, "ScaffoldWorkflow is enabled only at setup_phase = 4"
+specs/program_model/production_adapters.py:541:# no bypass flag -- the standing objective is a required close-out step, so the
+specs/program_model/production_adapters.py:704:            return False, "OpenTicket is enabled only with a scaffolded workflow (setup_phase >= 5)"
+specs/program_model/production_adapters.py:705:        before_stage = int(dict(before.get("ticket_state") or {}).get(ticket, TICKET_UNOPENED))
+specs/program_model/production_adapters.py:708:                f"OpenTicket is enabled only when the ticket is Unopened; "
+specs/program_model/production_adapters.py:739:            set(dict(getattr(case, "before").get("ticket_state") or {}))
+specs/program_model/production_adapters.py:740:            | set(dict(getattr(case, "after").get("ticket_state") or {}))
+specs/program_model/production_adapters.py:1006:        first_filed = first_manifest.get("feedback_filed")
+specs/program_model/production_adapters.py:1007:        second_filed = second_manifest.get("feedback_filed")
+specs/program_model/production_adapters.py:1008:        filed_where = second_manifest.get("feedback_filed_where", [])
+specs/program_model/production_adapters.py:1187:            return False, "RecordBudgets is enabled only at setup_phase = 3"
+specs/program_model/production_adapters.py:1433:        # refuses, and there is no over-budget override flag to honor.
+specs/program_model/production_adapters.py:1602:            and blob_payload.get("measured", {})
+specs/program_model/production_adapters.py:1603:            .get("partition", {})
+specs/program_model/production_adapters.py:1604:            .get("consumable_as_architecture")
+specs/program_model/production_adapters.py:1606:            and blob_payload.get("measured", {})
+specs/program_model/production_adapters.py:1607:            .get("ownership", {})
+specs/program_model/production_adapters.py:1608:            .get("single_writer_violations")
+specs/program_model/production_adapters.py:1614:            cut_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/program_model/production_adapters.py:1615:            and blob_payload.get("verdict", {}).get("architecture_scan") == "unmappable"
+specs/program_model/production_adapters.py:1628:            cut_payload.get("advisory", {}).get("blocks_promotion") is False
+specs/program_model/production_adapters.py:1629:            and blob_payload.get("verdict", {}).get("blocks_promotion") is False
+specs/program_model/production_adapters.py:1632:        cut_measured = cut_payload.get("measured", {})
+specs/program_model/production_adapters.py:1634:            len(cut_measured.get("ports", [])) == 1
+specs/program_model/production_adapters.py:1635:            and [row["action"] for row in cut_measured.get("spanning_actions", [])] == ["Dispatch"]
+specs/program_model/production_adapters.py:2108:        survivors = surv_payload.get("surviving_mutants", [])
+specs/program_model/production_adapters.py:2114:            "pass_verdict": pass_payload.get("verdict"),
+specs/program_model/production_adapters.py:2116:            "pass_kill_rate": pass_payload.get("kill_rate"),
+specs/program_model/production_adapters.py:2117:            "below_floor_verdict": surv_payload.get("verdict"),
+specs/program_model/production_adapters.py:2119:            "below_floor_kill_rate": surv_payload.get("kill_rate"),
+specs/program_model/production_adapters.py:2122:            "uncovered_verdict": unc_payload.get("verdict"),
+specs/program_model/production_adapters.py:2124:            "uncovered_kill_rate_is_absent": unc_payload.get("kill_rate") is None,
+specs/program_model/production_adapters.py:2125:            "uncovered_boundaries": unc_payload.get("uncovered_boundaries", []),
+specs/program_model/production_adapters.py:2127:            "waived_verdict": waived_payload.get("verdict"),
+specs/program_model/production_adapters.py:2130:                waived_payload.get("verdict") == surv_payload.get("verdict")
+specs/program_model/production_adapters.py:2131:                and waived_payload.get("kill_rate") == surv_payload.get("kill_rate")
+specs/program_model/production_adapters.py:2135:                waived_payload.get("ignored_suppression_keys")
+specs/program_model/production_adapters.py:2138:            "survivor_names_variable": pointer.get("refine_variable"),
+specs/program_model/production_adapters.py:2139:            "survivor_names_action": pointer.get("refine_action"),
+specs/program_model/production_adapters.py:2140:            "survivor_names_boundary": pointer.get("boundary_ref"),
+specs/program_model/production_adapters.py:2145:            "kill_matrix_rows": len(surv_payload.get("kill_matrix", [])),
+specs/program_model/production_adapters.py:2250:            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+specs/program_model/production_adapters.py:2252:                if candidate.get("scope_id") == validated_ticket:
+specs/program_model/production_adapters.py:2265:            "delta_recorded": manifest.get("complexity_delta") is not None,
+specs/program_model/production_adapters.py:2266:            "retention_recorded": manifest.get("retention_evidence") is not None,
+specs/program_model/production_adapters.py:2267:            "refinement_recorded": (manifest.get("refinement_record") or {}).get("outcome"),
+specs/program_model/production_adapters.py:2269:                manifest.get("complexity_delta") is not None
+specs/program_model/production_adapters.py:2270:                and manifest.get("retention_evidence") is not None
+specs/program_model/production_adapters.py:2286:                (validated_entry.get("delta") or {}).get("direction")
+specs/program_model/production_adapters.py:2287:                if isinstance(validated_entry.get("delta"), dict)
+specs/program_model/production_adapters.py:2292:                (validated_entry.get("retention") or {}).get(name, {}).get("status") == "not_run"
+specs/program_model/production_adapters.py:2296:                validated_entry.get("validated_refactor")
+specs/program_model/production_adapters.py:2312:VARIABLES counter, flag
+specs/program_model/production_adapters.py:2314:vars == << counter, flag >>
+specs/program_model/production_adapters.py:2316:Init == counter = 0 /\\ flag = FALSE
+specs/program_model/production_adapters.py:2318:Bump == counter < 2 /\\ counter' = counter + 1 /\\ UNCHANGED flag
+specs/program_model/production_adapters.py:2319:Flip == flag' = ~flag /\\ UNCHANGED counter
+specs/program_model/production_adapters.py:2323:TypeInvariant == counter \\in 0..2 /\\ flag \\in BOOLEAN
+specs/program_model/production_adapters.py:2467:    while `--accept-new` and `--allow-open` exist specifically to get past that
+specs/program_model/production_adapters.py:2473:    the guard, once around it with `--allow-open` -- and asserts the append-only
+specs/program_model/production_adapters.py:2474:    history entry distinguishes them, naming the flag and what it bypassed. The
+specs/program_model/production_adapters.py:2475:    weakened close still SUCCEEDS: the flags ship and have legitimate uses, and
+specs/program_model/production_adapters.py:2535:        # `--allow-open` closes a ticket the plan still calls open: the
+specs/program_model/production_adapters.py:2537:        weakened, weakened_manifest = close(target_repo / "weakened", "--allow-open")
+specs/program_model/production_adapters.py:2539:        guarded_record = guarded_manifest.get("guard_weakening") or {}
+specs/program_model/production_adapters.py:2540:        weakened_record = weakened_manifest.get("guard_weakening") or {}
+specs/program_model/production_adapters.py:2545:                and guarded_record.get("weakened") is False
+specs/program_model/production_adapters.py:2546:                and guarded_record.get("model_action") == "CloseTicket"
+specs/program_model/production_adapters.py:2547:                and weakened_record.get("weakened") is True
+specs/program_model/production_adapters.py:2548:                and weakened_record.get("model_action") == "CloseTicketWeakened"
+specs/program_model/production_adapters.py:2549:                and weakened_record.get("flags") == ["--allow-open"]
+specs/program_model/production_adapters.py:2550:                and bool(weakened_record.get("bypassed"))

@@ -1797,3 +1797,15 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow hexagonal-prompting-epic
+
+- close_scope: workflow
+- close_id: hexagonal-prompting-epic
+- workflow: hexagonal-prompting-epic
+- closed_at: 2026-08-05T15:28:59+00:00
+- summary: Hexagonal prompting: architecture as a prompt, a negative corpus that reached a class nothing had reached, static scanners removed, and an A/B decided by judged scorecards on a repaired instrument
+- feedback_status: unreviewed
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
