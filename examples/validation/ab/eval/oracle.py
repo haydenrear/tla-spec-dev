@@ -20,6 +20,10 @@ which is a disclosure rather than a convenience:
     case at all; run them, and the whole-view control goes red on UNMUTATED
     code (HP-06-DF-11, predicted before this run).
 
+    Since EVAL-SUPPRESS that skip is counted under TWO rules, because it has
+    two causes and reporting one of them for both was wrong for 266 of 294
+    cases. See `ID_NOT_EXPRESSIBLE` / `STATE_NOT_EXPRESSIBLE` below.
+
     Two repairs were available and only one of them is honest. Installing the
     arm's id counter FROM the case's own `r` would run every case -- and would
     configure the program to produce the very id the oracle then compares, which
@@ -79,7 +83,22 @@ QUOTA = int(os.environ.get("QUOTA_LEDGER_QUOTA", "2"))
 UNBOUND_ACTION = "action has no binding in this API"
 UNRECOVERED_ARGUMENT = "unrecovered argument"
 REFUSED_ONLY_BY_R = "refused only by a constraint on `r`, which this API allocates"
-ID_NOT_EXPRESSIBLE = "model chose a reservation id this API would not allocate"
+#: TWO rules, not one, and the split is a correction (EVAL-RERUN F4). Until
+#: EVAL-SUPPRESS both populations were counted under a single reason that said
+#: the model "chose a reservation id this API would not allocate" -- a claim
+#: about the ARGUMENT. It is true of 28 of the 294 skips. For the other 266 the
+#: id this API would allocate next is outside `ResIds` ALTOGETHER, so no choice
+#: of `r` could have been expressible and the argument is not what makes the
+#: case unreachable: the BEFORE-STATE is. The model allocates ids in any order
+#: from a finite recycled domain, the API allocates a monotone prefix, and past
+#: `|ResIds|` reservations the API has left the model's domain behind.
+#: (The "exactly half" of the old record is a coincidence of `|ResIds| = 2`,
+#: not a property of the refinement: 232 + 62 against 204 + 28 + 62.)
+ID_NOT_EXPRESSIBLE = "model named a different free id; this API allocates the next one"
+STATE_NOT_EXPRESSIBLE = (
+    "the id this API would allocate next is outside the model's id domain, so no "
+    "case from this before-state is expressible whatever `r` names"
+)
 
 
 def _command_type() -> Any:
@@ -338,13 +357,23 @@ class PositiveAdapter:
             return False, f"{UNRECOVERED_ARGUMENT} ({', '.join(unchecked)})"
         if case.input.action == "Reserve":
             chosen = case.input.params.get("r")
-            if chosen is not None and chosen != allocatable_id(case.before):
+            allocatable = allocatable_id(case.before)
+            if chosen is not None and chosen != allocatable:
                 # HP-03-DF-01 / HP-06-DF-11, and the whole reason this file
-                # exists. The model admits ANY free id; this API allocates one
-                # and accepts none, so a case naming a different one is not a
-                # call this API can make. NOT a defect of the tree, NOT a fault
-                # the corpus caught, and NOT netted out of anything: it is a
-                # counted limitation of the fixture's own refinement.
+                # exists. NOT a defect of the tree, NOT a fault the corpus
+                # caught, and NOT netted out of anything: a counted limitation
+                # of the fixture's own refinement.
+                #
+                # Which limitation, though, is TWO facts and it used to be
+                # reported as one. If the id this API would allocate next is
+                # not even in the model's domain, the mismatch is in the
+                # BEFORE-STATE and no `r` could have made the case runnable;
+                # only when the next id IS in the domain is "the case named a
+                # different free one" the operative reason. A skip rule that
+                # misstates why it fires is the same class of defect as a
+                # limitation verified against nothing (EVAL-RERUN F4).
+                if allocatable not in _ids(case.before):
+                    return False, STATE_NOT_EXPRESSIBLE
                 return False, ID_NOT_EXPRESSIBLE
         return True
 

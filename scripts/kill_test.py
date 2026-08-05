@@ -141,8 +141,32 @@ SUPPRESSION_KEYS = frozenset(
         "ignore_survivor",
         "justification",
         "known_survivor",
+        # EVAL-SUPPRESS. The A/B eval's control record
+        # (`examples/validation/ab/eval/controls.toml`) introduced a second
+        # family of suppression: `[[limitation]]` declares that an instrument
+        # cannot decide a mutant, and `[[retired_control]]` declares that a
+        # control's own declaration was falsified. Both are CHECKED constructs
+        # -- a limitation must name a witness the run verifies against its own
+        # executability counts, and since EVAL-SUPPRESS neither may convert a
+        # demonstrated KILL -- but until then neither appeared on any
+        # suppression list, so a reader auditing this file for "what can make a
+        # survivor or a kill disappear" would not have found the one mechanism
+        # that could (EVAL-RERUN-DF-02). Listing them changes nothing about how
+        # they are honored, which is: on evidence, never on the say-so of the
+        # key. It makes them visible in `ignored_suppression_keys` and, via
+        # `scan_for_suppression`, in every artifact `run_controls.py` writes.
+        "limitation",
+        "limitation_on",
+        "not_decidable",
         "override",
+        "retired_control",
         "skip",
+        # Listed so the scan enumerates each declared limitation INSTANCE
+        # (`limitation[0].witness_ran_must_be`) and not merely the fact that
+        # the file uses the construct. It is also literally a key that, if
+        # honored on its say-so instead of checked against the run's own
+        # counts, lets a cell pass -- which is this list's own definition.
+        "witness_ran_must_be",
         "skip_kill_test",
         "survivor_ok",
         "suppress",
@@ -274,6 +298,19 @@ def parse_mutants(raw: Any, *, source: str = "<catalog>") -> tuple[list[Mutant],
             )
         )
     return mutants, suppressions
+
+
+def scan_for_suppression(node: Any, prefix: str = "") -> set[str]:
+    """Public entry point for anything else that loads a catalog-shaped file.
+
+    `examples/validation/ab/eval/run_controls.py` calls this on every catalogue
+    it is given, so the eval's own `[[limitation]]` and `[[retired_control]]`
+    constructs are enumerated in the run artifact by the same scanner and
+    against the same list as the kill test's own (EVAL-SUPPRESS). One list, one
+    scanner, one place to look.
+    """
+
+    return _scan_for_suppression(node, prefix)
 
 
 def _scan_for_suppression(node: Any, prefix: str = "") -> set[str]:

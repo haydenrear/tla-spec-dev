@@ -307,8 +307,8 @@ effects:
           target: "git rev-parse*"
         # CD-11 (audit run 4, gap R4-1): RunKillTest's shipped path seeds
         # each catalog mutant INTO the production source tree and restores it
-        # (scripts/kill_test.py:548 (patched) write of the mutated copy,
-        # scripts/kill_test.py:551 (original) finally-branch restore, driven
+        # (scripts/kill_test.py:585 (patched) write of the mutated copy,
+        # scripts/kill_test.py:588 (original) finally-branch restore, driven
         # per mutant by scripts/run_kill_test.py:130 (def run)). The targets
         # are the catalog's `path` keys -- scripts/*.py and
         # skill-scripts/install-tla-spec-dev.sh -- which no other declared
@@ -324,7 +324,7 @@ effects:
           type: filesystem.write
           target: "*scripts/*"
         # CD-11 (audit run 4, gap R4-1, spawn member): the per-mutant corpus
-        # run (scripts/kill_test.py:609 (subprocess.run) via
+        # run (scripts/kill_test.py:646 (subprocess.run) via
         # scripts/run_kill_test.py:198 (subprocess_case_runner)) spawns the
         # user-supplied --corpus-command once per mutant plus the control
         # run. The command is unconstrained user input, so any glob narrower
