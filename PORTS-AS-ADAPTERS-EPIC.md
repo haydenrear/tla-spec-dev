@@ -204,10 +204,24 @@ Baselines you are measured against, all sealed in closed snapshots:
 
 | | best ever recorded | where |
 |---|---|---|
-| **D1** bug detection | **3** (arm B, both judges) | first 3; was 2 or lower everywhere before |
+| **D1** bug detection | **3** on **BOTH ARMS**, all four judges | corrected — see below; the old text said "(arm B, both judges)" |
 | **D2** complexity | **3**, never 4 | withheld by both judges, twice, for the same reason |
 | **D3** modularity | **4** (arm B, both judges) | first 4 in the project |
 | **D5** honesty | **4** | went to the **treatment** — corrected, see below |
+
+**D1 correction — 2026-08-05, epic owner, on PA-05's finding `PA-05-DF-01`.**
+This row read *"**3** (arm B, both judges)"*, which credits the treatment with a
+result **both arms got**. Under EVAL-RERUN, D1 = 3 on arm A *and* arm B, from all
+four judges (`hexagonal-prompting-rerun/INDEX.md`). The old wording made an
+attribution correction look like a treatment effect — and it **contradicted §5 of
+this same document**, which says plainly: *"D1 = 3 on BOTH arms. The bug-catching
+gain was the generator, which both arms get — not the prompt."* The table and the
+thesis disagreed, and the table was wrong.
+
+This is the same defect as the D5 row below, from the same cause: a row written
+against HP-06's sealed run and read forward across an instrument change. PA-05
+found it while building the tool for finding exactly this, which is the strongest
+argument its ticket could have made for itself.
 
 **D5 correction — 2026-08-05, epic owner, pre-dispatch baseline audit.** This row
 read *"and it went to the control, not the treatment"* until the baselines were
