@@ -1,0 +1,23 @@
+# PA-04, ARM A: the SAME port table, on an arm that has no second implementation.
+#
+# There is no `fake =` line here and it is not an oversight. Arm A is one flat
+# module. It declares no port, so it ships no Protocol, no driven adapter and
+# nothing a swap could swap to. The port CASES still bind -- a case does not
+# need the program to be hexagonal to be about a port -- but the pair does not
+# exist, and the runner says so on every run:
+#
+#   ! PORT ledger.LedgerAppendPort: NO FAKE DECLARED, so --wiring fake ran its
+#     REAL adapter. This column decides nothing about a fake for this port
+#     because there is not one.
+#
+# That sentence is the arm-A half of GOAL-cases-drive-ports, and it is a fact
+# about the arm rather than a limitation of the instrument.
+
+[ports."ledger.LedgerAppendPort"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+kind = "ledger-journal-port"
+
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "port_journal_adapters:ArmRealAdapter"
+kind = "transition"
