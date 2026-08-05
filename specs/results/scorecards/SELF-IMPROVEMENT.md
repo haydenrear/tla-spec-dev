@@ -610,6 +610,46 @@ never executes and the reason it does not was mis-stated for 266 of 294 cases.
 changed is that the reach is now *printed* — per instrument, per action, per skip
 rule — instead of being inferable by nobody.
 
+## FINAL CORRECTION (2026-08-05) — the controls were the part that was lying
+
+The eval re-run found three severe defects, **all three in the controls** — the
+part whose entire job is to say when the rest of the instrument is lying. Three
+rounds shipped before anything caught them, and what caught them was the
+**adversarial channel**, not the suite and not a green control.
+
+**A declaration could erase a demonstrated kill.** `run_controls.py` computed
+`NOT_DECIDABLE` *before* the mutated run was consulted, so a declared limitation
+converted a cell that the instrument had actually KILLED — reporting
+`verified: true`, `green: true`, exit 0. Nothing audited it: the catalogue
+promised its suppression keys were "scanned for and reported loudly", and that
+promise was **false for the one mechanism that could hide a cell**. The mutated
+run now decides first; a limitation may only convert a SURVIVED cell; over a kill
+it is reported `contradicted_by_evidence` and the run exits nonzero.
+
+**A limitation could verify against nothing.** `.get(key, 0)` made a *missing*
+count and a *measured zero* the same number. Every witness now carries a
+`witness_basis`, and an action no instrument ever accounted for verifies nothing.
+
+**Exactly one cell changed** when this round's data went back through the
+repaired driver: arm B's `M07 / corpus-slice-led`, `NOT_DECIDABLE → SURVIVED`,
+its control green → **red**, exit 0 → 1. **No `NOT_DECIDABLE` became a `KILLED`
+anywhere** — the erasure is real and reproducible on demand, but it did not fire
+on this round's data or on the sealed reference run. Every suppressed cell was a
+genuine survival.
+
+**One sealed number is therefore known-wrong: EVAL-RERUN's "controls green on
+both arms" is false for arm B.** Under the repaired driver arm B's positive
+control is correctly red on its own catalogue. `GOAL-catch-bugs` is untouched by
+this — its `met` verdict is carried by `corpus-neg`'s guard-relaxation result,
+whose controls are green and independently reproduced.
+
+**The honest closing verdict, in the instrument's own words:** trust the number,
+cite the control that backs it, and keep the adversarial channel. **It is now
+honest about what it did not decide; it is not yet an instrument that finds its
+own defects.** The strongest new check is a *consistency* check — it catches a
+limitation the run's own other instruments contradict — and it would not have
+caught the erasure on data where nothing else disagreed.
+
 ## What would count as self-improvement
 
 Not a rising total. Specifically:
