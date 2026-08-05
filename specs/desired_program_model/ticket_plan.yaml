@@ -208,7 +208,21 @@ tickets:
   title: The three-arm harness, the port-aware catalogue, and the sealed predictions
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev/issues/130
-  schedule_revision: 1
+  schedule_revision: 2
+  schedule_revision_note: 'BUMPED TO 2 by the epic owner 2026-08-05, mid-flight, adding a FOURTH part:
+    repair the positive control. Reason, and it is a planning defect rather than a discovery about the
+    code: GOAL-port-reach''s target carries the clause "and no positive control is red". examples/validation/ab/seeded_faults.toml:299-306
+    declares M07 the positive control -- "must die on every instrument on every arm. If M07 survives,
+    every other number in the round is void." The closing ledger 21da25b records arm B''s M07 as CORRECTLY
+    RED, i.e. surviving, and PORTS-AS-ADAPTERS-EPIC.md section 8 states it plainly: "A positive control
+    that survives invalidates its row. One is currently red." So the epic''s flagship goal was dispatched
+    with a target clause ALREADY FAILING AT BASELINE and NO TICKET OWNING ITS REPAIR. Six tickets were
+    planned and none of them fixes the control. PA-01 owns examples/validation/ab/ and had not sealed,
+    so the work goes here rather than into a seventh ticket. THE TARGET IS NOT TOUCHED. Repairing an instrument
+    BEFORE any measurement is not the forbidden act; the forbidden acts are repairing after an unflattering
+    signal and moving a target to meet a result, and neither is happening. If the control cannot be made
+    to work on some arm it is REPORTED RED, never made green by weakening what it asserts -- a control
+    that cannot fail is the exact defect EVAL-SUPPRESS found in this instrument.'
   depends_on: []
   blocks:
   - PA-03
@@ -276,6 +290,13 @@ tickets:
       once, apply/revert byte-identical.
     - PREDICTIONS-PA.md is committed before any other ticket is dispatched and contains at least three
       explicit NEGATIVE predictions.
+    - 'ADDED AT schedule_revision 2. M07''s status is established BY RUNNING IT on every arm including
+      the new arm C, and reported per arm. If it is red on any arm the control is repaired so it does
+      a control''s job on all three; if it cannot be made to work on some arm that is REPORTED RED rather
+      than made green by weakening the assertion. A prediction about M07 is sealed in PREDICTIONS-PA.md
+      BEFORE the repair, not after. The related defect is checked while in there: the rerun found arm B''s
+      positive control "does not do a control''s job" and the catalogue carries arm A''s role string verbatim
+      over it.'
   model_delta_expectation: none -- and per surface_cost_rule that is a feature
 - id: PA-02
   title: 'Complexity of produced code: build the instrument that was missing'
