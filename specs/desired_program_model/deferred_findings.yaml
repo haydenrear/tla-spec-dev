@@ -1,0 +1,285 @@
+findings:
+  - id: PA-01-DF-01
+    found_by: "PA-01"
+    found_at_commit: "68cc5ff"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      THE EPIC'S OWN BASELINE CITES THE WRONG FINDING ID. `epic_goals` ->
+      `GOAL-port-reach` -> `baseline.value` ends "Measured at hexagonal-prompting
+      HP-06, filed as HP-06-DF-10." The dispatch issue for PA-01 repeats it, and
+      so did this ticket's brief.
+
+      HP-06-DF-10 is a different finding. Its text: "the guard-relaxation zeros
+      under `corpus-whole` are the oracle's skip rule, not the sealed catalogue's
+      stated mechanism, because this model spells refusals out as actions"
+      (specs/results/scorecards/hexagonal-prompting/FINDINGS.md, the HP-06
+      defects table).
+
+      The adapter-internal survival this epic is built on is `BA-B14`, in the
+      section "And the cost side of the port, which nobody predicted":
+      "a fault in arm B's in-memory journal adapter SURVIVES EVERY INSTRUMENT
+      INCLUDING THE HAND-WRITTEN SUITE... The port removes places for some faults
+      to live and creates a region no shared oracle reaches" (same file, around
+      line 277). It carries no HP-06-DF-* id at all; it is a blind-author channel
+      finding.
+    reproduction: >-
+      `grep -n "HP-06-DF-10"
+      specs/results/scorecards/hexagonal-prompting/FINDINGS.md` -> line 297, the
+      guard-relaxation row. `grep -n "BA-B14"` on the same file -> line 277, the
+      adapter fault. The plan's baseline text points at the first and describes
+      the second.
+    evidence:
+      - "specs/results/scorecards/hexagonal-prompting/FINDINGS.md"
+      - "specs/desired_program_model/ticket_plan.yaml"
+    why_out_of_scope: >-
+      `ticket_plan.yaml` is not in PA-01's `implementation_scope`
+      (`examples/validation/`) and a goal `baseline` block is a sealed
+      measurement. The epic's own discipline is that a target is never moved
+      after a result is known, and a baseline is the target's other half.
+      Editing one mid-epic, even to correct a citation, is the move the plan
+      forbids. Escalated to the owner rather than repaired.
+    suggested_fix: >-
+      The owner amends the citation to `BA-B14` (or to "the blind-author channel,
+      FINDINGS.md 'And the cost side of the port'"), NOT by rewording the
+      baseline's measured claim, which is accurate. Alternatively PA-06 records
+      the corrected citation beside the goal verdict, which is the treatment the
+      epic doc already prescribes for a sealed number that has gone stale.
+    blast_radius: >-
+      A PA-06 scorer following the citation lands on a guard-relaxation finding
+      about refusal modelling and finds nothing about adapters, and may conclude
+      the baseline is unsupported. PA-01's artefacts cite BA-B14 directly
+      (seeded_faults.toml, reference_ports/README.md, PREDICTIONS-PA.md) so the
+      evidence chain is intact from this side; only the plan's own pointer is
+      wrong.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-01-DF-02
+    found_by: "PA-01"
+    found_at_commit: "68cc5ff"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "examples/validation/ab/arm_a/PROMPT.md"
+        - "examples/validation/ab/arm_b/PROMPT.md"
+    summary: >-
+      ARMS A AND B CARRY TEXT THAT IS NOW STALE, AND WERE LEFT THAT WAY ON
+      PURPOSE. Both say "You are one arm of a two-arm comparison", and neither
+      do-not-open list names `arm_c/`, `reference_ports/`, or
+      `PREDICTIONS-PA.md`. PA-01 added all three.
+
+      Not fixed, because the fix is an instrument change. Those two files are
+      byte-identical to the prompts that produced the sealed HP D3 = 1 / D3 = 4
+      result, and the epic doc's reading rule is that a row is comparable only
+      "on the same example AND across an unchanged instrument". Editing a
+      sealed prompt to tidy a sentence would put a named instrument change
+      between this epic's D3 and the one it is supposed to be measured against,
+      in exchange for nothing measurable.
+
+      `tests/test_ab_three_arms_and_port_faults.py::test_arms_a_and_b_are_not_edited_by_this_ticket`
+      asserts the stale sentence is still there, so a later quiet repair fails a
+      test and has to be declared rather than slipping through.
+    reproduction: >-
+      `grep -n "two-arm comparison" examples/validation/ab/arm_b/PROMPT.md` and
+      `grep -n "arm_c" examples/validation/ab/arm_a/PROMPT.md` (no hits).
+    evidence:
+      - "examples/validation/PREDICTIONS-PA.md"
+      - "tests/test_ab_three_arms_and_port_faults.py"
+    why_out_of_scope: >-
+      In scope to EDIT (`examples/validation/`), deliberately not edited. This is
+      a declared cost, filed so PA-06 acts on it rather than discovering it.
+    suggested_fix: >-
+      PA-06 adds `examples/validation/ab/arm_c/`,
+      `examples/validation/ab/reference_ports/` and
+      `examples/validation/PREDICTIONS-PA.md` to the forbidden list AT DISPATCH,
+      out of band, alongside the verbatim prompt -- and records in its own
+      evidence that it did so and what it added. The prompt files stay
+      byte-identical. If a future round decides the arms must be re-authored, it
+      declares an instrument change and stops comparing across it.
+    blast_radius: >-
+      Low. The arm A and arm B agents are told not to explore and were compliant
+      in the sealed round (one accidental disclosure, self-reported, HP-06-DF-03
+      was a blinding leak in the opposite direction). The risk is an arm A or arm
+      B agent reading arm C's prompt and inferring what is being compared.
+    disposition: carried
+    disposition_ticket: "PA-06"
+
+  - id: PA-01-DF-03
+    found_by: "PA-01"
+    found_at_commit: "68cc5ff"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["tests/test_eval_controls.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A SEAL CHECK THAT COULD NOT TELL A SUBSTITUTION FROM AN EXTENSION.
+      `test_the_sealed_catalogue_is_still_the_sealed_catalogue` asserted the
+      first three mutant ids and then `len(mutants) == 10`. That combination
+      passes if rows four through ten are deleted and seven different rows are
+      added in their place -- which is exactly the amendment the test's own
+      docstring says it exists to catch ("The control record ADDS; it does not
+      amend").
+
+      REPAIRED IN PLACE rather than deferred, and the departure is declared:
+      PA-01's acceptance command is `pytest tests -q`, the canonical plan
+      directs PA-01 to extend this catalogue, and the count assertion fails on
+      any extension. Leaving it red was not available. The repair names all ten
+      sealed rows in file order and requires every row past them to be a
+      declared `PA-` extension, so the test now does what its docstring claims
+      and is strictly harder to satisfy than before.
+    reproduction: >-
+      On the parent commit the test passes with `len(mutants) == 10`; construct a
+      catalogue with M01-M03 intact and seven arbitrary replacements and it still
+      passes.
+    evidence: ["tests/test_eval_controls.py"]
+    why_out_of_scope: >-
+      `tests/` is not in PA-01's `implementation_scope`. Recorded here for that
+      reason, with the repair and its justification, rather than being left
+      unmentioned because it happened to be necessary.
+    suggested_fix: >-
+      Already applied. A reviewer who disagrees should revert the repair and
+      instead move the seal check to compare a digest of the ten sealed rows,
+      which is stronger again; PA-01 did not, because a digest over prose fields
+      would break on a comment reflow and produce a red test that says nothing.
+    blast_radius: >-
+      One test file. No product behaviour.
+    disposition: repaired
+    disposition_ticket: "PA-01"
+
+  - id: PA-01-DF-04
+    found_by: "PA-01"
+    found_at_commit: "a5fedbe"
+    schedule_revision: 1
+    severity: blocking
+    surface:
+      production: ["scripts/extract_spec_manifest.py", "scripts/new_ticket_workflow.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml"]
+    summary: >-
+      `open ticket` AND `close ticket` ARE UNRUNNABLE FOR EVERY TICKET IN THIS
+      EPIC, at the epic tip, before any ticket touches anything.
+
+      `scripts/tla_spec_dev.py open ticket PA-01` ->
+      `ValueError: unexpected indentation at: 'The predecessor proved the two
+      halves work separately and do not meet. ...'`
+
+      Cause: `extract_spec_manifest.parse_simple_yaml` -- the only loader
+      `new_ticket_workflow.load_ticket_plan` uses, with no PyYAML branch --
+      cannot read a MULTI-LINE SINGLE-QUOTED scalar. This epic's
+      `ticket_plan.yaml` contains ten of them (`purpose`, `semantic_model_rule`,
+      `representation_scope_rule`, `surface_cost_rule`, `notes`,
+      `epic_goals[0].statement`, and four ticket `objective` fields), because it
+      was written with a PyYAML dump whose default style is single-quoted. The
+      predecessor's plan used `>-` block scalars throughout, which the simple
+      parser does read -- which is why this never surfaced before.
+    reproduction: >-
+      At the untouched epic tip a5fedbe, in a clean checkout:
+      `python3 scripts/tla_spec_dev.py open ticket PA-01` and
+      `python3 scripts/start_ticket.py PA-01` both raise the same ValueError.
+      Confirmed to predate every PA-01 change by running it against
+      `git archive HEAD` of 68cc5ff extracted to a scratch tree.
+    evidence:
+      - "scripts/extract_spec_manifest.py:174 (_parse_dict) and :286 (load_manifest)"
+      - "scripts/new_ticket_workflow.py:341 (load_ticket_plan)"
+      - "specs/.history/hexagonal-prompting-epic/ticket-001-HP-02/snapshots/desired_program_model/ticket_plan.yaml:4 -- the predecessor's `purpose: >-`"
+    why_out_of_scope: >-
+      Two candidate fixes and both are outside PA-01's slice
+      (`examples/validation/`). (a) Reformat the canonical plan's ten scalars to
+      `>-`: that is an edit to `ticket_plan.yaml`, which is the shared object of
+      five unstarted sibling tickets in wave 1, and a whole-file PyYAML
+      round-trip during dispatch is exactly the kind of change that silently
+      drops a governing ruling -- the plan's own
+      `representation_scope_rule` records that happening twice. (b) Teach
+      `parse_simple_yaml` multi-line quoted scalars: production toolchain, and
+      the loader's refusal-rather-than-guess posture is load-bearing elsewhere.
+      Either is the owner's call, not a measurement ticket's.
+    suggested_fix: >-
+      Preferred: (b), a targeted extension of `parse_simple_yaml` to continue a
+      quoted scalar across lines, with a test for the class rather than the
+      instance. It fixes every future plan written by any YAML emitter instead
+      of constraining what the owner may type. If (a) is chosen instead, convert
+      ONLY the ten scalars, diff the result field by field against the original
+      as `representation_scope_rule` requires, and re-run the git-epic-workflow
+      validator.
+    blast_radius: >-
+      EVERY ticket in this epic. `open ticket` and `close ticket` are the
+      close-out steps each ticket's dispatch mandates, so PA-01 through PA-06
+      all hit this. PA-01 therefore closes out with its acceptance commands and
+      its local signals as evidence and NO spec-workflow ticket record, which
+      also means no ticket-local history entry and no `current` promotion for
+      this ticket. That gap is visible in the history and is this finding's
+      real cost.
+    disposition: escalated
+    disposition_ticket: null
+
+  - id: PA-01-DF-05
+    found_by: "PA-01"
+    found_at_commit: "a5fedbe"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_a.toml"
+        - "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml"
+    summary: >-
+      NOTHING EVER CHECKED A POSITIVE CONTROL AGAINST THE PROPERTY THAT MAKES IT
+      ONE, and that is why arm B's took three rounds and an adversarial channel
+      to find. Both sealed per-arm catalogues declare M07 `control_role =
+      "positive -- must die on every instrument that can execute an accepted
+      Reserve"` -- arm B's carries arm A's string verbatim -- and neither
+      declares, nor could anything verify, the second half of the job: that the
+      control is INVISIBLE until an accepted Reserve runs.
+
+      PA-01 ran the probe against both sealed trees with the shipped harness:
+      arm A HOLDS, arm B BROKEN. The measurement takes seconds. The finding it
+      reproduces cost an adversarial channel building a corpus with every
+      `Reserve` case deleted, and a full rerun to confirm.
+    reproduction: >-
+      `python3 examples/validation/ab/check_catalogue.py --controls --tree-root
+      --root specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b
+      --catalogue specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml`
+      -> BROKEN, plus a reported missing `[pa_control_properties]` declaration.
+      The same command with `arm_a` -> HOLDS.
+    evidence:
+      - "examples/validation/ab/seeded_faults.toml [pa_measured_control_audit]"
+      - "examples/validation/ab/eval/controls_rerun_arm_b.toml -- EVAL-SUPPRESS's retirement and its P01 replacement"
+      - "tests/test_ab_three_arms_and_port_faults.py::test_the_control_property_probe_is_not_vacuous"
+    why_out_of_scope: >-
+      The sealed rerun catalogues are sealed evidence and PA-01 does not edit
+      them. What PA-01 could do inside its slice it did: the property is
+      declared, the probe is shipped, and PA-01's own positive control is
+      re-anchorable by that property rather than by its bytes.
+    suggested_fix: >-
+      PA-06's per-arm catalogues declare `[pa_control_properties]` for every
+      positive control and run `--controls --tree-root` per arm BEFORE citing
+      any kill number from that arm. Where an arm's control does not HOLD,
+      report it RED and say so; do not weaken what the control asserts to make
+      the cell green.
+    blast_radius: >-
+      Any round that reports a kill table with a control it never checked. The
+      concrete cost already paid is one sealed number known-wrong -- EVAL-RERUN's
+      "controls green on both arms" -- and a full epic in which arm B's control
+      was decorative.
+    disposition: carried
+    disposition_ticket: "PA-06"

@@ -569,16 +569,42 @@ def test_an_expressible_reserve_case_still_runs(oracle_module):
     assert adapter.can_run(reserve_case({"r1": "none", "r2": "none"}, "r1")) is True
 
 
+#: The ten rows HP-01 sealed, in file order. Named individually rather than
+#: counted, because PA-01 was directed by the canonical plan to EXTEND this
+#: catalogue and a bare `len(...) == 10` cannot tell an extension from an
+#: amendment: it would have passed just as happily if a sealed row had been
+#: deleted and a different one added in its place.
+HP_SEALED_MUTANTS = (
+    "M01-guard-zero-amount",
+    "M02-guard-over-quota",
+    "M03-guard-close-with-outstanding",
+    "M04-durable-stale-total",
+    "M05-durable-close-line-zero-and-swallowed",
+    "M08-cross-aspect-commit-refunds-the-hold",
+    "M06-wrong-status-on-release",
+    "M10-apply-only-double-refund",
+    "M07-positive-control-wrong-hold",
+    "M09-negative-control-ledger-order",
+)
+
+
 def test_the_sealed_catalogue_is_still_the_sealed_catalogue(driver):
     """The control record ADDS; it does not amend. If this fails, something edited
     a sealed measurement instead of overlaying it."""
     mutants, record = driver.load_catalogue(
         [REPO_ROOT / "examples/validation/ab/seeded_faults.toml"]
     )
-    assert [row["id"] for row in mutants][:3] == [
-        "M01-guard-zero-amount", "M02-guard-over-quota", "M03-guard-close-with-outstanding",
-    ]
-    assert len(mutants) == 10
+    ids = [row["id"] for row in mutants]
+    assert ids[: len(HP_SEALED_MUTANTS)] == list(HP_SEALED_MUTANTS), (
+        "a sealed HP-01 row was renamed, reordered or removed"
+    )
+    # Anything past the seal is an extension and must say which ticket added it.
+    # PA-01 appended the adapter-internal class, anchored on a second reference
+    # tree, because the flat reference contains no adapter to seed inside.
+    for extra in ids[len(HP_SEALED_MUTANTS):]:
+        assert extra.startswith("PA-"), (
+            f"{extra!r} is neither a sealed HP-01 row nor a declared PA extension"
+        )
     # The sealed file carries no limitation and no retirement of its own.
     assert record["limitations"] == {}
     assert record["retired"] == {}
