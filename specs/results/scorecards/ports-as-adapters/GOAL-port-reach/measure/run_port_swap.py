@@ -52,6 +52,7 @@ SURVIVED = "SURVIVED"
 CONTROL_RED = "CONTROL_RED"
 
 RERUN = REPO_ROOT / "specs/results/scorecards/hexagonal-prompting-rerun"
+PA06 = REPO_ROOT / "specs/results/scorecards/ports-as-adapters"
 
 #: What can be measured, and with what. Every field is here rather than on the
 #: command line so that a run is reproducible from its own artifact.
@@ -99,6 +100,55 @@ SUBJECTS: dict[str, dict[str, Any]] = {
             "corpus-port-swap:fake": ("case_adapters.arm-b-port.toml", "fake"),
         },
         "suites": {},
+    },
+    # ADDED AT PA-06. THE ONLY CHANGES TO THIS FILE ARE TWO ROWS in this table
+    # -- this one and `reference_ports_prerepair` below -- rather than a line of
+    # logic: no function, no verdict rule and no accounting differs
+    # between PA-04's run and PA-06's. That matters, because PA-04-DF-02 and
+    # PA-04-DF-04 record that this project already has TWO verdict-table drivers
+    # and that "two drivers is how a number gets quoted against the wrong
+    # instrument". PA-06 therefore re-runs ALL FOUR subjects on this one driver
+    # at its own commit and diffs the three PA-04 subjects cell for cell against
+    # PA-04's sealed output, so "the addition moved nothing" is measured rather
+    # than assumed.
+    #
+    # `binding` lives in PA-06's own measure directory rather than beside the
+    # other two, so the CALLER puts that directory on PYTHONPATH. Nothing here
+    # reaches for it: an import path smuggled into a driver is how a run stops
+    # being reproducible from its own command line.
+    "arm_c": {
+        "source": PA06 / "arms/arm_c",
+        "subdir": ".",
+        "binding": "pa06_arm_c_binding",
+        "catalogues": [PA06 / "measure/catalogue_arm_c.toml", PA06 / "measure/controls_arm_c.toml"],
+        "corpus": {
+            "corpus-action-bound": ("case_adapters.arm-action.toml", "real"),
+            "corpus-port-swap:real": ("case_adapters.arm-c-port.toml", "real"),
+            "corpus-port-swap:fake": ("case_adapters.arm-c-port.toml", "fake"),
+        },
+        "suites": {},
+    },
+    # ADDED AT PA-06 to score ONE SEALED NEGATIVE PREDICTION, `N07`: "repairing
+    # the positive control will move ZERO cells in the kill table ... on every
+    # row including the control's own". Scoring it needs a BEFORE, and none
+    # exists: the pre-repair `PA-M14` was authored and replaced without any
+    # instrument executing it. UNMEASURED is not a pass, so it is measured.
+    #
+    # Identical to `reference_ports` in every field except the catalogue, which
+    # is the pre-repair row extracted verbatim from `46c29c9^`. The before and
+    # after therefore differ in exactly the thing the repair changed.
+    "reference_ports_prerepair": {
+        "source": AB / "reference_ports",
+        "subdir": "reference_ports",
+        "binding": "ports_binding",
+        "catalogues": [PA06 / "measure/pa_m14_prerepair.toml"],
+        "corpus": {
+            "corpus-port-swap:real": ("case_adapters.port-swap.toml", "real"),
+            "corpus-port-swap:fake": ("case_adapters.port-swap.toml", "fake"),
+            "corpus-action-bound:real": ("case_adapters.action-only.toml", "real"),
+            "corpus-action-bound:fake": ("case_adapters.action-only.toml", "fake"),
+        },
+        "suites": {"suite-real": "quota_ledger", "suite-fake": "quota_ledger_fake"},
     },
 }
 

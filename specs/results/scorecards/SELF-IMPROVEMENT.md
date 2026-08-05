@@ -741,3 +741,317 @@ Recorded here because it is easier to write down before the results than after:
 - **A withheld case passing that its siblings failed.** Whenever a fix is
   measured on the instrument that found the defect, it is fitting to the test set
   by construction — which is what the predecessor did on every repair ticket.
+
+---
+
+# PA-06 — ports-as-adapters, the evaluation (2026-08-05)
+
+Full record: `specs/results/scorecards/ports-as-adapters/RESULTS.md`, with
+`PREDICTIONS-SCORED.md`, `UNBLINDING.md`, `DETERMINISM.md` and six judged cards
+beside it. **Three arms this time**, and the third is the point.
+
+**READ THE ERA BOUNDARY BEFORE COMPARING ANY ROW BELOW WITH ANY ROW ABOVE.**
+Between EVAL-RERUN and this round the instrument changed twice —
+`PA-03-corpus-port` added an eighth column and `PA-04-port-swap-columns` added
+two more *and modified the adapter-execution path the original seven run
+through* — the rubric gained R-H1..R-H4 at PA-05, and the judging practice
+changed (see "the two dimensions that moved"). R-H1: name the change or do not
+compare. It is named.
+
+## The goals
+
+| goal | baseline | measured | target | verdict |
+|---|---|---|---|---|
+| `GOAL-port-reach` **clause 1** | a fault in the treatment arm's in-memory adapter SURVIVED EVERY INSTRUMENT (`BA-B14`; the plan cites `HP-06-DF-10`, which is a different finding — `PA-01-DF-01`) | `PA-M12`, seeded inside a **fake** adapter, is **KILLED on `corpus-port-swap:fake`** and SURVIVED on the other three corpus columns and `suite-real`. Reproduced at this tip, 0 cells moved from PA-04's sealed run | the same adapter-internal fault dies on at least one generated instrument | **`met`** |
+| `GOAL-port-reach` **clause 2** | one positive control already red at dispatch | **`M07` is RED on three columns of ALL THREE ARMS and `PA-M14` on four columns of the ported reference**, each with `witness_ran_accepting: 294`. `N01` is green everywhere | *"and no positive control is red"* | **`missed`** |
+| `GOAL-cases-drive-ports` | per-mutant verdicts identical on **56 of 56** strictly comparable cells (`b3a0199`); **64 of 64** after PA-03 added a column | **64 of 64 identical on every pairing** — A vs B, A vs C, B vs C. **88 of 88** over ALL rows for A vs C. One cell diverges in the port-binding columns and it is a fault the hexagonal arm LOST | the arms DIVERGE on ≥ 1 cell, attributable to a port rather than to prompt length | **`missed`** on the metric the goal names; the attribution half is **met** and arm C is what earns it |
+| `GOAL-complexity-measurable` | **no such instrument exists**; D2 = 2 from all four judges last round for that reason | the instrument runs over produced Python, exits 0 on every input, and separates all three arms on 11 figures | figures differ between arms; **no target on the number** | **`met`** |
+
+**No target was edited. No number was re-run until it passed.** The verdicts
+above are the run that happened.
+
+**THREE THINGS BOUND THE TWO `met` VERDICTS AND MUST NEVER BE SEPARATED FROM
+THEM.**
+
+1. **Clause 1 is met on a FIXTURE, not on an arm.** Every `adapter_internal`
+   mutant in this project lives on `reference_ports/`, which the sealed
+   predictions declare "is not an arm" and whose mutants and code share an
+   author. **No arm carries an adapter-internal fault at all.** `PA-06-DF-04`.
+2. **The port machinery added no kill anything else did not already have.** No
+   instrument in any 8-instrument arm table has a unique kill; `corpus-action-bound`
+   — the declared pre-PA-04 world — kills exactly what `corpus-port-swap` kills on
+   every arm; and **`suite-fake` strictly dominates `corpus-port-swap:fake`**,
+   killing everything it kills plus `PA-M13`. The measured result is carried by a
+   four-line composition point and the pre-existing hand-written suite.
+   `PA-06-DF-09`.
+3. **`GOAL-complexity-measurable` being met is not a claim that anything got
+   simpler.** See the mechanical block.
+
+## The scorecard
+
+| artifact | arm | D1 | D2 | D3 | D4 | D5 | total |
+|---|---|---|---|---|---|---|---|
+| `T` | **B** hexagonal | 4 / 3 | 2 / 2 | **4 / 4** | 4 / 4 | 4 / 4 | 18 / 17 |
+| `U` | **A** ordinary | 4 / 3 | 2 / 2 | 2 / 2 | 4 / 4 | 4 / 4 | 16 / 15 |
+| `W` | **C** length-matched control | 3 / 3 | 2 / 2 | **1 / 1** | 3 / 3 | 4 / 4 | 13 / 13 |
+
+Maximum spread over thirty independent scores: **1**. Zero contested dimensions,
+third round running.
+
+**`D1 = 4` and `D4 = 4` are the first 4s on those dimensions in this project's
+history, and the ledger's own self-improvement list names D1 crossing 3 as the
+thing that "has never happened".** Do not read them as a mechanism gain. Both
+judges say in their own cards what earned them, and it is not an artifact: each
+seeded its own faults and ran them against each author's own suite instead of
+scoring the packet. See below.
+
+## ARM C SETTLES THE PREDECESSOR'S CONFOUND, AND IT SETTLES IT FOR THE PROMPT
+
+The predecessor's headline was D3 = 1 → 4 on the hexagonal arm, and its own
+report said the win could not be attributed to "hexagonal" rather than to a
+**6.6× longer prompt**. Arm C is a prompt matched to arm B in unique content —
+**124 lines against 105 as actually dispatched — +18.1%, with 4 of 124
+architectural terms against arm B's 44 of 105, and two of those four are paths
+PA-06 itself introduced.** (The sealed `--arms` measure reports +3.8% and 0 of
+109; it measures the file on disk, and PA-06 dispatched it with four additions
+and did not preserve what it sent. `PA-06-DF-10`. The tolerance claim is
+retracted; the conclusion is strengthened, because arm C was even longer.)
+
+**Arm C is longer than arm B and scored D3 = 1 from both judges — below arm A,
+whose prompt is a sixth of the length.** Length does not produce structure here.
+
+And the strongest evidence is not a number. Asked what it REJECTED, arm C's
+author named the seam arm B built and declined it on merit
+(`ports-as-adapters/arms/arm_c/REJECTED.md:77-88`): *"introducing a second class
+to wrap one method would be a layer with no second implementation behind it and
+no test that needs to swap one in."* **The agent considered the port and said
+no.** The variable is what the prompt says.
+
+**What it does not settle**, per the sealed confound honoured rather than argued
+away: arm C controls for LENGTH, not for SUBJECT. And because arm C came out
+*longer* — by 18%, not 3.8% — the residual makes the case against length weaker
+still, which is the reading the sealed file fixed in advance, before anyone could
+pick it. **PA-06 also leaked the epic's name into arm C's dispatch**, in the
+working directory and the forbidden list. That points against the conclusion too:
+an author told the round is about ports and adapters is *more* likely to build
+one, and arm C built none and wrote down why.
+
+## THE STRUCTURE ARRIVED, AGAIN, AND CAUGHT NOTHING — AND NOW IT LOSES ONE
+
+Third round with the same result, on a wider apparatus and a third arm.
+
+**64 of 64 strictly comparable cells identical on every pairing.** Eight
+instruments. The two arms that differ most in D3 (4 versus 1) produced
+**identical verdicts on all 88 cells**, and their evidence packets are literally
+byte-identical apart from one column header in the mechanical block — verified by
+`diff`. Both judges found that independently and both named it as the round's
+central problem: *"an apparatus that separates three materially different
+artifacts by three cells out of ninety-nine is either measuring something the
+artifacts do not vary in, or it is not measuring."*
+
+**The one cell that diverges is a LOSS.** Arm B's `M09` — an ordering fault
+inside its real driven adapter — is `KILLED` under `corpus-action-bound` and
+`corpus-port-swap:real` and **`SURVIVED` under `corpus-port-swap:fake`**, because
+swapping in arm B's own fake takes the mutated file off the executed path
+entirely. Arms A and C, which have no fake, kill it on all three columns.
+
+**AND THE NULL WAS ENTAILED, WHICH IS THE ROUND'S MOST IMPORTANT
+METHODOLOGICAL RESULT.** The adversarial channel built an exhaustive
+observational fingerprint — 28,561 command sequences, full projection after every
+step, per arm per mutant — and measured the three arms' MUTATED trees to be
+identical on **10 of 11 rows**. Two trees with the same fingerprint cannot be
+told apart by any black-box instrument, so **the identity of the verdict tables
+is a consequence of the re-anchoring succeeding, and this experiment can only
+produce a divergence where the re-anchoring FAILS.** The rival explanation — that
+the trees are too similar — is measured false. **The catalogue rule that produces
+this is the RIGHT rule**, adopted at EVAL-RERUN so that "a per-arm score compares
+two implementations rather than two catalogues"; it is correct for comparing
+DETECTION and makes comparing VALIDATION-SHAPE impossible in the same table.
+`PA-06-DF-08` is the first thing the next round has to solve.
+
+**Arm C is what makes the one divergence attributable.** PA-04 recorded, against its own
+interest, that a skeptic could call the divergence an artifact of `M09` being
+re-anchored into a different file on arm B, and said a reader who rejects its
+argument should score the divergence unattributed. **This reader has a third
+re-anchoring PA-04 did not have** — arm C's `M09`, a genuinely different
+`find`/`replace` in a third tree — and it lands on arm A's verdict. A third
+independent anchoring had an even chance of producing a third answer and did not.
+The variable that tracks the verdict is whether the arm has a second
+implementation.
+
+So `PA-M12` and `M09` are one finding seen from both ends: the pair **reaches** a
+region a single wiring never did, and a single wiring **loses** a fault the other
+holds. A table reporting only the first over-reads.
+
+## THE CONTROLS ARE STILL THE PART THAT IS LYING, AND NOW IT IS MEASURED ON EVERY ARM
+
+`M07` SURVIVES `corpus-port` on all three arms, and `corpus-action-bound`,
+`corpus-port-swap:real` and `corpus-port-swap:fake` on all three arms — twelve
+red control/instrument pairs, each having executed **294 accepting `Reserve`
+cases**, so this is demonstrated insensitivity and not an execution gap.
+`PA-M14` is red on all four corpus columns of the ported reference.
+
+**Every port-scoped kill number in this epic is a FLOOR.** `PA-M12`'s kill is a
+demonstrated kill and stands on its own; the `SURVIVED` cells beside it cannot be
+told apart from a broken instrument.
+
+**`PA-03-DF-03` / `PA-04-DF-01` — seed an in-region positive control — was
+DECLINED, for the third time and by the ticket they were assigned to.** The
+reason is the same one PA-04 gave and it applies to PA-06 more strongly: PA-01
+`schedule_revision 2` permits repairing an instrument *before* a measurement and
+forbids it *after* an unflattering signal, and PA-06 **is** the measurement.
+There is no ordering in which the deciding ticket seeds the control before seeing
+the result. It stays red, and the work is carried forward with its protocol
+spelled out.
+
+**The repair PA-01 did make works, and moved nothing.** `PA-M14`'s accept-path
+property was re-anchored onto all three arms by the property rather than by the
+bytes, and **HOLDS on all three** — including arm C, whose cell was `UNMEASURED`
+when the prediction was sealed, and arm B, where `M07`'s own semantic is BROKEN.
+Measured before/after on the control's own row: **zero of six cells moved**, and
+the other ten rows' find/replace are byte-identical across the repair so no cell
+of theirs could have. **`verdicts_moved = 0` is an answer that had to be measured
+and was.** This is R-H3's converse for the third time: a repair can move no
+number and still change what the numbers mean.
+
+## THE MECHANICAL BLOCK DISAGREES WITH D2, AND THE DISAGREEMENT IS THE FINDING
+
+`role=code`, implementation modules only:
+
+```
+                                     arm A   arm B   arm C
+  modules                                1       4       1
+  code_lines                           151     202      78
+  public_surface                        20      25      11
+  classes                                4       6       2
+  branch_points                         10      11      10
+  max_depth                              1       1       1
+  declared_interfaces                    0       1       0
+  internal_import_edges                  0       3       0
+  branch_points_in_effectful_modules    10       1      10
+```
+
+**The produced-code figures support NO simplification claim for any arm**
+(`PA-02-DF-01`, filed before this round ran and confirmed on a third arm). The
+ported arm is LARGER on every size figure and FLAT on branching, worst callable
+and depth. **The smallest artifact on every size figure is arm C — the control
+that got no architectural guidance at all.** The one figure that separates the
+designs rather than their size is where the effects sit: 1 against 10 and 10.
+
+D2's anchors 3 and 4 both require *"a simplification was made and its effect
+measured"*. **All six cards scored D2 = 2** and both judges gave the same reason:
+a from-scratch implementation of one spec has no *before*, so anchor 3 is
+unreachable by construction. One judge stated it as a finding about the card:
+**"D2 contributed nothing to this comparison and will contribute nothing to the
+next one under the same task design."**
+
+Both judges also recorded, unprompted, that they refused to convert the
+mechanical block into a D2 score, and one noted that the figure a naive reading
+would reward arm C for *"is bought by folding the I/O into the domain, which is
+precisely what costs it D3."*
+
+## FINDINGS BY CHANNEL — 1 : 12 : 4 : 2, and the ratio IS the result
+
+| channel | findings | what it cost |
+|---|---|---|
+| **suite re-run** | **1** | one command, already in the acceptance list |
+| **fresh adversarial attack** | **12** | one agent, 94 tool calls, ~25 minutes |
+| **blind judges, asked what they REJECTED** | **4** | free -- it is a section of the card |
+| **blind author, asked what it REJECTED** | **2** | free -- one extra paragraph in the prompt |
+
+**The three channels that ask an agent what it REJECTED, or tell it to attack,
+produced 18 of this round's 19 findings. The suite produced 1 -- and that 1 is
+the first it has produced in four rounds.**
+
+**The alarm the ledger set fired in the good direction.** "A suite-only round
+means the suite has stopped being informative" was the alarm; what happened is
+the opposite. `tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument`
+went red against PA-06's own evidence-packet builder. **`N06` predicted zero from
+the suite and FAILS.** It is filed and not fixed: repairing a check during the
+measurement it watches is the forbidden act, and evading it by renaming a string
+would be the six-lines-of-YAML defeat this epic exists to prevent, performed by
+the ticket that exists to catch it.
+
+**AND THE ADVERSARIAL CHANNEL IS THE REASON THIS ROUND'S HEADLINES ARE READABLE
+AT ALL.** Four of its twelve findings changed the result document, and two of
+them corrected numbers this ticket had already written down:
+
+1. **The null was ENTAILED.** An exhaustive observational fingerprint -- 28,561
+   command sequences, full projection after every step, per arm per mutant --
+   measures the three arms' MUTATED trees to be identical on 10 of 11 rows. Two
+   trees with the same fingerprint cannot be told apart by any black-box
+   instrument, so **"the arms do not diverge" is a consequence of the
+   re-anchoring succeeding, and the experiment can only diverge where it fails.**
+   The rival explanation -- that the trees are too similar -- is measured false
+   (78 vs 151 vs 202 code lines, three different representations of a held
+   reservation). `PA-06-DF-08`.
+2. **The repaired positive control is unobservable in one step on three of the
+   four trees**, and the probe that certifies it **cannot fail** -- a no-op
+   mutant reports HOLDS. `PA-01-DF-05`'s subject is that nothing ever checked a
+   control against the property that makes it one; PA-01 built the check and the
+   check is one-sided. `P07`'s row named this in advance as "this epic's worst
+   possible own goal". `PA-06-DF-07`, severity blocking.
+3. **The port machinery added no unique kill anywhere in the round**, and
+   `suite-fake` strictly dominates `corpus-port-swap:fake` -- it kills everything
+   that column kills plus `PA-M13`. The measured "port reach" is produced by a
+   four-line composition point plus the pre-existing hand-written suite.
+   `PA-06-DF-09`.
+4. **The length-match headline was measured on the wrong file.** PA-06 dispatched
+   arm C's prompt with four additions and did not preserve what it sent. Real
+   figures: **+18.1%, outside the declared tolerance, 4 of 124 architectural hits
+   rather than 0 of 109** -- two of them paths PA-06 introduced, which told the
+   arm what the epic is called. `PA-06-DF-10`.
+
+**What the channel could NOT break** is recorded too, because that is the other
+half of its value: zero equivalent mutants in the arm-C catalogue (every row
+observable on every arm, verified by running); `PA-M12` dies for the reason
+claimed, separated from every alternative by a mirror experiment; determinism
+byte-identical over three runs; and an injected harness fault is LOUD -- it turns
+the whole column `CONTROL_RED` rather than reporting kills.
+
+## AGAINST THE "EVIDENCE WE ARE FOOLING OURSELVES" LIST, ITEM BY ITEM
+
+**"Every prediction passing."** — Did not happen. **Five of fifteen FAILED**
+(`P02`, `P04`, `N03`, `N05`, `N06`), one is `SUPERSEDED` (`N08`), and three of the
+five failures are NEGATIVE predictions, which is where the information is. `N03`
+failed and *named the cell it asked to be named*. `N05` failed against data that
+already falsified it when it was sealed.
+
+**"Findings arriving only from the suite."** — Not this round, and for the first
+time the inverse question is live: the suite produced its first finding in four
+rounds. The ratio is **1 : 12 : 4 : 2** — one from the suite against eighteen
+from the three channels that ask an agent what it REJECTED or tell it to attack.
+It has moved off zero without inverting.
+
+**"A score moving without an artifact moving."** — **THIS HAPPENED AND IT IS THE
+ROUND'S WORST RESULT ABOUT ITSELF.** Arms A and B are byte-identical to the trees
+EVAL-RERUN judged. Arm A's D4 went **2/2 → 4/4** and its D5 **3/2 → 4/4**; arm B's
+D4 went **3/2 → 4/4**. Four dimension-points on arm A alone, on a tree nobody
+touched. R-H1 forbids reading it as improvement and this ledger does not: the era
+boundary is named above, and the mechanism is named in the judges' own cards —
+**they executed mutations instead of reading the packet.** D2 and D3, the two
+dimensions about the artifact's shape, did not move by a single point on either
+arm. Filed as `PA-06-DF-06`.
+
+**"A withheld case passing that its siblings failed."** — Did not arise; nothing
+was repaired this round, so nothing was measured on the instrument that found it.
+
+## WHAT WOULD COUNT AS SELF-IMPROVEMENT — SCORED AGAINST ITS OWN LIST
+
+- **"D1 crossing 3 on any example — this has never happened."** It happened:
+  D1 = 4 from one judge on arms A and B. **It is not a mechanism gain.** The
+  other judge held both at 3 and gave the reason: the positive control is
+  `green: false` with `deciding: []`, so the top of the scale is not reachable
+  while the column's zeros are floors. Read the 4 as one judge's crediting rule
+  about an artifact's own hand-written cases, not as generated cases catching
+  more.
+- **"D2 reaching 4."** No. All six cards are 2, and anchor 3 is now known to be
+  unreachable by construction under this task design.
+- **"D3 reaching 4 — never reached."** Reached again, arm B, both judges, both
+  earned by *executing* a swap rather than reading one. **And arm C now says it
+  is the prompt's content that produced it.**
+- **"D5 holding. A rise in D1 bought by a fall in D5 is the toolchain learning to
+  overclaim."** D5 = **4 from both judges on all three arms** — the flattest and
+  highest honesty column this project has recorded. `N04` predicted no separation
+  and PASSES. Nothing was bought at D5's expense. The uncomfortable half is that
+  D5 no longer separates anything at all.

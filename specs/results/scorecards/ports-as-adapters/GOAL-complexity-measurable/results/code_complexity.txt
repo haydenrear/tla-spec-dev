@@ -1,0 +1,200 @@
+code complexity report v1
+target: specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                  role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+------------------------------------------------------------------------------------------------------------
+quota_ledger.py         code     151      17      20       8       0      10       4       1       0       5
+test_quota_ledger.py    test     271      33      32       0       0      27      10       5       0      15
+
+TOTAL (all modules): modules=2
+  code_lines=422  callables=50  classes=4  public_surface=52
+  instance_state=8  module_state=0  branch_points=37
+  max_branch_points_in_callable=10  max_depth=5
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=1  effectful_calls=20  modules_with_effectful_calls=2
+  branch_points_in_effectful_modules=37  instance_state_in_effectful_modules=8
+  effect_sinks: choice, exists, flush, mkdir, open, randint, random, read_text, write_text  (groups: filesystem, randomness)
+
+TOTAL (role=code): modules=1
+  code_lines=151  callables=17  classes=4  public_surface=20
+  instance_state=8  module_state=0  branch_points=10
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=5  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=10  instance_state_in_effectful_modules=8
+  effect_sinks: flush, mkdir, open, read_text, write_text  (groups: filesystem)
+
+internal import edges (1):
+  test_quota_ledger.py -> quota_ledger.py
+
+completeness: 2/2 files parsed (fraction 1.000)
+  nothing was left unmeasured by this instrument's own limits
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                            role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+----------------------------------------------------------------------------------------------------------------------
+quota_ledger/__init__.py          code      30       1       1       0       0       0       0       0       0       0
+quota_ledger/domain.py            code     131      16      18       6       0      10       4       1       1       0
+quota_ledger/file_journal.py      code      25       3       3       1       0       1       1       1       0       3
+quota_ledger/memory_journal.py    code      16       3       3       1       0       0       0       0       0       0
+tests/test_ledger.py              test     205      22      23       0       0       8       4       3       0       3
+
+TOTAL (all modules): modules=5
+  code_lines=407  callables=45  classes=6  public_surface=48
+  instance_state=8  module_state=0  branch_points=19
+  max_branch_points_in_callable=4  max_depth=3
+  declared_interfaces=1  declared_interface_methods=2
+  internal_import_edges=4  effectful_calls=6  modules_with_effectful_calls=2
+  branch_points_in_effectful_modules=9  instance_state_in_effectful_modules=1
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+TOTAL (role=code): modules=4
+  code_lines=202  callables=23  classes=6  public_surface=25
+  instance_state=8  module_state=0  branch_points=11
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=1  declared_interface_methods=2
+  internal_import_edges=3  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=1  instance_state_in_effectful_modules=1
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+internal import edges (4):
+  quota_ledger/__init__.py -> quota_ledger/domain.py
+  quota_ledger/__init__.py -> quota_ledger/file_journal.py
+  quota_ledger/__init__.py -> quota_ledger/memory_journal.py
+  tests/test_ledger.py -> quota_ledger/__init__.py
+
+completeness: 5/5 files parsed (fraction 1.000)
+  nothing was left unmeasured by this instrument's own limits
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: specs/results/scorecards/ports-as-adapters/arms/arm_c
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module             role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+-------------------------------------------------------------------------------------------------------
+quota_ledger.py    code      78      11      11       7       0      10       4       1       0       3
+test_extra.py      test      96      12      12       0       0       3       1       1       0       3
+
+TOTAL (all modules): modules=2
+  code_lines=174  callables=23  classes=2  public_surface=23
+  instance_state=7  module_state=0  branch_points=13
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=1  effectful_calls=6  modules_with_effectful_calls=2
+  branch_points_in_effectful_modules=13  instance_state_in_effectful_modules=7
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+TOTAL (role=code): modules=1
+  code_lines=78  callables=11  classes=2  public_surface=11
+  instance_state=7  module_state=0  branch_points=10
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=10  instance_state_in_effectful_modules=7
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+internal import edges (1):
+  test_extra.py -> quota_ledger.py
+
+completeness: 2/2 files parsed (fraction 1.000)
+  nothing was left unmeasured by this instrument's own limits
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: examples/validation/ab/reference
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module             role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+-------------------------------------------------------------------------------------------------------
+quota_ledger.py    code     122      13      15       7       0      10       4       1       0       3
+
+TOTAL (all modules): modules=1
+  code_lines=122  callables=13  classes=3  public_surface=15
+  instance_state=7  module_state=0  branch_points=10
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=10  instance_state_in_effectful_modules=7
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+TOTAL (role=code): modules=1
+  code_lines=122  callables=13  classes=3  public_surface=15
+  instance_state=7  module_state=0  branch_points=10
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=0  declared_interface_methods=0
+  internal_import_edges=0  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=10  instance_state_in_effectful_modules=7
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+internal import edges (0):
+  (none: no module in this tree imports another)
+
+completeness: 1/1 files parsed (fraction 1.000)
+  nothing was left unmeasured by this instrument's own limits
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.
+
+code complexity report v1
+target: examples/validation/ab/reference_ports
+
+Figures only. Nothing here is a judgement of them and nothing is prescribed. A figure moving in either direction is not, by itself, evidence about the design (MF-020): a count can fall because behaviour was deleted.
+
+module                  role    code    defs  public    inst     mod  branch   worst   depth   iface  effect
+------------------------------------------------------------------------------------------------------------
+domain.py               code     131      14      18       7       0       9       4       1       1       0
+journal_file.py         code      28       3       3       1       0       1       1       1       0       3
+journal_memory.py       code      33       3       3       1       0       1       1       0       0       0
+quota_ledger.py         code      26       1       1       0       0       0       0       0       0       0
+quota_ledger_fake.py    code      37       1       1       0       0       0       0       0       0       0
+
+TOTAL (all modules): modules=5
+  code_lines=255  callables=22  classes=8  public_surface=26
+  instance_state=9  module_state=0  branch_points=11
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=1  declared_interface_methods=2
+  internal_import_edges=4  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=1  instance_state_in_effectful_modules=1
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+TOTAL (role=code): modules=5
+  code_lines=255  callables=22  classes=8  public_surface=26
+  instance_state=9  module_state=0  branch_points=11
+  max_branch_points_in_callable=4  max_depth=1
+  declared_interfaces=1  declared_interface_methods=2
+  internal_import_edges=4  effectful_calls=3  modules_with_effectful_calls=1
+  branch_points_in_effectful_modules=1  instance_state_in_effectful_modules=1
+  effect_sinks: open, read_text, write_text  (groups: filesystem)
+
+internal import edges (4):
+  quota_ledger.py -> domain.py
+  quota_ledger.py -> journal_file.py
+  quota_ledger_fake.py -> domain.py
+  quota_ledger_fake.py -> journal_memory.py
+
+completeness: 5/5 files parsed (fraction 1.000)
+  nothing was left unmeasured by this instrument's own limits
+  effectful_calls undercounts by construction: 18 sink names are left out of the vocabulary for colliding with in-memory operations (call ~ any callable-invoking method, copy ~ dict.copy / list.copy, delete ~ too generic to attribute, exit ~ any exit method, get ~ dict.get, head ~ too generic to attribute, move ~ too generic to attribute, post ~ too generic to attribute, put ~ queue.put, remove ~ list.remove / set.remove, replace ~ str.replace / dataclasses.replace, request ~ too generic to attribute, run ~ any runner method, sample ~ random.sample / statistical sampling, send ~ generator.send, spawn ~ too generic to attribute, time ~ any attribute named time, walk ~ ast.walk)
+
+column key: role=role; code=code_lines; defs=callables; public=public_surface; inst=instance_state; mod=module_state; branch=branch_points; worst=max_branch_points_in_callable; depth=max_depth; iface=declared_interfaces; effect=effectful_calls
+role rule: role is assigned by NAME alone: a path component in ['test', 'testing', 'tests'], or a filename matching test_*.py, *_test.py or conftest.py, is role=test. Contents are never read.

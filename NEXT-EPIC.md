@@ -1,5 +1,143 @@
 # next epic — starter for the next epic owner
 
+> **AMENDED AGAIN AFTER `PA-06`, the `ports-as-adapters` evaluation (2026-08-05).**
+> Everything below still describes how each earlier result was measured and none
+> of it is edited. What PA-06 adds is at the top, in section 0-AAA, because two
+> of its findings change what the NEXT epic can even attempt. Full record:
+> `specs/results/scorecards/ports-as-adapters/RESULTS.md`.
+
+---
+
+## 0-AAA. READ FIRST — what PA-06 measured, and the two things it makes impossible
+
+### The one clean win: the predecessor's confound is settled, FOR THE PROMPT
+
+`hexagonal-prompting` ended saying its D3 = 1 → 4 headline "cannot be attributed
+to *hexagonal* rather than to a 6.6× longer prompt". **It can now.** A third arm
+— a control prompt longer than the hexagonal one and asking for nothing
+architectural — scored **D3 = 1 from both blind judges** against the hexagonal
+arm's 4 and the ordinary arm's 2. And its author, asked what it REJECTED, named
+the exact seam the hexagonal arm built and declined it on merit:
+
+> *"introducing a second class to wrap one method would be a layer with no second
+> implementation behind it and no test that needs to swap one in."*
+
+**Prompt length does not produce structure. The architectural content is not
+decoration.** That is the one thing this epic established that nobody has to
+qualify — beyond the standing `n = 1` caveat and the fact that arm C controls for
+length, not for subject.
+
+### THING ONE THAT IS NOW IMPOSSIBLE: this A/B cannot measure "validated differently"
+
+`GOAL-cases-drive-ports` asks whether a codebase with real ports is *validated
+differently* from one without. **It cannot be answered by this experiment, and
+the reason is a proof rather than a result.**
+
+PA-06's adversarial channel built an exhaustive observational fingerprint —
+every command sequence of length 4 over a 13-action alphabet, 28,561 sequences,
+full projection after every step, per arm per mutant — and measured the three
+arms' **mutated** trees to be **identical on 10 of 11 rows**. Two trees with the
+same observational fingerprint cannot be told apart by any black-box instrument.
+So "the arms' verdicts are identical" is a **consequence of the re-anchoring
+succeeding**, and this experiment can only produce a divergence where the
+re-anchoring **fails**.
+
+The rival explanation is measured false: the trees are 78, 151 and 202 code lines
+with three different representations of a held reservation.
+
+**And the rule that causes it is the RIGHT rule.** `EVAL-RERUN` adopted "hold the
+`semantic` equal across arms so a per-arm score compares two implementations
+rather than two catalogues", and that is correct for comparing **detection**. It
+makes comparing **validation shape** impossible in the same table. Three epics'
+worth of "the structure arrived and caught nothing" is, in part, this.
+
+**What the next epic must do instead:** stop asking one catalogue to do both
+jobs. Keep the same-semantic catalogue for detection. For validation shape,
+define the mutant by **where it sits** — one fault per declared region on each
+arm, accepting that the two arms' faults are different faults, and reporting the
+pair as a *difference* the way `PA-M11`/`PA-M12` are. The goal's own metric ("the
+count of comparable cells where the arms AGREE") is what encodes the
+impossibility, so the metric moves with the catalogue. `PA-06-DF-08`.
+
+### THING TWO THAT IS NOW IMPOSSIBLE: this card's D2 cannot exceed 2
+
+All six PA-06 cards scored D2 = 2 and both judges gave the same reason
+independently: anchor 3 requires *"a simplification was made and its effect
+measured — the before and after figures are both recorded"*, and **a from-scratch
+implementation of one spec has no before.** One judge stated it as a finding:
+*"D2 contributed nothing to this comparison and will contribute nothing to the
+next one under the same task design."*
+
+`GOAL-simpler-same-behavior` missed for two epics and this is why. Either the
+task changes (give the arms something to simplify) or the anchor does (bump
+`scorecard_version`, keep the old anchors, re-score one prior example under both
+— the procedure the card already prescribes).
+
+### The instrument's controls are still the part that is lying, and it is worse than red
+
+`M07` is red on twelve control/instrument pairs across three arms. The witness
+each one carries — `294 accepting Reserve executed` — **is true and is not the
+operative fact**: all 1,855 port-corpus cases compare an `after` of exactly
+`{closed, committed, ledger}`, and `M07`'s observable is `available`. The columns
+are blind by **projection**, not by reach.
+
+And the repaired control is worse than red. `PA-M14` is measurably **unobservable
+in one step** on three of the four trees it is declared on — only the arm that
+*derives* `available()` shows it — and every corpus case is single-action, so it
+**cannot be killed by any corpus** on the other three. **The probe that certifies
+its property cannot fail**: a mutant that replaces a line with itself plus a
+comment reports `HOLDS`.
+
+`PA-01-DF-05`'s subject is that nothing ever checked a positive control against
+the property that makes it one. PA-01 built the check. **The check is one-sided**,
+and the sealed prediction that watches it named this in advance as *"this epic's
+worst possible own goal"*. `PA-06-DF-07`, severity blocking. **Fix the probe
+before citing any control anywhere: invisible before an accepted reserve AND
+observable after one, on the tree under test, in the number of steps the
+instruments execute.**
+
+### The port machinery is dominated by four lines and a hand-written suite
+
+`PA-M12` — a fault inside a fake adapter — does die on a generated instrument,
+for the first time in this project. **And no instrument in any of the three
+8-instrument arm tables has a unique kill at all.** On every arm,
+`corpus-action-bound` (the declared pre-binding world) kills exactly what
+`corpus-port-swap` kills. And **`suite-fake` strictly dominates
+`corpus-port-swap:fake`** — it kills everything that column kills plus `PA-M13`.
+
+The measured "a fault behind a port stops hiding" is produced by the **four-line
+`quota_ledger_fake.py` composition point** plus the **pre-existing hand-written
+suite**. The `[ports.*]` binding machinery adds a strictly weaker instrument on
+this fixture. Before building further on it, find out whether it is weaker
+because of the projection (`PA-06-DF-09`) or weaker in principle.
+
+### Two things about the scorecard the next round must decide before it scores
+
+1. **Judging practice moves the top anchors, and nothing records it.** Four
+   dimension-points moved on artifacts that did not change by a byte, between
+   `EVAL-RERUN` and `PA-06`. The mechanism is in both judges' own words: they
+   **seeded their own faults and ran them** instead of scoring the packet, which
+   is what D1 anchor 4 and D4 anchor 4 actually require and which nothing
+   mandates. **Make it a requirement and put it on the card**, or every
+   cross-round delta is a delta in how hard the judge worked. `PA-06-DF-06`.
+2. **The blinding leaks through `NOTES.md` and no sanitiser can close it.** An
+   author asked to explain its design describes that design. Both PA-06 judges
+   found it, both named the tension — *"the instruction to read `NOTES.md` in
+   full is in tension with the instruction to be blind to arm"* — and both stated
+   what their scores rested on instead. Either judge without the notes, or stop
+   calling it blind on the dimensions the notes touch.
+
+### Keep the channel ratio. It is the whole method.
+
+**1 : 12 : 4 : 2.** One finding from re-running the suite, twelve from a fresh
+adversarial agent, four from asking the judges what they REJECTED, two from
+asking the blind author the same. **Eighteen of nineteen findings came from
+asking an agent what it rejected or telling it to attack.**
+
+The suite's one is worth noting because it is the first in four rounds — and it
+fired at the measuring ticket's own helper, which is the right direction.
+
+
 > **SUPERSEDED IN PART, 2026-08-04.** The static architecture scanners this
 > charter plans repairs for — `scripts/analyze_architecture.py` and
 > `scripts/architecture_reflexion.py`, `tla-spec-dev analyze architecture`, and

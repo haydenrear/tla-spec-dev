@@ -3,15 +3,584 @@
   "example": "ab_quota_ledger",
   "arm": "T",
   "run_id": "20260805-T-p1",
-  "commit": "",
+  "commit": "930fa57",
   "figures": {
-    "kills": {},
-    "complexity_of_produced_code": {},
-    "case_counts": {},
-    "determinism": {},
+    "kills": {
+      "per_class_per_instrument": {
+        "cross_aspect": {
+          "corpus-neg": "0 of 1",
+          "corpus-port": "0 of 1",
+          "corpus-slice-led": "0 of 1",
+          "corpus-slice-res": "0 of 1",
+          "corpus-whole": "1 of 1",
+          "map-checking": "1 of 1",
+          "map-silent": "1 of 1",
+          "suite": "1 of 1"
+        },
+        "durable_content": {
+          "corpus-neg": "0 of 2",
+          "corpus-port": "1 of 2",
+          "corpus-slice-led": "0 of 2",
+          "corpus-slice-res": "0 of 2",
+          "corpus-whole": "1 of 2",
+          "map-checking": "2 of 2",
+          "map-silent": "1 of 2",
+          "suite": "2 of 2"
+        },
+        "guard_relaxation": {
+          "corpus-neg": "3 of 3",
+          "corpus-port": "3 of 3",
+          "corpus-slice-led": "0 of 3",
+          "corpus-slice-res": "0 of 3",
+          "corpus-whole": "0 of 3",
+          "map-checking": "0 of 3",
+          "map-silent": "0 of 3",
+          "suite": "3 of 3"
+        },
+        "ordering": {
+          "corpus-neg": "0 of 2",
+          "corpus-port": "1 of 2",
+          "corpus-slice-led": "1 of 2",
+          "corpus-slice-res": "0 of 2",
+          "corpus-whole": "1 of 2",
+          "map-checking": "1 of 2",
+          "map-silent": "1 of 2",
+          "suite": "1 of 2"
+        },
+        "output_oracle": {
+          "corpus-neg": "0 of 1",
+          "corpus-port": "0 of 1",
+          "corpus-slice-led": "0 of 1",
+          "corpus-slice-res": "1 of 1",
+          "corpus-whole": "1 of 1",
+          "map-checking": "1 of 1",
+          "map-silent": "1 of 1",
+          "suite": "1 of 1"
+        },
+        "wrong_value": {
+          "corpus-neg": "1 of 2",
+          "corpus-port": "0 of 2",
+          "corpus-slice-led": "0 of 2",
+          "corpus-slice-res": "2 of 2",
+          "corpus-whole": "2 of 2",
+          "map-checking": "2 of 2",
+          "map-silent": "2 of 2",
+          "suite": "2 of 2"
+        }
+      },
+      "per_mutant_8_instruments": {
+        "M01-guard-zero-amount": {
+          "corpus-neg": "KILLED",
+          "corpus-port": "KILLED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "SURVIVED",
+          "map-checking": "SURVIVED",
+          "map-silent": "SURVIVED",
+          "suite": "KILLED"
+        },
+        "M02-guard-over-quota": {
+          "corpus-neg": "KILLED",
+          "corpus-port": "KILLED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "SURVIVED",
+          "map-checking": "SURVIVED",
+          "map-silent": "SURVIVED",
+          "suite": "KILLED"
+        },
+        "M03-guard-close-with-outstanding": {
+          "corpus-neg": "KILLED",
+          "corpus-port": "KILLED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "SURVIVED",
+          "map-checking": "SURVIVED",
+          "map-silent": "SURVIVED",
+          "suite": "KILLED"
+        },
+        "M04-durable-stale-total": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "SURVIVED",
+          "map-checking": "KILLED",
+          "map-silent": "SURVIVED",
+          "suite": "KILLED"
+        },
+        "M05-durable-close-line-zero-and-swallowed": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "KILLED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "M06-wrong-status-on-release": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "KILLED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "M07-positive-control-wrong-hold": {
+          "corpus-neg": "KILLED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "KILLED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "M08-cross-aspect-commit-refunds-the-hold": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "M09-negative-control-ledger-order": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "KILLED",
+          "corpus-slice-led": "KILLED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "M10-apply-only-double-refund": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "KILLED",
+          "corpus-whole": "KILLED",
+          "map-checking": "KILLED",
+          "map-silent": "KILLED",
+          "suite": "KILLED"
+        },
+        "N01-negative-control-outstanding-id-order": {
+          "corpus-neg": "SURVIVED",
+          "corpus-port": "SURVIVED",
+          "corpus-slice-led": "SURVIVED",
+          "corpus-slice-res": "SURVIVED",
+          "corpus-whole": "SURVIVED",
+          "map-checking": "SURVIVED",
+          "map-silent": "SURVIVED",
+          "suite": "SURVIVED"
+        }
+      },
+      "per_mutant_port_binding": {
+        "M01-guard-zero-amount": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "KILLED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "M02-guard-over-quota": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "KILLED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "M03-guard-close-with-outstanding": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "KILLED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "M04-durable-stale-total": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        },
+        "M05-durable-close-line-zero-and-swallowed": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "KILLED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "M06-wrong-status-on-release": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        },
+        "M07-positive-control-wrong-hold": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        },
+        "M08-cross-aspect-commit-refunds-the-hold": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        },
+        "M09-negative-control-ledger-order": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "M10-apply-only-double-refund": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        },
+        "N01-negative-control-outstanding-id-order": {
+          "corpus-action-bound": "SURVIVED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "SURVIVED"
+        }
+      },
+      "control_verdicts": {
+        "M07-positive-control-wrong-hold": {
+          "green": false,
+          "insensitivity": "these instruments KILLED this control while executing none of the cases its own declared limitation says it needs, so their kill is not evidence that they reach the fault",
+          "instruments_decided": [
+            "corpus-port",
+            "corpus-slice-led",
+            "corpus-slice-res",
+            "corpus-whole",
+            "map-checking",
+            "map-silent",
+            "suite"
+          ],
+          "instruments_insensitive": [
+            "corpus-neg"
+          ],
+          "instruments_not_decidable": [],
+          "instruments_wrong": [
+            "corpus-port",
+            "corpus-slice-led"
+          ],
+          "must_be": "KILLED",
+          "role": "positive"
+        },
+        "M09-negative-control-ledger-order": {
+          "decides_nothing": true,
+          "green": true,
+          "measured_cells": {
+            "corpus-neg": "SURVIVED",
+            "corpus-port": "KILLED",
+            "corpus-slice-led": "KILLED",
+            "corpus-slice-res": "SURVIVED",
+            "corpus-whole": "KILLED",
+            "map-checking": "KILLED",
+            "map-silent": "KILLED",
+            "suite": "KILLED"
+          },
+          "replaced_by": "N01-negative-control-outstanding-id-order",
+          "retirement_reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.",
+          "role": "negative (RETIRED)"
+        },
+        "N01-negative-control-outstanding-id-order": {
+          "green": true,
+          "instruments_decided": [
+            "corpus-neg",
+            "corpus-port",
+            "corpus-slice-led",
+            "corpus-slice-res",
+            "corpus-whole",
+            "map-checking",
+            "map-silent",
+            "suite"
+          ],
+          "instruments_not_decidable": [],
+          "instruments_wrong": [],
+          "must_be": "SURVIVED",
+          "reality_witness": {
+            "on_mutated_tree": true,
+            "on_pristine_tree": false,
+            "separates_the_trees": true,
+            "spec": "witnesses:outstanding_ids_not_ascending"
+          },
+          "role": "negative"
+        }
+      },
+      "control_coverage": {
+        "negative": {
+          "deciding": [
+            "N01-negative-control-outstanding-id-order"
+          ],
+          "declared": [
+            "M09-negative-control-ledger-order",
+            "N01-negative-control-outstanding-id-order"
+          ],
+          "green": true
+        },
+        "positive": {
+          "deciding": [],
+          "declared": [
+            "M07-positive-control-wrong-hold"
+          ],
+          "green": false
+        }
+      },
+      "control_red_port_binding": [
+        {
+          "instrument": "corpus-action-bound",
+          "must_be": "KILLED",
+          "mutant": "M07-positive-control-wrong-hold",
+          "observed_cell": "SURVIVED",
+          "role": "positive",
+          "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+          "witness_action": "Reserve",
+          "witness_basis": "measured",
+          "witness_ran_accepting": 294
+        },
+        {
+          "instrument": "corpus-port-swap:fake",
+          "must_be": "KILLED",
+          "mutant": "M07-positive-control-wrong-hold",
+          "observed_cell": "SURVIVED",
+          "role": "positive",
+          "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+          "witness_action": "Reserve",
+          "witness_basis": "measured",
+          "witness_ran_accepting": 294
+        },
+        {
+          "instrument": "corpus-port-swap:real",
+          "must_be": "KILLED",
+          "mutant": "M07-positive-control-wrong-hold",
+          "observed_cell": "SURVIVED",
+          "role": "positive",
+          "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+          "witness_action": "Reserve",
+          "witness_basis": "measured",
+          "witness_ran_accepting": 294
+        }
+      ],
+      "note": "NEVER SCORED. Every port-scoped column sits under a RED positive control (M07, 294 accepting Reserve executed), so its SURVIVED cells are a FLOOR."
+    },
+    "complexity_of_produced_code": {
+      "role_code_only": {
+        "branch_points": 11,
+        "branch_points_in_effectful_modules": 1,
+        "callables": 23,
+        "classes": 6,
+        "code_lines": 202,
+        "declared_interface_methods": 2,
+        "declared_interfaces": 1,
+        "effect_sink_groups": [
+          "filesystem"
+        ],
+        "effect_sinks": [
+          "open",
+          "read_text",
+          "write_text"
+        ],
+        "effectful_calls": 3,
+        "imports_external": 10,
+        "instance_state": 8,
+        "instance_state_in_effectful_modules": 1,
+        "internal_import_edges": 3,
+        "max_branch_points_in_callable": 4,
+        "max_depth": 1,
+        "module_state": 0,
+        "modules": 4,
+        "modules_with_effectful_calls": 1,
+        "public_methods": 17,
+        "public_surface": 25,
+        "public_top_level": 8,
+        "total_lines": 287
+      },
+      "all_three_arms_role_code": {
+        "T": {
+          "modules": 4,
+          "code_lines": 202,
+          "public_surface": 25,
+          "classes": 6,
+          "branch_points": 11,
+          "max_depth": 1,
+          "declared_interfaces": 1,
+          "internal_import_edges": 3,
+          "effectful_calls": 3,
+          "branch_points_in_effectful_modules": 1,
+          "instance_state_in_effectful_modules": 1
+        },
+        "U": {
+          "modules": 1,
+          "code_lines": 151,
+          "public_surface": 20,
+          "classes": 4,
+          "branch_points": 10,
+          "max_depth": 1,
+          "declared_interfaces": 0,
+          "internal_import_edges": 0,
+          "effectful_calls": 5,
+          "branch_points_in_effectful_modules": 10,
+          "instance_state_in_effectful_modules": 8
+        },
+        "W": {
+          "modules": 1,
+          "code_lines": 78,
+          "public_surface": 11,
+          "classes": 2,
+          "branch_points": 10,
+          "max_depth": 1,
+          "declared_interfaces": 0,
+          "internal_import_edges": 0,
+          "effectful_calls": 3,
+          "branch_points_in_effectful_modules": 10,
+          "instance_state_in_effectful_modules": 7
+        }
+      },
+      "instrument": "scripts/code_complexity.py (PA-02). A thermometer: reports, refuses nothing, gates nothing.",
+      "note": "PA-02-DF-01: these figures support NO simplification claim for any arm. The ported artifact is LARGER on code_lines, public_surface, modules and classes, and FLAT on branching and depth. MF-020: a number falling is not evidence the design improved."
+    },
+    "case_counts": {
+      "corpus-whole": 43128,
+      "corpus-neg": 118,
+      "corpus-slice-res": 2438,
+      "corpus-slice-led": 56,
+      "corpus-port": 1855,
+      "suite": 28,
+      "port_corpus_cases_py_sha1": "08265aff0d81f27f4dfc9694d2a69c3c5b6e695c"
+    },
+    "determinism": {
+      "eight_instrument_table": "arm C run twice end to end, byte-identical after normalisation; arms A and B reproduce PA-03's sealed tables cell for cell (0 of 88 moved each)",
+      "port_binding_table": "all PA-04 subjects reproduce PA-04's sealed output, 0 cells moved",
+      "corpus": "port corpus cases.py sha1 byte-identical to PA-03's and PA-04's sealed value"
+    },
     "runtime_seconds": null
   },
   "reach": {
-    "note": "Print reach beside every kill: executed of emitted, per instrument, per action, with the skip rule named."
+    "note": "Executed of emitted, per instrument, with the skip rule named. IDENTICAL ON ALL THREE ARMS: the corpus is a pure function of (model, manifest, flags) and all three share one model and one manifest.",
+    "per_instrument": {
+      "corpus-whole": {
+        "cases": 43128,
+        "ran": 3734,
+        "skipped": 39394,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 294,
+        "skipped_by_rule": {
+          "action has no binding in this API": 39100,
+          "model named a different free id; this API allocates the next one": 28,
+          "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+        }
+      },
+      "corpus-neg": {
+        "cases": 118,
+        "ran": 94,
+        "skipped": 24,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 0,
+        "skipped_by_rule": {
+          "refused only by a constraint on `r`, which this API allocates": 24
+        }
+      },
+      "corpus-slice-res": {
+        "cases": 2438,
+        "ran": 320,
+        "skipped": 2118,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 100,
+        "skipped_by_rule": {
+          "action has no binding in this API": 2018,
+          "model named a different free id; this API allocates the next one": 12,
+          "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 88
+        }
+      },
+      "corpus-slice-led": {
+        "cases": 56,
+        "ran": 10,
+        "skipped": 46,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": null,
+        "skipped_by_rule": {
+          "action has no binding in this API": 46
+        }
+      },
+      "corpus-port": {
+        "cases": 1855,
+        "ran": 1543,
+        "skipped": 312,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 294,
+        "skipped_by_rule": {
+          "model named a different free id; this API allocates the next one": 28,
+          "refused only by a constraint on `r`, which this API allocates": 18,
+          "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+        }
+      },
+      "map-silent": {
+        "cases": 43128,
+        "ran": 3734,
+        "skipped": 39394,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 294,
+        "skipped_by_rule": {
+          "action has no binding in this API": 39100,
+          "model named a different free id; this API allocates the next one": 28,
+          "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+        }
+      },
+      "map-checking": {
+        "cases": 43128,
+        "ran": 3734,
+        "skipped": 39394,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": 294,
+        "skipped_by_rule": {
+          "action has no binding in this API": 39100,
+          "model named a different free id; this API allocates the next one": 28,
+          "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+        }
+      },
+      "suite": {
+        "cases": null,
+        "ran": null,
+        "skipped": null,
+        "failed_on_unmutated_code": 0,
+        "reserve_ran_accepting": null,
+        "skipped_by_rule": null
+      }
+    },
+    "actions_with_zero_executed_cases": {
+      "corpus-neg": [],
+      "corpus-port": [],
+      "corpus-slice-led": [
+        "RefuseCloseAlreadyClosed",
+        "RefuseCommitUnknown"
+      ],
+      "corpus-slice-res": [
+        "RefuseReleaseUnknown",
+        "RefuseReserveNotPositive",
+        "RefuseReserveOverQuota"
+      ],
+      "corpus-whole": [
+        "RefuseCloseAlreadyClosed",
+        "RefuseCloseOutstanding",
+        "RefuseCommitUnknown",
+        "RefuseReleaseUnknown",
+        "RefuseReserveClosed",
+        "RefuseReserveNotPositive",
+        "RefuseReserveOverQuota"
+      ],
+      "map-checking": [
+        "RefuseCloseAlreadyClosed",
+        "RefuseCloseOutstanding",
+        "RefuseCommitUnknown",
+        "RefuseReleaseUnknown",
+        "RefuseReserveClosed",
+        "RefuseReserveNotPositive",
+        "RefuseReserveOverQuota"
+      ],
+      "map-silent": [
+        "RefuseCloseAlreadyClosed",
+        "RefuseCloseOutstanding",
+        "RefuseCommitUnknown",
+        "RefuseReleaseUnknown",
+        "RefuseReserveClosed",
+        "RefuseReserveNotPositive",
+        "RefuseReserveOverQuota"
+      ]
+    }
   }
 }

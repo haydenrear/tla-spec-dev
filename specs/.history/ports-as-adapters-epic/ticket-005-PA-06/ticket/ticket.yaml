@@ -1,0 +1,132 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket PA-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "All three arms scored by two judges blind to arm; every card passes the schema check; contested dimensions adjudicated on NEW evidence.",
+        "Arm C is reported against arm B explicitly, and the attribution question is answered either way.",
+        "Every prediction scored PASS / FAIL / SUPERSEDED. None amended.",
+        "Each goal reports baseline -> measured -> target with a verdict and a reason.",
+        "Findings reported BY CHANNEL with counts and the ratio stated as a result.",
+        "The complexity instrument's figures appear in the mechanical block, unscored, with agreement or disagreement against D2 stated.",
+        "Findings FILED and NONE fixed."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/ports-as-adapters",
+        "python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/ports-as-adapters"
+      ]
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/scorecards/ports-as-adapters/",
+        "NEXT-EPIC.md"
+      ]
+    },
+    "depends_on": [
+      "PA-01",
+      "PA-02",
+      "PA-03",
+      "PA-04",
+      "PA-05"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/135",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-port-reach",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-cases-drive-ports",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioural delta",
+        "goal": "GOAL-complexity-measurable",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "PA-06",
+    "implementation_scope": [
+      "specs/results/scorecards/",
+      "NEXT-EPIC.md"
+    ],
+    "model_delta_expectation": "none -- a measurement ticket carries no model delta",
+    "objective": "The epic's product, and the ticket every other ticket was written against. A MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome. Run the three arms on the integrated tip: A ordinary, B hexagonal, C length-matched control. Seed PA-01's catalogue, including its adapter-internal faults, in all three. Generate cases, run them through each arm's adapters and through the real/fake pair, and count what dies. ARM C IS THE POINT OF THIS ROUND'S DESIGN. The previous epic's headline was D3 = 1 to 4 on the hexagonal arm, and its own report said the win could not be attributed to \"hexagonal\" rather than to a 6.6x longer prompt. If arm C matches arm B, say so plainly: the finding becomes that longer prompts produce better structure, and the architectural content was decoration. Judge all three arms per references/eval_scorecard.md: TWO JUDGES, BLIND TO ARM AND TO EACH OTHER, artifacts not claims, file:line for every score >= 2, a named refusal for every 4, prose quality never an input. A spread > 1 is contested and needs a third pass citing NEW evidence. Validate every card with score_tools.py check. Score the sealed predictions PASS / FAIL / SUPERSEDED. Do not amend them. Decide each goal: baseline -> measured -> target, verdict met / missed / unmeasured with a reason. NEVER edit a target to match a result. NEVER re-run selectively until a number passes. Report the run that happened. Report FINDINGS BY CHANNEL -- suite re-run, fresh adversarial attack, blind author -- with counts and the ratio stated as a result. For three rounds running the best material came from asking an agent what it REJECTED, and the suite produced ZERO findings from 1,329 green assertions last round. A suite-only round means the suite has stopped being informative. Report the complexity instrument's figures in the MECHANICAL BLOCK, never scored, and say explicitly whether they agree or disagree with D2. A disagreement between measurement and judgement is a finding. Append rows and verdicts to specs/results/scorecards/SELF-IMPROVEMENT.md, and report against the \"evidence we are fooling ourselves\" list already written there. FILE FINDINGS, FIX NOTHING.",
+    "owns_goals": [
+      "GOAL-port-reach",
+      "GOAL-cases-drive-ports",
+      "GOAL-complexity-measurable"
+    ],
+    "promotion_order": 60,
+    "promotion_predecessor": "PA-05",
+    "role": "evaluation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "EVALUATION: three arms, judged blind, deciding the three goals",
+    "wave": 5
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/tickets/PA-06",
+  "ticket_id": "PA-06",
+  "ticket_index": 5,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-06/specs/tickets"
+}

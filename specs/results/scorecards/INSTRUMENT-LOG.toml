@@ -759,7 +759,8 @@ PA-05's own reading rules are executed by `audit` rather than merely written.
 [[claim]]
 id = "goal-port-reach-clause-1"
 example = "ab_quota_ledger"
-status = "current"
+status = "superseded"
+superseded_by = "goal-port-reach-clause-1-pa06"
 delta_basis = "across_time"
 measured_at = "cb90a0a"
 date = "2026-08-05"
@@ -775,7 +776,8 @@ demonstrated kill stands on its own and a red control cannot erase one
 [[claim]]
 id = "goal-port-reach-clause-2"
 example = "ab_quota_ledger"
-status = "current"
+status = "superseded"
+superseded_by = "goal-port-reach-clause-2-pa06"
 delta_basis = "across_time"
 measured_at = "cb90a0a"
 date = "2026-08-05"
@@ -794,7 +796,8 @@ control is green.
 [[claim]]
 id = "goal-cases-drive-ports-not-met-at-pa04"
 example = "ab_quota_ledger"
-status = "current"
+status = "superseded"
+superseded_by = "goal-cases-drive-ports-missed-at-pa06"
 delta_basis = "across_time"
 measured_at = "cb90a0a"
 date = "2026-08-05"
@@ -807,3 +810,412 @@ beside the baseline it is measured against -- and that baseline,
 `ab-cells-identical-56`, is itself under review (PA-05-DF-03) because nobody has
 re-derived it since PA-04 changed the adapter-execution path.
 """
+
+
+# ==========================================================================
+# PA-06 -- the evaluation. One instrument change (a row), and the claims the
+# round asserts. Read specs/results/scorecards/ports-as-adapters/RESULTS.md.
+# ==========================================================================
+
+[[change]]
+id = "PA-06-third-arm-subject"
+commit = "8878cd5"
+date = "2026-08-05"
+kind = "extension"
+affects = ["ab_quota_ledger"]
+paths = ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+verdicts_moved = 0
+verdicts_scope = "all cells of the three subjects PA-04 measured -- reference_ports 4x6, arm_a 11x3, arm_b 11x3 -- re-run on the changed driver at 8878cd5 and diffed against PA-04's sealed output"
+summary = """
+TWO ROWS ADDED TO ONE TABLE, no line of logic. `SUBJECTS` gains `arm_c` (the
+third arm, whose tree PA-06 built) and `reference_ports_prerepair` (the
+pre-repair positive control extracted verbatim from 46c29c9^, added solely to
+score the sealed negative prediction N07, which needed a BEFORE that had never
+been run).
+
+PA-04-DF-02 and PA-04-DF-04 record that this project has TWO verdict-table
+drivers and that "two drivers is how a number gets quoted against the wrong
+instrument". So the addition is not assumed harmless: all four subjects were
+re-run on the changed driver at this commit and diffed cell for cell against
+PA-04's sealed artifacts. ZERO CELLS MOVED on reference_ports, arm_a or arm_b.
+
+The two drivers are STILL NOT RECONCILED. Every port-scoped number PA-06 quotes
+names run_port_swap.py; every 8-instrument number names run_controls.py. That is
+the mitigation PA-04-DF-04 asks for, not the fix it asks for.
+"""
+
+[[claim]]
+id = "ab-cells-identical-64-pa06"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "PA-06: 64 of 64 strictly comparable per-mutant cells identical on EVERY pairing of the three arms -- A vs B, A vs C and B vs C -- and 88 of 88 over ALL rows for A vs C."
+why = """
+NEVER QUOTE THIS AGAINST 56 WITHOUT NAMING `PA-03-corpus-port`. The count grew
+from 56 to 64 because PA-03 added a COLUMN; no verdict moved. R-H1.
+
+PA-05-DF-03 IS SETTLED BY THIS ROW. It asked whether the 56-of-56 baseline still
+held after PA-04 modified `scripts/run_generated_case_adapters.py`, the
+adapter-execution path the generated columns run through, and recorded that
+nobody had looked. PA-06 looked: the eight-instrument table was re-derived at
+this tip and ZERO cells moved against PA-03's sealed tables on either arm, over
+all 88 cells each.
+
+AND THE NUMBER IS ENTAILED, WHICH MATTERS MORE THAN ITS VALUE. PA-06's
+adversarial channel measured the three arms' MUTATED trees observationally
+IDENTICAL on 10 of 11 rows, by exhaustive fingerprint over 28,561 command
+sequences. Two trees with the same observational fingerprint cannot be told
+apart by any black-box instrument, so this identity is a consequence of the
+re-anchoring succeeding rather than a measurement about detection, and the
+experiment can only diverge where the re-anchoring FAILS. Filed as PA-06-DF-08.
+Read the number as evidence that the catalogue holds the observable constant --
+which is exactly what it was built to do -- and NOT as evidence that generation
+cannot see a port.
+
+The same channel measured M08 and M10 to be the same experiment on all three
+arms, so the strictly comparable set is really 10 of 11 rows and the result is
+80 OF 80. PA-06 reports both and uses 64, the number the plan carries, because a
+denominator is not swapped after a result is known.
+"""
+
+[[claim]]
+id = "arm-c-does-not-match-arm-b-on-d3"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "within_run"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "The predecessor's 6.6x length confound is settled FOR THE PROMPT: a longer, architecturally silent control prompt scored D3 = 1 from both blind judges against the hexagonal arm's 4."
+why = """
+`delta_basis = "within_run"`: all three arms were scored by the same two blind
+judges, on the same day, under the same practice, in one round. No era boundary
+applies to the comparison this claim makes.
+
+The measured length figures, corrected. The sealed `--arms` probe reports arm C
+at +3.8% over arm B with 0 of 109 architectural terms, and it measures the FILE
+ON DISK. PA-06 dispatched that file with four additions and did not preserve
+what it sent; reconstructed and re-measured, the as-dispatched prompt is +18.1%
+with 4 of 124 architectural hits, TWO OF WHICH ARE PATHS PA-06 ITSELF
+INTRODUCED and which told the arm what the epic is called. PA-06-DF-10. Both
+defects point AGAINST this conclusion -- a longer prompt and a leaked epic name
+both make structure MORE likely, and arm C produced none -- which is why the
+conclusion survives them. The +/-10% tolerance claim is RETRACTED.
+
+WHAT THIS DOES NOT SETTLE, per the sealed confound honoured rather than argued
+away: arm C controls for LENGTH, not for SUBJECT.
+"""
+
+[[claim]]
+id = "goal-port-reach-clause-1-pa06"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "GOAL-port-reach clause 1: MET, and bounded three ways. PA-M12 is KILLED on corpus-port-swap:fake, reproduced at PA-06's tip with 0 cells moved from PA-04."
+why = """
+THE HALF OF A SPLIT VERDICT THAT IS GOOD NEWS, AND IT IS SMALLER THAN IT LOOKS.
+
+(1) It is met on a FIXTURE, not on an arm. Every adapter_internal mutant lives on
+`reference_ports/`, which the sealed predictions declare "is not an arm" and
+whose mutants and code share an author. NO ARM CARRIES AN ADAPTER-INTERNAL FAULT
+AT ALL. PA-06-DF-04.
+
+(2) The port machinery added no kill anything else did not already have. No
+instrument in any 8-instrument arm table has a unique kill; `corpus-action-bound`
+-- the declared pre-PA-04 world -- kills exactly what `corpus-port-swap` kills on
+every arm; and `suite-fake` STRICTLY DOMINATES `corpus-port-swap:fake`, killing
+everything it kills plus PA-M13. The result is carried by a four-line
+composition point and a pre-existing hand-written suite. PA-06-DF-09.
+
+(3) Every SURVIVED cell beside it is a floor -- see goal-port-reach-clause-2.
+A demonstrated kill stands on its own and neither a declaration (EVAL-SUPPRESS)
+nor a broken control can erase one.
+"""
+
+[[claim]]
+id = "goal-port-reach-clause-2-pa06"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "GOAL-port-reach clause 2: NOT MET, on every arm. M07 is RED on three port-scoped columns of all three arms and PA-M14 on four columns of the ported reference. There is a working negative control and no working positive one."
+why = """
+THE UNFLATTERING HALF, RECORDED SEPARATELY BECAUSE A LEDGER THAT STORES ONE WORD
+PER GOAL WOULD HAVE TO CHOOSE. Twelve red control/instrument pairs across the
+three arms, each carrying `witness_ran_accepting: 294`.
+
+THE WITNESS IS TRUE AND IS NOT THE OPERATIVE FACT. PA-06's adversarial channel
+measured every one of the 1,855 port-corpus cases to compare an `after` of
+exactly {closed, committed, ledger}. M07's observable is `available` and
+PA-M14's is `amt`; NEITHER IS COMPARED. So the columns are blind by projection,
+not by reach -- PA-03-DF-02 realized as a misleading witness on twelve cells.
+
+AND THE REPAIRED CONTROL IS WORSE THAN RED. PA-M14 is measurably unobservable in
+ONE STEP on reference_ports, arm A and arm C -- only arm B, which derives
+available(), shows it -- and every corpus case is single-action, so it CANNOT be
+killed by any corpus on three of the four trees. The probe that certifies its
+accept-path property cannot fail: a mutant replacing a line with itself plus a
+comment reports HOLDS. PA-06-DF-07, severity blocking. P07's own sealed row named
+this in advance as "this epic's worst possible own goal".
+
+SEEDING AN IN-REGION CONTROL WAS DECLINED FOR THE THIRD TIME, by the ticket
+PA-03-DF-03 and PA-04-DF-01 assigned it to. PA-01 schedule_revision 2 permits
+repairing an instrument BEFORE a measurement and forbids it after an unflattering
+signal; PA-06 IS the measurement, so no legitimate ordering exists. It stays red.
+"""
+
+[[claim]]
+id = "goal-cases-drive-ports-missed-at-pa06"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "GOAL-cases-drive-ports: MISSED on the metric it names. The count of agreeing comparable cells did not move -- 64 of 64 on every pairing. The attribution half is MET and arm C is what earns it."
+why = """
+The goal's `metric` field is "the count of comparable cells where the arms
+AGREE", and that number did not move. One cell diverges in the port-binding
+columns -- arm B's M09 under corpus-port-swap:fake -- and those columns did not
+exist when the baseline was set, so reading the goal as met by switching to them
+would be swapping denominators after seeing which one moved.
+
+THE DIVERGENCE POINTS THE WRONG WAY. Arms A and C have no fake, so their `:fake`
+column ran their REAL adapter; the comparison is arm A/C real against arm B fake,
+and the hexagonal arm is the one that LOST the fault. A mirror experiment settles
+the mechanism: the same semantic moved to arm B's memory_journal.py gives the
+exact mirror, 854 failures either way. The port created somewhere for a fault to
+be unreachable, and running one side of the swap moves the blind spot rather than
+removing it.
+
+THE ATTRIBUTION IS NOW SETTLED AND IT IS A REAL GAIN OVER PA-04. PA-04 recorded,
+against its own interest, that a skeptic could call the divergence an artifact of
+M09 being re-anchored into a different FILE on arm B, and said a reader who
+rejects its argument should score it unattributed. PA-06 has a third independent
+re-anchoring PA-04 did not have -- arm C's -- and it lands on arm A's verdict.
+"""
+
+[[claim]]
+id = "goal-complexity-measurable-met"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+statement = "GOAL-complexity-measurable: MET. scripts/code_complexity.py runs over produced Python and separates all three arms on 11 figures. It is NOT a claim that any arm got simpler."
+why = """
+The baseline was "NO SUCH INSTRUMENT EXISTS", which is why D2 measured 2 for both
+arms from all four judges last epic. The instrument now exists, exits 0 on every
+input, refuses nothing, gates nothing, and tells three implementations of one
+spec apart.
+
+AND THE FIGURES SUPPORT NO SIMPLIFICATION CLAIM FOR ANY ARM (PA-02-DF-01,
+confirmed on a third arm). Like for like on role=code the ported arm is LARGER on
+code_lines 202/151/78, public_surface 25/20/11, modules 4/1/1 and classes 6/4/2,
+and FLAT on branch_points 11/10/10, worst callable 4/4/4 and depth 1/1/1. The
+smallest artifact on every size figure is arm C, the control that got no
+architectural guidance at all. The one figure separating the DESIGNS rather than
+their size is where the effects sit: branch_points_in_effectful_modules 1 against
+10 and 10.
+
+ALL SIX CARDS SCORED D2 = 2 and both judges gave the same reason: anchor 3 needs
+a simplification with before AND after figures, and a from-scratch implementation
+of one spec has no before. One judge filed it as a finding about the card --
+"D2 contributed nothing to this comparison and will contribute nothing to the
+next one under the same task design."
+"""
+
+[[claim]]
+id = "pa06-scores-moved-on-unchanged-artifacts"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "8878cd5"
+date = "2026-08-05"
+filed_as = "PA-06-DF-06"
+statement = "Four dimension-points moved on artifacts that did not change by a byte: arm A D4 2/2 -> 4/4 and D5 3/2 -> 4/4, arm B D4 3/2 -> 4/4, between EVAL-RERUN and PA-06."
+why = """
+ITEM THREE ON THE LEDGER'S OWN "EVIDENCE WE ARE FOOLING OURSELVES" LIST -- a
+score moving without an artifact moving -- and it happened. Arms A and B are the
+sealed EVAL-RERUN trees, unedited; the blind copies PA-06 judged are proved
+AST-identical to them with docstrings blanked.
+
+DO NOT READ IT AS IMPROVEMENT, and R-H1 is why: the two rows sit in different
+eras (`PA-03-corpus-port`, `PA-04-port-swap-columns`), the rubric gained
+R-H1..R-H4 at PA-05, and the judges are different agents scoring from a
+different packet -- EVAL-RERUN gave each judge ONE artifact's source and PA-06
+gave each all three.
+
+THE MECHANISM IS IDENTIFIABLE AND IT IS NOT THE RUBRIC. Both PA-06 judges wrote,
+unprompted and independently, that they SEEDED THEIR OWN FAULTS and ran them
+against each author's own suite instead of scoring the packet, and both said
+that is what moved a score. D4 anchor 4 requires a demonstrated catch; a judge
+who executes one can award it and a judge reading a table cannot. So the card's
+top anchors are sensitive to JUDGING PRACTICE, which nothing in the rubric
+mandates and nothing records.
+
+NOTE WHICH DIMENSIONS DID NOT MOVE: D2 and D3, the two about the artifact's
+shape, moved zero points on either arm. That is what makes this a finding about
+the judging rather than about the artifacts.
+"""
+
+
+# --------------------------------------------------------------------------
+# PA-06's own cards, noted against its own instrument change. The change adds
+# two SUBJECT ROWS to a driver whose output no judge was shown; the judges
+# scored source trees, an evidence packet and the shared rubric. The note
+# exists because R-H1 is executed rather than exhorted, and a rule that fires
+# on its own author's cards is a rule doing its job.
+# --------------------------------------------------------------------------
+
+[[note]]
+id = "PA-06-N-01"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-T-p1"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = """
+Scored at 930fa57. `PA-06-third-arm-subject` post-dates it and adds two rows to
+`run_port_swap.py`'s SUBJECTS table -- `arm_c` and `reference_ports_prerepair`.
+WHICH NUMBER AND WHY, as R-H4 requires: none. The judges were given three source
+trees, an EVIDENCE.md packet and `references/eval_scorecard.md`. The packet's
+port-binding columns for THIS artifact were produced by the driver before the
+change and are byte-identical after it -- all four PA-04 subjects were re-run at
+8878cd5 and zero cells moved. The change adds subjects; it decides nothing about
+this one.
+
+WHAT IS GENUINELY NOT COMPARABLE ACROSS AN ERA HERE IS NOT THIS CHANGE. It is
+the judging practice: both PA-06 judges seeded and ran their own faults rather
+than scoring the packet, which EVAL-RERUN's judges were not required to do and
+which both PA-06 judges name as having moved a score. See
+`pa06-scores-moved-on-unchanged-artifacts` and PA-06-DF-06.
+"""
+
+[[note]]
+id = "PA-06-N-02"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-T-p2"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = "As PA-06-N-01."
+
+[[note]]
+id = "PA-06-N-03"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-U-p1"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = "As PA-06-N-01."
+
+[[note]]
+id = "PA-06-N-04"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-U-p2"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = "As PA-06-N-01."
+
+[[note]]
+id = "PA-06-N-05"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-W-p1"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = """
+As PA-06-N-01, with one addition specific to this artifact. `arm_c` is one of the
+two rows `PA-06-third-arm-subject` adds, so this artifact's port-binding columns
+were produced BY the change rather than before it. They are a first run with no
+predecessor to diff against, which is stated in `DETERMINISM.md` rather than
+papered over: what stands in for a second run here is that the three PA-04
+subjects re-run on the same driver at the same commit reproduced their sealed
+output cell for cell.
+"""
+
+[[note]]
+id = "PA-06-N-06"
+about = "card:ports-as-adapters/ab_quota_ledger/20260805-W-p2"
+kind = "measured before an instrument change that does not reach it"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = "As PA-06-N-05."
+
+# --------------------------------------------------------------------------
+# The sealed per-arm integrity certificates went stale and nobody recorded it.
+# PA-06 found it by running the harness; the adversarial channel dated it.
+# --------------------------------------------------------------------------
+
+[[note]]
+id = "PA-06-N-07"
+about = "claim:ab-cells-identical-56"
+kind = "re-affirmed"
+field = "the whole claim"
+recorded_at = "2026-08-05"
+by = "PA-06"
+why = """
+PA-05-DF-03 filed this as a STRADDLE -- "not a claim that any of the 56 cells
+moved, only that nobody has looked" -- after PA-04 modified
+`scripts/run_generated_case_adapters.py`, the adapter-execution path the
+generated columns run through. PA-06 looked. The eight-instrument table was
+re-derived at 8878cd5 on both arms and ZERO CELLS MOVED against PA-03's sealed
+tables, over all 88 cells each. Superseded forward by
+`ab-cells-identical-64-pa06`, which carries the reason the number is entailed.
+"""
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1/scorecard.json"
+sha256 = "sha256:932d1daf120c72f0"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p1/scorecard.md"
+sha256 = "sha256:6dbb8f267e541dc6"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.json"
+sha256 = "sha256:029cee324c8b6e9d"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-T-p2/scorecard.md"
+sha256 = "sha256:847a8bb3bc098d0f"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p1/scorecard.json"
+sha256 = "sha256:2ee4370eacef97c6"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p1/scorecard.md"
+sha256 = "sha256:b43da3de80b0f690"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p2/scorecard.json"
+sha256 = "sha256:c6d656cb8cf95fa0"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-U-p2/scorecard.md"
+sha256 = "sha256:e1e45d4baf7c100b"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p1/scorecard.json"
+sha256 = "sha256:82e12b740fda2294"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p1/scorecard.md"
+sha256 = "sha256:1c214c24808a2ce9"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p2/scorecard.json"
+sha256 = "sha256:506b62af29f3e12b"
+
+[[sealed]]
+path = "specs/results/scorecards/ports-as-adapters/ab_quota_ledger/20260805-W-p2/scorecard.md"
+sha256 = "sha256:d73c78e3994a7f1c"

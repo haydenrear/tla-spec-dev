@@ -1,0 +1,44 @@
+# PA-06: PA-M14, the REPAIRED positive control, re-anchored onto arm B.
+#
+# Read `pa_m14_arm_a.toml`'s header first; the rule and the discipline are the
+# same. This is the arm the repair exists for.
+#
+# WHY THIS ARM IS THE TEST OF THE REPAIR. M07's sealed semantic re-anchored onto
+# arm B is BROKEN -- measured at PA-01 and re-measured here -- because arm B
+# DERIVES `available()` from a computed held total, so the nearest perturbation
+# of "deduct one too many" is observable from construction and after every
+# refusal. PA-M14's semantic is representation-independent by construction: the
+# amount recorded ON a reservation the API has just accepted. Arm B stores that
+# on a `Reservation(tenant, amount)` built in `reserve`, so the property should
+# survive the move. P07 says it does. If the probe disagrees, the cell is
+# reported BROKEN and arm B has no valid positive control.
+#
+# THE SEALED EVAL-RERUN CATALOGUES ARE NOT EDITED.
+
+[catalogue]
+id = "PA-06-control-property-arm-b"
+anchored_on = "quota_ledger/domain.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/"
+extends = "examples/validation/ab/seeded_faults.toml"
+
+[pa_control_properties]
+"PA-M14-positive-control-accepted-hold-too-large" = "accept-path-only"
+
+[[mutants]]
+id = "PA-M14-positive-control-accepted-hold-too-large"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that executes an accepted Reserve against arm B, AND must be invisible until one does. Written for THIS tree: arm B's domain builds `Reservation(tenant, amount)` inline in `reserve`, so the amount recorded on an accepted reservation is that constructor argument. EVAL-RERUN-DF-03 -- arm B's sealed catalogue carrying arm A's role string verbatim over a mutant arm B's own data contradicted -- is exactly the defect this sentence is written against."
+control_property = "accept-path-only -- see [pa_control_properties]"
+gap_targeted = "none. Deliberately in nobody's gap."
+seeded_by = "perturbation"
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "quota_ledger/domain.py"
+find = "        self._outstanding[reservation_id] = Reservation(tenant, amount)"
+replace = "        self._outstanding[reservation_id] = Reservation(tenant, amount + 1)  # MUTANT PA-M14"
+description = "a reservation accepted during the case holds one unit more than it was granted; every reservation installed into a before-state is byte-correct"
+semantic = "The reservation created by an ACCEPTED reserve records amount+1. Immediately after the accepting call, available(t) is one too low and the new reservation's amount is one too high. Nothing else, ever."
+observable = "available(t) and the new reservation's amount immediately after an ACCEPTED reserve, and nothing after any other action or any refusal."
+re_anchoring_note = "Arm B derives `available()` as `quota - committed - sum(held.amount)`, so inflating the amount ON the reservation makes available() one too low -- the same observable as arm A's, reached through a derivation instead of a store. That is the point of anchoring by the property: the two arms' representations differ and the control's semantic does not."
+refine_variable = "amt"
+refine_action = "Reserve"

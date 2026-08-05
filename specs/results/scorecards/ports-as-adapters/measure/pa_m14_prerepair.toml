@@ -1,0 +1,51 @@
+# PA-06: the PRE-REPAIR positive control, extracted VERBATIM from `46c29c9^`.
+#
+# This file exists to measure ONE sealed negative prediction, `N07`:
+#
+#   "repairing the positive control will move ZERO cells in the kill table ...
+#    FLAT -- zero cells, on every row including the control's own, on arm A and
+#    on both references."
+#
+# N07 was sealed in the commit BEFORE the repair; the git history carries the
+# ordering rather than a sentence claiming it. Scoring it needs a BEFORE, and
+# nobody ever ran one: the pre-repair `PA-M14` was authored at `e6d1351` and
+# replaced at `46c29c9` without any instrument having executed it. "UNMEASURED
+# is not a pass" (PREDICTIONS-PA, scoring vocabulary), so PA-06 measures it.
+#
+# WHAT THIS IS NOT. It is not a re-seeding, an amendment or a second control.
+# Nothing here is new: the row below is `git show 46c29c9^:
+# examples/validation/ab/seeded_faults.toml`, lines 612-630, byte for byte
+# except for this header and the `[catalogue]` block a standalone file needs.
+# It is never placed beside a current number, and the CURRENT control record is
+# unchanged in every file that carries it.
+#
+# THE OTHER TEN ROWS NEED NO RUN, and that is stronger evidence than one.
+# `git diff 46c29c9^ 46c29c9 -- examples/validation/ab/seeded_faults.toml`
+# changes exactly one mutant's `id`, `find` and `replace`. Every other row's
+# find/replace is byte-identical across the repair, so no cell of theirs CAN
+# have moved -- a fact about the input, not an inference from a run.
+
+[catalogue]
+id = "PA-06-N07-prerepair-control"
+anchored_on = "reference_ports/domain.py"
+root = "examples/validation/ab/"
+extends = "examples/validation/ab/seeded_faults.toml @ 46c29c9^"
+
+[[mutants]]
+id = "PA-M14-positive-control-ports-tree"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that reaches the reference_ports tree at all, under BOTH wirings"
+gap_targeted = "none. Deliberately in nobody's gap: it is the M07 semantic, re-anchored in the ports tree, and it exists so a column of survivors on `reference_ports/` can be told apart from an instrument that never ran that tree."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._available[tenant] -= amount"
+replace = "        self._available[tenant] -= amount + 1  # MUTANT PA-M14: the hold is one unit too large"
+description = "reserve deducts one more than it holds in the ported domain, so conservation breaks on the first call"
+semantic = "reserve(t, n) reduces available(t) by n+1 in the ported domain. R1 conservation breaks on the very first accepted reservation, identically under either wiring because the fault is in the domain and neither adapter is involved."
+observable = "available(t) immediately after any accepted reserve, under BOTH wirings. Nothing subtle about it."
+predicted_suite_real = "KILLED"
+predicted_suite_fake = "KILLED"
+predicted_corpus_whole = "KILLED"
+refine_variable = "available"
+refine_action = "Reserve"
