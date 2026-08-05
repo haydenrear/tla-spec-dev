@@ -1,0 +1,158 @@
+# Complexity ledger input -- MF-019 standing objective. PA-06.
+#
+# ZERO MODEL DELTA, and for a measurement ticket that is the only possible
+# outcome rather than an omission. The plan declares
+# `model_delta_expectation: none -- a measurement ticket carries no model delta`.
+# Everything PA-06 ships lives under `specs/results/scorecards/`, plus
+# `NEXT-EPIC.md`, `specs/desired_program_model/deferred_findings.yaml` and one
+# `status:` field in `ticket_plan.yaml` -- recorded evidence and documentation,
+# out of model by `representation_scope.out_of_model`. Ticket `current` and
+# `desired` are byte-identical, so there is no complexity delta to license and
+# no validated-refactor basis to supply.
+#
+# THE `OVER CAP` LINE THE CLOSE PRINTS IS INHERITED AND UNTOUCHED BY THIS
+# TICKET. `max_state_space_bound` 1,111,320 is the whole-program model's, it is
+# a LOWER BOUND (7 of 9 variables resolved), and `delta: direction=zero (vs
+# PA-04)` says PA-06 moved it by nothing. Related and separate:
+# `PA-03-DF-01` -- `specs/current/tlc_projection.py` was deleted by the
+# predecessor's workflow close, and this repository's own model now generates
+# 99,817 cases where `references/generation_modes.md` recorded 541.
+# RE-VERIFIED AT THIS TIP: `generate cases specs/current/TlaSpecDevCli.tla
+# specs/current/MCsmall.cfg` -> "generated internal cases from 6223 states",
+# 99,817 cases, exit 2 at 499x the declared cap. Filed, not fixed.
+
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: >-
+      NOT the right word for what PA-06 did, and the distinction is the ticket's
+      subject. `scripts/kill_test.py` -- the member this field names -- was not
+      run. What PA-06 ran is the A/B eval instrument: three 8-instrument
+      per-mutant tables (11 mutants x 8 instruments x 3 arms), four port-binding
+      subject tables, and one pre-repair control column, recorded under
+      specs/results/scorecards/ports-as-adapters/. Those numbers are about the
+      FIXTURE, never about this repository's own model, and `kill_rate` here
+      means the latter. Reporting them in this field would quote a number
+      against the wrong instrument, which is the hazard PA-04-DF-02 filed.
+  effect_conformance:
+    status: "not_run"
+    evidence: >-
+      No effect provider, adapter or oracle is touched; `scripts/` is unchanged
+      by this ticket. PA-04-DF-03 (the corpus runner never prints ADAPTER REACH)
+      was RE-VERIFIED as still open rather than repaired: `diff_effects` is
+      still called from `scripts/run_generated_case_adapters.py` with only
+      `cases`, `case_actions` and `unobservable`, so the reach renderer never
+      fires on that path.
+  external_coverage:
+    status: "not_run"
+    evidence: >-
+      No External model transition is added or removed. The repository's
+      baseline remains a single `TlaSpecDevCli.tla` with no Internal/External
+      split, per `representation_scope.view_split`.
+
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+
+justification: >-
+  NO INCREASE. Zero host TLA+ model delta; ticket `current` and `desired` are
+  byte-identical and the close reports `delta: direction=zero (vs PA-04)`. The
+  shipped surface is: the three arms' judged scorecards and their blind copies,
+  the raw per-mutant tables, the arm-C tree and its re-anchored catalogue,
+  controls and binding, five measurement helpers, RESULTS.md,
+  PREDICTIONS-SCORED.md, UNBLINDING.md, DETERMINISM.md, the adversarial
+  channel's record, appended rows in SELF-IMPROVEMENT.md and
+  INSTRUMENT-LOG.toml, a section in NEXT-EPIC.md, eleven filed findings, and two
+  SUBJECT ROWS added to one measurement driver's table.
+
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched and found none, and the reason is structural rather than a shrug: a
+    measurement ticket adds no representation, so there is nothing to refine.
+    The one thing that could have become a modeled obligation was the port
+    binding's `[ports.*]` table, and PA-04 already established it is a binding
+    table rather than TLA+ state -- no variable, no action, no Next disjunct, no
+    CONSTANT.
+
+    WHAT WAS SEARCHED FOR AND DELIBERATELY NOT DONE, because the epic's standing
+    rule makes it the forbidden act.
+
+    (1) PA-03-DF-03 / PA-04-DF-01 -- seed a blatant fault inside the declared
+    port's region so a port-scoped instrument can have a green positive control.
+    DECLINED for the third time, by the ticket both findings assign it to. PA-01
+    schedule_revision 2 permits repairing an instrument BEFORE a measurement and
+    forbids it after an unflattering signal; PA-06 IS the measurement, so no
+    legitimate ordering exists. Carried forward with its protocol spelled out --
+    seal the prediction, seed the control, run it, in that order, in a ticket
+    that is not deciding a goal.
+
+    (2) The one-sided control probe (PA-06-DF-07, blocking) and the vacuous
+    sanitiser verification (PA-06-DF-11). Both are instruments this round
+    measured with; repairing either during the round they serve would mean the
+    verdict and the shipped tool describe different things.
+
+    (3) tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument,
+    which is RED at this tip against PA-06's own evidence-packet builder
+    (PA-06-DF-05). Left red: repairing a check during the measurement it watches
+    is forbidden, and evading it by renaming a string would be the
+    six-lines-of-YAML defeat this epic exists to prevent, performed by the
+    ticket that exists to catch it.
+  measured: false
+  applied: false
+  approved_by: ""
+
+transition_diff: ""
+
+narrative: >-
+  specs/results/scorecards/ports-as-adapters/RESULTS.md is the ledger, with
+  PREDICTIONS-SCORED.md, UNBLINDING.md, DETERMINISM.md, channels/ADVERSARIAL.md
+  and six sealed cards beside it. In short:
+
+  ARM C SETTLES THE PREDECESSOR'S CONFOUND, FOR THE PROMPT. A control prompt
+  longer than the hexagonal one and asking for nothing architectural scored
+  D3 = 1 from both blind judges against arm B's 4 and arm A's 2, and its author,
+  asked what it REJECTED, named the exact seam arm B built and declined it on
+  merit. Length does not produce structure here.
+
+  AND THAT IS THE ONLY GOOD NEWS. GOAL-port-reach is a SPLIT -- clause 1 met on
+  PA-M12, clause 2 not met with twelve red control/instrument pairs.
+  GOAL-cases-drive-ports is MISSED: 64 of 64 strictly comparable cells identical
+  on every pairing of three arms, 88 of 88 over all rows for A vs C, and the one
+  diverging cell in the whole three-arm port-binding table is a fault the
+  hexagonal arm LOST. GOAL-complexity-measurable is MET and is not a claim that
+  anything got simpler -- the produced-code figures support no simplification
+  claim for any arm, and the smallest artifact on every size figure is the
+  control that got no architectural guidance at all.
+
+  THE FRESH ADVERSARIAL CHANNEL CORRECTED THIS TICKET'S OWN NUMBERS TWICE and
+  found the round's most important result -- THE NULL WAS ENTAILED. An
+  exhaustive 28,561-sequence observational fingerprint measures the three arms'
+  MUTATED trees identical on 10 of 11 rows, so "the arms do not diverge" is a
+  consequence of the re-anchoring succeeding and this experiment can only
+  diverge where it FAILS. It also measured the repaired positive control
+  unobservable in one step on three of four trees, and the probe that certifies
+  it unable to fail -- a no-op mutant reports HOLDS. P07's own sealed row named
+  that in advance as this epic's worst possible own goal.
+
+  FINDINGS BY CHANNEL 1 : 12 : 4 : 2. Eighteen of nineteen came from asking an
+  agent what it REJECTED or telling it to attack. The suite produced its first
+  finding in four rounds and it fired at this ticket's own helper. Five of
+  fifteen predictions FAILED, three of them negatives; one is SUPERSEDED.
+
+  ELEVEN FINDINGS FILED, NOTHING FIXED. The deferment budget of 5 is
+  deliberately exceeded and every row is `escalated` rather than carried,
+  because PA-06 is the last ticket and there is no sibling to carry to. The
+  alternative was to not report findings during the ticket whose entire purpose
+  is to report them.
+
+  ACCEPTANCE. `uv run --with pytest --with pyyaml python -m pytest tests -q` ->
+  1 failed, 1177 passed; the single failure is PA-06-DF-05 and it is left red on
+  purpose. `score_tools.py check` -> 6 cards, 0 problems. `index` -> exit 0.
+  `audit` -> 0 violations, after PA-06's own change turned three PA-04 claims
+  SUPERSEDED-UNMARKED and six of its own cards OPEN, resolved by superseding the
+  claims forward and recording a note beside each card. A reading rule that
+  fires on its own author's cards is a reading rule doing its job.
