@@ -41,10 +41,15 @@ it is load-bearing: a ticket that finds itself adding a rule that refuses
 something has left scope. Guidance goes into prompts. Verdicts come from judged
 scorecards.
 
-There is one gate still in the toolchain — the MF-026 coverage audit — and it
-refuses a workflow close with **no override flag**. That is a known constraint,
-not an endorsement. Its own final judgement, twice, was that the surface it
-still guards is bookkeeping about our own CLI.
+There was one gate still in the toolchain — the MF-026 coverage audit, which
+refused a workflow close with **no override flag**. **Retired 2026-08-04**
+(owner direction), with the static architecture scanners and for a related
+reason: its verdict is a word the audited party types about a sweep the audited
+party performed. The AUDIT is kept and is still the only thing here that looks
+at unmodeled surface; the refusal is gone. Its own final judgement, twice, was
+that the surface it guarded is bookkeeping about our own CLI. See
+`references/coverage_audit.md`, "Status", and
+`references/architecture_advice.md`.
 
 ---
 

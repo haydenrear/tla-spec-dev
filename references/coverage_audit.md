@@ -1,8 +1,45 @@
-# The Coverage Audit Gate (MF-026)
+# The Coverage Audit (MF-026)
 
 The executable procedure is `prompts/coverage_audit.md`; the report shape is
 `templates/coverage_audit_report.md`. This document is the doctrine: why the
-gate exists, when it runs, and what its findings may and may not be closed by.
+audit exists, when it runs, and what its findings may and may not be closed by.
+
+## Status: A REVIEW, NOT A GATE (changed 2026-08-04)
+
+Until 2026-08-04 a workflow-scope close was **refused** unless
+`coverage_audit.status` was `pass`, with no override flag anywhere. By owner
+direction, that refusal is retired, on the same day and for the same reason as
+the static architecture scanners.
+
+**The audit is kept.** It is the only thing in this toolchain that looks at
+UNMODELED surface, and the four oracles are all bounded to what is modeled, so
+unmodeled surface is invisible to every one of them while they report green.
+That is not theoretical: this audit found `generate cases` — the flagship
+feature of an entire epic — with no action, no port and no CLI subcommand
+anywhere in the model (G-6); it found two shipped effect-port globs that could
+never fail (F-7, F-8); it found that no test existed which could detect a wrong
+glob (F-9); and it found three model/manifest desyncs no oracle checks. Those
+are real finds. Nothing else this project built produced any.
+
+**The refusal is not kept, for one reason.** The verdict is a word an agent
+types after a sweep the same agent performed. A gate whose input is the graded
+party's own summary of their own work is not a gate; it is a place to type
+`pass`. And because the refusal had no override, the cheapest way past it was
+always to type the word rather than widen the sweep — the same "make the check
+clean" pressure measured on the architecture side, where an agent cleared two
+findings by copying a format string across a component boundary and nothing in
+the report told a reviewer the diff had added duplication
+(`references/architecture_advice.md` S5). "Why the discipline lives in the
+prompt" below already conceded that this audit's strength is bounded by the
+honesty of the agent running it, and that a reader should treat the attestation
+as more load-bearing than the tables. The gate outlived that admission by an
+epic.
+
+**What is unchanged.** The verdict is recorded in the complexity ledger at every
+close, `not_run` included, and printed in every report. `incomplete` is still
+not `pass`. In-scope gaps are still HARD — model it, or change the program, with
+no justified/accept-as-is disposition. What was withdrawn is the refusal, not
+the vocabulary and not the standard.
 
 ## The structural hole
 
@@ -29,7 +66,7 @@ The four oracles check **fidelity of what is modeled**. This gate checks
 **completeness of what is modeled**. Neither implies the other, and a green
 oracle run carries no information about this question.
 
-## Ordering — a required end-of-epic step
+## Ordering — an end-of-epic step (advisory since 2026-08-04)
 
 The audit runs **once per epic**:
 
@@ -41,19 +78,26 @@ The ordering is load-bearing in both directions.
 - **After the mechanisms**, because the audit is measured against the model as
   the epic actually leaves it. Running it earlier audits a model that is still
   being built and reports gaps that later tickets were always going to close.
-- **Before final integration**, because it is a *promotion gate*. Its whole
-  purpose is to block promotion of a model that does not represent the program.
-  An audit run after integration is a report, not a gate.
+- **Before final integration**, because that is when the reading is worth
+  having. An audit run after integration measures a model nobody can still act
+  on cheaply. (Before 2026-08-04 this bullet read "because it is a *promotion
+  gate*". It is not one any more; the timing advice survives the demotion.)
 
-An epic that promotes without a recorded audit verdict is a visible defect, not
-a silent one — see "Recording" below.
+An epic that promotes without a recorded audit verdict is a visible fact, not a
+silent one — see "Recording" below.
 
-## Gate semantics
+## Disposition semantics
+
+*(These were "gate semantics" until 2026-08-04. They describe how a finding may
+be DISPOSITIONED, which is what always mattered; what changed is that no
+disposition stops a close any more.)*
 
 **In-scope gaps are HARD.** An uncovered behavior or effect inside the epic's
-declared scope fails promotion. Per the fourth governing rule in
-`architecture_tractability.md`: **model it, or change the program.** There is no
-third option.
+declared scope is reported as a gap, and the only two ways to close one are, per
+the fourth governing rule in `architecture_tractability.md`: **model it, or
+change the program.** There is no third option — no justified, no accept-as-is,
+no waiver. The audit does not refuse a promotion; it also does not offer a way
+to write a gap off as acceptable, which is the part with teeth.
 
 **Out-of-scope surface is inventoried and reported, and does not gate.** An
 epic scoped to one subsystem is not blocked by surface elsewhere. The inventory
@@ -173,9 +217,11 @@ The audit's verdict is recorded in two places:
 
 The ledger block exists so that **an epic which skipped the audit is visible**.
 It defaults to `not_run`, which is recorded and reported as such — never
-omitted, and never inferred to be a pass. At workflow-scope close (end of
-epic), any verdict other than `pass` — `not_run`, `fail`, or `incomplete` —
-**refuses the close**, in keeping with every other gate in this toolchain: a
-check that silently passes when its input is absent is not a check, and
-`incomplete` refuses alongside `fail` because a sweep that did not walk the
-surface carries no information about it.
+omitted, and never inferred to be a pass.
+
+**It refuses nothing (2026-08-04).** Any verdict other than `pass` — `not_run`,
+`fail`, or `incomplete` — is recorded, printed with its `<-- does not pass`
+flag, and closed through. `incomplete` is still kept apart from `pass` because a
+sweep that did not walk the surface carries no information about it; what
+changed is that saying so no longer stops anything. If you want the reading,
+run it and read it.

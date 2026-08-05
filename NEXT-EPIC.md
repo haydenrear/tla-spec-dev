@@ -1,5 +1,17 @@
 # next epic — starter for the next epic owner
 
+> **SUPERSEDED IN PART, 2026-08-04.** The static architecture scanners this
+> charter plans repairs for — `scripts/analyze_architecture.py` and
+> `scripts/architecture_reflexion.py`, `tla-spec-dev analyze architecture`, and
+> the `architecture_scan` / `architecture_delta` model surface — were REMOVED by
+> owner direction. Every finding below is still true; what changed is that the
+> answer is not a repair. Read `references/architecture_advice.md` first: it
+> carries the nine measured facts from this page forward as instructions to
+> follow now and as the acceptance criteria any replacement must satisfy. The
+> sections here remain the primary record of HOW each was measured — run
+> directories, numbers, reproduction steps — which is why nothing below is
+> edited.
+
 You are starting a new epic. The previous one (`architectural-coherence`) was
 **measured, not asserted**: EV-01 committed predictions before any dispatch,
 EV-02 scored against them, two blind agents who had never seen the predictions

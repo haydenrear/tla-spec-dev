@@ -328,7 +328,7 @@ export OUT=$(mktemp -d)          # absolute --out: resolved as given
 **1 — the action set comes from a command, not from your attention.**
 
 ```bash
-python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze architecture \
+python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze complexity \
   specs/program_model/Pipeline.tla specs/program_model/Pipeline.cfg \
   --format json | python3 -c \
   "import json,sys; [print(a['name']) for a in sorted(json.load(sys.stdin)['measured']['actions'], key=lambda a: a['name'])]"

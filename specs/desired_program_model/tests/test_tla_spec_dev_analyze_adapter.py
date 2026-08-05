@@ -63,67 +63,13 @@ def test_output_reports_measured_facts(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------
-# AC-01: AnalyzeArchitecture
+# REMOVED 2026-08-04 (owner direction): the four AnalyzeArchitecture cases.
+# The action, the adapter and the two scanner modules behind them are gone.
+# What those cases asserted is now written down instead of executed --
+# references/architecture_advice.md -- because the checks were defeated
+# cheaply and the assertions were passing while that was true. The one that
+# survives as doctrine rather than as an assertion:
+# test_a_model_that_resists_clustering_is_not_given_an_invented_cut. Refusing
+# to certify what you could not see is the requirement any replacement
+# inherits first.
 # --------------------------------------------------------------------------
-
-
-def test_analyze_architecture_describes_the_structure_and_never_blocks(
-    tmp_path: Path,
-) -> None:
-    """The model's AnalyzeArchitecture action, checked against production.
-
-    ``AnalyzeArchitecture`` sets ``result' = CommandResult(TRUE, ...)``
-    unconditionally and merely records a verdict in ``architecture_scan``; no
-    action in the model guards on that variable. Production must match: both a
-    model that decomposes and one that does not exit 0, and the descriptor
-    names components, per-variable writers, single-writer violations, ports,
-    and spanning actions.
-    """
-    adapters = load_adapters()
-    result = adapters.AnalyzeArchitectureAdapter().apply(tmp_path)
-
-    assert result["decomposing_exit_code"] == 0, result["stderr"]
-    assert result["blob_exit_code"] == 0, result["stderr"]
-    assert result["names_components_ownership_ports_and_span"] is True
-    assert result["describes_ports_and_span"] is True
-    assert result["blocks_nothing"] is True
-    assert result["accepted"] is True, result
-
-
-def test_a_model_that_resists_clustering_is_not_given_an_invented_cut(
-    tmp_path: Path,
-) -> None:
-    """The refusal, and the false clean it exists to prevent.
-
-    A model whose interaction graph is one blob has no components. Handed a
-    one-component partition, every variable is trivially "written inside its
-    component" and the descriptor would report a flawless single-writer
-    architecture. It reports NOT MEASURABLE instead, and tells its consumers
-    the partition is not usable as an architecture.
-    """
-    adapters = load_adapters()
-    result = adapters.AnalyzeArchitectureAdapter().apply(tmp_path)
-    assert result["refuses_to_invent_a_cut"] is True
-
-
-def test_architecture_scan_is_never_coherent_without_a_code_side(
-    tmp_path: Path,
-) -> None:
-    """MF-027, applied to ``architecture_scan``.
-
-    ``analyze architecture`` measures the MODEL. With no production code
-    supplied there is nothing for the code to be coherent with, and a clean
-    report on a target that was never observed is indistinguishable from a
-    clean report on one that was. The verdict is ``unmappable``.
-    """
-    adapters = load_adapters()
-    result = adapters.AnalyzeArchitectureAdapter().apply(tmp_path)
-    assert result["never_coherent_without_code"] is True
-
-
-def test_architecture_descriptor_makes_no_suggestions(tmp_path: Path) -> None:
-    """CD-01 binds here too: facts, no proposed cut, no refactor."""
-    adapters = load_adapters()
-    result = adapters.AnalyzeArchitectureAdapter().apply(tmp_path)
-    assert result["descriptor_makes_no_suggestions"] is True
-    assert result["reports_measured_facts"] is True

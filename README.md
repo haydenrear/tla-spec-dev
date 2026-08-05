@@ -140,10 +140,14 @@ that changing it is a deliberate, recorded act rather than silent drift.
 defeated cheaply and none of them ever caught a bug: the complexity gate failed
 every normal program and was retired to advisory; the architecture check reported
 a clean on a divergent codebase for six lines of YAML, then for a 41-line
-re-export file, both with every declaration digest unchanged. The argument for
-judgement is not that it cannot be gamed. It is that **a number computed from an
-artifact can be optimized by editing the artifact, while a judgement that must
-cite the artifact can only be satisfied by changing what the artifact is.**
+re-export file, both with every declaration digest unchanged. **Across two full
+eval rounds and seven repair tickets, bug detection did not move by a single
+cell** — 4 of 6, 6 of 6, 0 of 3, 0 of 3, identical before and after. The
+architecture scanners were removed on 2026-08-04 and what they established is
+now `references/architecture_advice.md`. The argument for judgement is not that
+it cannot be gamed. It is that **a number computed from an artifact can be
+optimized by editing the artifact, while a judgement that must cite the artifact
+can only be satisfied by changing what the artifact is.**
 
 Five dimensions, 0–4 each:
 
@@ -246,8 +250,11 @@ New onboarding documentation should lead with `tla-spec-dev`.
 - `templates/`: Jinja templates for generated Python/TLA artifacts.
 - `examples/`: checked-in examples and generated artifacts.
 - `references/`: user-facing skill references, including
-  `eval_scorecard.md` (the judged evaluation rubric) and
-  `hexagonal_prompting.md` (architecture as a prompt, not a check).
+  `eval_scorecard.md` (the judged evaluation rubric),
+  `hexagonal_prompting.md` (architecture as a prompt, not a check), and
+  `architecture_advice.md` (what the removed static architecture scanners
+  established, as rules to follow and as the specification a replacement must
+  meet).
 - `prompts/`: sub-agent prompts shipped as artifacts — the coverage audit, the
   implementation brief, aspect decomposition, and the hexagonal ask.
 - `examples/validation/`: eval fixtures, A/B arms, seeded fault catalogues, and

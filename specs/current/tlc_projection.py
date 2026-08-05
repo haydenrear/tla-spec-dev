@@ -19,15 +19,23 @@ variable move from the STATE to the OUTPUT, where they are still asserted:
       one case per predecessor command. Measured: removing `lastCommand` alone
       takes 3,678,217 transitions to 2,964,421.
 
-  the six recorded verdicts
-      `complexity_gate`, `corpus_gate`, `effect_conformance`, `kill_test`,
-      `architecture_scan`, `architecture_delta`. Each is a fact a scanner
-      RECORDED. They form a six-dimensional independent product that every
-      action carries through unchanged, so the corpus enumerates each command
-      once per combination of five verdicts it never reads and never writes.
-      The output projection below carries back exactly the verdicts the action
-      ITSELF changed, so what a command records is still checked case by case;
-      what it merely coexisted with is not.
+  the recorded verdicts
+      `complexity_gate`, `corpus_gate`, `effect_conformance`, `kill_test`.
+      Each is a fact a scanner RECORDED. They form an independent product that
+      every action carries through unchanged, so the corpus enumerates each
+      command once per combination of the verdicts it never reads and never
+      writes. The output projection below carries back exactly the verdicts the
+      action ITSELF changed, so what a command records is still checked case by
+      case; what it merely coexisted with is not.
+
+      There were SIX until 2026-08-04, when `architecture_scan` and
+      `architecture_delta` were removed with the static architecture scanners.
+      The measured figures below predate that removal and are left as measured
+      -- they are what justified this file, and re-stating them from a later
+      model would be quoting a number nobody ran. The projection is
+      unaffected in kind: two dimensions left the ambient product, so the
+      collapse this file performs is smaller than it was and no less
+      necessary.
 
   Measured on MCsmall: 3,678,217 -> 76 transitions, with every recorded verdict
   and every result field still asserted.
@@ -49,9 +57,14 @@ from typing import Any
 
 #: Verdicts a scanner records. Read by no guard in the module; every action
 #: either writes one or leaves them all alone.
+#:
+#: `architecture_scan` and `architecture_delta` were REMOVED here on 2026-08-04
+#: with the model variables they named. Leaving them would have been a
+#: declaration with nothing behind it -- the exact class
+#: references/architecture_advice.md rule 4 is about -- and it would have
+#: passed silently, because the comprehensions below guard with `if name in
+#: after`. A name that can never match is not a filter.
 RECORDED_VERDICTS = (
-    "architecture_delta",
-    "architecture_scan",
     "complexity_gate",
     "corpus_gate",
     "effect_conformance",

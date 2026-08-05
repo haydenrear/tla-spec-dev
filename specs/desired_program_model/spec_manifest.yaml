@@ -81,8 +81,8 @@ case_codegen:
 # scripts/new_ticket_workflow.py and are filled only when
 # case_codegen.generation_status (above) reaches `generated`. Empty here
 # claims "no generated case index yet" -- generation_status is `planned` --
-# NOT "the model has no state, actions, or ports": this tree's model has 11
-# variables and 18 Next disjuncts (17 @command actions plus Stutter), and its
+# NOT "the model has no state, actions, or ports": this tree's model has 9
+# variables and 17 Next disjuncts (16 @command actions plus Stutter), and its
 # declared effect ports live in effects.components below.
 #
 # RC-01 (MF-026 G-5): this read "9 variables and 15 actions" for a model that
@@ -94,6 +94,10 @@ case_codegen:
 # architecture_components.yaml. Same defect class as EV-01-DF-03. An empty stanza and an inapplicable
 # stanza are different claims; this comment, and the matching one at the
 # schema source (scripts/new_ticket_workflow.py), record which one is made.
+#
+# 2026-08-04: the figure went DOWN for the first time in this project, to 9 and
+# 17, when architecture_scan, architecture_delta and AnalyzeArchitecture were
+# removed. The comment is derived by test, so it did not have to be chased.
 state_fields: []
 actions: []
 ports: {}
@@ -228,12 +232,12 @@ effects:
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
         # scripts/run_generated_case_adapters.py ...`, built at
-        # scripts/tla_spec_dev.py:346 (run_generated_case_adapters.py) and
-        # executed at scripts/tla_spec_dev.py:401 (subprocess.run) whenever a
+        # scripts/tla_spec_dev.py:353 (run_generated_case_adapters.py) and
+        # executed at scripts/tla_spec_dev.py:408 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
-        # scripts/tla_spec_dev.py:328-335 (--with) does -- so the
+        # scripts/tla_spec_dev.py:335-342 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
@@ -394,21 +398,13 @@ effects:
     # an absent one (the RecordBudgets rule above): the command reads and
     # prints, performing no distinct declared effect.
     AnalyzeCorpus: []
-    # RC-01 (MF-026 G-1): ADDED. AnalyzeArchitecture -- this epic's one new
-    # action -- had NO ROW AT ALL in any of the three manifests, the only
-    # non-stutter action without one, while the rule 90 lines above says an
-    # ABSENT row claims "unmapped" and an EMPTY row claims "performs no
-    # distinct effect". TlaSpecDevCli.tla states that each action's @port lines
-    # mirror its row here; there was no row to mirror, and the model's own
-    # annotation said the scan "only prints". It does not: `--out` writes the
-    # descriptor (analyze_architecture.py) and the reflexion report
-    # (architecture_reflexion.py), and AC-01's acceptance evidence is six files
-    # that path produced (G-2). The row is `evidence_report` and not `[]`
-    # because the program still has --out; RC-01 constrained the path to
-    # resolve under a `results/` directory (scripts/spec_paths.py
-    # resolve_evidence_out) so this declaration is true of every caller rather
-    # than of the documented one.
-    AnalyzeArchitecture: [evidence_report]
+    # REMOVED 2026-08-04 (owner direction): the AnalyzeArchitecture row, with
+    # the action. RC-01 (MF-026 G-1) had ADDED this row -- the action shipped
+    # with none at all, the only non-stutter action without one -- and the row
+    # was correct while the command existed. `evidence_report` is not orphaned
+    # by the removal: AnalyzeComplexity, RunEffectConformance and RunKillTest
+    # still declare it, and scripts/spec_paths.py resolve_evidence_out still
+    # constrains every `--out` that claims it.
     # RC-01 (MF-026 G-6): case-module generation, previously unrepresented in
     # its entirety -- no action, no port, no CLI subcommand -- while being this
     # epic's flagship feature. corpus_process is the java/TLC spawn
@@ -541,22 +537,11 @@ justification:
     invariants: [TypeInvariant, KillTestVerdictRequiresBudgets]
     effects: [CliWorkflowResult.kill_test_verdict]
     kill_tests: [inv-KillTestVerdictRequiresBudgets]
-  # RC-01: architecture_scan had NO ROW HERE. AC-01 added the variable and did
-  # not add its justification, so `analyze complexity` -- which reads this table
-  # and flags any variable with no linkage as dead weight -- has been reporting
-  # this epic's own new variable as unjustified since AC-01 closed. Not one of
-  # the audit's nine; found while closing G-5, and fixed rather than filed
-  # because it is the same stanza and the same defect class.
-  architecture_scan:
-    invariants: [TypeInvariant]
-    effects: [CliWorkflowResult.architecture_scan_verdict]
-    kill_tests: []
-  # RC-01 (MF-026 G-8): the AC-04 refactor delta. Advisory like the scan --
-  # TypeInvariant is the only property that reads it, no action guards on it,
-  # and "worsened" is recorded rather than refused. Its linkage is the effect:
-  # the verdict is what `analyze architecture --baseline` reports and what the
-  # complexity ledger records as its `architecture_delta` member.
-  architecture_delta:
-    invariants: [TypeInvariant]
-    effects: [CliWorkflowResult.architecture_delta_verdict]
-    kill_tests: []
+  # REMOVED 2026-08-04 (owner direction): architecture_scan and
+  # architecture_delta, with the command that wrote them. Both were justified
+  # ONLY by TypeInvariant plus their own externally-visible verdict -- no
+  # invariant related them to anything else, no guard read them, and neither
+  # carried a kill test. That is the shape of a variable whose entire reason to
+  # exist is that a command prints a number, which is precisely what this table
+  # was built to expose. See the tombstone in TlaSpecDevCli.tla and
+  # references/architecture_advice.md.

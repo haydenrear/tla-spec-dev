@@ -108,9 +108,13 @@ ticket close reads the ticket's `results/complexity_ledger.yaml` input
 history entry is created, appends an entry (recorded or rejected) to
 `specs/results/complexity_ledger.json`, and has no override flag. It refuses
 when the input is missing or unfilled, when there is no refinement record or
-narrative, when complexity increased without a recorded justification, when a
-decrease lacks validated-refactor evidence, and — at workflow close only —
-when the coverage-audit status is anything but `pass`.
+narrative, when complexity increased without a recorded justification, and when
+a decrease lacks validated-refactor evidence.
+
+The coverage audit was a sixth refusal — at workflow close, on anything but
+`pass`, with no override — until 2026-08-04. Its verdict is still recorded and
+printed at every close, `fail` and `incomplete` included; it stops nothing. See
+`references/coverage_audit.md`, "Status".
 
 ## Per-Ticket Close
 
@@ -165,9 +169,10 @@ python scripts/close_tickets.py \
 
 This writes `closed-snapshot` under the workflow history directory before
 removing `current` and `desired_program_model`. It requires the
-workflow-close ledger input at `specs/results/complexity_ledger_input.yaml`,
-whose `coverage_audit` block must record `pass` — `not_run`, `incomplete`,
-and `fail` all refuse the workflow close.
+workflow-close ledger input at `specs/results/complexity_ledger_input.yaml`.
+That input carries a `coverage_audit` block, which is recorded and printed but
+(since 2026-08-04) refuses nothing — `pass` is still the only value meaning
+"the surface was walked and no in-scope gap was found".
 
 If `current`, `desired_program_model`, and `program_model` have not been
 hand-reconciled but `desired_program_model` is the intended accepted state, pass
