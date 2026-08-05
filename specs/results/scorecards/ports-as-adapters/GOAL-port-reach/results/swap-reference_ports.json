@@ -4,7 +4,52 @@
   "catalogues": [
     "examples/validation/ab/seeded_faults.toml"
   ],
-  "control_red": [],
+  "control_red": [
+    {
+      "instrument": "corpus-action-bound:fake",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-accepted-hold-too-large",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-action-bound:real",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-accepted-hold-too-large",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:fake",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-accepted-hold-too-large",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:real",
+      "must_be": "KILLED",
+      "mutant": "PA-M14-positive-control-accepted-hold-too-large",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    }
+  ],
   "controls_on_unmutated_code": {
     "corpus-action-bound:fake": {
       "bound_by": {
@@ -243,6 +288,7 @@
         "suite-real": "KILLED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound:fake": {
           "failures": [
@@ -308,6 +354,7 @@
         "suite-real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound:fake": {
           "failures": [],
@@ -365,6 +412,7 @@
         "suite-real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound:fake": {
           "failures": [],
@@ -418,6 +466,67 @@
         "suite-real": "KILLED"
       },
       "control_role": "positive -- must die on every instrument that executes an accepted Reserve against the reference_ports tree, under BOTH wirings, AND must be invisible until one does. The second half is the half arm B's M07 lacked, and it is the half that makes a survival here mean 'the instrument stopped reaching the accept path' rather than 'something, somewhere, changed'.",
+      "control_verdict": {
+        "declared_role": "positive -- must die on every instrument that executes an accepted Reserve against the reference_ports tree, under BOTH wirings, AND must be invisible until one does. The second half is the half arm B's M07 lacked, and it is the half that makes a survival here mean 'the instrument stopped reaching the accept path' rather than 'something, somewhere, changed'.",
+        "green": false,
+        "instruments_decided": [
+          "corpus-action-bound:fake",
+          "corpus-action-bound:real",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real",
+          "suite-fake",
+          "suite-real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [
+          "corpus-action-bound:fake",
+          "corpus-action-bound:real",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "must_be": "KILLED",
+        "role": "positive",
+        "role_scope": {
+          "actions_named_in_prose": [
+            "Reserve"
+          ],
+          "executable_as_written": true,
+          "scope": "witness-scoped"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-action-bound:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "suite-fake": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          },
+          "suite-real": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          }
+        }
+      },
       "evidence": {
         "corpus-action-bound:fake": {
           "failures": [],
@@ -461,6 +570,8 @@
       "path": "reference_ports/domain.py"
     }
   },
+  "retired_controls": {},
   "subject": "reference_ports",
-  "tree": "examples/validation/ab/reference_ports"
+  "tree": "examples/validation/ab/reference_ports",
+  "unmutated_control_failed": []
 }

@@ -5,7 +5,41 @@
     "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml",
     "specs/results/scorecards/hexagonal-prompting-rerun/measure/controls_arm_b.toml"
   ],
-  "control_red": [],
+  "control_red": [
+    {
+      "instrument": "corpus-action-bound",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:fake",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    },
+    {
+      "instrument": "corpus-port-swap:real",
+      "must_be": "KILLED",
+      "mutant": "M07-positive-control-wrong-hold",
+      "observed_cell": "SURVIVED",
+      "role": "positive",
+      "why": "declared positive control; this instrument executed 294 accepting Reserve case(s) and the cell is SURVIVED, not KILLED",
+      "witness_action": "Reserve",
+      "witness_basis": "measured",
+      "witness_ran_accepting": 294
+    }
+  ],
   "controls_on_unmutated_code": {
     "corpus-action-bound": {
       "bound_by": {
@@ -175,6 +209,7 @@
         "corpus-port-swap:real": "KILLED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [
@@ -219,6 +254,7 @@
         "corpus-port-swap:real": "KILLED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [
@@ -263,6 +299,7 @@
         "corpus-port-swap:real": "KILLED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [
@@ -307,6 +344,7 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -339,6 +377,7 @@
         "corpus-port-swap:real": "KILLED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [
@@ -383,6 +422,7 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -415,6 +455,48 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": "positive -- must die on every instrument that can execute an accepted Reserve",
+      "control_verdict": {
+        "declared_role": "positive -- must die on every instrument that can execute an accepted Reserve",
+        "green": false,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "must_be": "KILLED",
+        "role": "positive",
+        "role_scope": {
+          "actions_named_in_prose": [
+            "Reserve"
+          ],
+          "executable_as_written": true,
+          "scope": "witness-scoped"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          }
+        }
+      },
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -447,6 +529,7 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -479,6 +562,21 @@
         "corpus-port-swap:real": "KILLED"
       },
       "control_role": "negative -- RETIRED at EVAL-STABLE; see eval/controls.toml. Still runs, still scored in its class row, decides nothing.",
+      "control_verdict": {
+        "decides_nothing": true,
+        "declared_role": "negative -- RETIRED at EVAL-STABLE; see eval/controls.toml. Still runs, still scored in its class row, decides nothing.",
+        "green": true,
+        "instruments_wrong": [],
+        "measured_cells": {
+          "corpus-action-bound": "KILLED",
+          "corpus-port-swap:fake": "SURVIVED",
+          "corpus-port-swap:real": "KILLED"
+        },
+        "replaced_by": "N01-negative-control-outstanding-id-order",
+        "retirement_reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.",
+        "role": "negative (RETIRED)",
+        "witnesses": {}
+      },
       "evidence": {
         "corpus-action-bound": {
           "failures": [
@@ -519,6 +617,7 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": null,
+      "control_verdict": {},
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -551,6 +650,42 @@
         "corpus-port-swap:real": "SURVIVED"
       },
       "control_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+      "control_verdict": {
+        "declared_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+        "green": true,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [],
+        "must_be": "SURVIVED",
+        "role": "negative",
+        "role_scope": {
+          "actions_named_in_prose": [],
+          "executable_as_written": true,
+          "scope": "universal"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          }
+        }
+      },
       "evidence": {
         "corpus-action-bound": {
           "failures": [],
@@ -576,6 +711,15 @@
       "path": "quota_ledger/domain.py"
     }
   },
+  "retired_controls": {
+    "M09-negative-control-ledger-order": {
+      "mutant": "M09-negative-control-ledger-order",
+      "reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.\n",
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "was": "negative"
+    }
+  },
   "subject": "arm_b",
-  "tree": "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b"
+  "tree": "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b",
+  "unmutated_control_failed": []
 }

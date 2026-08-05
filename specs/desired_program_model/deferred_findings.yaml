@@ -773,3 +773,91 @@ findings:
       coverage from it. The verdict is correct; the denominator is absent.
     disposition: carried
     disposition_ticket: "PA-06"
+  - id: PA-04-DF-04
+    found_by: "PA-04 (epic owner, post-implementation review)"
+    found_at_commit: "5a58b2b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+        - "examples/validation/ab/eval/run_controls.py"
+    summary: >-
+      A CONTROL'S ROLE WAS PROSE THAT NOTHING EXECUTED, SO A DEMONSTRATED
+      CONTROL FAILURE DID NOT RAISE -- AND THE GOAL VERDICT TURNED ON IT.
+
+      PA-04's first run reported `control_red: []` while `PA-M14` -- declared
+      "positive -- must die on every instrument that executes an accepted
+      Reserve against the reference_ports tree, under BOTH wirings" -- SURVIVED
+      both port columns, each of which had executed 294 accepting `Reserve`
+      cases. Nothing compared the role string against the measured
+      `ran_accepting`, so the field said no control was red while one was red on
+      four instruments. PA-04 then reported `GOAL-port-reach` as MET even though
+      the target's second clause is "and no positive control is red", and even
+      though PA-04's own prose said every port kill number was a floor.
+
+      THIS IS EVAL-SUPPRESS IN THE OTHER DIRECTION. EVAL-SUPPRESS closed "a
+      declaration can erase a demonstrated kill". This is "a role string can
+      fail to raise a demonstrated control failure". Same hole, opposite sign,
+      and NOTHING IN `SUPPRESSION_KEYS` REACHES IT, because no suppression was
+      declared -- the check simply was not wired.
+
+      IT IS ALSO PA-04-DF-02 REALIZED IMMEDIATELY, IN THE FLATTERING DIRECTION.
+      `run_controls.py` DOES execute the role: PA-03's sealed
+      `kill-table-arm-a.json` records `M07: {green: false, instruments_wrong:
+      ["corpus-port"], must_be: KILLED}` and `control_coverage.positive.green:
+      false`. PA-04's second driver dropped that check. "Two drivers is how a
+      number gets quoted against the wrong instrument" was filed as a hazard in
+      the same ticket that then demonstrated it.
+
+      FIXED IN PA-04 rather than deferred, because the fix makes PA-04's own
+      result WORSE: it converts a reported "met" into a split verdict and puts a
+      red control beside the ticket's best number. That direction is always
+      allowed; the reverse is the forbidden one and was declined (see
+      PA-04-DF-01). What is filed here is the DEFECT and its blast radius, not
+      a request to repair it.
+
+      Two further defects were found by RUNNING the fix, both now closed:
+      (a) the first version flagged RETIRED `M09` as red, because it did not
+      read `retired_control`; a false red corrupts a control record exactly as
+      badly as a false green. (b) it flagged a UNIVERSAL role ("must die on
+      every instrument") as unexecutable merely for naming no action, which
+      would have put a false warning beside two legitimate negative controls.
+    reproduction: >-
+      `git show 5a58b2b:specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json`
+      -> `control_red: []` with
+      `per_mutant["PA-M14-..."].cells["corpus-port-swap:real"] == "SURVIVED"`
+      and
+      `controls_on_unmutated_code["corpus-port-swap:real"].per_action.Reserve.ran_accepting == 294`.
+      `uv run --with pytest --with pyyaml python -m pytest tests/test_control_role_is_executed.py -q`
+      -> 16 passed at HEAD, 13 FAILED at 5a58b2b.
+    evidence:
+      - "tests/test_control_role_is_executed.py"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json"
+      - "specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      The DEFECT is fixed in PA-04's own driver. What is deferred is the shared
+      half: `examples/validation/ab/eval/run_controls.py` is PA-01's scope, and
+      the two drivers must be reconciled into one before PA-06 quotes numbers
+      from either. That reconciliation is PA-04-DF-02's fix and this row raises
+      its severity from minor to major, because the hazard is no longer
+      hypothetical.
+    suggested_fix: >-
+      Fold PA-04's subject table into `run_controls.py` so one driver executes
+      one control rule, and delete `measure/run_port_swap.py`. Until then, every
+      port-scoped number PA-06 quotes must name which driver produced it. Carry
+      `tests/test_control_role_is_executed.py` onto whichever driver survives --
+      a control check with no test is what produced this row.
+    blast_radius: >-
+      EVERY port-scoped kill number in this epic, including PA-04's headline
+      table. `PA-M12`'s kill is a demonstrated kill and stands; the SURVIVED
+      cells beside it sit under a red positive control and are a FLOOR. More
+      broadly: any measurement round in this project whose controls are declared
+      in prose and checked by nothing.
+    disposition: carried
+    disposition_ticket: "PA-06"

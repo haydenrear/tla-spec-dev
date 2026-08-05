@@ -41,8 +41,25 @@ nothing to swap, `--wiring fake` runs the real adapter, and **PA-M12 is
 unreachable under any wiring.** The mapping is the only difference between that
 pair of columns and the port-swap pair beside it.
 
-`GOAL-port-reach` target — *"the same adapter-internal fault dies on at least one
-generated instrument"* — **MET.** `PA-M12`, on `corpus-port-swap:fake`.
+### `GOAL-port-reach`: the target has TWO clauses and they do not agree
+
+> *"The same adapter-internal fault dies on at least one generated instrument,
+> **and no positive control is red**."*
+
+**Clause 1 — MET.** `PA-M12` dies on `corpus-port-swap:fake`.
+
+**Clause 2 — NOT MET.** `PA-M14` is red on **all four** corpus columns of the
+reference tree, and `M07` is red on **all three** arm columns of both arms.
+
+They are reported separately and deliberately not averaged into one word. PA-06
+decides the goal and must inherit the split, not a "met" that hides a red
+control.
+
+> **This section previously read "MET" while the same document said every port
+> kill number was a floor.** The epic owner caught it: the verdict line and the
+> `control_red` field both contradicted the ticket's own prose, which is the
+> shape of PA-02's table contradicting its own paragraph. The correction is
+> below, and the driver defect that permitted it is `PA-04-DF-04`.
 
 ### What did NOT die, stated plainly
 
@@ -56,11 +73,31 @@ the total is invisible to every corpus instrument here, exactly as
 narrow this and could not have.
 
 **`PA-M14`, the ports tree's declared positive control, survives every corpus
-column.** This is `PA-03-DF-03` realized precisely as it was filed: `PA-M14`
-inflates a held total and lands on `available`, while the port's derived region
-is `{closed, committed, ledger}`. No positive control in the catalogue is seeded
-inside a port's region, **so every port-scoped column in this table carries a red
-positive control and its kill numbers are a FLOOR.**
+column — and that is a RED CONTROL, now measured as one.** Its declared role is
+*"positive — must die on every instrument that executes an accepted Reserve
+against the reference_ports tree, under BOTH wirings"*. Every one of the four
+corpus columns executed **294 accepting `Reserve` cases** and none of them killed
+it, so by its own role it is red on all four:
+
+| control | instrument | must be | observed | accepting `Reserve` executed |
+|---|---|---|---|---|
+| PA-M14 | `corpus-port-swap:real` | KILLED | **SURVIVED** | 294 |
+| PA-M14 | `corpus-port-swap:fake` | KILLED | **SURVIVED** | 294 |
+| PA-M14 | `corpus-action-bound:real` | KILLED | **SURVIVED** | 294 |
+| PA-M14 | `corpus-action-bound:fake` | KILLED | **SURVIVED** | 294 |
+
+`M07` is red the same way on all three columns of **both** arms (294 accepting
+`Reserve` each). `M09` is **RETIRED** and decides nothing; `N01` is **GREEN** on
+every column of both arms — so the run still has a working negative control and
+has **no** working positive one.
+
+This is `PA-03-DF-03` realized precisely as filed: `PA-M14` inflates a held total
+and lands on `available`, while the port's derived region is
+`{closed, committed, ledger}`. **Every kill number in every port-scoped column
+above is a FLOOR** — a control that should have died there and did not means the
+column's zeros cannot be told apart from a broken instrument. That includes the
+headline: `PA-M12`'s kill is a demonstrated kill and stands on its own, but the
+SURVIVED cells beside it are not evidence of anything.
 
 `PA-03-DF-03`'s `suggested_fix` names PA-04 or PA-06 as the ticket that seeds an
 in-region control. **PA-04 did not seed it**, and the reason is sequencing rather
@@ -154,9 +191,35 @@ arm B's durable write lives in its adapter, so there is nowhere else in arm B fo
 score this divergence as unattributed; the data is in
 `results/swap-arm-a.json` and `results/swap-arm-b.json` either way.
 
+### WHICH WAY THE DIVERGING CELL POINTS — read this before scoring it
+
+The cell diverges. It does **not** say the port caught more.
+
+`arm A KILLED, arm B SURVIVED.` Arm A has no fake, so — as the tool prints on
+every arm-A run — its `:fake` column ran its **REAL** adapter. **The comparison
+is arm A's real against arm B's fake.** And on it, the hexagonal arm is the one
+that *lost* the fault: swapping in arm B's own fake took M09 off the executed
+path and made a real ordering fault **invisible**.
+
+That is not "the arms diverge, therefore the port works." **It is this epic's own
+thesis about ports creating regions, showing up a second time** — the same
+mechanism as `BA-B14`, now visible in the arms rather than in the fixture. The
+port created somewhere for a fault to be unreachable; the swap is what makes the
+*other* side reachable, and running only one side of it moves the blind spot
+rather than removing it.
+
+`PA-M12` and `M09` are therefore the same finding seen from both ends:
+- `PA-M12` — the pair **reaches** a region a single wiring never did. (a gain)
+- `M09` — a single wiring **loses** a fault the other wiring holds. (the cost)
+
+Neither is legible without the other, and a table that reports only the first
+over-reads.
+
 `GOAL-cases-drive-ports` target — *"verdicts diverge on at least one cell, and
-the divergence is attributable to a port rather than to prompt length"* —
-**MET on the new columns, with the caveat above.** PA-06 decides it.
+the divergence is attributable to a port rather than to prompt length"* — the
+divergence is **measured** and the attribution argument is above with its
+objection recorded. **Whether a divergence in this direction satisfies the goal
+is PA-06's to judge, not mine to declare.** I am not reporting it as met.
 
 ---
 
@@ -284,7 +347,8 @@ python3 scripts/run_generated_case_adapters.py <scratch>/specs/corpus-port/spec-
 
 ```
 uv run --with pytest --with pyyaml python -m pytest tests -q
-# 1120 passed
+# 1132 passed  (includes tests/test_control_role_is_executed.py: 16 tests,
+#               13 of which FAIL on 5a58b2b -- see PA-04-DF-04)
 
 python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project
 # see specs/tickets/PA-04/results/
