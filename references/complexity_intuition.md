@@ -588,3 +588,122 @@ agent to judge with. The scanner makes no suggestions and this document
 makes none on its behalf; a poor score is not a verdict; nothing here blocks
 promotion; and a complexity delta only counts when reported jointly with the
 behavior-retention evidence from the same run.
+
+---
+
+## The Other Descriptor: Complexity Of Produced Code
+
+Everything above reads a **model**. `scripts/analyze_complexity.py` measures
+TLA+, and every A/B this project has run produces **Python**. That gap is not
+academic: when the predecessor epic asked whether the hexagonal prompt made
+the produced code simpler, D2 measured **2 for both arms from all four
+judges** — not because the prompt failed to simplify, but because nothing in
+the toolchain could tell.
+
+`scripts/code_complexity.py` is the instrument that was missing.
+
+```
+python3 scripts/code_complexity.py <tree-or-file> [more...]
+python3 scripts/code_complexity.py <tree> --json     # goes in mechanical.json
+```
+
+It is a **thermometer**, held to exactly the same rules as the model
+descriptor and two more besides:
+
+- It **reports**. It refuses nothing and it exits 0 on every target,
+  including a target that does not exist and a file it cannot parse. An
+  unparseable construct costs *completeness*, which is printed with the path
+  and the reason.
+- **CD-01**: it proposes no cut, no refactor, no move. A tool that picks the
+  boundary makes every edge legal by construction.
+- **MF-020**: it prints **no comparison and no delta**. There is deliberately
+  no `--compare` mode. A printed `-12` is the shape that invites a reader to
+  treat a fall as a finding, and the best complexity result on this project's
+  record was withheld from a top score by both blind judges for exactly that
+  reading. Run it twice; read two tables.
+- **No threshold exists.** There is no constant in that file a measured figure
+  is compared against, and nothing in this toolchain reads its output as a
+  condition. Both are asserted by `tests/test_code_complexity.py` against the
+  shipped source and the shipped repository, not promised here.
+
+Its figures go in the scorecard's **mechanical block**, which is recorded and
+never scored, so that a disagreement between the measurement and the judges is
+visible as a finding rather than resolved by arithmetic.
+
+### The figures
+
+Every key below is emitted by the shipped instrument, and
+`tests/test_code_complexity.py::test_documented_figures_match_shipped_output`
+asserts this table and the real output name exactly the same set — so renaming
+a figure and not this table fails a test.
+
+| key | scope | what it counts |
+|---|---|---|
+| `path` | module | file path, relative to the target |
+| `role` | module | `test` or `code`, from the NAME alone — never from contents |
+| `parsed` | module | whether the file was parsed at all |
+| `unparsed_reason` | module | why it was not, when it was not |
+| `modules` | totals | files measured |
+| `total_lines` | both | all lines |
+| `code_lines` | both | non-blank, non-comment lines |
+| `callables` | both | `def` and `async def`, at any nesting |
+| `classes` | both | `class` statements |
+| `public_top_level` | both | module-level names not starting with `_` |
+| `public_methods` | both | public methods of public classes |
+| `public_surface` | both | the sum of the previous two |
+| `declared_exports` | module | `len(__all__)` when it is a literal, else null |
+| `instance_state` | both | distinct `self.<name>` assignment targets, per class, summed |
+| `module_state` | both | distinct module-level names *rebound* (twice-assigned, augmented, or `global`) |
+| `branch_points` | both | decision points, exactly as listed below |
+| `max_branch_points_in_callable` | both | the most-branching single callable |
+| `busiest_callable` | module | its name |
+| `max_depth` | both | deepest nesting of `if`/`for`/`while`/`with`/`try`/`match` in one callable |
+| `deepest_callable` | module | its name |
+| `declared_interfaces` | both | classes based on `Protocol`/`ABC`, or carrying an `@abstractmethod` |
+| `declared_interface_methods` | both | their methods |
+| `effectful_calls` | both | syntactic calls to the printed sink vocabulary |
+| `effect_sinks` | both | the distinct sink names actually seen |
+| `effect_sink_groups` | totals | which of filesystem/process/network/clock/randomness/stdio were seen |
+| `imports_internal` | module | in-tree modules this one imports |
+| `imports_external` | module | imports resolving outside the tree |
+| `internal_import_edges` | totals | in-tree import edges |
+| `modules_with_effectful_calls` | totals | how many modules touch the outside world |
+| `branch_points_in_effectful_modules` | totals | of the branch points, how many sit in a module that also touches the outside world |
+| `instance_state_in_effectful_modules` | totals | the same partition for mutable object state |
+| `unresolved_constructs` | module | `import *`, `setattr`, `getattr`, `eval` — things it cannot attribute |
+
+**`branch_points` counts exactly**: `if` (each `elif` is a nested `if`),
+conditional expressions, `for`/`async for`, `while`, each `except` handler,
+each `if` clause of a comprehension, each `match` case, and each *additional*
+operand of a boolean operator. It does **not** count `assert`, `with`, or a
+bare `try`. That choice changes the figure for test modules most of all, which
+is why it is stated rather than left implicit.
+
+**`effectful_calls` undercounts on purpose.** It matches names syntactically,
+so a sink reached through an alias, a local variable or `getattr` is invisible;
+and eighteen sink names that collide with ordinary in-memory operations
+(`get` ~ `dict.get`, `copy` ~ `dict.copy`, `walk` ~ `ast.walk`, …) are left out
+of the vocabulary entirely and printed with every report. A `dict.get` counted
+as a network call is a figure that says something false; a missed
+`requests.get` is a figure that says less than the truth and says so in the
+completeness block. One-sided, the same way the negative corpus is one-sided.
+
+### Reading it
+
+The same intuition as the rest of this document applies: complexity should be
+proportional to the essential behavior. Two cautions specific to code:
+
+1. **Totals hide location, and location is usually the question.** The two
+   anchor trees under `examples/validation/ab/` implement one feature — the
+   flat `reference/` and the ported `reference_ports/` — and report the
+   *identical* `effectful_calls=3`. What differs is where those three calls
+   sit: in the flat tree the module holding all 10 branch points also holds all
+   3, and in the ported tree the domain holds 9 branch points and 0. Read the
+   per-module table and the `*_in_effectful_modules` partition, not the total
+   alone.
+2. **A ported tree measures *larger* on most totals, and that is not a
+   defect in it or in the instrument.** `reference_ports/` reports 5 modules,
+   26 public surface and 255 code lines against the flat tree's 1, 15 and 122.
+   Introducing a boundary adds a declaration, an implementation and a
+   composition point. Whether that purchase was worth it is a judgement, and
+   this instrument does not make it.
