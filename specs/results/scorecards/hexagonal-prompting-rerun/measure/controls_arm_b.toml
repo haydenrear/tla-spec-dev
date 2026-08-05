@@ -1,0 +1,95 @@
+# EVAL-RERUN: the control record for arm B.
+#
+# The same three jobs `examples/validation/ab/eval/controls.toml` does on the
+# fixture reference, re-anchored: SCOPE for the positive control, RETIREMENT of
+# M09, and the REPLACEMENT negative control N01 with its reality witness.
+#
+# The limitations are IDENTICAL in text and in witness to the reference record's,
+# because they are claims about INSTRUMENTS, not about trees. The driver
+# re-verifies each against THIS run's own executability counts rather than
+# carrying the number across; an unverifiable limitation is rejected and the cell
+# is decided normally.
+
+[catalogue]
+id = "EVAL-RERUN-controls-arm-b"
+anchored_on = "quota_ledger/domain.py"
+root = "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b/"
+extends = "specs/results/scorecards/hexagonal-prompting-rerun/measure/catalogue_arm_b.toml"
+
+
+# NOTE, and it is a difference from arm A rather than an oversight. Arm A carries
+# a SECOND limitation here, on `corpus-neg`: its M07 is a fault on the accept
+# path of `reserve`, and the negative corpus executes no accepted Reserve. Arm
+# B's M07 is the DECLARED BROADER-REACH SUBSTITUTE (see catalogue_arm_b.toml) --
+# it inflates the computed held total, so it is observable after any command
+# including a refusal. The limitation would be FALSE on this arm, so it is not
+# declared. A limitation that is true of arm A and false of arm B is exactly what
+# "M07 is not the same experiment on the two arms" means in the table.
+
+[[limitation]]
+mutant = "M07-positive-control-wrong-hold"
+instrument = "corpus-slice-led"
+reason = '''
+The LEDGER slice does not project `available` -- M07's only observable -- and its
+corpus contains no `Reserve` edge whatsoever. It cannot execute the mutated line
+and could not see the difference if it did. That is the declared shape of an
+aspect slice, not a miss.
+'''
+witness_action = "Reserve"
+witness_polarity = "positive"
+witness_ran_must_be = 0
+
+
+[[retired_control]]
+mutant = "M09-negative-control-ledger-order"
+was = "negative"
+reason = '''
+Retired for the reason given in full in examples/validation/ab/eval/controls.toml:
+M09 reverses a SEQUENCE and this model represents its ledger as one
+(`ledger' = Append(ledger, ...)`, projected as a tuple and compared
+positionally), so ordering is expressible and the corpus sees it. The retirement
+is a property of the MODEL, so it holds on every tree measured against that
+model. M09 is not deleted, not re-seeded and not excused: it still runs and is
+still scored in the `ordering` class row. What it stops doing is deciding
+whether the instrument works.
+'''
+replaced_by = "N01-negative-control-outstanding-id-order"
+
+
+[[mutants]]
+id = "N01-negative-control-outstanding-id-order"
+fault_class = "ordering"
+boundary_kind = "invariant"
+boundary_ref = "FEATURE.md -- outstanding_ids(): the ids of all live reservations, ascending"
+control_role = "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding"
+gap_targeted = '''
+The model holds live reservations in `live`, a SET, projected by the oracle as a
+`frozenset`. No sequence, no index, nothing positional anywhere in the chain.
+Reversing the order `outstanding_ids()` reports is therefore invisible to every
+model-derived instrument BY CONSTRUCTION rather than by accident of tuning.
+'''
+seeded_by = "perturbation"
+path = "quota_ledger/domain.py"
+find = "        return list(self._outstanding)"
+replace = "        return list(reversed(self._outstanding))  # MUTANT N01"
+description = "outstanding_ids() reports live reservation ids descending; the SET of ids is identical"
+semantic = "The membership of outstanding_ids() is unchanged and correct; only its ORDER is reversed. FEATURE.md requires ascending."
+observable = "the ORDER of outstanding_ids() when two or more reservations are live, and nothing else."
+
+predicted_corpus_whole = "SURVIVES -- `live` is a set in the model and a frozenset in the projection"
+predicted_corpus_neg = "SURVIVES"
+predicted_corpus_slice_res = "SURVIVES -- the RESERVATIONS slice projects `live`, still as a set"
+predicted_corpus_slice_led = "SURVIVES -- the LEDGER slice does not project `live` at all"
+predicted_map_silent = "SURVIVES"
+predicted_map_checking = "SURVIVES"
+predicted_suite = '''
+SURVIVES, and this is the uncomfortable half. The shared suite asserts
+`outstanding_ids() == ["r1"]` -- one element, where ascending and descending are
+the same list -- and its `snapshot()` helper compares a book against ITSELF
+across a rejection, so a consistently reversed order matches. The suite that
+scored 10 of 10 on the sealed catalogue has no assertion this mutant can fail.
+'''
+
+reality_witness = "witnesses:outstanding_ids_not_ascending"
+refine_variable = "live"
+refine_action = "Reserve"

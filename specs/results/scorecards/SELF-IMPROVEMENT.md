@@ -63,6 +63,15 @@ maximum spread 1, and D1 and D2 identical on all five examples.
 | ab_quota_ledger | **B (treatment)** | 2 blind | 3 | 2 | **4** | 3 | 3 | **15**/20 | 2026-08-04 |
 | ab_quota_ledger | **A (control)** | 1 blind | 3 | 2 | 2 | 2 | 4 | **13**/20 | 2026-08-04 |
 | ab_quota_ledger | **A (control)** | 2 blind | 2 | 2 | 2 | 2 | 3 | **11**/20 | 2026-08-04 |
+| ab_quota_ledger | A (control) — **EVAL-RERUN** | 1 blind | 3 | 2 | 2 | 2 | 3 | **12**/20 | 2026-08-04 |
+| ab_quota_ledger | A (control) — **EVAL-RERUN** | 2 blind | 3 | 2 | 2 | 2 | 2 | **11**/20 | 2026-08-04 |
+| ab_quota_ledger | **B (treatment)** — **EVAL-RERUN** | 1 blind | 3 | 2 | **4** | 3 | **4** | **16**/20 | 2026-08-04 |
+| ab_quota_ledger | **B (treatment)** — **EVAL-RERUN** | 2 blind | 3 | 2 | **4** | 2 | 3 | **14**/20 | 2026-08-04 |
+
+**The EVAL-RERUN rows are a DIFFERENT PAIR OF ARTIFACTS**, produced by
+re-dispatching the same two prompt files verbatim to fresh agents after the
+instrument was repaired. They are comparable to the HP-06 rows as *arms of the
+same experiment on the same fixture*, not as re-scorings of the same code.
 
 **Pre-treatment reading.** D1 = 0 because no model-derived case exists yet — the
 model ships and TLC is green, but the corpus is HP-03's work; the hand-written
@@ -103,6 +112,13 @@ D1 number, or does not.
 - **The generator is still worse than the hand-written suite.** Suite **10 of
   10**; whole-view corpus **5 of 10**; both corpora together **8 of 10**. Below
   the bar a suite written in an afternoon clears.
+  > **OVERTURNED IN PART BY EVAL-RERUN (2026-08-04).** The 10 of 10 is partly an
+  > artifact of what was seeded: the replacement negative control **N01 survives
+  > the hand-written suite too**. On the repaired instrument the union of the
+  > generated instruments **ties** the suite, 10 of 11, on both arms and on a
+  > fresh blind catalogue — though no *single* generated instrument gets past 7
+  > against the suite's 10, so the tie is an aggregate effect. Quote the bar with
+  > the N01 clause and the single-instrument number, or not at all.
 - **A positive control survives.** M07 is seeded in nobody's gap and is supposed
   to die on every instrument; it survives the whole-view corpus, because
   `Reserve` contributes zero executable cases. Only **3,440 of 43,128** positive
@@ -224,6 +240,10 @@ scenario(real)`, which cannot fail for any fault in the rules). HP-02 added one
 sentence to close it and deliberately did not re-measure; **this was that
 sentence's first measurement and it held.**
 
+> **SUPERSEDED BY EVAL-RERUN (2026-08-04): D1 = 3 from both judges on BOTH
+> arms, under a positive control that is green on the faithfully seeded arm.
+> The verdict is unchanged; the caveat below is not.**
+
 `GOAL-catch-bugs`: **`met`. D1 = 3 from both judges on the treatment arm** —
 against a baseline where nothing reached 3 on either judge on any example —
 carried entirely by the negative corpus, whose controls are green. Guard
@@ -287,7 +307,12 @@ reproducing HP-03's retraction on two arms.
   epics old.
 - **The prompt produced the structure and the structure caught nothing.** Every
   per-mutant verdict is identical between the arms on **49 of 49 comparable
-  cells**. A port did not detect one additional fault, and the treatment arm's
+  cells**.
+  > **REPLICATED AND WIDENED BY EVAL-RERUN**, on a fresh pair of artifacts and a
+  > catalogue that seeds all ten mutants on both arms rather than eight:
+  > **56 of 56 strictly comparable cells identical.** On an independently
+  > authored 15-mutant catalogue the only two differing cells are the two rows
+  > its author declared non-parallel. A port did not detect one additional fault, and the treatment arm's
   own 41 tests appear nowhere in any kill table — both judges said so and both
   capped D1 for it.
 - **The guard-relaxation zero is not what the sealed catalogue says it is.** This
@@ -322,6 +347,15 @@ red positive control — repairing `Reserve` argument recovery — is the obviou
 next move, and HP-06-DF-11 says it will turn a **second** control red, because
 the oracle re-derives a reservation id the model does not allocate that way. That
 is the order of work, not an objection to doing it.
+
+> **DONE, AND HP-06-DF-11 FIRED EXACTLY AS PREDICTED — with a broader cause than
+> it reasoned about.** Recovery is 4,028 of 4,028 and arm A's M07 is green. The
+> id problem was not repaired but *declared and counted*: 294 of 588 `Reserve`
+> cases are skipped. EVAL-RERUN then found that DF-11's own explanation covers
+> only **28 of the 294** — for the other 266 the id the API would allocate is
+> outside the model's `ResIds` entirely. The suggested fix (installing the id
+> counter from the case's own `r`) was rejected on principle without running it,
+> because it would configure the program to produce the id the oracle compares.
 
 ## POST-EVALUATION CORRECTION (2026-08-04) — read before citing any number above
 
@@ -383,6 +417,198 @@ declared limitations carrying verified witnesses rather than as failures.
 **This is why the epic does not close on HP-06's run.** The instrument changed
 after the measurement; the measurement has to be taken again on the repaired one,
 and whatever it says is what gets recorded.
+
+## EVAL-RERUN — the re-measurement the correction above demanded (2026-08-04)
+
+**Two goals `met`, one `missed` — the same verdicts HP-06 reached, on an
+instrument whose controls now work, from a different pair of artifacts.** The
+two `met` verdicts each carry a caveat that must never be separated from them,
+and the caveats are not the ones HP-06 carried.
+
+Full record: `specs/results/scorecards/hexagonal-prompting-rerun/`.
+
+| goal | baseline | measured | target | verdict |
+|---|---|---|---|---|
+| `GOAL-catch-bugs` | D1 = 2/2/2/1/0; nothing reached 3 on either judge on any example; guard relaxation 0 of 3 and 0 of 4 | **D1 = 3 from both judges on BOTH arms.** Guard relaxation **3 of 3 under `corpus-neg`** on the seeded catalogue on both arms and **1 of 1** on a fresh blind one, against 0 under every other generated instrument | D1 ≥ 3 from both judges on some example, and guard-relaxation kills > 0 on both catalogues | **`met`** |
+| `GOAL-simpler-same-behavior` | highest D2 is 3, both judges withholding 4 for the same reason | **D2 = 2 from all four judges on both arms.** Arm A 122 lines / 10 branches / 1 module; arm B 129 / 11 / 4 | an arm-B artifact scores D2 = 4 from both judges | **`missed`** |
+| `GOAL-hexagonal-in-fact` | D3 = 1/1–2/3/1/0–1; one 3, never a 4 | **arm B D3 = 4 from both judges**, both earned by executing the swap; arm A 2 from both | prompt arm ≥ 3 from both judges on the majority, with at least one 4 | **`met`** |
+
+**No target was edited.**
+
+### THE POSITIVE CONTROL IS FIXED — on the arm where it could be seeded faithfully
+
+`P05` was HP-06's most consequential failure: M07 survived all six generated
+instruments, because **0 of 588** positive `Reserve` cases carried an argument.
+On the repaired generator, recovery is **4,028 of 4,028**, **294 accepted
+`Reserve` cases execute**, and arm A's M07 — byte-for-byte the sealed
+catalogue's seeding — **has no `SURVIVED` cell anywhere.** `P05` flips **FAIL →
+PASS**.
+
+**And an adversarial pass showed the arm-B half of that row is worth nothing.**
+It built `corpus-noreserve` — the whole-view corpus with every `Reserve` case
+deleted, reproducing HP-06's regression exactly — and ran it: arm A's control
+correctly went **SURVIVED/red**; **arm B's stayed KILLED.** Arm B's declared
+broader-reach substitute inflates a computation that runs on every read, so it is
+detectable through `CloseTenant` on a state with no live reservation at all.
+**"Both controls are green on both arms" is true and means two different things.**
+
+### THE `NOT_DECIDABLE` MECHANISM IS AN UNAUDITED SUPPRESSION KEY
+
+The shipped driver decides `NOT_DECIDABLE` **before** consulting the mutated run
+and never checks whether the cell it suppresses would have been `KILLED`. Proved
+twice on this round's own data: copying one arm's limitation onto the other turns
+a **demonstrated kill** into `NOT_DECIDABLE` with `verified: true`, `green:
+true`, exit 0 and no trace; and a witness naming an action **that appears nowhere
+in the model** also "verifies", erasing two genuine kills and collapsing a class
+denominator to `0 of 0`. `scripts/kill_test.py`'s 19 `SUPPRESSION_KEYS` do not
+include it and `run_controls.py` never invokes that scan.
+
+**This applies to the sealed reference run in `examples/validation/ab/eval/results/`
+as much as to this one.** Filed as EVAL-RERUN-DF-02, not fixed.
+
+### THE 10-OF-10 BAR, RE-DERIVED RATHER THAN INHERITED
+
+| | arm A | arm B |
+|---|---|---|
+| hand-written suite | **10 of 11** | **10 of 11** |
+| union of six generated instruments | **10 of 11** | **10 of 11** |
+| best SINGLE generated instrument | 7 | 7 |
+| fresh blind catalogue: suite / union | **11 of 15 / 11 of 15** | **10 of 15 / 10 of 15** |
+
+**The corpora now tie the suite** — on the seeded catalogue and on a catalogue
+nobody tuned. Three clauses travel with that and none may be dropped:
+
+1. **N01 survives the hand-written suite too.** The suite asserts
+   `outstanding_ids() == ["r1"]` and compares a book against itself across a
+   rejection. **The 10-of-10 that set the bar rested on a catalogue containing no
+   mutant that suite could miss**, and any citation of "the generator is worse
+   than a suite written in an afternoon" now needs that clause.
+2. **The tie is the FORBIDDEN AGGREGATE.** Delete N01 and it is still 10 to 10 —
+   so the tie is produced by unioning six instruments, five of which are not
+   independent, and **no single generated instrument gets past 7 against the
+   suite's 10.** Instrument for instrument the suite still wins comfortably.
+3. **A catalogue written by the mechanisms' author still flatters both
+   instruments by roughly a quarter** (10 of 11 against 11 of 15 / 10 of 15).
+
+### REACH, PRINTED BESIDE EVERY KILL
+
+`corpus-whole` executes **3,734 of 43,128 (8.66%)** — CloseTenant 1,872, Commit
+784, Release 784, Reserve 294 — identical on both arms. **39,100 refusal edges
+carry no arguments.** `corpus-neg` executes 94 of 118 and **0 accepting
+`Reserve`**. The slices execute 320 of 2,438 and 10 of 56.
+
+**And the round's own explanation of the `Reserve` skips was wrong for 266 of
+294.** Only 28 are "a case naming a different id"; for the other 266 the id the
+API would allocate is **outside the model's `ResIds` entirely**, so no case could
+ever have been expressible. **"Exactly half" is a coincidence of `|ResIds| = 2`,
+not a property of the refinement.** A further **252 executed cases (6.7%) run
+from before-states the API can never reach and are not counted at all.**
+
+### THE PROMPT PRODUCED THE STRUCTURE AND THE STRUCTURE CAUGHT NOTHING — again
+
+**All 56 strictly comparable per-mutant cells are identical between the arms**
+(the loose count of 76 was corrected in place; three of eleven rows are not the
+same diff). On the fresh blind catalogue the two cells that differ are **exactly
+the two rows its author declared non-parallel**. Where the mutants are the same,
+the arms are identical; where the arms differ, the catalogue differs.
+
+**And the D3 = 4 still cannot be attributed to hexagonality.** 16 unique prompt
+lines to 105 — **6.6x**, recomputed on the shipped files. Two rounds have now
+reached D3 = 4 without once testing "hexagonal" against "longer and more
+specific".
+
+### N01 THE PREDICTION FLIPPED FROM THE SAME PROMPT TEXT
+
+HP-06 measured its treatment arm at **123 production lines against 147** and
+scored sealed prediction N01 **FAIL**. This round measures **129 against 122** —
+the other way — and scores it **PASS**. Same two files, same feature, same
+rubric, four different agents. **The descriptor delta between one pair of
+artifacts is noise at this scale and must not be quoted in either direction.**
+The judged half has now held twice: D2 flat at 2 across eight independent judges.
+
+### D5 SEPARATED, AND THE SEALED FILE SAYS TO SUSPECT THE JUDGES FIRST
+
+N03 flips **PASS → FAIL**: arm A 3 / 2, arm B 4 / 3. The instructed first
+explanation — the judges guessed the arm — does not fit. Both arm-B judges
+declined to infer the arm and recorded treating polish as grounds for suspicion.
+The separation is driven by the **control** arm being marked DOWN on executed
+evidence: two judges independently instrumented its flagship 400-step randomized
+sweep and found it accepts about **1 reserve, 1 commit, 0–1 releases and 3
+closes** before every tenant closes, so its own anti-degeneracy guard passes on
+the degenerate run it was written to prevent. Arm B's 4 was earned by a judge
+reproducing all four of its self-declared limits, including breaking R2 with an
+injected raising `Journal`; the judge who gave 3 instead **falsified** one of its
+claims (the real adapter and the fake are not contract-equivalent).
+
+**D5 separated because one artifact certified something false about itself and
+the other did not, and both were checked by running them.**
+
+### FINDINGS BY CHANNEL — 0 : 15 : 19, and the first counter-example in three rounds
+
+Suite re-run **0** (986 repo tests, 28 + 28 shared, 32 + 53 the arms' own, all
+green). Fresh adversarial attack **15**, three SEVERE, five of them falsifying a
+claim this round had already written down. Blind catalogue author **19**, and for
+the fourth round running its **REJECTED** section was the most valuable thing
+produced. A fourth channel not in HP-06's ratio — the four judges, all of whom
+built their own mutants rather than scoring the packet — produced **4** more.
+
+**Sealed N06 passes for the fourth round running. And for the first time it has a
+counter-example that should be recorded as loudly as the zero:** the hand-written
+suite **as a kill-table instrument** caught this round's first defect
+(EVAL-RERUN-DF-01, a stale module reference that made all eleven mutants execute
+against pristine code and report SURVIVED). Six generated instruments missed it.
+A green positive control missed it. **The disagreement between the hand-written
+column and the generated columns caught it.**
+
+### SIX OF THIS ROUND'S OWN CLAIMS WERE FALSE AND ARE CORRECTED IN PLACE
+
+The controls headline, the witness-verification claim, the `Reserve` skip cause,
+the "76 comparable cells" denominator, the attribution of the bar's
+non-reproduction to N01, and the determinism provenance. Each is marked in
+`hexagonal-prompting-rerun/GOAL-catch-bugs/README.md` and attributed to the
+channel that broke it. **Four `EVAL-RERUN-DF-*` are filed and none is fixed.**
+
+### THE OTHER UNFLATTERING HALF
+
+- **The answer key leaks into files blind roles are ALLOWED to read.**
+  `QuotaLedger.tla`'s header names six of the ten seeded mutants and where they
+  are seeded; `spec_manifest.yaml` describes one verbatim and quotes prior
+  scores. **Two of the blind author's thirty mutants are not independent
+  evidence.**
+- **The model still does not refine its own specification**, found again
+  independently: the COMMIT record has three fields where the feature's has four,
+  `unknown_tenant` is in the reason vocabulary and no action can produce it,
+  `RejectionIsInert` does not check inertness, and the model cannot express a
+  negative amount.
+- **The two implementations differ in exactly one observable across 3,600
+  measured slots** — whether `commit`/`release` return the reservation id. The
+  prompt moved the shape enormously and the behavior by one ambiguous field.
+- **The port's cost replicated and grew.** A judge found the real adapter and the
+  fake are not contract-equivalent, falsifying a claim the artifact makes about
+  itself; the blind author found a genuine defect living entirely inside the fake
+  and declined to seed it because the control arm has no counterpart.
+- **The one measurable consequence of the architectural difference is still not
+  measured**: the arms order the durable write against the memory update
+  oppositely — in the opposite directions from HP-06's pair — and nothing in the
+  fixture can price it.
+
+### CAN THE INSTRUMENT BE TRUSTED NOW? PARTLY, AND ITS REACH IS SMALLER THAN THE RECORD CLAIMS
+
+What is now trustworthy and was not: the **positive control on a faithful
+seeding**, **parameter recovery**, **determinism** (independently reproduced from
+regenerated corpora on both arms, all seven instruments), **kill attribution**
+(every retained failure string is an `AssertionError` naming the mutant's own
+semantic), and **the negative control**, which now has a reality witness.
+
+What is not: **any cell scoped by a declared limitation**, because the
+suppression is unaudited and demonstrably able to erase a kill; **arm B's
+positive control**, which does not detect its own failure mode; and **any
+statement about what the whole-view corpus "cannot see"**, because 91.3% of it
+never executes and the reason it does not was mis-stated for 266 of 294 cases.
+
+**"Its reach is smaller than the record claims" remains the true answer.** What
+changed is that the reach is now *printed* — per instrument, per action, per skip
+rule — instead of being inferable by nobody.
 
 ## What would count as self-improvement
 
