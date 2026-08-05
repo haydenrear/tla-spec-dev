@@ -420,6 +420,13 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     negotiated max_distinct_states 500,000, and it is recorded rather than
     negotiated away: the domain represents the reachable verdict set exactly.
 
+    BOTH OF AC-01'S AND RC-01'S FACTORS CAME BACK OUT ON 2026-08-04, when the
+    static architecture scanners were removed. Measured on MC.cfg after the
+    removal: 13,008,254 generated / 563,963 distinct at depth 25, no error --
+    down from 32,122,220 / 1,292,951 at depth 26. Still over
+    max_distinct_states 500,000, and still recorded rather than negotiated
+    away. This is the first DIVISION in the chain asserted below.
+
     RP-04 (CM-01-DF-03) then changed nothing about this number and everything
     about what may be said with it. The chain above has ALWAYS been a product
     over 8 of this model's 10 variables -- `lastCommand` and `result` have no
@@ -443,38 +450,36 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     if not tla.is_file():
         return
     result = analyze(tla, cfg, None)
-    # RC-01 (MF-026) grew the bound 9.53x in one ticket, deliberately and with
-    # the cost recorded rather than negotiated. Two factors, both closing gaps
-    # the coverage audit found in what the model REPRESENTS rather than in what
-    # the program does:
+    # 2026-08-04 (owner direction): THE BOUND WENT DOWN, for the first time in
+    # this project's history. Every prior entry in the chain below is a
+    # multiplication. This one is a division by 24, and it is a division for the
+    # only honest reason a bound may shrink -- the program stopped producing the
+    # outcomes the removed variables represented.
     #
-    #   * `architecture_delta` (G-8), 6-valued -- AC-04's `--baseline`
-    #     comparison reports a verdict none of whose values is derivable from
-    #     `architecture_scan`, and two of the six are REFUSALS (`unattributable`
-    #     when the two scans did not share a map and model, `unverified` when a
-    #     count fell without the lost edges enumerated). Modeling only the three
-    #     measurements would have represented exactly the half of the command
-    #     that can be gamed. Factor 6: 2,799,360 -> 16,796,160.
+    #   * `architecture_scan` (4-valued, added by AC-01) and
+    #     `architecture_delta` (6-valued, added by RC-01 as G-8) were written by
+    #     exactly one action, `AnalyzeArchitecture`, and read by no guard. The
+    #     command and the two scanner modules behind it (1,192 + 2,325 lines)
+    #     were removed; the verdicts no longer exist to record.
+    #     26,671,680 / 4 / 6 = 1,111,320.
     #
-    #   * `TicketClosedWeakened`, the sixth per-ticket stage (owner decision) --
-    #     a close taken under a guard-weakening flag is a different state from
-    #     one taken under the guard. ticket_state goes [Tickets -> 0..5] to
-    #     0..6, so the per-ticket factor goes 6^3 = 216 to 7^3 = 343:
-    #     16,796,160 / 216 * 343 = 26,671,680.
+    # No action left the bound: AnalyzeArchitecture wrote only these two
+    # variables plus lastCommand and result, and neither of the latter pair has
+    # a resolvable domain (see the completeness assertions at the end).
     #
-    # No action was added to the bound: GenerateCases and CloseTicketWeakened
-    # write only lastCommand and result, neither of which has a resolvable
-    # domain (see the completeness assertions at the end of this test).
-    assert result.bound == 26_671_680
-    # Undo the RC-01 weakened-close stage...
+    # Note what did NOT change and is deliberately still asserted below: the
+    # figure is still over `max_state_space_bound` 1,000,000, so the scanner
+    # still warns about this model. A removal that happened to drop the bound
+    # under the cap would be worth suspecting; this one does not, and the chain
+    # is checked all the way back to MF-020 so a future ticket cannot quietly
+    # rebuild the number under a different name.
+    assert result.bound == 1_111_320
+    # Undo the RC-01 weakened-close stage. This now lands directly on AC-01's
+    # PRE-figure, because the two factors AC-01 and RC-01 contributed between
+    # them are the two that came out.
     pre_rc01_stage = result.bound // 343 * 216
-    assert pre_rc01_stage == 16_796_160
-    # ...and the RC-01 6-valued architecture delta...
-    pre_rc01 = pre_rc01_stage // 6
-    assert pre_rc01 == 2_799_360
-    # ...to recover AC-01's figure, then divide out its 4-valued scan...
-    pre_ac01 = pre_rc01 // 4
-    assert pre_ac01 == 699_840
+    assert pre_rc01_stage == 699_840
+    pre_ac01 = pre_rc01_stage
     # ...then the MF-016 4-valued kill-test gate...
     pre_mf016 = pre_ac01 // 4
     assert pre_mf016 == 174_960
@@ -492,15 +497,17 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     assert (pre_mf025 // 3 // 6 * 32) // 3 == 393_216
     assert set(result.unbounded) == {"lastCommand", "result"}
 
-    # RP-04: the chain is a product over 9 of 11 variables, and says so.
-    # RC-01 added `architecture_delta`, which the resolver CAN see (a fixed
-    # string domain in TypeInvariant), so both counts moved by one and the
+    # RP-04: the chain is a product over 7 of 9 variables, and says so.
+    # The 2026-08-04 removal took two variables the resolver COULD see (both had
+    # fixed string domains in TypeInvariant), so both counts moved by two and the
     # unresolved pair is unchanged -- which is exactly the property RP-04's
-    # assertions exist to police: the chain above is still a like-for-like
-    # comparison because every factor in it multiplied the same resolved subset.
+    # assertions exist to police, now exercised in the subtracting direction:
+    # the chain above is still a like-for-like comparison because the removal
+    # divided out of the same resolved subset every earlier factor multiplied
+    # into.
     completeness = result.completeness
-    assert completeness.resolved == 9
-    assert completeness.total == 11
+    assert completeness.resolved == 7
+    assert completeness.total == 9
     assert completeness.complete is False
     assert completeness.unresolved == ["lastCommand", "result"]
     # Over the cap on an incomplete bound is still over the cap -- the two
@@ -766,13 +773,15 @@ def test_repository_own_model_has_landed_the_setup_phase_collapse() -> None:
         assert removed not in result.variables
     # MF-013 later multiplied the bound by 4 (effect_conformance), MF-027 took
     # that factor to 5 by adding the "unobservable" verdict, MF-016 multiplied
-    # by a further 4 (kill_test), AC-01 by a further 4 (architecture_scan),
-    # RC-01 by a further 6 (architecture_delta), and MF-025 divided the bound by
-    # 4096/216 (the per-ticket lifecycle collapse) -- which RC-01 then widened
-    # from 6^3 to 7^3 by adding the weakened-close stage. Undo all of them
-    # before checking the setup-phase factor. A change to the setup-phase factor
-    # itself would still break this.
-    pre_mf025 = result.bound // 343 * 216 // 6 // 4 // 4 // 5 // 216 * 4096
+    # by a further 4 (kill_test), and MF-025 divided the bound by 4096/216 (the
+    # per-ticket lifecycle collapse) -- which RC-01 then widened from 6^3 to 7^3
+    # by adding the weakened-close stage. AC-01's factor of 4
+    # (architecture_scan) and RC-01's factor of 6 (architecture_delta) were both
+    # REMOVED 2026-08-04 with the static architecture scanners, so they are no
+    # longer divided out here: the chain gets SHORTER when model surface goes
+    # away, which is the point. Undo the rest before checking the setup-phase
+    # factor. A change to the setup-phase factor itself would still break this.
+    pre_mf025 = result.bound // 343 * 216 // 4 // 5 // 216 * 4096
     # The figure MF-011 projected, still present as a factor of the bound
     # after MF-014's corpus_gate tripled it.
     assert pre_mf025 % 221_184 == 0

@@ -118,9 +118,11 @@ program model.
 3. Promote the converged model into `specs/program_model`.
 4. Fill in the workflow-close ledger input,
    `specs/results/complexity_ledger_input.yaml`. It must include a
-   `coverage_audit` block whose status is `pass`: at workflow close any other
-   verdict (`fail`, `incomplete`, `not_run`) refuses the close. Run
-   `prompts/coverage_audit.md` first and record the report path.
+   `coverage_audit` block. Since 2026-08-04 it REFUSES NOTHING — the verdict is
+   recorded and printed at every close, `not_run` included — but `pass` is still
+   the only value that means "the surface was walked and no in-scope gap was
+   found". Run `prompts/coverage_audit.md` if you want that read, and record the
+   report path. See `references/coverage_audit.md`, "Status".
 5. Record a closed-workflow snapshot and remove temporary workflow directories:
 
 ```bash

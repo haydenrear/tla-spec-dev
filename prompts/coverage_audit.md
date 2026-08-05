@@ -1,5 +1,16 @@
 # Coverage Audit — sub-agent prompt (MF-026)
 
+> **Status, 2026-08-04: this is a REVIEW, not a gate.** The workflow close no
+> longer refuses on anything but `pass`; the verdict is recorded and read by a
+> person. The audit is kept because it is the only sweep here that looks at
+> UNMODELED surface and it has repeatedly found things no oracle can see. The
+> refusal is gone because the verdict is a word the audited party types about a
+> sweep the audited party performed — see `references/coverage_audit.md`,
+> "Status", and `references/architecture_advice.md` S5. **Everything below is
+> unchanged.** Nothing about the standard softened: in-scope gaps are still
+> HARD, `incomplete` is still not `pass`, and there is still no
+> justified/accept-as-is disposition. Run it honestly or do not run it.
+
 **Dispatch this file verbatim as the prompt for a sub-agent.** It is the
 end-of-epic completeness gate: after every mechanism ticket has landed and
 **before** final end-to-end integration. See `references/coverage_audit.md` for

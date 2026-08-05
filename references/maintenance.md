@@ -40,9 +40,10 @@ the truth. Python makes that truth executable in tests.
     `scripts/close_tickets.py --repo-root .` validates matching current,
     desired, and promoted program-model semantic files, checks that all tickets
     in `ticket_plan.yaml` are closed, records a workflow-scope complexity-ledger
-    entry from `specs/results/complexity_ledger_input.yaml` (which must exist,
-    pass the ledger gates, and carry `coverage_audit.status: pass` — any other
-    audit verdict refuses the workflow close), and removes `specs/current` plus
+    entry from `specs/results/complexity_ledger_input.yaml` (which must exist
+    and pass the ledger gates; its `coverage_audit` block is recorded and
+    printed but, since 2026-08-04, refuses nothing), and removes `specs/current`
+    plus
     `specs/desired_program_model` after promotion. Record a workflow close entry
     before or during final cleanup so the promoted history is append-only.
 

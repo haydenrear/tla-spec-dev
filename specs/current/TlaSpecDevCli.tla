@@ -168,9 +168,7 @@ VARIABLES
   complexity_gate,
   corpus_gate,
   effect_conformance,
-  kill_test,
-  architecture_scan,
-  architecture_delta
+  kill_test
 
 vars ==
   << setup_phase,
@@ -181,9 +179,7 @@ vars ==
      complexity_gate,
      corpus_gate,
      effect_conformance,
-     kill_test,
-     architecture_scan,
-     architecture_delta >>
+     kill_test >>
 
 \* MF-025: the lifecycle stages by name. Guards and invariants below read as a
 \* lifecycle rather than as arithmetic on an integer.
@@ -200,7 +196,8 @@ TicketClosed              == 5
 \* it. Before this ticket the flags were inventoried as presentation under the
 \* per-flag granularity limitation, and the cost of that was specific rather
 \* than theoretical: CloseTicket guards on TicketSpecUnitTestsPassed and TLC
-\* proves ClosedTicketsPassedSpecUnitTests over 1,292,951 states, while
+\* proves ClosedTicketsPassedSpecUnitTests over 563,963 states (1,292,951
+\* before the 2026-08-04 scanner removal), while
 \* `--accept-new` (tla_spec_dev.py --accept-new) and `--allow-open` exist
 \* SPECIFICALLY to bypass that precondition -- so the model proved an invariant
 \* the shipped program has two documented flags to violate, no modeled state
@@ -246,8 +243,6 @@ Init ==
   /\ corpus_gate = "unknown"
   /\ effect_conformance = "unknown"
   /\ kill_test = "unknown"
-  /\ architecture_scan = "unknown"
-  /\ architecture_delta = "unknown"
 
 \* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
 \* DECLARED EFFECT PORT -- an entry of
@@ -273,9 +268,7 @@ BuildSkillCli ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
 \* RC-02 (MF-026 round-3 N-1): three @port lines ADDED so this action's
@@ -301,9 +294,7 @@ InstallLocalCli ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold project`
 \* Creates the accepted `program_model` baseline only.
@@ -321,9 +312,7 @@ ScaffoldProject(root) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: scaffold emits a `budgets:` block into spec_manifest.yaml and
 \* instructs the agent to propose the documented defaults to the user, ask
@@ -345,9 +334,7 @@ RecordBudgets(root) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold workflow`
 \* Creates project `current/`, `desired_program_model/`, and ticket plan.
@@ -365,9 +352,7 @@ ScaffoldWorkflow(root) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
 \* Creates ticket-local current/desired/results/Test Graph workspace.
@@ -390,9 +375,7 @@ OpenTicket(root, ticket) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* Agent step: update ticket desired model, adapters, and Test Graph bindings.
 \* This is intentionally modeled because the CLI must print this instruction.
@@ -410,9 +393,7 @@ UpdateTicketDesired(ticket) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* Agent step: production implementation has landed and current matches desired.
 \* @command UpdateTicketCurrent
@@ -429,9 +410,7 @@ UpdateTicketCurrent(ticket) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze complexity <spec> <cfg>`
 \* MF-011, amended by CD-09 (G2): measures the model against the manifest
@@ -457,9 +436,7 @@ AnalyzeComplexity(root) ==
                   ticket_state,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze corpus <cases-dir>`
 \* MF-014: measures the GENERATED CORPUS against the manifest case caps
@@ -492,9 +469,7 @@ AnalyzeCorpus(root) ==
                   ticket_state,
                   complexity_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run effect-conformance`
 \* MF-013: executes component adapters in a sandbox (temp dirs, fake
@@ -549,9 +524,7 @@ RunEffectConformance(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run kill-test --corpus-command <cmd>`
 \* MF-016, oracle 4. Seeds one fault per declared port and one per invariant
@@ -604,9 +577,7 @@ RunKillTest(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance,
-                  architecture_scan,
-                  architecture_delta >>
+                  effect_conformance >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
 \* Runs generated/adapted spec-unit validation for ticket current.
@@ -684,9 +655,7 @@ RunSpecUnitTests(root, ticket) ==
   /\ UNCHANGED << setup_phase,
                   spec_root,
                   complexity_gate,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
 \* Closes ticket only after current == desired and spec-unit tests passed.
@@ -710,9 +679,7 @@ CloseTicket(root, ticket) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>` taken under
 \* one of the six GUARD-WEAKENING FLAGS.
@@ -774,70 +741,49 @@ CloseTicketWeakened(root, ticket) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
-
-\* CLI: `tla-spec-dev --spec-root <root> analyze architecture`
-\* AC-01/AC-02: emits the ARCHITECTURE the diagram implies -- components as
-\* variable clusters, the single writer of each variable, and the crossings
-\* that are its ports -- and (AC-02) compares it against the production code's
-\* real dependency structure. Like complexity, it is a SCANNER: it records a
-\* verdict and blocks nothing. "divergent" means the code has edges the model
-\* declares no port for; "unmappable" means the reflexion map could not be
-\* built at all, which is "I could not measure this" rather than a finding.
-\* No guard anywhere reads architecture_scan, deliberately: see
-\* references/architecture_tractability.md, "Advisory, Not Blocking".
-\*
-\* RC-01 (MF-026 G-8): `--baseline` compares this scan against a previous one
-\* and reports the DIVERGENCE DELTA. Its outcome is a second externally
-\* observable result of the same command and none of its values is derivable
-\* from architecture_scan, so it is its own variable rather than a widened scan
-\* domain: "the code moved toward the boundaries the model draws" and "this
-\* scan is coherent" are different facts, and the ledger records them
-\* separately (scripts/complexity_ledger.py ARCHITECTURE_DELTA_DIRECTIONS).
-\* The two refusals matter more than the three measurements: `unattributable`
-\* is what the tool returns when the two scans did not share a declared map and
-\* model -- the gaming move AC-04 demonstrated, where re-placing one module in
-\* the map alone moves the divergence count 0 -> 6 with no source change -- and
-\* `unverified` is the structural MF-020 rule, a count that fell without the
-\* edges that disappeared being enumerated. Modeling only `improved` /
-\* `worsened` / `unchanged` would represent exactly the half of this command
-\* that can be gamed.
-\* @command AnalyzeArchitecture
-\* @result CliWorkflowResult
-\* RC-01 (MF-026 G-1/G-2/G-4): this action's row in effects.actions was ABSENT
-\* in all three manifests -- the only non-stutter action with no row -- and the
-\* line that stood here read "No @port: the scan reads the model and the source
-\* tree and prints." It does not only print: `--out` writes the descriptor
-\* (analyze_architecture.py) and the reflexion report
-\* (architecture_reflexion.py). The write is now constrained to the
-\* `evidence_report` port's declared `**/results/**` target
-\* (scripts/spec_paths.py resolve_evidence_out), so the declaration below is
-\* true of every caller rather than of the documented one.
-\* @port TlaSpecDevCliPort.evidence_report
-AnalyzeArchitecture(root) ==
-  /\ setup_phase >= 4
-  /\ root = spec_root
-  /\ architecture_scan' \in {"coherent", "divergent", "unmappable"}
-  \* An unmappable scan cannot yield a MEASURED delta: with no comparable
-  \* reflexion report the count that would be compared does not exist, so the
-  \* only honest outcomes are "no comparison was asked for" and the two
-  \* refusals. This is the same rule as the scan's own -- a refusal beats a
-  \* false clean -- applied one level up.
-  /\ architecture_delta' \in IF architecture_scan' = "unmappable"
-                              THEN {"unknown", "unverified", "unattributable"}
-                              ELSE {"unknown", "improved", "worsened", "unchanged",
-                                    "unverified", "unattributable"}
-  /\ lastCommand' = "tla-spec-dev analyze architecture"
-  /\ result' = CommandResult(TRUE, NoReason, "tla-spec-dev run spec-unit-tests")
-  /\ UNCHANGED << setup_phase,
-                  spec_root,
-                  ticket_state,
-                  complexity_gate,
-                  corpus_gate,
-                  effect_conformance,
                   kill_test >>
+
+\* REMOVED 2026-08-04 (owner direction): the state variables architecture_scan
+\* and architecture_delta, and the action AnalyzeArchitecture that was the only
+\* writer of either. Recorded here rather than deleted silently, the same rule
+\* SpecUnitTestsRequireAnalyzedGate's tombstone follows: removed model surface
+\* must be distinguishable at review from lost model surface.
+\*
+\* WHAT WENT: `tla-spec-dev analyze architecture`, scripts/analyze_architecture.py
+\* (1,192 lines) and scripts/architecture_reflexion.py (2,325). The command
+\* recorded two advisory verdicts -- a model-side architecture descriptor and a
+\* code-side reflexion diff -- and no guard anywhere read either, so the model
+\* loses no precondition and no invariant with them. What it loses is the
+\* ability to REPRESENT those two outcomes, which is correct: the program no
+\* longer produces them.
+\*
+\* WHY, in one measurement taken on this very module before the removal. The
+\* descriptor's own decomposition verdict on TlaSpecDevCli was "the partition is
+\* a cut -- every criterion met", at graph modularity Q = 0.0116, against a
+\* published rule of `Q > 0` and a Newman threshold of 0.3 that the same table
+\* printed and did not apply. The second component that earned that verdict was
+\* { architecture_scan, architecture_delta } -- the scanner's own state,
+\* touched by one action, owning nothing. The DECLARED four-component partition
+\* of the same model, written by hand to be honest, measured Q = -0.0228 and
+\* failed. A verdict that passes on the analyser's own bookkeeping and fails on
+\* the considered cut is sensitive to model SIZE, not to structure.
+\*
+\* MEASURED COST OF THE REMOVAL, both directions of it. The declared-representation
+\* bound falls 26,671,680 -> 1,111,320 (a factor of 4 x 6, the two domains), and
+\* TLC on MC.cfg falls 32,122,220 -> 13,008,254 generated and 1,292,951 ->
+\* 563,963 distinct, depth 26 -> 25, no error. This is the FIRST TIME either
+\* figure has gone down in this project. Every earlier entry in the chain
+\* (tests/test_analyze_complexity.py) is a multiplication, and each one was
+\* justified by a real outcome the program produces. This division is justified
+\* the only way a shrink honestly can be: the program stopped producing those
+\* outcomes. Note what did NOT happen -- no invariant was weakened, no guard was
+\* relaxed, no domain was narrowed, and no reachable behaviour was quotiented
+\* away. Two variables and their sole writer left together.
+\*
+\* What the scanners measured is now written down as instructions an agent
+\* follows and as a specification a future scanner must satisfy before it earns
+\* any authority here: references/architecture_advice.md. Reinstating these
+\* variables means reinstating a command that meets that specification.
 
 \* CLI: `tla-spec-dev --spec-root <root> generate cases <spec.tla> <cfg> --out <dir>`
 \* RC-01 (MF-026 G-6), the headline gap: CASE-MODULE GENERATION -- this epic's
@@ -849,8 +795,9 @@ AnalyzeArchitecture(root) ==
 \* DELTA" against surface the model does not contain, and all four oracles
 \* reported green -- because every oracle in this toolchain is bounded to what
 \* is already modeled, so unmodeled surface is never generated into a case,
-\* never adapted and never mutated. That is the whole reason the coverage-audit
-\* gate exists.
+\* never adapted and never mutated. That is the whole reason the coverage audit
+\* exists (a REVIEW since 2026-08-04, no longer a gate -- the sweep is the
+\* valuable part and the refusal never was).
 \*
 \* Guarded on setup_phase >= 4 for the same reason AnalyzeCorpus and
 \* RunKillTest are: generation measures the corpus against the manifest case
@@ -878,9 +825,7 @@ GenerateCases(root) ==
                   complexity_gate,
                   corpus_gate,
                   effect_conformance,
-                  kill_test,
-                  architecture_scan,
-                  architecture_delta >>
+                  kill_test >>
 
 Stutter ==
   UNCHANGED vars
@@ -904,8 +849,6 @@ Next ==
       AnalyzeComplexity(root)
   \/ \E root \in SpecRoots:
       AnalyzeCorpus(root)
-  \/ \E root \in SpecRoots:
-      AnalyzeArchitecture(root)
   \/ \E root \in SpecRoots:
       GenerateCases(root)
   \/ \E root \in SpecRoots:
@@ -935,15 +878,6 @@ TypeInvariant ==
   /\ corpus_gate \in {"unknown", "pass", "fail"}
   /\ effect_conformance \in {"unknown", "clean", "gaps", "dead_surface", "unobservable"}
   /\ kill_test \in {"unknown", "pass", "below_floor", "incomplete_catalog"}
-  \* AC-01: an advisory RECORD, not a gate. No action guards on it and no
-  \* value of it refuses anything -- "divergent" is a fact the owner reads.
-  /\ architecture_scan \in {"unknown", "coherent", "divergent", "unmappable"}
-  \* RC-01 (G-8): the delta's domain is the shipped one -- the five direction
-  \* verdicts scripts/complexity_ledger.py records, plus "unknown" for a scan
-  \* that was not asked for a comparison. Like architecture_scan it is an
-  \* advisory RECORD: no action guards on it and no value of it refuses
-  \* anything. "worsened" is recorded, never refused.
-  /\ architecture_delta \in {"unknown", "improved", "worsened", "unchanged", "unverified", "unattributable"}
 
 \* MF-022: the four bootstrap ordering invariants below are retained by name
 \* even though the setup_phase ordinal now enforces them structurally, so each
@@ -1092,7 +1026,7 @@ ClosedTicketsPassedSpecUnitTests ==
 \* refusal the program does not perform is precisely the defect CD-09's G2
 \* removed. What is asserted is that the record distinguishes the two, which is
 \* the thing that was missing: `--accept-new` and `--allow-open` bypassed a
-\* precondition TLC proved over 1,292,951 states and no oracle could see it.
+\* precondition TLC proved over 563,963 states and no oracle could see it.
 WeakenedClosesCertifyNothing ==
   \A ticket \in WeakenedClosedTickets:
     ~TicketReached(ticket, TicketSpecUnitTestsPassed)

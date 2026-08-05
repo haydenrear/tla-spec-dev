@@ -453,22 +453,27 @@ def test_analyze_out_refuses_a_path_the_evidence_port_does_not_cover(tmp_path: P
     and constrain the path, or drop --out"; the path is constrained, and it is
     REFUSED rather than silently relocated -- rewriting the operator's path
     would make the flag lie about where the file went.
+
+    Two of the three `--out` flags G-2/G-3 constrained belonged to the
+    architecture scanners and went with them on 2026-08-04. `analyze complexity`
+    keeps its flag and keeps the constraint, which is the half that matters: the
+    constraint lives in one place (`scripts/spec_paths.py resolve_evidence_out`)
+    so the `evidence_report` declaration is true of every caller.
     """
     tla, cfg = _tiny_model(tmp_path / "spec")
     stray = tmp_path / "anywhere" / "report.txt"
     declared = tmp_path / "results" / "report.txt"
 
-    for command in (("analyze", "complexity"), ("analyze", "architecture")):
-        refused = run_cli(*command, str(tla), str(cfg), "--out", str(stray), cwd=tmp_path)
-        assert refused.returncode == 2, f"{command}: {refused.stdout}"
-        assert "results/" in refused.stderr
-        assert "evidence_report" in refused.stderr
-        assert not stray.exists()
+    command = ("analyze", "complexity")
+    refused = run_cli(*command, str(tla), str(cfg), "--out", str(stray), cwd=tmp_path)
+    assert refused.returncode == 2, f"{command}: {refused.stdout}"
+    assert "results/" in refused.stderr
+    assert "evidence_report" in refused.stderr
+    assert not stray.exists()
 
-        accepted = run_cli(*command, str(tla), str(cfg), "--out", str(declared), cwd=tmp_path)
-        assert accepted.returncode == 0, accepted.stderr
-        assert declared.is_file()
-        declared.unlink()
+    accepted = run_cli(*command, str(tla), str(cfg), "--out", str(declared), cwd=tmp_path)
+    assert accepted.returncode == 0, accepted.stderr
+    assert declared.is_file()
 
 
 def test_generate_cases_out_is_constrained_to_the_declared_spec_tree(tmp_path: Path) -> None:
@@ -527,19 +532,9 @@ def test_generate_cases_metadir_delete_stays_inside_the_declared_tree(tmp_path: 
     assert SPEC_TREE_DIR_NAME in metadir.parts
 
 
-def test_reflexion_out_is_constrained_the_same_way(tmp_path: Path) -> None:
-    from scripts import architecture_reflexion
+# REMOVED 2026-08-04: test_reflexion_out_is_constrained_the_same_way. The
+# reflexion report it constrained no longer exists -- scripts/architecture_reflexion.py
+# went with the static architecture scanners. The constraint itself is unchanged
+# and is exercised above through `analyze complexity`, which is the point: the
+# refusal lives in resolve_evidence_out, not in each caller.
 
-    tla, cfg = _tiny_model(tmp_path / "spec")
-    code = tmp_path / "code"
-    code.mkdir()
-    (code / "mod.py").write_text("VALUE = 1\n", encoding="utf-8")
-    mapping = tmp_path / "map.yaml"
-    mapping.write_text("architecture:\n  map:\n    mod: C1\n", encoding="utf-8")
-
-    stray = tmp_path / "elsewhere" / "reflexion.txt"
-    exit_code = architecture_reflexion.main(
-        [str(tla), str(cfg), "--code", str(code), "--map", str(mapping), "--out", str(stray)]
-    )
-    assert exit_code == 2
-    assert not stray.exists()

@@ -55,7 +55,9 @@ LIVE_MODEL = _CURRENT if _CURRENT.exists() else REPO_ROOT / "specs" / "program_m
 
 # Every parameterisable action label of TlaSpecDevCli, exhaustively. The issue
 # said "thirteen"; the module defined FOURTEEN (plus Stutter, which produces no
-# edge under [][Next]_vars), and AC-01 added AnalyzeArchitecture for FIFTEEN.
+# edge under [][Next]_vars), AC-01 added AnalyzeArchitecture for FIFTEEN, RC-01
+# added GenerateCases and CloseTicketWeakened for SEVENTEEN, and 2026-08-04
+# removed AnalyzeArchitecture with the static architecture scanners for SIXTEEN.
 # Auditing the superset is the honest reading of "audit all the labels".
 ALL_ACTIONS = (
     "BuildSkillCli",
@@ -68,7 +70,6 @@ ALL_ACTIONS = (
     "UpdateTicketCurrent",
     "AnalyzeComplexity",
     "AnalyzeCorpus",
-    "AnalyzeArchitecture",
     "GenerateCases",
     "RunEffectConformance",
     "RunKillTest",
@@ -100,8 +101,6 @@ def state(
     corpus_gate: str = "unknown",
     effect_conformance: str = "unknown",
     kill_test: str = "unknown",
-    architecture_scan: str = "unknown",
-    architecture_delta: str = "unknown",
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -115,8 +114,6 @@ def state(
         "corpus_gate": corpus_gate,
         "effect_conformance": effect_conformance,
         "kill_test": kill_test,
-        "architecture_scan": architecture_scan,
-        "architecture_delta": architecture_delta,
     }
 
 
@@ -174,15 +171,6 @@ def pair(action: str) -> tuple[dict, dict]:
         return (
             state(setup_phase=4, spec_root="default_specs"),
             state(setup_phase=4, spec_root="default_specs", corpus_gate="pass"),
-        )
-    if action == "AnalyzeArchitecture":
-        return (
-            state(setup_phase=4, spec_root="default_specs"),
-            state(
-                setup_phase=4,
-                spec_root="default_specs",
-                architecture_scan="unmappable",
-            ),
         )
     if action == "GenerateCases":
         # RC-01 (MF-026 G-6). Writes no verdict: generation produces the corpus,
@@ -257,7 +245,6 @@ EXPECTED = {
     "UpdateTicketCurrent": {"ticket": "cli_entrypoint"},
     "AnalyzeComplexity": {"root": "default_specs"},
     "AnalyzeCorpus": {"root": "default_specs"},
-    "AnalyzeArchitecture": {"root": "default_specs"},
     "GenerateCases": {"root": "default_specs"},
     "RunEffectConformance": {"root": "default_specs"},
     "RunKillTest": {"root": "default_specs"},
@@ -283,7 +270,6 @@ NEGATIVE_CONTROLS = {
     "ScaffoldWorkflow": {"root": "default_specs"},
     "AnalyzeComplexity": {"root": "custom_specs"},
     "AnalyzeCorpus": {"root": "custom_specs"},
-    "AnalyzeArchitecture": {"root": "custom_specs"},
     "GenerateCases": {"root": "custom_specs"},
     "RunEffectConformance": {"root": "custom_specs"},
     "RunKillTest": {"root": "custom_specs"},
@@ -579,13 +565,17 @@ def test_mechanism_classification_matches_the_model(recipes):
     assert recipes["InstallLocalCli"].params == ()
 
 
-def test_all_seventeen_action_labels_are_audited(recipes):
+def test_all_sixteen_action_labels_are_audited(recipes):
     """Completeness: every Next disjunct appears, none is silently skipped.
 
     AC-01 added the fifteenth, AnalyzeArchitecture. RC-01 added the sixteenth
     and seventeenth: GenerateCases (MF-026 G-6, case-module generation, which
     the model did not contain at all) and CloseTicketWeakened (the close taken
-    around the precondition TLC proves over the whole state space).
+    around the precondition TLC proves over the whole state space). 2026-08-04
+    removed AnalyzeArchitecture with the static architecture scanners, which is
+    the first time this count has gone DOWN -- and the reason the assertion is
+    set equality rather than a length: a label that disappears must fail here
+    just as loudly as one that appears.
     """
     audited = set(recipes) - {"Stutter"}
     assert audited == set(ALL_ACTIONS), f"unaudited: {audited ^ set(ALL_ACTIONS)}"

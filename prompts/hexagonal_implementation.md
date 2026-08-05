@@ -11,13 +11,17 @@ promotion, and no tool in this repository reads it. The epic that produced it
 predecessor shipped four static architecture checks, measured them twice, and
 bug detection did not move by a single cell while every check was defeated by a
 few lines of re-export. See `references/hexagonal_prompting.md` for what this
-prompt asks for, why, and what it deliberately omits.
+prompt asks for, why, and what it deliberately omits, and
+`references/architecture_advice.md` for the nine measured facts behind the
+decision — those four checks were removed on 2026-08-04 and that page is what
+they left behind.
 
 Companions that already ship: `prompts/implementation_brief.md` renders a
-*measured* constrained ask from an architecture descriptor (use it when you have
-a model and want the constraints to be derivable); `prompts/aspect_decomposition.md`
-decomposes a model into aspects. This prompt is the one for the case where you
-have a feature to build and want the design asked for rather than derived.
+*derived* constrained ask from a model plus a partition someone declared (use it
+when you have a model and want the constraints to be checkable);
+`prompts/aspect_decomposition.md` decomposes a model into aspects. This prompt is
+the one for the case where you have a feature to build and want the design asked
+for rather than derived.
 
 ## Optional, and only when a model exists
 

@@ -1,22 +1,22 @@
 # Implementation Brief — `<Action>` in `<component>`
 
-> **Read this instead of the model.** Every constraint below was measured from
-> the TLA+ model by `tla-spec-dev analyze architecture`; none was invented for
-> you. You do not need to open the spec. You do need to honor the constraints,
-> or say why you could not.
+> **Read this instead of the model.** Every constraint below was derived from
+> the TLA+ model; none was invented for you, and none is a claim about the
+> production code. You do not need to open the spec. You do need to honor the
+> constraints, or say why you could not.
 
 - **Confidence:** `FULL` | `DEGRADED` | `REFUSED` — `<one line: why>`
-- **Descriptor:** `<path to the JSON>` (`tla-spec-dev/architecture-descriptor` v`<n>`)
 - **Model:** `<module>.tla` + `<cfg>` @ `<commit>`
-- **Partition:** `<declared | emergent>`, `<origin>` — `decomposes: <bool>`,
-  `consumable_as_architecture: <bool>`, `Q = <q>`
+- **Complexity JSON:** `<path>` (`analyze complexity --format json`)
+- **Partition:** `<declared by <who>, on <date> | emergent, declared by nobody>`
+  — `<n>` components
 
 ---
 
 ## 1. The work
 
-`<One paragraph, supplied by whoever requested the work. The descriptor does
-not know what you are being asked to build — only where it goes.>`
+`<One paragraph, supplied by whoever requested the work. The model does not
+know what you are being asked to build — only where it goes.>`
 
 ---
 
@@ -102,26 +102,30 @@ merge. Reporting the collision is the whole of what it asks.
 
 ## 6. Provenance — how much this brief is worth
 
-**Does the partition this brief cites actually decompose the model?**
+**Does the partition this brief cites constrain anything?**
 
-| criterion | measured | rule | met |
+| test | measured | fires when | fired |
 |---|---|---|---|
-| `component_count` | `<n>` | `>= 2` | `<Y/N>` |
-| `modularity_q` | `<q>` | `> 0` | `<Y/N>` |
-| `crossing_action_fraction` | `<f>` | `<= 0.5` | `<Y/N>` |
+| `V1` one component | `<n>` components | `n == 1` | `<Y/N>` |
+| `V2` subject constrains nothing | owns `<k>` variables, `<j>` internal actions | both zero | `<Y/N>` |
+| `V3` the port is not a port | `<n>` of `<m>` actions write into >1 component | fraction > 0.5 | `<Y/N>` |
+| `V4` nobody declared the partition | `<declared by … | emergent>` | emergent | `<Y/N>` |
+
+`<Optional, and only as an uninterpreted figure: graph modularity Q = <q> from
+analyze complexity. NO THRESHOLD IS APPLIED TO IT HERE. The removed architecture
+scanner published `Q > 0` as its decomposition rule — ~26x below the threshold
+it printed on the same page — and one added variable flipped this repository's
+own verdict. See references/architecture_advice.md S2. Delete this line rather
+than let a reader think it decided something.>`
 
 `<Fill in exactly one:>`
 
-- **FULL** — every criterion met. The boundary this brief names is one the
-  model's own interaction graph shows.
-- **DEGRADED** — `<the failing criteria>`. This partition is **declared**, so
-  the descriptor is consumable, but the boundary is an assertion the project
-  made and the interaction graph does not confirm. `<Say what that costs: e.g.
-  "Q < 0 means these two components share more interaction than chance — the
-  cut is a wish, not a measurement", or "crossing fraction <f> means <n> of
-  <m> actions cross the port §3.2 names, so 'reach only through this port' is
-  barely a restriction.">` Constraints §3.1, §3.3 and §3.4 are unaffected —
-  they are measured per action, not per partition.
+- **FULL** — the partition was declared, Gate A holds, and no test fired. The
+  boundary this brief names is one somebody committed to and the model's write
+  sets respect.
+- **DEGRADED** — `<the tests that fired>`. `<Say what that costs the reader in
+  one sentence.>` Constraints §3.1, §3.3 and §3.4 are unaffected — they are
+  derived per action, not per partition.
 - **REFUSED** — see the refusal block below; no constraints were rendered.
 
 **Refusal block** (only when the brief could not be rendered):
@@ -129,33 +133,34 @@ merge. Reporting the collision is the whole of what it asks.
 > No brief. `<reason>`. There is no component for this work to belong to, so
 > every clause above would be true of the whole program and would constrain
 > nothing. A vacuous brief is worse than none: it reads like architecture.
-> To get a brief here, declare a component partition (`architecture:` in
-> `spec_manifest.yaml`, or `--components`) — the tool measures a partition you
-> name and never writes one for you.
+> To get a brief here, DECLARE a component partition — name the components and
+> the variables each owns, in writing, and hand it to the renderer. Nothing in
+> this toolchain will pick one for you, deliberately: a tool that picks the
+> boundary makes every edge legal by construction
+> (`references/architecture_advice.md` S6).
 
 ---
 
 ## 7. Reproduce this brief
 
-Every clause above is a field lookup. A reviewer can recount it:
+Every clause above is derived arithmetic over one JSON payload, one partition,
+and one manifest. A reviewer can redo it:
 
 ```bash
-python3 scripts/tla_spec_dev.py --spec-root specs analyze architecture \
-  <tla> <cfg> [--components <partition.yaml>] --format json > descriptor.json
+python3 scripts/tla_spec_dev.py --spec-root specs analyze complexity \
+  <tla> <cfg> --format json > complexity.json
 
-# §2, §3.1, §3.2, §3.6
-jq '.measured.partition.components[] | select(.name=="<component>")' descriptor.json
-# §3.1, §3.2 (per-component reads/writes of this action)
-jq '.measured.crossing_actions[] | select(.action=="<Action>")' descriptor.json
-jq '.measured.actions[]          | select(.name=="<Action>")'   descriptor.json
-# §3.4
-jq '.measured.spanning_actions[] | select(.action=="<Action>")' descriptor.json
-# §3.6
-jq '.measured.ownership.single_writer_violations' descriptor.json
-# §6
-jq '.measured.partition.criteria, .measured.partition.consumable_as_architecture' descriptor.json
-# §3.3 (the manifest, not the descriptor)
+# the read/write set of this action -- §3.1, §3.2, §3.4, §3.6 all derive from it
+jq '.measured.actions[] | select(.name=="<Action>")' complexity.json
+# every action, to work out which variables are writes-confined -- §2 `owns`
+jq '.measured.actions[] | {name, writes}' complexity.json
+# the EMERGENT clustering: a measurement of the matrix, NOT the partition
+jq '.measured.components, .measured.port_crossing_actions, .measured.modularity' complexity.json
+# §3.3 (the manifest, not the model)
 #   effects.actions.<Action>  ->  effects.components.*.ports.<port>
 ```
+
+The partition itself is not in that payload and never will be. It is
+`<declared by …>` and is reproduced by reading that declaration.
 
 Rendered by `prompts/implementation_brief.md` on `<YYYY-MM-DD>`.

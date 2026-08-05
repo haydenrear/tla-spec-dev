@@ -115,14 +115,19 @@ Run these from the project root, with `$REPO` set to the checkout that holds
 nothing else.
 
 ```bash
-# (a) the actions the toolchain sees in this view -- same coverage contract as
-#     the scanners: EXTENDS followed, INSTANCE/LOCAL fail closed, actions are
-#     the top-level disjuncts of the next-state relation.
+# (a) the actions the toolchain sees in this view -- the coverage contract is
+#     EXTENDS followed, INSTANCE/LOCAL fail closed, actions are the top-level
+#     disjuncts of the next-state relation.
 #
 #     NOTE: --spec-root does NOT resolve the positional .tla/.cfg. Give their
 #     path relative to your current directory (or absolute); a bare `<View>.tla`
 #     exits with "ERROR: spec not found".
-python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze architecture \
+#
+#     This used to read `analyze architecture`, removed 2026-08-04 with the
+#     static architecture scanners (references/architecture_advice.md).
+#     `analyze complexity` carries the same `.measured.actions` list, with each
+#     action's read and write set.
+python3 "$REPO/scripts/tla_spec_dev.py" --spec-root specs analyze complexity \
   <spec dir>/<View>.tla <spec dir>/<View>.cfg --format json | python3 -c \
   "import json,sys; [print(a['name']) for a in sorted(json.load(sys.stdin)['measured']['actions'], key=lambda a: a['name'])]"
 

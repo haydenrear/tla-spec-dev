@@ -1,5 +1,11 @@
 # architectural-coherence epic — starter for the ticket agents and the next owner
 
+> **CLOSED, AND ITS SHIPPED SURFACE REMOVED 2026-08-04.** AC-01's architecture
+> descriptor, AC-02's reflexion check and AC-04's structure delta are gone by
+> owner direction, with the model surface and the ledger member that recorded
+> them. This page is the record of what the epic set out to do and what it
+> measured. What survives as guidance is `references/architecture_advice.md`.
+
 Read this before touching anything. The canonical schedule is
 `specs/desired_program_model/ticket_plan.yaml`; this file is the *why*.
 

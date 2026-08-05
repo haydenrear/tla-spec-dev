@@ -926,7 +926,28 @@ class TestCoverageAuditIsAlwaysVisible:
     """MF-026. The four oracles check FIDELITY and are all bounded to what is
     modeled. Unmodeled surface is invisible to every one of them while they
     report green, so the completeness verdict is recorded separately -- and,
-    critically, recorded even when it is absent."""
+    critically, recorded even when it is absent.
+
+    RETIRED AS A GATE 2026-08-04 (owner direction). It refused a workflow close
+    on anything but `pass`, with no override. It is now an OPTIONAL agent-run
+    review: the verdict is recorded and printed at every close, including
+    `fail` and `incomplete`, and refuses none of them. The reason is not that
+    the audit was useless -- it is the only sweep in this toolchain that looks
+    at UNMODELED surface, and it found `generate cases` with no action, no port
+    and no CLI subcommand at all (G-6), plus two shipped port globs that could
+    never fail (F-7, F-8). The reason is that its verdict is a word the audited
+    party types about a sweep the audited party performed, and a gate with that
+    input is a place to type `pass` rather than a check.
+
+    What these tests now pin is the RECORDING, in both directions: the verdict
+    is never forgiven into a pass, and it never refuses a close.
+    """
+
+    @staticmethod
+    def _audit_note(verdict) -> str:
+        matches = [n for n in verdict.notes if "coverage audit" in n]
+        assert matches, verdict.notes
+        return " ".join(matches)
 
     def test_absent_block_is_recorded_as_not_run_never_omitted(self):
         """An omitted block is not forgiven into a pass. It becomes a visible
@@ -937,32 +958,42 @@ class TestCoverageAuditIsAlwaysVisible:
         assert verdict.entry["coverage_audit"]["passing"] is False
         assert "coverage audit" in cl.render_report(verdict)
 
-    def test_not_run_is_reported_but_does_not_refuse_a_ticket_close(self):
-        """The audit is an END-OF-EPIC step. Failing it at every ticket close
-        would force each ticket to run a whole-epic audit or to fake a verdict;
-        both are worse than recording the absence."""
-        verdict = evaluate_scoped("ticket", make_input())
-        assert not verdict.rejected
-        assert any("end-of-epic" in note for note in verdict.notes)
+    def test_not_run_is_reported_and_refuses_neither_scope(self):
+        """The audit is an END-OF-EPIC step, and since 2026-08-04 it refuses
+        nothing at either scope. Its absence is a NOTE at every close, which is
+        the strongest claim the record honestly supports."""
+        for scope in ("ticket", "workflow"):
+            verdict = evaluate_scoped(scope, make_input())
+            assert not verdict.rejected, (scope, verdict.errors)
+            assert "not_run" in self._audit_note(verdict), scope
+            assert not any("coverage audit" in e for e in verdict.errors), scope
 
-    def test_not_run_REFUSES_the_workflow_close(self):
-        """At workflow close the epic is over and there is no later chance. A
-        check that silently passes when its input is absent is not a check."""
-        verdict = evaluate_scoped("workflow", make_input())
-        assert verdict.rejected
-        assert any("coverage audit" in e for e in verdict.errors)
-
-    def test_fail_refuses_the_workflow_close(self):
+    def test_fail_is_recorded_and_does_not_refuse_the_workflow_close(self):
+        """It refused here until 2026-08-04. It now records and closes through,
+        and the entry still says `fail` -- non-gating is not unrecorded."""
         payload = make_input(coverage_audit={"status": "fail", "in_scope_gaps": 3})
-        assert evaluate_scoped("workflow", payload).rejected
+        verdict = evaluate_scoped("workflow", payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["coverage_audit"]["status"] == "fail"
+        assert verdict.entry["coverage_audit"]["passing"] is False
+        assert "fail" in self._audit_note(verdict)
+        assert "does not pass" in cl.render_report(verdict)
 
     def test_incomplete_IS_NOT_pass(self):
         """MF-027's polarity lesson, applied one level up: a sweep that did not
         walk the surface carries no information about it. Promoting that to a
-        pass would dress an absence of evidence as a measurement."""
+        pass would dress an absence of evidence as a measurement.
+
+        Retiring the REFUSAL did not retire this DISTINCTION, which is the half
+        that was ever load-bearing: `incomplete` is still not `passing`, still
+        prints its flag, and still reads as an absence of evidence in the
+        entry."""
         payload = make_input(coverage_audit={"status": "incomplete"})
         assert not cl.parse_coverage_audit(payload["coverage_audit"]).passing
-        assert evaluate_scoped("workflow", payload).rejected
+        verdict = evaluate_scoped("workflow", payload)
+        assert not verdict.rejected, verdict.errors
+        assert verdict.entry["coverage_audit"]["passing"] is False
+        assert "incomplete" in self._audit_note(verdict)
 
     def test_pass_allows_the_workflow_close_and_records_the_report_path(self):
         payload = make_input(
@@ -979,15 +1010,20 @@ class TestCoverageAuditIsAlwaysVisible:
         assert "results/coverage_audit_report.md" in cl.render_report(verdict)
 
     def test_unrecognized_verdict_never_passes(self):
-        """Same polarity as the retention set: a status nobody enumerated
-        refuses rather than silently passing. `justified` and `accept_as_is`
-        are exactly the dispositions the prompt forbids -- neither becomes a
-        pass by being written into the ledger instead."""
+        """Same polarity as the retention set: a status nobody enumerated is
+        normalized to `not_run` rather than silently passing. `justified` and
+        `accept_as_is` are exactly the dispositions the prompt forbids --
+        neither becomes a pass by being written into the ledger instead.
+
+        This survives the gate's retirement unchanged. It never was a refusal
+        rule; it is a READING rule, and reading a word nobody defined as good
+        news is the failure mode with or without a gate behind it."""
         for bogus in ("justified", "accept_as_is", "waived", "approved", "green", "ok"):
             record = cl.parse_coverage_audit({"status": bogus})
             assert record.normalized == "not_run", bogus
             assert not record.passing, bogus
-            assert evaluate_scoped("workflow", make_input(coverage_audit={"status": bogus})).rejected
+            verdict = evaluate_scoped("workflow", make_input(coverage_audit={"status": bogus}))
+            assert verdict.entry["coverage_audit"]["passing"] is False, bogus
 
     def test_template_sentinel_does_not_pass(self):
         payload = make_input(coverage_audit={"status": "TODO", "report": "TODO"})
@@ -1157,228 +1193,27 @@ class TestValidatedRefactorBasis:
 
 
 # ---------------------------------------------------------------------------
-# AC-04 -- the architecture delta member
+# AC-04 -- the architecture delta member: REMOVED 2026-08-04 (owner direction)
 #
-# Three properties, in the order of how much damage their absence would do:
+# Five test classes stood here (TestArchitectureDeltaIsRecordedAndNeverGates,
+# TestTheDeltaIsDerivedNotTyped, TestTheMF020RuleAppliedToStructure,
+# TestTheMapIdentityIsPartOfTheRecord, TestTheTemplateCarriesTheDeltaBlock).
+# They pinned three properties of a ledger member whose input was a JSON report
+# only `analyze architecture --baseline` could produce. That command and the two
+# scanner modules behind it are gone, so the member could never again be
+# anything but `not_run`, and a test suite for a field with no producer is the
+# dead surface this project keeps writing tools to find.
 #
-# 1. It NEVER gates. A ticket that raised structural divergence records that and
-#    closes. A member that could refuse a close would be answered by not
-#    running the scan, and then nothing is recorded at all.
-# 2. It is DERIVED, not typed. The direction comes from the report file. The
-#    only authored field is `claim:`, and it exists so a wrong one is caught.
-# 3. It carries the map's identity. A delta across two different maps is not a
-#    refactor result, and the entry has to still say that years later.
+# Two of the three properties were never about architecture and are not lost:
+#
+#   * DERIVED, NOT TYPED -- "a member whose verdict is typed in by the author
+#     being graded is not a measurement". That is now the argument for retiring
+#     the coverage-audit gate (see TestCoverageAuditIsAlwaysVisible above), and
+#     it is written down at references/architecture_advice.md rather than
+#     enforced on one field.
+#   * MF-020 APPLIED TO STRUCTURE -- "a drop whose disappeared edges are not
+#     enumerated is unverified". The COMPLEXITY half of that rule is still
+#     mechanised, by the transition-diff gate in `evaluate`, and is still tested
+#     in this file. What went is the structural half, which had nothing left to
+#     measure.
 # ---------------------------------------------------------------------------
-
-
-import json  # noqa: E402
-
-
-def delta_report(tmp_path, **overrides):
-    """A measured architecture-delta report, as `--baseline` writes one."""
-    payload = {
-        "schema": cl.ARCHITECTURE_DELTA_SCHEMA,
-        "schema_version": 1,
-        "divergences": {
-            "before": 2,
-            "after": 0,
-            "delta": -2,
-            "lost": [
-                {
-                    "from": "deliver.py",
-                    "to": "ingest.py",
-                    "kind": "import",
-                    "symbol": "ingest.read_raw",
-                    "sites": ["pkg/deliver.py:3"],
-                }
-            ],
-            "gained": [],
-        },
-        "basis": {
-            "attribution": "code_only",
-            "map_digest_before": "sha256:aaa",
-            "map_digest_after": "sha256:aaa",
-            "architecture_digest_before": "sha256:bbb",
-            "architecture_digest_after": "sha256:bbb",
-        },
-        "verdict": {"direction": "improved", "why": ["two fewer"], "red_flags": []},
-    }
-    for key, value in overrides.items():
-        if isinstance(value, dict) and isinstance(payload.get(key), dict):
-            payload[key] = {**payload[key], **value}
-        else:
-            payload[key] = value
-    path = tmp_path / "architecture-delta.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
-    return path
-
-
-def evaluate_with_delta(tmp_path, architecture_delta, **input_overrides):
-    ledger_input = make_input(architecture_delta=architecture_delta, **input_overrides)
-    return cl.evaluate(
-        scope="ticket",
-        scope_id="AC-TEST",
-        workflow="wf",
-        metrics=metrics(),
-        ledger_input=ledger_input,
-        previous=previous(),
-        input_dir=tmp_path,
-    )
-
-
-class TestArchitectureDeltaIsRecordedAndNeverGates:
-    def test_a_worsened_delta_is_recorded_and_the_close_proceeds(self, tmp_path):
-        report = delta_report(
-            tmp_path,
-            divergences={
-                "before": 0,
-                "after": 2,
-                "delta": 2,
-                "lost": [],
-                "gained": [
-                    {
-                        "from": "deliver.py",
-                        "to": "ingest.py",
-                        "kind": "import",
-                        "symbol": "ingest.read_raw",
-                        "sites": ["pkg/deliver.py:3"],
-                    }
-                ],
-            },
-            verdict={"direction": "worsened", "why": ["two more"], "red_flags": []},
-        )
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
-        assert not verdict.rejected, verdict.errors
-        entry = verdict.entry["architecture_delta"]
-        assert entry["status"] == "worsened"
-        assert entry["gates"] is False
-        assert entry["divergent_edges_gained"], "the edges that appeared are enumerated"
-        assert any("ROSE" in note for note in verdict.entry["notes"])
-
-    def test_an_absent_delta_is_recorded_as_not_run_not_dropped(self, tmp_path):
-        verdict = evaluate_with_delta(tmp_path, {})
-        assert not verdict.rejected
-        assert verdict.entry["architecture_delta"]["status"] == "not_run"
-        assert any("architecture delta not_run" in n for n in verdict.entry["notes"])
-
-    def test_an_unreadable_report_does_not_refuse_a_close_but_is_visible(self, tmp_path):
-        verdict = evaluate_with_delta(tmp_path, {"report": "no-such-file.json"})
-        assert not verdict.rejected
-        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
-        assert verdict.entry["architecture_delta"]["problems"]
-
-    def test_a_hand_written_summary_is_not_a_delta(self, tmp_path):
-        path = tmp_path / "architecture-delta.json"
-        path.write_text(json.dumps({"divergences": {"before": 9, "after": 0}}), encoding="utf-8")
-        verdict = evaluate_with_delta(tmp_path, {"report": path.name})
-        assert verdict.entry["architecture_delta"]["status"] == "unreadable"
-        assert not verdict.rejected
-
-
-class TestTheDeltaIsDerivedNotTyped:
-    def test_the_direction_comes_from_the_report(self, tmp_path):
-        report = delta_report(tmp_path)
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
-        entry = verdict.entry["architecture_delta"]
-        assert entry["status"] == "improved"
-        assert entry["divergences_before"] == 2 and entry["divergences_after"] == 0
-        assert entry["divergent_edges_lost"] == [
-            "deliver.py -import-> ingest.py [ingest.read_raw] pkg/deliver.py:3"
-        ]
-
-    def test_a_claim_the_measurement_contradicts_refuses_the_close(self, tmp_path):
-        report = delta_report(
-            tmp_path,
-            verdict={"direction": "unattributable", "why": ["the map moved"], "red_flags": []},
-        )
-        verdict = evaluate_with_delta(
-            tmp_path, {"report": report.name, "claim": "improved"}
-        )
-        assert verdict.rejected
-        assert any("claims the architecture delta" in e for e in verdict.errors)
-
-    def test_a_claim_with_no_report_at_all_refuses(self, tmp_path):
-        verdict = evaluate_with_delta(tmp_path, {"claim": "improved"})
-        assert verdict.rejected
-        assert any("unverified by construction" in e for e in verdict.errors)
-
-    def test_a_true_claim_is_recorded_as_verified(self, tmp_path):
-        report = delta_report(tmp_path)
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
-        assert not verdict.rejected, verdict.errors
-        assert any("VERIFIED against the recorded delta" in n for n in verdict.entry["notes"])
-
-
-class TestTheMF020RuleAppliedToStructure:
-    def test_a_drop_with_no_enumerated_edges_is_downgraded_to_unverified(self, tmp_path):
-        """MF-020: a projected reduction that was really a deleted transition.
-
-        The report says `improved` and names no dependency that disappeared. The
-        ledger does not take the direction on trust -- a drop the edges do not
-        explain is unverified by construction, and a report from another build,
-        or edited afterwards, cannot smuggle one in.
-        """
-        report = delta_report(
-            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
-        )
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
-        assert verdict.entry["architecture_delta"]["status"] == "unverified"
-        assert not verdict.rejected, "unverified is recorded, not refused"
-
-    def test_claiming_that_unverified_drop_as_an_improvement_refuses(self, tmp_path):
-        report = delta_report(
-            tmp_path, divergences={"before": 2, "after": 0, "delta": -2, "lost": [], "gained": []}
-        )
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name, "claim": "improved"})
-        assert verdict.rejected
-        assert any("MF-020" in e for e in verdict.errors)
-
-    def test_red_flags_from_the_report_are_carried_into_the_notes(self, tmp_path):
-        report = delta_report(
-            tmp_path,
-            verdict={
-                "direction": "improved",
-                "why": [],
-                "red_flags": ["every disappeared divergence LEFT THE SCANNED TREE"],
-            },
-        )
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
-        assert any("RED FLAG" in note for note in verdict.entry["notes"])
-
-
-class TestTheMapIdentityIsPartOfTheRecord:
-    def test_both_digests_land_in_the_entry(self, tmp_path):
-        report = delta_report(tmp_path)
-        entry = evaluate_with_delta(tmp_path, {"report": report.name}).entry
-        delta = entry["architecture_delta"]
-        assert delta["map_digest_before"] == delta["map_digest_after"] == "sha256:aaa"
-        assert delta["architecture_digest_before"] == "sha256:bbb"
-        assert delta["attribution"] == "code_only"
-
-    def test_the_report_says_when_the_map_moved_between_the_scans(self, tmp_path):
-        report = delta_report(
-            tmp_path,
-            basis={"attribution": "unattributable", "map_digest_after": "sha256:zzz"},
-            verdict={"direction": "unattributable", "why": ["re-placed"], "red_flags": []},
-        )
-        verdict = evaluate_with_delta(tmp_path, {"report": report.name})
-        text = cl.render_report(verdict)
-        assert "architecture delta (structure, AC-04): unattributable" in text
-        assert "CHANGED between the scans -- this is not a refactor result" in text
-
-    def test_the_report_prints_the_structure_block_next_to_the_complexity_delta(self, tmp_path):
-        report = delta_report(tmp_path)
-        text = cl.render_report(evaluate_with_delta(tmp_path, {"report": report.name}))
-        assert "architecture delta (structure, AC-04): improved (recorded, never gating)" in text
-        assert "map identity: UNCHANGED across both scans" in text
-        assert "- lost:   deliver.py -import-> ingest.py" in text
-
-
-class TestTheTemplateCarriesTheDeltaBlock:
-    def test_the_scaffolded_template_records_an_honest_not_run(self, tmp_path):
-        path = tmp_path / "complexity_ledger.yaml"
-        cl.write_template(path)
-        assert "architecture_delta:" in path.read_text(encoding="utf-8")
-        record = cl.parse_architecture_delta({"report": "", "claim": ""}, tmp_path)
-        assert record.normalized == "not_run"
-        assert record.recorded is False

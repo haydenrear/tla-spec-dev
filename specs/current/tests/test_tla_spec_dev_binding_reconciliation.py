@@ -56,18 +56,24 @@ def load_production_adapters():
     return module
 
 
-def test_the_model_has_the_expected_seventeen_command_actions() -> None:
-    """AC-01 added the 15th; RC-01 added the 16th and 17th.
+def test_the_model_has_the_expected_sixteen_command_actions() -> None:
+    """RC-01 added GenerateCases and CloseTicketWeakened; 2026-08-04 removed one.
 
     RC-01 (MF-026 G-6 and the owner's guard-weakening decision): GenerateCases
     -- case-module generation, this epic's flagship feature, which had no
     action, no port and no CLI subcommand at all -- and CloseTicketWeakened,
     the close taken around the precondition TLC proves over the whole state
     space.
+
+    2026-08-04 (owner direction): AnalyzeArchitecture REMOVED with the static
+    architecture scanners. The count going DOWN is the first time this figure
+    has moved in that direction, and it is asserted here in both directions --
+    the action is absent, and the total is 16 -- so a reinstatement is a
+    deliberate edit rather than a silent one.
     """
     actions = model_actions()
-    assert len(actions) == 17, sorted(actions)
-    assert "AnalyzeArchitecture" in actions
+    assert len(actions) == 16, sorted(actions)
+    assert "AnalyzeArchitecture" not in actions
     assert "GenerateCases" in actions
     assert "CloseTicketWeakened" in actions
     assert "Stutter" not in actions

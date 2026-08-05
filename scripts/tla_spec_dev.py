@@ -152,10 +152,17 @@ def run_analyze_corpus(args: argparse.Namespace) -> int:
     return corpus_diagnostics.run(args)
 
 
-def run_analyze_architecture(args: argparse.Namespace) -> int:
-    from scripts import analyze_architecture
-
-    return analyze_architecture.run(args)
+# REMOVED 2026-08-04 (owner direction): `analyze architecture`, and with it
+# scripts/analyze_architecture.py (1,192 lines) and
+# scripts/architecture_reflexion.py (2,325). The static architecture scanners
+# were ad hoc, and every check they shipped was defeated cheaply: a 41-line
+# re-export file erased every divergence, a module that took a collaborator as
+# a parameter was reported as dead architecture, and the decomposition rule
+# `modularity_q > 0` was met on this very repository only because the scanner's
+# OWN two state variables formed the second component. What they measured is
+# now written down as instructions rather than executed as a check:
+# references/architecture_advice.md. A future scanner may earn this subcommand
+# back by satisfying the specification on that page.
 
 
 def run_generate_cases(args: argparse.Namespace) -> int:
@@ -632,7 +639,7 @@ def build_parser() -> argparse.ArgumentParser:
         command_path="tla-spec-dev analyze",
         next_step=(
             "Choose a target: tla-spec-dev analyze complexity <spec.tla> [<cfg>], "
-            "or tla-spec-dev analyze architecture <spec.tla> [<cfg>]."
+            "or tla-spec-dev analyze corpus <cases-dir>."
         ),
     )
     analyze_sub = analyze_parser.add_subparsers(dest="analyze_target", metavar="target")
@@ -657,35 +664,6 @@ def build_parser() -> argparse.ArgumentParser:
         func=run_analyze_complexity,
         command_path="tla-spec-dev analyze complexity",
         next_step="Record the report under the ticket results/ directory as evidence.",
-    )
-
-    analyze_architecture_parser = analyze_sub.add_parser(
-        "architecture",
-        help="Print the architecture descriptor: components, ownership, ports, spanning actions.",
-        description=(
-            "Print the ARCHITECTURE DESCRIPTOR -- the structure the model's diagram "
-            "implies. Names the components (variable clusters with their actions), the "
-            "per-variable writers and every single-writer violation, the ports (the "
-            "crossing actions that would have to become interfaces if the cut were "
-            "taken), and the spanning actions whose write set commits state in more "
-            "than one component. Facts, not judgment: every figure is [MEASURED], it "
-            "proposes no cut and no refactor (CD-01), and it never blocks a close, a "
-            "promotion, or a case generation. A model whose interaction graph does NOT "
-            "decompose says so explicitly, with the criteria that produced that "
-            "finding, instead of inventing a boundary -- and its consumers must then "
-            "report `unmappable`, never `coherent`. Exits nonzero only when the model "
-            "cannot be analyzed at all (an unresolved module hierarchy), or when a "
-            "DECLARED component partition is unreadable."
-        ),
-        allow_abbrev=False,
-    )
-    from scripts.analyze_architecture import add_arguments as _add_architecture_arguments
-
-    _add_architecture_arguments(analyze_architecture_parser)
-    analyze_architecture_parser.set_defaults(
-        func=run_analyze_architecture,
-        command_path="tla-spec-dev analyze architecture",
-        next_step="Record the descriptor under the ticket results/ directory as evidence.",
     )
 
     analyze_corpus_parser = analyze_sub.add_parser(
