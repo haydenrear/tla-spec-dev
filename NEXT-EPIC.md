@@ -26,6 +26,108 @@ wrong. Keep the standard.
 
 ---
 
+## 0-AA. READ FIRST — AMENDED AGAIN AFTER `EVAL-RERUN` (2026-08-04)
+
+**The `hexagonal-prompting` eval was repaired and re-run. Section 0-A below was
+written from HP-06's numbers, and EVAL-RERUN overturns four of its statements.**
+Each is marked in place there with an `EVAL-RERUN —` note. Full record:
+`specs/results/scorecards/hexagonal-prompting-rerun/RESULTS.md`.
+
+**The goal verdicts did not change: two `met`, one `missed`.** What changed is
+what they rest on.
+
+### The four overturned
+
+1. **"The positive control is red and has been for two tickets. Fix this before
+   anything else" — DONE, and it worked.** Parameter recovery went 0 of 588 →
+   **4,028 of 4,028**, 294 accepted `Reserve` cases now execute, and the
+   faithfully seeded control arm's M07 has **no `SURVIVED` cell**. Sealed
+   prediction P05 flips FAIL → PASS.
+2. **"The hand-written suite still beats the generator" — NO LONGER TRUE AS
+   STATED, and the old number was partly an artifact.** The replacement negative
+   control **survives the hand-written suite too**, so the 10-of-10 that set the
+   bar rested on a catalogue with no mutant that suite could miss. On the
+   repaired instrument the generated instruments **tie** the suite: 10 of 11 on
+   the seeded catalogue and 11 of 15 / 10 of 15 on a fresh blind one, on both
+   arms. **But the tie is an aggregate over six instruments — no single generated
+   instrument gets past 7 against the suite's 10.** State all three clauses or
+   none.
+3. **"D2 as written cannot be scored above 2 by an A/B" — REPLICATED, and it now
+   has a mechanism.** Four more independent judges rejected the owner amendment.
+   The new reason is decisive: the mechanical block reports `mutable_state_count`
+   8 vs 8 and `max_writers` 2 vs 2 — **exactly the figures the treatment arm's
+   one real simplification would move** — and the block itself says they
+   discriminate nothing. **Fix the card's D2 or declare it unreachable for an
+   A/B; eight judges across two rounds is enough evidence.**
+4. **"N01: the treatment arm's descriptor came out smaller" — DOES NOT
+   REPLICATE.** HP-06 measured 123 production lines against 147; EVAL-RERUN
+   measures **129 against 122**, the other way, from the *same two prompt files*.
+   **A descriptor delta between one pair of artifacts is noise at this scale.**
+
+### The three new facts that should shape the next epic
+
+1. **The `NOT_DECIDABLE` mechanism is an unaudited suppression key.** The shipped
+   driver decides it **before** consulting the mutated run, so it can convert a
+   demonstrated kill into "not decidable" with `verified: true`, `green: true`
+   and exit 0 — proved twice on live data — and a witness naming **an action that
+   does not exist in the model** also "verifies", because the check reads
+   `counts.get(key, 0)` and cannot distinguish a missing key from a measured
+   zero. `scripts/kill_test.py`'s 19 `SUPPRESSION_KEYS` do not include it.
+   **This applies to the sealed reference run too. Fix this before trusting any
+   scoped control.**
+2. **A control can be green and still not be a control.** The treatment arm's
+   positive control was seeded as a declared broader-reach substitute; delete
+   every `Reserve` case from the corpus — the exact regression the control exists
+   to detect — and it **stays green**. A control needs a test that it fails, and
+   this project has never run one. **Run the deletion probe on every control
+   before citing it.**
+3. **The answer key leaks into files blind roles are ALLOWED to read.**
+   `examples/validation/ab/model/QuotaLedger.tla`'s header comment names six of
+   the ten seeded mutants and where they are seeded; `model/spec_manifest.yaml`
+   describes one verbatim and quotes prior scores. Two of a blind author's thirty
+   mutants were therefore not independent evidence. **Move the model's prose and
+   the manifest behind the forbidden list.**
+
+### What the next epic should do first, revised
+
+- **Audit the suppression path**, per new fact 1. Every `NOT_DECIDABLE` cell this
+  project has ever published is currently unaudited.
+- **Make every control prove it can fail**, per new fact 2. A deletion probe per
+  control, run in the same pass, is cheap and this round shows it is decisive.
+- **Fix `eval_scorecard.md`'s D2**, per overturned 3. It is now the only goal
+  that has been missed twice on a target no A/B can hit.
+- **Seed durability across a failing write.** Both rounds' blind authors named it
+  as the class they were least confident about declining, and this round proves
+  why: the two arms **differ in unmutated code** on the ordering of the durable
+  write against the memory update, each argues for its choice in its notes, and
+  **nothing in the fixture can price the difference.** The ported arm *could* be
+  made to price it with a raising adapter; the control arm has no injection seam
+  at all. **That is the only measurable consequence of the architectural variable
+  this A/B is varying, and it is unmeasured.**
+- **Still do NOT build an architecture checker**, and now for a second reason:
+  the prompt reached D3 = 4 twice with no tool, **and 56 of 56 comparable kill
+  cells were identical between the arms both times.** The structure is real and
+  it detects nothing.
+- **Run the third arm or stop claiming the win is about hexagonality.** 16 unique
+  prompt lines against 105 — 6.6x — recomputed and unchanged. Two rounds, two
+  D3 = 4s, zero evidence separating "hexagonal" from "longer and more specific".
+
+### The channel ratio, fourth round running
+
+**0 : 15 : 19** — suite re-run, adversarial attack, blind author. The suite
+produced nothing again, and for the fourth time the most valuable single section
+of the record was an agent's answer to *"what did you reject?"*.
+
+**One counter-example, and it is the first in three rounds.** The hand-written
+suite **as a kill-table instrument** caught this round's first defect: a stale
+module reference that made all eleven mutants execute against pristine code and
+report SURVIVED. Six generated instruments missed it; a green positive control
+missed it; **the disagreement between the hand-written column and the generated
+columns caught it.** Keep a hand-written instrument in every kill table for that
+reason alone.
+
+---
+
 ## 0-A. READ FIRST — AMENDED AGAIN AFTER THE `hexagonal-prompting` EPIC (2026-08-04)
 
 **Everything below §0 was written by the `architectural-coherence` epic. A newer
@@ -61,19 +163,28 @@ without checking whether it carries one. The four:
    table. If you are tempted to build architecture tooling because "modularity
    catches bugs", this round is the counter-evidence.
 2. **The hand-written suite still beats the generator, and a catalogue nobody
-   tuned beats them both down.** Seeded catalogue: suite 10 of 10, corpora 9 of
+   tuned beats them both down.** *(**EVAL-RERUN — OVERTURNED IN PART**: the
+   corpora now TIE the suite, 10 of 11 on the seeded catalogue and 11 of 15 /
+   10 of 15 on a fresh blind one, on both arms — but no single generated
+   instrument gets past 7 against the suite's 10, and the old 10-of-10 was partly
+   an artifact of a catalogue containing no mutant the suite could miss. See
+   §0-AA.)* Seeded catalogue: suite 10 of 10, corpora 9 of
    10. **Fresh independently-authored catalogue: corpora 8 of 13, suite 9 of 13,
    and four whole classes invisible to every instrument including the suite.**
    A catalogue written by the author of the mechanisms flatters both instruments
    by roughly a quarter.
-3. **The positive control is red and has been for two tickets.** The corpus
+3. **The positive control is red and has been for two tickets.** *(**EVAL-RERUN
+   — FIXED**: recovery 0 of 588 → 4,028 of 4,028, and the faithfully seeded arm's
+   control has no SURVIVED cell. But a control can be green and still not be a
+   control — see §0-AA new fact 2.)* The corpus
    recovers no `Reserve` argument, so no case that calls the primary command
    executes, so a fault seeded in it survives everything. **Fix this before
    anything else** — and know that fixing it turns a *second* control red
    (HP-06-DF-11), because the oracle re-derives a reservation id the model does
    not allocate that way.
 4. **Findings by channel: 0 from the suite, 17 from an adversarial pass, 13 from
-   a blind author.** Third round running. **The suite has stopped being
+   a blind author.** Third round running. *(**EVAL-RERUN**: 0 : 15 : 19, fourth
+   round running — with the first counter-example in three rounds. See §0-AA.)* **The suite has stopped being
    informative** — 1,329 green assertions produced nothing anybody did not
    already know — and for the third time the most valuable single section of the
    record was an agent's answer to *"what did you reject?"*.
@@ -111,7 +222,9 @@ metric contains it and no gate reaches it. **Budget for that channel explicitly.
   cheaply. But do not conclude the prompt "worked" either: 105 unique prompt
   lines against 16 means **this round cannot distinguish hexagonal guidance from
   a longer, more specific ask.** If that distinction matters, run the third arm.
-- **Fix `eval_scorecard.md`'s D2, or say it is unreachable for an A/B.** Anchor 3
+- **Fix `eval_scorecard.md`'s D2, or say it is unreachable for an A/B.**
+  *(**EVAL-RERUN — REPLICATED** on four more judges, with a mechanism: the
+  mechanical block cannot see the one simplification either arm made.)* Anchor 3
   needs a before and an after of the same artifact; two arms of one specification
   have neither, all four judges said so, and a goal was `missed` on a target no
   A/B could have hit.

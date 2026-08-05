@@ -1,0 +1,183 @@
+{
+  "arms": {
+    "A": {
+      "branches": 10,
+      "imports": [
+        "__future__",
+        "dataclasses",
+        "pathlib",
+        "typing"
+      ],
+      "io_imports": [
+        "pathlib"
+      ],
+      "max_writers_of_one_attribute": 2,
+      "module_count": 1,
+      "modules": [
+        "quota_ledger.py"
+      ],
+      "mutable_state": [
+        "_available",
+        "_closed",
+        "_committed",
+        "_ledger",
+        "_next_seq",
+        "_path",
+        "_quotas",
+        "_reservations"
+      ],
+      "mutable_state_count": 8,
+      "production_lines": 122,
+      "public_name_count": 20,
+      "public_names": [
+        "quota_ledger.py:AMOUNT_NOT_POSITIVE",
+        "quota_ledger.py:OUTSTANDING_RESERVATIONS",
+        "quota_ledger.py:QUOTA_EXCEEDED",
+        "quota_ledger.py:QuotaLedger",
+        "quota_ledger.py:QuotaLedger.available",
+        "quota_ledger.py:QuotaLedger.close_tenant",
+        "quota_ledger.py:QuotaLedger.commit",
+        "quota_ledger.py:QuotaLedger.committed",
+        "quota_ledger.py:QuotaLedger.is_closed",
+        "quota_ledger.py:QuotaLedger.ledger_lines",
+        "quota_ledger.py:QuotaLedger.outstanding_ids",
+        "quota_ledger.py:QuotaLedger.release",
+        "quota_ledger.py:QuotaLedger.reserve",
+        "quota_ledger.py:REJECTION_REASONS",
+        "quota_ledger.py:Result",
+        "quota_ledger.py:Result.accepted",
+        "quota_ledger.py:Result.rejected",
+        "quota_ledger.py:TENANT_CLOSED",
+        "quota_ledger.py:UNKNOWN_RESERVATION",
+        "quota_ledger.py:UNKNOWN_TENANT"
+      ],
+      "root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-EVAL-RERUN/specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_a",
+      "state_writers": {
+        "_available": [
+          "quota_ledger.py:__init__"
+        ],
+        "_closed": [
+          "quota_ledger.py:__init__"
+        ],
+        "_committed": [
+          "quota_ledger.py:__init__"
+        ],
+        "_ledger": [
+          "quota_ledger.py:__init__"
+        ],
+        "_next_seq": [
+          "quota_ledger.py:__init__",
+          "quota_ledger.py:_allocate"
+        ],
+        "_path": [
+          "quota_ledger.py:__init__"
+        ],
+        "_quotas": [
+          "quota_ledger.py:__init__"
+        ],
+        "_reservations": [
+          "quota_ledger.py:__init__"
+        ]
+      },
+      "test_files": [
+        "test_quota_ledger.py"
+      ],
+      "test_lines": 252
+    },
+    "B": {
+      "branches": 11,
+      "imports": [
+        "__future__",
+        "dataclasses",
+        "os",
+        "pathlib",
+        "typing"
+      ],
+      "io_imports": [
+        "os",
+        "pathlib"
+      ],
+      "max_writers_of_one_attribute": 2,
+      "module_count": 4,
+      "modules": [
+        "quota_ledger/__init__.py",
+        "quota_ledger/domain.py",
+        "quota_ledger/file_journal.py",
+        "quota_ledger/memory_journal.py"
+      ],
+      "mutable_state": [
+        "_closed",
+        "_committed",
+        "_issued",
+        "_journal",
+        "_outstanding",
+        "_path",
+        "_quota",
+        "_records"
+      ],
+      "mutable_state_count": 8,
+      "production_lines": 129,
+      "public_name_count": 25,
+      "public_names": [
+        "quota_ledger/__init__.py:QuotaLedger",
+        "quota_ledger/domain.py:Journal",
+        "quota_ledger/domain.py:Journal.append",
+        "quota_ledger/domain.py:Journal.records",
+        "quota_ledger/domain.py:Ledger",
+        "quota_ledger/domain.py:Ledger.available",
+        "quota_ledger/domain.py:Ledger.close_tenant",
+        "quota_ledger/domain.py:Ledger.commit",
+        "quota_ledger/domain.py:Ledger.committed",
+        "quota_ledger/domain.py:Ledger.is_closed",
+        "quota_ledger/domain.py:Ledger.ledger_lines",
+        "quota_ledger/domain.py:Ledger.outstanding_ids",
+        "quota_ledger/domain.py:Ledger.release",
+        "quota_ledger/domain.py:Ledger.reserve",
+        "quota_ledger/domain.py:REJECTION_REASONS",
+        "quota_ledger/domain.py:Reservation",
+        "quota_ledger/domain.py:Result",
+        "quota_ledger/domain.py:Result.accepted",
+        "quota_ledger/domain.py:Result.rejected",
+        "quota_ledger/file_journal.py:FileJournal",
+        "quota_ledger/file_journal.py:FileJournal.append",
+        "quota_ledger/file_journal.py:FileJournal.records",
+        "quota_ledger/memory_journal.py:InMemoryJournal",
+        "quota_ledger/memory_journal.py:InMemoryJournal.append",
+        "quota_ledger/memory_journal.py:InMemoryJournal.records"
+      ],
+      "root": "/Users/hayde/IdeaProjects/wt-epic-hexagonal-prompting-EVAL-RERUN/specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b",
+      "state_writers": {
+        "_closed": [
+          "quota_ledger/domain.py:__init__"
+        ],
+        "_committed": [
+          "quota_ledger/domain.py:__init__"
+        ],
+        "_issued": [
+          "quota_ledger/domain.py:__init__",
+          "quota_ledger/domain.py:reserve"
+        ],
+        "_journal": [
+          "quota_ledger/domain.py:__init__"
+        ],
+        "_outstanding": [
+          "quota_ledger/domain.py:__init__"
+        ],
+        "_path": [
+          "quota_ledger/file_journal.py:__init__"
+        ],
+        "_quota": [
+          "quota_ledger/domain.py:__init__"
+        ],
+        "_records": [
+          "quota_ledger/memory_journal.py:__init__"
+        ]
+      },
+      "test_files": [
+        "tests/test_ledger.py"
+      ],
+      "test_lines": 190
+    }
+  },
+  "note": "RECORDED, NEVER SCORED (eval_scorecard.md rule 7)."
+}
