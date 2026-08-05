@@ -60,11 +60,11 @@ class EvidencePathError(ValueError):
 
     RC-01 (MF-026 G-2/G-3). `analyze complexity --out`, `analyze architecture
     --out` and `architecture_reflexion --out` each took a BARE STRING and did
-    -- the last two REMOVED 2026-08-04 with the architecture scanners; this
-    refusal is unchanged and is exercised through `analyze complexity` --
     `out_path.parent.mkdir(parents=True); out_path.write_text(...)`, so an
     evidence write could land anywhere on the filesystem while the only port
-    that could have covered it targets `**/results/**`. The audit's remediation
+    that could have covered it targets `**/results/**`. The last two were
+    REMOVED 2026-08-04 with the architecture scanners; this refusal is
+    unchanged and is exercised through `analyze complexity`. The audit's remediation
     was "declare the port and constrain the path, or drop --out". The path is
     constrained HERE, in one place, so the declaration in spec_manifest.yaml is
     true of every caller rather than true of the documented one.

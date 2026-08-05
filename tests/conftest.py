@@ -43,13 +43,14 @@ transition_diff: ""
 narrative: "Test fixture ledger narrative."
 """
 
-# MF-026: the workflow close additionally requires a coverage audit verdict.
-# `not_run` refuses there -- the epic is over and there is no later chance --
-# so a fixture exercising a whole-workflow close must supply a real one, just as
-# MF-019 made it supply real retention evidence. Deliberately appended only to
-# the WORKFLOW fixture: a ticket close legitimately carries `not_run`, and
-# writing a `pass` into the ticket fixture would hide that asymmetry from the
-# very tests meant to exercise it.
+# MF-026: the workflow close records a coverage audit verdict. It REFUSED on
+# anything but `pass` until 2026-08-04, which is why this fixture supplies a
+# real one; the refusal is retired and the fixture is kept, because a workflow
+# close carrying a real verdict is still the case worth exercising and because
+# a fixture that stopped supplying one would silently stop covering the
+# recording path. Deliberately appended only to the WORKFLOW fixture: a ticket
+# close legitimately carries `not_run`, and writing a `pass` into the ticket
+# fixture would hide that asymmetry from the very tests meant to exercise it.
 COVERAGE_AUDIT_PASS = """\
 coverage_audit:
   status: "pass"

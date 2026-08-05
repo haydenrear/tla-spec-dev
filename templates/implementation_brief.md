@@ -40,10 +40,11 @@ breaks it makes the model wrong about the program.
 
 1. **Write only these variables:** `<the action's write set, by component>`.
    Any other program state you write is state the model does not have.
-2. **Reach only these components, only through these actions:**
-   `<C2 (name) via A, B>` — or `<nothing: this action is internal to <component>>`.
-   A call into a component not listed here is an edge the model does not
-   declare. (`components[].reaches[]`)
+2. **Reach only these components, only through these actions, in this
+   direction:** `<component -> C2 (name) via A, B>` — or `<nothing: this action
+   is internal to <component>>`. A call into a component not listed here is an
+   edge the model does not declare, and so is a call in the reverse direction
+   of one that is. `<State what the reverse edge would mean if it appeared.>`
 3. **Effects at the boundary.** The declared ports for this action are
    `<port: type target>`, `<...>` — or **`(none declared)`**, which this
    manifest distinguishes from *absent*: an empty row claims *performs no
@@ -64,9 +65,10 @@ breaks it makes the model wrong about the program.
    that is protocol state the model does not represent. Add it to the model or
    do not add it to the code.
 6. **The component's own state stays single-writer.** `<owns>` is written only
-   from `<component>`. `<If single_writer_violations names variables this
-   action writes: "MEASURED VIOLATION: <var> is written from <components> by
-   <actions>. It is not single-writer today; do not treat it as private.">`
+   from `<component>`. `<For each variable this action writes that is ALSO
+   written by an action committing in another component: "MEASURED VIOLATION:
+   <var> is written from <components> by <actions>. It is not single-writer
+   today; do not treat it as private.">`
 
 ---
 

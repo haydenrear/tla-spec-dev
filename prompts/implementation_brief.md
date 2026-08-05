@@ -32,13 +32,14 @@ and
 > boundary; one externally visible commitment."
 
 Only the second is derivable from a model, and it is derivable *mechanically*:
-every clause of the brief is a field of the descriptor JSON. Your job is the
-lookup and the honest header, not the architecture.
+every clause of the brief is a lookup or one line of arithmetic over the
+model's read and write sets. Your job is that derivation and an honest header,
+not the architecture.
 
 The brief's reader is **a coding agent that will not open the model.** That
 constrains your output more than it constrains your process:
 
-- **Self-contained.** No "see the descriptor", no "as the spec says". If a
+- **Self-contained.** No "see the model", no "as the spec says". If a
   constraint is not written in the brief, it will not be honored.
 - **Names what may NOT be done.** A list of permissions is read as a summary; a
   list of prohibitions is read as a boundary.
@@ -157,8 +158,8 @@ the scanner's own bookkeeping. If you quote `.measured.modularity` in §6, quote
 it as **an uninterpreted number**, say what threshold you are not applying, and
 do not let it decide anything. `references/architecture_advice.md` S2.
 
-**Gate B — is the rendered brief worth anything?** Compute these three from the
-descriptor and record each in §6:
+**Gate B — is the rendered brief worth anything?** Compute all four of these
+from the partition and the action write sets, and record each in §6:
 
 | test | vacuous when | what it costs the brief |
 |---|---|---|

@@ -304,10 +304,19 @@ MEASURED RESULT: the partition is a cut -- every criterion above is met.
 
 C2 owned nothing and had no internal actions. Two lines further down, the same
 report listed `lastCommand` and `result` as single-writer violations **across
-that same boundary**. Meanwhile the repository's own hand-written four-component
-partition — the one someone actually thought about — measured Q = −0.0228 and
-failed. The fragile verdict was the DEFAULT path, taken when nothing is
-declared.
+that same boundary**. Meanwhile the repository's own hand-written
+four-component partition — the one someone actually thought about — measured
+Q = −0.0228 with 0.556 of actions crossing, and failed 2 of 3 criteria.
+
+*(That declared partition was measured at Q = −0.025 with crossing 0.6 in round
+2, `NEXT-EPIC.md`. Same partition file, same criteria, different model: RC-01
+and RC-02 added variables and actions in between. The disagreement is the
+finding, not an error in either number — a structural score that moves when
+unrelated state is added is measuring size. That is this whole section.)*
+
+The fragile verdict was the DEFAULT path, taken when nothing is declared: the
+emergent partition is what you get when a project has not committed to a
+boundary, and it is the one the added variable flipped.
 
 Two further calibration points on record: a plain two-component pipeline
 measures Q = 0.219 with all three criteria `[OK]` (so the criteria are
