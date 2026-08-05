@@ -665,6 +665,10 @@ def render_python_package(
     cfg_text: str | None = None,
     projector_description: str = "none",
     negative_report_out: "list[NegativeCorpusReport] | None" = None,
+    ports: str = "off",
+    port_dedupe: str = "region",
+    port_catalog: "PortCatalog | None" = None,
+    port_report_out: "list[PortCorpusReport] | None" = None,
 ) -> list[PreparedCase]:
     """Write the generated package and return its cases.
 
@@ -713,6 +717,28 @@ def render_python_package(
         prepared_cases = prepared_cases + negative_cases
         if negative_report_out is not None:
             negative_report_out.append(negative_report)
+    port_report: PortCorpusReport | None = None
+    if ports != "off":
+        if tla_source is None or cfg_text is None:
+            raise ValueError("port generation needs the module and config text")
+        catalog = port_catalog if port_catalog is not None else PortCatalog((), {}, "(none)")
+        regions, skipped = port_regions(
+            catalog,
+            *_signatures_for_regions(tla_source, cfg_text),
+        )
+        port_cases, port_report = port_cases_for_corpus(
+            source_cases=prepared_cases,
+            catalog=catalog,
+            regions=regions,
+            skipped=skipped,
+            dedupe=port_dedupe,
+            start_index=(1 if ports == "only" else len(prepared_cases) + 1),
+        )
+        port_report.mode = ports
+        port_report.manifest = catalog.source
+        prepared_cases = port_cases if ports == "only" else prepared_cases + port_cases
+        if port_report_out is not None:
+            port_report_out.append(port_report)
     package_dir.mkdir(parents=True, exist_ok=True)
     write(package_dir / "__init__.py", render_init())
     write(package_dir / "types.py", render_types())
@@ -732,6 +758,8 @@ def render_python_package(
             negative=negative,
             negative_report=negative_report,
             projector_description=projector_description,
+            ports=ports,
+            port_report=port_report,
         ),
     )
     # Every prepared case has now been written. The caller gates the corpus
@@ -966,6 +994,8 @@ def render_docs(
     negative: str = "off",
     negative_report: "NegativeCorpusReport | None" = None,
     projector_description: str = "none",
+    ports: str = "off",
+    port_report: "PortCorpusReport | None" = None,
 ) -> str:
     body = (
         f"# {module} TLC Cases\n\n"
@@ -980,7 +1010,8 @@ def render_docs(
         # made it fit. A count with no projection named is unciteable -- the
         # next reader cannot tell a tractable model from a discarded one.
         f"- State projection: `{projector_description}`\n"
-        f"- Negative corpus: `{negative}`\n\n"
+        f"- Negative corpus: `{negative}`\n"
+        f"- Port corpus: `{ports}`\n\n"
         "Each positive case is one action-labeled edge in the reachable state graph.\n"
     )
     if negative_report is not None:
@@ -999,6 +1030,47 @@ def render_docs(
             "modeled variable changes. Its `output` is a `StateGraphRejection` whose\n"
             "`reason` is the violated conjunct, verbatim from the module.\n"
         )
+    if port_report is not None:
+        body += (
+            "\n## Port cases\n\n"
+            f"- Manifest: `{port_report.manifest}`\n"
+            f"- Emitted: `{port_report.emitted}` from `{port_report.source_cases}` source case(s)\n"
+            f"- Port dedupe: `{port_report.dedupe_mode}` "
+            f"(collapsed `{port_report.emitted + port_report.deduped_from}` -> "
+            f"`{port_report.emitted}`)\n\n"
+            "| port | cases | emitted | silent | region | declared by |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+        )
+        for qualified, block in sorted(port_report.per_port.items()):
+            body += (
+                f"| `{qualified}` | {block['cases']} | {block['emitted']} | {block['silent']} "
+                f"| `{', '.join(block['region'])}` "
+                f"| {', '.join(block['declared_actions']) or '(nobody)'} |\n"
+            )
+        body += (
+            "\nA port case asserts the transition over the port's OWN REGION -- the modeled\n"
+            "variables written only by actions that declare it -- and carries\n"
+            "`port-expect:emitted` when the manifest declares the action on the port and\n"
+            "`port-expect:silent` when it maps the action and does not. An action ABSENT\n"
+            "from `effects.actions` gets no port case at all: absent means unmapped, and an\n"
+            "empty list means checked with no distinct effect.\n"
+        )
+        if port_report.skipped_ports:
+            body += "\nPorts with no case set:\n\n"
+            for qualified, why in sorted(port_report.skipped_ports.items()):
+                body += f"- `{qualified}` — {why}\n"
+        if port_report.undeclared_region_writes or port_report.declared_but_inert:
+            body += "\nDeclaration checked against the model's write behaviour:\n\n"
+            for pair, count in sorted(port_report.undeclared_region_writes.items()):
+                body += (
+                    f"- `{pair}` — {count} of {port_report.pair_cases.get(pair, 0)} case(s) "
+                    "move the region without declaring the port\n"
+                )
+            for pair, count in sorted(port_report.declared_but_inert.items()):
+                body += (
+                    f"- `{pair}` — {count} of {port_report.pair_cases.get(pair, 0)} accepted "
+                    "case(s) declare the port and leave the region inert\n"
+                )
     return body
 
 
@@ -2559,6 +2631,441 @@ def render_negative_report(report: NegativeCorpusReport) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------
+# PA-03: ports in the manifest, and cases generated PER PORT
+# ---------------------------------------------------------------------------
+#
+# THE SURFACE COST, stated before the flag was added (plan `surface_cost_rule`).
+#
+# MODEL DELTA: ZERO. This pass reads `effects.components.<C>.ports.<P>` and
+# `effects.actions.<A>` -- a DECLARATION TABLE in the manifest, not TLA+ state.
+# No variable, no action, no Next disjunct, no CONSTANT. TLC explores exactly
+# the same state graph before and after, so `max_distinct_states` and
+# `max_state_space_bound` are untouched and the predecessor's measured ~8x
+# state-space cost per surface-adding ticket does not apply here.
+#
+# WHAT IT COSTS instead is CORPUS SIZE, which is capped, deduped and reported:
+# at most one port case per (source case, declared port), and only for actions
+# the manifest MAPS. `--port-dedupe region` collapses cases that make the same
+# claim. This is a dedupe, never a trim -- both counts are printed.
+#
+# WHAT IT BUYS: the aspect slice, DERIVED. The hand-authored equivalent in this
+# repository's own fixture is a `case_modules:` stanza, a second `.tla`, a
+# `.cfg` and a hand-written state projector per slice. A declared port produces
+# the same shape from the declaration alone -- plus the two things a slice has
+# no way to express: which actions must DRIVE the port and which must LEAVE IT
+# ALONE.
+
+PORT_MODES = ("off", "with-positive", "only")
+PORT_DEDUPE_MODES = ("none", "region")
+
+#: Every port case carries `port:<component>.<name>` plus exactly one of these.
+#: `emitted` means the manifest declares this action on this port; `silent`
+#: means the manifest MAPS this action and does not name the port. An action
+#: the manifest does not mention at all gets NEITHER -- "we checked, there are
+#: none" and "nobody looked" are different claims and this pass never blurs them.
+PORT_EMITTED_LABEL = "port-expect:emitted"
+PORT_SILENT_LABEL = "port-expect:silent"
+
+
+@dataclass(frozen=True)
+class PortDeclaration:
+    """One port an agent declared in the manifest, in the effect-port shape."""
+
+    component: str
+    name: str
+    attributes: dict[str, Any]
+    actions: tuple[str, ...]
+
+    @property
+    def qualified(self) -> str:
+        return f"{self.component}.{self.name}"
+
+    @property
+    def label(self) -> str:
+        return f"port:{self.qualified}"
+
+
+@dataclass(frozen=True)
+class PortCatalog:
+    """The manifest's port declarations, as the toolchain sees them.
+
+    THE SHIPPED BUILDER (plan `declaration_executability_rule`). Every consumer
+    -- this generator, its tests, and the adapter binding PA-04 adds -- reads
+    the declarations through this one function, so renaming a port in the
+    manifest fails a test instead of silently orphaning the declaration.
+    """
+
+    ports: tuple[PortDeclaration, ...]
+    #: action -> the qualified ports it declares. An action ABSENT from this
+    #: mapping is unmapped; an action present with an empty tuple has been
+    #: checked and performs no distinct declared effect.
+    mapped_actions: dict[str, tuple[str, ...]]
+    source: str
+
+    def ports_for(self, action: str) -> tuple[str, ...]:
+        return self.mapped_actions.get(action, ())
+
+    def is_mapped(self, action: str) -> bool:
+        return action in self.mapped_actions
+
+    @property
+    def dead_ports(self) -> tuple[str, ...]:
+        """Declared, and named by no action. REPORTED, never refused."""
+        return tuple(port.qualified for port in self.ports if not port.actions)
+
+
+def load_port_catalog(manifest_path: Path | str | None) -> PortCatalog:
+    """Read `effects.components.*.ports` and `effects.actions` from a manifest.
+
+    Deliberately shape-tolerant about a port's ATTRIBUTES. This repository's own
+    manifest declares `type` + `target` (the sandbox-observable effect shape);
+    the A/B fixture declares `kind` + `description` + `asserts_content`. Both are
+    ports under `effects.components.<C>.ports.<P>`, which is the shape the ticket
+    asks an agent to declare into, and neither vocabulary is privileged here --
+    the attributes travel onto the case as data.
+    """
+    if manifest_path is None:
+        return PortCatalog(ports=(), mapped_actions={}, source="(no manifest)")
+    path = Path(manifest_path)
+    if not path.is_file():
+        return PortCatalog(ports=(), mapped_actions={}, source=f"{path} (missing)")
+    manifest = load_manifest(path)
+    effects = manifest.get("effects") or {}
+    components = effects.get("components") or {}
+    raw_actions = effects.get("actions") or {}
+    mapped: dict[str, tuple[str, ...]] = {}
+    declared_names: dict[str, list[str]] = {}
+    for component in sorted(components):
+        block = components.get(component) or {}
+        for name in sorted((block.get("ports") or {})):
+            declared_names.setdefault(name, []).append(component)
+    for action in sorted(raw_actions):
+        named = raw_actions.get(action) or []
+        if isinstance(named, str):
+            named = [named]
+        qualified: list[str] = []
+        for entry in named:
+            for component in declared_names.get(str(entry), []):
+                qualified.append(f"{component}.{entry}")
+        mapped[action] = tuple(sorted(set(qualified)))
+    ports: list[PortDeclaration] = []
+    for component in sorted(components):
+        block = components.get(component) or {}
+        for name, attributes in sorted((block.get("ports") or {}).items()):
+            qualified = f"{component}.{name}"
+            ports.append(
+                PortDeclaration(
+                    component=component,
+                    name=name,
+                    attributes=dict(attributes or {}),
+                    actions=tuple(
+                        action for action in sorted(mapped) if qualified in mapped[action]
+                    ),
+                )
+            )
+    return PortCatalog(ports=tuple(ports), mapped_actions=mapped, source=str(path))
+
+
+def _signatures_for_regions(
+    tla_source: str, cfg_text: str
+) -> tuple[dict[str, ActionSignature], tuple[str, ...], dict[str, TlaDefinition]]:
+    """Parse the module once, the same way the negative pass does.
+
+    Shared deliberately: the write sets a port region is derived from and the
+    guards the negative corpus negates must come from ONE reading of ONE module,
+    or the two passes can describe different actions.
+    """
+    try:
+        from scripts.analyze_complexity import parse_cfg_constants
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from analyze_complexity import parse_cfg_constants  # type: ignore[no-redef]
+    try:
+        from scripts.infer_action_params import parse_variables
+    except ImportError:  # direct-script import, where sys.path[0] is scripts/
+        from infer_action_params import parse_variables  # type: ignore[no-redef]
+
+    variables = parse_variables(tla_source)
+    constants = {
+        name: coerce_cfg_constant(value) for name, value in parse_cfg_constants(cfg_text).items()
+    }
+    definitions = parse_tla_definitions(tla_source)
+    evaluator = GuardEvaluator(definitions, constants, variables)
+    signatures, _ = extract_action_signatures(definitions, evaluator)
+    return signatures, variables, definitions
+
+
+def port_regions(
+    catalog: PortCatalog,
+    signatures: dict[str, ActionSignature],
+    variables: tuple[str, ...],
+    definitions: dict[str, TlaDefinition] | None,
+) -> tuple[dict[str, frozenset[str]], dict[str, str]]:
+    """The modeled variables that lie BEHIND each declared port.
+
+    ``region(P)`` is the set of variables written by some action that declares
+    ``P``, minus every variable written by a MAPPED action that does not. A
+    variable both sides write is not behind the port -- it is shared, and an
+    assertion over it says nothing about the boundary.
+
+    Derived from the model and the declaration together, never named by hand:
+    the point of the ticket is that a port an agent invented becomes a port the
+    toolchain knows about, and a region the operator has to type again is a
+    second declaration to drift from the first.
+
+    UNMAPPED actions are excluded from BOTH sides of the subtraction. An action
+    the manifest never mentions has not been checked, and letting it shrink a
+    region would let silence narrow an assertion.
+    """
+    writes: dict[str, frozenset[str]] = {
+        name: written_variables(signature, variables, definitions)
+        for name, signature in signatures.items()
+    }
+    regions: dict[str, frozenset[str]] = {}
+    reasons: dict[str, str] = {}
+    for port in catalog.ports:
+        mine: set[str] = set()
+        for action in port.actions:
+            mine |= writes.get(action, frozenset())
+        theirs: set[str] = set()
+        for action in sorted(catalog.mapped_actions):
+            if action in port.actions:
+                continue
+            theirs |= writes.get(action, frozenset())
+        region = frozenset(mine - theirs)
+        regions[port.qualified] = region
+        if not port.actions:
+            reasons[port.qualified] = (
+                "declared by no action in `effects.actions` -- DEAD declared surface, "
+                "reported and not refused"
+            )
+        elif not mine:
+            reasons[port.qualified] = (
+                "no action declaring this port writes any modeled variable -- the port's "
+                "effect is outside the model, so this pass has nothing to assert"
+            )
+        elif not region:
+            reasons[port.qualified] = (
+                "every variable its actions write is also written by a mapped action that "
+                "does NOT declare this port -- nothing lies behind this boundary in the model"
+            )
+    return regions, reasons
+
+
+@dataclass
+class PortCorpusReport:
+    """Everything the port pass measured. Printed, never summarized away."""
+
+    mode: str = "off"
+    dedupe_mode: str = "region"
+    manifest: str = ""
+    emitted: int = 0
+    deduped_from: int = 0
+    source_cases: int = 0
+    #: qualified port -> {"region": [...], "emitted": n, "silent": n,
+    #:                    "per_action": {...}, "attributes": {...}}
+    per_port: dict[str, dict[str, Any]] = field(default_factory=dict)
+    skipped_ports: dict[str, str] = field(default_factory=dict)
+    dead_ports: tuple[str, ...] = ()
+    unmapped_actions: tuple[str, ...] = ()
+    #: Declaration checked against the MODEL's own write behaviour, both ways.
+    #: `pair_cases` is the denominator: a disagreement count with no denominator
+    #: cannot be told apart from a whole action disagreeing.
+    pair_cases: dict[str, int] = field(default_factory=dict)
+    undeclared_region_writes: dict[str, int] = field(default_factory=dict)
+    declared_but_inert: dict[str, int] = field(default_factory=dict)
+
+
+def port_cases_for_corpus(
+    *,
+    source_cases: list[PreparedCase],
+    catalog: PortCatalog,
+    regions: dict[str, frozenset[str]],
+    skipped: dict[str, str],
+    dedupe: str,
+    start_index: int,
+) -> tuple[list[PreparedCase], PortCorpusReport]:
+    """One case set PER DECLARED PORT, derived from the cases already prepared.
+
+    COMPOSITION, not replacement. This pass is a FUNCTION OF the corpus the
+    positive and negative passes produced: give it a negative corpus and it
+    yields the port's refusal cases, give it both and it yields both, and the
+    source cases themselves are emitted unchanged and in their original order.
+    That is why `--port-cases` cannot regress the negative corpus -- it does not
+    touch it.
+
+    A port case keeps the source case's WHOLE ``before`` (an adapter has to be
+    able to build the state at all) and narrows ``after`` to the port's own
+    region, which is the same mechanism a hand-authored aspect slice uses and
+    the shipped runner already honors field by field.
+    """
+    report = PortCorpusReport(dedupe_mode=dedupe, source_cases=len(source_cases))
+    report.dead_ports = catalog.dead_ports
+    report.skipped_ports = dict(skipped)
+    prepared: list[PreparedCase] = []
+    seen: set[Any] = set()
+    unmapped: set[str] = set()
+    live_ports = [
+        port
+        for port in catalog.ports
+        if regions.get(port.qualified) and port.qualified not in skipped
+    ]
+    for port in live_ports:
+        report.per_port[port.qualified] = {
+            "region": sorted(regions[port.qualified]),
+            "attributes": dict(port.attributes),
+            "declared_actions": list(port.actions),
+            "emitted": 0,
+            "silent": 0,
+            "cases": 0,
+            "per_action": {},
+        }
+    for case in source_cases:
+        action = case.edge.action
+        if not catalog.is_mapped(action):
+            unmapped.add(action)
+            continue
+        declared = set(catalog.ports_for(action))
+        refused = NEGATIVE_LABEL in case.labels
+        for port in live_ports:
+            region = regions[port.qualified]
+            drives = port.qualified in declared
+            after = {name: value for name, value in case.after.items() if name in region}
+            before = {name: value for name, value in case.before.items() if name in region}
+            moved = before != after
+            if dedupe == "region":
+                key = freeze_for_signature(
+                    {
+                        "port": port.qualified,
+                        "action": action,
+                        "expect": drives,
+                        "params": case.params,
+                        "before": before,
+                        "after": after,
+                        "output": case.output_expression,
+                        "negative": NEGATIVE_LABEL in case.labels,
+                    }
+                )
+                if key in seen:
+                    report.deduped_from += 1
+                    continue
+                seen.add(key)
+            labels = list(case.labels)
+            for extra in (port.label, PORT_EMITTED_LABEL if drives else PORT_SILENT_LABEL):
+                if extra not in labels:
+                    labels.append(extra)
+            index = start_index + len(prepared)
+            suffix = "_rejected" if NEGATIVE_LABEL in case.labels else ""
+            slug = re.sub(r"[^a-z0-9]+", "_", port.qualified.lower()).strip("_")
+            prepared.append(
+                PreparedCase(
+                    name=f"{case_name(index, action)}__port_{slug}{suffix}",
+                    edge=case.edge,
+                    before=case.before,
+                    after=after,
+                    params=dict(case.params),
+                    output_value=case.output_value,
+                    output_expression=case.output_expression,
+                    changes={
+                        name: change
+                        for name, change in case.changes.items()
+                        if name in region
+                    },
+                    labels=tuple(labels),
+                    metadata=case.metadata,
+                )
+            )
+            block = report.per_port[port.qualified]
+            block["cases"] += 1
+            block["emitted" if drives else "silent"] += 1
+            per_action = block["per_action"]
+            per_action[action] = per_action.get(action, 0) + 1
+            # The declaration, checked against the model's own write behaviour,
+            # every run and in both directions. Counted AFTER the dedupe so every
+            # number in this report shares one denominator, and reported as
+            # counts rather than as a refusal: this pass ships no gate (plan
+            # `no_new_gates_rule`).
+            #
+            # A REFUSED call is exempt from the second direction and only from
+            # the second. "Declared this port and did not touch it" is exactly
+            # what a rejection is SUPPOSED to look like, and counting those as
+            # disagreements made every negative case in the A/B fixture report
+            # one -- 26 of them, all correct behaviour. "Touched a port it does
+            # not declare" stays a disagreement on a refused call, and is the
+            # stronger one: a call the model refuses moved the region behind a
+            # boundary nobody declared for it.
+            pair = f"{action} -> {port.qualified}"
+            report.pair_cases[pair] = report.pair_cases.get(pair, 0) + 1
+            if moved and not drives:
+                report.undeclared_region_writes[pair] = (
+                    report.undeclared_region_writes.get(pair, 0) + 1
+                )
+            if drives and not moved and not refused:
+                report.declared_but_inert[pair] = report.declared_but_inert.get(pair, 0) + 1
+    report.emitted = len(prepared)
+    report.unmapped_actions = tuple(sorted(unmapped))
+    return prepared, report
+
+
+def render_port_report(report: PortCorpusReport) -> str:
+    lines = [
+        "",
+        "port corpus (PA-03): one case set PER DECLARED PORT, from the manifest's own effect-port shape",
+        f"  manifest:       {report.manifest}",
+        f"  mode:           {report.mode}; source cases {report.source_cases}",
+        f"  emitted:        {report.emitted} port case(s)",
+    ]
+    if report.dedupe_mode != "none":
+        lines.append(
+            f"  dedupe:         {report.dedupe_mode} collapsed "
+            f"{report.emitted + report.deduped_from} -> {report.emitted} "
+            "(identical port, action, expectation, arguments, and the port region before and after) "
+            "-- a DEDUPE, never a trim"
+        )
+    if not report.per_port:
+        lines.append("  ports:          (none with a modeled region)")
+    for qualified, block in sorted(report.per_port.items()):
+        lines.append(
+            f"    {qualified}: {block['cases']} case(s) "
+            f"({block['emitted']} emitted, {block['silent']} silent); "
+            f"region {{{', '.join(block['region'])}}}; "
+            f"declared by {', '.join(block['declared_actions']) or '(nobody)'}"
+        )
+        for action, count in sorted(block["per_action"].items()):
+            lines.append(f"      {action}: {count}")
+    for qualified, why in sorted(report.skipped_ports.items()):
+        lines.append(f"  NO CASES:       {qualified} -- {why}")
+    if report.dead_ports:
+        lines.append(
+            "  DEAD DECLARED:  "
+            + ", ".join(report.dead_ports)
+            + " -- declared under `effects.components` and named by no action"
+        )
+    if report.unmapped_actions:
+        lines.append(
+            "  UNMAPPED:       "
+            + ", ".join(report.unmapped_actions)
+            + " -- absent from `effects.actions`, so no port case is emitted for them. "
+            "ABSENT means unmapped; an EMPTY list means checked and no distinct effect."
+        )
+    for pair, count in sorted(report.undeclared_region_writes.items()):
+        lines.append(
+            f"  DISAGREEMENT:   {pair} -- {count} of {report.pair_cases.get(pair, 0)} case(s) "
+            "change this port's region while the manifest does not declare the port on that action"
+        )
+    for pair, count in sorted(report.declared_but_inert.items()):
+        lines.append(
+            f"  DISAGREEMENT:   {pair} -- {count} of {report.pair_cases.get(pair, 0)} accepted "
+            "case(s) declare this port and leave its region unchanged"
+        )
+    lines.append(
+        "  A DISAGREEMENT is a finding to read, never a refused build: this pass ships no gate. "
+        "It is the declaration checked against the model's own write behaviour, both directions, "
+        "every run."
+    )
+    return "\n".join(lines)
+
+
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     """Register the generation arguments.
 
@@ -2570,7 +3077,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     java spawn at scripts/generate_cases_from_tlc_dump.py:126
     (subprocess.run), the metadir delete at
     scripts/generate_cases_from_tlc_dump.py:150 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:1006-1007 (path.write_text)
+    writes at scripts/generate_cases_from_tlc_dump.py:1078-1079 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.
@@ -2707,6 +3214,41 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     parser.add_argument(
+        "--port-cases",
+        choices=list(PORT_MODES),
+        default="off",
+        help=(
+            "PA-03. Also emit one case set PER PORT declared in the manifest under "
+            "`effects.components.<C>.ports.<P>`, with `effects.actions` saying which "
+            "actions drive which port. A port case narrows the assertion to the port's "
+            "own REGION -- the variables written only by actions that declare it -- and "
+            "says whether the action must DRIVE the port or LEAVE IT ALONE. "
+            "`with-positive` appends the port sets to whatever the positive and negative "
+            "passes produced; `only` emits the port sets alone. Off by default, for the "
+            "same reason `--negative-cases` is: this changes what a corpus contains."
+        ),
+    )
+    parser.add_argument(
+        "--port-dedupe",
+        choices=list(PORT_DEDUPE_MODES),
+        default="region",
+        help=(
+            "How port cases are collapsed. `region` keeps one case per (port, action, "
+            "expectation, arguments, and the port region before and after) -- cases "
+            "agreeing on all of those make the same claim about the boundary. `none` "
+            "keeps one per source case. A DEDUPE, never a trim: both counts are printed."
+        ),
+    )
+    parser.add_argument(
+        "--port-manifest",
+        type=Path,
+        help=(
+            "Read port declarations from this manifest instead of the one resolved "
+            "beside the module. Useful when a case module extends a view whose manifest "
+            "is the one carrying the declarations."
+        ),
+    )
+    parser.add_argument(
         "--coverage-json",
         type=Path,
         help=(
@@ -2780,8 +3322,16 @@ def run(args: argparse.Namespace) -> int:
     )
 
     negative_mode = getattr(args, "negative_cases", "off")
+    port_mode = getattr(args, "port_cases", "off")
     projector_description = args.state_projector or "none"
     negative_reports: list[NegativeCorpusReport] = []
+    port_reports: list[PortCorpusReport] = []
+    # PA-03: the manifest is already resolved above -- the SAME one the case cap
+    # and the coverage report read, so a port declaration, a budget and a corpus
+    # can never be talking about different projects.
+    port_manifest_path = getattr(args, "port_manifest", None) or manifest_path
+    catalog = load_port_catalog(port_manifest_path) if port_mode != "off" else None
+    needs_module_text = negative_mode != "off" or port_mode != "off"
     prepared = render_python_package(
         module=tla_path.stem,
         states=states,
@@ -2797,10 +3347,14 @@ def run(args: argparse.Namespace) -> int:
         negative=negative_mode,
         negative_dedupe=getattr(args, "negative_dedupe", "guard-reads"),
         negative_actions=tuple(getattr(args, "negative_action", []) or ()),
-        tla_source=tla_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
-        cfg_text=cfg_path.read_text(encoding="utf-8") if negative_mode != "off" else None,
+        tla_source=tla_path.read_text(encoding="utf-8") if needs_module_text else None,
+        cfg_text=cfg_path.read_text(encoding="utf-8") if needs_module_text else None,
         projector_description=projector_description,
         negative_report_out=negative_reports,
+        ports=port_mode,
+        port_dedupe=getattr(args, "port_dedupe", "region"),
+        port_catalog=catalog,
+        port_report_out=port_reports,
     )
     print(f"spec directory: {spec_dir}")
     print(f"generated {view} cases from {len(states)} states into {out_path / args.package}")
@@ -2809,6 +3363,8 @@ def run(args: argparse.Namespace) -> int:
     print(f"state projection: {projector_description}; transition dedupe: {args.dedupe}")
     for negative_report in negative_reports:
         print(render_negative_report(negative_report))
+    for port_report in port_reports:
+        print(render_port_report(port_report))
 
     coverage_record = report_action_coverage(
         prepared,
