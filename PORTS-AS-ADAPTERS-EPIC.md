@@ -36,6 +36,12 @@ Three epics were spent building static checks. The result is not ambiguous.
   one variable was added, with nothing tuned**, clearing a criterion
   (`modularity_q > 0`) that cannot fail.
 
+**The static scanners were deleted on 2026-08-04** — 9,552 lines — and what they
+taught is `references/architecture_advice.md`: nine rules to act on now, restated
+as acceptance criteria a future scanner must satisfy before it earns any
+authority. The state space **divided** for the first time in this ledger's
+history as a result.
+
 **Do not propose a new gate.** The current plan carries a `no_new_gates_rule` and
 it is load-bearing: a ticket that finds itself adding a rule that refuses
 something has left scope. Guidance goes into prompts. Verdicts come from judged
@@ -155,7 +161,40 @@ adapters*. We built both senses of the word and never made them one object.
 
 ---
 
-## 6. Self-improvement is the delta, not the total
+## 6. The scorecard is scaffolded now, and history is part of judging
+
+**PA-05 blocks the evaluation on purpose.** For two epics every scorecard was
+hand-authored from the rubric by whichever agent was judging — which is how a
+dimension key or the `refuses_to_claim` requirement drifts, and it put the burden
+of remembering five sets of anchors on the judge. PA-05 scaffolds the card with
+the anchors and rules inline, and **makes blinding the default** rather than
+something each eval remembers. Both prior rounds blinded correctly by discipline.
+Discipline is not a mechanism.
+
+**And it teaches the scorer to read history, which matters more.** The metric is
+the delta — but a row can go stale without anyone noticing. The predecessor's
+instrument was repaired *after* its measurement, and two of its sealed numbers
+stopped describing the instrument that produced them. A scorer comparing naively
+across that boundary would have compared two different instruments and called the
+difference progress.
+
+The reading rules, which PA-05 puts in the rubric:
+
+- **A row is comparable only on the same example AND across an unchanged
+  instrument.** Name the instrument change or do not compare.
+- **Never average across examples.** A deliberately incoherent fixture is
+  *supposed* to score low on D3.
+- **A number that moved because the instrument was repaired is not improvement.**
+  Say which happened.
+- **A sealed card is never edited.** When one goes stale the ledger records which
+  number and why, beside it.
+
+Three worked examples are already in the record and you should be able to tell
+them apart: guard relaxation 0 → 3 of 3 is a **real mechanism gain**; D1 = 3
+appearing on **both** arms is an **attribution correction**, not a gain; and
+"controls green on both arms" is a **sealed number known-wrong** for one arm.
+
+## 7. Self-improvement is the delta, not the total
 
 `specs/results/scorecards/SELF-IMPROVEMENT.md` carries every epic's scores on the
 same five dimensions. **One epic's card says how good an artifact is; that file
@@ -175,7 +214,7 @@ improvement — it is the toolchain learning to overclaim.
 
 ---
 
-## 7. Discipline that keeps this honest
+## 8. Discipline that keeps this honest
 
 Written down because each one was learned by breaking it.
 
@@ -203,7 +242,7 @@ Written down because each one was learned by breaking it.
 
 ---
 
-## 8. The standing rule
+## 9. The standing rule
 
 **A low or unflattering result is the preferred outcome.** Every epic here
 produced its best material by measuring something that did not work: the gate
