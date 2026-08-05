@@ -24,6 +24,46 @@ anchors, and the rules that make a judged score hard to game.
 - A row is only comparable to another row **on the same example**. Never average
   across examples: `ex6_jenga` is deliberately incoherent and is *supposed* to
   score low on D3.
+- **And only across an unchanged instrument.** This is not a fourth bullet of
+  advice; it is the thing this file got wrong. See below.
+
+### Do not compare two rows out of this file by hand (PA-05, 2026-08-05)
+
+Every number here was measured on an instrument, and this project has now twice
+read one forward across a repair that changed what it measured. `INSTRUMENT-LOG.toml`
+beside this file records the instrument changes, the corrections that sit
+**beside** sealed cards rather than editing them, and the ledger claims that are
+not scorecard rows. Read a history with the changes marked between the rows:
+
+```
+python3 examples/validation/scorecards/score_tools.py history --example ab_quota_ledger
+python3 examples/validation/scorecards/score_tools.py audit
+```
+
+The rendering for `ab_quota_ledger` is committed as `HISTORY-ab_quota_ledger.md`.
+The reading rules are `references/eval_scorecard.md` § **Reading history**
+(R-H1..R-H4) and each one is executed by `audit`, because a reading rule nothing
+executes drifts exactly like the numbers it is about.
+
+**Four things in this file are now marked, and none of them is edited:**
+
+- the HP-06 rows and the EVAL-RERUN rows are in **different eras** —
+  `EVAL-STABLE` sits between them, and `EVAL-SUPPRESS` post-dates **both**, so
+  every rerun number came from a driver repaired afterwards;
+- **`guard relaxation 0 → 3 of 3` is a real mechanism gain**, and the reason is
+  structural rather than lucky: both ends were measured *in one run* on two
+  instruments (`delta_basis = "within_run"`), not at two points in time;
+- **`D1 = 3` is an attribution correction, not a gain.** HP-06 recorded it as a
+  treatment effect; on the repaired instrument it is on both arms. Nothing about
+  bug detection improved between the rounds;
+- **`controls green on both arms` is known-wrong for arm B**, recorded beside the
+  two arm-B cards that were judged against a packet that said otherwise.
+
+**Two further stale rows were found while building the view, and filed rather
+than fixed:** `PA-05-DF-01` (the epic document's D5 baseline has the attribution
+inverted — the 4 went to the *treatment* under the rerun) and `PA-05-DF-02`
+(every EVAL-RERUN number this epic uses as a live baseline predates two later
+instrument changes and none has been re-affirmed).
 
 ## Baseline — architectural-coherence (sealed 2026-08-03, commit `ab0dfee`)
 

@@ -203,6 +203,101 @@ to score low on D3; averaging it with `ex4` produces a number about nothing.
 Compare like for like: the same example across epics, or two arms of the same
 eval. A dimension that moves is the result; a total that moves is a headline.
 
+## Scaffolding a card
+
+**Do not hand-author one from this file.** For two epics every card was written
+out by whichever agent was judging, which is exactly how a dimension key or the
+`refuses_to_claim` requirement drifts from the rubric it was copied out of.
+
+```
+python3 examples/validation/scorecards/score_tools.py scaffold \
+    specs/results/scorecards/<epic> --example <example> --arms A,B,C --judges 2
+```
+
+The skeleton reads the anchors **out of this file** and writes them into the
+card, so there is one source of truth and **the bar for a score sits in the same
+file as the score**. It records the rubric's digest; `check` refuses to let a
+judge fill in a skeleton scaffolded against a rubric that has since changed.
+
+Three properties are mechanisms rather than habits:
+
+- **Blinding is the default.** Arms are emitted under opaque labels drawn from a
+  pool that excludes every label any prior round published, and the mapping goes
+  to `UNBLINDING.md`, which judges are not given. Unblinded scoring requires
+  `--unblinded --reason "..."`, and the reason is written into the key file.
+  Both prior rounds blinded correctly by discipline; discipline is not a
+  mechanism.
+- **Scaffolding twice over the same path REFUSES** and writes nothing. A
+  scaffold that clobbers a measurement is worse than no scaffold.
+- **An unfilled skeleton cannot smuggle a score through.** `status: "unfilled"`
+  requires every score to be null; a card carrying scores must say `filled`, at
+  which point every rule above applies to it. `check --require-filled` is what a
+  workflow close runs.
+
+## Reading history
+
+`specs/results/scorecards/SELF-IMPROVEMENT.md` carries every epic's rows and
+**the metric is the delta**. A delta is only a measurement if both ends were
+measured on the same instrument, and this project has now shipped a round where
+they were not: the eval instrument was repaired *after* HP-06 measured on it, and
+two of its sealed numbers stopped describing the instrument that produced them.
+
+Instrument changes, the notes recorded beside stale rows, and the ledger claims
+that are not scorecard rows live in
+`specs/results/scorecards/INSTRUMENT-LOG.toml`. Read a history with:
+
+```
+python3 examples/validation/scorecards/score_tools.py history --example <example>
+python3 examples/validation/scorecards/score_tools.py audit
+```
+
+**Every rule below is executed by `audit`.** A reading rule nothing executes
+will drift, which is the class of artifact this project keeps finding stale — so
+`audit` fails if this file declares an `R-H` rule with no check behind it.
+
+### R-H1 — Name the instrument change or do not compare
+
+A row is comparable to another **only** on the same example **and** across an
+unchanged instrument. `history` prints the changes as bars between the rows and
+says plainly that rows on opposite sides are not comparable.
+
+*Executed as:* every declared change must name a commit that resolves **and**
+that actually touched one of its declared instrument paths — a fictional era
+boundary is a violation — and every card measured before a change affecting its
+example, carrying no note, is reported `OPEN`.
+
+### R-H2 — Never average across examples
+
+A deliberately incoherent fixture is *supposed* to score low on D3; a mean over
+it and a coherent one is a number about nothing.
+
+*Executed as:* `history` requires `--example` and has no cross-example mode;
+`index` computes nothing across examples; a claim naming more than one example
+is a violation, and a note about a card or claim that does not exist is a
+violation.
+
+### R-H3 — A number that moved because the instrument was repaired is not improvement
+
+Say which happened. A repair that moves a number is a fact about the instrument;
+only a movement measured across an unchanged instrument is a result.
+
+*Executed as:* a claim that is still `current` while an instrument change
+affecting its example post-dates its `measured_at`, with no `reaffirmed_at` after
+that change, is reported **SUPERSEDED-UNMARKED**. Two escapes exist and both cost
+something: `delta_basis = "within_run"` (both ends measured in one run, so no
+boundary applies), and `status = "under_review"`, which is only legal with a
+`filed_as` naming a real id in `deferred_findings.yaml` — so a number cannot be
+parked quietly.
+
+### R-H4 — A sealed card is never edited
+
+When one goes stale, the ledger records **which** number and **why**, beside it.
+The correction goes in `INSTRUMENT-LOG.toml` as a `[[note]]`, and `history`
+prints it beside the row.
+
+*Executed as:* `seal` records a digest per sealed card and refuses to re-seal one
+whose contents changed; `audit` re-verifies every digest.
+
 ## Changing this card
 
 Bump `scorecard_version`, keep the old anchors in the file, and re-score at

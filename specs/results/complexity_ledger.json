@@ -13815,6 +13815,177 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "PA-05",
+      "workflow": "ports-as-adapters-epic",
+      "recorded_at_utc": "2026-08-05T18:18:14.234133+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 17,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 1111320,
+        "bound_complete": false,
+        "bound_resolved_variables": 7,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result"
+        ],
+        "modularity": 0.00334800669601341,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 1,111,320 exceeds max_state_space_bound 1,000,000 (and that is a LOWER bound: product over 7 of 9 declared variables, so the complete bound is at least this large)",
+          "component C1 has 7 variables (complexity_gate, kill_test, lastCommand, result, setup_phase, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 16 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunKillTest, RunSpecUnitTests, CloseTicket, CloseTicketWeakened), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 1111320,
+            "bound_complete": false,
+            "percent_lower_bound": 111.1,
+            "percent": null,
+            "within_cap": false,
+            "caveat": "the bound is a product over 7 of 9 declared variables (2 unresolved: lastCommand, result), so the recorded figure is a LOWER BOUND; over the cap is still over the cap, but the percent is a floor, not the percent"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "hexagonal-prompting-epic",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 1111320,
+            "after": 1111320,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": null,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": null,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "Zero host TLA+ model delta. Ticket current and desired are byte-identical. The plan declares model_delta_expectation \"none -- eval harness under examples/validation/, out of model by representation_scope\", and the shipped surface is exactly that: examples/validation/scorecards/score_tools.py (scaffold/history/audit/seal added beside check/index), references/eval_scorecard.md (the scaffold section and the R-H1..R-H4 reading rules), specs/results/scorecards/INSTRUMENT-LOG.toml and HISTORY-ab_quota_ledger.md (evidence), SELF-IMPROVEMENT.md (a pointer and four marked rows), two filed findings, and tests/test_score_tools.py.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "PA-05 seeds no mutant and runs no kill table. It changes the SCORECARD tooling, not the instrument the kill table measures with -- and that distinction is the ticket's own subject: specs/results/scorecards/INSTRUMENT-LOG.toml declares which commits ARE instrument changes, and none of PA-05's is one.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "No effect provider, adapter or oracle is touched; scripts/ is unchanged.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "No External model transition is added or removed.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=(absent) (UNVERIFIED)",
+        "tlc_after=(absent) (UNVERIFIED)",
+        "behavior_tests=(absent) (UNVERIFIED)",
+        "descriptor_comparison=(absent) (UNVERIFIED)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "Searched and found none, and the reason is the same one that keeps this ticket out of the model: a scorecard scaffold and a history reader are evidence-side tooling with no modeled CLI transition behind them. Modelling score_tools.py as program surface would make every eval change a model change, which representation_scope deliberately excludes. The one thing that could have become a modeled obligation was rejected on the epic's standing rule: PA-05 adds NO gate, and its refusals are on EVIDENCE (do not clobber a measurement, do not re-seal an edited card), never on the product.",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "TWO HALVES, and the second matters more. (1) `score_tools.py scaffold` emits one skeleton per arm per judge with the anchors and the seven scoring rules INLINE -- READ OUT OF references/eval_scorecard.md rather than transcribed, so there is one source of truth and a judge reads the bar for a score in the same file where the score is written. The skeleton records the rubric's digest and `check` refuses to let a judge fill in a card scaffolded against a rubric that has since changed. Blinding is the DEFAULT: labels are drawn from a pool that excludes every label any prior round published, and the mapping goes to UNBLINDING.md outside every card directory; --unblinded requires --reason and writes it into the key. Scaffolding twice REFUSES and writes NOTHING -- not one file, including the ones that would not have collided. (2) `history --example E` prints one example's rows with the instrument changes marked BETWEEN them, and `audit` EXECUTES the four reading rules the ticket asked to be written down. That is deliberate: a declaration nothing executes will drift, which is the exact class of artifact this epic keeps finding stale, so `audit` fails if references/eval_scorecard.md declares an R-H rule with no check behind it. WHAT THE HISTORY VIEW FOUND, beyond the three worked examples it was given. Two live stale rows, both filed and neither fixed. PA-05-DF-01: the epic document's own baseline table has the D5 attribution INVERTED -- the best-ever 4 went to the TREATMENT under the rerun, not the control -- in the document every ticket agent in this epic is told to read first. PA-05-DF-02: every EVAL-RERUN number this epic uses as a live baseline was measured before TWO later instrument changes and none has been re-affirmed, including GOAL-cases-drive-ports' 56-of-56, where EVAL-SUPPRESS flipped exactly one cell and flipped it on ONE ARM ONLY. Evidence: specs/results/scorecards/HISTORY-ab_quota_ledger.md, specs/results/scorecards/INSTRUMENT-LOG.toml, and tests/test_score_tools.py (34 cases, all 34 failing on the parent tree 1cad5ea, verified by archiving it and running this file against it).",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

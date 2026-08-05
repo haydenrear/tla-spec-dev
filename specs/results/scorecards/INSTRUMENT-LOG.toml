@@ -1,0 +1,543 @@
+# The instrument log — what changed under the numbers, and when
+#
+# APPEND-ONLY. Nothing here edits a sealed card. This file is the "beside it"
+# that `references/eval_scorecard.md` § Reading history (R-H4) requires: when a
+# sealed number goes stale, the ledger records WHICH number and WHY, next to it,
+# and the card stays exactly as it was measured.
+#
+# Read it with:
+#   python3 examples/validation/scorecards/score_tools.py history --example E
+#   python3 examples/validation/scorecards/score_tools.py audit
+#
+# Three record kinds:
+#
+#   [[change]]  an INSTRUMENT change. Everything measured before it is in a
+#               different era from everything measured after it, and rows in two
+#               eras are NOT comparable until the change is named. `audit`
+#               verifies the commit resolves AND actually touched one of the
+#               declared `paths` -- a fictional era boundary is a violation.
+#
+#   [[note]]    a correction recorded BESIDE a sealed card or a claim. The card
+#               is never edited.
+#
+#   [[claim]]   a number that lives in prose rather than in a scorecard -- a
+#               ledger sentence, a goal baseline, a headline. It goes stale the
+#               same way a card does, and this project has now been bitten by
+#               exactly that twice in one epic's own paperwork. `status` is one
+#               of: current (asserted NOW, and policed), sealed (true of its
+#               era, not read forward), superseded (needs `superseded_by`),
+#               known_wrong (needs `why`), under_review (needs `filed_as`,
+#               naming a real id in deferred_findings.yaml, so a number cannot
+#               be parked quietly).
+#
+#   [[sealed]]  digests, appended by `score_tools.py seal`. See the end of file.
+
+schema_version = 1
+
+
+# ==========================================================================
+# instrument changes
+# ==========================================================================
+
+[[change]]
+id = "EVAL-STABLE"
+commit = "b285595"
+date = "2026-08-04"
+kind = "repair"
+affects = ["ab_quota_ledger"]
+paths = [
+  "examples/validation/ab/eval",
+  "scripts/infer_action_params.py",
+]
+summary = """
+The positive control was red because of a missing regex. All four
+parameter-recovery mechanisms looked at indices and whole variables and none at
+the value written into a function entry, so `Reserve(t, a, r)`'s amount was
+UNRECOVERABLE, 0 of 588 positive Reserve cases carried an argument, and M07 --
+seeded inside reserve -- could not be reached by anything. A fifth mechanism
+(except-value) took recovery to 4,028 of 4,028. In the same change M09 was
+retired as a negative control (it reverses a sequence, and this model's ledger
+IS a sequence, so it was never negative here) and replaced by N01 with a reality
+witness, and reach began being printed per instrument.
+"""
+invalidates = [
+  "arm A's `wrong_value` row as HP-06 recorded it",
+  "\"union of every generated instrument: 9 of 10, survivor M07\" -- both describe an instrument that executed ZERO Reserve cases",
+]
+
+[[change]]
+id = "EVAL-SUPPRESS"
+commit = "3e721a5"
+date = "2026-08-05"
+kind = "repair"
+affects = ["ab_quota_ledger"]
+paths = [
+  "examples/validation/ab/eval/run_controls.py",
+  "examples/validation/ab/eval/oracle.py",
+  "scripts/kill_test.py",
+]
+summary = """
+A declaration could erase a demonstrated kill. run_controls.py computed
+NOT_DECIDABLE BEFORE the mutated run was consulted, so a declared limitation
+converted a cell the instrument had actually KILLED, reporting verified: true,
+green: true and exit 0, with no trace. And a limitation could verify against
+nothing: `.get(key, 0)` made a missing count and a measured zero the same
+number. The mutated run now decides first; a limitation may only convert a
+SURVIVED cell, and over a kill it is reported contradicted_by_evidence and the
+run exits nonzero. Every limitation now carries a witness_basis. Exactly one
+cell changed when this round's data went back through the repaired driver: arm
+B's M07 / corpus-slice-led, NOT_DECIDABLE -> SURVIVED, its control green -> RED,
+exit 0 -> 1.
+"""
+invalidates = [
+  "EVAL-RERUN's \"controls green on both arms\" -- false for arm B",
+]
+
+# NOTE THE CHRONOLOGY. EVAL-SUPPRESS post-dates EVAL-RERUN's measurement, so
+# every number the rerun recorded came from a driver repaired afterwards. A
+# scorer comparing naively across this boundary would compare two different
+# instruments and call the difference progress.
+
+[[change]]
+id = "PA-01-three-arms"
+commit = "e6d1351"
+date = "2026-08-05"
+kind = "extension"
+affects = ["ab_quota_ledger"]
+paths = [
+  "examples/validation/ab/seeded_faults.toml",
+  "examples/validation/ab/arm_c",
+  "examples/validation/ab/check_catalogue.py",
+]
+summary = """
+A THIRD ARM and a PORT-AWARE CATALOGUE. Arm C is length-matched to arm B in
+unique content and asks for nothing architectural, which is the only thing that
+separates "hexagonal helped" from "a longer prompt helped". The catalogue now
+seeds faults deliberately INSIDE an adapter implementation -- the class the
+predecessor proved invisible, because the port creates a region no shared oracle
+reaches. Two arms became three and the fault population changed, so no
+two-arm cell count from a previous round is a like-for-like comparison to
+anything measured after this point.
+"""
+
+[[change]]
+id = "PA-01-control-repair"
+commit = "46c29c9"
+date = "2026-08-05"
+kind = "repair"
+affects = ["ab_quota_ledger"]
+paths = ["examples/validation/ab/seeded_faults.toml"]
+summary = """
+The positive control re-anchored BY THE PROPERTY rather than by the bytes:
+[pa_control_properties] declares that a positive control must be invisible until
+an accepted Reserve runs, and a probe checks it. Arm A HOLDS; arm B was BROKEN
+and carried arm A's role string verbatim. Repairing an instrument before any
+measurement is not the forbidden act; the forbidden acts are repairing after an
+unflattering signal and moving a target to meet a result.
+"""
+
+
+# ==========================================================================
+# notes recorded BESIDE sealed cards -- the cards themselves are not edited
+# ==========================================================================
+
+[[note]]
+id = "PA-05-N-01"
+about = "card:hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1"
+kind = "measured on a superseded instrument"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+Measured at f65bb9b, before EVAL-STABLE. The generator this judge was shown
+executed ZERO accepted Reserve cases, so the positive control could not be
+reached by anything and the packet's kill columns describe an instrument that no
+longer exists. The scores are not withdrawn -- they are a judgement about an
+artifact -- but the mechanical block beside them is pre-repair, and no row here
+is comparable to a rerun row without naming EVAL-STABLE.
+"""
+
+[[note]]
+id = "PA-05-N-02"
+about = "card:hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2"
+kind = "measured on a superseded instrument"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = "As PA-05-N-01: measured at f65bb9b, before EVAL-STABLE repaired parameter recovery."
+
+[[note]]
+id = "PA-05-N-03"
+about = "card:hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p1"
+kind = "measured on a superseded instrument"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = "As PA-05-N-01: measured at f65bb9b, before EVAL-STABLE repaired parameter recovery."
+
+[[note]]
+id = "PA-05-N-04"
+about = "card:hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p2"
+kind = "measured on a superseded instrument"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = "As PA-05-N-01: measured at f65bb9b, before EVAL-STABLE repaired parameter recovery."
+
+[[note]]
+id = "PA-05-N-05"
+about = "card:hexagonal-prompting/ab_quota_ledger/20260804-owner-pre"
+kind = "owner tracking pass, and pre-repair"
+field = "whole card"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+pass: 0 -- a non-blind single-judge owner tracking pass, which never decides
+anything and must always be labelled. It is also pre-EVAL-STABLE. It is here as
+the pre-treatment reading (D1 = 0 because no model-derived case existed yet,
+D3 = 1 because the domain imports pathlib and writes the ledger file itself),
+not as an arm of anything.
+"""
+
+[[note]]
+id = "PA-05-N-06"
+about = "card:hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1"
+kind = "packet contains a cell the driver later corrected"
+field = "mechanical block"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+Measured at 24ed3fa, after EVAL-STABLE but BEFORE EVAL-SUPPRESS. The driver that
+produced this judge's packet decided NOT_DECIDABLE before consulting the mutated
+run and could therefore erase a demonstrated kill. Re-running this round's data
+through the repaired driver changed exactly one cell and it was on arm B, so
+this arm-A card's kill columns are unaffected in fact -- but "unaffected in fact"
+was established by re-running, not by the card, and the card cannot know it.
+"""
+
+[[note]]
+id = "PA-05-N-07"
+about = "card:hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2"
+kind = "packet contains a cell the driver later corrected"
+field = "mechanical block"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = "As PA-05-N-06: pre-EVAL-SUPPRESS packet."
+
+[[note]]
+id = "PA-05-N-08"
+about = "card:hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1"
+kind = "packet carries the cell EVAL-SUPPRESS corrected"
+field = "mechanical block"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+`Q` is arm B. This is the arm whose M07 / corpus-slice-led cell went
+NOT_DECIDABLE -> SURVIVED under the repaired driver, taking its positive control
+green -> RED. The packet this judge scored against showed the control green. The
+D-scores are a judgement about an artifact and stand; any citation of this
+round's control status for arm B does not.
+"""
+
+[[note]]
+id = "PA-05-N-09"
+about = "card:hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2"
+kind = "packet carries the cell EVAL-SUPPRESS corrected"
+field = "mechanical block"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = "As PA-05-N-08: `Q` is arm B, whose positive control is red under the repaired driver."
+
+[[note]]
+id = "PA-05-N-10"
+about = "claim:best-d5-4-went-to-control"
+kind = "attribution inverted in a live document"
+field = "D5"
+recorded_at = "2026-08-05"
+by = "PA-05"
+why = """
+PORTS-AS-ADAPTERS-EPIC.md section 6 carries "D5 honesty | 4 | and it went to the
+*control*, not the treatment" in the table of baselines every ticket agent is
+told to read first. That is true of HP-06's sealed run and FALSE under
+EVAL-RERUN, where arm A scored 3/2 and arm B scored 4/3 -- the 4 went to the
+TREATMENT. The number is right and the attribution is inverted. The epic
+document is outside PA-05's implementation_scope, so this is recorded beside the
+claim and filed rather than edited.
+"""
+
+
+# ==========================================================================
+# claims: numbers that live in prose and go stale like any other
+# ==========================================================================
+
+[[claim]]
+id = "guard-relaxation-3-of-3"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "within_run"
+measured_at = "b3a0199"
+date = "2026-08-04"
+reaffirmed_at = "21da25b"
+statement = "Guard relaxation measures 3 of 3 under `corpus-neg` on the seeded catalogue on both arms, and 1 of 1 on a fresh blind one, against 0 under every other generated instrument."
+why = """
+A REAL MECHANISM GAIN, and the reason it survives R-H3 is structural rather than
+lucky: the 0 and the 3 were measured IN THE SAME RUN, on two instruments, not at
+two points in time. `delta_basis = "within_run"` is what says so. The historical
+0 of 3 / 0 of 3 / 0 of 4 figures are era-crossing and are NOT what carries this
+claim; the within-run contrast is. The ledger re-affirmed it at 21da25b after
+EVAL-SUPPRESS, explicitly: "GOAL-catch-bugs is untouched by this -- its met
+verdict is carried by corpus-neg's guard-relaxation result, whose controls are
+green and independently reproduced."
+"""
+
+[[claim]]
+id = "hp06-d1-3-treatment-only"
+example = "ab_quota_ledger"
+status = "sealed"
+measured_at = "f65bb9b"
+date = "2026-08-04"
+statement = "HP-06: D1 = 3 from both judges on the TREATMENT arm, against a baseline where nothing reached 3 anywhere."
+why = """
+True of HP-06's sealed run and NOT to be read forward. Sealed, unedited, and
+superseded in attribution by `d1-3-both-arms` below.
+"""
+
+[[claim]]
+id = "d1-3-both-arms"
+example = "ab_quota_ledger"
+status = "under_review"
+delta_basis = "across_time"
+measured_at = "b3a0199"
+date = "2026-08-04"
+filed_as = "PA-05-DF-02"
+statement = "EVAL-RERUN: D1 = 3 from BOTH judges on BOTH arms."
+why = """
+AN ATTRIBUTION CORRECTION, NOT A GAIN, and the distinction is the whole point of
+R-H3. D1 = 3 was recorded by HP-06 as a treatment effect. On the repaired
+instrument it appears on the control arm too. Nothing about bug detection got
+better between the two rounds: what changed is that the number stopped being
+attributable to the treatment. A reader who takes the ceiling moving 2 -> 3 as
+progress and the arm attribution as settled has read one instrument's output as
+if it were two rounds of improvement.
+"""
+
+[[claim]]
+id = "ab-cells-identical-49"
+example = "ab_quota_ledger"
+status = "superseded"
+superseded_by = "ab-cells-identical-56"
+measured_at = "f431c62"
+date = "2026-08-04"
+statement = "HP-06: the arms' per-mutant verdicts are identical on 49 of 49 comparable cells."
+why = """
+THE LIVE EXAMPLE THIS TICKET WAS CHARTERED BY, found in this epic's own plan
+before any ticket landed: `GOAL-cases-drive-ports` was dispatched baselining 49
+of 49 at f431c62 when EVAL-RERUN at b3a0199 had already superseded it with 56 of
+56. A superseded row was read forward as current through a whole dispatch. The
+49 is not wrong -- it is sealed and stands as measured -- it is simply not the
+current number, and nothing in the toolchain could say so. Corrected in the plan
+by the owner on 2026-08-05.
+"""
+
+[[claim]]
+id = "ab-cells-identical-56"
+example = "ab_quota_ledger"
+status = "under_review"
+delta_basis = "across_time"
+measured_at = "b3a0199"
+date = "2026-08-04"
+filed_as = "PA-05-DF-02"
+statement = "EVAL-RERUN: all 56 strictly comparable per-mutant cells are identical between the arms -- the prompt produced the structure and the structure caught nothing."
+why = """
+This is `GOAL-cases-drive-ports`'s live baseline, and it was measured BEFORE
+EVAL-SUPPRESS and before PA-01. EVAL-SUPPRESS flipped exactly one cell and it
+flipped it on ONE ARM ONLY (arm B's M07 / corpus-slice-led), which is a cell in
+the comparable set; PA-01 then changed the arm count from two to three and the
+fault population with it. Neither effect has been re-measured. Until it is, 56
+of 56 is not a like-for-like baseline for anything PA-06 measures.
+"""
+
+[[claim]]
+id = "controls-green-both-arms"
+example = "ab_quota_ledger"
+status = "known_wrong"
+measured_at = "b3a0199"
+date = "2026-08-04"
+corrected_by = "21da25b"
+statement = "EVAL-RERUN: the positive controls are green on both arms."
+why = """
+KNOWN-WRONG FOR ONE ARM, and the sealed card is not edited. Under the repaired
+driver arm B's positive control is correctly RED on its own catalogue: the cell
+was being suppressed by an unaudited NOT_DECIDABLE. The adversarial pass had
+already shown the arm-B half of that row was worth nothing -- arm B's declared
+broader-reach substitute inflates a computation that runs on every read, so it
+is detectable through CloseTenant with no live reservation at all. "Both
+controls are green on both arms" was true as printed and meant two different
+things.
+"""
+
+[[claim]]
+id = "best-d5-4-went-to-control"
+example = "ab_quota_ledger"
+status = "known_wrong"
+measured_at = "f65bb9b"
+date = "2026-08-04"
+filed_as = "PA-05-DF-01"
+statement = "The best-ever D5 = 4 went to the control, not the treatment."
+why = """
+True of HP-06's sealed run; FALSE under EVAL-RERUN, where arm A scored 3/2 and
+arm B scored 4/3, so the 4 went to the TREATMENT and the control fell. The
+number is right and the attribution is inverted -- in
+PORTS-AS-ADAPTERS-EPIC.md's table of baselines, the document every ticket agent
+in this epic is told to read first. See note PA-05-N-10.
+"""
+
+# --- sealed digests appended by `score_tools.py seal` ---
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1/scorecard.json"
+sha256 = "sha256:882fdc04931fa25d"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p1/scorecard.md"
+sha256 = "sha256:980a51e3b38d19e2"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2/scorecard.json"
+sha256 = "sha256:df30f0648ceca6e5"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-X-p2/scorecard.md"
+sha256 = "sha256:bc982f406114e169"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p1/scorecard.json"
+sha256 = "sha256:97c12e56659b7d1e"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p1/scorecard.md"
+sha256 = "sha256:0d836c6a7cbbee9c"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p2/scorecard.json"
+sha256 = "sha256:a333d3fbf85da626"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-hp06-Y-p2/scorecard.md"
+sha256 = "sha256:eb66e712b3c8b705"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting/ab_quota_ledger/20260804-owner-pre/scorecard.json"
+sha256 = "sha256:939a9980a1987040"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.json"
+sha256 = "sha256:29706f3c1b84d058"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p1/scorecard.md"
+sha256 = "sha256:29101e8c87de9182"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.json"
+sha256 = "sha256:bfd8416b0d3d19be"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-P-p2/scorecard.md"
+sha256 = "sha256:bb8ac9a07d0627ec"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.json"
+sha256 = "sha256:3dea78a14d70e983"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p1/scorecard.md"
+sha256 = "sha256:59731fac35dc1db8"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.json"
+sha256 = "sha256:8190b6d624f3b5ab"
+
+[[sealed]]
+path = "specs/results/scorecards/hexagonal-prompting-rerun/ab_quota_ledger/20260804-rerun-Q-p2/scorecard.md"
+sha256 = "sha256:690b331c344af177"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.json"
+sha256 = "sha256:3855e7c2d606263b"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j1/scorecard.md"
+sha256 = "sha256:b15555bc25668d52"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.json"
+sha256 = "sha256:2ef3c9d11a28883c"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex1_scaffold_only/20260803-j2/scorecard.md"
+sha256 = "sha256:fdc1c984e8b7ce2f"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.json"
+sha256 = "sha256:872f851f47299cc5"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j1/scorecard.md"
+sha256 = "sha256:7f5822c6cbcd0e52"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.json"
+sha256 = "sha256:cd9d9f81e49c2f62"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex3_over_complex/20260803-j2/scorecard.md"
+sha256 = "sha256:25c412e58e1f4f09"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j1/scorecard.json"
+sha256 = "sha256:3e79fc97babaa908"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j1/scorecard.md"
+sha256 = "sha256:4826741018e83244"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j2/scorecard.json"
+sha256 = "sha256:271207d05d9c1750"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex4_pipeline_coherent/20260803-j2/scorecard.md"
+sha256 = "sha256:f294441027b08d00"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j1/scorecard.json"
+sha256 = "sha256:d26130881dd37867"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j1/scorecard.md"
+sha256 = "sha256:a65ee8232f0ca86b"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j2/scorecard.json"
+sha256 = "sha256:75f9e789a1186de6"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex5_pipeline_divergent/20260803-j2/scorecard.md"
+sha256 = "sha256:bdccc4ff4517129d"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j1/scorecard.json"
+sha256 = "sha256:ae3d63a57a253977"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j1/scorecard.md"
+sha256 = "sha256:81d0acf1162e8c40"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j2/scorecard.json"
+sha256 = "sha256:acc5557d3d7666cc"
+
+[[sealed]]
+path = "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j2/scorecard.md"
+sha256 = "sha256:57129955d48482ad"
