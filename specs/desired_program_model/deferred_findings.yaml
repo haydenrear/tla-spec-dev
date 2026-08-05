@@ -283,7 +283,6 @@ findings:
       was decorative.
     disposition: carried
     disposition_ticket: "PA-06"
-
   - id: PA-02-DF-01
     found_by: "PA-02"
     found_at_commit: "1cad5ea"
@@ -434,3 +433,186 @@ findings:
       and for a human auditing the epic afterwards from the plan alone.
     disposition: escalated
     disposition_ticket: null
+  - id: PA-03-DF-01
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/current/tlc_projection.py", "references/generation_modes.md"]
+    summary: >-
+      THE STATE PROJECTION THAT MAKES THIS REPOSITORY'S OWN CORPUS TRACTABLE IS
+      GONE, and the page that describes it said it was there. `specs/current/`
+      is cleared when a spec workflow closes, and `5a0a39d` ("Close the
+      hexagonal-prompting spec workflow") deleted `specs/current/tlc_projection.py`
+      with it.
+
+      `references/generation_modes.md` read "The projection at
+      `specs/current/tlc_projection.py` takes the same model to 541 cases and
+      667 KB, a 6,800x reduction" for two commits after the file stopped
+      existing. Measured now: `generate cases specs/current/TlaSpecDevCli.tla
+      specs/current/MCsmall.cfg` writes **99,817 cases** and exits 2 at
+      499x its own declared cap of 200.
+
+      The technique is not lost -- the module is preserved verbatim at
+      `specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/snapshots/current/tlc_projection.py`
+      -- but nothing restores it into a new workflow's `current/`, so every
+      future ticket generating from the whole-program model gets the untractable
+      corpus and the page told it otherwise.
+    reproduction: >-
+      `ls specs/current/` -> no tlc_projection.py.
+      `git log --diff-filter=D --all -- specs/current/tlc_projection.py` -> 5a0a39d.
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out <scratch>
+      --package base_cases --view internal` -> "generated internal cases from
+      6223 states", 99,817 cases, exit 2.
+    evidence:
+      - "references/generation_modes.md"
+      - "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/snapshots/current/tlc_projection.py"
+    why_out_of_scope: >-
+      `specs/current/` is not in PA-03's `implementation_scope`
+      (`scripts/generate_cases_from_tlc_dump.py`, `prompts/`, `references/`,
+      `tests/`), and restoring a projection into the current model is a model
+      decision with a coverage cost that its own docstring is supposed to state.
+      The stale sentence in `references/generation_modes.md` IS in scope and was
+      corrected in place, with the correction pointing here.
+    suggested_fix: >-
+      Either restore the HP-03 projection into `specs/current/` as part of
+      opening the next whole-program slice, or make `open ticket` carry a
+      workflow's projection forward the way it carries the model. The second is
+      the durable one: a projection deleted by a close is a tractability
+      regression nobody is scheduled to notice.
+    blast_radius: >-
+      Any ticket generating from this repository's own model gets a corpus 499x
+      over cap and a nonzero exit, and the page that would have told it how to
+      fix that cited a file that is not there. It does not affect the A/B
+      fixture, which carries its own model, so this epic's measurements are
+      unaffected.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-03-DF-02
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/eval/run_controls.py"]
+    summary: >-
+      A DECLARED LIMITATION CAN ONLY SAY "THIS INSTRUMENT NEVER EXECUTED THAT
+      ACTION". A PROJECTED CORPUS'S REAL LIMITATION IS THE OPPOSITE SHAPE AND IS
+      INEXPRESSIBLE.
+
+      `verify_limitation` reads one witness form: `witness_action` plus
+      `witness_polarity` plus `witness_ran_must_be`, checked against the run's
+      own `per_action` counts. That is the right check for an instrument blind
+      because it never made the call. It cannot state the other reason an
+      instrument is blind: **it made the call and does not observe the variable
+      the fault lands on.**
+
+      PA-03's `corpus-port` is the clean demonstration, and it is clean because
+      the executability number rules the other explanation out. It executes
+      **294 accepting `Reserve` cases** -- exactly as many as `corpus-whole`,
+      83.2% of its whole corpus -- and still cannot decide `M07`, because the
+      port's derived region is `{committed, ledger, closed}` and M07's symptom
+      lands on `available`. No witness of the available shape is true, so the
+      only honest outcome is a RED positive control on an instrument whose
+      blindness is precisely characterised.
+
+      EVAL-RERUN found the same gap from the other side (`EVAL-RERUN-DF-04`,
+      `corpus-slice-led`: "its stated cause -- it cannot execute the mutated line
+      -- is false ... the only operative constraint there is the projection"),
+      and repaired the VERIFICATION rather than the VOCABULARY. The vocabulary
+      is what is missing.
+    reproduction: >-
+      Generate the port corpus and run it:
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      examples/validation/ab/model/QuotaLedger.{tla,cfg} --out <scratch>/specs/corpus-port
+      --package quota_port --view internal --negative-cases with-positive --port-cases only`
+      then `run_controls.py ... --instrument corpus-port=<scratch>/specs/corpus-port/spec-unit/quota_port`.
+      `controls_on_unmutated_code["corpus-port"]["per_action"]["Reserve"]["ran_accepting"] == 294`
+      and `per_mutant["M07-positive-control-wrong-hold"]["corpus-port"] == "SURVIVED"`.
+    evidence:
+      - "specs/tickets/PA-03/results/kill-table-arm-a.json"
+      - "specs/tickets/PA-03/results/kill-table-arm-b.json"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's `implementation_scope`, not PA-03's, and
+      the driver is the instrument under measurement. Adding a witness form
+      mid-measurement is editing the instrument after seeing an unflattering
+      signal, which is the forbidden half of the repair rule.
+    suggested_fix: >-
+      Add a second witness form -- a PROJECTION witness naming the variable the
+      mutant's semantic lands on, verified against the instrument's own case
+      `after` keys rather than against a promise. It is checkable from data the
+      corpus already carries, so it does not become a suppression key: an
+      instrument whose cases DO project the named variable would fail the
+      witness and the cell would be decided normally.
+    blast_radius: >-
+      Every projected instrument. `corpus-slice-res`, `corpus-slice-led` and now
+      `corpus-port` are all scoped by projection, and for all three the only
+      available declaration is one that misstates why the instrument is blind or
+      is falsified by the run's own data.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-03-DF-03
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      NO POSITIVE CONTROL IN THE CATALOGUE IS SEEDED INSIDE A PORT'S REGION, SO
+      NO PORT-SCOPED INSTRUMENT CAN HAVE A GREEN ONE.
+
+      `M07` inflates a held total and `PA-M14` inflates it on the accept path.
+      Both land on `available`. The one declared port's derived region is
+      `{committed, ledger, closed}`. So both positive controls SURVIVE
+      `corpus-port` on the reference tree, on arm A and on arm B, and the column
+      is a floor under a red control on every tree that exists.
+
+      This is a gap in the CATALOGUE, not in the corpus: `corpus-port` kills
+      `M05` (a durable-content fault inside the region) on all three trees, so
+      the instrument demonstrably reaches its own region. What it has never been
+      given is a blatant fault seeded there that a control could decide with.
+
+      Recorded now because PA-04 binds adapters to ports and will produce more
+      port-scoped columns, and each will inherit a red control until a control
+      exists that a port-scoped instrument can decide.
+    reproduction: >-
+      `run_controls.py --tree examples/validation/ab --module-dir reference
+      --binding reference_binding --instrument corpus-port=...` ->
+      `controls_red: ["M07-positive-control-wrong-hold",
+      "PA-M14-positive-control-accepted-hold-too-large"]`,
+      `polarities_with_no_deciding_control: ["positive"]`.
+    evidence:
+      - "specs/tickets/PA-03/results/smoke-reference.json"
+      - "specs/tickets/PA-03/results/kill-table-arm-a.json"
+    why_out_of_scope: >-
+      `examples/validation/ab/seeded_faults.toml` is PA-01's scope and is the
+      catalogue under measurement. Seeding a mutant into it during PA-03's own
+      measurement would be adding to the instrument after seeing the result.
+    suggested_fix: >-
+      PA-04 or PA-06 seeds one blatant fault inside a declared port's region --
+      for this fixture, a COMMIT line written with the wrong tenant would do it
+      -- and declares it `control_role = "positive"` scoped to the port-scoped
+      instruments. The existing rule that a control must be seeded in nobody's
+      gap still applies; what is new is that "nobody's gap" now has to be true
+      of a REGION as well as of an action.
+    blast_radius: >-
+      Every port-scoped column PA-04 and PA-06 produce. Read as it stands, a
+      table of `corpus-port` kills cannot be told apart from a broken
+      instrument, which is exactly what the control exists to prevent.
+    disposition: carried
+    disposition_ticket: "PA-06"

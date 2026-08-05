@@ -161,6 +161,68 @@ the tests were written against the design you are changing.
 
 ---
 
+## The additional ask: declare the ports in the MANIFEST too (PA-03)
+
+**Dispatch this block alongside the ask above when the work has a
+`spec_manifest.yaml`.** It is deliberately a SECOND block rather than a
+paragraph inside `HEXAGONAL-ASK:BEGIN/END`, and the reason is a measurement, not
+tidiness: arm B of the running A/B inlines the ask block verbatim, and PA-01
+sealed **arm B at 105 unique content lines against arm C's 109 (1.038x)** as the
+control that separates "hexagonal helped" from "a longer ask helped". Editing
+the ask block would move a sealed number in a live experiment. Whoever closes
+that experiment may fold this in; until then the two blocks are dispatched
+together and counted separately.
+
+<!-- PORTS-IN-THE-MANIFEST:BEGIN -->
+
+You have just declared your driven ports in the DOMAIN'S vocabulary. Declare the
+same ports in `spec_manifest.yaml`, under `effects`, and say which actions of
+the model drive each one:
+
+```yaml
+effects:
+  components:
+    ledger:
+      ports:
+        LedgerAppendPort:
+          kind: durable_write
+          description: >-
+            Appends one line to the durable ledger file.
+          asserts_content: true
+  actions:
+    Commit: [LedgerAppendPort]
+    CloseTenant: [LedgerAppendPort]
+    Reserve: []
+    Release: []
+```
+
+Three rules, each of which exists because breaking it cost something:
+
+- **An EMPTY list and an ABSENT action are different claims.** Empty says "we
+  checked this action and it performs no distinct declared effect". Absent says
+  "nobody looked". Write the empty list; the toolchain reports the two
+  differently and will not emit a case that assumes the second is the first.
+
+- **Name the port for the need, not the technology**, exactly as in the domain —
+  and use the SAME name in both places. The manifest name is what the toolchain
+  binds to, so a port called one thing in the domain and another in the manifest
+  is two declarations that will drift.
+
+- **Declare only ports that are really outside.** The declaration is not free:
+  the toolchain generates a case set per declared port, and a port in front of
+  pure computation buys a case set with nothing behind it.
+
+You will get one thing back for it, and it is worth knowing about while you
+design: `generate cases ... --port-cases` produces **a case set of its own for
+each port you declared**, scoped to the variables only that port's actions
+write, and split into the transitions that must DRIVE the port and the ones that
+must LEAVE IT ALONE. That is the same case list the ask above tells you to run
+against your real adapter and your fake.
+
+<!-- PORTS-IN-THE-MANIFEST:END -->
+
+---
+
 ## What this prompt deliberately does not say
 
 Recorded here so a later reader can tell an omission from an oversight. The

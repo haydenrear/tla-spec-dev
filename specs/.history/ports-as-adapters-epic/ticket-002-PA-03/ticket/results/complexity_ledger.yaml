@@ -1,0 +1,147 @@
+# Complexity ledger input -- MF-019 standing objective.
+#
+# `close ticket` refuses until this is filled in. That refusal is the mechanism:
+# the standing objective is a required close-out step, not a stance.
+#
+# The delta is computed for you from `analyze complexity` and the TLC report.
+# What you supply is the part a tool cannot know: whether behavior was retained,
+# what the refinement search found, and why any increase is essential.
+
+# Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+# LICENSES a complexity DECREASE: TLC green on the model before AND after the
+# change, behavior tests green, and the before/after descriptor comparison
+# recorded. Absent, unknown, or degraded evidence REJECTS a decrease: an
+# unmeasured constraint cannot witness retention. (The fourth obligation, the
+# inspected transition-level diff, is `transition_diff:` below and is demanded
+# whenever the MF-020 red flag fires.)
+#
+#   tlc_before:            green | fail        -- TLC on the pre-change model
+#   tlc_after:             green | fail        -- TLC on the post-change model
+#   behavior_tests:        pass | fail         -- the repository behavior tests
+#   descriptor_comparison: recorded            -- before/after descriptor doc
+# NOT CLAIMED, deliberately. This ticket's measured complexity delta is ZERO --
+# it licenses no decrease, so there is nothing for a validated-refactor basis to
+# witness. Recording `green` here would be asserting evidence for a change that
+# did not happen, which is the class of over-claim this block exists to prevent.
+validated_refactor:
+  tlc_before:
+    status: "not_applicable"
+    evidence: "delta direction=zero; no model change to witness"
+  tlc_after:
+    status: "not_applicable"
+    evidence: "delta direction=zero; no model change to witness"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/tickets/PA-03/results/RESULTS.md -- `uv run --with pytest --with pyyaml python -m pytest tests -q` -> 1062 passed"
+  descriptor_comparison:
+    status: "not_applicable"
+    evidence: "delta direction=zero; the descriptor reads TLA+ and no TLA+ changed"
+
+# Fuzzing-era retention members -- RECORDED at every close, non-gating since
+# CD-09. Demoted to EXPERIMENTAL by the 2026-07-21 pivot (MF-038: kill 0.31 vs
+# floor 0.8, 0/9 content bugs caught). `not_run` is the honest value; fill in a
+# measured verdict only when one of them actually ran.
+#
+#   kill_rate:           pass | below_floor | incomplete_catalog | not_run   (MF-016)
+#   effect_conformance:  clean | gaps | dead_surface | unobservable | not_run (MF-013/MF-027)
+#   external_coverage:   pass | gaps | incomplete | not_run                  (MF-015)
+#
+# NOTE: `unobservable` IS NOT `clean`. MF-027 made the effect oracle refuse
+# targets it cannot see; the record keeps that distinction even though the
+# member no longer gates.
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: >-
+      The MF-016 kill-test harness over specs/current/kill_mutants.toml was not
+      run. A DIFFERENT and much larger kill measurement WAS run and is the
+      ticket's product: the A/B catalogue, per class and per arm, over eight
+      instruments on both sealed EVAL-RERUN arms, with executable counts beside
+      every number -- specs/tickets/PA-03/results/kill-table-arm-{a,b}.json.
+      Recorded as `not_run` because it is not the member this field names, and
+      collapsing the two would be exactly the kind of substitution the ledger
+      asks about.
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+
+# Coverage audit -- MF-026. The completeness REVIEW, distinct from the three
+# retention members above, which are all FIDELITY measures bounded to what is
+# already modeled. Unmodeled surface is invisible to every one of them, and this
+# is the only sweep that looks at it.
+#
+#   status: pass | fail | incomplete | not_run
+#
+# RECORDED, NEVER REFUSING (2026-08-04, owner direction). It was a hard gate at
+# workflow close with no override; it is now an optional agent-run review whose
+# verdict is written down and read by a person. `incomplete` IS STILL NOT
+# `pass`, because a sweep that did not walk the surface says nothing about it --
+# what was withdrawn is the refusal, not the distinction.
+#
+# Procedure: prompts/coverage_audit.md   Doctrine: references/coverage_audit.md
+coverage_audit:
+  status: "not_run"
+  report: ""          # path to the filled templates/coverage_audit_report.md
+  in_scope_gaps: null # count; in-scope gaps are HARD -- model it or change the program
+  scope_source: ""    # plan file:lines the declared scope was READ from, never chosen
+
+# Required if complexity INCREASED. Name the new essential behavior the added
+# representation carries. This documents real behavior; it does not waive the
+# increase, which is recorded and reported either way.
+justification: >-
+  Not required: complexity did not increase. Recorded anyway because the ledger
+  reports the bound OVER CAP (1,111,320 / 1,000,000, a LOWER bound over 7 of 9
+  resolved variables). That figure is INHERITED, not caused: it is identical to
+  the epic branch point at 1cad5ea, direction=zero, and this ticket adds no
+  variable, action or constant. See PA-03-DF-01 for the related live gap --
+  closing the hexagonal-prompting workflow deleted specs/current/tlc_projection.py,
+  so the whole-program model now generates 99,817 cases where the record says 541.
+
+# The recursive refinement loop -- REQUIRED at every close.
+# Either an approved recommendation with evidence, or "searched, found none".
+# Recommendations are advisory and user-approved, never auto-applied.
+refinement:
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found nothing to apply. PA-03's implementation_scope is
+    [scripts/generate_cases_from_tlc_dump.py, prompts/hexagonal_implementation.md,
+    references/generation_modes.md, tests/] and its conflict_keys.tla is EMPTY,
+    so there is no modeled representation in scope to refine -- measured delta
+    direction=zero, and the ticket's declared model_delta_expectation was
+    "possibly one generation-mode variant". One was added and it carries ZERO
+    model delta, stated before the flag was written and now measured: `effects`
+    is a DECLARATION TABLE, not TLA+ state. No variable, no action, no Next
+    disjunct, no CONSTANT. TLC explores the identical state graph before and
+    after -- 6,223 states from MCsmall.cfg either way -- so max_distinct_states
+    and max_state_space_bound are untouched and the predecessor's measured ~8x
+    state-space cost per surface-adding ticket does not apply.
+
+    ONE REFINEMENT WAS AVAILABLE AND WAS DELIBERATELY REFUSED, and it is the
+    interesting one. A port's REGION could have been declared in the manifest as
+    a `writes:` key beside the port, which is simpler to implement and would let
+    a port name a region the model does not support. It was refused under
+    declaration_executability_rule: it is a second declaration of a fact the
+    model already carries, and its failure mode is that the declared region and
+    the action write sets drift with nothing able to notice. Deriving the region
+    from written_variables -- the same function the negative corpus uses to
+    choose what it may negate -- means the declaration cannot be WRONG about the
+    model, only DISAGREE with it, and the disagreement is counted and printed
+    every run in both directions.
+
+    The one measurable complexity cost is corpus size, and it went DOWN on every
+    corpus it was run beside: 43,128 -> 1,855 on the A/B fixture (23x), 99,817
+    -> 29,921 on this repository's own model with 15 declared ports. The flag is
+    off by default, so no existing corpus moves at all.
+
+# Required only if a generated-states drop at constant distinct states is
+# detected. That is a RED FLAG (deleted self-loop, MF-020), not a win -- record
+# the inspected transition-level diff here to accept it.
+transition_diff: ""
+
+# REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
+# machine-checked core above cannot express. Path to a document, or prose.
+narrative: "specs/tickets/PA-03/results/RESULTS.md"

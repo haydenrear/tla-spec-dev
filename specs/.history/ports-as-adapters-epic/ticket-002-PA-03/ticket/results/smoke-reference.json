@@ -1,0 +1,800 @@
+{
+  "actions_with_zero_executed_cases": {
+    "corpus-port": []
+  },
+  "catalogues": [
+    "examples/validation/ab/seeded_faults.toml",
+    "examples/validation/ab/eval/controls.toml"
+  ],
+  "control_coverage": {
+    "negative": {
+      "deciding": [
+        "N01-negative-control-outstanding-id-order"
+      ],
+      "declared": [
+        "M09-negative-control-ledger-order",
+        "N01-negative-control-outstanding-id-order"
+      ],
+      "green": true
+    },
+    "positive": {
+      "deciding": [],
+      "declared": [
+        "M07-positive-control-wrong-hold",
+        "PA-M14-positive-control-accepted-hold-too-large"
+      ],
+      "green": false
+    }
+  },
+  "control_verdicts": {
+    "M07-positive-control-wrong-hold": {
+      "green": false,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [
+        "corpus-port"
+      ],
+      "must_be": "KILLED",
+      "role": "positive"
+    },
+    "M09-negative-control-ledger-order": {
+      "decides_nothing": true,
+      "green": true,
+      "measured_cells": {
+        "corpus-port": "KILLED"
+      },
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "retirement_reason": "M09 REVERSES THE ORDER OF LEDGER LINES, and this model represents its ledger as\na SEQUENCE: `ledger' = Append(ledger, ...)`, projected by the oracle as a tuple\nand compared positionally. Ordering is therefore fully expressible here, the\ncorpus sees it, and M09 dies under corpus-whole, corpus-slice-led, map-silent\nand map-checking on the reference exactly as it did on both arms.\n\nThe sealed catalogue's own terms say what to do with this: \"a kill here RETRACTS\na documented limit and is a finding\". HP-03 retracted the limit. What did not\nhappen is the consequence -- M09 kept its `control_role` and has been carried as\na red negative control ever since, which means the eval has had NO working\nnegative control for two rounds.\n\nThe retraction is only half true and the other half is the reason a replacement\nis needed. Ordering IS invisible to a generated corpus when the modelled thing\nis a SET. It is a property of the MODEL, not a limit of corpora, and M09 was\nseeded against the one ledger-shaped variable this model happens to represent as\na sequence. A negative control has to be seeded against a variable the model\nrepresents as a set, or it is not testing the limit it claims to test.\n\nM09 is NOT deleted, NOT re-seeded, and NOT excused. It still runs, it is still\nscored in the `ordering` class row, and its kills stand as measurements. What it\nstops doing is deciding whether the instrument works.",
+      "role": "negative (RETIRED)"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "green": true,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [],
+      "must_be": "SURVIVED",
+      "reality_witness": {
+        "on_mutated_tree": true,
+        "on_pristine_tree": false,
+        "separates_the_trees": true,
+        "spec": "witnesses:outstanding_ids_not_ascending"
+      },
+      "role": "negative"
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "green": false,
+      "instruments_decided": [
+        "corpus-port"
+      ],
+      "instruments_not_decidable": [],
+      "instruments_wrong": [
+        "corpus-port"
+      ],
+      "must_be": "KILLED",
+      "role": "positive"
+    }
+  },
+  "controls_on_unmutated_code": {
+    "corpus-port": {
+      "cases": 1855,
+      "failures": [],
+      "mapping": "case_adapters.map-none.toml",
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312
+    }
+  },
+  "declared_suppression_keys": {
+    "examples/validation/ab/eval/controls.toml": [
+      "limitation",
+      "limitation[0].witness_ran_must_be",
+      "limitation[1].witness_ran_must_be",
+      "retired_control"
+    ]
+  },
+  "evidence": {
+    "M01-guard-zero-amount": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 4,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {
+        "corpus-port": [
+          "case_1775_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1775_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1776_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1776_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r2', 't': 't1'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1793_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1793_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 0, 'r': 'r1', 't': 't2'}, reason='a >= 1', changed={}, outcome_fields=('reason', 'status'))"
+        ]
+      }
+    },
+    "M02-guard-over-quota": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 35,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {
+        "corpus-port": [
+          "case_1777_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1777_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1778_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1778_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 1, 'r': 'r2', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1779_reserve__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1779_reserve__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', 'r3') != StateGraphRejection(action='Reserve', params={'a': 2, 'r': 'r1', 't': 't1'}, reason='a <= available[t]', changed={}, outcome_fields=('reason', 'status'))"
+        ]
+      }
+    },
+    "M03-guard-close-with-outstanding": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 6,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {
+        "corpus-port": [
+          "case_1761_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1761_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1762_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1762_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't2'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))",
+          "case_1763_close_tenant__port_ledger_ledgerappendport_rejected: AssertionError: adapter output mismatch for case_1763_close_tenant__port_ledger_ledgerappendport_rejected: ('ACCEPTED', 'accepted', None) != StateGraphRejection(action='CloseTenant', params={'t': 't1'}, reason='\\\\A r \\\\in live : holder[r] # t', changed={}, outcome_fields=('reason', 'status'))"
+        ]
+      }
+    },
+    "M04-durable-stale-total": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 282,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {
+        "corpus-port": [
+          "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('COMMIT', 't1', 1), ('CLOSE', 't1', 0))",
+          "case_0135_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0135_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't2', 1), ('CLOSE', 't2', 1)), actual (('COMMIT', 't2', 1), ('CLOSE', 't2', 0))",
+          "case_0172_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0172_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 2), ('CLOSE', 't1', 2)), actual (('COMMIT', 't1', 2), ('CLOSE', 't1', 0))"
+        ]
+      }
+    },
+    "M06-wrong-status-on-release": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M07-positive-control-wrong-hold": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "M09-negative-control-ledger-order": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 340,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 292,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {
+        "corpus-port": [
+          "case_0053_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0053_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0), ('CLOSE', 't2', 0)), actual (('CLOSE', 't2', 0), ('CLOSE', 't1', 0))",
+          "case_0058_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0058_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0), ('CLOSE', 't1', 0)), actual (('CLOSE', 't1', 0), ('CLOSE', 't2', 0))",
+          "case_0092_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0092_close_tenant__port_ledger_ledgerappendport: ledger: expected (('COMMIT', 't1', 1), ('CLOSE', 't1', 1)), actual (('CLOSE', 't1', 1), ('COMMIT', 't1', 1))"
+        ]
+      }
+    },
+    "M10-apply-only-double-refund": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M11-real-adapter-drops-close-lines": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M12-fake-adapter-drops-close-lines": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M13-fake-drifts-from-real-on-write": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "declared_limitations": {},
+      "executed": {
+        "corpus-port": {
+          "CloseTenant": {
+            "failed": 0,
+            "ran": 362,
+            "ran_accepting": 352,
+            "ran_refusing": 10,
+            "skipped": 0
+          },
+          "Commit": {
+            "failed": 0,
+            "ran": 388,
+            "ran_accepting": 384,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Release": {
+            "failed": 0,
+            "ran": 436,
+            "ran_accepting": 432,
+            "ran_refusing": 4,
+            "skipped": 0
+          },
+          "Reserve": {
+            "failed": 0,
+            "ran": 357,
+            "ran_accepting": 294,
+            "ran_refusing": 63,
+            "skipped": 312
+          }
+        }
+      },
+      "why": {}
+    }
+  },
+  "instruments": [
+    "corpus-port"
+  ],
+  "label": "PA03-smoke",
+  "limitations_contradicted_by_evidence": [],
+  "limitations_rejected": [],
+  "mutants": 15,
+  "per_class": {
+    "adapter_internal": {
+      "corpus-port": "0 of 3"
+    },
+    "cross_aspect": {
+      "corpus-port": "0 of 1"
+    },
+    "durable_content": {
+      "corpus-port": "1 of 2"
+    },
+    "guard_relaxation": {
+      "corpus-port": "3 of 3"
+    },
+    "ordering": {
+      "corpus-port": "1 of 2"
+    },
+    "output_oracle": {
+      "corpus-port": "0 of 1"
+    },
+    "wrong_value": {
+      "corpus-port": "0 of 3"
+    }
+  },
+  "per_mutant": {
+    "M01-guard-zero-amount": {
+      "corpus-port": "KILLED"
+    },
+    "M02-guard-over-quota": {
+      "corpus-port": "KILLED"
+    },
+    "M03-guard-close-with-outstanding": {
+      "corpus-port": "KILLED"
+    },
+    "M04-durable-stale-total": {
+      "corpus-port": "SURVIVED"
+    },
+    "M05-durable-close-line-zero-and-swallowed": {
+      "corpus-port": "KILLED"
+    },
+    "M06-wrong-status-on-release": {
+      "corpus-port": "SURVIVED"
+    },
+    "M07-positive-control-wrong-hold": {
+      "corpus-port": "SURVIVED"
+    },
+    "M08-cross-aspect-commit-refunds-the-hold": {
+      "corpus-port": "SURVIVED"
+    },
+    "M09-negative-control-ledger-order": {
+      "corpus-port": "KILLED"
+    },
+    "M10-apply-only-double-refund": {
+      "corpus-port": "SURVIVED"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M11-real-adapter-drops-close-lines": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M12-fake-adapter-drops-close-lines": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M13-fake-drifts-from-real-on-write": {
+      "corpus-port": "SURVIVED"
+    },
+    "PA-M14-positive-control-accepted-hold-too-large": {
+      "corpus-port": "SURVIVED"
+    }
+  },
+  "reality_witnesses": {
+    "N01-negative-control-outstanding-id-order": {
+      "on_mutated_tree": true,
+      "on_pristine_tree": false,
+      "separates_the_trees": true,
+      "spec": "witnesses:outstanding_ids_not_ascending"
+    }
+  },
+  "retired_controls": {
+    "M09-negative-control-ledger-order": {
+      "mutant": "M09-negative-control-ledger-order",
+      "reason": "M09 REVERSES THE ORDER OF LEDGER LINES, and this model represents its ledger as\na SEQUENCE: `ledger' = Append(ledger, ...)`, projected by the oracle as a tuple\nand compared positionally. Ordering is therefore fully expressible here, the\ncorpus sees it, and M09 dies under corpus-whole, corpus-slice-led, map-silent\nand map-checking on the reference exactly as it did on both arms.\n\nThe sealed catalogue's own terms say what to do with this: \"a kill here RETRACTS\na documented limit and is a finding\". HP-03 retracted the limit. What did not\nhappen is the consequence -- M09 kept its `control_role` and has been carried as\na red negative control ever since, which means the eval has had NO working\nnegative control for two rounds.\n\nThe retraction is only half true and the other half is the reason a replacement\nis needed. Ordering IS invisible to a generated corpus when the modelled thing\nis a SET. It is a property of the MODEL, not a limit of corpora, and M09 was\nseeded against the one ledger-shaped variable this model happens to represent as\na sequence. A negative control has to be seeded against a variable the model\nrepresents as a set, or it is not testing the limit it claims to test.\n\nM09 is NOT deleted, NOT re-seeded, and NOT excused. It still runs, it is still\nscored in the `ordering` class row, and its kills stand as measurements. What it\nstops doing is deciding whether the instrument works.\n",
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "was": "negative"
+    }
+  },
+  "tree": "examples/validation/ab"
+}
