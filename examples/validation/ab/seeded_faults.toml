@@ -41,12 +41,145 @@
 # NEGATIVE CONTROL and is predicted to survive most instruments, but it is
 # declared with `control_role`, in prose, and it is counted in its class row
 # like everything else. A control that excuses itself is not a control.
+#
+# ===========================================================================
+# PA-01 EXTENSION, 2026-08-05. WHAT CHANGED AND WHAT DID NOT.
+# ===========================================================================
+#
+# NOT CHANGED, DELIBERATELY: every HP-01 row above (M01-M10), its `find`, its
+# `replace`, its predictions and `[measured_suite_baseline]`. They are sealed.
+# A row that is edited after the run that produced it is a row nobody can cite.
+# `arm_a/PROMPT.md` and `arm_b/PROMPT.md` are likewise byte-identical to the
+# prompts that produced the sealed HP numbers, so PA-06 can compare across the
+# epic boundary without naming an instrument change on those two arms. The cost
+# is recorded rather than fixed: both files still say "two-arm comparison" and
+# neither lists `arm_c/` in its do-not-open section. See PA-01-DF-02.
+#
+# ADDED: a THIRD ANCHOR TREE and the fault class it exists to make expressible.
+#
+# `reference/quota_ledger.py` is one flat module with no adapter in it. A fault
+# seeded INSIDE AN ADAPTER IMPLEMENTATION has nowhere to be in that tree, and a
+# catalogue that cannot express a class produces a zero that says nothing. So
+# `reference_ports/` carries the SAME feature, the SAME model and the SAME
+# behavioural suite with the durable side behind a port the domain declares --
+# and, crucially, TWO composition points over one domain: `quota_ledger` wires
+# the real file adapter, `quota_ledger_fake` wires the in-memory one. It is not
+# an arm, exactly as `reference/` is not an arm.
+#
+# WHY THAT CLASS. The predecessor measured, and nobody predicted, that a fault
+# in the treatment arm's own in-memory journal adapter SURVIVES EVERY
+# INSTRUMENT INCLUDING THE HAND-WRITTEN SUITE (`BA-B14`, recorded in
+# specs/results/scorecards/hexagonal-prompting/FINDINGS.md). Its sentence: "the
+# port removes places for some faults to live and creates a region no shared
+# oracle reaches". Nothing in this catalogue could express that class, so
+# nothing in it could have caught the gap. PA-M11..PA-M13 are seeded in exactly
+# that region, and PA-M11/PA-M12 are ONE SEMANTIC SEEDED ON BOTH SIDES OF ONE
+# PORT so the difference between two rows measures the size of the blind region
+# rather than the difficulty of two different faults.
+#
+# TWO MORE INSTRUMENTS, named so a zero can be attributed:
+#   suite-real    the SAME test_behavior.py, wired through `quota_ledger`
+#   suite-fake    the SAME test_behavior.py, wired through `quota_ledger_fake`
+# They are the same file and the same assertions. Only the composition point
+# differs. That is the fake/real swap used as an instrument, and it is the only
+# thing in this catalogue that can reach `journal_memory.py` at all.
+#
+# PREDICTIONS FOR THESE ROWS ARE SEALED IN examples/validation/PREDICTIONS-PA.md
+# and are scored by PA-06 as written.
 
 [catalogue]
 id = "HP-01-quota-ledger"
 anchored_on = "reference/quota_ledger.py"
 root = "examples/validation/ab/"
 feature = "FEATURE.md"
+
+# PA-01 additions to the [catalogue] table. The HP-01 keys above are untouched.
+anchored_on_ports = "reference_ports/"
+pa_extension = "PA-01"
+pa_predictions = "examples/validation/PREDICTIONS-PA.md"
+
+# ---------------------------------------------------------------------------
+# THE CONTROL PROPERTY, declared in a SIDE TABLE because M07 is a sealed HP-01
+# row and PA-01 does not amend sealed rows -- not even to add a field. The
+# declaration is PA-01's, so it lives in PA-01's table and names its subject.
+#
+# `accept-path-only`: the mutant must be INVISIBLE until an accepted `reserve`
+# executes. A positive control exists to go red when the instrument stops
+# reaching the fault, and the failure mode it is written against is HP-06's --
+# `Reserve` stopping executing. A control observable after a refusal, or from
+# construction, stays green through exactly that regression.
+#
+# `check_catalogue.py --controls` RUNS this on every declared positive control,
+# on any tree, in seconds. It reports; it refuses nothing; a BROKEN verdict is
+# recorded and never converted into anything.
+# ---------------------------------------------------------------------------
+[pa_control_properties]
+"M07-positive-control-wrong-hold" = "accept-path-only"
+"PA-M14-positive-control-ports-tree" = "accept-path-only"
+
+# ---------------------------------------------------------------------------
+# MEASURED AT PA-01, BEFORE ANY REPAIR. The third thing in this file that is a
+# measurement rather than a prediction, and the most unflattering of the three,
+# because it is about the part of the instrument whose job is to say when the
+# rest of it is lying.
+#
+# `python3 examples/validation/ab/check_catalogue.py --controls` on each tree,
+# plus the same probe pointed at the two sealed EVAL-RERUN arm trees under
+# specs/results/scorecards/hexagonal-prompting-rerun/arms/.
+# ---------------------------------------------------------------------------
+[pa_measured_control_audit]
+measured_by = "check_catalogue.py --controls, PA-01, before the repair in the next commit"
+run_not_read = '''
+The epic owner reported arm B's M07 red from the closing ledger's prose
+(21da25b). PA-01 was asked to verify that against the artifact by RUNNING it
+rather than reading it. It ran. The owner is right, and the probe now says so
+on demand instead of the fact living in a commit message.
+'''
+result = '''
+  tree                                  M07 semantic          accept-path semantic
+  arm_a  (EVAL-RERUN sealed tree)       HOLDS                 HOLDS
+  arm_b  (EVAL-RERUN sealed tree)       BROKEN                HOLDS
+  arm_c                                 NOT MEASURABLE YET    NOT MEASURABLE YET
+  reference/                            HOLDS                 HOLDS
+  reference_ports/                      HOLDS                 HOLDS
+'''
+what_broken_means = '''
+On arm B, with M07 applied, an observable differs from correct behavior with
+ZERO accepted reserves -- at construction, after a refusal, and after an
+accepted `close_tenant` on a tenant with no live reservation. Arm B derives
+`available()` from a computed held total, so the nearest re-anchoring of M07's
+sealed semantic is wrong everywhere rather than only on the accept path.
+
+The consequence is the whole job. A positive control exists to go RED when the
+instrument stops reaching the fault; the regression it is written against is
+HP-06's, `Reserve` stopping executing. Arm B's M07 stays GREEN through exactly
+that. EVAL-RERUN's adversarial channel demonstrated it the expensive way, with
+a corpus with every Reserve case deleted:
+    ARM A: corpus-noreserve  M07 = SURVIVED   <- correct
+    ARM B: corpus-noreserve  M07 = KILLED     <- stays green through the regression
+'''
+arm_c_is_unmeasured_not_green = '''
+Arm C has no implementation yet -- it is a prompt, and its tree is built at
+PA-06. So its cell is UNMEASURED, which is not a pass. What PA-01 can and does
+supply is the thing that will decide it: the accept-path semantic, measured to
+hold on every tree that exists, and a probe that runs on any tree in seconds.
+PA-06 runs `--controls` on arm C's tree before citing a single kill number from
+arm C. A control assumed to work on an arm nobody has built is the assumption
+this whole audit exists to stop.
+'''
+what_this_does_NOT_license = '''
+It does not license deleting, re-seeding or excusing M07. M07 still runs, is
+still seeded exactly as the sealed catalogue declares it, and its kills stand
+as measurements in the `wrong_value` class row. What the audit says is narrower
+and worse: on arm B it is not a control. EVAL-SUPPRESS already retired it as
+one on that arm and replaced it (`eval/controls_rerun_arm_b.toml`); PA-01 makes
+the property that retirement turned on into something anyone can re-run.
+
+It also does not license calling the round green. GOAL-port-reach's target
+clause "no positive control is red" is the owner's target and PA-01 does not
+touch it. PA-01 supplies a control that CAN satisfy it; PA-06 decides whether
+it does.
+'''
 
 # ---------------------------------------------------------------------------
 # THE ONE THING IN THIS FILE THAT IS MEASURED RATHER THAN PREDICTED, and it is
@@ -363,6 +496,139 @@ refine_variable = "committed"
 refine_action = "Commit"
 
 # ---------------------------------------------------------------------------
+# THE SECOND THING IN THIS FILE THAT IS MEASURED RATHER THAN PREDICTED. Like
+# [measured_suite_baseline] above it is unflattering, and for the same reason
+# it is written down: the number it reports is a number about our instruments,
+# not about any arm.
+# ---------------------------------------------------------------------------
+[pa_measured_swap_baseline]
+measured_by = "check_catalogue.py --verify-suite, on the REFERENCES only, at PA-01"
+control = "suite GREEN on all three unmutated wirings before any mutant was applied"
+result = '''
+                                          suite-real   suite-fake
+  PA-M11 real adapter drops CLOSE lines   KILLED       SURVIVED
+  PA-M12 fake adapter drops CLOSE lines   SURVIVED     KILLED
+  PA-M13 fake drifts from real on write   SURVIVED     KILLED
+  PA-M14 positive control (ports domain)  KILLED       KILLED
+
+All 20 annotations across all three wirings agreed with their predictions.
+'''
+what_it_measures = '''
+PA-M11 and PA-M12 ARE THE SAME FAULT. Same sentence, same filter, one on each
+side of one port. Under the wiring the predecessor had -- the real adapter,
+because that is what the constructor in FEATURE.md picks -- one of them dies
+and the other is untouchable. The suite is not weak: it kills the identical
+fault in the same cell of the table. Nothing runs the file.
+
+That is BA-B14 reproduced in a fixture we control, with a twin that rules out
+"the fault was subtle" as the explanation. And the remedy is measured in the
+next column: the SAME suite, the SAME assertions, the SAME domain, pointed at a
+four-line second composition point, kills both fake-side faults.
+'''
+what_it_does_NOT_show = '''
+It does not show that any ARM will produce this shape, and it must not be cited
+as though it did. It shows what a seeded fault does once the shape exists. The
+fixture was written by the same author as the mutants seeded into it, which is
+the same declared bias [measured_suite_baseline] carries and is not reduced by
+there being two anchor trees.
+
+It also does not show that anyone WOULD build the second composition point. The
+measured fact is that for a whole epic nobody did, and the cost of doing it is
+four lines. Cheap and undone is a different finding from expensive.
+'''
+
+# ===========================================================================
+# PA-01: ADAPTER-INTERNAL FAULTS. Anchored on `reference_ports/`.
+#
+# The class the predecessor proved invisible. Everything above is seeded in a
+# tree with no adapter in it, which is why nothing above could have caught
+# `BA-B14`. These four rows are the first in this catalogue's history that are
+# seeded behind a port.
+#
+# THE PAIR IS THE MEASUREMENT. PA-M11 and PA-M12 are the SAME semantic fault --
+# "the journal's read-back silently drops CLOSE lines" -- seeded once in the
+# real adapter and once in the fake. Their `find` strings are near-identical on
+# purpose. Neither row is interesting alone; the DIFFERENCE between the two
+# rows, under the same instrument, is the size of the region the port creates.
+# A per-instrument table that reports PA-M11 killed and PA-M12 surviving has
+# measured the blind spot in one cell. A kill-count total would hide it
+# entirely, which is HP-06-DF-06's lesson applied before the fact.
+# ===========================================================================
+
+[[mutants]]
+id = "PA-M11-real-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+gap_targeted = "none, on purpose -- this is the CONTRAST row. A fault behind a port on the side a composition point actually wires is reachable by every instrument that runs the program at all. It is here so PA-M12's survival cannot be explained by the fault being subtle."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_file.py"
+find = "        return [entry for entry in text.splitlines() if entry]"
+replace = '        return [entry for entry in text.splitlines() if entry and not entry.startswith("CLOSE")]  # MUTANT PA-M11: the real adapter never reads back a CLOSE line'
+description = "the real adapter writes every line correctly and hides the CLOSE lines when the record is read back"
+semantic = "The real adapter's read-back filters out every line beginning CLOSE. The bytes on disk are correct; what the domain and every reader see is missing one line per closed tenant. In-memory committed(), is_closed() and available() are all correct."
+observable = "ledger_lines() through the REAL wiring, after any accepted close_tenant. Nothing else changes."
+predicted_suite_real = "KILLED -- test_close_writes_the_final_total and test_close_with_nothing_committed_writes_zero both assert a CLOSE line is present"
+predicted_suite_fake = "SURVIVES -- the fake wiring never constructs this adapter, so the fault is not on the executed path"
+predicted_corpus_whole = "KILLED IF the corpus asserts durable content through the real wiring; SURVIVES under a silent mapping"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "PA-M12-fake-adapter-drops-close-lines"
+fault_class = "adapter_internal"
+gap_targeted = "THE REGION BEHIND A PORT THAT NO COMPOSITION POINT WIRES. Identical semantic to PA-M11, seeded on the other side of the same port. Before `quota_ledger_fake.py` existed there was no composition point pointing at this adapter, so no case, no corpus and no suite ran a single line of it -- which is BA-B14 exactly."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_memory.py"
+find = "        return [entry for entry in self._lines if entry]"
+replace = '        return [entry for entry in self._lines if entry and not entry.startswith("CLOSE")]  # MUTANT PA-M12: the fake never reads back a CLOSE line'
+description = "the fake adapter hides CLOSE lines on read-back -- the same fault as PA-M11, on the side nothing was wired to run"
+semantic = "The fake adapter's read-back filters out every line beginning CLOSE. Identical observable to PA-M11, through the fake wiring instead of the real one."
+observable = "ledger_lines() through the FAKE wiring only. Through the real wiring this file is never imported and the mutant is not on any executed path -- it is not that the fault is hard to see, it is that nothing looks."
+predicted_suite_real = "SURVIVES -- and this survival is the whole point. It reproduces BA-B14 in a fixture we control, with a real-side twin (PA-M11) proving the fault itself is trivially visible."
+predicted_suite_fake = "KILLED -- the identical assertions, through the other composition point"
+predicted_corpus_whole = "SURVIVES on every corpus wired to the real adapter, for the same reason"
+refine_variable = "committed"
+refine_action = "CloseTenant"
+
+[[mutants]]
+id = "PA-M13-fake-drifts-from-real-on-write"
+fault_class = "adapter_internal"
+gap_targeted = "the same behind-a-port region, on the WRITE path rather than the read path, and the shape a fake fails in for real: silent drift from the adapter it stands in for. It is seeded because a pair that only ever perturbs read-back would license the conclusion that this region is a read-back problem."
+boundary_kind = "port"
+boundary_ref = "LedgerAppendPort"
+path = "reference_ports/journal_memory.py"
+find = "        self._lines.append(line)"
+replace = '        self._lines.append(" ".join(line.split()[:3]))  # MUTANT PA-M13: the fake stores only the first three fields, so every COMMIT loses its running total'
+description = "the fake records COMMIT lines with the running-total field missing; CLOSE lines, which have three fields, are unaffected"
+semantic = "The fake adapter truncates every stored line to its first three whitespace-separated fields. COMMIT lines lose the running total; CLOSE lines are byte-identical to correct. The domain and the real adapter are untouched."
+observable = "ledger_lines() through the FAKE wiring, on COMMIT lines only. A case that closes a tenant without committing anything CANNOT distinguish this mutant from correct behavior."
+predicted_suite_real = "SURVIVES -- not on the executed path"
+predicted_suite_fake = "KILLED -- test_commit_moves_the_hold_into_committed_and_writes_one_line asserts the full line"
+predicted_corpus_whole = "SURVIVES on any wiring that does not construct the fake"
+refine_variable = "committed"
+refine_action = "Commit"
+
+[[mutants]]
+id = "PA-M14-positive-control-ports-tree"
+fault_class = "wrong_value"
+control_role = "positive -- must die on every instrument that reaches the reference_ports tree at all, under BOTH wirings"
+gap_targeted = "none. Deliberately in nobody's gap: it is the M07 semantic, re-anchored in the ports tree, and it exists so a column of survivors on `reference_ports/` can be told apart from an instrument that never ran that tree."
+boundary_kind = "invariant"
+boundary_ref = "R1-conservation"
+path = "reference_ports/domain.py"
+find = "        self._available[tenant] -= amount"
+replace = "        self._available[tenant] -= amount + 1  # MUTANT PA-M14: the hold is one unit too large"
+description = "reserve deducts one more than it holds in the ported domain, so conservation breaks on the first call"
+semantic = "reserve(t, n) reduces available(t) by n+1 in the ported domain. R1 conservation breaks on the very first accepted reservation, identically under either wiring because the fault is in the domain and neither adapter is involved."
+observable = "available(t) immediately after any accepted reserve, under BOTH wirings. Nothing subtle about it."
+predicted_suite_real = "KILLED"
+predicted_suite_fake = "KILLED"
+predicted_corpus_whole = "KILLED"
+refine_variable = "available"
+refine_action = "Reserve"
+
+# ---------------------------------------------------------------------------
 # CLASSES DELIBERATELY NOT SEEDED, stated so no silence is read as a result.
 #
 #   * CONCURRENCY / interleaving. The feature declares no concurrency
@@ -374,5 +640,39 @@ refine_action = "Commit"
 #     arrival and NO added coverage moves it; seeding one would produce a
 #     survivor that says nothing about any arm.
 #
-# Neither omission is a judgement that the class is unimportant. Both are
-# recorded here so that HP-06 reports "not seeded" rather than "not caught".
+# PA-01 ADDS THREE MORE OMISSIONS, each of which was designed and then rejected
+# rather than merely not thought of. Recorded because "what did you reject" has
+# produced the best finding in this project for three rounds running and
+# re-running the suite has produced none.
+#
+#   * A FAULT IN THE COMPOSITION POINT (`quota_ledger.py` /
+#     `quota_ledger_fake.py`) -- e.g. wiring the fake where the real adapter
+#     belongs. Designed, then rejected: the composition point is two lines, and
+#     perturbing it makes the durable file never get written at all. That is
+#     the PA-M14 shape with less to say -- blatant, killed by everything,
+#     already covered by a declared control. It would add a row that cannot
+#     come back with a surprising value.
+#
+#   * AN EQUIVALENT MUTANT IN THE FAKE. The first draft of PA-M13 was
+#     `return self._lines` in place of the read-back comprehension: the fake
+#     hands out its own internal list instead of a copy. It is a real defect
+#     shape and it is UNOBSERVABLE here, because nothing in the feature, the
+#     suite or any corpus mutates a returned line list. It would have produced
+#     a survivor on every instrument on every arm and read exactly like
+#     PA-M12's survival while meaning something completely different -- a fault
+#     nobody can see versus a fault nobody looks at. A second draft, "the fake
+#     de-duplicates identical lines on append", was rejected for the same
+#     reason after checking: no two ledger lines this feature can produce are
+#     ever identical, because a COMMIT line carries an accumulating total.
+#
+#   * A FAULT IN THE PORT DECLARATION ITSELF (widening `LedgerJournal`'s
+#     methods, or renaming one). Rejected because it is a type error, not a
+#     behavioural fault: it breaks construction under both wirings and kills
+#     every instrument for a reason that says nothing about detection. The
+#     class it gestures at -- a declaration drifting from what executes -- is
+#     real and is handled by a test rather than a mutant
+#     (`tests/test_ab_three_arms_and_port_faults.py`), per the plan's
+#     `declaration_executability_rule`.
+#
+# None of these omissions is a judgement that the class is unimportant. All are
+# recorded here so that PA-06 reports "not seeded" rather than "not caught".

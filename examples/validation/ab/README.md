@@ -54,8 +54,9 @@ which produced it.
 | `model/QuotaLedger.tla`, `.cfg` | the state machine, **TLC green**: 2649 distinct states, depth 8, four invariants |
 | `model/spec_manifest.yaml` | the two aspect slices and the one durable port |
 | `reference/quota_ledger.py` | **NOT AN ARM.** the fixed-byte tree the catalogue anchors on |
+| `reference_ports/` | **NOT AN ARM.** PA-01's second anchor tree: the same feature with the durable side behind a port, and two composition points over one domain. See its own `README.md` |
 | `tests/test_behavior.py` | the shared behavioral contract both arms must pass |
-| `seeded_faults.toml` | the catalogue: 10 mutants, exact find/replace |
+| `seeded_faults.toml` | the catalogue: 10 sealed HP-01 mutants + 4 PA-01 rows, exact find/replace |
 | `check_catalogue.py` | the integrity harness |
 | `scorecard_shape/` | two zero-score cards proving the two-arm scorecard shape validates |
 
@@ -84,6 +85,63 @@ Two classes are **deliberately not seeded** and say so in the catalogue:
 concurrency (the feature declares none) and cross-process effects (the oracle
 cannot see across a process boundary at all, so a mutant there is dead on
 arrival). Recorded so HP-06 reports *"not seeded"* rather than *"not caught"*.
+PA-01 adds three more declared omissions, each designed and then rejected
+rather than merely not thought of.
+
+## PA-01: the third arm, and the class that had nowhere to live
+
+**Arm C** (`arm_c/PROMPT.md`) settles the confound HP-06 recorded and could not
+test. Its own words: arm B's prompt was **6.6x longer in unique content**, so
+"hexagonal helped" was never separable from "a longer ask helped". Arm C is
+matched to arm B in unique content — measured, not asserted — and asks for
+nothing architectural.
+
+| | vs A | vs B | vs C |
+|---|---|---|---|
+| **arm A** | — | 16 | 17 |
+| **arm B** | **105** (6.56x A) | — | 89 |
+| **arm C** | **109** (1.038x B, +3.8%) | 92 | — |
+
+Unique content = distinct non-blank whitespace-stripped lines present in the
+row's arm and absent from the column's. `check_catalogue.py --arms` computes it
+and also probes arm C's unique content for architectural vocabulary: **arm B 44
+of 105 lines, arm C 0 of 109.**
+
+**If arm C matches arm B, the epic's thesis is wrong** — longer prompts produce
+better structure and the architectural content was decoration. That is a
+legitimate outcome and arm C was built to be able to produce it. Sealed as
+prediction **N01**.
+
+**Four more mutants**, anchored on `reference_ports/` because the flat
+reference has no adapter in it and a catalogue that cannot express a class
+produces a zero that says nothing:
+
+| Mutant | Class | Seeded in |
+|---|---|---|
+| PA-M11 real adapter drops CLOSE lines on read-back | adapter_internal | `journal_file.py` — the CONTRAST row |
+| PA-M12 fake adapter drops CLOSE lines on read-back | adapter_internal | `journal_memory.py` — **the same fault, other side of the port** |
+| PA-M13 fake truncates every stored line | adapter_internal | `journal_memory.py` — the write path |
+| PA-M14 hold one too large, ported domain | wrong_value | **POSITIVE CONTROL** for the second anchor tree |
+
+Measured at PA-01, all three wirings control-green
+(`[pa_measured_swap_baseline]`):
+
+| mutant | suite-real | suite-fake |
+|---|---|---|
+| PA-M11 | **KILLED** | SURVIVED |
+| PA-M12 | **SURVIVED** | KILLED |
+| PA-M13 | SURVIVED | KILLED |
+| PA-M14 | KILLED | KILLED |
+
+PA-M11 and PA-M12 are **the same fault**. Under the only wiring the predecessor
+had, one dies and the other is untouchable — not because it is subtle, but
+because nothing runs the file. That is `BA-B14` reproduced in a fixture we
+control, with a twin that rules out "the fault was subtle". **Read the
+difference between the rows, never a total.**
+
+The remedy is `reference_ports/quota_ledger_fake.py`, which is four lines. It
+went unwritten for a whole epic. Cheap-and-undone is a different finding from
+expensive.
 
 ## Running it
 
@@ -98,8 +156,14 @@ uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior
 bash scripts/run_tlc.sh examples/validation/ab/model/QuotaLedger.tla \
                         examples/validation/ab/model/QuotaLedger.cfg
 
-# what the hand-written suite catches, reference only
+# what the hand-written suite catches, references only, all three wirings
 python3 examples/validation/ab/check_catalogue.py --verify-suite
+
+# the shared suite through each side of the port
+QUOTA_LEDGER_DIR=examples/validation/ab/reference_ports QUOTA_LEDGER_IMPL=quota_ledger \
+  uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q
+QUOTA_LEDGER_DIR=examples/validation/ab/reference_ports QUOTA_LEDGER_IMPL=quota_ledger_fake \
+  uv run --with pytest python -m pytest examples/validation/ab/tests/test_behavior.py -q
 ```
 
 At HP-06, re-anchor onto each arm's tree and prove exactly-once again per arm:
@@ -144,3 +208,34 @@ HP-06 would have inherited it as background fact — which is exactly how round
 `../PREDICTIONS-HP.md` — 7 positive and **6 negative** predictions, each with
 an ID, the instrument that settles it, and an expected direction. HP-06 scores
 them `PASS` / `FAIL` / `SUPERSEDED` / `UNMEASURED` and **may not amend them**.
+
+`../PREDICTIONS-PA.md` — this epic's, sealed by PA-01 before any other PA
+ticket was dispatched: 7 positive and **8 negative**, scored by PA-06 as
+written. N01 is the one that can embarrass this epic. N07/N08 were sealed in
+the commit before the one that repaired the positive control, so the ordering
+is in the history rather than in a promise.
+
+## The positive control was red, and it was red on arm B
+
+`check_catalogue.py --controls` probes whether a declared positive control is
+invisible until an accepted `reserve` runs — the property that makes it go red
+when `Reserve` stops executing, which is the regression it is the control for.
+
+| tree | M07 semantic | accept-path semantic |
+|---|---|---|
+| arm A (EVAL-RERUN sealed tree) | HOLDS | HOLDS |
+| arm B (EVAL-RERUN sealed tree) | **BROKEN** | HOLDS |
+| arm C | UNMEASURED — no tree yet | UNMEASURED |
+| `reference/` | HOLDS | HOLDS |
+| `reference_ports/` | HOLDS | HOLDS |
+
+Arm B derives `available()`, so the nearest re-anchoring of M07's sealed
+semantic is wrong from construction, on every tenant, after a refusal. It stays
+green through exactly the regression it exists to catch. **M07 is not deleted,
+not re-seeded and not excused** — it still runs and its kills still stand. What
+it stops doing on arm B is deciding whether the instrument works.
+
+PA-01's positive control for the ports tree is therefore seeded on the **accept
+path**, which is the one semantic measured to hold the property on every tree
+that exists — and `--controls --tree-root` is what PA-06 runs on arm C's tree
+before citing a kill number from it. **UNMEASURED is not a pass.**
