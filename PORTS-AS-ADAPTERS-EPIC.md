@@ -207,10 +207,33 @@ Baselines you are measured against, all sealed in closed snapshots:
 | **D1** bug detection | **3** (arm B, both judges) | first 3; was 2 or lower everywhere before |
 | **D2** complexity | **3**, never 4 | withheld by both judges, twice, for the same reason |
 | **D3** modularity | **4** (arm B, both judges) | first 4 in the project |
-| **D5** honesty | **4** | and it went to the *control*, not the treatment |
+| **D5** honesty | **4** | went to the **treatment** — corrected, see below |
+
+**D5 correction — 2026-08-05, epic owner, pre-dispatch baseline audit.** This row
+read *"and it went to the control, not the treatment"* until the baselines were
+checked against the artifacts rather than carried forward. That was true of
+HP-06's sealed run: `Y` = arm A = the control, D5 of 4 and 3. It is **false of
+the instrument this epic actually stands on.** EVAL-RERUN at `b3a0199`
+supersedes that run, and there D5 = 4 went to **`Q` = arm B = the treatment**,
+while the control *fell* to 3 and 2 (`closed-snapshot/results/scorecards/
+hexagonal-prompting-rerun/UNBLINDING.md`). The **4** is right in both runs. The
+attribution was inverted — in the one document every ticket agent is told to
+read first.
+
+Two things follow, and the second matters more:
+
+- **The sealed run is not edited.** Both rows stand as measured; this note
+  records which one describes the current instrument.
+- **This is exactly the failure §6 says PA-05 exists to prevent, found in this
+  epic's own starter.** A row went stale, nothing executed the claim, and it was
+  read forward as current through a whole dispatch. *A declaration that nothing
+  executes will drift* — including this one. Treat it as the worked example.
 
 **Watch D5 when the others move.** A rise in D1 bought by a fall in D5 is not
-improvement — it is the toolchain learning to overclaim.
+improvement — it is the toolchain learning to overclaim. And note what the
+correction exposes: across the two runs the control's D5 fell 4/3 → 3/2 while
+its D1 held at 3/3. Different artifacts, different round, different judges — so
+that is a question to ask, **not** a trend to report.
 
 ---
 

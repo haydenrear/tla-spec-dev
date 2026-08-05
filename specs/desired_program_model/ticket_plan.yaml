@@ -139,11 +139,19 @@ epic_goals:
   harness: the HP-01-shaped seeded catalogue extended with adapter-internal faults, run against real and
     fake wirings, scored by two blind judges
   baseline:
-    value: A fault in the treatment arm's in-memory adapter SURVIVED EVERY INSTRUMENT -- five corpus instruments,
-      the oracle, and the hand-written suite. The port created a region no shared oracle reaches. Measured
-      at hexagonal-prompting HP-06, filed as HP-06-DF-10.
+    value: 'A fault in the treatment arm''s in-memory adapter SURVIVED EVERY INSTRUMENT -- five corpus
+      instruments, the oracle, and the hand-written suite. The port created a region no shared oracle
+      reaches. Measured at hexagonal-prompting HP-06. CITATION CORRECTED 2026-08-05 (epic owner, pre-dispatch
+      audit): this baseline was dispatched citing HP-06-DF-10, which documents a DIFFERENT result -- that
+      the guard-relaxation zeros under the whole-view corpus are the oracle''s skip rule rather than the
+      sealed catalogue''s stated mechanism. THIS RESULT CARRIES NO DF ID AT ALL. It was never filed as
+      a deferred finding; it survives only as a bullet in SELF-IMPROVEMENT.md and inside judge rationales.
+      That an epic''s flagship baseline went unfiled for a full epic is itself a finding about the ledger,
+      and PA-06 reports it.'
     measured_at: f431c62
-    evidence: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/
+    evidence: 'specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md:329-333
+      -- "The port has a cost nobody predicted." Corroborated by the D3/D1 judge rationales under closed-snapshot/results/scorecards/hexagonal-prompting/.
+      NOT HP-06-DF-10; see the value field.'
   target: The same adapter-internal fault dies on at least one generated instrument, and no positive control
     is red.
   evaluation_ticket: PA-06
@@ -156,11 +164,22 @@ epic_goals:
     is the count of comparable cells where the arms AGREE.
   harness: per-port case generation over both arms, per-mutant verdict table, two blind judges
   baseline:
-    value: Per-mutant verdicts IDENTICAL ON 49 OF 49 comparable cells between a hexagonal arm and a non-hexagonal
-      one. Adapters bind to whole actions, so the port boundary is invisible to every oracle. The structure
-      arrived and caught nothing.
-    measured_at: f431c62
-    evidence: specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/
+    value: 'Per-mutant verdicts IDENTICAL ON 56 OF 56 strictly comparable cells between a hexagonal arm
+      and a non-hexagonal one. Adapters bind to whole actions, so the port boundary is invisible to every
+      oracle. The structure arrived and caught nothing.
+
+      BASELINE CORRECTED 2026-08-05 (epic owner, pre-dispatch audit; owner-approved). This goal was dispatched
+      baselining 49 OF 49 at f431c62. That number is SUPERSEDED, not wrong: EVAL-RERUN at b3a0199 -- which
+      post-dates f431c62 -- REPLICATED AND WIDENED it on a fresh artifact pair and a catalogue seeding
+      all ten mutants on both arms rather than eight, giving 56 of 56. On an independently authored 15-mutant
+      catalogue the only two differing cells were the two rows its author had declared non-parallel. The
+      superseded run is SEALED AND UNEDITED; 49 of 49 stands on the record as measured. The bar moves up
+      because measuring divergence against the weaker instrument would credit divergence the wider one
+      absorbs -- which is the exact hazard PA-05 is chartered to prevent, found live in this plan.'
+    measured_at: b3a0199 (EVAL-RERUN, repaired instrument); superseded baseline 49 of 49 at f431c62
+    evidence: 'specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md:309-315
+      for the supersession; closed-snapshot/results/scorecards/hexagonal-prompting-rerun/ for the 56-cell
+      run; closed-snapshot/results/scorecards/hexagonal-prompting/ for the sealed 49-cell run.'
   target: The arms' per-mutant verdicts DIVERGE on at least one cell, and the divergence is attributable
     to a port rather than to prompt length.
   evaluation_ticket: PA-06
