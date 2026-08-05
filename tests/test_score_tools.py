@@ -508,6 +508,73 @@ why = "w"
                for level, m in results["R-H3"] if level == st.VIOLATION)
 
 
+def test_a_repair_that_moved_nothing_is_a_measured_statement(st, tmp_path):
+    """PA-04: `control_red = []` while a positive control had SURVIVED four
+    columns that each ran 294 accepting Reserve cases. Executing the control's
+    declared role moved ZERO verdicts across all 90 cells and the instrument
+    still got materially more honest. R-H3 said a number that MOVED for
+    instrument reasons is not improvement; this is the converse it did not say,
+    and the record has to be able to state it."""
+    root = write_log(tmp_path / "scorecards", """
+schema_version = 1
+
+[[change]]
+id = "PA-04-control-role-executed"
+commit = "3e721a5"
+date = "2026-08-05"
+kind = "repair"
+affects = ["ex"]
+paths = ["examples/validation/ab/eval/run_controls.py"]
+verdicts_moved = 0
+verdicts_scope = "all 90 cells across three subjects"
+summary = "a role string could fail to raise a demonstrated control failure"
+""")
+    put_card(root, "round-one", "20260806-P-p1", "3e721a5")
+    results, _ = st.run_audit(root)
+    assert not [m for level, m in results["R-H3"] if level == st.VIOLATION]
+    assert any("moved ZERO verdicts" in m and "not whether they moved" in m
+               for _, m in results["R-H3"])
+
+
+def test_a_repair_that_declares_no_verdict_count_is_reported(st, tmp_path):
+    """"Nothing moved" has to be measured, and "cannot be measured" argued."""
+    root = write_log(tmp_path / "scorecards", CHANGE)   # a repair, no verdicts_moved
+    put_card(root, "round-one", "20260806-P-p1", "3e721a5")
+    results, _ = st.run_audit(root)
+    assert any("declaring neither" in m for level, m in results["R-H3"] if level == st.OPEN)
+
+    root2 = write_log(tmp_path / "scorecards2", CHANGE.replace(
+        'summary = "a declaration could erase a demonstrated kill"',
+        'verdicts_unmeasurable = "the two sides scored different artifacts"\n'
+        'summary = "a declaration could erase a demonstrated kill"'))
+    put_card(root2, "round-one", "20260806-P-p1", "3e721a5")
+    results2, _ = st.run_audit(root2)
+    assert any("no verdict diff exists, and says why" in m for _, m in results2["R-H3"])
+    assert not [m for level, m in results2["R-H3"] if level == st.OPEN]
+
+
+def test_a_split_goal_verdict_is_two_claims_and_renders_as_two(st, capsys):
+    """`GOAL-port-reach` is clause 1 met, clause 2 NOT met. A ledger that stores
+    one token per goal has to choose, and it will choose the flattering one."""
+    st.main(["history", "--example", "ab_quota_ledger", "--root", str(SCORECARDS)])
+    out = capsys.readouterr().out
+    one = next(l for l in out.splitlines() if l.startswith("| `goal-port-reach-clause-1` |"))
+    two = next(l for l in out.splitlines() if l.startswith("| `goal-port-reach-clause-2` |"))
+    assert "MET" in one and "NOT MET" in two
+    assert one != two
+
+
+def test_a_scorecard_verdict_is_free_text_not_a_token(st, tmp_path, capsys):
+    """The card's own `verdict` never had to be one word either, so a split
+    reads through the scaffold and the schema check unchanged."""
+    path, card = scaffolded(st, tmp_path)
+    capsys.readouterr()
+    fill(card)
+    card["verdict"] = "clause 1 met; clause 2 NOT met -- four positive controls are red"
+    problems, _ = st.check(card, str(path), st.load_rubric(RUBRIC))
+    assert problems == []
+
+
 def test_known_wrong_must_say_why(st, tmp_path):
     root = write_log(tmp_path / "scorecards", CHANGE + """
 [[claim]]
@@ -713,10 +780,15 @@ def test_history_records_the_refuted_finding_beside_the_claim_it_doubted(st, cap
     assert "refuted" in out and "the epic owner" in out
     assert "PA-05-DF-02" in out                      # the filing stays reachable
     assert "PA-05-N-11" in out                       # and its one arithmetic caveat
-    # the baseline itself is no longer parked
+    # The baseline it doubted was re-affirmed by PA-03 -- and is parked AGAIN,
+    # under a NEW and narrower finding, because PA-04 then added two more
+    # instrument changes and nobody has re-derived the seven-column table since.
+    # `reaffirmed_at` stays on the claim: it records that PA-03 did discharge
+    # the original doubt, which is not the same as the claim being safe now.
     line = next(l for l in out.splitlines()
                 if l.startswith("| `ab-cells-identical-56` |"))
-    assert "**current**" in line and "re-affirmed at" in line, line
+    assert "**under_review** (PA-05-DF-03)" in line, line
+    assert "PA-05-DF-02" not in line, "DF-02's doubt was discharged; do not re-hang it here"
 
 
 def test_history_marks_the_inverted_d5_attribution(st, capsys):

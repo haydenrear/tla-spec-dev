@@ -283,6 +283,584 @@ findings:
       was decorative.
     disposition: carried
     disposition_ticket: "PA-06"
+  - id: PA-02-DF-01
+    found_by: "PA-02"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "references/eval_scorecard.md"
+        - "specs/desired_program_model/ticket_plan.yaml"
+    summary: >-
+      THE FIGURES THE D2 RUBRIC ASKS A JUDGE TO READ CANNOT TELL THE ARMS APART,
+      AND PA-02 SHIPPED THE INSTRUMENT THAT SHOWS IT.
+
+      PA-02's charter names the figures to report: "modules, public surface,
+      pieces of mutable state, branch count, depth". Measured over the two
+      committed anchor trees -- one feature, one behavioural suite, deliberately
+      different structure -- and over the two sealed arms, implementation only:
+
+        branch count      reference 10 | reference_ports 11 | arm_a 10 | arm_b 11
+        max depth                    1 |                  1 |        1 |       1
+        worst callable               4 |                  4 |        4 |       4
+        mutable state                7 |                  9 |        8 |       8
+        public surface              15 |                 26 |       20 |      25
+        modules                      1 |                  5 |        1 |       4
+
+      Branching, depth and the worst single callable are IDENTICAL. Mutable
+      state moves by +/-1. The only classical figures that separate the pairs
+      are the two that measure how the code is cut up, and on those THE PORTED
+      TREE IS LARGER on every one -- more modules, more public surface, more
+      classes, roughly double the code lines.
+
+      D2's scale reads "is the design as simple as its behavior requires, and no
+      simpler", with anchors 3 and 4 requiring "a simplification was made and
+      its effect measured". On this evidence a produced-code instrument supports
+      NO claim of simplification by the hexagonal arm, in either direction. The
+      one figure that does separate the designs is not a size figure at all: it
+      is WHERE the effects sit
+      (`branch_points_in_effectful_modules` 10 -> 1 on both pairs, with
+      `effectful_calls` IDENTICAL at 3 on the anchor pair).
+    reproduction: >-
+      `python3 scripts/code_complexity.py examples/validation/ab/reference
+      examples/validation/ab/reference_ports --json` and the same over
+      `specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/
+      hexagonal-prompting-rerun/arms/arm_a` and `.../arm_b`. Recorded verbatim in
+      specs/tickets/PA-02/results/code_complexity_runs.txt and
+      code_complexity.json.
+    evidence:
+      - "specs/tickets/PA-02/results/code_complexity.json"
+      - "specs/tickets/PA-02/results/NARRATIVE.md -- section 2"
+      - "references/eval_scorecard.md:66-85 -- the D2 scale and its anchors"
+    why_out_of_scope: >-
+      `references/eval_scorecard.md` is not in PA-02's implementation_scope, and
+      the D2 scale is the rubric a judged round is scored against. Editing a
+      rubric mid-epic, after the instrument that will feed it has produced its
+      first result, is moving a target after a result is known -- the exact move
+      the epic's discipline forbids. Filed, not fixed.
+    suggested_fix: >-
+      PA-06 records these figures in the mechanical block AND states plainly,
+      beside D2, that the produced-code instrument supports no simplification
+      claim for either arm. The disagreement between measurement and judgement
+      is then visible as a finding, which is what the mechanical block is for.
+      If the owner wants D2 to reward STRUCTURE rather than SIZE, that is a
+      rubric change to make between epics with the reason recorded -- not a
+      reading imposed on this one.
+    blast_radius: >-
+      Any D2 score in this epic. A judge who reads "the ported tree has 5
+      modules where the flat one has 1, 26 public surface where it has 15, and
+      the same branching and depth" and scores it as simplification is scoring
+      the prompt, not the artifact. A judge who scores it DOWN for being larger
+      is scoring size, which is not what D2 asks either.
+    correction: >-
+      AMENDED 2026-08-05 after epic-owner review of PA-02 (CORRECTION-01 in the
+      ticket's history entry). THIS FINDING GETS STRONGER AND IS NOT SOFTENED.
+
+      PA-02's HEADLINE table mixed two denominators -- `totals` for the two
+      sealed arms beside what was effectively `totals_code_only` for the two
+      anchor trees, which ship no test modules -- and made the hexagonal arm
+      look substantially simpler. This finding was NOT affected: it was written
+      from the implementation-only figures throughout, and every number in its
+      summary reproduces unchanged.
+
+      Corrected like for like on `role=code`, the ported tree is larger on MORE
+      figures than the mis-tabled headline showed: `code_lines` 151 -> 202 and
+      `effectful_calls` 5 -> 3 join `public_surface` 20 -> 25, `modules` 1 -> 4
+      and `classes` 4 -> 6, while `branch_points` (10 -> 11), `max_depth`
+      (1 -> 1) and `max_branch_points_in_callable` (4 -> 4) stay flat or move
+      the wrong way. The apparent halving of `branch_points` (37 -> 19) was
+      `arm_a`'s test file, which carries 27 of its 37 all-modules branch points.
+
+      So "the produced-code figures support no simplification claim for either
+      arm" is BETTER supported after the correction than before it. The
+      suggested_fix and blast_radius above stand as written.
+    disposition: carried
+    disposition_ticket: "PA-06"
+
+  - id: PA-02-DF-02
+    found_by: "PA-02"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production:
+        - "scripts/start_ticket.py"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/desired_program_model/ticket_plan.yaml"
+    summary: >-
+      `scripts/start_ticket.py PA-02` SCAFFOLDS THE TICKET WORKSPACE BUT LEAVES
+      THE PLAN SAYING NOTHING IS OPEN. After a clean run, the ticket's own
+      `ticket.yaml` carries `"status": "active"`, while
+      `specs/desired_program_model/ticket_plan.yaml` still has
+      `status.active_ticket: null`, `status.active_ticket_title: null`,
+      `status.phase: planning`, and the ticket's own `status: planned`.
+
+      Two files disagree about whether a ticket is open, and the one an agent
+      reads first -- the plan -- is the one that is wrong. The predecessor's
+      standing lesson is that a declaration nothing executes will drift; this is
+      a declaration two writers maintain and only one of them updates.
+    reproduction: >-
+      From a clean tree: `python3 scripts/start_ticket.py PA-02`, then
+      `git status -s specs/desired_program_model/ticket_plan.yaml` -> no change,
+      while `specs/tickets/PA-02/ticket.yaml` reports `"status": "active"`.
+    evidence:
+      - "specs/tickets/PA-02/ticket.yaml -- top-level status: active"
+      - "specs/desired_program_model/ticket_plan.yaml -- status.active_ticket: null"
+    why_out_of_scope: >-
+      `scripts/start_ticket.py` is not in PA-02's implementation_scope, and the
+      plan file is a shared-serialization surface every ticket in the epic
+      writes. A concurrent-edit hazard is exactly what conflict_keys exist to
+      keep one ticket out of.
+    suggested_fix: >-
+      Either `start_ticket.py` writes `status.active_ticket` /
+      `active_ticket_title` / the ticket's `status` when it scaffolds, or the
+      close path stops reading the plan's status as authoritative and reads
+      `ticket.yaml`. Whichever is chosen, ship a test that opens a ticket and
+      asserts the two files agree -- otherwise the next author fixes the same
+      drift again.
+    blast_radius: >-
+      Low today: nothing gates on the plan's status field and every ticket in
+      this epic is dispatched by issue rather than by reading it. It becomes
+      real for any tooling that resumes work by asking the plan what is open,
+      and for a human auditing the epic afterwards from the plan alone.
+    disposition: escalated
+    disposition_ticket: null
+  - id: PA-03-DF-01
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/current/tlc_projection.py", "references/generation_modes.md"]
+    summary: >-
+      THE STATE PROJECTION THAT MAKES THIS REPOSITORY'S OWN CORPUS TRACTABLE IS
+      GONE, and the page that describes it said it was there. `specs/current/`
+      is cleared when a spec workflow closes, and `5a0a39d` ("Close the
+      hexagonal-prompting spec workflow") deleted `specs/current/tlc_projection.py`
+      with it.
+
+      `references/generation_modes.md` read "The projection at
+      `specs/current/tlc_projection.py` takes the same model to 541 cases and
+      667 KB, a 6,800x reduction" for two commits after the file stopped
+      existing. Measured now: `generate cases specs/current/TlaSpecDevCli.tla
+      specs/current/MCsmall.cfg` writes **99,817 cases** and exits 2 at
+      499x its own declared cap of 200.
+
+      The technique is not lost -- the module is preserved verbatim at
+      `specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/snapshots/current/tlc_projection.py`
+      -- but nothing restores it into a new workflow's `current/`, so every
+      future ticket generating from the whole-program model gets the untractable
+      corpus and the page told it otherwise.
+    reproduction: >-
+      `ls specs/current/` -> no tlc_projection.py.
+      `git log --diff-filter=D --all -- specs/current/tlc_projection.py` -> 5a0a39d.
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      specs/current/TlaSpecDevCli.tla specs/current/MCsmall.cfg --out <scratch>
+      --package base_cases --view internal` -> "generated internal cases from
+      6223 states", 99,817 cases, exit 2.
+    evidence:
+      - "references/generation_modes.md"
+      - "specs/.history/hexagonal-prompting-epic/ticket-002-HP-03/snapshots/current/tlc_projection.py"
+    why_out_of_scope: >-
+      `specs/current/` is not in PA-03's `implementation_scope`
+      (`scripts/generate_cases_from_tlc_dump.py`, `prompts/`, `references/`,
+      `tests/`), and restoring a projection into the current model is a model
+      decision with a coverage cost that its own docstring is supposed to state.
+      The stale sentence in `references/generation_modes.md` IS in scope and was
+      corrected in place, with the correction pointing here.
+    suggested_fix: >-
+      Either restore the HP-03 projection into `specs/current/` as part of
+      opening the next whole-program slice, or make `open ticket` carry a
+      workflow's projection forward the way it carries the model. The second is
+      the durable one: a projection deleted by a close is a tractability
+      regression nobody is scheduled to notice.
+    blast_radius: >-
+      Any ticket generating from this repository's own model gets a corpus 499x
+      over cap and a nonzero exit, and the page that would have told it how to
+      fix that cited a file that is not there. It does not affect the A/B
+      fixture, which carries its own model, so this epic's measurements are
+      unaffected.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-03-DF-02
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/eval/run_controls.py"]
+    summary: >-
+      A DECLARED LIMITATION CAN ONLY SAY "THIS INSTRUMENT NEVER EXECUTED THAT
+      ACTION". A PROJECTED CORPUS'S REAL LIMITATION IS THE OPPOSITE SHAPE AND IS
+      INEXPRESSIBLE.
+
+      `verify_limitation` reads one witness form: `witness_action` plus
+      `witness_polarity` plus `witness_ran_must_be`, checked against the run's
+      own `per_action` counts. That is the right check for an instrument blind
+      because it never made the call. It cannot state the other reason an
+      instrument is blind: **it made the call and does not observe the variable
+      the fault lands on.**
+
+      PA-03's `corpus-port` is the clean demonstration, and it is clean because
+      the executability number rules the other explanation out. It executes
+      **294 accepting `Reserve` cases** -- exactly as many as `corpus-whole`,
+      83.2% of its whole corpus -- and still cannot decide `M07`, because the
+      port's derived region is `{committed, ledger, closed}` and M07's symptom
+      lands on `available`. No witness of the available shape is true, so the
+      only honest outcome is a RED positive control on an instrument whose
+      blindness is precisely characterised.
+
+      EVAL-RERUN found the same gap from the other side (`EVAL-RERUN-DF-04`,
+      `corpus-slice-led`: "its stated cause -- it cannot execute the mutated line
+      -- is false ... the only operative constraint there is the projection"),
+      and repaired the VERIFICATION rather than the VOCABULARY. The vocabulary
+      is what is missing.
+    reproduction: >-
+      Generate the port corpus and run it:
+      `python3 scripts/tla_spec_dev.py --spec-root specs generate cases
+      examples/validation/ab/model/QuotaLedger.{tla,cfg} --out <scratch>/specs/corpus-port
+      --package quota_port --view internal --negative-cases with-positive --port-cases only`
+      then `run_controls.py ... --instrument corpus-port=<scratch>/specs/corpus-port/spec-unit/quota_port`.
+      `controls_on_unmutated_code["corpus-port"]["per_action"]["Reserve"]["ran_accepting"] == 294`
+      and `per_mutant["M07-positive-control-wrong-hold"]["corpus-port"] == "SURVIVED"`.
+    evidence:
+      - "specs/tickets/PA-03/results/kill-table-arm-a.json"
+      - "specs/tickets/PA-03/results/kill-table-arm-b.json"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's `implementation_scope`, not PA-03's, and
+      the driver is the instrument under measurement. Adding a witness form
+      mid-measurement is editing the instrument after seeing an unflattering
+      signal, which is the forbidden half of the repair rule.
+    suggested_fix: >-
+      Add a second witness form -- a PROJECTION witness naming the variable the
+      mutant's semantic lands on, verified against the instrument's own case
+      `after` keys rather than against a promise. It is checkable from data the
+      corpus already carries, so it does not become a suppression key: an
+      instrument whose cases DO project the named variable would fail the
+      witness and the cell would be decided normally.
+    blast_radius: >-
+      Every projected instrument. `corpus-slice-res`, `corpus-slice-led` and now
+      `corpus-port` are all scoped by projection, and for all three the only
+      available declaration is one that misstates why the instrument is blind or
+      is falsified by the run's own data.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-03-DF-03
+    found_by: "PA-03"
+    found_at_commit: "1cad5ea"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      NO POSITIVE CONTROL IN THE CATALOGUE IS SEEDED INSIDE A PORT'S REGION, SO
+      NO PORT-SCOPED INSTRUMENT CAN HAVE A GREEN ONE.
+
+      `M07` inflates a held total and `PA-M14` inflates it on the accept path.
+      Both land on `available`. The one declared port's derived region is
+      `{committed, ledger, closed}`. So both positive controls SURVIVE
+      `corpus-port` on the reference tree, on arm A and on arm B, and the column
+      is a floor under a red control on every tree that exists.
+
+      This is a gap in the CATALOGUE, not in the corpus: `corpus-port` kills
+      `M05` (a durable-content fault inside the region) on all three trees, so
+      the instrument demonstrably reaches its own region. What it has never been
+      given is a blatant fault seeded there that a control could decide with.
+
+      Recorded now because PA-04 binds adapters to ports and will produce more
+      port-scoped columns, and each will inherit a red control until a control
+      exists that a port-scoped instrument can decide.
+    reproduction: >-
+      `run_controls.py --tree examples/validation/ab --module-dir reference
+      --binding reference_binding --instrument corpus-port=...` ->
+      `controls_red: ["M07-positive-control-wrong-hold",
+      "PA-M14-positive-control-accepted-hold-too-large"]`,
+      `polarities_with_no_deciding_control: ["positive"]`.
+    evidence:
+      - "specs/tickets/PA-03/results/smoke-reference.json"
+      - "specs/tickets/PA-03/results/kill-table-arm-a.json"
+    why_out_of_scope: >-
+      `examples/validation/ab/seeded_faults.toml` is PA-01's scope and is the
+      catalogue under measurement. Seeding a mutant into it during PA-03's own
+      measurement would be adding to the instrument after seeing the result.
+    suggested_fix: >-
+      PA-04 or PA-06 seeds one blatant fault inside a declared port's region --
+      for this fixture, a COMMIT line written with the wrong tenant would do it
+      -- and declares it `control_role = "positive"` scoped to the port-scoped
+      instruments. The existing rule that a control must be seeded in nobody's
+      gap still applies; what is new is that "nobody's gap" now has to be true
+      of a REGION as well as of an action.
+    blast_radius: >-
+      Every port-scoped column PA-04 and PA-06 produce. Read as it stands, a
+      table of `corpus-port` kills cannot be told apart from a broken
+      instrument, which is exactly what the control exists to prevent.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-01
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      PA-03-DF-03 CONFIRMED BY MEASUREMENT, AND IT NOW SCOPES FOUR MORE COLUMNS.
+
+      PA-03 predicted that every port-scoped column PA-04 produced would inherit
+      a red positive control. It did, and the prediction is now measured rather
+      than reasoned: `PA-M14`, the ports tree's declared positive control,
+      SURVIVES all four corpus columns of PA-04's swap table
+      (`corpus-port-swap:{real,fake}`, `corpus-action-bound:{real,fake}`) while
+      dying on both hand-written suite columns. `M07` does the same on both arms
+      across all three arm columns.
+
+      So every kill number in PA-04's port-scoped table is a FLOOR, and that is
+      stated in RESULTS.md rather than netted out of anything.
+
+      This is filed as its own row rather than as a comment on PA-03-DF-03
+      because the blast radius changed: PA-03 had one port column, PA-04 has
+      seven across three subjects, and PA-06 will re-anchor onto the arms and
+      produce more.
+    reproduction: >-
+      `python3 specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py
+      --subject reference_ports --cases <corpus> --out out.json` ->
+      `per_mutant["PA-M14-positive-control-accepted-hold-too-large"].cells` is
+      SURVIVED on all four corpus instruments and KILLED on both suite columns.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-arm-a.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-arm-b.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      `seeded_faults.toml` is PA-01's scope and is the catalogue under
+      measurement, and PA-04 has now SEEN its own numbers. PA-01
+      schedule_revision 2 draws the line exactly here: repairing an instrument
+      BEFORE any measurement is legitimate, repairing it after an unflattering
+      signal is the forbidden act. Seeding the control now would be the latter.
+    suggested_fix: >-
+      Unchanged from PA-03-DF-03: seed one blatant fault inside the declared
+      port's region -- a COMMIT line written with the wrong tenant -- declare it
+      `control_role = "positive"` scoped to port-scoped instruments, and seal the
+      prediction BEFORE running it. PA-04's measurement shows the region is
+      reachable: `PA-M11` and `PA-M12` are both decided inside it, so a control
+      seeded there will be decidable.
+    blast_radius: >-
+      Every port-scoped column in PA-04's table and every one PA-06 produces. A
+      table of port kills with a red positive control cannot be told apart from
+      a broken instrument, which is what the control exists to prevent.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-02
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/eval/run_controls.py"]
+    summary: >-
+      `run_controls.py` CANNOT EXPRESS A SECOND WIRING, SO THE EPIC'S OWN
+      VERDICT-TABLE DRIVER CANNOT RUN THE INSTRUMENT THE EPIC IS ABOUT.
+
+      `run_suite` hardcodes `QUOTA_LEDGER_IMPL="quota_ledger"`
+      (`examples/validation/ab/eval/run_controls.py:541-544`) and there is
+      exactly one `--suite` flag and one `"suite"` instrument name. PA-01's two
+      declared instruments `suite-real` and `suite-fake`
+      (`seeded_faults.toml:80-85`) therefore exist only inside
+      `check_catalogue.py --verify-suite` and have never appeared in a
+      per-mutant verdict table.
+
+      PA-04 worked around this by building its own subject-driven driver
+      (`measure/run_port_swap.py`) rather than widening `run_controls.py`, which
+      is out of PA-04's implementation_scope. That driver reproduces
+      `run_controls.py`'s sealed `corpus-port` column on 10 of 10 mutants on
+      both arms, so the two are calibrated -- but there are now two drivers, and
+      two drivers is how a number gets quoted against the wrong instrument.
+    reproduction: >-
+      `grep -n 'QUOTA_LEDGER_IMPL' examples/validation/ab/eval/run_controls.py`
+      -> one hardcoded assignment, no flag.
+    evidence:
+      - "examples/validation/ab/eval/run_controls.py:541"
+      - "examples/validation/ab/seeded_faults.toml:80"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's scope, and widening a measurement driver
+      during a measurement changes the instrument mid-run.
+    suggested_fix: >-
+      Give `run_controls.py` a per-instrument wiring selector -- `--suite
+      NAME=IMPL` and `--instrument NAME=PKG[:PROVIDER][@wiring]` -- and fold
+      PA-04's subject table into it, so there is one driver again. Then delete
+      `measure/run_port_swap.py` or reduce it to a thin subject config.
+    blast_radius: >-
+      PA-06 must decide which driver its numbers come from and say so, or a
+      reader comparing a PA-06 row to a sealed PA-03 row compares two
+      instruments.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-03
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py", "scripts/effect_conformance.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE CORPUS RUNNER'S EFFECT REPORT NEVER PRINTS `ADAPTER REACH`, SO THE ONE
+      NUMBER THAT SAYS HOW MUCH OF THE MODEL AN ORACLE COULD SEE IS MISSING FROM
+      THE PATH MOST RUNS TAKE.
+
+      `effect_conformance.diff_effects` accepts `skipped`, `offered_actions` and
+      `executed_actions` and renders `ADAPTER REACH: N of M action(s) ...
+      EXECUTED` from them. `scripts/run_generated_case_adapters.py` calls
+      `diff_effects` with only `cases`, `case_actions` and `unobservable`, so
+      the reach line is emitted by the standalone `run effect-conformance`
+      command and never by the corpus runner.
+
+      That asymmetry is why "the oracle drives 8 of 18 actions" was a fact about
+      the standalone command and had to be rediscovered by reading source rather
+      than read off a run.
+    reproduction: >-
+      `grep -n 'diff_effects(' scripts/run_generated_case_adapters.py` -> the
+      call passes three keyword arguments; `grep -n 'def action_reach'
+      scripts/effect_conformance.py` -> the renderer that never fires.
+    evidence:
+      - "scripts/effect_conformance.py"
+      - "references/case_modules.md"
+    why_out_of_scope: >-
+      Both files ARE in PA-04's implementation_scope, so this is scope-legal --
+      it is deferred on the measurement rule instead. Threading three more
+      arguments through the batch executor changes what the effect report says
+      on every existing run, and PA-04's own numbers were taken with the report
+      as it stands. Changing it mid-ticket would mean PA-04's evidence and
+      PA-04's shipped behaviour describe different instruments.
+    suggested_fix: >-
+      Thread the batch executor's skip and offered/executed action sets into the
+      `diff_effects` call, and pin it with a test that a corpus run's report
+      carries an `action_reach` block. Budget: small.
+    blast_radius: >-
+      Any run that reads a green effect report from the corpus runner and infers
+      coverage from it. The verdict is correct; the denominator is absent.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-04
+    found_by: "PA-04 (epic owner, post-implementation review)"
+    found_at_commit: "5a58b2b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+        - "examples/validation/ab/eval/run_controls.py"
+    summary: >-
+      A CONTROL'S ROLE WAS PROSE THAT NOTHING EXECUTED, SO A DEMONSTRATED
+      CONTROL FAILURE DID NOT RAISE -- AND THE GOAL VERDICT TURNED ON IT.
+
+      PA-04's first run reported `control_red: []` while `PA-M14` -- declared
+      "positive -- must die on every instrument that executes an accepted
+      Reserve against the reference_ports tree, under BOTH wirings" -- SURVIVED
+      both port columns, each of which had executed 294 accepting `Reserve`
+      cases. Nothing compared the role string against the measured
+      `ran_accepting`, so the field said no control was red while one was red on
+      four instruments. PA-04 then reported `GOAL-port-reach` as MET even though
+      the target's second clause is "and no positive control is red", and even
+      though PA-04's own prose said every port kill number was a floor.
+
+      THIS IS EVAL-SUPPRESS IN THE OTHER DIRECTION. EVAL-SUPPRESS closed "a
+      declaration can erase a demonstrated kill". This is "a role string can
+      fail to raise a demonstrated control failure". Same hole, opposite sign,
+      and NOTHING IN `SUPPRESSION_KEYS` REACHES IT, because no suppression was
+      declared -- the check simply was not wired.
+
+      IT IS ALSO PA-04-DF-02 REALIZED IMMEDIATELY, IN THE FLATTERING DIRECTION.
+      `run_controls.py` DOES execute the role: PA-03's sealed
+      `kill-table-arm-a.json` records `M07: {green: false, instruments_wrong:
+      ["corpus-port"], must_be: KILLED}` and `control_coverage.positive.green:
+      false`. PA-04's second driver dropped that check. "Two drivers is how a
+      number gets quoted against the wrong instrument" was filed as a hazard in
+      the same ticket that then demonstrated it.
+
+      FIXED IN PA-04 rather than deferred, because the fix makes PA-04's own
+      result WORSE: it converts a reported "met" into a split verdict and puts a
+      red control beside the ticket's best number. That direction is always
+      allowed; the reverse is the forbidden one and was declined (see
+      PA-04-DF-01). What is filed here is the DEFECT and its blast radius, not
+      a request to repair it.
+
+      Two further defects were found by RUNNING the fix, both now closed:
+      (a) the first version flagged RETIRED `M09` as red, because it did not
+      read `retired_control`; a false red corrupts a control record exactly as
+      badly as a false green. (b) it flagged a UNIVERSAL role ("must die on
+      every instrument") as unexecutable merely for naming no action, which
+      would have put a false warning beside two legitimate negative controls.
+    reproduction: >-
+      `git show 5a58b2b:specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json`
+      -> `control_red: []` with
+      `per_mutant["PA-M14-..."].cells["corpus-port-swap:real"] == "SURVIVED"`
+      and
+      `controls_on_unmutated_code["corpus-port-swap:real"].per_action.Reserve.ran_accepting == 294`.
+      `uv run --with pytest --with pyyaml python -m pytest tests/test_control_role_is_executed.py -q`
+      -> 16 passed at HEAD, 13 FAILED at 5a58b2b.
+    evidence:
+      - "tests/test_control_role_is_executed.py"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json"
+      - "specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      The DEFECT is fixed in PA-04's own driver. What is deferred is the shared
+      half: `examples/validation/ab/eval/run_controls.py` is PA-01's scope, and
+      the two drivers must be reconciled into one before PA-06 quotes numbers
+      from either. That reconciliation is PA-04-DF-02's fix and this row raises
+      its severity from minor to major, because the hazard is no longer
+      hypothetical.
+    suggested_fix: >-
+      Fold PA-04's subject table into `run_controls.py` so one driver executes
+      one control rule, and delete `measure/run_port_swap.py`. Until then, every
+      port-scoped number PA-06 quotes must name which driver produced it. Carry
+      `tests/test_control_role_is_executed.py` onto whichever driver survives --
+      a control check with no test is what produced this row.
+    blast_radius: >-
+      EVERY port-scoped kill number in this epic, including PA-04's headline
+      table. `PA-M12`'s kill is a demonstrated kill and stands; the SURVIVED
+      cells beside it sit under a red positive control and are a FLOOR. More
+      broadly: any measurement round in this project whose controls are declared
+      in prose and checked by nothing.
+    disposition: carried
+    disposition_ticket: "PA-06"
   - id: PA-05-DF-01
     found_by: "PA-05"
     found_at_commit: "1cad5ea"
@@ -460,4 +1038,82 @@ findings:
       reached PA-06, which is exactly where it was aimed and exactly the channel
       this epic says produces its best material.
     disposition: refuted
+    disposition_ticket: "PA-06"
+  - id: PA-05-DF-03
+    found_by: "PA-05"
+    found_at_commit: "5861739"
+    schedule_revision: 1
+    severity: minor
+    status: >-
+      A STRADDLE, NOT A DEFECT. Filed deliberately at the weakest useful
+      strength, because PA-05 has already once turned a straddle into an
+      assertion and been refuted for it (PA-05-DF-02). Nothing here claims a
+      number is wrong. It claims a number has not been re-derived since the
+      script that produces it changed, and that nobody has looked.
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/scorecards/INSTRUMENT-LOG.toml"]
+    summary: >-
+      THE 56-OF-56 BASELINE HAS NOT BEEN RE-DERIVED SINCE PA-04. PA-03
+      re-affirmed it at `f052d3c` -- zero cells moved on either arm over the 77
+      cells shared with the repaired EVAL-SUPPRESS run -- and that discharged
+      PA-05-DF-02. PA-04 then landed two further instrument changes:
+      `5a58b2b` added `corpus-port-swap:real` and `corpus-port-swap:fake` and
+      modified `scripts/run_generated_case_adapters.py`, the adapter-execution
+      path the seven generated columns run through, and `cb90a0a` repaired the
+      control accounting.
+
+      `git log` over `kill-table-*.json` since `5a58b2b` returns nothing: the
+      seven-column table has not been produced again on the changed script.
+      `score_tools.py audit` reports the claim SUPERSEDED-UNMARKED across
+      `PA-04-port-swap-columns` and `PA-04-control-role-executed`, which is
+      correct and is the whole of what is known.
+
+      WHAT THIS IS NOT. It is not a claim that any of the 56 cells moved, nor
+      that PA-04's change reaches them. PA-04's own repair moved ZERO verdicts
+      across all 90 cells it did measure, which is weak evidence in the
+      reassuring direction. PA-05 cannot settle it without running a full
+      measurement, which is PA-06's job and which no ticket scheduled for
+      PA-05 -- running one here would put an unpredicted number into the record
+      mid-epic.
+
+      A STRADDLE IS A PROMPT TO GO AND LOOK, NEVER A FINDING ON ITS OWN
+      (`references/eval_scorecard.md`, R-H3). This is the prompt.
+    reproduction: >-
+      `python3 examples/validation/scorecards/score_tools.py audit` ->
+      "claim `ab-cells-identical-56`: SUPERSEDED-UNMARKED ... the instrument
+      changed at PA-04-port-swap-columns, PA-04-control-role-executed
+      afterwards". `git show 5a58b2b --stat | grep scripts/` ->
+      `scripts/run_generated_case_adapters.py`. `git log
+      origin/epic/ports-as-adapters --since=2026-08-05 -- '**/kill-table-*.json'`
+      -> empty.
+    evidence:
+      - "specs/results/scorecards/INSTRUMENT-LOG.toml -- [[change]] PA-04-port-swap-columns, PA-04-control-role-executed"
+      - "specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json and -arm-b.json -- the last derivation, pre-PA-04"
+      - "specs/.history/ports-as-adapters-epic/ticket-003-PA-04/ticket/results/CORRECTION.md -- zero cells moved across its own 90"
+    why_out_of_scope: >-
+      Deriving it is a measurement. PA-05 is a tooling ticket in wave 4 and the
+      epic's standing rule is that a fix -- or a measurement -- taken during
+      somebody else's measurement destroys it. The tool's job here was to make
+      the straddle visible, and it did that without being asked.
+    suggested_fix: >-
+      PA-06 re-derives the seven-column table on the tip it judges at, BEFORE
+      citing 56 of 56 as a baseline, and records the result as a new claim with
+      `measured_at` at its own commit. Two outcomes and both are informative: if
+      nothing moved, `ab-cells-identical-56` gets a `reaffirmed_at` and the
+      column growth is the only thing standing between it and PA-06's own
+      numbers; if something moved, that is the first time the adapter binding
+      has been shown to reach the generated instruments and it is a finding in
+      its own right. Either way, never quote PA-03's 8 x 8 = 64 or PA-06's count
+      against 56 without naming `PA-03-corpus-port` and
+      `PA-04-port-swap-columns`.
+    blast_radius: >-
+      `GOAL-cases-drive-ports` is decided against this baseline, and PA-04
+      already reports that goal as no longer met. A verdict that turns on
+      whether the arms diverge should not rest on a cell count last produced two
+      instrument changes ago.
+    disposition: carried
     disposition_ticket: "PA-06"

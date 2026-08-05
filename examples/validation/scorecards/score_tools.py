@@ -891,6 +891,17 @@ def cmd_history(argv: list[str]) -> int:
             out.append("")
             out.append(" ".join(str(ch.get("summary", "")).split()))
             out.append("")
+            if "verdicts_moved" in ch:
+                scope = f" over {ch['verdicts_scope']}" if ch.get("verdicts_scope") else ""
+                if ch["verdicts_moved"] == 0:
+                    out.append(f"**Verdicts moved: ZERO**{scope}. The instrument changed and "
+                               "no number did — read what the numbers MEAN across this bar, "
+                               "not whether they moved.")
+                else:
+                    out.append(f"**Verdicts moved: {ch['verdicts_moved']}**{scope}. A number "
+                               "that moved because the instrument was repaired is not "
+                               "improvement.")
+                out.append("")
             if ch.get("invalidates"):
                 out.append("**Numbers this change is recorded as invalidating:** "
                            + "; ".join(ch["invalidates"]))
@@ -1064,9 +1075,39 @@ def audit_rh2(ctx: dict) -> list[tuple[str, str]]:
 
 
 def audit_rh3(ctx: dict) -> list[tuple[str, str]]:
-    """R-H3 repair vs improvement: no claim stays `current` across an unreaffirmed change."""
+    """R-H3 repair vs improvement: what a change moved, and what stays `current` across it."""
     out = []
     filed = _finding_ids()
+    # A repair declares how many verdicts it moved, so "nothing moved" is a
+    # MEASURED statement rather than an absence. Zero is a real and important
+    # answer: an instrument can get more honest without a single number
+    # changing, and the rule "a number that moved because the instrument was
+    # repaired is not improvement" has a converse the record has to be able to
+    # say out loud.
+    for ch in ctx["changes"]:
+        if ch.get("kind") != "repair":
+            continue
+        cid = ch.get("id")
+        scope = f" over {ch['verdicts_scope']}" if ch.get("verdicts_scope") else ""
+        if "verdicts_moved" not in ch:
+            why = str(ch.get("verdicts_unmeasurable") or "").strip()
+            if why:
+                out.append((OK, f"change `{cid}`: no verdict diff exists, and says why -- "
+                                f"{why}"))
+            else:
+                out.append((OPEN, f"change `{cid}`: a repair declaring neither "
+                                  f"`verdicts_moved` nor `verdicts_unmeasurable`. Whether "
+                                  f"numbers moved is the first thing a reader of an era "
+                                  f"boundary needs; 'nothing moved' has to be measured, and "
+                                  f"'cannot be measured' has to be argued."))
+        elif ch["verdicts_moved"] == 0:
+            out.append((OK, f"change `{cid}`: repaired and moved ZERO verdicts{scope}. The "
+                            f"instrument changed and no number did -- so read what the "
+                            f"numbers MEAN, not whether they moved."))
+        else:
+            out.append((OK, f"change `{cid}`: moved {ch['verdicts_moved']} verdict(s){scope}. "
+                            f"A number that moved because the instrument was repaired is not "
+                            f"improvement."))
     for c in ctx["claims"]:
         cid, status = c.get("id"), c.get("status")
         if status not in CLAIM_STATUSES:

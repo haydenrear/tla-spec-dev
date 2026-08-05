@@ -49,6 +49,7 @@ commit = "b285595"
 date = "2026-08-04"
 kind = "repair"
 affects = ["ab_quota_ledger"]
+verdicts_unmeasurable = """no cell-for-cell diff exists across this boundary: HP-06 and EVAL-RERUN scored DIFFERENT PAIRS OF ARTIFACTS, produced by re-dispatching the same two prompts to fresh agents, so there is no before/after table on one subject to diff. What is measurable, and is recorded above, is that M07 went from unreachable by anything (0 of 588 positive Reserve cases carried an argument) to decided on 5 of 7 instruments."""
 paths = [
   "examples/validation/ab/eval",
   "scripts/infer_action_params.py",
@@ -75,6 +76,8 @@ commit = "3e721a5"
 date = "2026-08-05"
 kind = "repair"
 affects = ["ab_quota_ledger"]
+verdicts_moved = 1
+verdicts_scope = "the rerun's own data, 11 mutants x 7 instruments x 2 arms"
 paths = [
   "examples/validation/ab/eval/run_controls.py",
   "examples/validation/ab/eval/oracle.py",
@@ -125,11 +128,81 @@ anything measured after this point.
 """
 
 [[change]]
+id = "PA-03-corpus-port"
+commit = "f052d3c"
+date = "2026-08-05"
+kind = "extension"
+affects = ["ab_quota_ledger"]
+paths = ["scripts/generate_cases_from_tlc_dump.py"]
+summary = """
+A PORT DECLARED IN THE MANIFEST GETS ITS OWN CASE SET. This adds a FIFTH
+generated instrument, `corpus-port`, as an eighth column beside the seven every
+number before it was measured on. Nothing existing moved -- PA-03 re-derived the
+whole table on the post-EVAL-SUPPRESS driver and not one cell changed on either
+arm across the 77 cells it shares with the repaired run -- but the DENOMINATOR
+did: strictly comparable becomes 8 rows x 8 instruments = 64, where the sealed
+number is 56 on seven columns. Quoting 64 against 56 without naming this change
+is exactly the comparison R-H1 forbids: the count moved because a COLUMN was
+added, not because a verdict did.
+"""
+
+[[change]]
+id = "PA-04-port-swap-columns"
+commit = "5a58b2b"
+date = "2026-08-05"
+kind = "extension"
+affects = ["ab_quota_ledger"]
+paths = ["scripts/run_generated_case_adapters.py"]
+summary = """
+ADAPTERS BIND TO PORTS, AND A FAULT BEHIND A PORT STOPS HIDING. A SIXTH and
+SEVENTH generated instrument arrive -- `corpus-port-swap:real` and
+`corpus-port-swap:fake` -- beside `corpus-action-bound:*`. The instrument has
+now grown columns TWICE in this epic, at PA-03 and again here, and the subjects
+are no longer only the two arms: `reference_ports` is measured on six columns of
+its own. No cell count from any earlier round is a like-for-like comparison to
+anything measured after this point.
+"""
+
+[[change]]
+id = "PA-04-control-role-executed"
+commit = "cb90a0a"
+date = "2026-08-05"
+kind = "repair"
+affects = ["ab_quota_ledger"]
+paths = ["specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"]
+verdicts_moved = 0
+verdicts_scope = "all 90 cells across the three subjects (arm A 11x3, arm B 11x3, reference_ports 4x6)"
+summary = """
+A ROLE STRING COULD FAIL TO RAISE A DEMONSTRATED CONTROL FAILURE. `control_red`
+reported only instruments that failed on UNMUTATED code; it never executed a
+control's declared ROLE, so `PA-M14` SURVIVING four columns that each ran 294
+accepting `Reserve` cases did not raise, and the field shipped as `[]`. The role
+is now executed against the measured count: `control_red` becomes 4 entries for
+`PA-M14` on `reference_ports` and 3 per arm for `M07`, each carrying
+`witness_ran_accepting: 294`. `retired_control` is now read, so `M09` is
+correctly reported as deciding nothing.
+
+THE EXACT COUNTERPART OF EVAL-SUPPRESS WITH THE SIGN FLIPPED. That one closed
+"a declaration can ERASE a demonstrated kill"; this closes "a role string can
+FAIL TO RAISE a demonstrated control failure". Same family, opposite direction,
+and both were found in review rather than by the suite.
+
+VERIFIED INDEPENDENTLY BY PA-05: diffing every `per_mutant[*].cells` block at
+5a58b2b against the repaired artifacts gives 0 moved on all three subjects,
+while `control_red` goes [] -> 3 / 3 / 4.
+"""
+invalidates = [
+  "PA-04's `control_red = []` as recorded at 5a58b2b, on all three subjects",
+  "`GOAL-port-reach` reported as the single word MET -- it is clause 1 met, clause 2 NOT met",
+]
+
+[[change]]
 id = "PA-01-control-repair"
 commit = "46c29c9"
 date = "2026-08-05"
 kind = "repair"
 affects = ["ab_quota_ledger"]
+verdicts_unmeasurable = """there is nothing to diff: PA-01 repaired the control BEFORE any measurement of the three arms existed, which is why the repair is legitimate at all. Repairing an instrument before a signal is not the forbidden act; repairing one after an unflattering signal is."""
 paths = ["examples/validation/ab/seeded_faults.toml"]
 summary = """
 The positive control re-anchored BY THE PROPERTY rather than by the bytes:
@@ -359,12 +432,12 @@ from the sealed kill-table-arm-{a,b}-merged.json at f431c62.
 [[claim]]
 id = "ab-cells-identical-56"
 example = "ab_quota_ledger"
-status = "current"
+status = "under_review"
 delta_basis = "across_time"
 measured_at = "b3a0199"
 date = "2026-08-04"
 reaffirmed_at = "f052d3c"
-filed_as = "PA-05-DF-02"
+filed_as = "PA-05-DF-03"
 statement = "EVAL-RERUN: all 56 strictly comparable per-mutant cells are identical between the arms -- the prompt produced the structure and the structure caught nothing."
 why = """
 THE HAZARD WAS REAL AND HAS BEEN DISCHARGED. Filed as PA-05-DF-02 because this
@@ -387,13 +460,21 @@ of the denominator. Measured directly from the sealed
 differ between the arms and BOTH are M07 (`corpus-neg` A NOT_DECIDABLE / B
 KILLED, `corpus-slice-led` A NOT_DECIDABLE / B SURVIVED).
 
-TWO THINGS PA-06 STILL HAS TO CARRY. (a) `reaffirmed_at` points at `f052d3c` on
-`feature/PA-03`, which is NOT yet merged into the epic branch; if PA-03 does not
-merge, this claim returns to `under_review`. (b) PA-03 adds an EIGHTH instrument
-(`corpus-port`), so the strictly-comparable CELL COUNT on its table is 8 x 8 =
-64, not 56. The count moved because a column was added, not because a verdict
-moved. Quoting 64 against 56 without naming PA-03 is an R-H1 violation, and when
-PA-03 merges this log needs a `[[change]]` entry for it.
+AND THEN THE INSTRUMENT GREW AGAIN, TWICE, SO IT IS BACK UNDER REVIEW -- filed
+now as PA-05-DF-03 rather than DF-02. PA-03 merged, and `reaffirmed_at =
+f052d3c` is real rather than provisional; it is declared here as
+`PA-03-corpus-port`, an EIGHTH column, which by itself makes PA-03's
+strictly-comparable count 8 x 8 = 64 rather than 56. PA-04 then added a NINTH
+and TENTH (`corpus-port-swap:real` / `:fake`) and modified
+`scripts/run_generated_case_adapters.py`, the adapter-execution path the seven
+original columns run through, and NOBODY HAS PRODUCED THE SEVEN-COLUMN TABLE
+SINCE. That is a straddle, not a defect: PA-04's own repair moved zero verdicts
+across all 90 cells it measured, which is weak evidence in the reassuring
+direction, and PA-05 does not settle it because settling it is a measurement.
+
+NEVER quote 64, or any count PA-06 produces, against 56 without naming
+`PA-03-corpus-port` and `PA-04-port-swap-columns`. The count moves when a COLUMN
+is added, with no verdict moving at all.
 """
 
 [[claim]]
@@ -642,3 +723,87 @@ sha256 = "sha256:acc5557d3d7666cc"
 [[sealed]]
 path = "specs/results/scorecards/architectural-coherence/ex6_jenga/20260803-j2/scorecard.md"
 sha256 = "sha256:57129955d48482ad"
+
+[[claim]]
+id = "pa04-control-red-empty"
+example = "ab_quota_ledger"
+status = "known_wrong"
+measured_at = "5a58b2b"
+date = "2026-08-05"
+corrected_by = "cb90a0a"
+statement = "PA-04 at 5a58b2b: control_red = [] on all three subjects -- no control is red."
+why = """
+KNOWN-WRONG, AND IT IS THE CLEANEST WORKED EXAMPLE THIS EPIC HAS PRODUCED,
+because it is the case the reading rules did NOT yet cover. `control_red`
+reported only instruments that failed on UNMUTATED code. It never executed a
+control's declared ROLE against the measured count, so `PA-M14` SURVIVING four
+columns that each ran 294 accepting `Reserve` cases raised nothing, and the
+field shipped empty. Repaired at cb90a0a: 4 red entries for `PA-M14` and 3 per
+arm for `M07`, each carrying `witness_ran_accepting: 294`.
+
+NO NUMBER MOVED. Zero verdicts changed across all 90 cells -- verified
+independently by PA-05 by diffing every `per_mutant[*].cells` block before and
+after -- and the instrument still got materially more honest. R-H3 said "a
+number that moved because the instrument was repaired is not improvement"; this
+is the converse it did not say, and the log now records it as
+`verdicts_moved = 0` on the change itself. The kills are untouched; what changed
+is that the SURVIVED cells beside them are now correctly labelled a FLOOR.
+
+It is EVAL-SUPPRESS with the sign flipped: that closed "a declaration can ERASE
+a demonstrated kill", this closes "a role string can FAIL TO RAISE a
+demonstrated control failure". Both were declarations that nothing executed --
+which is the class of artifact this epic keeps finding stale, and the reason
+PA-05's own reading rules are executed by `audit` rather than merely written.
+"""
+
+[[claim]]
+id = "goal-port-reach-clause-1"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "cb90a0a"
+date = "2026-08-05"
+statement = "GOAL-port-reach clause 1: MET. A fault behind a port stops hiding -- PA-M12 is KILLED on corpus-port-swap:fake."
+why = """
+ONE HALF OF A SPLIT VERDICT. Recorded as its own claim precisely because the
+goal no longer has a single verdict token: PA-04 reports clause 1 met and clause
+2 not met, and a ledger that stored one word per goal would have to choose. A
+demonstrated kill stands on its own and a red control cannot erase one
+(EVAL-SUPPRESS); what the red control does is bound the cells BESIDE it.
+"""
+
+[[claim]]
+id = "goal-port-reach-clause-2"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "cb90a0a"
+date = "2026-08-05"
+statement = "GOAL-port-reach clause 2: NOT MET. The target reads '...and no positive control is red', and four are."
+why = """
+THE OTHER HALF, and it is the unflattering one, which is why it is recorded
+separately rather than averaged into a word. It was failing at the moment "MET"
+was written; the repair that surfaced it made the reported result WORSE, which
+is always the allowed direction. The reverse -- re-seeding an in-region positive
+control to turn the column green -- was available, is named in PA-03-DF-03's own
+suggested_fix, and was declined twice as repairing an instrument after an
+unflattering signal. Every port kill number on this goal is a FLOOR until the
+control is green.
+"""
+
+[[claim]]
+id = "goal-cases-drive-ports-not-met-at-pa04"
+example = "ab_quota_ledger"
+status = "current"
+delta_basis = "across_time"
+measured_at = "cb90a0a"
+date = "2026-08-05"
+statement = "GOAL-cases-drive-ports is NOT reported met by PA-04: the arms still do not diverge."
+why = """
+The goal's target is that the arms DIVERGE on at least one cell and that the
+divergence is attributable to a port rather than to prompt length. Two epics and
+five tickets in, they do not. Recorded here so the next reader meets the null
+beside the baseline it is measured against -- and that baseline,
+`ab-cells-identical-56`, is itself under review (PA-05-DF-03) because nobody has
+re-derived it since PA-04 changed the adapter-execution path.
+"""

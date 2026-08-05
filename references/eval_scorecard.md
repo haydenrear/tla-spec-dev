@@ -289,6 +289,22 @@ boundary applies), and `status = "under_review"`, which is only legal with a
 `filed_as` naming a real id in `deferred_findings.yaml` — so a number cannot be
 parked quietly.
 
+**And the converse, which this rule originally missed.** A repair can move **no**
+number and still change what the numbers mean. PA-04 shipped `control_red = []`
+while a positive control had SURVIVED four columns that each executed 294
+accepting `Reserve` cases; executing the control's declared role moved **zero
+verdicts across all 90 cells** and turned that field into seven red entries. The
+kills were untouched — what changed is that the `SURVIVED` cells beside them
+became a **floor** instead of evidence. So a `[[change]]` declares
+`verdicts_moved`, and **zero is an answer that has to be measured**. Where no
+cell-for-cell diff exists — the two sides scored different artifacts — it
+declares `verdicts_unmeasurable` and says why. `audit` reports any repair that
+declares neither.
+
+**A goal verdict is not always one word.** `GOAL-port-reach` is *clause 1 met,
+clause 2 not met*. Record each clause as its own claim: a ledger that stores one
+token per goal has to choose, and it will choose the flattering one.
+
 > **A STRADDLE IS A PROMPT TO GO AND LOOK, NEVER A FINDING ON ITS OWN.** `audit`
 > reads claims and commits; it does not read kill tables. It can tell you a
 > number was measured on the far side of a repair — it **cannot** tell you

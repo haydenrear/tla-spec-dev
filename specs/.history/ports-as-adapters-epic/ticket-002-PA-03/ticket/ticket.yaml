@@ -1,0 +1,126 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket PA-03",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "A port declared by an agent in the manifest produces its own case set, and the count per port is reported.",
+        "Per-port generation composes with the negative-corpus mode rather than replacing it; guard relaxation does not regress from 3 of 3.",
+        "Corpora stay under the manifest cap, and byte-identical across two independent generations INCLUDING failing executions.",
+        "Per-class per-arm kill table reported. Never a single rate."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs generate cases <model> --out <corpus>"
+      ]
+    },
+    "blocks": [
+      "PA-04",
+      "PA-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/generate_cases_from_tlc_dump.py",
+        "tests/test_generate_cases_from_tlc_dump.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "prompts/hexagonal_implementation.md",
+        "references/generation_modes.md"
+      ]
+    },
+    "depends_on": [
+      "PA-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/132",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The arms' per-mutant verdicts DIVERGE for the first time. If they stay identical on all comparable cells, generation still cannot see a port and the goal is missed.",
+        "goal": "GOAL-cases-drive-ports",
+        "local_signal": "per-mutant verdict table over both arms, counting cells where they agree"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none on its own -- supplies the per-port cases PA-04 binds to adapters",
+        "goal": "GOAL-port-reach",
+        "local_signal": "case counts per declared port"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected; must not grow a corpus past its cap again",
+        "goal": "GOAL-complexity-measurable",
+        "local_signal": "case count against the manifest cap"
+      }
+    ],
+    "id": "PA-03",
+    "implementation_scope": [
+      "scripts/generate_cases_from_tlc_dump.py",
+      "prompts/hexagonal_implementation.md",
+      "references/generation_modes.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "Possibly one generation-mode variant. Per surface_cost_rule, state what it buys and what the state space costs BEFORE adding it -- the predecessor measured ~1.5 new coverage gaps and ~8x state space per surface-adding ticket.",
+    "objective": "The first half of making the two senses of \"adapter\" one object. The prompt already makes an agent declare ports in the DOMAIN'S vocabulary. Have it declare them in the MANIFEST too, in the same shape the toolchain already uses for effect ports -- so a port the agent invented becomes a port the toolchain knows about. Then generate cases PER PORT, not only per action. Today every generated case drives a whole action, which is why a hexagonal codebase and a non-hexagonal one produce identical verdicts on 49 of 49 comparable cells: the port boundary is invisible to generation. NOTE, added by the epic owner 2026-08-05: 49 of 49 is the SEALED HP-06 number and it was SUPERSEDED before this epic opened. EVAL-RERUN at b3a0199 replicated and widened it to 56 OF 56 strictly comparable cells on a fresh artifact pair and a wider catalogue. Aim at 56 of 56. See GOAL-cases-drive-ports.baseline for why the bar moved up. Inherit rather than rebuild. The negative-corpus mode already emits the disabled edges at each reachable state and took guard relaxation from 0 of 3 to 3 of 3; per-port generation should compose with it, not replace it. And the tractability work stands: a corpus nobody can run is not a mechanism, and this model needed a projection to produce one at all.",
+    "promotion_order": 30,
+    "promotion_predecessor": "PA-02",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Ports in the manifest, and cases generated per port",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/tickets/PA-03",
+  "ticket_id": "PA-03",
+  "ticket_index": 2,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-03/specs/tickets"
+}
