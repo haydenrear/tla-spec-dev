@@ -1,0 +1,25 @@
+########## --wiring real
+validated 5 adapter mappings for 15 labels
+PORT BINDINGS from /Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/case_adapters.port-swap.toml against /Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/examples/validation/ab/model/spec_manifest.yaml:
+  ledger.LedgerAppendPort [declared]: real=port_journal_adapters:RealJournalAdapter fake=port_journal_adapters:FakeJournalAdapter -> cases labelled port:ledger.LedgerAppendPort
+ORACLES CARRIED BY THIS MAPPING:
+  + output-conformance: 5 binding(s) return a result this run compares field by field against the case's own expectation
+  + port-fake-real-swap on ledger.LedgerAppendPort: THIS RUN USED THE REAL SIDE. One run decides one side of a port; a fault seeded in the other implementation is not on this run's executed path at all, so this column must be read beside its opposite wiring or not at all
+ORACLES **NOT** CARRIED:
+  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state
+  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR
+  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die
+executed 40 cases in batch
+########## --wiring fake
+validated 5 adapter mappings for 15 labels
+PORT BINDINGS from /Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/case_adapters.port-swap.toml against /Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/examples/validation/ab/model/spec_manifest.yaml:
+  ledger.LedgerAppendPort [declared]: real=port_journal_adapters:RealJournalAdapter fake=port_journal_adapters:FakeJournalAdapter -> cases labelled port:ledger.LedgerAppendPort
+ORACLES CARRIED BY THIS MAPPING:
+  + output-conformance: 5 binding(s) return a result this run compares field by field against the case's own expectation
+  + port-fake-real-swap on ledger.LedgerAppendPort: THIS RUN USED THE FAKE SIDE. One run decides one side of a port; a fault seeded in the other implementation is not on this run's executed path at all, so this column must be read beside its opposite wiring or not at all
+ORACLES **NOT** CARRIED:
+  - projected-state-conformance: no binding declares a projector, an expected_projection or an assertion, so nothing here observes the real system's state except through the adapter's own returned after-state
+  - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO DURABLE-WRITE ORACLE is in this run and a kill count from it is a FLOOR
+  - mutation-kill-test: never carried by this runner. It is a separate instrument (scripts/kill_test.py) and a green run here is not evidence any fault would die
+  ! PORT ledger.LedgerAppendPort: wiring=fake -> port_journal_adapters:FakeJournalAdapter (real: port_journal_adapters:RealJournalAdapter)
+executed 40 cases in batch

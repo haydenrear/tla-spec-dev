@@ -1,0 +1,125 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket PA-04",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "An adapter binds to a declared port and a generated case drives it, with the binding readable from the mapping rather than inferred.",
+        "The identical case list runs against a real adapter and its fake, and a fault seeded in EITHER is caught.",
+        "Two runs over an identical corpus report identical results -- a nondeterministic instrument is a finding however good its first run.",
+        "Every run states which oracles its mapping carries and which it does not, unprompted, in the run output."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q",
+        "python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project"
+      ]
+    },
+    "blocks": [
+      "PA-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/run_generated_case_adapters.py",
+        "scripts/effect_conformance.py",
+        "tests/test_effect_conformance.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/case_modules.md"
+      ]
+    },
+    "depends_on": [
+      "PA-03"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/133",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The adapter-internal fault PA-01 seeded dies on at least one generated instrument. If it survives everything again, the port region is still unreachable and the goal is missed.",
+        "goal": "GOAL-port-reach",
+        "local_signal": "PA-01's adapter-internal faults against the real and fake wirings"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "Binding to ports is what makes per-port cases reach real code; the arms' verdicts diverge further, not less",
+        "goal": "GOAL-cases-drive-ports",
+        "local_signal": "per-mutant verdict agreement count between arms"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "none expected",
+        "goal": "GOAL-complexity-measurable",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "PA-04",
+    "implementation_scope": [
+      "scripts/run_generated_case_adapters.py",
+      "scripts/effect_conformance.py",
+      "references/case_modules.md",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected -- these are harness and binding changes, not missing model surface",
+    "objective": "The second half, and the one that closes the epic's thesis. Bind spec-unit and Test Graph adapters TO PORTS rather than to whole actions, so a generated case drives a real port. Then make the FAKE/REAL SWAP the instrument: run the identical case list against the real adapter and against its fake, and a fault in either one dies. This is aimed at one measured hole. A fault in the previous epic's treatment arm lived in its in-memory adapter and SURVIVED EVERY INSTRUMENT -- five corpus instruments, the effect oracle, and the hand-written suite. The port created a region no shared oracle reaches, so hexagonal architecture made the code more modular and simultaneously created somewhere for a bug to hide. Note what the scorecard already asks: D3 anchor 4 wants a driven port exercised by a real adapter AND a fake with the same cases passing against both. One arm reached it. What nobody has shown is that the pair CATCHES anything, and that is this ticket. Two inherited defects are yours if they block you, and both were found by RUNNING rather than inspecting: the oracle drives 8 of 18 actions because nine adapters have no run() at all, and its counterfactual showed that an adapter differing ONLY in having one takes a mutant from surviving to dying 8 of 8. The oracle's reach was never the limit; the adapters' shape was.",
+    "promotion_order": 40,
+    "promotion_predecessor": "PA-03",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Adapters bind to ports, and the fake/real swap becomes the instrument",
+    "wave": 3
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/tickets/PA-04",
+  "ticket_id": "PA-04",
+  "ticket_index": 3,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-ports-as-adapters-PA-04/specs/tickets"
+}

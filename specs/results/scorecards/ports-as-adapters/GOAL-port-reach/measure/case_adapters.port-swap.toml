@@ -1,0 +1,27 @@
+# PA-04 instrument "corpus-port-swap": ONE declared port, BOTH sides of it.
+#
+# The binding is READ, not inferred. `[ports."ledger.LedgerAppendPort"]` names
+# a port the manifest declares -- examples/validation/ab/model/spec_manifest.yaml
+# effects.components.ledger.ports.LedgerAppendPort -- and the runner resolves
+# that name to the case label through the same shipped builder the generator
+# emitted the cases with. Nothing here sniffs a label prefix and nothing infers
+# from file order which of two matching bindings wins.
+#
+# `--wiring real` runs `adapter`. `--wiring fake` runs `fake`. The case list is
+# identical across the two.
+
+[ports."ledger.LedgerAppendPort"]
+adapter = "port_journal_adapters:RealJournalAdapter"
+fake = "port_journal_adapters:FakeJournalAdapter"
+kind = "ledger-journal-port"
+
+# The action bindings stay, and stay UNCHANGED. A port case carries its action's
+# label as well as its port's, so leaving these here is what makes the
+# precedence rule observable: without the port table above, every one of these
+# cases binds to the action adapter below and both sides of the port are decided
+# by whichever composition point that adapter happens to construct -- which is
+# the pre-PA-04 world, and the world in which BA-B14 survived everything.
+[[adapter]]
+labels = ["Reserve", "Commit", "Release", "CloseTenant"]
+adapter = "port_journal_adapters:RealJournalAdapter"
+kind = "transition"

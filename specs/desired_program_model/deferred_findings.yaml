@@ -616,3 +616,248 @@ findings:
       instrument, which is exactly what the control exists to prevent.
     disposition: carried
     disposition_ticket: "PA-06"
+  - id: PA-04-DF-01
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/seeded_faults.toml"]
+    summary: >-
+      PA-03-DF-03 CONFIRMED BY MEASUREMENT, AND IT NOW SCOPES FOUR MORE COLUMNS.
+
+      PA-03 predicted that every port-scoped column PA-04 produced would inherit
+      a red positive control. It did, and the prediction is now measured rather
+      than reasoned: `PA-M14`, the ports tree's declared positive control,
+      SURVIVES all four corpus columns of PA-04's swap table
+      (`corpus-port-swap:{real,fake}`, `corpus-action-bound:{real,fake}`) while
+      dying on both hand-written suite columns. `M07` does the same on both arms
+      across all three arm columns.
+
+      So every kill number in PA-04's port-scoped table is a FLOOR, and that is
+      stated in RESULTS.md rather than netted out of anything.
+
+      This is filed as its own row rather than as a comment on PA-03-DF-03
+      because the blast radius changed: PA-03 had one port column, PA-04 has
+      seven across three subjects, and PA-06 will re-anchor onto the arms and
+      produce more.
+    reproduction: >-
+      `python3 specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py
+      --subject reference_ports --cases <corpus> --out out.json` ->
+      `per_mutant["PA-M14-positive-control-accepted-hold-too-large"].cells` is
+      SURVIVED on all four corpus instruments and KILLED on both suite columns.
+    evidence:
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-arm-a.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-arm-b.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      `seeded_faults.toml` is PA-01's scope and is the catalogue under
+      measurement, and PA-04 has now SEEN its own numbers. PA-01
+      schedule_revision 2 draws the line exactly here: repairing an instrument
+      BEFORE any measurement is legitimate, repairing it after an unflattering
+      signal is the forbidden act. Seeding the control now would be the latter.
+    suggested_fix: >-
+      Unchanged from PA-03-DF-03: seed one blatant fault inside the declared
+      port's region -- a COMMIT line written with the wrong tenant -- declare it
+      `control_role = "positive"` scoped to port-scoped instruments, and seal the
+      prediction BEFORE running it. PA-04's measurement shows the region is
+      reachable: `PA-M11` and `PA-M12` are both decided inside it, so a control
+      seeded there will be decidable.
+    blast_radius: >-
+      Every port-scoped column in PA-04's table and every one PA-06 produces. A
+      table of port kills with a red positive control cannot be told apart from
+      a broken instrument, which is what the control exists to prevent.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-02
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["examples/validation/ab/eval/run_controls.py"]
+    summary: >-
+      `run_controls.py` CANNOT EXPRESS A SECOND WIRING, SO THE EPIC'S OWN
+      VERDICT-TABLE DRIVER CANNOT RUN THE INSTRUMENT THE EPIC IS ABOUT.
+
+      `run_suite` hardcodes `QUOTA_LEDGER_IMPL="quota_ledger"`
+      (`examples/validation/ab/eval/run_controls.py:541-544`) and there is
+      exactly one `--suite` flag and one `"suite"` instrument name. PA-01's two
+      declared instruments `suite-real` and `suite-fake`
+      (`seeded_faults.toml:80-85`) therefore exist only inside
+      `check_catalogue.py --verify-suite` and have never appeared in a
+      per-mutant verdict table.
+
+      PA-04 worked around this by building its own subject-driven driver
+      (`measure/run_port_swap.py`) rather than widening `run_controls.py`, which
+      is out of PA-04's implementation_scope. That driver reproduces
+      `run_controls.py`'s sealed `corpus-port` column on 10 of 10 mutants on
+      both arms, so the two are calibrated -- but there are now two drivers, and
+      two drivers is how a number gets quoted against the wrong instrument.
+    reproduction: >-
+      `grep -n 'QUOTA_LEDGER_IMPL' examples/validation/ab/eval/run_controls.py`
+      -> one hardcoded assignment, no flag.
+    evidence:
+      - "examples/validation/ab/eval/run_controls.py:541"
+      - "examples/validation/ab/seeded_faults.toml:80"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      `examples/validation/` is PA-01's scope, and widening a measurement driver
+      during a measurement changes the instrument mid-run.
+    suggested_fix: >-
+      Give `run_controls.py` a per-instrument wiring selector -- `--suite
+      NAME=IMPL` and `--instrument NAME=PKG[:PROVIDER][@wiring]` -- and fold
+      PA-04's subject table into it, so there is one driver again. Then delete
+      `measure/run_port_swap.py` or reduce it to a thin subject config.
+    blast_radius: >-
+      PA-06 must decide which driver its numbers come from and say so, or a
+      reader comparing a PA-06 row to a sealed PA-03 row compares two
+      instruments.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-03
+    found_by: "PA-04"
+    found_at_commit: "a742624"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["scripts/run_generated_case_adapters.py", "scripts/effect_conformance.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      THE CORPUS RUNNER'S EFFECT REPORT NEVER PRINTS `ADAPTER REACH`, SO THE ONE
+      NUMBER THAT SAYS HOW MUCH OF THE MODEL AN ORACLE COULD SEE IS MISSING FROM
+      THE PATH MOST RUNS TAKE.
+
+      `effect_conformance.diff_effects` accepts `skipped`, `offered_actions` and
+      `executed_actions` and renders `ADAPTER REACH: N of M action(s) ...
+      EXECUTED` from them. `scripts/run_generated_case_adapters.py` calls
+      `diff_effects` with only `cases`, `case_actions` and `unobservable`, so
+      the reach line is emitted by the standalone `run effect-conformance`
+      command and never by the corpus runner.
+
+      That asymmetry is why "the oracle drives 8 of 18 actions" was a fact about
+      the standalone command and had to be rediscovered by reading source rather
+      than read off a run.
+    reproduction: >-
+      `grep -n 'diff_effects(' scripts/run_generated_case_adapters.py` -> the
+      call passes three keyword arguments; `grep -n 'def action_reach'
+      scripts/effect_conformance.py` -> the renderer that never fires.
+    evidence:
+      - "scripts/effect_conformance.py"
+      - "references/case_modules.md"
+    why_out_of_scope: >-
+      Both files ARE in PA-04's implementation_scope, so this is scope-legal --
+      it is deferred on the measurement rule instead. Threading three more
+      arguments through the batch executor changes what the effect report says
+      on every existing run, and PA-04's own numbers were taken with the report
+      as it stands. Changing it mid-ticket would mean PA-04's evidence and
+      PA-04's shipped behaviour describe different instruments.
+    suggested_fix: >-
+      Thread the batch executor's skip and offered/executed action sets into the
+      `diff_effects` call, and pin it with a test that a corpus run's report
+      carries an `action_reach` block. Budget: small.
+    blast_radius: >-
+      Any run that reads a green effect report from the corpus runner and infers
+      coverage from it. The verdict is correct; the denominator is absent.
+    disposition: carried
+    disposition_ticket: "PA-06"
+  - id: PA-04-DF-04
+    found_by: "PA-04 (epic owner, post-implementation review)"
+    found_at_commit: "5a58b2b"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+        - "examples/validation/ab/eval/run_controls.py"
+    summary: >-
+      A CONTROL'S ROLE WAS PROSE THAT NOTHING EXECUTED, SO A DEMONSTRATED
+      CONTROL FAILURE DID NOT RAISE -- AND THE GOAL VERDICT TURNED ON IT.
+
+      PA-04's first run reported `control_red: []` while `PA-M14` -- declared
+      "positive -- must die on every instrument that executes an accepted
+      Reserve against the reference_ports tree, under BOTH wirings" -- SURVIVED
+      both port columns, each of which had executed 294 accepting `Reserve`
+      cases. Nothing compared the role string against the measured
+      `ran_accepting`, so the field said no control was red while one was red on
+      four instruments. PA-04 then reported `GOAL-port-reach` as MET even though
+      the target's second clause is "and no positive control is red", and even
+      though PA-04's own prose said every port kill number was a floor.
+
+      THIS IS EVAL-SUPPRESS IN THE OTHER DIRECTION. EVAL-SUPPRESS closed "a
+      declaration can erase a demonstrated kill". This is "a role string can
+      fail to raise a demonstrated control failure". Same hole, opposite sign,
+      and NOTHING IN `SUPPRESSION_KEYS` REACHES IT, because no suppression was
+      declared -- the check simply was not wired.
+
+      IT IS ALSO PA-04-DF-02 REALIZED IMMEDIATELY, IN THE FLATTERING DIRECTION.
+      `run_controls.py` DOES execute the role: PA-03's sealed
+      `kill-table-arm-a.json` records `M07: {green: false, instruments_wrong:
+      ["corpus-port"], must_be: KILLED}` and `control_coverage.positive.green:
+      false`. PA-04's second driver dropped that check. "Two drivers is how a
+      number gets quoted against the wrong instrument" was filed as a hazard in
+      the same ticket that then demonstrated it.
+
+      FIXED IN PA-04 rather than deferred, because the fix makes PA-04's own
+      result WORSE: it converts a reported "met" into a split verdict and puts a
+      red control beside the ticket's best number. That direction is always
+      allowed; the reverse is the forbidden one and was declined (see
+      PA-04-DF-01). What is filed here is the DEFECT and its blast radius, not
+      a request to repair it.
+
+      Two further defects were found by RUNNING the fix, both now closed:
+      (a) the first version flagged RETIRED `M09` as red, because it did not
+      read `retired_control`; a false red corrupts a control record exactly as
+      badly as a false green. (b) it flagged a UNIVERSAL role ("must die on
+      every instrument") as unexecutable merely for naming no action, which
+      would have put a false warning beside two legitimate negative controls.
+    reproduction: >-
+      `git show 5a58b2b:specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json`
+      -> `control_red: []` with
+      `per_mutant["PA-M14-..."].cells["corpus-port-swap:real"] == "SURVIVED"`
+      and
+      `controls_on_unmutated_code["corpus-port-swap:real"].per_action.Reserve.ran_accepting == 294`.
+      `uv run --with pytest --with pyyaml python -m pytest tests/test_control_role_is_executed.py -q`
+      -> 16 passed at HEAD, 13 FAILED at 5a58b2b.
+    evidence:
+      - "tests/test_control_role_is_executed.py"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/results/swap-reference_ports.json"
+      - "specs/.history/ports-as-adapters-epic/ticket-002-PA-03/results/kill-table-arm-a.json"
+      - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/RESULTS.md"
+    why_out_of_scope: >-
+      The DEFECT is fixed in PA-04's own driver. What is deferred is the shared
+      half: `examples/validation/ab/eval/run_controls.py` is PA-01's scope, and
+      the two drivers must be reconciled into one before PA-06 quotes numbers
+      from either. That reconciliation is PA-04-DF-02's fix and this row raises
+      its severity from minor to major, because the hazard is no longer
+      hypothetical.
+    suggested_fix: >-
+      Fold PA-04's subject table into `run_controls.py` so one driver executes
+      one control rule, and delete `measure/run_port_swap.py`. Until then, every
+      port-scoped number PA-06 quotes must name which driver produced it. Carry
+      `tests/test_control_role_is_executed.py` onto whichever driver survives --
+      a control check with no test is what produced this row.
+    blast_radius: >-
+      EVERY port-scoped kill number in this epic, including PA-04's headline
+      table. `PA-M12`'s kill is a demonstrated kill and stands; the SURVIVED
+      cells beside it sit under a red positive control and are a FLOOR. More
+      broadly: any measurement round in this project whose controls are declared
+      in prose and checked by nothing.
+    disposition: carried
+    disposition_ticket: "PA-06"
