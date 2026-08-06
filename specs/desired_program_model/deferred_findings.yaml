@@ -2715,3 +2715,294 @@ findings:
       unrecorded card change, and nothing says so. FI-03 measured one such
       crossing directly and it is worth 1 to 2 dimension-points per judge.
     disposition: open
+
+  - id: FI-04-DF-01
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "FALSIFIABLE-INSTRUMENTS-EPIC.md"
+        - "examples/validation/ab/README.md"
+        - "specs/results/scorecards/ports-as-adapters/RESULTS.md"
+    summary: >-
+      THE SENTENCE THREE EPICS HAVE CARRIED FORWARD IS CONTRADICTED BY EVIDENCE
+      THAT HAS BEEN SEALED IN THIS REPOSITORY SINCE `b3a0199` AND WAS NEVER
+      COMPUTED.
+
+      `FALSIFIABLE-INSTRUMENTS-EPIC.md` section 2 restates as settled: "On this
+      fixture the generated corpus is still worse than a suite a competent
+      engineer writes in an afternoon", and supports it with "no generated
+      instrument has a unique kill" plus "`suite-fake` strictly dominates
+      `corpus-port-swap:fake`".
+
+      BOTH SUPPORTING FACTS ARE TRUE AND BOTH ARE ABOUT CATALOGUES WRITTEN BY
+      THE AUTHOR OF THE SUITE. On the only catalogues in this repository
+      authored BLIND -- `blind_author_catalogue_arm_{a,b}.toml`, written by an
+      agent that had never seen the fixture's catalogue, harness or reference --
+      the comparison REVERSES INTO A TIE WITH A KILL EACH WAY:
+
+        seeded/arm A   generated union 10 of 11, suite 10 of 11, IDENTICAL SETS
+        seeded/arm B   generated union 10 of 11, suite 10 of 11, IDENTICAL SETS
+        blind/arm A    generated union 11 of 15, suite 11 of 15, and the sets
+                       DIFFER: BA-P11 killed by corpus-whole, corpus-slice-res,
+                       map-silent and map-checking, and MISSED BY THE SUITE;
+                       BA-P05 killed by the suite and missed by all six
+                       generated instruments
+        blind/arm B    the same shape: BA-Q11 generated-only, BA-Q05 suite-only
+
+      `BA-P11`/`BA-Q11` is `identity_reuse` -- reservation ids numbered from the
+      count of live reservations, so an id is handed out again once its
+      predecessor is resolved and a later commit can silently overwrite a live
+      hold. That is not a toy fault.
+
+      THE ROUND THAT PRODUCED THE NUMBERS REPORTED THE COUNTS AND NOT THE SETS.
+      `hexagonal-prompting-rerun/GOAL-catch-bugs/README.md` says "the generated
+      corpora TIE the hand-written suite on a catalogue nobody tuned", which is
+      true and is the union count. A union count cannot tell "the same eleven"
+      from "eleven each, differing by one in each direction", and the difference
+      is the whole funding question.
+
+      SO THE DOMINANCE RESULT IS A PROPERTY OF WHO WROTE THE CATALOGUE. It holds
+      where the catalogue author wrote the suite and it reverses on the one
+      catalogue that controls for that. It has been re-derivable at `b3a0199`,
+      `f052d3c`, `da075ce`, `fcdbe6f`, `ccba215` and `51fe73d`, and
+      `examples/validation/ab/eval/generator_vs_suite.py` PASSES ITS TEST ON THE
+      PARENT COMMIT with nothing but the script copied in. Nobody ran the
+      arithmetic.
+    reproduction: >-
+      `python3 examples/validation/ab/eval/generator_vs_suite.py --out /tmp/x.json`
+      at this tip, and the same script copied into `git archive fcdbe6f` or
+      `git archive 51fe73d`, which prints the same blind rows. Also
+      `tests/test_fixture_can_diverge.py::test_the_dominance_result_is_a_property_of_who_wrote_the_catalogue`,
+      which is one of exactly three tests in that file that PASS on the parent.
+    evidence:
+      - "examples/validation/ab/eval/results/fi04/generator-vs-suite.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/kill-table-blind-author-arm-a.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/GOAL-catch-bugs/kill-table-blind-author-arm-b.json"
+      - "specs/results/scorecards/hexagonal-prompting-rerun/measure/blind_author_catalogue_arm_a.toml -- BA-P11"
+    why_out_of_scope: >-
+      FI-04 is not authorised to rewrite the epic document or the predecessor's
+      sealed RESULTS.md, and both carry the sentence. The correction belongs
+      where the epic's own claims are settled. FI-04 reports the arithmetic,
+      ships the script that re-derives it, and pins it with a test.
+    suggested_fix: >-
+      Stop quoting the sentence without its qualifier. Where it appears, say
+      which catalogue it is measured on. And re-run the `blind_author` channel
+      against the PORT columns, which is the one comparison that has never been
+      made blind: `suite-fake` strictly dominating `corpus-port-swap:fake` on
+      `reference_ports` is the strongest anti-generator number in the project
+      and it is measured on a tree the epic authored, with mutants by the same
+      author, exactly the configuration that produced IDENTICAL SETS on the
+      seeded catalogue and reversed on the blind one.
+    blast_radius: >-
+      Any decision to defund generation taken on the strength of the sentence.
+      It does NOT rescue the `[ports.*]` binding machinery, which still has zero
+      unique kills anywhere and is still strictly dominated on `reference_ports`
+      -- those are separate claims and this finding does not soften them.
+    disposition: settled
+    disposition_note: >-
+      SETTLED BY THE EPIC OWNER AT `501eacd`, before FI-04 merged. The owner
+      re-derived the blind comparison from the sealed tables INDEPENDENTLY of
+      this ticket's script, got the identical result, and corrected
+      `FALSIFIABLE-INSTRUMENTS-EPIC.md` section 2 in place -- recording there
+      that the owner had written the sentence into this epic's own charter as
+      settled fact, which is the read-a-row-forward-without-checking-it failure
+      the document exists to warn about, committed inside the document.
+
+      THE SUMMARY ABOVE IS LEFT AS WRITTEN and describes the tree at
+      `found_at_commit`, not the tree today: section 2 no longer restates the
+      sentence as settled. Editing a finding's summary to match a repair it
+      caused is how a caught defect stops being visible.
+
+      WHAT IS NOT SETTLED, and the owner is carrying it as a SEPARATE claim
+      rather than folding it in: the one kill that saves the generator, `BA-P11`,
+      dies to `corpus-whole`, `corpus-slice-res`, `map-silent` and
+      `map-checking` -- and to NEITHER the negative corpus NOR the port corpus,
+      the two mechanisms the last two epics actually bought. "Keep funding the
+      corpus" and "stop funding the [ports.*] binding machinery" are two claims
+      and the evidence for the first is not evidence for the second.
+
+  - id: FI-04-DF-02
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+    summary: >-
+      `run_port_swap.py` REPORTS "no control's declared role was violated on any
+      instrument that reached it" WHEN THE RUN CONTAINS NO CONTROL AT ALL.
+
+      FI-04's first three runs used catalogues that declared no `control_role`
+      on any row. `control_red` was `[]`, `render_controls` printed the
+      reassuring sentence, and the exit code was 0. Nothing distinguishes "every
+      control passed" from "there were no controls", which is R2's own failure
+      mode inside the driver whose job is to report R2 failures.
+
+      This is adjacent to `FI-02-DF-02` (the same driver prints a red control
+      and exits 0) and is a DIFFERENT defect: that one is about the exit code,
+      this one is about the sentence being vacuously true.
+    reproduction: >-
+      Run `examples/validation/ab/eval/run_arm_swap.py` with any subject whose
+      `catalogues` list contains only `adapter_faults_arm_*.toml`, i.e. without
+      the per-arm control files the shipped table now includes. The driver
+      prints the no-violation sentence over a run with zero controls.
+    evidence:
+      - "examples/validation/ab/eval/run_arm_swap.py -- report_control_state, and the docstring paragraph recording the first run"
+    why_out_of_scope: >-
+      `run_port_swap.py` is sealed evidence under `specs/results/` and is the
+      driver whose cells FI-04 is quoting. Changing it during the measurement is
+      the fix-during-a-measurement this project forbids, and FI-04's own numbers
+      would be the first casualty.
+    suggested_fix: >-
+      One line where `render_controls` already branches: if no row in the run
+      declares a `control_role`, print RED and say the run has no control rather
+      than that no control was violated. The same predicate belongs in the JSON
+      as an explicit `controls_declared: []` so a reader of the artifact is not
+      left inferring it from the absence of a key.
+    blast_radius: >-
+      Any run of this driver against a catalogue without controls. No sealed
+      number: PA-04, PA-06 and FI-01 all ran catalogues carrying N01 or PA-M14.
+      FI-04's shipped table carries controls on all three arms for this reason.
+    disposition: open
+
+  - id: FI-04-DF-03
+    found_by: "FI-04"
+    found_at_commit: "4697687"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/scorecards/ports-as-adapters/GOAL-port-reach/measure/run_port_swap.py"
+    summary: >-
+      SELF-AUDIT, AND THE MUTANTS AND THE FIXTURE STILL SHARE AN AUTHOR.
+
+      Two things about FI-04's own measurement that a reader should not have to
+      find.
+
+      (a) `FI-M16`, `FI-M17`, `FI-M18` and `FI-M19` were written by FI-04 and
+      measured by FI-04. That is the same declared bias `[measured_suite_baseline]`
+      carries and it is not reduced by the rows sitting on arms rather than on a
+      reference tree. The `blind_author` channel is the only instrument in this
+      repository that controls for it and it was not re-run. The demonstrated
+      divergence should be read as "this fixture CAN diverge", which is what the
+      goal asked, and NOT as "ported code is validated differently in general".
+
+      (b) `run_port_swap.py`'s arm subjects need `pa06_arm_c_binding` on
+      PYTHONPATH and its own SUBJECTS comment says the caller must supply it.
+      FI-04's first arm-C run did not, and the driver reported `CONTROL_RED` on
+      all three corpus columns rather than a false `SURVIVED` -- the instrument
+      behaving correctly, recorded here because it is the exact failure shape
+      `FI-01-DF-01` describes for the OTHER driver, which produces a false green
+      instead. Two drivers, the same missing-module condition, opposite failure
+      directions. `run_arm_swap.py` now sets PYTHONPATH for the subprocess so a
+      run is reproducible from one command line.
+    reproduction: >-
+      (a) `grep -n 'found_by' examples/validation/ab/eval/adapter_faults_arm_*.toml`
+      against this ticket. (b) Run `run_arm_swap.py --subject arm_c` with the
+      PYTHONPATH assignment removed from the module body.
+    evidence:
+      - "examples/validation/ab/eval/DECISION-fixture-or-goal.md -- 'Does not close the shared-author bias'"
+      - "examples/validation/ab/eval/run_arm_swap.py"
+    why_out_of_scope: >-
+      Re-running the blind-author channel is a channel dispatch, not a fixture
+      change, and it is the single most valuable follow-up this ticket can name.
+      It is larger than FI-04 and it should be its own ticket so that its prompt
+      and its blindness constraints are reviewable before it runs.
+    suggested_fix: >-
+      Dispatch the blind-author channel against the PORT columns and the three
+      arm trees, with the same never-open list, and score `FI-M16`/`FI-M17`'s
+      shape against whatever it produces independently.
+    blast_radius: >-
+      The generality of FI-04's divergence, not its existence. The cells are
+      reproducible and the control state is green on arms A, B and C.
+    disposition: open
+
+  - id: FI-04-DF-04
+    found_by: "FI-04 (during reconcile onto e63969d)"
+    found_at_commit: "e63969d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_instrument_demonstrations.py"
+        - "examples/validation/instruments/instruments.toml"
+    summary: >-
+      THE INSTRUMENT ENUMERATION'S COMPLETENESS CHECK IS A HARDCODED LIST, SO
+      THE ENUMERATION DECAYS BY ONE ROW EVERY TIME A TICKET SHIPS AN INSTRUMENT
+      AND NOTHING SAYS SO.
+
+      `test_the_named_instruments_are_all_enumerated` asserts
+      `required <= enumerated` against ten literal paths written by FI-02. It
+      catches a RENAME that drops an existing row. It cannot catch an ADDITION
+      that was never added, because a new instrument is not in `required` and
+      the subset relation stays true.
+
+      MEASURED ON THIS TICKET, not reasoned. FI-04 shipped
+      `examples/validation/ab/eval/divergence.py` -- something that watches a
+      subject (the A/B fixture), produces a verdict about it
+      (`CLAIMED_REACHABLE_BUT_UNDEMONSTRATED`) and returns nonzero on it, which
+      is the registry's own definition of an instrument. FI-02's suite was FULLY
+      GREEN with it absent. FI-04 registered it by hand during the reconcile;
+      had FI-04 not thought to look, the enumeration whose stated product is
+      "NOTHING IS SILENTLY OMITTED" would have shipped one short and every
+      count derived from it would have been wrong by one.
+
+      THIS IS THE SAME SHAPE THE OWNER FLAGGED FROM FI-03'S RECONCILE -- FI-02's
+      audit meta-check pinned to the unimplemented id `R-H5`, which went green
+      when FI-03 implemented `R-H5`. Both are declarations that stop asserting
+      when the world moves under them, and both are the
+      `declaration_executability_rule`'s own failure shape inside the ticket
+      that quotes it. `FI-01-DF-04` is the third instance (`PORT_REGION` as a
+      transcribed constant).
+    reproduction: >-
+      At `e63969d`, before FI-04's row was added: `python3 -c "import tomllib;
+      d=tomllib.load(open('examples/validation/instruments/instruments.toml','rb'));
+      print(any('divergence.py' in p for e in d['instrument'] for p in
+      e.get('paths',[])))"` -> False, while
+      `uv run --with pytest python -m pytest tests/test_instrument_demonstrations.py -q`
+      -> all green.
+    evidence:
+      - "tests/test_instrument_demonstrations.py -- test_the_named_instruments_are_all_enumerated, the `required` literal"
+      - "examples/validation/instruments/instruments.toml -- the divergence-reachability row and its `note`"
+    why_out_of_scope: >-
+      A completeness check that DERIVES the instrument set rather than listing
+      it is a design question -- what counts as an instrument is exactly the
+      judgement FI-02's registry preamble spends three paragraphs on, and a
+      heuristic that scans for `sys.exit(1)` would sweep in every argparse usage
+      error the preamble explicitly excludes. Choosing that predicate inside a
+      reconcile, in the ticket whose instrument is the one currently missing, is
+      both out of scope and the wrong hands.
+    suggested_fix: >-
+      Do not lengthen the literal; that is the fix this repository has already
+      rejected twice (EVAL-RERUN-DF-01's module-name list, FI-01-DF-01's
+      `ARM_MODULE_PREFIXES`). Make the obligation land on the TICKET instead:
+      have `close ticket` refuse when a ticket's diff adds an executable under
+      a declared instrument root and the registry gained no row in the same
+      commit. That is one predicate over the diff, it needs no taxonomy, and it
+      puts the question to the author who knows the answer.
+    blast_radius: >-
+      Every count derived from the registry, in this epic and after it. FI-02's
+      own 23-of-32 is correct AS OF FI-02 and is not retroactively wrong; what
+      is wrong is any reading of it as a standing figure. FI-04's row restores
+      it for this ticket only.
+    disposition: open

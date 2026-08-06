@@ -582,6 +582,66 @@ FI-02-DF-02.
   expect_exit = 0
 
 [[instrument]]
+id = "divergence-reachability"
+name = "A/B divergence reachability analysis (divergence.py)"
+paths = ["examples/validation/ab/eval/divergence.py"]
+family = "measurement"
+watches = """
+whether the A/B fixture's two arms CAN give different answers at all, per
+instrument column, and whether any claim that they can is backed by a
+divergence its own run measured
+"""
+verdict_surface = "exit 1, plus a RED line naming every column whose reachability was claimed and not demonstrated"
+classification = "demonstrated-can-fail"
+note = """
+ADDED BY FI-04, WHICH SHIPPED THIS INSTRUMENT AFTER FI-02 COUNTED. Enumerated
+here rather than left out, because the registry's own stated product is that
+NOTHING IS SILENTLY OMITTED, and `test_the_named_instruments_are_all_enumerated`
+compares against a hardcoded list that a later ticket's instrument cannot appear
+in by itself. Filed as FI-04-DF-04: the completeness check is a fixed list, so
+the enumeration decays by one row every time a ticket ships an instrument.
+
+WHY IT IS AN INSTRUMENT AND NOT A REPORT. It produces a verdict about a subject
+-- the fixture -- and returns nonzero on it. `PA-06-DF-08` established that the
+A/B experiment was itself an instrument that could not produce the result which
+would refute it; this is the thing that decides that question, so it is exactly
+the kind of tool R1 is about, and an unfalsifiable version of it would have been
+the sixth entry in this epic's opening table.
+"""
+
+  [instrument.failing]
+  kind = "pytest"
+  summary = """
+two arms whose swapped columns ran DIFFERENT numbers of compositions -- so
+divergence is reachable in principle -- and whose cells agree anyway. The
+analysis must report CLAIMED_REACHABLE_BUT_UNDEMONSTRATED rather than green.
+The input is synthetic and built in the test, so it cannot stop demonstrating
+when someone changes the fixture.
+"""
+  nodes = ["tests/test_fixture_can_diverge.py::test_divergence_goes_RED_when_it_claims_reachability_its_own_run_cannot_show"]
+  expect_exit = 0
+
+  [instrument.passing]
+  kind = "pytest"
+  summary = "two arms with one composition each and agreeing cells: NULL STILL ENTAILED, no red"
+  nodes = ["tests/test_fixture_can_diverge.py::test_divergence_reports_the_null_still_entailed_when_nothing_diverges"]
+  expect_exit = 0
+
+  [instrument.blind_spot]
+  kind = "pytest"
+  summary = """
+IT CANNOT SEE A DIVERGENCE IT WAS NOT GIVEN A COMPARABLE ROW FOR. The comparable
+row is DECLARED per catalogue row (`wired_by_default`), not derived, so a
+catalogue that declares the wrong one moves the divergence count and nothing
+here objects. That is the same declaration-executability shape FI-01-DF-04
+recorded against PORT_REGION, in the instrument FI-04 shipped, and the failure
+direction is NOT the safe one: a mis-declared comparable row produces a WRONG
+COUNT rather than a refusal.
+"""
+  nodes = ["tests/test_fixture_can_diverge.py::test_the_divergence_count_is_not_inflated_by_arm_b_having_an_extra_row"]
+  expect_exit = 0
+
+[[instrument]]
 id = "scorecard-check"
 name = "scorecard schema and scoring-rule check"
 paths = ["examples/validation/scorecards/score_tools.py"]

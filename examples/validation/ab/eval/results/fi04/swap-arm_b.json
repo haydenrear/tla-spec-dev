@@ -1,0 +1,505 @@
+{
+  "binding": "rerun_arm_b_binding",
+  "cases": "quota_port",
+  "catalogues": [
+    "examples/validation/ab/eval/adapter_faults_arm_b.toml",
+    "specs/results/scorecards/hexagonal-prompting-rerun/measure/controls_arm_b.toml",
+    "examples/validation/ab/eval/controls_port_region_arm_b.toml"
+  ],
+  "control_red": [],
+  "controls_on_unmutated_code": {
+    "corpus-action-bound": {
+      "bound_by": {
+        "CloseTenant (action) -> port_journal_adapters:ArmRealAdapter": 362,
+        "Commit (action) -> port_journal_adapters:ArmRealAdapter": 388,
+        "Release (action) -> port_journal_adapters:ArmRealAdapter": 436,
+        "Reserve (action) -> port_journal_adapters:ArmRealAdapter": 669
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    },
+    "corpus-port-swap:fake": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:ArmBFakeAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "fake",
+      "wiring_notes": [
+        "PORT ledger.LedgerAppendPort: wiring=fake -> port_journal_adapters:ArmBFakeAdapter (real: port_journal_adapters:ArmRealAdapter)"
+      ]
+    },
+    "corpus-port-swap:real": {
+      "bound_by": {
+        "port:ledger.LedgerAppendPort (port) -> port_journal_adapters:ArmRealAdapter": 1855
+      },
+      "cases": 1855,
+      "failures": [],
+      "per_action": {
+        "CloseTenant": {
+          "failed": 0,
+          "ran": 362,
+          "ran_accepting": 352,
+          "ran_refusing": 10,
+          "skipped": 0
+        },
+        "Commit": {
+          "failed": 0,
+          "ran": 388,
+          "ran_accepting": 384,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Release": {
+          "failed": 0,
+          "ran": 436,
+          "ran_accepting": 432,
+          "ran_refusing": 4,
+          "skipped": 0
+        },
+        "Reserve": {
+          "failed": 0,
+          "ran": 357,
+          "ran_accepting": 294,
+          "ran_refusing": 63,
+          "skipped": 312
+        }
+      },
+      "port_bindings": [
+        "ledger.LedgerAppendPort"
+      ],
+      "skipped_by_rule": {
+        "model named a different free id; this API allocates the next one": 28,
+        "refused only by a constraint on `r`, which this API allocates": 18,
+        "the id this API would allocate next is outside the model's id domain, so no case from this before-state is expressible whatever `r` names": 266
+      },
+      "total_failed": 0,
+      "total_ran": 1543,
+      "total_skipped": 312,
+      "wiring": "real",
+      "wiring_notes": []
+    },
+    "suite-fake": {
+      "failures": [
+        "28 passed"
+      ],
+      "total_failed": 0
+    },
+    "suite-real": {
+      "failures": [
+        "28 passed"
+      ],
+      "total_failed": 0
+    }
+  },
+  "instruments": [
+    "corpus-action-bound",
+    "corpus-port-swap:real",
+    "corpus-port-swap:fake",
+    "suite-real",
+    "suite-fake"
+  ],
+  "per_mutant": {
+    "FI-M15-positive-control-commit-total-too-large": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "KILLED",
+        "suite-fake": "KILLED",
+        "suite-real": "KILLED"
+      },
+      "control_role": "positive -- must die on every instrument that executes an accepted Commit against arm B, AND must be invisible until one does. Written for THIS tree: arm B computes the new committed total into a local `total` and hands the same value to both `_committed` and the journal, so one line carries the whole semantic. EVAL-RERUN-DF-03 -- arm B's sealed catalogue carrying arm A's role string verbatim over a mutant arm B's own data contradicted -- is the defect this sentence is written against, and the sentence differs from the reference_ports one because the trees differ.",
+      "control_verdict": {
+        "declared_role": "positive -- must die on every instrument that executes an accepted Commit against arm B, AND must be invisible until one does. Written for THIS tree: arm B computes the new committed total into a local `total` and hands the same value to both `_committed` and the journal, so one line carries the whole semantic. EVAL-RERUN-DF-03 -- arm B's sealed catalogue carrying arm A's role string verbatim over a mutant arm B's own data contradicted -- is the defect this sentence is written against, and the sentence differs from the reference_ports one because the trees differ.",
+        "green": true,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real",
+          "suite-fake",
+          "suite-real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [],
+        "must_be": "KILLED",
+        "role": "positive",
+        "role_scope": {
+          "actions_named_in_prose": [
+            "Commit"
+          ],
+          "executable_as_written": true,
+          "scope": "witness-scoped"
+        },
+        "witness_action": "Commit",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 384,
+            "witness_action": "Commit"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 384,
+            "witness_action": "Commit"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 384,
+            "witness_action": "Commit"
+          },
+          "suite-fake": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Commit"
+          },
+          "suite-real": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Commit"
+          }
+        }
+      },
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_0014_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0014_commit__port_ledger_ledgerappendport: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+            "case_0020_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0020_commit__port_ledger_ledgerappendport: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+            "case_0025_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0025_commit__port_ledger_ledgerappendport: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+          ],
+          "total_failed": 384,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_0014_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0014_commit__port_ledger_ledgerappendport: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+            "case_0020_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0020_commit__port_ledger_ledgerappendport: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+            "case_0025_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0025_commit__port_ledger_ledgerappendport: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+          ],
+          "total_failed": 384,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_0014_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0014_commit__port_ledger_ledgerappendport: committed: expected {'t1': 1, 't2': 0}, actual {'t1': 2, 't2': 0}",
+            "case_0020_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0020_commit__port_ledger_ledgerappendport: committed: expected {'t1': 0, 't2': 1}, actual {'t1': 0, 't2': 2}",
+            "case_0025_commit__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0025_commit__port_ledger_ledgerappendport: committed: expected {'t1': 2, 't2': 0}, actual {'t1': 3, 't2': 0}"
+          ],
+          "total_failed": 384,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "suite-fake": {
+          "failures": [
+            "6 failed, 22 passed"
+          ],
+          "total_failed": 1
+        },
+        "suite-real": {
+          "failures": [
+            "6 failed, 22 passed"
+          ],
+          "total_failed": 1
+        }
+      },
+      "fault_class": "wrong_value",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    },
+    "FI-M16-arm-b-real-adapter-drops-close-lines": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "KILLED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "KILLED",
+        "suite-fake": "SURVIVED",
+        "suite-real": "KILLED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [
+            "case_0009_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0009_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+            "case_0010_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0010_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+            "case_0016_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0016_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+          ],
+          "total_failed": 981,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [
+            "case_0009_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0009_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+            "case_0010_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0010_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+            "case_0016_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0016_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+          ],
+          "total_failed": 981,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "suite-fake": {
+          "failures": [
+            "28 passed"
+          ],
+          "total_failed": 0
+        },
+        "suite-real": {
+          "failures": [
+            "3 failed, 25 passed"
+          ],
+          "total_failed": 1
+        }
+      },
+      "fault_class": "adapter_internal",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/file_journal.py"
+    },
+    "FI-M17-arm-b-fake-adapter-drops-close-lines": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "KILLED",
+        "corpus-port-swap:real": "SURVIVED",
+        "suite-fake": "KILLED",
+        "suite-real": "SURVIVED"
+      },
+      "control_role": null,
+      "control_verdict": {},
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [
+            "case_0009_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0009_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't1', 0),), actual ()",
+            "case_0010_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0010_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()",
+            "case_0016_close_tenant__port_ledger_ledgerappendport: AssertionError: adapter after-state mismatch for case_0016_close_tenant__port_ledger_ledgerappendport: ledger: expected (('CLOSE', 't2', 0),), actual ()"
+          ],
+          "total_failed": 981,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "suite-fake": {
+          "failures": [
+            "3 failed, 25 passed"
+          ],
+          "total_failed": 1
+        },
+        "suite-real": {
+          "failures": [
+            "28 passed"
+          ],
+          "total_failed": 0
+        }
+      },
+      "fault_class": "adapter_internal",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/memory_journal.py"
+    },
+    "N01-negative-control-outstanding-id-order": {
+      "applied_exactly_once": true,
+      "cells": {
+        "corpus-action-bound": "SURVIVED",
+        "corpus-port-swap:fake": "SURVIVED",
+        "corpus-port-swap:real": "SURVIVED",
+        "suite-fake": "SURVIVED",
+        "suite-real": "SURVIVED"
+      },
+      "control_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+      "control_verdict": {
+        "declared_role": "negative -- must survive every generated instrument; a kill RETRACTS the set-shape limit and is a finding",
+        "green": true,
+        "instruments_decided": [
+          "corpus-action-bound",
+          "corpus-port-swap:fake",
+          "corpus-port-swap:real",
+          "suite-fake",
+          "suite-real"
+        ],
+        "instruments_not_decidable": [],
+        "instruments_wrong": [],
+        "must_be": "SURVIVED",
+        "role": "negative",
+        "role_scope": {
+          "actions_named_in_prose": [],
+          "executable_as_written": true,
+          "scope": "universal"
+        },
+        "witness_action": "Reserve",
+        "witnesses": {
+          "corpus-action-bound": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:fake": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "corpus-port-swap:real": {
+            "basis": "measured",
+            "observed": 294,
+            "witness_action": "Reserve"
+          },
+          "suite-fake": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          },
+          "suite-real": {
+            "basis": "instrument keeps no executability accounting",
+            "observed": null,
+            "witness_action": "Reserve"
+          }
+        }
+      },
+      "evidence": {
+        "corpus-action-bound": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:fake": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "corpus-port-swap:real": {
+          "failures": [],
+          "total_failed": 0,
+          "total_ran": 1543,
+          "total_skipped": 312
+        },
+        "suite-fake": {
+          "failures": [
+            "28 passed"
+          ],
+          "total_failed": 0
+        },
+        "suite-real": {
+          "failures": [
+            "28 passed"
+          ],
+          "total_failed": 0
+        }
+      },
+      "fault_class": "ordering",
+      "occurrences_of_find": 1,
+      "path": "quota_ledger/domain.py"
+    }
+  },
+  "retired_controls": {
+    "M09-negative-control-ledger-order": {
+      "mutant": "M09-negative-control-ledger-order",
+      "reason": "Retired for the reason given in full in examples/validation/ab/eval/controls.toml:\nM09 reverses a SEQUENCE and this model represents its ledger as one\n(`ledger' = Append(ledger, ...)`, projected as a tuple and compared\npositionally), so ordering is expressible and the corpus sees it. The retirement\nis a property of the MODEL, so it holds on every tree measured against that\nmodel. M09 is not deleted, not re-seeded and not excused: it still runs and is\nstill scored in the `ordering` class row. What it stops doing is deciding\nwhether the instrument works.\n",
+      "replaced_by": "N01-negative-control-outstanding-id-order",
+      "was": "negative"
+    }
+  },
+  "subject": "arm_b",
+  "tree": "specs/results/scorecards/hexagonal-prompting-rerun/arms/arm_b",
+  "unmutated_control_failed": []
+}
