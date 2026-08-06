@@ -27,8 +27,21 @@ validated_refactor:
     status: "TODO"
     evidence: "TODO -- path to the post-change TLC output"
   behavior_tests:
-    status: "TODO"
-    evidence: "TODO -- path to the behavior-test output"
+    status: "pass"
+    evidence: >-
+      uv run --with pytest --with pyyaml python -m pytest tests -q ->
+      1 failed, 1234 passed. The single failure is
+      tests/test_code_complexity.py::test_nothing_executable_reads_this_instrument,
+      which is PA-06-DF-05, is RED ON THE PARENT COMMIT 51fe73d with the
+      identical assertion (verified by `git archive 51fe73d` into a clean tree
+      and re-running it there: 1 failed, 34 passed), and has since been
+      owner-confirmed a FALSE POSITIVE -- it fires on a docstring MENTION of
+      `code_complexity` in
+      specs/results/scorecards/ports-as-adapters/measure/build_evidence_packets.py,
+      and FI-02 ships the replacement check that passes 36 on the unchanged
+      parent tree. FI-04 neither caused it nor repaired it: it is carried out of
+      the predecessor epic as issue #147, and repairing an instrument's tripwire
+      inside a ticket that is measuring with instruments is the forbidden act.
   descriptor_comparison:
     status: "TODO"
     evidence: "TODO -- path to the before/after descriptor comparison"
@@ -79,15 +92,34 @@ coverage_audit:
 # Required if complexity INCREASED. Name the new essential behavior the added
 # representation carries. This documents real behavior; it does not waive the
 # increase, which is recorded and reported either way.
+#
+# COMPLEXITY DID NOT INCREASE. Measured delta vs FI-01: direction=zero. FI-04
+# added no TLA+ variable, action, `Next` disjunct or CONSTANT, and touched no
+# `effects` entry, so `surface_cost_rule` has nothing to price: the state space
+# is byte-identical before and after and TLC explores the same graph. Everything
+# FI-04 shipped is fixture data (three catalogue files), a driver that adds no
+# verdict rule, two readers of already-sealed artifacts, and tests.
 justification: ""
 
 # The recursive refinement loop -- REQUIRED at every close.
 # Either an approved recommendation with evidence, or "searched, found none".
 # Recommendations are advisory and user-approved, never auto-applied.
 refinement:
-  searched: false
-  outcome: "TODO -- found | none"
-  detail: ""
+  searched: true
+  outcome: "none"
+  detail: >-
+    Searched, found none, and the search is the reason this ticket has a
+    result. The one refinement that WOULD have broken the entailment at the
+    model layer -- a PER-ARM `effects` declaration, so a ported arm derives a
+    port corpus and a flat arm does not -- was designed and REJECTED. It breaks
+    the fixture's load-bearing control (one model and one manifest across arms,
+    held so that a D1 difference between arms cannot be a difference between
+    their models), and under `surface_cost_rule` I could not state what it buys
+    beyond what the `--wiring` swap already gives. No other refinement was
+    available: the divergence FI-04 demonstrates lives entirely in the harness
+    binding, which is not modelled state, and the model was therefore not the
+    place to look. Recorded in full at
+    specs/tickets/FI-04/results/NARRATIVE.md section 5, item 1.
   measured: false      # true only if a real TLC run produced the figure
   applied: false       # if true, approved_by is required
   approved_by: ""
@@ -99,4 +131,4 @@ transition_diff: ""
 
 # REQUIRED. The narrative ledger: reasoning, measured alternatives, findings the
 # machine-checked core above cannot express. Path to a document, or prose.
-narrative: "TODO"
+narrative: "specs/tickets/FI-04/results/NARRATIVE.md"
