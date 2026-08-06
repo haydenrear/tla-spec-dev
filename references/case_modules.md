@@ -433,70 +433,51 @@ python3 "$REPO/scripts/run_generated_case_adapters.py" \
 No third mapping file, and no edit to the fixture. See CM-F5 below for what the
 notice is for.
 
-## Binding an adapter to a PORT, and the fake/real swap (PA-04)
+## The `[ports.*]` binding table and the fake/real swap: REMOVED (SM-02)
 
-Every binding above binds a case to an **action**. `[ports."<Component>.<Name>"]`
-binds one to a **port**, and it is the only table in this file that names two
-implementations of the same thing.
+`PA-04` added a `[ports."<Component>.<Name>"]` table that bound an adapter to a
+declared **port** and named a `fake` beside its `adapter`, plus a `--wiring
+real|fake` flag that swapped the two over an identical case list. It was the
+centrepiece of the `ports-as-adapters` epic. **`SM-02` removed all of it, on
+measurement**, and this section is kept — rather than deleted — because a reader
+who finds `--wiring` in an old command line needs to know where it went and what
+it bought.
 
-```toml
-[ports."ledger.LedgerAppendPort"]
-adapter = "port_journal_adapters:RealJournalAdapter"   # the REAL adapter
-fake    = "port_journal_adapters:FakeJournalAdapter"   # its FAKE
-kind    = "ledger-journal-port"
-```
+What was measured:
 
-The quoted key is the **qualified port name** the manifest declares under
-`effects.components.<Component>.ports.<Name>` — the same declaration
-`--port-cases` generates a case set from. The runner resolves it to the case
-label by calling the generator's own `PortDeclaration`, so a port renamed in the
-manifest breaks a test rather than silently orphaning the binding.
+- **Zero unique kills across 28 tables.** No generated instrument had a unique
+  kill; only the hand-written suite did.
+- **Absent from every blind-authored table.**
+- `suite-fake` — the hand-written suite driven through
+  `examples/validation/ab/reference_ports/quota_ledger_fake.py`, four lines, no
+  binding table, no wiring flag, no mapping — **strictly dominated**
+  `corpus-port-swap:fake`, killing everything it killed **plus `PA-M13`**.
+- `SM-01`'s gap mutant `SM-GM-P3` made the fake compose the **real** journal, so
+  `--wiring fake` and `--wiring real` became the same program under two names.
+  It **survived all six columns the machinery owned**, at 1543 executed cases
+  each, while the positive control died on those same six in the same run.
+  **The swap could not detect that its own fake was not a fake** — the one
+  failure a port swap exists to make impossible (`SM-01-DF-04`).
 
-### Which binding wins, and why you can see it
+### What is left, and it is the part that worked
 
-A generated port case carries **both** labels: its action's and its port's. The
-port binding wins, and the precedence is read off `mapping.binds` — a field the
-table sets — not sniffed from the shape of the label and not decided by which
-table appears first in the file. Before this existed, which of two matching
-bindings drove a port case depended on typing order.
+A generated port case carries **both** labels, its action's and its port's. With
+the port table gone it binds to its **action** — `corpus-action-bound`, the
+pre-PA-04 column, which in PA-04's own published table killed `PA-M11` exactly
+as the port column did. Declaration order in the mapping is the only tiebreak.
 
-### The swap
+**The corpus was NOT removed and is not on the table.** `--port-cases` still
+generates per-port case sets from `effects.components.<Component>.ports.<Name>`,
+still reaches **83.2 % executable** against the whole-view corpus's 8.66 %, and
+`--negative-cases` still owns guard relaxation **3 of 3**, a class no other
+instrument has reached. Those are generation results; the binding table was a
+separate claim and only the binding table was defunded.
 
-```bash
-python3 scripts/run_generated_case_adapters.py <corpus> --mapping <toml> --batch --wiring real
-python3 scripts/run_generated_case_adapters.py <corpus> --mapping <toml> --batch --wiring fake
-```
-
-**The case list is identical across the two.** Only the implementation behind
-the port changes. That is the whole instrument, and it exists because of one
-measured hole: a fault in a hexagonal arm's in-memory adapter survived five
-corpus instruments, the effect oracle **and** the hand-written suite for a full
-epic — not because it was subtle, but because no composition point anywhere
-wired that adapter, so nothing ran a line of it.
-
-Measured on `examples/validation/ab/reference_ports/`, 1,855 generated port
-cases, 1,543 executed, both wirings green on unmutated code:
-
-| mutant | port-swap real | port-swap fake | action-bound real | action-bound fake |
-|---|---|---|---|---|
-| PA-M11 real adapter drops CLOSE | **KILLED** | SURVIVED | **KILLED** | **KILLED** |
-| PA-M12 fake adapter drops CLOSE | SURVIVED | **KILLED** | SURVIVED | SURVIVED |
-
-Read the two right-hand columns first. Without the `[ports.*]` table there is
-nothing to swap, so `--wiring fake` runs the real adapter and **PA-M12 is
-unreachable by any wiring**. The port binding is the only difference between
-that pair of columns and the pair beside it.
-
-A port that declares no `fake` is **reported, never refused**:
-
-```
-! PORT ledger.LedgerAppendPort: NO FAKE DECLARED, so --wiring fake ran its REAL
-  adapter. This column decides nothing about a fake for this port because there
-  is not one.
-```
-
-That is a fact about the codebase — a flat module has no second implementation —
-and turning it into a refusal would make `--wiring` a gate on how code is shaped.
+A mapping file that still carries a `[ports.*]` table is **ignored, not
+rejected** — SM-02 shipped no new refusal (`no_new_gates_rule`). A ports-only
+mapping therefore reports the error the runner has always had for an empty
+mapping, `no adapter mappings found`. The silence on a *mixed* mapping is filed
+as `SM-02-DF-01`.
 
 ### Every run says which oracles it carries
 
@@ -507,9 +488,6 @@ oracles were the ones that said nothing.
 ```
 ORACLES CARRIED BY THIS MAPPING:
   + output-conformance: 5 binding(s) return a result this run compares field by field ...
-  + port-fake-real-swap on ledger.LedgerAppendPort: THIS RUN USED THE FAKE SIDE. One run
-    decides one side of a port; a fault seeded in the other implementation is not on this
-    run's executed path at all, so this column must be read beside its opposite wiring ...
 ORACLES **NOT** CARRIED:
   - projected-state-conformance: no binding declares a projector ...
   - effect-conformance: this mapping binds no [effect_providers.<Port>] provider, so NO
@@ -522,15 +500,10 @@ ORACLES **NOT** CARRIED:
 durable-write oracle over-reads, and documentation cannot tell a reader that at
 the moment they need to know it.
 
-### What the pair does NOT do
+### A port column was scoped to its region (historical, and it outlived the swap)
 
-It does not assert the two wirings **agree**. A parity test between a real
-adapter and its fake passes when the domain is wrong, because both wirings are
-wrong together. Both columns are compared against the model's expected
-after-state, which is the standard the hand-written suite holds them to.
-
-And a port column is scoped to its region. `corpus-port` executes 294 accepting
-`Reserve` cases and still cannot decide the A/B catalogue's positive control,
+The swap is gone; this limit is not, because it is a fact about the **corpus**,
+which stays. `corpus-port` executes 294 accepting `Reserve` cases and still cannot decide the A/B catalogue's positive control,
 because that control's symptom lands on `available` while the port's region is
 `{closed, committed, ledger}`. Executability was never the limit; the projection
 is. Until a control is seeded **inside** a port's region, every port-scoped

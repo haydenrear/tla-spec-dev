@@ -1,0 +1,120 @@
+{
+  "current_dir": "current",
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket SM-02",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "kill_mutants.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_kill_test_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/current"
+  },
+  "source_current": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/current",
+  "source_project_desired": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "The [ports.*] binding machinery is removed and the removal is measured by SM-01's gap mutants.",
+        "Per mutant: still dies (redundant) or now survives (load-bearing, priced). Reported either way.",
+        "The corpus is NOT removed; guard relaxation does not regress from 3 of 3."
+      ],
+      "commands": [
+        "uv run --with pytest --with pyyaml python -m pytest tests -q"
+      ]
+    },
+    "blocks": [
+      "SM-05"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "scripts/run_generated_case_adapters.py"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "references/case_modules.md"
+      ]
+    },
+    "depends_on": [
+      "SM-01"
+    ],
+    "desired_actions": [],
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev/issues/166",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "The gap mutants for this removal report redundant or load-bearing. If any survives, that is the price and it is reported.",
+        "goal": "GOAL-removal-is-measured",
+        "local_signal": "SM-01's gap mutants re-run after the cut"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "Supplies the larger half of the simplification D2 is scored on",
+        "goal": "GOAL-D2-can-move",
+        "local_signal": "before/after produced-code figures over the toolchain"
+      },
+      {
+        "contribution": "enabling",
+        "expected_effect": "none directly; removes a mechanism whose token cost has bought no measured kill",
+        "goal": "GOAL-cheaper",
+        "local_signal": "N/A"
+      }
+    ],
+    "id": "SM-02",
+    "implementation_scope": [
+      "scripts/",
+      "references/",
+      "tests/"
+    ],
+    "model_delta_expectation": "none expected",
+    "objective": "Zero unique kills across 28 tables, absent from every blind-authored table, strictly dominated by the hand-written suite. It was the centerpiece of the ports-as-adapters epic, which is uncomfortable and is exactly why it should go: this project has never removed a mechanism it shipped. TWO CLAIMS, NOT ONE -- defunding [ports.*] is supported and defunding the corpus is NOT. Do not let the cut widen.",
+    "promotion_order": 20,
+    "promotion_predecessor": "SM-01",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Cut the [ports.*] binding machinery",
+    "wave": 2
+  },
+  "ticket_dir": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/tickets/SM-02",
+  "ticket_id": "SM-02",
+  "ticket_index": 1,
+  "ticket_plan": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Users/hayde/IdeaProjects/wt-epic-subtract-to-measure-SM-02/specs/tickets"
+}

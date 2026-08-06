@@ -73,22 +73,6 @@ class AdapterMapping:
     #: EXTERNAL binding must declare one -- see enforce_external_channels.
     channel: str | None = None
     order: int = 0
-    #: PA-04. Which of the two things this binding binds TO: an ``"action"``
-    #: (every binding before PA-04) or a ``"port"``. DECLARED by the table the
-    #: binding was read from, never sniffed out of the shape of the label. The
-    #: whole point of the field is that a reader -- and ``adapter_for_case``'s
-    #: precedence rule -- can tell the two apart by READING the mapping.
-    binds: str = "action"
-    #: PA-04. The declared port this binding drives, ``"Component.Name"``, as
-    #: the manifest's ``effects.components`` block qualifies it. ``None`` on an
-    #: action binding.
-    port: str | None = None
-    #: PA-04. The FAKE implementation of the SAME port. ``--wiring fake`` swaps
-    #: ``adapter`` for this one and runs the IDENTICAL case list, which is what
-    #: makes the real/fake pair an instrument rather than a shape. ``None``
-    #: means this port ships no fake, and that is REPORTED, never refused: a
-    #: port with one implementation is a fact about the codebase.
-    fake: str | None = None
 
 
 class EffectProviderConfigurationError(ValueError):
@@ -296,193 +280,15 @@ def load_mappings(path: Path) -> dict[str, AdapterMapping]:
                 order=len(mappings),
             )
 
-    port_tables = loaded.get("ports")
-    if isinstance(port_tables, dict):
-        for qualified, spec in port_tables.items():
-            if not isinstance(spec, dict):
-                raise ValueError(f'[ports."{qualified}"] must be a table')
-            adapter = spec.get("adapter")
-            if not isinstance(adapter, str) or not adapter:
-                raise ValueError(f'[ports."{qualified}"] must define adapter = "module:object"')
-            fake = spec.get("fake")
-            if fake is not None and (not isinstance(fake, str) or not fake):
-                raise ValueError(f'[ports."{qualified}"] fake must be "module:object"')
-            projection = spec.get("output_projection")
-            if projection is not None and not isinstance(projection, str):
-                raise ValueError(f'[ports."{qualified}"] output_projection must be "module:object"')
-            expected_projection = spec.get("expected_projection")
-            if expected_projection is not None and not isinstance(expected_projection, str):
-                raise ValueError(f'[ports."{qualified}"] expected_projection must be "module:object"')
-            label = port_case_label(str(qualified))
-            if label in mappings:
-                raise ValueError(f'duplicate binding for port "{qualified}" (label {label})')
-            mappings[label] = AdapterMapping(
-                label=label,
-                adapter=adapter,
-                output_projection=projection,
-                expected_projection=expected_projection,
-                kind=spec.get("kind") if isinstance(spec.get("kind"), str) else None,
-                order=len(mappings),
-                binds="port",
-                port=str(qualified),
-                fake=fake,
-            )
-
     if not mappings:
         raise ValueError(f"no adapter mappings found in {path}")
     return mappings
-
-
-def _port_declaration_type() -> Any:
-    """The generator's ``PortDeclaration`` -- THE SHIPPED BUILDER for port names.
-
-    Imported lazily so this module stays importable from the generated case
-    programs, which put ``scripts`` on the path rather than the package.
-    """
-    try:  # package import
-        from .generate_cases_from_tlc_dump import PortDeclaration  # type: ignore[attr-defined]
-    except ImportError:  # pragma: no cover - direct script execution
-        from generate_cases_from_tlc_dump import PortDeclaration  # type: ignore[no-redef]
-    return PortDeclaration
-
-
-def port_case_label(qualified: str) -> str:
-    """The case label a declared port's generated cases carry.
-
-    Built by CALLING the shipped builder rather than by repeating its f-string.
-    ``PortDeclaration.label`` in ``scripts/generate_cases_from_tlc_dump.py`` is
-    the one place the ``port:`` prefix is constructed, and the plan's
-    ``declaration_executability_rule`` exists because five declarations in five
-    consecutive attempts drifted from the code they described. If that prefix is
-    renamed, this binding stops resolving and a test fails, instead of the
-    binding silently matching nothing and every port case falling through to its
-    action adapter with nobody the wiser.
-    """
-    component, separator, name = str(qualified).partition(".")
-    if not separator or not component or not name:
-        raise ValueError(
-            f'[ports."{qualified}"] must name a port as "Component.Name" -- the qualified '
-            "form the manifest's effects.components block declares"
-        )
-    declaration = _port_declaration_type()(
-        component=component, name=name, attributes={}, actions=()
-    )
-    return str(declaration.label)
-
-
-def load_declared_ports(manifest_path: Path | None) -> Any:
-    """The manifest's declared ports, through the shipped builder.
-
-    Returns a ``PortCatalog``. Missing manifest yields an EMPTY catalog rather
-    than an error -- a mapping with no ports and a spec with no manifest is the
-    ordinary case, and this reader must not turn it into a refusal.
-    """
-    try:  # package import
-        from .generate_cases_from_tlc_dump import load_port_catalog  # type: ignore[attr-defined]
-    except ImportError:  # pragma: no cover - direct script execution
-        from generate_cases_from_tlc_dump import load_port_catalog  # type: ignore[no-redef]
-    return load_port_catalog(manifest_path)
-
-
-def port_bindings(mappings: dict[str, AdapterMapping]) -> dict[str, AdapterMapping]:
-    """Every binding that DECLARES itself a port binding, keyed by port."""
-    return {
-        mapping.port: mapping
-        for mapping in mappings.values()
-        if mapping.binds == "port" and mapping.port
-    }
-
-
-def apply_wiring(
-    mappings: dict[str, AdapterMapping], wiring: str
-) -> tuple[dict[str, AdapterMapping], list[str]]:
-    """Swap every port binding onto the requested side of its port.
-
-    THE INSTRUMENT, and the reason PA-04 exists. The case list does not change;
-    only which implementation of the port the domain is composed over does. A
-    fault seeded in the real adapter is on the executed path under ``real`` and
-    is not under ``fake``, and the converse for a fault in the fake -- so the
-    pair reaches a region that measured SURVIVES on every instrument in the
-    predecessor epic, where a single wiring meant one side of every port was
-    never run by anything.
-
-    A port with no declared fake is REPORTED and left on its real adapter. It is
-    not an error: refusing here would make ``--wiring fake`` a gate on how a
-    codebase is shaped, and this epic ships no new gate.
-    """
-    if wiring == "real":
-        return mappings, []
-    notes: list[str] = []
-    swapped: dict[str, AdapterMapping] = {}
-    for label, mapping in mappings.items():
-        if mapping.binds != "port":
-            swapped[label] = mapping
-            continue
-        if not mapping.fake:
-            notes.append(
-                f"PORT {mapping.port}: NO FAKE DECLARED, so --wiring fake ran its REAL "
-                f"adapter ({mapping.adapter}). This column decides nothing about a fake "
-                "for this port because there is not one."
-            )
-            swapped[label] = mapping
-            continue
-        notes.append(f"PORT {mapping.port}: wiring=fake -> {mapping.fake} (real: {mapping.adapter})")
-        swapped[label] = dataclasses_replace(mapping, adapter=mapping.fake)
-    return swapped, notes
-
-
-def render_port_binding_report(
-    mappings: dict[str, AdapterMapping], catalog: Any, mapping_path: Path
-) -> list[str]:
-    """Reconcile the mapping's port bindings against the DECLARED ports.
-
-    plan ``declaration_executability_rule``. A binding table is a declaration,
-    and a declaration nothing executes drifts. This reads the manifest through
-    the same shipped builder the generator emits cases with, so the two cannot
-    disagree silently: a port renamed in the manifest shows up here as a bound
-    port nobody declares AND a declared port nobody binds, in the same run.
-
-    It REPORTS. Under the plan's ``no_new_gates_rule`` it refuses nothing --
-    binding a port the manifest does not declare is how a project binds a port
-    it has not finished declaring, and refusing that would make the mapping a
-    gate on the manifest.
-    """
-    bound = port_bindings(mappings)
-    declared = {port.qualified: port for port in getattr(catalog, "ports", ())}
-    if not bound and not declared:
-        return []
-    lines: list[str] = []
-    for qualified in sorted(bound):
-        mapping = bound[qualified]
-        fake = mapping.fake or "NONE DECLARED"
-        state = "declared" if qualified in declared else "NOT DECLARED by the manifest"
-        lines.append(
-            f"  {qualified} [{state}]: real={mapping.adapter} fake={fake} "
-            f"-> cases labelled {mapping.label}"
-        )
-    unbound = sorted(set(declared) - set(bound))
-    if unbound:
-        lines.append(
-            f"  DECLARED BUT NOT BOUND: {', '.join(unbound)}. Cases for these ports fall "
-            "through to their action binding, so nothing in this run drives them AS PORTS "
-            "and no fake of theirs is exercised."
-        )
-    orphaned = sorted(set(bound) - set(declared))
-    if orphaned:
-        lines.append(
-            f"  BOUND BUT NOT DECLARED: {', '.join(orphaned)}. No generated case carries "
-            "their label unless the manifest declares them, so these bindings may match "
-            "nothing. Reported, not refused."
-        )
-    return [f"PORT BINDINGS from {mapping_path} against {getattr(catalog, 'source', 'no manifest')}:"] + lines
 
 
 def render_oracle_statement(
     *,
     mappings: dict[str, AdapterMapping],
     plan: EffectProviderPlan,
-    wiring: str,
-    wiring_notes: list[str],
 ) -> str:
     """State which oracles this run CARRIES and which it does NOT. Every run.
 
@@ -494,10 +300,16 @@ def render_oracle_statement(
     over-reads, and documentation could not tell a reader that at the moment
     they needed to know.
 
-    The five names are the four in ``references/modular_fuzzing.md`` plus PA-04's
-    real/fake port swap. Oracle 4, the mutation kill test, is NEVER carried here
-    -- it lives in ``scripts/kill_test.py`` -- and saying so on every run is the
-    point rather than an omission.
+    The names are the four in ``references/modular_fuzzing.md``. Oracle 4, the
+    mutation kill test, is NEVER carried here -- it lives in
+    ``scripts/kill_test.py`` -- and saying so on every run is the point rather
+    than an omission.
+
+    SM-02 removed the fifth, PA-04's real/fake port swap, on measured evidence:
+    zero unique kills across 28 tables, and SM-01's ``SM-GM-P3`` survived all
+    six of the swap's own columns at 1543 executed cases each while dying to the
+    hand-written suite. A line here claiming an oracle the runner no longer
+    carries would be the exact over-read this statement exists to prevent.
     """
     executable = [mapping for mapping in mappings.values() if mapping.adapter]
     projecting = [
@@ -505,9 +317,6 @@ def render_oracle_statement(
         for mapping in mappings.values()
         if mapping.projector or mapping.expected_projection or mapping.assertion
     ]
-    ports = port_bindings(mappings)
-    paired = {port: mapping for port, mapping in ports.items() if mapping.fake}
-
     carried: list[str] = []
     missing: list[str] = []
 
@@ -553,28 +362,6 @@ def render_oracle_statement(
         "(scripts/kill_test.py) and a green run here is not evidence any fault would die"
     )
 
-    if paired:
-        carried.append(
-            f"port-fake-real-swap on {', '.join(sorted(paired))}: THIS RUN USED THE "
-            f"{wiring.upper()} SIDE. One run decides one side of a port; a fault seeded in "
-            "the other implementation is not on this run's executed path at all, so this "
-            "column must be read beside its opposite wiring or not at all"
-        )
-    elif ports:
-        missing.append(
-            "port-fake-real-swap: "
-            + ", ".join(sorted(ports))
-            + " is bound as a port and declares no fake, so there is no swap and this run "
-            "says nothing about a second implementation"
-        )
-    else:
-        missing.append(
-            "port-fake-real-swap: no [ports.\"Component.Name\"] binding in this mapping. "
-            "Every binding here drives a whole ACTION, so a fault living inside one "
-            "implementation of a port is only reachable if the composition point this "
-            "corpus happens to run wires that implementation"
-        )
-
     lines = ["ORACLES CARRIED BY THIS MAPPING:"]
     if carried:
         lines.extend(f"  + {entry}" for entry in carried)
@@ -582,7 +369,6 @@ def render_oracle_statement(
         lines.append("  + NONE. This run can distinguish nothing.")
     lines.append("ORACLES **NOT** CARRIED:")
     lines.extend(f"  - {entry}" for entry in missing)
-    lines.extend(f"  ! {note}" for note in wiring_notes)
     return "\n".join(lines)
 
 
@@ -627,16 +413,6 @@ def parse_simple_mapping_toml(text: str) -> dict[str, Any]:
                 raise ValueError(f"duplicate [actions.{label}] table")
             current = {}
             actions[label] = current
-            continue
-        if line.startswith("[ports.") and line.endswith("]"):
-            qualified = line[len("[ports.") : -1].strip()
-            if qualified.startswith('"') and qualified.endswith('"'):
-                qualified = qualified[1:-1]
-            ports = loaded.setdefault("ports", {})
-            if qualified in ports:
-                raise ValueError(f'duplicate [ports."{qualified}"] table')
-            current = {}
-            ports[qualified] = current
             continue
         if line.startswith("[effect_providers.") and line.endswith("]"):
             port_name = line[len("[effect_providers.") : -1]
@@ -1190,24 +966,21 @@ def selected_cases(
 
 
 def adapter_for_case(case: Any, mappings: dict[str, AdapterMapping]) -> AdapterMapping | None:
-    """The binding that drives this case, PORT BINDINGS FIRST.
+    """The binding that drives this case: the earliest one in the file that matches.
 
-    PA-04. A generated port case carries BOTH its action's label and its port's,
-    so before this rule existed which of the two won was decided by whichever
-    table happened to appear first in the file -- an ordering nobody declared and
-    no reader could see. The precedence now reads off ``mapping.binds``, which
-    the table the binding came from set explicitly. A port binding wins because
-    it is the more specific claim: the action binding says "some adapter runs
-    this transition", the port binding says "THIS adapter is the port that
-    transition drives, and here is its fake."
+    SM-02. Until this ticket a ``[ports.*]`` binding out-ranked an ``[actions.*]``
+    one here, so a generated port case -- which carries BOTH its action's label
+    and its port's -- was driven by the port table. That table is gone, so a
+    port case now binds to its ACTION, which is the pre-PA-04 behaviour and the
+    ``corpus-action-bound`` column of every table PA-04 ever printed. Declaration
+    order inside the mapping is the only tiebreak, and it is the one a reader can
+    see in the file.
     """
     labels = {str(label) for label in case.labels}
     candidates = [mapping for label, mapping in mappings.items() if label in labels]
     if not candidates:
         return None
-    return sorted(
-        candidates, key=lambda mapping: (0 if mapping.binds == "port" else 1, mapping.order)
-    )[0]
+    return sorted(candidates, key=lambda mapping: mapping.order)[0]
 
 
 def adapter_kind(mapping: AdapterMapping) -> str:
@@ -1525,9 +1298,6 @@ MAPPING = AdapterMapping(
     kind={mapping.kind!r},
     channel={mapping.channel!r},
     order={mapping.order!r},
-    binds={mapping.binds!r},
-    port={mapping.port!r},
-    fake={mapping.fake!r},
 )
 
 
@@ -2561,25 +2331,6 @@ def main() -> int:
         type=int,
         help="Run exactly this iteration (the replay selector; --fuzz-runs is ignored).",
     )
-    parser.add_argument(
-        "--wiring",
-        choices=["real", "fake"],
-        default="real",
-        help=(
-            "PA-04. Which implementation of every [ports.\"Component.Name\"] binding to "
-            "compose this run over. The case list is IDENTICAL across the two; only the "
-            "adapter behind the port changes. Run both and a fault seeded in either "
-            "implementation is on some run's executed path."
-        ),
-    )
-    parser.add_argument(
-        "--port-manifest",
-        type=Path,
-        help=(
-            "Read declared ports from this manifest when reconciling port bindings. "
-            "Defaults to spec_manifest.yaml beside the spec directory."
-        ),
-    )
     args = parser.parse_args()
 
     spec_dir = infer_spec_dir(args.cases_dir, args.mapping, args.spec_dir)
@@ -2596,18 +2347,7 @@ def main() -> int:
 
     cases_module = load_cases(args.cases_dir)
     cases = list(cases_module.CASES)
-    # PA-04: the mapping AS DECLARED is kept, because the binding report must
-    # name the real adapter and its fake as the FILE declares them. Reporting
-    # the post-swap mapping prints the fake twice, once labelled "real".
-    declared_mappings = load_mappings(args.mapping)
-    # Swap before ANY validation or execution, so coverage, capability checks
-    # and the generated programs all describe the wiring that actually ran.
-    mappings, wiring_notes = apply_wiring(declared_mappings, args.wiring)
-    if args.port_manifest is not None:
-        port_manifest = resolve_runtime_path(args.port_manifest, spec_dir)
-    else:
-        port_manifest = (spec_dir / "spec_manifest.yaml") if spec_dir is not None else None
-    port_catalog = load_declared_ports(port_manifest)
+    mappings = load_mappings(args.mapping)
     coverage_cases = selected_cases(cases, [], [], None, args.view)
     validate_mapping_coverage(coverage_cases, mappings)
     # MF-015: external bindings must declare a channel, must not import the
@@ -2652,19 +2392,17 @@ def main() -> int:
     work_dir = args.work_dir or Path(tempfile.mkdtemp(prefix="spec-double-cases-"))
     work_dir.mkdir(parents=True, exist_ok=True)
     print(f"validated {len(mappings)} adapter mappings for {len(case_labels(cases))} labels")
-    # HP-04, widened by PA-04: EVERY run states which oracles it carries and
-    # which it does not, unprompted and BEFORE the results, so a reader cannot
-    # reach a kill count without having read what produced it. HP-04 printed
-    # this only when semantic providers were configured, so the runs carrying
-    # the FEWEST oracles were the ones that said nothing.
-    for line in render_port_binding_report(declared_mappings, port_catalog, args.mapping):
-        print(line)
+    # HP-04: EVERY run states which oracles it carries and which it does not,
+    # unprompted and BEFORE the results, so a reader cannot reach a kill count
+    # without having read what produced it. HP-04 printed this only when
+    # semantic providers were configured, so the runs carrying the FEWEST
+    # oracles were the ones that said nothing. PA-04 widened it to every run
+    # AND added a fifth oracle; SM-02 removed that fifth oracle and kept the
+    # widening, which is the half that was ever shown to do anything.
     print(
         render_oracle_statement(
             mappings=mappings,
             plan=effect_provider_plan,
-            wiring=args.wiring,
-            wiring_notes=wiring_notes,
         )
     )
     coverage_note = effect_provider_plan.render_oracle_coverage()

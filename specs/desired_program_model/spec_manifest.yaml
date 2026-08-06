@@ -276,7 +276,7 @@ effects:
         # MF-026 (hexagonal-prompting, gap G-2). PRE-EXISTING AT THE EPIC BASE
         # and surfaced by no previous audit round. RunSpecUnitTests --no-batch
         # spawns `<python> <work_dir>/programs/case_*.py` --
-        # scripts/run_generated_case_adapters.py:2506 (subprocess.run) -- which
+        # scripts/run_generated_case_adapters.py:2276 (subprocess.run) -- which
         # matches neither test_process (`*pytest*`) nor runner_process
         # (`*run_generated_case_adapters*`), and `work_dir` defaults to
         # tempfile.mkdtemp, outside spec_tree and evidence_report. Declared
@@ -287,9 +287,9 @@ effects:
           type: process.spawn
           target: "*programs/case-*"
         # MF-026 round 2, G-2 write half. With no --work-dir the runner writes
-        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2652 (mkdtemp)
+        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2392 (mkdtemp)
         # (mkdtemp) -- placing the per-case program at
-        # scripts/run_generated_case_adapters.py:1583 (program_path). No
+        # scripts/run_generated_case_adapters.py:1353 (program_path). No
         # declared write port accepted that path.
         case_program_write:
           type: filesystem.write
