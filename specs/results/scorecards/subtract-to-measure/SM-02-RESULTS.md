@@ -63,9 +63,11 @@ control reported CONTROL_RED, want DIES`.
 | **`SM-GM-P3`** the fake is silently a second real adapter | SURVIVES 28 → SURVIVES 28 | SURVIVES 28 → SURVIVES 28 | SURVIVES → SURVIVES | SURVIVES → SURVIVES | **DIES** 1370 → **DIES** 1363 | **STILL DIES — REDUNDANT, the cut was free** |
 | **`SM-GM-CTRL-A`** (positive control) | **DIES** 28 → **DIES** 28 | **DIES** 28 → **DIES** 28 | **DIES** → **DIES** | **DIES** → **DIES** | **DIES** 1370 → **DIES** 1363 | control **GREEN** on every surviving detector |
 
-`1370 → 1363` is the acceptance suite shrinking by exactly the 21 nodes deleted
-minus the 14 added (§6). Every declared mutant applied exactly once, before and
-after, in both runs.
+`1370 → 1363` is the staged-tree acceptance suite shrinking by the 21 nodes
+deleted minus the 14 added, plus the 4 that a ticket directory open under
+`specs/tickets/` contributes at the moment the run of record was taken (§6, where
+the comparison is redone on node SETS rather than counts). Every declared mutant
+applied exactly once, before and after, in both runs.
 
 ### Per mutant, in words, with the kill sets
 
@@ -425,14 +427,32 @@ mid-epic would mean the before and after were no longer the same instrument.
 
 ```
 uv run --with pytest --with pyyaml python -m pytest tests -q
-1363 passed in 371.50s (0:06:11)
+1359 passed in 362.53s (0:06:02)
 ```
 
-**Arithmetic, exact.** `f0c215d` was **1370 passed**. Deleted
-`tests/test_port_adapter_binding.py` = **21 collected nodes** (verified with
-`--collect-only` on a `git archive` of the parent); added
-`tests/test_ports_binding_removed.py` = **14**. 1370 − 21 + 14 = **1363**. No
-test was disabled, skipped or xfailed to reach it.
+**Arithmetic, exact, and checked on node SETS rather than on counts.** Collected
+node ids, `f0c215d` against the tip:
+
+```
+parent  1366 collected
+tip     1359 collected
+removed  21   ALL of them tests/test_port_adapter_binding.py
+added    14   ALL of them tests/test_ports_binding_removed.py
+```
+
+**No third file moved by a single node.** 1366 − 21 + 14 = **1359**, and every
+one of the 1345 nodes common to both is present in both.
+
+Two numbers a reader will trip over, stated rather than smoothed:
+
+- **`SM-01` reported `1370 passed` and this reports `1359`, and only 7 of that
+  11 is the removal.** The other **4** are nodes contributed by having a ticket
+  directory OPEN under `specs/tickets/`. `SM-01`'s figure was taken before its
+  close moved the directory to `specs/.history`; this ticket's mid-work run, with
+  `specs/tickets/SM-02/` present, was **1363**, and the post-close run is 1359.
+  Same 4 nodes, twice. The node-set diff above is the honest comparison because
+  it does not depend on which of the two states either figure was taken in.
+- No test was disabled, skipped, xfailed or deselected to reach any of these.
 
 ### Parent-commit evidence for the new tests
 
