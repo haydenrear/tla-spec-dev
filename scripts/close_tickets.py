@@ -23,7 +23,24 @@ except ImportError:  # pragma: no cover - direct script execution
 
 
 SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
-PLANNING_FILES = {"README.md", "ticket_plan.yaml", "desired_state.yaml"}
+#: Files that live in a model directory but are NOT part of the program model:
+#: the schedule, the desired-state note, and the deferment backlog. They are
+#: never compared for convergence and never promoted between trees.
+#:
+#: `deferred_findings.yaml` is the git-epic-workflow deferment backlog
+#: (`references/deferment.md`), and it sits beside `ticket_plan.yaml` in
+#: `desired_program_model/`. Classifying it as semantic made it a promotion
+#: SUBJECT: it exists in `desired_program_model/` alone, so a convergence
+#: promotion would have deleted the epic's entire findings ledger as a file
+#: "the source no longer has", and `--accept-new` would have copied the backlog
+#: into the promoted program model as though it were part of the specification.
+#: It is bookkeeping about the work, not a statement about the program.
+PLANNING_FILES = {
+    "README.md",
+    "ticket_plan.yaml",
+    "desired_state.yaml",
+    "deferred_findings.yaml",
+}
 TICKET_CLOSED_STATUSES = {"accepted", "closed", "complete", "completed", "done"}
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 
