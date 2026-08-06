@@ -130,7 +130,9 @@ Its issue body states, in addition to the shared assignment rules:
 - run each owned harness from a fresh start on the reconciled epic tip, after
   every contributing ticket has merged, and write results to `evidence_root`;
 - report baseline → measured → target and a verdict (`met` / `missed` /
-  `unmeasured` with a reason) per goal in the PR body;
+  `unmeasured` with a reason) per goal in the PR body — and one verdict **per
+  clause** where the target has more than one, since a multi-clause goal that
+  settles differently on each cannot be carried by a single token;
 - never edit a target to match a result and never re-run selectively until a
   number passes; report the run that happened;
 - file regressions and shortfalls as deferred findings for the epic owner
