@@ -1,170 +1,60 @@
 version: 1
-name: ports-as-adapters-epic
+name: falsifiable-instruments-epic
 updated: null
 purpose: >-
-  Make the model's PORTS and the toolchain's ADAPTERS the same object.
+  FIVE OF THIS PROJECT'S INSTRUMENTS CANNOT PRODUCE THE RESULT THAT WOULD REFUTE THEM, and that is why three epics of mechanism work moved nothing. The port-scoped positive control cannot go red because nothing is seeded in a port's region. The control probe cannot fail -- a no-op reports HOLDS. The A/B cannot diverge because the null is entailed by the fixture. The thermometer tripwire fires wrong in both directions. The scorecard's D1/D4/D5 moved four points on byte-identical trees.
 
-  The predecessor proved the two halves work separately and do not meet. Asking an agent for ports and adapters took modularity from D3 = 1 to D3 = 4 on both blind judges -- the first 4 in the project. A negative corpus took guard relaxation from 0 of 3 to 3 of 3, a class that had measured zero on every instrument in this project's history. And then: per-mutant verdicts IDENTICAL ON 49 OF 49 comparable cells between a hexagonal arm and a non-hexagonal one, with a fault in the treatment arm's own in-memory adapter SURVIVING EVERY INSTRUMENT. The prompt created ports; the validation machinery does not know ports exist. The structure arrived and caught nothing.
 
-  Its cleanest result says why this epic is shaped as it is: D1 = 3 on BOTH arms. The bug-catching gain was the generator, which both arms get -- not the prompt. Architecture and detection are separate levers with separate effects, and nothing yet connects them.
+  We already wrote the rule. references/architecture_advice.md S2: 'Every criterion must have a demonstrated failing input and a demonstrated passing input.' It was written for a scanner we deleted and never turned on the instruments we kept.
 
-  So: declare the agent's ports in the manifest, generate cases per port, bind adapters to ports rather than to whole actions, and make the fake/real swap the instrument. Complexity analysis stays a thermometer -- it reports, refuses nothing, and its output is input to a judgement. Verdicts come from judged scorecards, because a number computed from an artifact can be optimized by editing the artifact while a judgement that must cite the artifact can only be satisfied by changing what the artifact is.
+
+  So the question is no longer how to make generation better. It is whether we know that any of this works, and whether we would be able to tell if it did not. Fix that first and every subsequent number means something; skip it and the next epic produces another table nobody can act on.
 planning_rules:
-  current_model_rule: >-
-    Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
-  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
-  graph_rule: Add graph or integration nodes only after current-model validation passes.
-  semantic_model_rule: >-
-    Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts as TLA+ program state/actions. The modeled program surface is the shipped CLI lifecycle. Case generation is MODELED. Refusal branches and per-flag variants are out-of-model EXCEPT the six guard-weakening flags. Advisory internals, wrapper scripts and the effect-provider runtime are harness plumbing. THE STANDING PROVISO: an out-of-model FILE does not make an out-of-model EFFECT.
-  representation_scope_rule: >-
-    `implementation_scope` is EDIT PERMISSION, never representation scope. A carried-forward scope block MUST BE DIFFED AGAINST ITS SOURCE, not copied and trusted -- copying one silently dropped two governing rulings in two consecutive epics.
-  surface_cost_rule: >-
-    Adding modeled surface COSTS: the predecessor measured ~1.5 new coverage gaps and ~8x state space per surface-adding ticket. State what it buys and what the state space costs BEFORE dispatch. Removing surface is also a delta and also needs its validated-refactor basis recorded.
   no_new_gates_rule: >-
-    This epic ships NO new blocking check and no new static analyzer. Three epics of static checking caught zero bugs and were each defeated cheaply; the scanners were deleted on 2026-08-04 and what they taught is references/architecture_advice.md. Guidance goes in prompts, verdicts come from judged scorecards. A ticket adding a rule that refuses something has left scope.
+    Four epics of static checking caught zero bugs and each was defeated cheaply. Making an instrument FALSIFIABLE is not licence to make it REFUSE something. Guidance goes in prompts; verdicts come from judged scorecards.
+  thermometer_rule: >-
+    Complexity reports, refuses nothing, gates nothing, exits 0 on everything. CD-01: it proposes no cut, because a tool that picks the boundary makes every edge legal by construction. MF-020: a metric falling is not evidence the design improved.
   declaration_executability_rule: >-
-    NEW. A declaration that nothing executes will drift from the code it describes -- five mismatches in five consecutive attempts by three authors, in both directions, plus a test for the class that passed vacuously by reading the wrong key. Any declaration this epic adds ships with something that checks it against behaviour, using the SHIPPED builders so a rename fails a test instead of silently orphaning the declaration.
+    A declaration that nothing executes will drift. Ship the check with the declaration, using the SHIPPED builders, so a rename fails a test.
+  demonstrated_failure_rule: >-
+    NEW, R1. An instrument ships with a DEMONSTRATED FAILING INPUT: not a test that the instrument runs, but a re-runnable demonstration that it goes RED when the thing it watches is actually broken. This is architecture_advice.md S2 applied to ourselves.
+  control_honesty_rule: >-
+    NEW, R2. A control that cannot fail is worse than no control -- the defect this project has hit four times, most recently in the ticket whose job was to catch it. When a control cannot be made to work it is REPORTED RED, never made green by weakening what it asserts.
+  measurement_rule: >-
+    File findings; fix nothing during a measurement. Never edit a target to match a result. Never re-run selectively until a number passes. Report the run that happened. Report per class, per arm, with executable counts beside every kill number -- never a single rate.
 status:
-  workflow: ports-as-adapters-epic
+  workflow: falsifiable-instruments-epic
   active_ticket: null
   active_ticket_title: null
   desired_module: TlaSpecDevCli
   phase: planning
 epic:
-  id: ports-as-adapters
-  branch: epic/ports-as-adapters
+  id: falsifiable-instruments
+  branch: epic/falsifiable-instruments
   default_branch: main
-  base_sha: ccba2159b2167670cdfb94e92c5a0282df6c84f1
+  base_sha: fcdbe6f
   base_note: >-
-    Branched from main after hexagonal-prompting was merged LOCALLY (owner direction 2026-08-03/05). The remote is untouched and `skill-manager sync` was NOT run. THIS EPIC PUSHES ITS BRANCH AND OPENS GITHUB ISSUES -- owner direction 2026-08-04 -- which reverses the no-remote rule for the branch and the issues only. It does not authorize a main push or a skill sync.
+    Branched from main after ports-as-adapters was MERGED AND PUSHED (owner direction 2026-08-05), which also published the architectural-coherence and hexagonal-prompting epic merges that had been local only. main and origin/main are now in sync.
   schedule_revision: 1
   review_mode: epic-owner-post-merge
   notes: >-
-    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH -- and note the sharper version the predecessor learned at its close: a GATE CAN OUTLIVE ITS REMOVAL IN AN INSTALLED COPY. The repo retired a refusal and the skill home's stale module still enforced it, because Python puts a script's own directory first on sys.path. Run this repository's own scripts/. Run pytest as `uv run --with pytest --with pyyaml python -m pytest tests -q`. Validate this file with the git-epic-workflow validator after every edit. FINDINGS ARE FILED, NEVER FIXED INLINE, DURING A MEASUREMENT.
+    Never merge to main and never run skill-manager sync without explicit owner say-so. Never invoke tla-spec-dev from PATH -- run this repository's own scripts/. Run pytest as `uv run --with pytest --with pyyaml python -m pytest tests -q`. THE PLAN MUST LOAD WITH BOTH LOADERS: validate with the git-epic-workflow validator AND with scripts/extract_spec_manifest.parse_simple_yaml, because ports-as-adapters spent its whole length with open/close ticket unrunnable when only the first was checked.
 deferment_policy:
   mode: batch
   blocking: escalate
   budget: 5
   backlog: specs/desired_program_model/deferred_findings.yaml
-representation_scope:
-  note: >-
-    What the MF-026 coverage audit measures the model against, when it is run -- it RECORDS and no longer refuses (retired 2026-08-04). DIFFED against the predecessor's final block rather than copied, because copying it lost two governing rulings in two consecutive epics.
-  in_model:
-    - scripts/**/*.py -- the shipped CLI toolchain
-    - specs/*/spec_manifest.yaml -- where every effect port is declared
-    - specs/*/TlaSpecDevCli.tla and specs/*/MC*.cfg
-    - specs/*/production_adapters.py and specs/*/adapter_case_runtime.py
-    - specs/*/case_adapters.toml -- the model's own action -> adapter binding table
-    - specs/*/kill_mutants.toml -- oracle 4's input
-    - specs/*/tlc_projection.py -- what makes a tractable corpus possible at all
-  out_of_model:
-    - >-
-      tests/**, specs/*/tests/**, test_graph/** -- harnesses; semantic_model_rule forbids modeling them
-    - examples/** -- fixtures, eval subjects, and the eval harness
-    - >-
-      specs/.history/**, specs/tickets/**, specs/results/** -- sealed history, ticket workspaces, recorded evidence
-    - spec_double_compiler/**, templates/** -- generator templates and harness plumbing
-    - skill-scripts/**, *.sh wrappers -- installer shell, SUBJECT TO THE STANDING PROVISO
-    - prompts/**, references/**, *.md -- documentation and sub-agent prompts
-    - >-
-      scripts/run_generated_case_adapters.py provider machinery and scripts/generate_python.py codegen -- shipped validation harness, per the predecessor's restored carve-out
-    - repository dotfiles and tool config
-  view_split:
-    - >-
-      This repository's baseline remains a SINGLE TlaSpecDevCli.tla module with no Internal/External split -- future work, unscoped. The External view being unrepresented is an INVENTORY ROW under this line, not a gap.
-service_catalog:
-  existing_boundaries:
-    - >-
-      scripts/generate_cases_from_tlc_dump.py -- `generate cases`, including the negative-corpus mode that took guard relaxation off zero
-    - scripts/run_generated_case_adapters.py -- the corpus runner and effect-provider mapping
-    - >-
-      scripts/effect_conformance.py -- the effect oracle; in-process CPython only, cannot see across a process boundary
-    - >-
-      scripts/analyze_complexity.py -- the TLA+ descriptor. A thermometer. Reports, refuses nothing.
-    - prompts/hexagonal_implementation.md -- the ask that produced D3 = 4
-    - >-
-      references/eval_scorecard.md + examples/validation/scorecards/score_tools.py -- the card and its checker
-    - references/architecture_advice.md -- what the deleted scanners taught, as instructions
-  desired_boundaries:
-    - Ports the agent declares in the DOMAIN's vocabulary, declared in the MANIFEST too
-    - Cases generated PER PORT, not only per action
-    - Adapters bound to ports, so a generated case drives a real port
-    - 'The fake/real swap as the instrument: identical cases against both, a fault in either dies'
-    - Complexity of PRODUCED CODE, measurable at all
-    - A scorecard the toolchain SCAFFOLDS rather than each judge hand-authoring from the rubric
-  adapter_boundaries:
-    - specs/current/tests/ -- conformance for whatever the port-binding surface grows
-  known_gaps:
-    - >-
-      The effect oracle cannot see across a process boundary (in-process CPython only). A port for an action whose effects happen in a child is dead on arrival and no added coverage moves it.
-    - >-
-      8.7% of the whole-view corpus executes; 39,100 refusal edges carry no arguments. Report executable counts beside every kill number.
-    - >-
-      ORDERING stays out of scope. Invisible when the modelled thing is a SET -- a property of the model, not a limit of corpora.
-epic_goals:
-  - id: GOAL-port-reach
-    kind: eval
-    statement: >-
-      A fault behind a port cannot hide. Identical cases run against the real adapter and its fake, so a fault in either one dies.
-    metric: >-
-      Scorecard D1 (bug detection) plus the per-class per-arm kill table, with a fault seeded DELIBERATELY inside an adapter implementation rather than in the domain. D3 anchor 4 already asks for the real/fake pair; this goal asks whether that pair CATCHES anything.
-    harness: >-
-      the HP-01-shaped seeded catalogue extended with adapter-internal faults, run against real and fake wirings, scored by two blind judges
-    baseline:
-      value: >-
-        A fault in the treatment arm's in-memory adapter SURVIVED EVERY INSTRUMENT -- five corpus instruments, the oracle, and the hand-written suite. The port created a region no shared oracle reaches. Measured at hexagonal-prompting HP-06. CITATION CORRECTED 2026-08-05 (epic owner, pre-dispatch audit): this baseline was dispatched citing HP-06-DF-10, which documents a DIFFERENT result -- that the guard-relaxation zeros under the whole-view corpus are the oracle's skip rule rather than the sealed catalogue's stated mechanism. THIS RESULT CARRIES NO DF ID AT ALL. It was never filed as a deferred finding; it survives only as a bullet in SELF-IMPROVEMENT.md and inside judge rationales. That an epic's flagship baseline went unfiled for a full epic is itself a finding about the ledger, and PA-06 reports it.
-      measured_at: f431c62
-      evidence: >-
-        specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md:329-333 -- "The port has a cost nobody predicted." Corroborated by the D3/D1 judge rationales under closed-snapshot/results/scorecards/hexagonal-prompting/. NOT HP-06-DF-10; see the value field.
-    target: >-
-      The same adapter-internal fault dies on at least one generated instrument, and no positive control is red.
-    evaluation_ticket: PA-06
-    evidence_root: specs/results/scorecards/ports-as-adapters/GOAL-port-reach
-  - id: GOAL-cases-drive-ports
-    kind: eval
-    statement: >-
-      Generated cases drive PORTS, not only whole actions -- so a codebase with real ports is validated differently from one without, and the two arms stop producing identical verdicts.
-    metric: >-
-      Per-mutant verdict divergence between the arms, plus scorecard D1. The number that must move is the count of comparable cells where the arms AGREE.
-    harness: per-port case generation over both arms, per-mutant verdict table, two blind judges
-    baseline:
-      value: >-
-        Per-mutant verdicts IDENTICAL ON 56 OF 56 strictly comparable cells between a hexagonal arm and a non-hexagonal one. Adapters bind to whole actions, so the port boundary is invisible to every oracle. The structure arrived and caught nothing.
-
-        BASELINE CORRECTED 2026-08-05 (epic owner, pre-dispatch audit; owner-approved). This goal was dispatched baselining 49 OF 49 at f431c62. That number is SUPERSEDED, not wrong: EVAL-RERUN at b3a0199 -- which post-dates f431c62 -- REPLICATED AND WIDENED it on a fresh artifact pair and a catalogue seeding all ten mutants on both arms rather than eight, giving 56 of 56. On an independently authored 15-mutant catalogue the only two differing cells were the two rows its author had declared non-parallel. The superseded run is SEALED AND UNEDITED; 49 of 49 stands on the record as measured. The bar moves up because measuring divergence against the weaker instrument would credit divergence the wider one absorbs -- which is the exact hazard PA-05 is chartered to prevent, found live in this plan.
-      measured_at: b3a0199 (EVAL-RERUN, repaired instrument); superseded baseline 49 of 49 at f431c62
-      evidence: >-
-        specs/.history/hexagonal-prompting-epic/closed-snapshot/results/scorecards/SELF-IMPROVEMENT.md:309-315 for the supersession; closed-snapshot/results/scorecards/hexagonal-prompting-rerun/ for the 56-cell run; closed-snapshot/results/scorecards/hexagonal-prompting/ for the sealed 49-cell run.
-    target: >-
-      The arms' per-mutant verdicts DIVERGE on at least one cell, and the divergence is attributable to a port rather than to prompt length.
-    evaluation_ticket: PA-06
-    evidence_root: specs/results/scorecards/ports-as-adapters/GOAL-cases-drive-ports
-  - id: GOAL-complexity-measurable
-    kind: quality
-    statement: >-
-      The complexity of PRODUCED CODE is measurable at all, and the measurement can tell two implementations of one spec apart. A thermometer, not a thermostat: it reports, it refuses nothing, and nothing is gated on it.
-    metric: >-
-      A measurement over produced code that distinguishes the arms, reported beside scorecard D2 in the mechanical block and NEVER scored.
-    harness: the new instrument run over all arms of the A/B, output recorded in mechanical.json
-    baseline:
-      value: >-
-        NO SUCH INSTRUMENT EXISTS. The shipped descriptor reads TLA+; all arms produce Python. That is why D2 measured 2 for both arms from all four judges last epic -- not the prompt failing to simplify, but nothing in the toolchain being able to tell. The goal's predecessor MISSED and that miss stands on the record; this is the instrument it was missing.
-      measured_at: f431c62
-      evidence: specs/results/scorecards/SELF-IMPROVEMENT.md
-    target: >-
-      The instrument runs over produced code and reports figures that differ between arms. NO TARGET ON THE NUMBER ITSELF -- a threshold before anything can produce a number would be inventing the answer.
-    evaluation_ticket: PA-06
-    evidence_root: specs/results/scorecards/ports-as-adapters/GOAL-complexity-measurable
+epic_goals: []
+goals_note: >-
+  DELIBERATELY EMPTY AT BRANCH TIME. The owner is agreeing the goals with the user before dispatch; FI-06 owns them and no ticket may start until this block is filled. An epic that invents its own goals after seeing what is easy to measure has not been measured.
 tickets:
-  - id: PA-01
-    title: The three-arm harness, the port-aware catalogue, and the sealed predictions
+  - id: FI-01
+    title: A positive control inside the port's region, and a probe that can fail
     status: planned
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/130
-    schedule_revision: 2
-    schedule_revision_note: >-
-      BUMPED TO 2 by the epic owner 2026-08-05, mid-flight, adding a FOURTH part: repair the positive control. Reason, and it is a planning defect rather than a discovery about the code: GOAL-port-reach's target carries the clause "and no positive control is red". examples/validation/ab/seeded_faults.toml:299-306 declares M07 the positive control -- "must die on every instrument on every arm. If M07 survives, every other number in the round is void." The closing ledger 21da25b records arm B's M07 as CORRECTLY RED, i.e. surviving, and PORTS-AS-ADAPTERS-EPIC.md section 8 states it plainly: "A positive control that survives invalidates its row. One is currently red." So the epic's flagship goal was dispatched with a target clause ALREADY FAILING AT BASELINE and NO TICKET OWNING ITS REPAIR. Six tickets were planned and none of them fixes the control. PA-01 owns examples/validation/ab/ and had not sealed, so the work goes here rather than into a seventh ticket. THE TARGET IS NOT TOUCHED. Repairing an instrument BEFORE any measurement is not the forbidden act; the forbidden acts are repairing after an unflattering signal and moving a target to meet a result, and neither is happening. If the control cannot be made to work on some arm it is REPORTED RED, never made green by weakening what it asserts -- a control that cannot fail is the exact defect EVAL-SUPPRESS found in this instrument.
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/151
+    schedule_revision: 1
     depends_on: []
-    blocks: [PA-03, PA-05, PA-06]
+    blocks: [FI-02, FI-03, FI-04, FI-05, FI-06]
     wave: 1
     promotion_order: 10
     promotion_predecessor: null
@@ -173,295 +63,141 @@ tickets:
       tla: []
       adapters: []
       test_graph: []
-      workflow: [examples/validation/ab/, examples/validation/PREDICTIONS-PA.md]
+      workflow: [examples/validation/ab/]
     objective: >-
-      This epic's EV-01. Three parts.
-
-      (1) A THIRD ARM, which the last epic could not run and which is the only way to settle its biggest confound. Arm A ordinary prompt, arm B the hexagonal ask, and ARM C a length-matched control: as long as arm B in unique content, asking for nothing architectural. Last epic's D3 went 1 to 4 on the treatment, and its own report says the win cannot be attributed to "hexagonal" rather than to a 6.6x longer prompt. Arm C is what separates them. If arm C matches arm B, the finding is that longer prompts produce better structure, which is worth knowing and is not what we claimed.
-
-      (2) A PORT-AWARE CATALOGUE. Extend the seeded-fault file with faults seeded DELIBERATELY INSIDE AN ADAPTER IMPLEMENTATION, not in the domain. That is the class the last epic proved invisible: a fault in the treatment arm's in-memory adapter survived every instrument, because the port creates a region no shared oracle reaches. Keep the exactly-once harness, keep the apply/revert byte-identical check, and keep declaring what is NOT seeded with reasons so the eval reports "not seeded" rather than "not caught".
-
-      (3) SEALED PREDICTIONS, committed before any other ticket is dispatched, with at least three NEGATIVES. The last epic's most informative results were both negatives: a repair that worked and moved zero cells (predicted), and a treatment that produced the structure and caught nothing (not predicted). Predict what will NOT move.
-
-      Carry forward the fixture, model and behavioural suite from the previous epic's A/B rather than authoring new ones -- the point of a baseline is that it is the same subject.
+      Goes FIRST AND ALONE, seeded before any measurement runs, because three tickets in a row correctly declined to seed it after seeing their numbers. GOAL-port-reach clause 2 could not be met last epic because no positive control is seeded inside a port's region, so every port-scoped kill number is a FLOOR including the headline. PA-06-DF-07 is blocking and worse: the repaired control is unobservable in one step on three of four trees AND ITS PROBE CANNOT FAIL -- a no-op reports HOLDS. Fixing the control without fixing the probe re-creates the defect. R2 applies: if it cannot be made to work on some tree, REPORT IT RED.
     desired_actions: []
     implementation_scope: [examples/validation/]
-    goals:
-      - goal: GOAL-port-reach
-        contribution: enabling
-        expected_effect: none -- enabling only; supplies the adapter-internal faults this goal is measured with
-        local_signal: python3 examples/validation/ab/check_catalogue.py
-      - goal: GOAL-cases-drive-ports
-        contribution: enabling
-        expected_effect: none -- enabling only; supplies the third arm that separates hexagonal from prompt length
-        local_signal: unique-content line counts per arm, reported as a number
-      - goal: GOAL-complexity-measurable
-        contribution: enabling
-        expected_effect: none -- enabling only; supplies the arms the instrument must tell apart
-        local_signal: 'N/A: harness ticket'
+    goals: []
     acceptance:
       commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
-      assertions: ["Three arms exist as three prompt files; arm C is length-matched to arm B in unique content and asks for nothing architectural, and the match is reported as a measured number.", "The catalogue seeds at least two faults INSIDE an adapter implementation, each proven to occur exactly once, apply/revert byte-identical.", "PREDICTIONS-PA.md is committed before any other ticket is dispatched and contains at least three explicit NEGATIVE predictions.", "ADDED AT schedule_revision 2. M07's status is established BY RUNNING IT on every arm including the new arm C, and reported per arm. If it is red on any arm the control is repaired so it does a control's job on all three; if it cannot be made to work on some arm that is REPORTED RED rather than made green by weakening the assertion. A prediction about M07 is sealed in PREDICTIONS-PA.md BEFORE the repair, not after. The related defect is checked while in there: the rerun found arm B's positive control \"does not do a control's job\" and the catalogue carries arm A's role string verbatim over it."]
-    model_delta_expectation: none -- and per surface_cost_rule that is a feature
-  - id: PA-02
-    title: 'Complexity of produced code: build the instrument that was missing'
-    status: closed
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/131
+      assertions: [A positive control is seeded INSIDE a port's region on every tree that declares a port., "The probe ships a DEMONSTRATED FAILING INPUT: a deliberately broken control that the probe reports broken.", "Any control that cannot be made to work is reported RED, never made green by weakening its assertion."]
+    model_delta_expectation: none expected
+  - id: FI-02
+    title: Every shipped instrument demonstrates a failing input
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/152
     schedule_revision: 1
-    depends_on: []
-    blocks: [PA-06]
-    wave: 1
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 2
     promotion_order: 20
-    promotion_predecessor: PA-01
+    promotion_predecessor: FI-01
     conflict_keys:
-      production: [scripts/code_complexity.py, tests/test_code_complexity.py]
+      production: [tests/test_code_complexity.py]
       tla: []
       adapters: []
       test_graph: []
-      workflow: [references/complexity_intuition.md]
+      workflow: [references/architecture_advice.md]
     objective: >-
-      THE GOAL THIS REPLACES DID NOT FAIL BECAUSE THE PROMPT FAILED TO SIMPLIFY. It failed because nothing in the toolchain could tell. The shipped descriptor reads TLA+; every arm produces Python. Both arms scored D2 = 2 from all four judges for that reason.
-
-      Build the missing measurement: complexity of PRODUCED CODE. Modules, public surface, pieces of mutable state, branch count, depth -- the same kind of figures the TLA+ descriptor reports, over the thing the agent actually wrote.
-
-      A THERMOMETER, NOT A THERMOSTAT, and this is the whole design constraint. It reports. It refuses nothing. Nothing is gated on it. Its output lands in the scorecard's MECHANICAL BLOCK, which is recorded and never scored, precisely so that a disagreement between measurement and judgement is visible as a finding rather than resolved by arithmetic.
-
-      Two rules the instrument must not violate, both bought by measurement:
-
-      - MF-020: A NUMBER FALLING IS NOT EVIDENCE THE DESIGN IMPROVED. A metric
-        can improve because an edge was deleted. The best complexity result in
-        the record was withheld from a top score by both judges for exactly this.
-        The instrument reports figures; it must not report a verdict.
-      - CD-01: it proposes no cut, no refactor, no move. A tool that picks the
-        boundary makes every edge legal by construction.
-
-      NO TARGET ON THE NUMBER. The goal is that the instrument exists and can tell two implementations of one spec apart. Setting a threshold before anything can produce a figure would be inventing the answer.
+      THE EPIC'S THESIS TICKET. architecture_advice.md S2 applied to ourselves. Enumerate every instrument this repo ships -- corpus runner, effect oracle, control probe, complexity descriptor, produced-code instrument, catalogue harness, sanitiser, scorecard check/audit, the tripwire -- and give each a demonstrated failing input and a demonstrated passing input. WHERE NO FAILING DEMONSTRATION CAN BE CONSTRUCTED, SAY SO AND COUNT IT: the count is the ticket's product and a high count is the honest outcome. Fix the tripwire to test its stated invariant rather than a substring -- NOT by renaming the string, which is the six-lines-of-YAML defeat this project documents.
     desired_actions: []
-    implementation_scope: [scripts/code_complexity.py, references/complexity_intuition.md, tests/]
-    goals:
-      - goal: GOAL-complexity-measurable
-        contribution: direct
-        expected_effect: >-
-          The instrument runs over produced Python and reports figures that DIFFER between the arms. If the figures are identical across arms, the instrument cannot tell them apart and the goal is missed.
-        local_signal: run it over the previous epic's two committed arms and report whether the figures differ
-      - goal: GOAL-port-reach
-        contribution: guard
-        expected_effect: none -- must not gate, refuse, or block anything
-        local_signal: N/A
-      - goal: GOAL-cases-drive-ports
-        contribution: guard
-        expected_effect: none expected
-        local_signal: N/A
+    implementation_scope: [tests/, scripts/, references/]
+    goals: []
     acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q, python3 scripts/code_complexity.py examples/validation/ab/arms/<arm>]
-      assertions: ["The instrument reports figures over produced Python and exits 0 on every input, including one it cannot fully parse -- an unparseable construct costs completeness and is REPORTED, never a refusal.", "It reports no verdict, proposes no change, and nothing in the toolchain gates on its output.", "Run over the previous epic's two committed arms it produces figures that differ, or the ticket reports that it cannot tell them apart."]
-    model_delta_expectation: none expected -- a reporting tool, not program behaviour the model represents
-  - id: PA-03
-    title: Ports in the manifest, and cases generated per port
-    status: done
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/132
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["Every shipped instrument has a re-runnable demonstrated failing input, or is counted as having none.", The count of instruments that cannot be shown to fail is reported as a result., The thermometer tripwire tests its stated invariant; the suite is green on main again.]
+    model_delta_expectation: none expected
+  - id: FI-03
+    title: 'Make the scorecard carry a delta: record judging practice, measure cross-round stability'
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/153
     schedule_revision: 1
-    depends_on: [PA-01]
-    blocks: [PA-04, PA-06]
+    depends_on: [FI-01]
+    blocks: [FI-06]
     wave: 2
     promotion_order: 30
-    promotion_predecessor: PA-02
+    promotion_predecessor: FI-02
     conflict_keys:
-      production: [scripts/generate_cases_from_tlc_dump.py, tests/test_generate_cases_from_tlc_dump.py]
+      production: []
       tla: []
       adapters: []
       test_graph: []
-      workflow: [prompts/hexagonal_implementation.md, references/generation_modes.md]
+      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md]
     objective: >-
-      The first half of making the two senses of "adapter" one object.
-
-      The prompt already makes an agent declare ports in the DOMAIN'S vocabulary. Have it declare them in the MANIFEST too, in the same shape the toolchain already uses for effect ports -- so a port the agent invented becomes a port the toolchain knows about.
-
-      Then generate cases PER PORT, not only per action. Today every generated case drives a whole action, which is why a hexagonal codebase and a non-hexagonal one produce identical verdicts on 49 of 49 comparable cells: the port boundary is invisible to generation. NOTE, added by the epic owner 2026-08-05: 49 of 49 is the SEALED HP-06 number and it was SUPERSEDED before this epic opened. EVAL-RERUN at b3a0199 replicated and widened it to 56 OF 56 strictly comparable cells on a fresh artifact pair and a wider catalogue. Aim at 56 of 56. See GOAL-cases-drive-ports.baseline for why the bar moved up.
-
-      Inherit rather than rebuild. The negative-corpus mode already emits the disabled edges at each reachable state and took guard relaxation from 0 of 3 to 3 of 3; per-port generation should compose with it, not replace it. And the tractability work stands: a corpus nobody can run is not a mechanism, and this model needed a projection to produce one at all.
+      SELF-IMPROVEMENT.md exists so the DELTA is the measurement, and three of five dimensions cannot currently carry one. PA-06 re-scored byte-identical trees and four dimension-points moved; D2 and D3 moved zero. The mechanism is judging practice, not the rubric: both judges seeded and ran their own faults, and D4 anchor 4 is awardable only by a judge who executes one. Make judging practice a recorded required field; measure cross-round stability directly by re-scoring a sealed artifact; and make the instability caveat executable so it can be promoted from prose to an R-H rule. Changing the card requires a scorecard_version bump and a re-score under both versions -- that is the card's own change rule. D2 and D3 held still: do not 'fix' them.
     desired_actions: []
-    implementation_scope: [scripts/generate_cases_from_tlc_dump.py, prompts/hexagonal_implementation.md, references/generation_modes.md, tests/]
-    goals:
-      - goal: GOAL-cases-drive-ports
-        contribution: direct
-        expected_effect: >-
-          The arms' per-mutant verdicts DIVERGE for the first time. If they stay identical on all comparable cells, generation still cannot see a port and the goal is missed.
-        local_signal: per-mutant verdict table over both arms, counting cells where they agree
-      - goal: GOAL-port-reach
-        contribution: enabling
-        expected_effect: none on its own -- supplies the per-port cases PA-04 binds to adapters
-        local_signal: case counts per declared port
-      - goal: GOAL-complexity-measurable
-        contribution: guard
-        expected_effect: none expected; must not grow a corpus past its cap again
-        local_signal: case count against the manifest cap
+    implementation_scope: [examples/validation/scorecards/, references/eval_scorecard.md, tests/]
+    goals: []
     acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q, python3 scripts/tla_spec_dev.py --spec-root specs generate cases <model> --out <corpus>]
-      assertions: ["A port declared by an agent in the manifest produces its own case set, and the count per port is reported.", "Per-port generation composes with the negative-corpus mode rather than replacing it; guard relaxation does not regress from 3 of 3.", "Corpora stay under the manifest cap, and byte-identical across two independent generations INCLUDING failing executions.", Per-class per-arm kill table reported. Never a single rate.]
-    model_delta_expectation: >-
-      Possibly one generation-mode variant. Per surface_cost_rule, state what it buys and what the state space costs BEFORE adding it -- the predecessor measured ~1.5 new coverage gaps and ~8x state space per surface-adding ticket.
-  - id: PA-04
-    title: Adapters bind to ports, and the fake/real swap becomes the instrument
-    status: done
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/133
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ['Judging practice is a recorded, required field on the card.', "Cross-round stability is measured against the 4-dimension-point baseline and reported as a number.", The instability caveat has a check behind it and audit still reports 0 violations.]
+    model_delta_expectation: none expected
+  - id: FI-04
+    title: A fixture whose arms CAN diverge, and an honest answer on generator vs suite
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/154
     schedule_revision: 1
-    depends_on: [PA-03]
-    blocks: [PA-06]
+    depends_on: [FI-01]
+    blocks: [FI-06]
     wave: 3
     promotion_order: 40
-    promotion_predecessor: PA-03
+    promotion_predecessor: FI-03
     conflict_keys:
-      production: [scripts/run_generated_case_adapters.py, scripts/effect_conformance.py, tests/test_effect_conformance.py]
+      production: []
       tla: []
       adapters: []
       test_graph: []
-      workflow: [references/case_modules.md]
+      workflow: [examples/validation/ab/]
     objective: >-
-      The second half, and the one that closes the epic's thesis.
-
-      Bind spec-unit and Test Graph adapters TO PORTS rather than to whole actions, so a generated case drives a real port. Then make the FAKE/REAL SWAP the instrument: run the identical case list against the real adapter and against its fake, and a fault in either one dies.
-
-      This is aimed at one measured hole. A fault in the previous epic's treatment arm lived in its in-memory adapter and SURVIVED EVERY INSTRUMENT -- five corpus instruments, the effect oracle, and the hand-written suite. The port created a region no shared oracle reaches, so hexagonal architecture made the code more modular and simultaneously created somewhere for a bug to hide.
-
-      Note what the scorecard already asks: D3 anchor 4 wants a driven port exercised by a real adapter AND a fake with the same cases passing against both. One arm reached it. What nobody has shown is that the pair CATCHES anything, and that is this ticket.
-
-      Two inherited defects are yours if they block you, and both were found by RUNNING rather than inspecting: the oracle drives 8 of 18 actions because nine adapters have no run() at all, and its counterfactual showed that an adapter differing ONLY in having one takes a mutant from surviving to dying 8 of 8. The oracle's reach was never the limit; the adapters' shape was.
+      GOAL-cases-drive-ports could not have been met by the experiment that measured it: the arms are identical on 10 of 11 mutated rows, so the A/B can only diverge where re-anchoring fails. The 64 of 64 was arithmetic that could not have come out otherwise. A GOAL WHOSE NULL IS ENTAILED BY ITS FIXTURE IS NOT A MEASUREMENT -- either the fixture changes or the goal does, and this ticket decides which explicitly. If the fixture changes, the bar is a seeded fault one arm catches and the other structurally cannot: the fixture's own demonstrated failing input, per R1. Also settle the harder question: no generated instrument has a unique kill and suite-fake strictly dominates every generated column, three epics running. AN HONEST ANSWER, INCLUDING 'WE SHOULD NOT KEEP FUNDING THE GENERATOR', IS A LEGITIMATE PRODUCT OF THIS TICKET.
     desired_actions: []
-    implementation_scope: [scripts/run_generated_case_adapters.py, scripts/effect_conformance.py, references/case_modules.md, tests/]
-    goals:
-      - goal: GOAL-port-reach
-        contribution: direct
-        expected_effect: >-
-          The adapter-internal fault PA-01 seeded dies on at least one generated instrument. If it survives everything again, the port region is still unreachable and the goal is missed.
-        local_signal: PA-01's adapter-internal faults against the real and fake wirings
-      - goal: GOAL-cases-drive-ports
-        contribution: direct
-        expected_effect: >-
-          Binding to ports is what makes per-port cases reach real code; the arms' verdicts diverge further, not less
-        local_signal: per-mutant verdict agreement count between arms
-      - goal: GOAL-complexity-measurable
-        contribution: guard
-        expected_effect: none expected
-        local_signal: N/A
+    implementation_scope: [examples/validation/]
+    goals: []
     acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q, python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --scope project]
-      assertions: ["An adapter binds to a declared port and a generated case drives it, with the binding readable from the mapping rather than inferred.", "The identical case list runs against a real adapter and its fake, and a fault seeded in EITHER is caught.", "Two runs over an identical corpus report identical results -- a nondeterministic instrument is a finding however good its first run.", "Every run states which oracles its mapping carries and which it does not, unprompted, in the run output."]
-    model_delta_expectation: none expected -- these are harness and binding changes, not missing model surface
-  - id: PA-05
-    title: Scaffold the scorecard, and teach the scorer to read its own history
-    status: closed
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/134
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [The fixture/goal decision is made explicitly and the reasoning recorded., "If the fixture changed, it ships a demonstrated divergence: a fault one arm catches and the other cannot.", 'The generator-versus-suite question is answered with evidence, either way.']
+    model_delta_expectation: none expected
+  - id: FI-05
+    title: The produced-code statistics reach a PROMPT, and the dispatched prompt is preserved
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/155
     schedule_revision: 1
-    depends_on: [PA-01]
-    blocks: [PA-06]
-    wave: 4
+    depends_on: [FI-01]
+    blocks: [FI-06]
+    wave: 3
     promotion_order: 50
-    promotion_predecessor: PA-04
+    promotion_predecessor: FI-04
     conflict_keys:
       production: []
       tla: []
       adapters: []
       test_graph: []
-      workflow: [examples/validation/scorecards/score_tools.py, references/eval_scorecard.md, specs/results/scorecards/SELF-IMPROVEMENT.md]
+      workflow: [prompts/hexagonal_implementation.md, references/complexity_intuition.md]
     objective: >-
-      A BLOCKER ON PA-06, deliberately: the evaluation must use this, not hand-author around it. Two halves.
-
-      (1) SCAFFOLD THE CARD. For two epics every scorecard was hand-authored from the rubric by whichever agent was judging. That is how a dimension key or the `refuses_to_claim` requirement drifts, and it puts the burden of remembering five sets of anchors on the judge. Add `score_tools.py scaffold`, emitting one skeleton per arm per judge with the anchors and the scoring rules INLINE, so a judge reads the bar for a score in the same file where the score is written.
-
-      MAKE BLINDING THE DEFAULT rather than something each eval remembers. Emit arms under opaque labels and write the mapping to an unblinding file the judge is not given. An eval that wants unblinded scoring should have to undo that deliberately. Both prior rounds blinded correctly by discipline; discipline is not a mechanism.
-
-      Refuse to overwrite an existing card. A scaffold that clobbers a measurement is worse than no scaffold.
-
-      (2) TEACH THE SCORER TO READ HISTORY, which is the half that matters more. `specs/results/scorecards/SELF-IMPROVEMENT.md` carries every epic's rows, and the metric is the DELTA. But this project has just proved that a row can go stale without anyone noticing: the predecessor's instrument was repaired AFTER its measurement, and two of its sealed numbers stopped describing the instrument that produced them. A scorer comparing naively across that boundary would have compared two different instruments and called the difference progress.
-
-      So add a way to SEE a scorecard's history beside the changes that affect it -- `score_tools.py history --example E` or equivalent -- showing rows over time WITH the instrument changes between them marked, and write the reading rules into `references/eval_scorecard.md`:
-
-        - A row is comparable to another row ONLY on the same example AND
-          across an unchanged instrument. Name the instrument change or do not
-          compare.
-        - Never average across examples: a deliberately incoherent fixture is
-          SUPPOSED to score low on D3.
-        - A number that moved because the instrument was repaired is not
-          improvement. Say which happened.
-        - A sealed card is never edited. When one goes stale, the ledger records
-          WHICH number and WHY, beside it.
-
-      Worked examples exist and should be used: the guard-relaxation row moving 0 -> 3 of 3 is a real mechanism gain; the D1 3 appearing on BOTH arms is an attribution correction, not a gain; and "controls green on both arms" is a sealed number known-wrong for one arm.
+      THE HALF OF THE COMPLEXITY WORK THAT DID NOT LAND. The stated intent was general statistics that block nothing and PROMPT THE MODEL ABOUT WHAT THEY MEAN. ports-as-adapters shipped the statistics and the human-readable intuition and not the prompting: grep -rn code_complexity prompts/ is EMPTY, and hexagonal_implementation.md still points only at the TLA+ descriptor. So the figures reach a human and a judge's mechanical block, and no agent is ever handed them and asked what they mean about its own design. The figures are worth asking about -- branch points in effectful modules 10 vs 1 on trees making the same three outside-world calls, so only LOCATION differs. It must not become a thermostat: no threshold, no verdict, nothing gated. Also preserve the DISPATCHED prompt as an artifact -- PA-06-DF-10 measured the length-match headline on a file that was not the prompt arm C received.
     desired_actions: []
-    implementation_scope: [examples/validation/scorecards/, references/eval_scorecard.md, specs/results/scorecards/SELF-IMPROVEMENT.md, tests/]
-    goals:
-      - goal: GOAL-port-reach
-        contribution: enabling
-        expected_effect: none -- enabling only; PA-06 decides this goal with the card this ticket scaffolds
-        local_signal: scaffold a card, fill one dimension, and confirm `check` rejects it uncited
-      - goal: GOAL-cases-drive-ports
-        contribution: enabling
-        expected_effect: none -- enabling only
-        local_signal: 'N/A: tooling ticket'
-      - goal: GOAL-complexity-measurable
-        contribution: enabling
-        expected_effect: >-
-          none -- enabling only; the complexity figures land in the mechanical block this scaffold emits
-        local_signal: 'N/A: tooling ticket'
+    implementation_scope: [prompts/, references/complexity_intuition.md, examples/validation/, tests/]
+    goals: []
     acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q, "python3 examples/validation/scorecards/score_tools.py scaffold specs/results/scorecards/ports-as-adapters --example ab_quota_ledger --arms A,B,C --judges 2", "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/ports-as-adapters"]
-      assertions: ["A scaffolded card carries the anchors and scoring rules inline, and `check` still rejects an uncited score >= 2 and a 4 with no refuses_to_claim.", "Arms are emitted under opaque labels; the mapping lands in a separate file; scaffolding twice over the same path REFUSES rather than overwriting.", "History is readable per example, with instrument changes marked between rows, and the reading rules are in references/eval_scorecard.md.", Every new behaviour ships a test that FAILS on the parent commit.]
-    model_delta_expectation: none -- eval harness under examples/validation/, out of model by representation_scope
-  - id: PA-06
-    title: 'EVALUATION: three arms, judged blind, deciding the three goals'
-    status: closed
-    role: evaluation
-    owns_goals: [GOAL-port-reach, GOAL-cases-drive-ports, GOAL-complexity-measurable]
-    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/135
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: ["The produced-code figures are put in front of a model with a request to READ them, not score them.", Nothing gates on the figures; the instrument still exits 0 on every input., The prompt as DISPATCHED is preserved as an artifact and is what gets measured.]
+    model_delta_expectation: none expected
+  - id: FI-06
+    title: >-
+      EVALUATION: do the instruments fail when they should, and does anything beat a hand-written suite
+    status: planned
+    github_issue: https://github.com/haydenrear/tla-spec-dev/issues/156
     schedule_revision: 1
-    depends_on: [PA-01, PA-02, PA-03, PA-04, PA-05]
+    depends_on: [FI-01, FI-02, FI-03, FI-04, FI-05]
     blocks: []
-    wave: 5
+    wave: 4
     promotion_order: 60
-    promotion_predecessor: PA-05
+    promotion_predecessor: FI-05
     conflict_keys:
       production: []
       tla: []
       adapters: []
       test_graph: []
-      workflow: [specs/results/scorecards/ports-as-adapters/, NEXT-EPIC.md]
+      workflow: [specs/results/scorecards/falsifiable-instruments/]
     objective: >-
-      The epic's product, and the ticket every other ticket was written against. A MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome.
-
-      Run the three arms on the integrated tip: A ordinary, B hexagonal, C length-matched control. Seed PA-01's catalogue, including its adapter-internal faults, in all three. Generate cases, run them through each arm's adapters and through the real/fake pair, and count what dies.
-
-      ARM C IS THE POINT OF THIS ROUND'S DESIGN. The previous epic's headline was D3 = 1 to 4 on the hexagonal arm, and its own report said the win could not be attributed to "hexagonal" rather than to a 6.6x longer prompt. If arm C matches arm B, say so plainly: the finding becomes that longer prompts produce better structure, and the architectural content was decoration.
-
-      Judge all three arms per references/eval_scorecard.md: TWO JUDGES, BLIND TO ARM AND TO EACH OTHER, artifacts not claims, file:line for every score >= 2, a named refusal for every 4, prose quality never an input. A spread > 1 is contested and needs a third pass citing NEW evidence. Validate every card with score_tools.py check.
-
-      Score the sealed predictions PASS / FAIL / SUPERSEDED. Do not amend them.
-
-      Decide each goal: baseline -> measured -> target, verdict met / missed / unmeasured with a reason. NEVER edit a target to match a result. NEVER re-run selectively until a number passes. Report the run that happened.
-
-      Report FINDINGS BY CHANNEL -- suite re-run, fresh adversarial attack, blind author -- with counts and the ratio stated as a result. For three rounds running the best material came from asking an agent what it REJECTED, and the suite produced ZERO findings from 1,329 green assertions last round. A suite-only round means the suite has stopped being informative.
-
-      Report the complexity instrument's figures in the MECHANICAL BLOCK, never scored, and say explicitly whether they agree or disagree with D2. A disagreement between measurement and judgement is a finding.
-
-      Append rows and verdicts to specs/results/scorecards/SELF-IMPROVEMENT.md, and report against the "evidence we are fooling ourselves" list already written there.
-
-      FILE FINDINGS, FIX NOTHING.
+      The epic's product and a MEASUREMENT, not a victory lap. A low or unflattering result is the preferred outcome. Report: the count of instruments that cannot be shown to fail; the scorecard's cross-round movement against its 4-point baseline; whether the fixture's arms can diverge at all; and whether anything we generate beats a hand-written suite yet. THREE EPICS SAY NO AND THE LAST ONE SHOWED suite-fake STRICTLY DOMINATING EVERY GENERATED COLUMN. If that is still true, it is the headline and it is reported as the headline rather than buried under the parts that improved. Findings BY CHANNEL with the ratio stated as a result. FILE FINDINGS, FIX NOTHING.
     desired_actions: []
     implementation_scope: [specs/results/scorecards/, NEXT-EPIC.md]
-    goals:
-      - goal: GOAL-port-reach
-        contribution: guard
-        expected_effect: decides the goal; adds no behavioural delta
-        local_signal: 'N/A: this ticket is the measurement'
-      - goal: GOAL-cases-drive-ports
-        contribution: guard
-        expected_effect: decides the goal; adds no behavioural delta
-        local_signal: 'N/A: this ticket is the measurement'
-      - goal: GOAL-complexity-measurable
-        contribution: guard
-        expected_effect: decides the goal; adds no behavioural delta
-        local_signal: 'N/A: this ticket is the measurement'
+    goals: []
     acceptance:
-      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q, "python3 examples/validation/scorecards/score_tools.py check specs/results/scorecards/ports-as-adapters", "python3 examples/validation/scorecards/score_tools.py index specs/results/scorecards/ports-as-adapters"]
-      assertions: ["All three arms scored by two judges blind to arm; every card passes the schema check; contested dimensions adjudicated on NEW evidence.", "Arm C is reported against arm B explicitly, and the attribution question is answered either way.", Every prediction scored PASS / FAIL / SUPERSEDED. None amended., Each goal reports baseline -> measured -> target with a verdict and a reason., Findings reported BY CHANNEL with counts and the ratio stated as a result., "The complexity instrument's figures appear in the mechanical block, unscored, with agreement or disagreement against D2 stated.", Findings FILED and NONE fixed.]
-    model_delta_expectation: none -- a measurement ticket carries no model delta
+      commands: [uv run --with pytest --with pyyaml python -m pytest tests -q]
+      assertions: [Every goal reports baseline -> measured -> target -> verdict with a reason., The count of instruments with no demonstrated failure is reported., Findings reported BY CHANNEL with counts and the ratio stated as a result., Findings FILED and NONE fixed.]
+    model_delta_expectation: none expected
+    role: evaluation
+    owns_goals: []
